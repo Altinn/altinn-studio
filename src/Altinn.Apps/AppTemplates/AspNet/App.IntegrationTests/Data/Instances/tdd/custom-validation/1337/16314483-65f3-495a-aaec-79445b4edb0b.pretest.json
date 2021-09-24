@@ -1,1 +1,52 @@
-{"id":"1337/16314483-65f3-495a-aaec-79445b4edb0b","instanceOwner":{"partyId":"1337","personNumber":"01039012345"},"appId":"tdd/custom-validation","org":"tdd","process":{"started":"2019-12-05T13:24:34.8412179Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2019-12-05T13:24:34.9196661Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data","validated":{"timestamp":"2020-03-12T12:03:49.1182605+01:00","canCompleteTask":false}}},"data":[{"id":"1727a8be-ca09-4030-a27c-1fc3498c3c9b","dataType":"default","contentType":"application/xml","size":0,"locked":false},{"id":"b862f944-3f04-45e3-b445-6bbd09f65ad5","instanceGuid":"4d565594-549e-49dd-a206-f6afc0965999","dataType":"9edd53de-f46f-40a1-bb4d-3efb93dc113d","filename":"HelloWorld.txt","contentType":"application/octet-stream","blobStoragePath":"ttd/nina-testapp/4d565594-549e-49dd-a206-f6afc0965999/data/b862f944-3f04-45e3-b445-6bbd09f65ad5","size":13,"locked":false,"refs":[],"created":"2020-02-05T08:23:02.3637527Z","lastChanged":"2020-02-05T08:23:02.3637527Z"}]}
+{
+  "id": "1337/16314483-65f3-495a-aaec-79445b4edb0b",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "01039012345"
+  },
+  "appId": "tdd/custom-validation",
+  "org": "tdd",
+  "process": {
+    "started": "2019-12-05T13:24:34.8412179Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-05T13:24:34.9196661Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data",
+      "validated": {
+        "timestamp": "2020-03-12T12:03:49.1182605+01:00",
+        "canCompleteTask": false
+      }
+    }
+  },
+  "data": [
+    {
+      "id": "1727a8be-ca09-4030-a27c-1fc3498c3c9b",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    },
+    {
+      "id": "b862f944-3f04-45e3-b445-6bbd09f65ad5",
+      "instanceGuid": "4d565594-549e-49dd-a206-f6afc0965999",
+      "dataType": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "filename": "HelloWorld.txt",
+      "contentType": "application/octet-stream",
+      "blobStoragePath": "ttd/nina-testapp/4d565594-549e-49dd-a206-f6afc0965999/data/b862f944-3f04-45e3-b445-6bbd09f65ad5",
+      "size": 13,
+      "locked": false,
+      "refs": [],
+      "created": "2020-02-05T08:23:02.3637527Z",
+      "status": {
+        "isArchived": false,
+        "isSoftDeleted": false,
+        "isHardDeleted": false,
+        "readStatus": "Read"
+      },
+      "lastChanged": "2020-02-05T08:23:02.3637527Z"
+    }
+  ]
+}

@@ -18,19 +18,16 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ProfileController : Controller
     {
-        private readonly IProfile _profile;
+        private readonly IProfile _profileClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileController"/> class
         /// </summary>
-        /// <param name="profile">The profile service</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="logger">the logger</param>
-        public ProfileController(IProfile profile, IHttpContextAccessor httpContextAccessor, ILogger<ProfileController> logger)
+        public ProfileController(IProfile profileClient, IHttpContextAccessor httpContextAccessor, ILogger<ProfileController> logger)
         {
-            _profile = profile;
+            _profileClient = profileClient;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
@@ -51,7 +48,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                var user = await _profile.GetUserProfile(userId);
+                var user = await _profileClient.GetUserProfile(userId);
 
                 if (user == null)
                 {

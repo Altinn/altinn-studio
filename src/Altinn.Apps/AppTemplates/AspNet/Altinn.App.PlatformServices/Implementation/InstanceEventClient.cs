@@ -22,31 +22,27 @@ using Newtonsoft.Json;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the instance events service, for saving to and retrieving from Platform Storage.
+    /// A client for handling actions on instance events in Altinn Platform.
     /// </summary>
-    public class InstanceEventAppSI : IInstanceEvent
+    public class InstanceEventClient : IInstanceEvent
     {
-        private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
+        /// Initializes a new instance of the <see cref="InstanceEventClient"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
-        /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="httpClient">The Http client</param>
         /// <param name="settings">The application settings.</param>
-        public InstanceEventAppSI(
+        public InstanceEventClient(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
         {
-            _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
@@ -57,9 +53,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to)
         {
-            string apiUrl = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"{instanceOwnerPartyId}/{instanceId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             if (eventTypes != null)

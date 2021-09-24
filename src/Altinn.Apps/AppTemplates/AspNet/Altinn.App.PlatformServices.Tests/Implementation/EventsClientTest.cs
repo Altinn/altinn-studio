@@ -23,7 +23,7 @@ using Xunit;
 
 namespace Altinn.App.PlatformServices.Tests.Implementation
 {
-    public class EventsAppSITests
+    public class EventsClientTest
     {
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
@@ -33,7 +33,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IAccessTokenGenerator> accessTokenGeneratorMock;
         private readonly Mock<IAppResources> appResourcesMock;
 
-        public EventsAppSITests()
+        public EventsClientTest()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
@@ -71,7 +71,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            EventsAppSI target = new EventsAppSI(
+            EventsClient target = new EventsClient(
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
@@ -126,7 +126,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            EventsAppSI target = new EventsAppSI(
+            EventsClient target = new EventsClient(
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
@@ -176,7 +176,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            EventsAppSI target = new EventsAppSI(
+            EventsClient target = new EventsClient(
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,

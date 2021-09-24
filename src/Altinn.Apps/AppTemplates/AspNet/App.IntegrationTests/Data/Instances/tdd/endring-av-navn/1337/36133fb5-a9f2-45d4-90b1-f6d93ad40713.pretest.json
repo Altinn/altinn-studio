@@ -13,7 +13,11 @@
   "process": {
     "currentTask": { "elementId": "Task_1" }
   },
-  "status": {    
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
   }
 }
 

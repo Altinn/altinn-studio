@@ -6,6 +6,7 @@ import { DataModelsMetadataActions } from '../dataModelsMetadataSlice';
 
 function* getDataModelsMetadataSaga(): SagaIterator {
   try {
+    yield call(get, sharedUrls().ensureCloneApi);
     const dataModelsMetadata = yield call(get, sharedUrls().dataModelsApi);
     yield put(DataModelsMetadataActions.getDataModelsMetadataFulfilled({ dataModelsMetadata }));
   } catch (error) {

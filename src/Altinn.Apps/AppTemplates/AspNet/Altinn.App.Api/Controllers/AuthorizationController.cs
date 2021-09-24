@@ -7,7 +7,6 @@ using Altinn.App.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers
@@ -18,7 +17,6 @@ namespace Altinn.App.Api.Controllers
     public class AuthorizationController : Controller
     {
         private readonly IAuthorization _authorization;
-        private readonly ILogger _logger;
         private readonly UserHelper _userHelper;
         private readonly GeneralSettings _settings;
 
@@ -27,14 +25,12 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         public AuthorizationController(
                 IAuthorization authorization,
-                IProfile profileService,
-                IRegister registerService,
-                ILogger<AuthorizationController> logger,
+                IProfile profileClient,
+                IRegister registerClient,
                 IOptions<GeneralSettings> settings)
         {
-            _userHelper = new UserHelper(profileService, registerService, settings);
+            _userHelper = new UserHelper(profileClient, registerClient, settings);
             _authorization = authorization;
-            _logger = logger;
             _settings = settings.Value;
         }
 

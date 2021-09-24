@@ -37,7 +37,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="instanceService">A service with access to instances</param>
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
-        /// <param name="altinnAppContext">The app context service</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,

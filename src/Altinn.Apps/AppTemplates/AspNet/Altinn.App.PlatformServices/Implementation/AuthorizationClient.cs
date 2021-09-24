@@ -3,43 +3,47 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Models;
+
 using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the authorization service where the app uses the Altinn platform api.
+    /// Client for handling authorization actions in Altinn Platform.
     /// </summary>
-    public class AuthorizationAppSI : IAuthorization
+    public class AuthorizationClient : IAuthorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
-        private readonly HttpClient _authClient;
+        private readonly HttpClient _client;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
+        /// Initializes a new instance of the <see cref="AuthorizationClient"/> class
         /// </summary>
         /// <param name="platformSettings">The platform settings from configuration.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
         /// <param name="httpClient">A Http client from the HttpClientFactory.</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="logger">the handler for logger service</param>
-        public AuthorizationAppSI(
+        public AuthorizationClient(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings,
-            ILogger<AuthorizationAppSI> logger)
+            ILogger<AuthorizationClient> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
@@ -47,7 +51,7 @@ namespace Altinn.App.Services.Implementation
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _authClient = httpClient;
+            _client = httpClient;
         }
 
         /// <inheritdoc />
@@ -58,7 +62,7 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             try
             {
-                HttpResponseMessage response = await _authClient.GetAsync(token, apiUrl);
+                HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
@@ -81,7 +85,7 @@ namespace Altinn.App.Services.Implementation
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _authClient.GetAsync(token, apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
