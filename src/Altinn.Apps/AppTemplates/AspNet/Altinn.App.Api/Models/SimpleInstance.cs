@@ -10,7 +10,7 @@ namespace Altinn.App.Api.Models
         /// <summary>
         /// The instance identifier formated as {instanceOwner.partyId}/{instanceGuid}.
         /// </summary>
-        public string InstanceId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Last changed date time in UTC format.
