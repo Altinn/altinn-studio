@@ -11,6 +11,7 @@ export const sharedUrls = () => {
   const designerApi = `${origin}/designer/api`;
   const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
   return {
+    ensureCloneApi: `${origin}/designer/${org}/${repo}`,
     dataModelsApi,
     dataModelUploadPageUrl: `${origin}/designer/${org}/${repo}#/datamodel`,
     dataModelXsdUrl: `${origin}/designer/${org}/${repo}/Model/GetXsd`,
