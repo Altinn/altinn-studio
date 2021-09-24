@@ -505,7 +505,7 @@ namespace Altinn.Platform.Authentication.Controllers
             byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
             string decodedString = Encoding.UTF8.GetString(decodedCredentials);
 
-            string[] decodedStringArray = decodedString.Split(":");
+            string[] decodedStringArray = decodedString.Split(":", 2);
             string usernameFromRequest = decodedStringArray[0];
             string password = decodedStringArray[1];
 

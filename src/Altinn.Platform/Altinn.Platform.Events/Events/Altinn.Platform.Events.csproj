@@ -20,8 +20,8 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.19" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.18.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
+    <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
     <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
     <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
   </ItemGroup>

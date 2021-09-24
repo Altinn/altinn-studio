@@ -18,7 +18,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
     /// there is a set of XSD compatibilities <see cref="CompatibleXsdType"/> available that can be used
     /// when deciding how a particular node should be represented in the XSD.
     /// </summary>
-    public class JsonSchemaGeneralConverter : IJsonSchemaConverter
+    public class GeneralJsonSchemaConverter : IJsonSchemaConverter
     {
         private readonly XmlDocument _xmlFactoryDocument = new XmlDocument();
 
@@ -35,9 +35,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             _xsd = new XmlSchema();
             _namespaces = new Dictionary<string, string>();
 
-            HandleSchemaAttributes();
-            HandleSchemaUnhandledAttributes();
+            HandleSchemaAttributes();   
             HandleNamespaces();
+            HandleSchemaUnhandledAttributes();
 
             var keywords = _schema.AsWorkList();
 
