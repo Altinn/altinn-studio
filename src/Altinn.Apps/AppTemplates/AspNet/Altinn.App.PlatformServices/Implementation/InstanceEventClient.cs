@@ -53,9 +53,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to)
         {
-            string apiUrl = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"{instanceOwnerPartyId}/{instanceId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             if (eventTypes != null)

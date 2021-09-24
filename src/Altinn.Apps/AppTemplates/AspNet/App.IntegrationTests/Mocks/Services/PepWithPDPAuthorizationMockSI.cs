@@ -250,7 +250,7 @@ namespace App.IntegrationTests.Mocks.Services
             return attribute;
         }
 
-        public Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
+        public static Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
         {
             string rolesPath = GetRolesPath(coveredByUserId, offeredByPartyId);
 
@@ -271,7 +271,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\authorization\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
-        private Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
+        private static Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
             return Task.FromResult(ParsePolicy("policy.xml", GetPolicyPath(request)));
         }
