@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { getCookieValue } from "../api";
 
 interface FetchState<T> {
   data: T;
@@ -6,14 +7,7 @@ interface FetchState<T> {
   error?: string;
 }
 
-function getCookieValue(name:string) {
-  var match = document.cookie.match(new RegExp("(^| )" + encodeURIComponent(name) + "=([^;]+)"));
-  if (match) {
-    return match[2];
-  }
 
-  return "";
-}
 
 export default function usePost<T>(
   url: string | undefined,

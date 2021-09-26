@@ -1,4 +1,4 @@
-import {useState, useMemo, useCallback} from "react"
+import { useState, useMemo, useCallback } from "react"
 
 import { collator } from '../components/Editor';
 
@@ -15,68 +15,70 @@ import { collator } from '../components/Editor';
  * @param storedValues The original array of objects before editing
  * @returns 
  */
-export default function useEditArray<T extends Record<string,string>>(storedValues:Record<string,T>){
+export default function useEditArray<T extends Record<string, string>>(storedValues: Record<string, T> | undefined) {
   const [edits, setRawEdits] = useState<Record<string, T>>({})
   const [newIds, setNewIds] = useState<string[]>([])
   const [deletedIds, setDeletedIds] = useState<string[]>([])
-  const allIds = useMemo(()=>
-    Object.keys(storedValues).concat(newIds).filter(id=>deletedIds.indexOf(id) === -1).sort(collator.compare)
-  , [storedValues, newIds, deletedIds])
-  const data = useMemo(()=>
-    allIds.map(id=>(
+  const allIds = useMemo(() => {
+    if (!storedValues) return []
+    return Object.keys(storedValues).concat(newIds).filter(id => deletedIds.indexOf(id) === -1).sort(collator.compare)
+  }
+    , [storedValues, newIds, deletedIds])
+  const data = useMemo(() =>
+    allIds.map(id => (
       {
         id,
         orig: storedValues[id],
         edit: edits[id]
       }
-      ))
-  , [storedValues, newIds, edits])
+    ))
+    , [storedValues, newIds, edits])
 
   // console.log(edits, newIds, deletedIds)
-  const updateCell = useCallback((e: React.ChangeEvent<HTMLInputElement>)=>{
+  const updateCell = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const id = e.target.dataset.id;
     const lang = e.target.lang;
     setRawEdits(
-      prevState=>
+      prevState =>
       ({
         ...prevState,
         [id]: {
           ...(prevState[id]),
           [lang]: value
-          }
+        }
       })
-      )
-  },[])
-  const deleteId = useCallback((e: React.MouseEvent<HTMLInputElement>)=>{
+    )
+  }, [])
+  const deleteId = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
     const id = (e.target as any).dataset.id as string;
-    if(newIds.indexOf(id) === -1){ // The id to be deleted is an old id
-      setNewIds(prevState=>{
+    if (newIds.indexOf(id) === -1) { // The id to be deleted is an old id
+      setNewIds(prevState => {
         const index = prevState.indexOf(id)
-        if(index!==-1){
+        if (index !== -1) {
           const newState = prevState.slice();
-          newState.splice(index,1)
+          newState.splice(index, 1)
           return newState
         }
         return prevState
       });
-    }else{
-      setDeletedIds(prevState=>[...prevState,id])
+    } else {
+      setDeletedIds(prevState => [...prevState, id])
     }
-    setRawEdits(prevState=>{
-      if(prevState[id]){
-        const {[id]:_, ...newState} = prevState
+    setRawEdits(prevState => {
+      if (prevState[id]) {
+        const { [id]: _, ...newState } = prevState
         return newState
       }
       return prevState
     });
-  },[newIds])
+  }, [newIds])
 
-  const addNewId = useCallback((newId:string)=>{
-    const newIds = newId.split(",").map(id=>id.trim()).filter(id=>!allIds.some(el=>(collator.compare(el,id) === 0)))
-    setNewIds(prevState=>([...prevState, ...newIds]));
-  },[allIds])
+  const addNewId = useCallback((newId: string) => {
+    const newIds = newId.split(",").map(id => id.trim()).filter(id => !allIds.some(el => (collator.compare(el, id) === 0)))
+    setNewIds(prevState => ([...prevState, ...newIds]));
+  }, [allIds])
 
-return {data, updateCell, addNewId, deleteId, state:{edited: edits, newIds, deletedIds}}
+  return { data, updateCell, addNewId, deleteId, state: { edited: edits, newIds, deletedIds } }
 }
 

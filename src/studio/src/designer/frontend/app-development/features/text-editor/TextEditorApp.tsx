@@ -9,13 +9,14 @@ import Editor from "./components/Editor";
 import useFetch from "./hooks/useFetch";
 import { getResourcesResponse, getResourcesUrl, getSaveResourcesUrl, saveResourcesRequest } from "./api";
 import usePost from "./hooks/usePost";
+import useEditArray from "./hooks/useEditArray";
 
 const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
     [theme.breakpoints.up("md")]: {
-      paddingLeft: theme.sharedStyles.mainPaddingLeft,
+      paddingLeft: altinnTheme.sharedStyles.mainPaddingLeft,
     },
     flexGrow: 1,
     // height: "calc(100vh - 110px)",
@@ -28,7 +29,10 @@ const TextEditorApp = (): JSX.Element => {
   const lang = useLanguages();
   const resources = useFetch<getResourcesResponse>(getResourcesUrl());
   const postHelper = usePost<saveResourcesRequest>(getSaveResourcesUrl())
-  // TODO: Handle post errors
+  // TODO: Handle post and delete errors
+
+  const { data, updateCell, addNewId, deleteId, state: editArrayState } = useEditArray(resources.data)
+
 
   if (lang.loading || resources.loading) {
     return (
@@ -36,12 +40,12 @@ const TextEditorApp = (): JSX.Element => {
     );
   }
   if (lang.error) return <div className={styles.root}>Error loading lang</div>;
-  if(resources.error) return <div className={styles.root}>Error loading resources</div>
-  
+  if (resources.error) return <div className={styles.root}>Error loading resources</div>
+
   return (
     <div className={styles.root}>
-      <Header cultureData={lang.data} />
-      <Editor cultureData={lang.data} resources={resources.data} doPost={postHelper.doPost} />
+          <Header cultureData={lang.data} addLanguage={lang.addLanguage} removeLanguage={lang.removeLanguage} />
+          <Editor cultureData={lang.data} data={data} updateCell={updateCell} addNewId={addNewId} deleteId={deleteId} save={() => postHelper.doPost(editArrayState)} />
     </div>
   );
 };
