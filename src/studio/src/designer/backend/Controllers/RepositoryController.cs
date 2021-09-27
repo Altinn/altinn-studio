@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -482,6 +484,41 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok(contents);
+        }
+
+        /// <summary>
+        /// Gets the repository content
+        /// </summary>
+        [HttpGet]
+        [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
+        public async Task<ActionResult> ContentsZip(string org, string repository, [FromQuery] string path = "")
+        {
+            string appRoot = _repository.GetAppPath(org, repository);
+
+            if (!Directory.Exists(appRoot))
+            {
+                return BadRequest("User does not have a local clone of the repository.");
+            }
+
+            var tempDir = _repository.GetAppPath(org, repository + "-content-copy");
+            var tempFile = Path.Join(tempDir, "content.zip");
+            byte[] bytes;
+            try
+            {
+                Directory.CreateDirectory(tempDir);
+                ZipFile.CreateFromDirectory(appRoot, tempFile);
+
+                // Read file to memory, so it can be deleted before returning.
+                // It would probably be better to stream from disk, but I didn't
+                // figure out how to delete it afterwards.
+                bytes = System.IO.File.ReadAllBytes(tempFile);
+            }
+            finally
+            {
+                System.IO.File.Delete(tempFile);
+            }
+
+            return File(bytes, "application/zip", $"{org}-{repository}.zip");
         }
     }
 }

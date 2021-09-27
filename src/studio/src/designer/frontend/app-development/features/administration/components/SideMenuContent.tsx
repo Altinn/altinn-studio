@@ -112,7 +112,8 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         id='reset-repo-button'
         btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
         onClickFunction={onClickResetRepo}
-      />
+      /><br/>
+      <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{getLanguageFromKey('administration.download_repo', props.language)}</a>
       <ResetRepoModal
         anchorEl={resetRepoModalAnchorEl}
         handleClickResetRepo={handleResetRepoClick}
