@@ -64,9 +64,7 @@ Array [
     <span
       className="label-optional"
     >
-      (
-      general.optional
-      )
+       (general.optional)
     </span>
     
   </label>,

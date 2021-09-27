@@ -8,7 +8,7 @@
       <xsd:attribute name="generert" fixed="2015-05-06T09:50:22.327+02:00"/>
       <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd"/>
       <xsd:attribute name="namespace" fixed="http://seres.no/xsd/StatistiskSentralbyrå/RA-0678_M/2015"/>
-      <xsd:attribute name="meldingsnavn" fixed="melding"/>
+      <xsd:attribute name="meldingsnavn" fixed="Root"/>
       <xsd:attribute name="domenenavn" fixed="StatistiskSentralbyrå"/>
       <xsd:attribute name="modellnavn" fixed="RA-0678_M"/>
       <xsd:attribute name="metamodellversjon" fixed="1.2"/>

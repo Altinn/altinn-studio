@@ -1,1 +1,27 @@
-{"id":"1000/433ea476-df3a-4a19-81cd-0f23a42614ed","instanceOwner":{"partyId":"1000","personNumber":"12345678901"},"appId":"tdd/custom-validation","org":"tdd","process":{"started":"2020-02-06T14:27:04.7028882Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2020-02-06T14:27:04.7029889Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data"}},"data":[]}
+{
+  "id": "1000/433ea476-df3a-4a19-81cd-0f23a42614ed",
+  "instanceOwner": {
+    "partyId": "1000",
+    "personNumber": "12345678901"
+  },
+  "appId": "tdd/custom-validation",
+  "org": "tdd",
+  "process": {
+    "started": "2020-02-06T14:27:04.7028882Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2020-02-06T14:27:04.7029889Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": []
+}

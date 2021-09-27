@@ -42,7 +42,7 @@ namespace Altinn.App.Api.Controllers
         private const int MaxIterationsAllowed = 100;
 
         private readonly ILogger<ProcessController> _logger;
-        private readonly IInstance _instanceService;
+        private readonly IInstance _instanceClient;
         private readonly IProcess _processService;
         private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
@@ -57,7 +57,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         public ProcessController(
             ILogger<ProcessController> logger,
-            IInstance instanceService,
+            IInstance instanceClient,
             IProcess processService,
             IAltinnApp altinnApp,
             IValidation validationService,
@@ -66,7 +66,7 @@ namespace Altinn.App.Api.Controllers
             IOptions<AppSettings> appSettings)
         {
             _logger = logger;
-            _instanceService = instanceService;
+            _instanceClient = instanceClient;
             _processService = processService;
             _altinnApp = altinnApp;
             _validationService = validationService;
@@ -98,7 +98,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 ProcessState processState = instance.Process;
 
                 return Ok(processState);
@@ -139,7 +139,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
                 if (instance.Process != null)
                 {
@@ -174,12 +174,12 @@ namespace Altinn.App.Api.Controllers
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
 
             // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
-            Instance updatedInstance = await _instanceService.UpdateProcess(instance);
+            Instance updatedInstance = await _instanceClient.UpdateProcess(instance);
 
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
 
             // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
-            updatedInstance = await _instanceService.GetInstance(updatedInstance);
+            updatedInstance = await _instanceClient.GetInstance(updatedInstance);
 
             return updatedInstance;
         }
@@ -209,7 +209,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
                 if (instance.Process == null)
                 {
@@ -266,7 +266,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
                 if (instance.Process == null)
                 {
@@ -386,7 +386,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             }
             catch (PlatformHttpException e)
             {

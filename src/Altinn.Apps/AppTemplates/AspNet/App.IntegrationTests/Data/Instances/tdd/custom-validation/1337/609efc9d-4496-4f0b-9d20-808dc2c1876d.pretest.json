@@ -1,1 +1,35 @@
-{"id":"1337/609efc9d-4496-4f0b-9d20-808dc2c1876d","instanceOwner":{"partyId":"1337","personNumber":"12345678901"},"appId":"tdd/custom-validation","org":"tdd","process":{"started":"2019-12-11T09:34:35.5471442Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2019-12-11T09:34:37.6872728Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data"}},"status":{"readStatus":"Read"},"data":[{"id":"8e0bf827-7bff-4954-ae6f-7ec3fb94e6f2","dataType":"default","contentType":"application/xml","size":0,"locked":false}]}
+{
+  "id": "1337/609efc9d-4496-4f0b-9d20-808dc2c1876d",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "12345678901"
+  },
+  "appId": "tdd/custom-validation",
+  "org": "tdd",
+  "process": {
+    "started": "2019-12-11T09:34:35.5471442Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-11T09:34:37.6872728Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": [
+    {
+      "id": "8e0bf827-7bff-4954-ae6f-7ec3fb94e6f2",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    }
+  ]
+}
