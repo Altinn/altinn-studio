@@ -209,7 +209,7 @@ export function AddressComponent(props: IAddressComponentProps) {
         {props.required || props.readOnly || props.labelSettings?.optionalIndicator === false || hideOptional ?
           null :
           <span className='label-optional'>
-            ({getLanguageFromKey('general.optional', props.language)})
+            {` (${getLanguageFromKey('general.optional', props.language)})`}
           </span>
         }
       </label>
