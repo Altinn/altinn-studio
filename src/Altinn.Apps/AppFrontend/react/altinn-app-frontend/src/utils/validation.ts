@@ -453,6 +453,8 @@ export function validateComponentFormData(
     invalidDataTypes: false,
   };
 
+  console.log('before', validator.errors);
+
   if (!valid) {
     validator.errors.filter((error) => processInstancePath(error.instancePath) === dataModelField).forEach((error) => {
       if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
@@ -462,10 +464,12 @@ export function validateComponentFormData(
       if (Array.isArray(errorParams)) {
         errorParams = errorParams.join(', ');
       }
+      console.log('have errors', validator.errors);
       // backward compatible if we are validating against a sub scheme.
       const fieldSchema = rootElementPath ?
         getSchemaPartOldGenerator(error.schemaPath, schema, rootElementPath) :
         getSchemaPart(error.schemaPath, schema);
+      console.log('fieldSchema', fieldSchema);
       let errorMessage;
       if (fieldSchema?.errorMessage) {
         errorMessage = getParsedTextResourceByKey(fieldSchema.errorMessage, textResources);
@@ -624,7 +628,8 @@ export function validateFormDataForLayout(
 }
 
 export function processInstancePath(path: string): string {
-  const result = path.startsWith('.') ? path.slice(1) : path;
+  let result = path.startsWith('.') ? path.slice(1) : path;
+  result = result.replace(/"]\["|']\['/g, '.').replace(/\["|\['/g, '').replace(/"]|']/g, '');
   return result;
 }
 
