@@ -128,6 +128,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// Gets a list of resource policies for the list of org/apps
         /// </summary>
         /// <param name="orgAppList">The list of org/apps</param>
+        /// <param name="language">The language (not in use yet; exactly how is yet to be determined)</param>
         /// <returns>A list resourcePolicyResponses</returns>
         [AllowAnonymous]
         [HttpPost("/authorization/api/v1/policies/GetPolicies")]
