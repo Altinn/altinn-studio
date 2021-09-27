@@ -323,13 +323,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             }
         }
 
-        private static void AssertLocalizedTextEqual(LocalizedText expected, LocalizedText actual)
-        {
-            Assert.Equal(expected.NB, actual.NB);
-            Assert.Equal(expected.NN, actual.NN);
-            Assert.Equal(expected.EN, actual.EN);
-        }
-
         private static void AssertResourceActionEqual(ResourceAction expected, ResourceAction actual)
         {
             Assert.Equal(expected.Title, actual.Title);
