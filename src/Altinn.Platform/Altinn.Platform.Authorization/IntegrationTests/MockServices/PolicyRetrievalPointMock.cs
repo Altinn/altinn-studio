@@ -7,6 +7,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Services.Interface;
+using Azure;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
@@ -52,12 +53,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return null;
         }
 
-        public Task<XacmlPolicy> GetPolicyAsync(string policyPath)
+        public async Task<Tuple<XacmlPolicy, ETag>> GetPolicyConditionallyAsync(string policyPath, string version)
         {
-            throw new NotImplementedException();
+            if (File.Exists(policyPath))
+            {
+                return await Task.FromResult(new Tuple<XacmlPolicy, ETag>(ParsePolicy("policy.xml", policyPath), new ETag("ETag")));
+            }
+
+            return null;
         }
 
-        public Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy)
+        public Task<Tuple<XacmlPolicy, ETag>> GetPolicyAsync(string policyPath)
         {
             throw new NotImplementedException();
         }

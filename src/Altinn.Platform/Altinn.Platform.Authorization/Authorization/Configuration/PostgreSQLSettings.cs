@@ -13,6 +13,6 @@ namespace Altinn.Platform.Authorization.Configuration
         /// <summary>
         /// Password for app user for the postgres db
         /// </summary>
-        public string EventsDbPwd { get; set; }
+        public string AuthorizationDbPwd { get; set; }
     }
 }

@@ -13,7 +13,7 @@ using Altinn.Platform.Authorization.IntegrationTests.Util;
 
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
-
+using Azure;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

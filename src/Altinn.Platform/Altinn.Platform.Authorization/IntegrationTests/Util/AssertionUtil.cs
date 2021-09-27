@@ -158,7 +158,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static void AssertEqual(List<XacmlJsonCategory> expected, List<XacmlJsonCategory> actual)
         {
-            if(expected == null)
+            if (expected == null)
             {
                 Assert.Null(actual);
                 return;

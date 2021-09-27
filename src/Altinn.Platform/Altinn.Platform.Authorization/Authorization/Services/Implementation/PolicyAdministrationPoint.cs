@@ -12,6 +12,7 @@ using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
+using Azure;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -65,7 +66,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             string filePath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
-            Azure.Response<BlobContentInfo> response = await _policyRepository.WritePolicyAsync(filePath, fileStream);
+            Response<BlobContentInfo> response = await _policyRepository.WritePolicyAsync(filePath, fileStream);
 
             return response?.GetRawResponse()?.Status == (int)HttpStatusCode.Created;
         }
@@ -95,25 +96,33 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             if (!DelegationHelper.TryGetDelegationParamsFromRule(rules.First(), out string org, out string app, out int offeredByPartyId, out int? coveredByPartyId, out int? coveredByUserId, out int delegatedByUserId))
             {
-                // ToDo: response to AltinnII?
+                // ToDo: Logging?
                 return false;
             }
+
+            //// ToDo: reduce cyclomatic complexity and add try/catch for potential parse/read/downtime errors
 
             XacmlPolicy appPolicy = await _prp.GetPolicyAsync(org, app);
             if (appPolicy == null)
             {
-                // ToDo: Invalid Org/App. Response to AltinnII? 
+                // ToDo: Invalid Org/App. Logging? 
                 return false;
             }
 
-            XacmlPolicy existingDelegationPolicy = await _prp.GetPolicyAsync(policyPath);
-            XacmlPolicy delegationPolicy;
-
-            // What if app/existing policy couldn't be read cause blobstorage downtime?
-            if (existingDelegationPolicy != null)
+            DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
+            Tuple<XacmlPolicy, ETag> existingDelegationPolicyBlob = null;
+            if (currentChange != null)
             {
-                // ToDo: evaluate (?) existing policy and add new rules
-                delegationPolicy = existingDelegationPolicy;
+                // What if app/existing policy couldn't be read cause blobstorage downtime?
+                existingDelegationPolicyBlob = await _prp.GetPolicyConditionallyAsync(policyPath, currentChange.BlobStorageVersionId);
+            }
+
+            XacmlPolicy delegationPolicy;
+            ETag originalETag;
+            if (existingDelegationPolicyBlob?.Item1 != null)
+            {
+                delegationPolicy = existingDelegationPolicyBlob?.Item1;
+                originalETag = existingDelegationPolicyBlob.Item2;
                 foreach (Rule rule in rules)
                 {
                     if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
@@ -124,7 +133,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
             else
             {
-                // ToDo: build new policy file
                 delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules, appPolicy);
             }            
 
@@ -137,7 +145,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             writer.Flush();
             dataStream.Position = 0;
 
-            Azure.Response<BlobContentInfo> response = await _policyRepository.WritePolicyAsync(policyPath, dataStream);
+            Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, originalETag);
 
             if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
             {
@@ -145,7 +153,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return false;
             }
                         
-            bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? "0");
+            bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? response.Value.ETag.ToString());
             if (!postgreSuccess)
             {
                 // RollBack DelegationPolicy

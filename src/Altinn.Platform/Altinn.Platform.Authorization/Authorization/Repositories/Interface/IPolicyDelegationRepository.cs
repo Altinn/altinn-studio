@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
         /// <param name="coveredByPartyId">The party id of the entity having received the delegated policy, if the entity is an organization</param>
         /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the entity is a user</param>
-        void GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId);
+        Task<DelegationChange> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId);
 
         /// <summary>
         /// Gets the latest delegation change
@@ -39,6 +39,6 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
         /// <param name="coveredByPartyId">The party id of the entity having received the delegated policy, if the entity is an organization</param>
         /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the entity is a user</param>
-        void GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId);
+        Task<List<DelegationChange>> GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId);
     }
 }

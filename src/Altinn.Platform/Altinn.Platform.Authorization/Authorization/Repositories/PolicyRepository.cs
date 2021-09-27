@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -32,35 +34,124 @@ namespace Altinn.Platform.Authorization.Repositories
             _storageConfig = storageConfig.Value;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task<Stream> GetPolicyAsync(string filepath)
         {
-            BlobClient blockBlob = CreateBlobClient(filepath);
-            Stream memoryStream = new MemoryStream();
-
-            if (await blockBlob.ExistsAsync())
+            try
             {
-                await blockBlob.DownloadToAsync(memoryStream);
-                memoryStream.Position = 0;
+                BlobClient blockBlob = CreateBlobClient(filepath);
+                Stream memoryStream = new MemoryStream();
+
+                if (await blockBlob.ExistsAsync())
+                {
+                    await blockBlob.DownloadToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    return memoryStream;
+                }
 
                 return memoryStream;
             }
-
-            return memoryStream;
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to read policy file {filepath}. " + ex);
+                throw;
+            }
         }
 
-        /// <inheritdoc />
-        public async Task<Azure.Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
+        /// <inheritdoc/>
+        public async Task<Tuple<Stream, ETag>> GetPolicyAndETagByVersionAsync(string filepath, string version)
+        {
+            try
+            {
+                BlobClient blockBlob = CreateBlobClient(filepath);
+                Stream memoryStream = new MemoryStream();
+
+                if (await blockBlob.ExistsAsync())
+                {
+                    Response<BlobProperties> properties = await blockBlob.WithVersion(version).GetPropertiesAsync();
+
+                    await blockBlob.WithVersion(version).DownloadToAsync(memoryStream);
+                    memoryStream.Position = 0;
+
+                    return new Tuple<Stream, ETag>(memoryStream, properties.Value.ETag);
+                }
+
+                ETag eTag;
+                return new Tuple<Stream, ETag>(memoryStream, eTag);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to read policy file at {filepath} with version {version}. " + ex);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
         {
             try
             {
                 BlobClient blockBlob = CreateBlobClient(filepath);
 
-                return await blockBlob.UploadAsync(fileStream, true);
+                return await blockBlob.UploadAsync(fileStream);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to save policy file {filepath}. " + ex);
+                _logger.LogError($"Failed to save policy file {filepath}. Unexpected exception: \n" + ex);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, ETag originalETag)
+        {
+            try
+            {
+                BlobClient blockBlob = CreateBlobClient(filepath);
+
+                BlobUploadOptions blobUploadOptions = new BlobUploadOptions()
+                {
+                    Conditions = new BlobRequestConditions()
+                    {
+                        IfMatch = new ETag("LOL")
+                    }
+                };
+
+                return await blockBlob.UploadAsync(fileStream, blobUploadOptions);
+            }
+            catch (RequestFailedException ex)
+            {
+                if (ex.Status == (int)HttpStatusCode.PreconditionFailed)
+                {
+                    _logger.LogError($"Failed to save policy file {filepath}. Precondition failure. Blob's ETag does not match ETag provided. \n" + ex);
+                    throw;
+                }
+                else
+                {
+                    _logger.LogError($"Failed to save policy file {filepath}. RequestFailedException: \n" + ex);
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to save policy file {filepath}. Unexpected exception: \n" + ex);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Response> DeletePolicyVersionAsync(string filepath, string version)
+        {
+            try
+            {
+                BlobClient blockBlob = CreateBlobClient(filepath);
+
+                return await blockBlob.WithVersion(version).DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to delete version {version} of policy file at {filepath}. RequestFailedException: \n" + ex);
                 throw;
             }
         }

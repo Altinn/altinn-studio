@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Azure;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {
@@ -28,17 +30,8 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// Returns a policy if it exits on the provided path
         /// </summary>
         /// <param name="policyPath">The blobstorage path to the policy file</param>
-        /// <returns>XacmlPolicy</returns>
-        Task<XacmlPolicy> GetPolicyAsync(string policyPath);
-
-        /// <summary>
-        /// Returns a policy based the org, app and ids for the delegating and receiving entities
-        /// </summary>
-        /// <param name="org">The organisation</param>
-        /// <param name="app">The app</param>
-        /// <param name="offeredBy">The party id of the entity which the policy is delegated from</param>
-        /// <param name="coveredBy">The party or user id of the entity which the policy is delegated to</param>
-        /// <returns>XacmlPolicy</returns>
-        Task<XacmlPolicy> GetDelegationPolicyAsync(string org, string app, string offeredBy, string coveredBy);
+        /// <param name="version">The specific blob storage version to get</param>
+        /// <returns>XacmlPolicy and ETag tuple</returns>
+        Task<Tuple<XacmlPolicy, ETag>> GetPolicyConditionallyAsync(string policyPath, string version);
     }
 }

@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.Extensions;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,11 +17,10 @@ namespace Altinn.Platform.Authorization.Repositories
     public class PolicyDelegationRepository : IPolicyDelegationRepository
     {
         private readonly string _connectionString;
-        private readonly AzureStorageConfiguration _storageConfig;
         private readonly ILogger _logger;
         private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performingUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_policyChangeId)";
-        private readonly string getCurrentDelegationChangeSql = "select delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
-        private readonly string getAllDelegationChangesSql = "select delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
+        private readonly string getCurrentDelegationChangeSql = "select * from delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
+        private readonly string getAllDelegationChangesSql = "select * from delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyDelegationRepository"/> class
@@ -32,7 +34,7 @@ namespace Altinn.Platform.Authorization.Repositories
             _logger = logger;
             _connectionString = string.Format(
                 postgresSettings.Value.ConnectionString,
-                postgresSettings.Value.EventsDbPwd);
+                postgresSettings.Value.AuthorizationDbPwd);
         }
 
         /// <inheritdoc/>
@@ -66,7 +68,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async void GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        public async Task<DelegationChange> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)
         {
             try
             {
@@ -76,17 +78,16 @@ namespace Altinn.Platform.Authorization.Repositories
                 NpgsqlCommand pgcom = new NpgsqlCommand(getCurrentDelegationChangeSql, conn);
                 pgcom.Parameters.AddWithValue("_altinnAppId", altinnAppId);
                 pgcom.Parameters.AddWithValue("_offeredByPartyId", offeredByPartyId);
-                pgcom.Parameters.AddWithValue("_coveredByUserId", coveredByUserId != 0 ? coveredByUserId : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId != 0 ? coveredByPartyId : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByUserId", coveredByUserId.HasValue ? coveredByUserId.Value : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId.HasValue ? coveredByPartyId.Value : DBNull.Value);
 
-                string res = string.Empty;
                 using NpgsqlDataReader reader = pgcom.ExecuteReader();
                 while (reader.Read())
                 {
-                    res = reader[0].ToString();
+                    return GetDelegationChange(reader);
                 }
 
-                ////return new List<?>();
+                return null;
             }
             catch (Exception e)
             {
@@ -96,7 +97,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async void GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int coveredByPartyId, int coveredByUserId)
+        public async Task<List<DelegationChange>> GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)
         {
             try
             {
@@ -106,23 +107,40 @@ namespace Altinn.Platform.Authorization.Repositories
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllDelegationChangesSql, conn);
                 pgcom.Parameters.AddWithValue("_altinnAppId", altinnAppId);
                 pgcom.Parameters.AddWithValue("_offeredByPartyId", offeredByPartyId);
-                pgcom.Parameters.AddWithValue("_coveredByUserId", coveredByUserId != 0 ? coveredByUserId : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId != 0 ? coveredByPartyId : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByUserId", coveredByUserId.HasValue ? coveredByUserId.Value : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId.HasValue ? coveredByPartyId.Value : DBNull.Value);
 
-                string res = string.Empty;
+                List<DelegationChange> delegationChanges = new List<DelegationChange>();
+
                 using NpgsqlDataReader reader = pgcom.ExecuteReader();
                 while (reader.Read())
                 {
-                    res = reader[0].ToString();
+                    delegationChanges.Add(GetDelegationChange(reader));
                 }
 
-                ////return new List<?>();
+                return delegationChanges;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
                 throw;
             }
+        }
+
+        private DelegationChange GetDelegationChange(NpgsqlDataReader reader)
+        {
+            DelegationChange delegationChange = new DelegationChange();
+            delegationChange.PolicyChangeId = reader.GetValue<int>("policychangeid");
+            delegationChange.AltinnAppId = reader.GetValue<string>("altinnappid");
+            delegationChange.OfferedByPartyId = reader.GetValue<int>("offeredbypartyid");
+            delegationChange.CoveredByPartyId = reader.GetValue<int>("coveredbypartyid");
+            delegationChange.CoveredByUserId = reader.GetValue<int>("coveredbyuserid");
+            delegationChange.DelegatedByUserId = reader.GetValue<int>("performinguserid");
+            delegationChange.BlobStoragePolicyPath = reader.GetValue<string>("blobstoragepolicypath");
+            delegationChange.BlobStorageVersionId = reader.GetValue<string>("blobstorageversionid");
+            delegationChange.IsDeleted = reader.GetValue<bool>("isdeleted");
+            delegationChange.Created = reader.GetValue<DateTime>("created");
+            return delegationChange;
         }
     }
 }

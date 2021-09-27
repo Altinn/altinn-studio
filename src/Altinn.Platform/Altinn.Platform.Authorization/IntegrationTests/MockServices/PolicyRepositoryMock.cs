@@ -14,22 +14,55 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
     {
         public Task<Stream> GetPolicyAsync(string filepath)
         {
+            return Task.FromResult(GetTestDataStream(filepath));
+        }
+
+        public Task<Tuple<Stream, ETag>> GetPolicyAndETagByVersionAsync(string filepath, string version)
+        {
+            return Task.FromResult(new Tuple<Stream, ETag>(GetTestDataStream(filepath), new ETag("ETagSuccess")));
+        }
+
+        public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
+        {
+            return await WriteStreamToTestDataFolder(filepath, fileStream);            
+        }
+
+        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, ETag originalETag)
+        {
+            ETag emptyETag;
+            if (originalETag.Equals(emptyETag) || originalETag.Equals(new ETag("ETagSuccess")))
+            {
+                return await WriteStreamToTestDataFolder(filepath, fileStream);
+            }
+
+            throw new RequestFailedException((int)HttpStatusCode.PreconditionFailed, "The condition specified using HTTP conditional header(s) is not met.");
+        }
+
+        public Task<Response> DeletePolicyVersionAsync(string filepath, string version)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string GetDataBlobPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data/blobs/");
+        }
+
+        private Stream GetTestDataStream(string filepath)
+        {
             string dataPath = Path.Combine(GetDataBlobPath(), filepath);
             Stream ms = new MemoryStream();
             if (File.Exists(dataPath))
             {
-                using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
-                {
-                    file.CopyTo(ms);
-                }
-
-                return Task.FromResult(ms);
+                using FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read);
+                file.CopyTo(ms);
             }
 
-            return Task.FromResult(ms);
+            return ms;
         }
 
-        public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
+        private async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
         {
             string dataPath = GetDataBlobPath() + filepath;
 
@@ -47,7 +80,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 filesize = (int)streamToWriteTo.Length;
             }
 
-            BlobContentInfo mockedBlobInfo = BlobsModelFactory.BlobContentInfo(new ETag("etag"), DateTime.Now, new byte[1], "1", "encryptionKeySha256", "encryptionScope", 1);
+            BlobContentInfo mockedBlobInfo = BlobsModelFactory.BlobContentInfo(new ETag("ETagSuccess"), DateTime.Now, new byte[1], DateTime.Now.ToUniversalTime().ToString(), "encryptionKeySha256", "encryptionScope", 1);
             Mock<Response<BlobContentInfo>> mockResponse = new Mock<Response<BlobContentInfo>>();
             mockResponse.SetupGet(r => r.Value).Returns(mockedBlobInfo);
 
@@ -56,12 +89,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             mockResponse.Setup(r => r.GetRawResponse()).Returns(responseMock.Object);
 
             return mockResponse.Object;
-        }
-
-        private string GetDataBlobPath()
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, "../../../data/blobs/");
         }
     }
 }

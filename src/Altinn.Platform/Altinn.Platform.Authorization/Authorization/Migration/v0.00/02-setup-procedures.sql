@@ -39,7 +39,6 @@ $BODY$
   WHERE
   altinnAppId = _altinnAppId
   AND offeredByPartyId = _offeredByPartyId
-  AND (_offeredByPartyId IS NULL OR offeredByPartyId = _offeredByPartyId)
   AND (_coveredByUserId IS NULL OR coveredByUserId = _coveredByUserId)
   AND (_coveredByPartyId IS NULL OR coveredByPartyId = _coveredByPartyId)
   ORDER BY policyChangeId DESC LIMIT 1
@@ -53,14 +52,13 @@ CREATE OR REPLACE FUNCTION delegation.get_all_changes(
   IN _offeredByPartyId integer,
   IN _coveredByUserId integer,
   IN _coveredByPartyId integer
-    )
-    RETURNS SETOF delegation.delegatedPolicy AS
+)
+RETURNS SETOF delegation.delegatedPolicy AS
 $BODY$
   SELECT * FROM delegation.delegatedPolicy
   WHERE
   altinnAppId = _altinnAppId
   AND offeredByPartyId = _offeredByPartyId
-  AND (_offeredByPartyId IS NULL OR offeredByPartyId = _offeredByPartyId)
   AND (_coveredByUserId IS NULL OR coveredByUserId = _coveredByUserId)
   AND (_coveredByPartyId IS NULL OR coveredByPartyId = _coveredByPartyId)
 $BODY$
