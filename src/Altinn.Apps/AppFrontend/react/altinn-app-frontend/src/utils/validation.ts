@@ -434,7 +434,7 @@ export function validateComponentFormData(
     schema,
   } = schemaValidator;
   const fieldKey = Object.keys(component.dataModelBindings).find(
-    (binding: string) => component.dataModelBindings[binding] === dataModelField,
+    (binding: string) => component.dataModelBindings[binding] === getKeyWithoutIndex(dataModelField),
   );
   const data = {};
   dot.str(dataModelField, formData, data);
@@ -480,7 +480,7 @@ export function validateComponentFormData(
       mapToComponentValidations(
         layoutId,
         null,
-        dataModelField,
+        getKeyWithoutIndex(dataModelField),
         errorMessage,
         validationResult.validations,
         { ...component, id: componentIdWithIndex || component.id },
@@ -624,8 +624,7 @@ export function validateFormDataForLayout(
 }
 
 export function processInstancePath(path: string): string {
-  let result = path.startsWith('.') ? path.slice(1) : path;
-  result = result.replace(/"]\["|']\['/g, '.').replace(/\["|\['/g, '').replace(/"]|']/g, '');
+  const result = path.startsWith('.') ? path.slice(1) : path;
   return result;
 }
 
