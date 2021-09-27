@@ -11,7 +11,7 @@ using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
@@ -407,6 +407,38 @@ namespace Designer.Tests.Controllers
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task PostDatamodel_FromFormPost_ShouldReturnCreated()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-datamodels";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/Post";
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(new CreateModelViewModel() { ModelName = "test", Altinn2Compatible = false }), Encoding.UTF8, "application/json")
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
             try
             {
                 var response = await client.SendAsync(httpRequestMessage);

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -14,7 +13,7 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Altinn.Studio.Designer.ViewModels.Request;
 using Manatee.Json;
 using Manatee.Json.Schema;
 
@@ -52,6 +51,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="app">the model repos</param>
         /// <param name="modelName">The name of the data model.</param>
+        /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string)"/> instead.</remarks>
         [Authorize]
         [HttpPut]
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
@@ -147,10 +147,25 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Creates a new model in the repository.
+        /// </summary>
+        /// <param name="org">The org owning the repository.</param>
+        /// <param name="repository">The repository name</param>
+        [HttpPost]
+        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        public async Task<ActionResult> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
+        {
+            var model = "{}";
+            var modelPath = string.Empty;
+
+            return new CreatedAtActionResult(nameof(Get), nameof(DatamodelsController), new { org, repository, modelPath}, model);
+        }
+
+        /// <summary>
         /// Updates the specified datamodel in the git repository.
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
-        /// <param name="repository">The repository</param>
+        /// <param name="repository">The repository name</param>
         /// <param name="modelPath">The path to the file to be updated.</param>        
         [Authorize]
         [HttpPut]
