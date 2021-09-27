@@ -12,9 +12,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
     <span
       className="label-optional"
     >
-      (
-      general.optional
-      )
+       (general.optional)
     </span>
   </label>
   <input
@@ -40,9 +38,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
         <span
           className="label-optional"
         >
-          (
-          general.optional
-          )
+           (general.optional)
         </span>
       </label>
       <input
