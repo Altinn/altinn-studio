@@ -15,7 +15,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             {
                 Match = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = action },
                 RoleGrants = new List<RoleGrant>(),
-                Title = new LocalizedText(action, action, action)
+                Title = action
             };
 
             foreach (string role in roles)
@@ -50,7 +50,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
                 title = $"{org}/{app}/{endEvent}";
             }
 
-            policy.Title = new LocalizedText(title, title, title);
+            policy.Title = title;
             return policy;
         }
     }

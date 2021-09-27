@@ -314,12 +314,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static void AssertResourcePolicyEqual(ResourcePolicy expected, ResourcePolicy actual)
         {
-            AssertLocalizedTextEqual(expected.Title, actual.Title);
+            Assert.Equal(expected.Title, actual.Title);
             AssertCollections(expected.Actions, actual.Actions, AssertResourceActionEqual);
             AssertCollections(expected.Resource, actual.Resource, AssertAttributeMatchEqual);
             if (expected.Description != null || actual.Description != null)
             {
-                AssertLocalizedTextEqual(expected.Description, actual.Description);
+                Assert.Equal(expected.Description, actual.Description);
             }
         }
 
@@ -332,13 +332,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static void AssertResourceActionEqual(ResourceAction expected, ResourceAction actual)
         {
-            AssertLocalizedTextEqual(expected.Title, actual.Title);
+            Assert.Equal(expected.Title, actual.Title);
             AssertAttributeMatchEqual(expected.Match, actual.Match);
             AssertCollections(expected.RoleGrants, actual.RoleGrants, AssertRoleGrantEqual);
 
             if (expected.Description != null && actual.Description != null)
             {
-                AssertLocalizedTextEqual(expected.Description, actual.Description);
+                Assert.Equal(expected.Description, actual.Description);
             }
         }
 

@@ -51,8 +51,9 @@ namespace Altinn.Platform.Authorization.Helpers
         /// Gets the entire policy as a list of <see cref="ResourcePolicy"/>. 
         /// </summary>
         /// <param name="policy">The policy</param>
+        /// <param name="language">The language (not in use yet; exactly how is yet to be determined)</param>
         /// <returns>List of resource policies</returns>
-        public static List<ResourcePolicy> GetResourcePoliciesFromXacmlPolicy(XacmlPolicy policy)
+        public static List<ResourcePolicy> GetResourcePoliciesFromXacmlPolicy(XacmlPolicy policy, string language)
         {
             Dictionary<string, ResourcePolicy> resourcePolicies = new Dictionary<string, ResourcePolicy>();
 
@@ -70,7 +71,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
                         if (policy.Description != null && resourcePolicy.Description == null)
                         {
-                            resourcePolicy.Description = new LocalizedText(policy.Description, policy.Description, policy.Description);
+                            resourcePolicy.Description = policy.Description;
                         }
 
                         AddActionsToResourcePolicy(actions, resourcePolicy);
@@ -123,7 +124,7 @@ namespace Altinn.Platform.Authorization.Helpers
                             {
                                 Match = actionAttributeMatch,
                                 RoleGrants = new List<RoleGrant>(),
-                                Title = new LocalizedText(xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value, xacmlMatch.AttributeValue.Value)
+                                Title = xacmlMatch.AttributeValue.Value
                             };
                             resourceAction.RoleGrants.AddRange(roles);
                             if (!actions.Contains(resourceAction))
@@ -198,7 +199,7 @@ namespace Altinn.Platform.Authorization.Helpers
                     ResourcePolicy newPolicy = new ResourcePolicy
                     {
                         Resource = resourceMatches,
-                        Title = new LocalizedText(title, title, title),
+                        Title = title
                     };
 
                     resourcePolicies.Add(resourceKey, newPolicy);

@@ -387,20 +387,20 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             instantiatePolicy.Actions = new List<ResourceAction>();
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
-            instantiatePolicy.Description = new LocalizedText(policyDesc, policyDesc, policyDesc);
+            instantiatePolicy.Description = policyDesc;
 
             ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "FormFilling");
             formFillingPolicy.Actions = new List<ResourceAction>();
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
-            formFillingPolicy.Description = new LocalizedText(policyDesc, policyDesc, policyDesc);
+            formFillingPolicy.Description = policyDesc;
 
             ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", endEvent: "Signing");
             signingPolicy.Actions = new List<ResourceAction>();
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Sign", new string[] { "DAGL", "PRIV", "PRIV2" }));
-            signingPolicy.Description = new LocalizedText(policyDesc, policyDesc, policyDesc);
+            signingPolicy.Description = policyDesc;
 
             List<ResourcePolicy> policies = new List<ResourcePolicy>();
             policies.Add(instantiatePolicy);
