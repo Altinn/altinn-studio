@@ -114,7 +114,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 {
                     Conditions = new BlobRequestConditions()
                     {
-                        IfMatch = new ETag("LOL")
+                        IfMatch = originalETag
                     }
                 };
 
