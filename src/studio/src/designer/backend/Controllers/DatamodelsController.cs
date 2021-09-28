@@ -151,6 +151,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
+        /// <param name="createModel">View model containing the data required to create the initial model.</param>
         [HttpPost]
         [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
         public async Task<ActionResult> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)

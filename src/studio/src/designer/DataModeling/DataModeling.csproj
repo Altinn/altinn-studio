@@ -11,6 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Templates\seres.template.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Templates\seres.template.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="JsonSchema.Net" Version="1.10.5" />
   </ItemGroup>
 
