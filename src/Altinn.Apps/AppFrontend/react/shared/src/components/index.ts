@@ -39,7 +39,6 @@ export { default as AltinnModal } from './molecules/AltinnModal';
 export { default as AltinnPopoverSimple } from './molecules/AltinnPopoverSimple';
 export { default as AltinnSubstatusPaper } from './molecules/AltinnSubstatusPaper';
 export { AltinnTableHeader } from './molecules/AltinnTableHeader';
-export { default as AltinnTableItem } from './molecules/AltinnTableItem';
 export { default as AltinnTableBody } from './molecules/AltinnTableBody';
 export { default as AltinnTableRow } from './molecules/AltinnTableRow';
 export { default as AltinnMobileTable } from './molecules/AltinnMobileTable';
