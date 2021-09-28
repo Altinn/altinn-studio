@@ -225,6 +225,12 @@ export interface ISchemaValidator {
   validator: Ajv;
 }
 
+export interface ISimpleInstance {
+  id: string;
+  lastChanged: string;
+  lastChangedBy: string;
+}
+
 export interface ITextResource {
   id: string;
   value: string;

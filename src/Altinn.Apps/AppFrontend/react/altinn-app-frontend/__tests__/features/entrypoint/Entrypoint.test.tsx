@@ -1,13 +1,13 @@
 import 'jest';
 import * as React from 'react';
-import { IRuntimeState } from "../../../src/types";
-import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import { Provider } from 'react-redux';
-import Entrypoint from '../../../src/features/entrypoint/Entrypoint';
 import { render, waitFor } from '@testing-library/react';
-import { IApplicationMetadata } from '../../../src/shared/resources/applicationMetadata';
 import axios from 'axios';
 import { createStore } from 'redux';
+import { IRuntimeState } from '../../../src/types';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
+import Entrypoint from '../../../src/features/entrypoint/Entrypoint';
+import { IApplicationMetadata } from '../../../src/shared/resources/applicationMetadata';
 
 jest.mock('axios');
 
@@ -16,15 +16,14 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
   let mockStore: any;
   let mockReducer: any;
 
-
   beforeEach(() => {
     mockInitialState = getInitialStateMock({});
     (axios.post as jest.Mock).mockResolvedValue({
       data: {
         valid: true,
         validParties: [],
-        message: ''
-      }
+        message: '',
+      },
     });
     mockReducer = (state: IRuntimeState, action: string): IRuntimeState => {
       if (action === 'queue/startInitialStatelessQueue') {
@@ -32,9 +31,9 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
           ...state,
           isLoading: {
             stateless: false,
-            dataTask: null
-          }
-        }
+            dataTask: null,
+          },
+        };
       }
       return state;
     };
@@ -46,13 +45,13 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
       data: {
         valid: false,
         validParties: [],
-        message: ''
-      }
+        message: '',
+      },
     });
     const rendered = render(
       <Provider store={mockStore}>
         <Entrypoint />
-      </Provider>
+      </Provider>,
     );
     await waitFor(() => {
       // validate party
@@ -67,7 +66,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     const rendered = render(
       <Provider store={mockStore}>
         <Entrypoint />
-      </Provider>
+      </Provider>,
     );
 
     const contentLoader = await rendered.findByText('Loading...');
@@ -81,11 +80,11 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     const statelessApplication: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,
       onEntry: {
-        show: 'stateless'
-      }
-    }
+        show: 'stateless',
+      },
+    };
     const mockStateWithStatelessApplication: IRuntimeState = {
-      ...mockInitialState
+      ...mockInitialState,
     };
     mockStateWithStatelessApplication.applicationMetadata.applicationMetadata = statelessApplication;
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
@@ -94,7 +93,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     const rendered = render(
       <Provider store={mockStore}>
         <Entrypoint />
-      </Provider>
+      </Provider>,
     );
 
     const contentLoader = await rendered.findByText('Loading...');
@@ -102,8 +101,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
 
     // should have started the initialStatelessQueue
     await waitFor(() => {
-      expect(mockStore.dispatch).toHaveBeenCalledWith({ type: 'queue/startInitialStatelessQueue'});
+      expect(mockStore.dispatch).toHaveBeenCalledWith({ type: 'queue/startInitialStatelessQueue' });
     });
   });
-
 });
