@@ -1,4 +1,6 @@
+using Altinn.Authorization.ABAC.Xacml;
 using LocalTest.Services.Localtest.Interface;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +10,26 @@ namespace LocalTest.Services.Localtest.Implementation
 {
     public class LocalTestAppSelectionSI : ILocalTestAppSelection
     {
-        private string _appPath;
+        private string _appRepsitoryBasePath;
 
-        public string GetAppPath()
+        public LocalTestAppSelectionSI(IConfiguration configuration)
         {
-            return _appPath;
+            _appRepsitoryBasePath = configuration["LocalPlatformSettings:AppRepsitoryBasePath"];
         }
 
-        public void SetAppPath(string path)
+        public string GetAppPath(XacmlContextRequest request)
         {
-            _appPath = path;
+            string app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == "urn:altinn:app").Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
+
+            return GetAppPath(app);
+        }
+
+        public string GetAppPath(string app)
+        {
+            if (string.IsNullOrEmpty(app))
+                return null;
+
+            return $"{_appRepsitoryBasePath.TrimEnd('/').TrimEnd('\\')}/{app}/App/";
         }
     }
 }

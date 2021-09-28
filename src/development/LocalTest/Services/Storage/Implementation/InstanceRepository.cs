@@ -70,9 +70,32 @@ namespace LocalTest.Services.Storage.Implementation
             return null;
         }
 
-        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            throw new NotImplementedException();
+            foreach (string key in queryParams.Keys)
+                if (!key.Equals("org", StringComparison.OrdinalIgnoreCase) &&
+                    !key.Equals("appId", StringComparison.OrdinalIgnoreCase) &&
+                    !key.Equals("instanceOwner.partyId", StringComparison.OrdinalIgnoreCase))
+                    throw new NotImplementedException();
+
+            InstanceQueryResponse response = new InstanceQueryResponse() { Instances = new List<Instance>(), Count = 0 };
+            foreach (FileInfo instanceFile in new DirectoryInfo(GetInstanceFolder()).GetFiles($"*.json").OrderByDescending(f => f.LastWriteTime))
+            {
+                if (!queryParams.ContainsKey("instanceOwner.partyId") || instanceFile.Name.StartsWith($"{queryParams["instanceOwner.partyId"]}_"))
+                {
+                    string content = File.ReadAllText(instanceFile.FullName);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    await PostProcess(instance);
+                    if (!queryParams.ContainsKey("org") || instance.Org.Equals(queryParams["org"]))
+                        if (!queryParams.ContainsKey("appId") || instance.Org.Equals(queryParams["appId"]))
+                        {
+                            response.Instances.Add(instance);
+                            response.Count++;
+                        }
+                }
+            }
+
+            return response;
         }
 
         public async Task<Instance> Update(Instance instance)

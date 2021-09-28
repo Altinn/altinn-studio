@@ -712,6 +712,11 @@ namespace Altinn.Platform.Storage.Controllers
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
 
+            if (appInfo == null && errorResult == null)
+            {
+                errorResult = NotFound($"Did not find application with appId={appId}");
+            }
+
             return (appInfo, errorResult);
         }
 
