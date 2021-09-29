@@ -85,7 +85,7 @@ export function GroupContainer({
   }, [formData, container]);
 
   React.useEffect(() => {
-    const {edit} = container;
+    const { edit } = container;
     if (!edit) {
       return;
     }
