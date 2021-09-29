@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DataModeling.Tests.Templates
 {
-    public class SeresJsonTemplateTests
+    public class GeneralJsonTemplateTests
     {
         [Fact]
         public void Constructor_TemplateExists_ShouldSetCorrectValues()
@@ -20,19 +20,13 @@ namespace DataModeling.Tests.Templates
             var expectedId = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
 
             // Act
-            var actualJsonTemplate = new SeresJsonTemplate(new Uri(expectedId), "melding");
+            var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), "model");
 
             // Assert
             JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.JsonSchemaInstance);
             var idKeyword = jsonSchema.GetKeyword<IdKeyword>();
             idKeyword.Id.Should().Be(expectedId);
-
-            var infoKeyword = jsonSchema.GetKeyword<InfoKeyword>();
-            var value = infoKeyword.Value;
-            value.GetProperty("meldingsnavn").GetString().Should().Be("melding");
-            value.GetProperty("modellnavn").GetString().Should().Be("melding-modell");
-
-            var messageType = jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/melding-modell")).Should().NotBeNull();
+            var messageType = jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/model")).Should().NotBeNull();
         }
     }
 }
