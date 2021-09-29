@@ -22,7 +22,7 @@ export function getDataTypeByLayoutSetId(layoutSetId: string, layoutSets: ILayou
  */
 export const onEntryValuesThatHaveState: string[] = [
   'new-instance',
-  'instance-selection',
+  'select-instance',
   'start-page',
 ];
 
