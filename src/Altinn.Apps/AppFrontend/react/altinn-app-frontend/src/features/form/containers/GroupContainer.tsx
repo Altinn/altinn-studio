@@ -90,11 +90,11 @@ export function GroupContainer({
       return;
     }
 
-    if (container.edit?.multiPage) {
+    if (edit.multiPage) {
       setMultiPageIndex(0);
     }
 
-    if (container.edit.openByDefault && repeatingGroupIndex === -1) {
+    if (edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
   }, [container]);
