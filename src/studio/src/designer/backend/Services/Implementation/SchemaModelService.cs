@@ -110,14 +110,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, bool altinn2Compatible = false)
+        public async Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory, bool altinn2Compatible = false)
         {
             var uri = GetSchemaUri(org, repository, schemaName);
             JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
 
             var jsonSchema = jsonTemplate.GetJsonString();
 
-            return jsonSchema;
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+                var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaName);
+
+                return (relativePath, jsonSchema);
+            }
+
+            return (Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json"), jsonSchema);
         }
 
         /// <inheritdoc/>

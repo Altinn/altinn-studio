@@ -418,12 +418,14 @@ namespace Designer.Tests.Controllers
             }
         }
 
-        [Fact]
-        public async Task PostDatamodel_FromFormPost_ShouldReturnCreated()
+        [Theory]
+        [InlineData("ServiceA", true)]
+        [InlineData("", false)]
+        public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible)
         {
             // Arrange
             var org = "ttd";
-            var sourceRepository = "empty-datamodels";
+            var sourceRepository = "empty-app";
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
@@ -431,18 +433,33 @@ namespace Designer.Tests.Controllers
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/Post";
 
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            var createViewModel = new CreateModelViewModel() { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+            var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(new CreateModelViewModel() { ModelName = "test", Altinn2Compatible = false }), Encoding.UTF8, "application/json")
+                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(createViewModel), Encoding.UTF8, "application/json")
             };
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
 
             // Act
             try
             {
-                var response = await client.SendAsync(httpRequestMessage);
-                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                var postResponse = await client.SendAsync(postRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+                // TODO: Why?
+                //Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
+
+                var content = await postResponse.Content.ReadAsStringAsync();
+                Json.Schema.JsonSchema jsonSchema = Json.Schema.JsonSchema.FromText(content);
+                Assert.NotNull(jsonSchema);
+
+                // Try to read the created schema back to verify it's stored
+                // at the location provided in the post response
+                var location = postResponse.Headers.Location;
+                var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
+                var getResponse = await client.SendAsync(getRequestMessage);
+                //TODO: Not getting the correct location url back - query params instead of path
             }
             finally
             {

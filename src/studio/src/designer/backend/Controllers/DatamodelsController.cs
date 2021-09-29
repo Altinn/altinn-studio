@@ -159,10 +159,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var model = _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.Altinn2Compatible);
-            var modelPath = string.Empty;
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
-            return new CreatedAtActionResult(nameof(Get), nameof(DatamodelsController), new { org, repository, modelPath}, model);
+            return new CreatedAtActionResult(nameof(Get), nameof(DatamodelsController), new { org = org, repository = repository, modelPath = relativePath }, model);            
         }
 
         /// <summary>
@@ -231,7 +230,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("/designer/api/{org}/{repository}/datamodels/{*modelPath}")]
-        public async Task<ActionResult<string>> Get(string org, string repository, string modelPath)
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromRoute] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var json = await _schemaModelService.GetSchema(org, repository, developer, modelPath);
