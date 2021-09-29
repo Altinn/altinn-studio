@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "info": {
+    "XSLT-skriptnavn": "SERES_XSD_GEN",
+    "XSD-generatorversjon": "2.0.13",
+    "XSLT-prosessor": "SAXON versjon 9.1.0.7",
+    "generert": "2015-05-06T09:50:22.327+02:00",
+    "navneromprefix": "http://seres.no/xsd",
+    "namespace": "http://seres.no/xsd/StatistiskSentralbyrå/RA-0678_M/2015",
+    "meldingsnavn": "Root",
+    "domenenavn": "StatistiskSentralbyrå",
+    "modellnavn": "RA-0678_M",
+    "metamodellversjon": "1.2",
+    "guid": "true",
+    "orid": "false",
+    "nillable": "true",
+    "tillat-gjenbruk": "true",
+    "elementtype": "true",
+    "forvaltningsdata": "true",
+    "forvaltningsdata-navnerom": "http://seres.no/xsd/forvaltningsdata",
+    "særnorske-bokstaver-i-navn": "false",
+    "ft_guid_som_attributt": "false",
+    "sem-ref": "false",
+    "kodebibliotek": "false",
+    "språk": "",
+    "XSD-variant": "Altinn",
+    "XSD-transformatorversjon": "1.2"
+  },
+  "properties": {
+    "e1": {
+      "type": "string",
+      "@xsdType": "string"
+    }
+  },
+  "required": [
+    "e1"
+  ]
+}

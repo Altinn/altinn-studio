@@ -17,12 +17,11 @@ namespace Altinn.Platform.Authorization.Models
         /// <summary>
         /// Gets or sets a title for the action
         /// </summary>
-        public LocalizedText Title { get; set; }
+        public string Title { get; set; }
 
         /// <summary>
         /// Gets or sets a description of the action.
         /// </summary>
-        public LocalizedText Description { get; set; }
 
         /// <summary>
         /// Gets or sets which roles are granted access to this action on this resource

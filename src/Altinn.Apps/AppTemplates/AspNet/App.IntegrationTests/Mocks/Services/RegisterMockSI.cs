@@ -13,18 +13,18 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class RegisterMockSI : IRegister
     {
-        private readonly IDSF _dsfService;
-        private readonly IER _erService;
+        private readonly IDSF _dsfClient;
+        private readonly IER _erClient;
 
-        public RegisterMockSI(IDSF dsfService, IER erService)
+        public RegisterMockSI(IDSF dsfClient, IER erClient)
         {
-            _dsfService = dsfService;
-            _erService = erService;
+            _dsfClient = dsfClient;
+            _erClient = erClient;
         }
 
-        public IDSF DSF => _dsfService;
+        public IDSF DSF => _dsfClient;
 
-        public IER ER => _erService;
+        public IER ER => _erClient;
 
         public async Task<Party> GetParty(int partyId)
         {
@@ -42,12 +42,12 @@ namespace App.IntegrationTests.Mocks.Services
 
                 if (party.OrgNumber != null)
                 {
-                    party.Organization = await _erService.GetOrganization(party.OrgNumber);
+                    party.Organization = await _erClient.GetOrganization(party.OrgNumber);
                 }
 
                 if (party.SSN != null)
                 {
-                    party.Person = await _dsfService.GetPerson(party.SSN);
+                    party.Person = await _dsfClient.GetPerson(party.SSN);
                 }
 
                 return party;
@@ -69,13 +69,13 @@ namespace App.IntegrationTests.Mocks.Services
 
                     if (party.OrgNumber != null && partyLookup.OrgNo != null && party.OrgNumber.Equals(partyLookup.OrgNo))
                     {
-                        party.Organization = await _erService.GetOrganization(party.OrgNumber);
+                        party.Organization = await _erClient.GetOrganization(party.OrgNumber);
                         return party;
                     }
 
                     if (party.SSN != null && partyLookup.Ssn != null && party.SSN.Equals(partyLookup.Ssn))
                     {
-                        party.Person = await _dsfService.GetPerson(party.SSN);
+                        party.Person = await _dsfClient.GetPerson(party.SSN);
                         return party;
                     }
                 }

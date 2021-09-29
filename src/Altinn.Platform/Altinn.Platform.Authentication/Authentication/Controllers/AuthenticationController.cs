@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -171,13 +172,17 @@ namespace Altinn.Platform.Authentication.Controllers
                         return BadRequest("Invalid state param");
                     }
 
-                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
+                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri(provider));
                     JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider.WellKnownConfigEndpoint);
                     userAuthentication = GetUserFromToken(jwtSecurityToken, provider);
-
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
                     {
                         return BadRequest("Invalid nonce");
+                    }
+
+                    if (userAuthentication.UserID == 0)
+                    {
+                        await IdentifyOrCreateAltinnUser(userAuthentication, provider);
                     }
                 }
                 else
@@ -505,7 +510,7 @@ namespace Altinn.Platform.Authentication.Controllers
             byte[] decodedCredentials = Convert.FromBase64String(encodedCredentials);
             string decodedString = Encoding.UTF8.GetString(decodedCredentials);
 
-            string[] decodedStringArray = decodedString.Split(":");
+            string[] decodedStringArray = decodedString.Split(":", 2);
             string usernameFromRequest = decodedStringArray[0];
             string password = decodedStringArray[1];
 
@@ -714,7 +719,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>() };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>(), Iss = provider.IssuerKey };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -768,6 +773,12 @@ namespace Altinn.Platform.Authentication.Controllers
                     continue;
                 }
 
+                if (!string.IsNullOrEmpty(provider.ExternalIdentityClaim) && claim.Type.Equals(provider.ExternalIdentityClaim))
+                {
+                    userAuthenticationModel.ExternalIdentity = claim.Value;
+                    continue;
+                }
+
                 // General claims handling
                 if (provider.ProviderClaims != null && provider.ProviderClaims.Contains(claim.Type))
                 {
@@ -776,6 +787,43 @@ namespace Altinn.Platform.Authentication.Controllers
             }
 
             return userAuthenticationModel;
+        }
+
+        private async Task IdentifyOrCreateAltinnUser(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
+        {
+            UserProfile profile = null;
+
+            if (!string.IsNullOrEmpty(userAuthenticationModel.ExternalIdentity))
+            {
+                profile = await _userProfileService.GetUser(userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity);
+
+                if (profile != null)
+                {
+                    userAuthenticationModel.UserID = profile.UserId;
+                    userAuthenticationModel.PartyID = profile.PartyId;
+                    return;
+                }
+
+                UserProfile userToCreate = new UserProfile();
+                userToCreate.ExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
+                userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
+
+                UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
+                userAuthenticationModel.UserID = userCreated.UserId;
+                userAuthenticationModel.PartyID = userCreated.PartyId;
+             }
+        }
+
+        /// <summary>
+        /// Creates a automatic username based on external identity and prefix.
+        /// </summary>
+        private static string CreateUserName(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
+        {
+            string hashedIdentity = HashNonce(userAuthenticationModel.ExternalIdentity).Substring(5, 10);
+            Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+            hashedIdentity = rgx.Replace(hashedIdentity, string.Empty);
+
+            return provider.UserNamePrefix + hashedIdentity.ToLower() + DateTime.Now.Millisecond;
         }
 
         /// <summary>
@@ -885,7 +933,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         private string CreateAuthenticationRequest(OidcProvider provider, string state, string nonce)
         {
-            string redirect_uri = GetRedirectUri();
+            string redirect_uri = GetRedirectUri(provider);
             string authorizationEndpoint = provider.AuthorizationEndpoint;
             Dictionary<string, string> oidcParams = new Dictionary<string, string>();
 
@@ -932,9 +980,16 @@ namespace Altinn.Platform.Authentication.Controllers
             return uri;
         }
 
-        private string GetRedirectUri()
+        private string GetRedirectUri(OidcProvider provider)
         {
-           return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication";
+            string redirectUri = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication";
+
+            if (provider.IncludeIssInRedirectUri)
+            {
+                redirectUri = redirectUri + "?iss=" + provider.IssuerKey;
+            }
+
+            return redirectUri;
         }
 
         private string CreateNonce(HttpContext httpContext)

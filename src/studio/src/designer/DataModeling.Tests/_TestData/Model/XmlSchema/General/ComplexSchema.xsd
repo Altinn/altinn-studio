@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <xsd:element name="Root" type="customer" />
+
+  <xsd:complexType name="customer">
+    <xsd:complexContent>
+      <xsd:extension base="contact">
+        <xsd:sequence>
+          <xsd:choice>
+            <xsd:element name="address_norwegian" type="address_norwegian" />
+            <xsd:element name="address_swedish" type="address_swedish" />
+          </xsd:choice>
+          <xsd:element name="email" type="xsd:string" minOccurs="1" maxOccurs="unbounded" />
+          <xsd:element name="contacts" type="contact" minOccurs="0" maxOccurs="10" />
+        </xsd:sequence>
+        <xsd:attributeGroup ref="priorityAndTags" />
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:attributeGroup name="priorityAndTags">
+    <xsd:attribute name="priority" type="priority" />
+    <xsd:attribute name="tags" type="tags" />
+  </xsd:attributeGroup>
+
+  <xsd:complexType name="contact">
+    <xsd:sequence>
+      <xsd:group ref="name" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:simpleType name="tags">
+    <xsd:list itemType="xsd:string" />
+  </xsd:simpleType>
+
+  <xsd:simpleType name="priority">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Low" />
+      <xsd:enumeration value="Medium" />
+      <xsd:enumeration value="High" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:group name="name">
+    <xsd:sequence>
+      <xsd:element name="title" type="title" />
+      <xsd:element name="firstName" type="xsd:string" />
+      <xsd:element name="lastName" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:group>
+
+  <xsd:simpleType name="title">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="mr" />
+      <xsd:enumeration value="ms" />
+      <xsd:enumeration value="miss" />
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="address">
+    <xsd:sequence>
+      <xsd:element name="street" type="xsd:string" />
+      <xsd:element name="co" type="xsd:string" minOccurs="0" />
+      <xsd:element name="zipCode" type="xsd:string" />
+      <xsd:element name="city" type="xsd:string" />
+      <xsd:element name="country" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="address_norwegian">
+    <xsd:complexContent>
+      <xsd:restriction base="address">
+        <xsd:sequence>
+          <xsd:element name="street" type="xsd:string" />
+          <xsd:element name="co" type="xsd:string" minOccurs="0" />
+          <xsd:element name="zipCode">
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                <xsd:pattern value="^\d{4}$" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:element>
+          <xsd:element name="city" type="xsd:string" />
+          <xsd:element name="country" type="xsd:string" fixed="Norway" />
+        </xsd:sequence>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="address_swedish">
+    <xsd:complexContent>
+      <xsd:restriction base="address">
+        <xsd:sequence>
+          <xsd:element name="street" type="xsd:string" />
+          <xsd:element name="co" type="xsd:string" minOccurs="0" />
+          <xsd:element name="zipCode">
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:string">
+                <xsd:pattern value="^\d{3} \d{2}$" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:element>
+          <xsd:element name="city" type="xsd:string" />
+          <xsd:element name="country" type="xsd:string" fixed="Sweden" />
+        </xsd:sequence>
+      </xsd:restriction>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+</xsd:schema>

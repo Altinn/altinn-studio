@@ -81,9 +81,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             return Task.FromResult(options);
         }
 
-        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

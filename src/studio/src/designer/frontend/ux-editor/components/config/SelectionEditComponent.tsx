@@ -197,7 +197,7 @@ export class SelectionEditComponent
                   <a
                     target='_blank'
                     rel='noopener noreferrer'
-                    href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
+                    href='https://docs.altinn.studio/app/development/data/options/'
                   >
                     {getLanguageFromKey(
                       'ux_editor.modal_properties_code_list_read_more', this.props.language,

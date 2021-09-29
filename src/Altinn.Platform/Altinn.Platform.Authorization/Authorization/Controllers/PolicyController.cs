@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Helpers;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -123,6 +126,49 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             return Ok(PolicyHelper.GetRolesWithAccess(policy));
+        }
+
+        /// <summary>
+        /// Gets a list of resource policies for the list of org/apps
+        /// </summary>
+        /// <param name="orgAppList">The list of org/apps</param>
+        /// <param name="language">The language (not in use yet; exactly how is yet to be determined)</param>
+        /// <returns>A list resourcePolicyResponses</returns>
+        [AllowAnonymous]
+        [HttpPost("/authorization/api/v1/policies/GetPolicies")]
+        public async Task<ActionResult> GetResourcePolicies([FromBody]List<List<AttributeMatch>> orgAppList, [FromQuery] string language)
+        {
+            List<ResourcePolicyResponse> resourcePolicyResponses = new List<ResourcePolicyResponse>();
+            foreach (var attributeMatches in orgAppList)
+            {
+                ResourcePolicyResponse response = new ResourcePolicyResponse { OrgApp = attributeMatches };
+                resourcePolicyResponses.Add(response);
+                string org = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
+                string app = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
+                if (string.IsNullOrWhiteSpace(org))
+                {
+                    response.ErrorResponse = "Organisation must be defined in the path";
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(app))
+                {
+                    response.ErrorResponse = "App must be defined in the path";
+                    continue;
+                }
+
+                XacmlPolicy policy = await _prp.GetPolicyAsync(org, app);
+
+                if (policy == null)
+                {
+                    response.ErrorResponse = $"No valid policy found for org '{org}' and app '{app}'";
+                    continue;
+                }
+
+                response.ResourcePolicies = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
+            }
+
+            return Ok(resourcePolicyResponses);
         }
     }
 }

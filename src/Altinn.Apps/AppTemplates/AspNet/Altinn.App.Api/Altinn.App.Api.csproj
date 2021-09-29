@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.13.0-alpha</Version>
-    <AssemblyVersion>4.13.0.0</AssemblyVersion>
+    <Version>4.15.1-alpha</Version>
+    <AssemblyVersion>4.15.1.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
       This class library holds all the API controllers used by a standard Altinn 3 App.
     </Description>
-    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/community/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>

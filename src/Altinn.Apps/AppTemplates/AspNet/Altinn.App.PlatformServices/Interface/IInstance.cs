@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 
+using Microsoft.Extensions.Primitives;
+
 namespace Altinn.App.Services.Interface
 {
     /// <summary>
@@ -21,9 +23,9 @@ namespace Altinn.App.Services.Interface
         Task<Instance> GetInstance(Instance instance);
 
         /// <summary>
-        /// Gets the instance list of a given instance owner.
+        /// Gets a list of instances based on a dictionary of provided query parameters.
         /// </summary>
-        Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
+        Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams);
 
         /// <summary>
         /// Updates the process model of the instance and returns the updated instance.

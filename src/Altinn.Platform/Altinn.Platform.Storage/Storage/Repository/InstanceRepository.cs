@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
@@ -510,14 +511,27 @@ namespace Altinn.Platform.Storage.Repository
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
-            Instance instance = await Client
+            try
+            {
+                Instance instance = await Client
                 .ReadDocumentAsync<Instance>(
-                    uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
+                uri,
+                new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
-            await PostProcess(instance);
-
-            return instance;
+                await PostProcess(instance);
+                return instance;
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         /// <inheritdoc/>

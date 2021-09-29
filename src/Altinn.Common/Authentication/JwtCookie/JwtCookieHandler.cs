@@ -76,8 +76,14 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If the token is not found in authorization header, get the token from cookie
                 if (string.IsNullOrEmpty(token))
                 {
-                    // Get the cookie from request
-                    token = Options.CookieManager.GetRequestCookie(Context, Options.JwtCookieName);
+                    // Try to get the cookie from the default cookie value
+                    token = Options.CookieManager.GetRequestCookie(Context, JwtCookieDefaults.AltinnTokenCookie);
+
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        // Get the cookie from the configured cookie value
+                        token = Options.CookieManager.GetRequestCookie(Context, Options.JwtCookieName);
+                    }
                 }
 
                 // If no token found, return no result

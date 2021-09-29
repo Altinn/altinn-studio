@@ -19,5 +19,10 @@ namespace AltinnCore.Authentication.JwtCookie
         /// The default value of the CookieAuthenticationOptions.ReturnUrlParameter
         /// </summary>
         public static readonly string ReturnUrlParameter = "ReturnUrl";
+
+        /// <summary>
+        /// The Name for the Altinn token cookie
+        /// </summary>
+        public static readonly string AltinnTokenCookie = ".ALTINNTOKEN";
     }
 }

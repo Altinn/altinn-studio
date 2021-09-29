@@ -44,7 +44,7 @@ namespace Designer.Tests.Controllers
         public async Task GetDeployments_NoLaggingDeployments_PipelineServiceNotCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortBy=created&sortDirection=Descending";
+            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
 
             Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers
         public async Task GetDeployments_SingleLaggingDeployments_PipelineServiceCalled()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortBy=created&sortDirection=Descending";
+            string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
             Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();

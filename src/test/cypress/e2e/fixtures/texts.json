@@ -12,5 +12,6 @@
   "confirmBody": "Vennligst vent, endrer navn til a a.",
   "clientSide": "client side validering",
   "missingRights": "Du mangler rettigheter for å se denne tjenesten",
-  "tryAgain": "Det har skjedd en ukjent feil, vennligst prøv igjen senere"
+  "tryAgain": "Det har skjedd en ukjent feil, vennligst prøv igjen senere",
+  "selectNewReportee": "Velg ny aktør under"
 }

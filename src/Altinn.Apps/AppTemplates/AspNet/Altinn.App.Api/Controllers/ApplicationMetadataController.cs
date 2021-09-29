@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -12,25 +13,16 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     [Authorize]
     [ApiController]
-    public class ApplicationMetadataController: ControllerBase
+    public class ApplicationMetadataController : ControllerBase
     {
-        private readonly ILogger _logger;
-        private readonly IAuthorization _authorization;
         private readonly IAppResources _appResources;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
-        /// <param name="logger">The logger</param>
-        /// <param name="authorization">the authorization service handler</param>
         /// <param name="appResources">The app resources service</param>
         /// </summary>
-        public ApplicationMetadataController(
-            ILogger<ApplicationMetadataController> logger,
-            IAuthorization authorization,
-            IAppResources appResources)
+        public ApplicationMetadataController(IAppResources appResources)
         {
-            _logger = logger;
-            _authorization = authorization;
             _appResources = appResources;
         }
 
@@ -42,7 +34,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>Application metadata</returns>
         [Authorize]
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
-        public async Task<IActionResult> GetAction(string org, string app)
+        public IActionResult GetAction(string org, string app)
         {
             Application application = _appResources.GetApplication();
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Helpers;
@@ -9,6 +10,7 @@ using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
@@ -166,7 +168,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
-        public Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        public Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
         {
             throw new NotImplementedException();
         }
@@ -351,6 +353,116 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult<Instance>(null);
         }
 
+        /// <summary>
+        /// Searches through all instance documents (including pretest)
+        /// </summary>
+        public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
+        {
+            List<string> validQueryParams = new List<string>
+            {
+                "org",
+                "appId",
+                "process.currentTask",
+                "process.isComplete",
+                "process.endEvent",
+                "process.ended",
+                "instanceOwner.partyId",
+                "lastChanged",
+                "created",
+                "visibleAfter",
+                "dueBefore",
+                "excludeConfirmedBy",
+                "size",
+                "language",
+                "status.isSoftDeleted",
+                "status.isArchived",
+                "status.isHardDeleted",
+                "status.isArchivedOrSoftDeleted",
+                "status.isActiveorSoftDeleted",
+                "sortBy",
+                "archiveReference"
+            };
+
+            string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
+            if (!string.IsNullOrEmpty(invalidKey))
+            {
+                // pltform exceptions.
+                HttpResponseMessage res = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    Content = new StringContent($"Unknown query parameter: {invalidKey}")
+                };
+
+                throw await PlatformHttpException.CreateAsync(res);
+            }
+
+            List<Instance> instances = new List<Instance>();
+
+            string instancesPath = GetInstancesPath();
+
+            if (Directory.Exists(instancesPath))
+            {
+                string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+                int instancePathLenght = instancesPath.Split("\\").Length;
+
+                // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
+                List<string> instanceFiles = files.Where(f => f.Split("\\").Length == (instancePathLenght + 4)).ToList();
+
+                foreach (var file in instanceFiles)
+                {
+                    string content = File.ReadAllText(file);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    if (instance != null && instance.Id != null)
+                    {
+                        instances.Add(instance);
+                    }
+                }
+            }
+
+            if (queryParams.ContainsKey("org"))
+            {
+                string org = queryParams.GetValueOrDefault("org").ToString();
+                instances.RemoveAll(i => !i.Org.Equals(org, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appId = queryParams.GetValueOrDefault("appId").ToString();
+                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("instanceOwner.partyId"))
+            {
+                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));
+            }
+
+            if (queryParams.ContainsKey("archiveReference"))
+            {
+                string archiveRef = queryParams.GetValueOrDefault("archiveReference").ToString();
+                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
+            }
+
+            bool match;
+
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsArchived != match);
+            }
+
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
+            }
+
+            instances.RemoveAll(i => i.Status.IsHardDeleted == true);
+            return instances;
+        }
+
         private static (string LastChangedBy, DateTime? LastChanged) FindLastChanged(Instance instance)
         {
             string lastChangedBy = instance.LastChangedBy;
@@ -381,6 +493,6 @@ namespace App.IntegrationTests.Mocks.Services
             });
 
             return (lastChangedBy, lastChanged);
-        }        
+        }
     }
 }

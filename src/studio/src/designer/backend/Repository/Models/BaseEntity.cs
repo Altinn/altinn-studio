@@ -9,12 +9,6 @@ namespace Altinn.Studio.Designer.Repository.Models
     public class BaseEntity
     {
         /// <summary>
-        /// Id
-        /// </summary>
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
-        /// <summary>
         /// Created
         /// </summary>
         [JsonProperty("created")]

@@ -21,6 +21,12 @@
       }
     }
   },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
   "data": [
     {
       "id": "7dfeffd1-1750-4e4a-8107-c6741e05d2a9",

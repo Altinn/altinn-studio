@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/myBase"
+    },
+    {
+      "properties": {
+        "be1": {
+          "allOf": [
+            {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            {
+              "maxLength": 10,
+              "minLength": 10
+            }
+          ]
+        }
+      },
+      "required": [
+        "be1"
+      ]
+    },
+    {
+      "properties": {
+        "a1": {
+          "allOf": [
+            {
+              "type": "integer",
+              "@xsdType": "int"
+            },
+            {
+              "exclusiveMinimum": 100
+            }
+          ],
+          "@xsdAttribute": true
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "myBase": {
+      "allOf": [
+        {
+          "properties": {
+            "be1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "be1"
+          ]
+        },
+        {
+          "properties": {
+            "a1": {
+              "type": "integer",
+              "@xsdType": "int",
+              "@xsdAttribute": true
+            }
+          }
+        }
+      ]
+    }
+  }
+}

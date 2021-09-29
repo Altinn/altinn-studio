@@ -4,7 +4,6 @@ const cdn = 'https://altinncdn.no';
 export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-blue.svg`;
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
 
 export const sharedUrls = () => {
   const [org, repo] = getNamesFromLocation();
@@ -12,6 +11,7 @@ export const sharedUrls = () => {
   const designerApi = `${origin}/designer/api`;
   const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
   return {
+    ensureCloneApi: `${origin}/designer/${org}/${repo}`,
     dataModelsApi,
     dataModelUploadPageUrl: `${origin}/designer/${org}/${repo}#/datamodel`,
     dataModelXsdUrl: `${origin}/designer/${org}/${repo}/Model/GetXsd`,
