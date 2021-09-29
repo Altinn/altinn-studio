@@ -38,6 +38,17 @@ namespace App.IntegrationTests.Utils
             }
         }
 
+        public static void PrepareDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            string dataElementPath = Path.Combine(dataPath, dataGuid.ToString() + ".pretest.json");
+
+            if (File.Exists(dataElementPath))
+            {
+                File.Copy(dataElementPath, dataElementPath.Replace(".pretest.json", ".json"), true);
+            }
+        }
+
         public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
@@ -76,6 +87,17 @@ namespace App.IntegrationTests.Utils
                 {
                     Directory.Delete(path, true);
                 }
+            }
+        }
+
+        public static void DeleteDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            string dataElementPath = Path.Combine(dataPath, dataGuid.ToString() + ".json");
+
+            if (File.Exists(dataElementPath))
+            {
+                File.Delete(dataElementPath);
             }
         }
 
