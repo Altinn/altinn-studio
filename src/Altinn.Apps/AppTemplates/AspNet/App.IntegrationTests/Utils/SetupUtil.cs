@@ -25,7 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace App.IntegrationTestsRef.Utils
+namespace App.IntegrationTests.Utils
 {
     public static class SetupUtil
     {

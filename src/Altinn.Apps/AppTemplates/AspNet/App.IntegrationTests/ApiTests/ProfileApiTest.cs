@@ -7,7 +7,6 @@ using Altinn.App.IntegrationTests;
 using Altinn.Platform.Profile.Models;
 
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 using Xunit;

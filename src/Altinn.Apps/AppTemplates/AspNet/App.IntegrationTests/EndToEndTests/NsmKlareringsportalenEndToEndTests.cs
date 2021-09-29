@@ -1,20 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
+
 using Altinn.App;
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
-using App.IntegrationTestsRef.Utils;
+
 using Newtonsoft.Json;
 using Xunit;
 
@@ -23,9 +19,6 @@ namespace App.IntegrationTestsRef.EndToEndTests
     public class NsmKlareringsportalenEndToEndTests : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-
-        private readonly Dictionary<string, DataElement> dataElements = new Dictionary<string, DataElement>();
-        private readonly Dictionary<string, object> dataBlobs = new Dictionary<string, object>();
 
         public NsmKlareringsportalenEndToEndTests(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {

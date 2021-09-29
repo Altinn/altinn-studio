@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Altinn.App.IntegrationTests;
 
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Xunit;
 

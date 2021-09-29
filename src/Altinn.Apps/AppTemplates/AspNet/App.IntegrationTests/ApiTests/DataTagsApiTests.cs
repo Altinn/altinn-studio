@@ -10,7 +10,6 @@ using Altinn.App.Api.Models;
 using Altinn.App.IntegrationTests;
 
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Xunit;
 
