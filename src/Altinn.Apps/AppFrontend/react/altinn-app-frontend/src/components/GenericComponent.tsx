@@ -215,6 +215,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const noLabelComponents: string[] = [
     'Header',
     'Paragraph',
+    'Image',
     'Submit',
     'ThirdParty',
     'AddressComponent',
