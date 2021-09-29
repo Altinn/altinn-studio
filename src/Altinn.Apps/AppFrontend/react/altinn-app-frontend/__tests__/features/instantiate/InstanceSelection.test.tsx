@@ -39,8 +39,8 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
   it('should display mobile table for smaller devices', () => {
     (window as any).matchMedia = jest.fn().mockReturnValue({
       matches: true,
-      addListener: () => {},
-      removeListener: () => {},
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
     });
     const rendered = render(
       <Provider store={mockStore}>

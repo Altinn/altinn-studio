@@ -1,5 +1,4 @@
-import { TableHead } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, TableHead } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnAppTheme';
 

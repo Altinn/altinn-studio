@@ -1,4 +1,4 @@
-import { makeStyles, TableBody } from "@material-ui/core";
+import { makeStyles, TableBody } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnAppTheme';
 
@@ -21,8 +21,8 @@ const useStyles = makeStyles({
     '& tr': {
       '&:hover': {
         background: theme.altinnPalette.primary.blueLighter,
-      }
-    }
+      },
+    },
   },
 });
 

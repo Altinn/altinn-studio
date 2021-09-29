@@ -36,7 +36,11 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
                 onClick={() => openInstance(instance.id)}
                 iconNode={
                   <>
-                    <Typography variant='body1' style={{ color: '#0062BA', marginRight: '4px', fontWeight: 700 }}>
+                    <Typography
+                      variant='body1' style={{
+                        color: '#0062BA', marginRight: '4px', fontWeight: 700,
+                      }}
+                    >
                       {getLanguageFromKey('instance_selection.continue', language)}
                     </Typography>
                     <i className='fa fa-edit' style={{ color: '#0062BA', fontSize: '24px' }} />
@@ -67,7 +71,12 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
                 <TableCell>{instance.lastChangedBy}</TableCell>
                 <TableCell align='right'>
                   <IconButton onClick={() => openInstance(instance.id)}>
-                    <Typography variant='body1' style={{ color: '#0062BA', marginRight: '4px', fontWeight: 700 }}>
+                    <Typography
+                      variant='body1'
+                      style={{
+                        color: '#0062BA', marginRight: '4px', fontWeight: 700,
+                      }}
+                    >
                       {getLanguageFromKey('instance_selection.continue', language)}
                     </Typography>
                     <i className='fa fa-edit' style={{ color: '#0062BA', fontSize: '24px' }} />

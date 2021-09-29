@@ -39,12 +39,20 @@ export default function Entrypoint() {
   const fetchExistingInstances = async () => {
     try {
       // const { data } = await get(getActiveInstancesUrl(selectedParty.partyId));'
-      // todo: remove this dummy api response when api has been fixed
+      // TODO: remove this dummy api response when api has been fixed
       const data: ISimpleInstance[] = [
-        { id: 'some-id', lastChanged: '28-01-1992', lastChangedBy: 'Steffen Ekeberg' },
-        { id: 'some-id', lastChanged: '06-03-1974', lastChangedBy: 'Marius Ekeberg' },
-        { id: 'some-id', lastChanged: '12-07-2004', lastChangedBy: 'Emma Ekeberg' },
-        { id: 'some-id', lastChanged: '19-10-1998', lastChangedBy: 'Tine Ekeberg' },
+        {
+          id: 'some-id', lastChanged: '28-01-1992', lastChangedBy: 'Steffen Ekeberg',
+        },
+        {
+          id: 'some-id', lastChanged: '06-03-1974', lastChangedBy: 'Marius Ekeberg',
+        },
+        {
+          id: 'some-id', lastChanged: '12-07-2004', lastChangedBy: 'Emma Ekeberg',
+        },
+        {
+          id: 'some-id', lastChanged: '19-10-1998', lastChangedBy: 'Tine Ekeberg',
+        },
       ];
       setActiveInstances(data);
     } catch (err) {
