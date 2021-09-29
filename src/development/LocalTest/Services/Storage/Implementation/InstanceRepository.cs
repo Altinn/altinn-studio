@@ -86,8 +86,8 @@ namespace LocalTest.Services.Storage.Implementation
                     string content = File.ReadAllText(instanceFile.FullName);
                     Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                     await PostProcess(instance);
-                    if (!queryParams.ContainsKey("org") || instance.Org.Equals(queryParams["org"]))
-                        if (!queryParams.ContainsKey("appId") || instance.Org.Equals(queryParams["appId"]))
+                    if (!queryParams.ContainsKey("org") || instance.Org.Equals(queryParams["org"], StringComparison.OrdinalIgnoreCase))
+                        if (!queryParams.ContainsKey("appId") || instance.AppId.Equals(queryParams["appId"], StringComparison.OrdinalIgnoreCase))
                         {
                             response.Instances.Add(instance);
                             response.Count++;
