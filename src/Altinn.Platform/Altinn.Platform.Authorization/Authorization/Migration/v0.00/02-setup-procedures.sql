@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION delegation.get_current_change(
   _coveredByUserId integer,
   _coveredByPartyId integer
 )
-RETURNS delegation.delegatedPolicy AS 
+RETURNS SETOF delegation.delegatedPolicy AS 
 $BODY$
   SELECT * FROM delegation.delegatedPolicy
   WHERE
