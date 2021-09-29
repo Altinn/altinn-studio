@@ -55,6 +55,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
 
         /// <summary>
+        /// Creates a JSON schema based on a XSD.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="schemaName">The name of the schema/model (no extension).</param>
+        /// <param name="altinn2Compatible">True if the schema should be Altinn 2 compatible when generating XSD. False (default) creates a Altinn 3 schema.</param>
+        /// <returns>String representation of the created Json Schema.</returns>
+        Task<string> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, bool altinn2Compatible = false);
+
+        /// <summary>
         /// Deletes a schema based on the relative path to the JSON Schema within the repository.
         /// For a datamodels repository this will only delete the file itself. For a app
         /// repository this will remove the datatype from the <see cref="Application"/> as well

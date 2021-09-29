@@ -152,11 +152,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
         /// <param name="createModel">View model containing the data required to create the initial model.</param>
+        [Authorize]
         [HttpPost]
         [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
         public async Task<ActionResult> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
-            var model = "{}";
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            var model = _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.Altinn2Compatible);
             var modelPath = string.Empty;
 
             return new CreatedAtActionResult(nameof(Get), nameof(DatamodelsController), new { org, repository, modelPath}, model);

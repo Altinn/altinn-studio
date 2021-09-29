@@ -7,6 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
@@ -106,6 +107,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 return jsonContent;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, bool altinn2Compatible = false)
+        {
+            var uri = GetSchemaUri(org, repository, schemaName);
+            JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+            var jsonSchema = jsonTemplate.GetJsonString();
+
+            return jsonSchema;
         }
 
         /// <inheritdoc/>

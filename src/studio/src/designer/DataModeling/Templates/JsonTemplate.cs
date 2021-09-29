@@ -5,13 +5,13 @@ namespace Altinn.Studio.DataModeling.Templates
     /// <summary>
     /// Base class for handling simple Json Schema templates.
     /// </summary>
-    public class JsonTemplate
+    public abstract class JsonTemplate
     {
         /// <summary>
         /// The template based Json Schema. If not all variables are replaced these
         /// will remain as is.
         /// </summary>
-        public string JsonSchemaInstance { get; protected set; }
+        protected string JsonSchemaInstance { get; set; }
 
         /// <summary>
         /// Generic method for replacing av variable in a template string.
@@ -41,6 +41,15 @@ namespace Altinn.Studio.DataModeling.Templates
         public void SetRootType(string value)
         {
             ReplaceVariable("rootType", value);
+        }
+
+        /// <summary>
+        /// Gets a string representation of the created Json Schema template.
+        /// </summary>
+        /// <returns></returns>
+        public string GetJsonString()
+        {
+            return JsonSchemaInstance;
         }
     }
 }

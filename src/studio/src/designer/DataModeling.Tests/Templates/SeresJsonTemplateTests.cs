@@ -23,7 +23,7 @@ namespace DataModeling.Tests.Templates
             var actualJsonTemplate = new SeresJsonTemplate(new Uri(expectedId), "melding");
 
             // Assert
-            JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.JsonSchemaInstance);
+            JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
             var idKeyword = jsonSchema.GetKeyword<IdKeyword>();
             idKeyword.Id.Should().Be(expectedId);
 
