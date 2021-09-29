@@ -85,11 +85,16 @@ export function GroupContainer({
   }, [formData, container]);
 
   React.useEffect(() => {
+    const {edit} = container;
+    if (!edit) {
+      return;
+    }
+
     if (container.edit?.multiPage) {
       setMultiPageIndex(0);
     }
 
-    if (container.edit?.openByDefault === true && repeatingGroupIndex === -1) {
+    if (container.edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
   }, [container]);
