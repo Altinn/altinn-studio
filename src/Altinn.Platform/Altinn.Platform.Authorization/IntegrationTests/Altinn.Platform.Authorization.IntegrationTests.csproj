@@ -62,6 +62,18 @@
     <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0021Request.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Data\Xacml\3.0\AltinnApps\SKDInvalidAppRequest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Xacml\3.0\AltinnApps\SKDMissingAppRequest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Xacml\3.0\AltinnApps\SKDMissingOrgRequest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Xacml\3.0\AltinnApps\SKDTaxReport2Request.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\Xacml\3.0\PolicyRepository\IIA003Policy.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
