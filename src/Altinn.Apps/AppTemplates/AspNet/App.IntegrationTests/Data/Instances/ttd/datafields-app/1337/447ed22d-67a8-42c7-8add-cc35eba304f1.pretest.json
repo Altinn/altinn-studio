@@ -20,6 +20,12 @@
   "dataValues": {
     "Title": "Sophie Salt"
   },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
   "data": [
     {
       "id": "590ebc27-246e-4a0a-aea3-4296cb231d78",

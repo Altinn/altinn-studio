@@ -14,6 +14,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json
         private readonly Dictionary<JsonPointer, HashSet<CompatibleXsdType>> _incompatibleTypes;
 
         /// <summary>
+        /// The origin of the schema ie. Seres, OR, Standard or Unknown
+        /// </summary>
+        public string SchemaOrigin { get; set; } = "Unknown";
+
+        /// <summary>
         /// Placeholder
         /// </summary>
         public string MessageName { get; set; }

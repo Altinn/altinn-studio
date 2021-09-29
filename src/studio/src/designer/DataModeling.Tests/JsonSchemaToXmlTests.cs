@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -17,6 +18,13 @@ namespace DataModeling.Tests
 
         private static async Task TestFiles(string schemaPath, string expectedPath)
         {
+            var uri = "melding";
+
+            await TestFiles(schemaPath, expectedPath, uri);
+        }
+
+        private static async Task TestFiles(string schemaPath, string expectedPath, string uri)
+        {
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -26,7 +34,8 @@ namespace DataModeling.Tests
             XmlSchema expected = ResourceHelpers.LoadXmlSchemaTestData(expectedPath);
 
             // Act
-            XmlSchema actual = converter.Convert(jsonSchema);
+            var schemaUri = new Uri(uri, UriKind.RelativeOrAbsolute);
+            XmlSchema actual = converter.Convert(jsonSchema, schemaUri);
 
             StringBuilder xmlStringBuilder = new StringBuilder();
             await using (XmlWriter xmlWriter = XmlWriter.Create(xmlStringBuilder, new XmlWriterSettings
@@ -48,37 +57,37 @@ namespace DataModeling.Tests
             XmlSchemaAssertions.IsEquivalentTo(expected, actual);
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "XsdStructureKeyword not supported. We default to sequence, and currently dont' support all. #6888")]
         public async Task SimpleAll()
         {
-            await TestFiles("Model/JsonSchema/SimpleAll.json", "Model/XmlSchema/SimpleAll.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleAll.json", "Model/XmlSchema/General/SimpleAll.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task AltinnAnnotation()
         {
-            await TestFiles("Model/JsonSchema/AltinnAnnotation.json", "Model/XmlSchema/AltinnAnnotation.xsd");
+            await TestFiles("Model/JsonSchema/AltinnAnnotation.json", "Model/XmlSchema/AltinnAnnotation.xsd", string.Empty);
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Missing support for Any (element). AnyAttribute is implemented. #6885")]
         public async Task Any()
         {
-            await TestFiles("Model/JsonSchema/Any.json", "Model/XmlSchema/Any.xsd");
+            await TestFiles("Model/JsonSchema/General/Any.json", "Model/XmlSchema/General/Any.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Unhandled attributes ends up on schema, not on the root element. #6890")]
         public async Task Attributes()
         {
-            await TestFiles("Model/JsonSchema/Attributes.json", "Model/XmlSchema/Attributes.xsd");
+            await TestFiles("Model/JsonSchema/General/Attributes.json", "Model/XmlSchema/General/Attributes.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task BuiltinTypes()
         {
-            await TestFiles("Model/JsonSchema/BuiltinTypes.json", "Model/XmlSchema/BuiltinTypes.xsd");
+            await TestFiles("Model/JsonSchema/General/BuiltinTypes.json", "Model/XmlSchema/General/BuiltinTypes.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Choice not supported for now, and probably won't be because of unecessary complexity.")]
         public async Task SimpleChoice()
         {
             await TestFiles("Model/JsonSchema/SimpleChoice.json", "Model/XmlSchema/SimpleChoice.xsd");
@@ -108,88 +117,88 @@ namespace DataModeling.Tests
             await TestFiles("Model/JsonSchema/NestedWithArrayChoice.json", "Model/XmlSchema/NestedWithArrayChoice.xsd");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Attribute a1 is placed outside the complex content extension ref. #6869")]
         public async Task ComplexContentExtension()
         {
-            await TestFiles("Model/JsonSchema/ComplexContentExtension.json", "Model/XmlSchema/ComplexContentExtension.xsd");
+            await TestFiles("Model/JsonSchema/General/ComplexContentExtension.json", "Model/XmlSchema/General/ComplexContentExtension.xsd", "Root");
         }
 
         [Fact(Skip = "Needs analyzing")]
         public async Task ComplexContentRestriction()
         {
-            await TestFiles("Model/JsonSchema/ComplexContentRestriction.json", "Model/XmlSchema/ComplexContentRestriction.xsd");
+            await TestFiles("Model/JsonSchema/General/ComplexContentRestriction.json", "Model/XmlSchema/General/ComplexContentRestriction.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Fails to recognize array type and support xsd:list #6891")]
         public async Task ComplexSchema()
         {
-            await TestFiles("Model/JsonSchema/ComplexSchema.json", "Model/XmlSchema/ComplexSchema.xsd");
+            await TestFiles("Model/JsonSchema/General/ComplexSchema.json", "Model/XmlSchema/General/ComplexSchema.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "We currently don't support group element. Ref. #6892")]
         public async Task Definitions()
         {
-            await TestFiles("Model/JsonSchema/Definitions.json", "Model/XmlSchema/Definitions.xsd");
+            await TestFiles("Model/JsonSchema/General/Definitions.json", "Model/XmlSchema/General/Definitions.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "The provided example is an OR schema which is currently not supported.")]
         public async Task ElementAnnotation()
         {
-            await TestFiles("Model/JsonSchema/ElementAnnotation.json", "Model/XmlSchema/ElementAnnotation.xsd");
+            await TestFiles("Model/JsonSchema/General/ElementAnnotation.json", "Model/XmlSchema/General/ElementAnnotation.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleTypeRestrictions()
         {
-            await TestFiles("Model/JsonSchema/SimpleTypeRestrictions.json", "Model/XmlSchema/SimpleTypeRestrictions.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleTypeRestrictions.json", "Model/XmlSchema/General/SimpleTypeRestrictions.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleSequence()
         {
-            await TestFiles("Model/JsonSchema/SimpleSequence.json", "Model/XmlSchema/SimpleSequence.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleSequence.json", "Model/XmlSchema/General/SimpleSequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedSequence()
         {
-            await TestFiles("Model/JsonSchema/NestedSequence.json", "Model/XmlSchema/NestedSequence.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedSequence.json", "Model/XmlSchema/General/NestedSequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedSequences()
         {
-            await TestFiles("Model/JsonSchema/NestedSequences.json", "Model/XmlSchema/NestedSequences.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedSequences.json", "Model/XmlSchema/General/NestedSequences.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedWithOptionalSequence()
         {
-            await TestFiles("Model/JsonSchema/NestedWithOptionalSequence.json", "Model/XmlSchema/NestedWithOptionalSequence.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedWithOptionalSequence.json", "Model/XmlSchema/General/NestedWithOptionalSequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "Nested sequence is currently not supported while maintaing the sequences. #6894")]
         public async Task NestedWithArraySequence()
         {
-            await TestFiles("Model/JsonSchema/NestedWithArraySequence.json", "Model/XmlSchema/NestedWithArraySequence.xsd");
+            await TestFiles("Model/JsonSchema/General/NestedWithArraySequence.json", "Model/XmlSchema/General/NestedWithArraySequence.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleContentExtension()
         {
-            await TestFiles("Model/JsonSchema/SimpleContentExtension.json", "Model/XmlSchema/SimpleContentExtension.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleContentExtension.json", "Model/XmlSchema/General/SimpleContentExtension.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact]
         public async Task SimpleContentRestriction()
         {
-            await TestFiles("Model/JsonSchema/SimpleContentRestriction.json", "Model/XmlSchema/SimpleContentRestriction.fromJson.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleContentRestriction.json", "Model/XmlSchema/General/SimpleContentRestriction.fromJson.xsd", "Root");
         }
 
-        [Fact(Skip = "Needs analyzing")]
+        [Fact(Skip = "We currently don't support xsd:list #6891")]
         public async Task SimpleTypeList()
         {
-            await TestFiles("Model/JsonSchema/SimpleTypeList.json", "Model/XmlSchema/SimpleTypeList.xsd");
+            await TestFiles("Model/JsonSchema/General/SimpleTypeList.json", "Model/XmlSchema/General/SimpleTypeList.xsd", "Root");
         }
     }
 }

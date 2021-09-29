@@ -100,10 +100,10 @@
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="_TestData\Model\XmlSchema\SeresArray.xsd">
+    <EmbeddedResource Update="_TestData\Model\XmlSchema\Seres\SeresArray.xsd">
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Update="_TestData\Model\XmlSchema\SeresComplexType.xsd">
+    <EmbeddedResource Update="_TestData\Model\XmlSchema\Seres\SeresComplexType.xsd">
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

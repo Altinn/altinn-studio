@@ -13,5 +13,9 @@
     "currentTask": { "elementId": "formfilling" }
   },
   "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
   }
 }

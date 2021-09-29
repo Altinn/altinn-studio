@@ -63,5 +63,15 @@ namespace Altinn.Platform.Authentication.Model
         /// Additional claims from provider
         /// </summary>
         public Dictionary<string, string> ProviderClaims { get; set; }
+
+        /// <summary>
+        /// The OIDC Issuer
+        /// </summary>
+        public string Iss { get; set; }
+
+        /// <summary>
+        /// The external identity
+        /// </summary>
+        public string ExternalIdentity { get; internal set; }
     }
 }

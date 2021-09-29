@@ -18,7 +18,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ValidateController : ControllerBase
     {
-        private readonly IInstance _instanceService;
+        private readonly IInstance _instanceClient;
         private readonly IAppResources _appResourceService;
         private readonly IValidation _validationService;
 
@@ -26,11 +26,11 @@ namespace Altinn.App.Api.Controllers
         /// Initialises a new instance of the <see cref="ValidateController"/> class
         /// </summary>
         public ValidateController(
-            IInstance instanceService,
+            IInstance instanceClient,
             IValidation validationService,
             IAppResources appResources)
         {
-            _instanceService = instanceService;
+            _instanceClient = instanceClient;
             _validationService = validationService;
             _appResourceService = appResources;
         }
@@ -51,7 +51,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -86,7 +86,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();

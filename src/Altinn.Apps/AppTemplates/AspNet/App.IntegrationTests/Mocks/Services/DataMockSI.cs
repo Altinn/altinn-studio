@@ -50,7 +50,7 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
-        public async Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string dataPath = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataId);
 
@@ -59,11 +59,11 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 using FileStream sourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
 
-                return serializer.Deserialize(sourceStream);
+                return Task.FromResult(serializer.Deserialize(sourceStream));
             }
             catch
             {
-                return Activator.CreateInstance(type);
+                return Task.FromResult(Activator.CreateInstance(type));
             }
         }
 
@@ -73,7 +73,7 @@ namespace App.IntegrationTests.Mocks.Services
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
-            
+
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
@@ -111,7 +111,7 @@ namespace App.IntegrationTests.Mocks.Services
             return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataType);
         }
 
-        public async Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, string dataType)
+        public Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, string dataType)
         {
             Guid dataGuid = Guid.NewGuid();
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
@@ -142,7 +142,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             instance.Data = GetDataElements(org, app, instanceOwnerId, instanceGuid);
 
-            return dataElement;
+            return Task.FromResult(dataElement);
         }
 
         public Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
@@ -176,19 +176,19 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(dataElement);
         }
 
-        private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
-        private string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
         }
 
-        private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        private static Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instancePath = Path.Combine(GetInstancePath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
             if (File.Exists(instancePath))
@@ -202,13 +202,13 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        private string GetInstancePath()
+        private static string GetInstancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
         }
 
-        private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+        private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
@@ -281,25 +281,6 @@ namespace App.IntegrationTests.Mocks.Services
             sw.Close();
 
             return Task.FromResult(dataElement);
-        }
-
-        private static StreamContent CreateContentStream(HttpRequest request)
-        {
-            StreamContent content = new StreamContent(request.Body);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
-
-            if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
-            {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
-            }
-
-            return content;
-        }
-
-        private string GetInstancePath(string app, string org)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\");
         }
     }
 }
