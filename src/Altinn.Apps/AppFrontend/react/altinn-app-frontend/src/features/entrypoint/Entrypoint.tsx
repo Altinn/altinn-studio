@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import Presentation from 'src/shared/containers/Presentation';
+import { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
 import { IRuntimeState, ISimpleInstance, PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
@@ -17,7 +18,7 @@ import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
 export default function Entrypoint() {
   const applicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
-  const [action, setAction] = React.useState<string>(null);
+  const [action, setAction] = React.useState<ShowTypes>(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [activeInstances, setActiveInstances] = React.useState<ISimpleInstance[]>(null);
   const statelessLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.stateless);
@@ -66,7 +67,7 @@ export default function Entrypoint() {
   };
 
   React.useEffect(() => {
-    if (action === 'instance-selection' && partyValidation?.valid) {
+    if (action === 'select-instance' && partyValidation?.valid) {
       fetchExistingInstances();
     }
   }, [action, partyValidation]);
@@ -104,7 +105,7 @@ export default function Entrypoint() {
     return <Instantiate />;
   }
 
-  if (action === 'instance-selection' && partyValidation?.valid && activeInstances !== null) {
+  if (action === 'select-instance' && partyValidation?.valid && activeInstances !== null) {
     if (activeInstances.length === 0) {
       // no existing instances exist, we start instantiation
       return <Instantiate />;
