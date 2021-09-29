@@ -172,7 +172,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         return BadRequest("Invalid state param");
                     }
 
-                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri());
+                    OidcCodeResponse oidcCodeResponse = await _oidcProvider.GetTokens(code, provider, GetRedirectUri(provider));
                     JwtSecurityToken jwtSecurityToken = await ValidateAndExtractOidcToken(oidcCodeResponse.IdToken, provider.WellKnownConfigEndpoint);
                     userAuthentication = GetUserFromToken(jwtSecurityToken, provider);
                     if (!ValidateNonce(HttpContext, userAuthentication.Nonce))
@@ -933,7 +933,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         private string CreateAuthenticationRequest(OidcProvider provider, string state, string nonce)
         {
-            string redirect_uri = GetRedirectUri();
+            string redirect_uri = GetRedirectUri(provider);
             string authorizationEndpoint = provider.AuthorizationEndpoint;
             Dictionary<string, string> oidcParams = new Dictionary<string, string>();
 
@@ -980,9 +980,16 @@ namespace Altinn.Platform.Authentication.Controllers
             return uri;
         }
 
-        private string GetRedirectUri()
+        private string GetRedirectUri(OidcProvider provider)
         {
-           return $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication";
+            string redirectUri = $"{_generalSettings.PlatformEndpoint}authentication/api/v1/authentication";
+
+            if (provider.IncludeIssInRedirectUri)
+            {
+                redirectUri = redirectUri + "?iss=" + provider.IssuerKey;
+            }
+
+            return redirectUri;
         }
 
         private string CreateNonce(HttpContext httpContext)

@@ -69,5 +69,10 @@ namespace Altinn.Platform.Authentication.Model
         /// The claim to use for external identity if
         /// </summary>
         public string ExternalIdentityClaim { get; set; }
+
+        /// <summary>
+        /// Defines if Altinn Authentication should include the iss in the redirect_uri
+        /// </summary>
+        public bool IncludeIssInRedirectUri { get; set; }
     }
 }
