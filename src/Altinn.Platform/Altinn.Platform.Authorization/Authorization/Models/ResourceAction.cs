@@ -22,6 +22,7 @@ namespace Altinn.Platform.Authorization.Models
         /// <summary>
         /// Gets or sets a description of the action.
         /// </summary>
+        public string Description { get; set; }
 
         /// <summary>
         /// Gets or sets which roles are granted access to this action on this resource
