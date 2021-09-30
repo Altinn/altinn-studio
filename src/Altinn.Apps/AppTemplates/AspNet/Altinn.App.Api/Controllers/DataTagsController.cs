@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
@@ -107,10 +108,9 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid dataGuid,
             [FromBody] string tag)
         {
-            // TODO: More validation to avoid illagal characters
-            if (string.IsNullOrWhiteSpace(tag))
+            if (tag == null || !Regex.Match(tag, "^[\\p{L}\\-_]+$").Success)
             {
-                BadRequest("The new tag must consist of letters.");
+                return BadRequest("The new tag must consist of letters.");
             }
 
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);

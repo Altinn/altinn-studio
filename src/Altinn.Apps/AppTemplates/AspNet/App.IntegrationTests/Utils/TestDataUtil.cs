@@ -10,6 +10,11 @@ namespace App.IntegrationTests.Utils
 {
     public static class TestDataUtil
     {
+        private static JsonSerializerOptions serializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
@@ -47,6 +52,23 @@ namespace App.IntegrationTests.Utils
             {
                 File.Copy(dataElementPath, dataElementPath.Replace(".pretest.json", ".json"), true);
             }
+        }
+
+        public static void AddDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, DataElement dataElement)
+        {
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            string dataElementPath = Path.Combine(dataPath, dataElement.Id + ".json");
+
+            if (File.Exists(dataElementPath))
+            {
+                throw new ArgumentException("DataElement already exists");
+            }
+
+            string jsonData = JsonSerializer.Serialize(dataElement, serializerOptions);
+            using StreamWriter sw = new StreamWriter(dataElementPath);
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
         }
 
         public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
