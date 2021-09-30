@@ -167,6 +167,7 @@ namespace Altinn.App
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseStaticFiles("/ttd/frontend-test");
 
             app.UseEndpoints(endpoints =>
             {
