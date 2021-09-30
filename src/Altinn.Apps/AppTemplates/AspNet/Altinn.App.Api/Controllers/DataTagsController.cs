@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
+using System.Net.Mime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -14,7 +13,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -22,6 +20,8 @@ namespace Altinn.App.Api.Controllers
     /// This controller class provides action methods for endpoints related to the tags resource on data elements.
     /// </summary>
     [AutoValidateAntiforgeryTokenIfAuthCookie]
+    [Produces(MediaTypeNames.Application.Json)]
+    [Consumes(MediaTypeNames.Application.Json)]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/tags")]
     public class DataTagsController : ControllerBase
