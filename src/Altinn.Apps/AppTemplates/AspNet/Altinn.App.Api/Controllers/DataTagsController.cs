@@ -45,11 +45,11 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Retrieves all tags associated with the given data element.
         /// </summary>
-        /// <param name="org">The unique short name for the application owner.</param>
+        /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
-        /// <param name="instanceOwnerPartyId">The unique party id of the owner of the instance.</param>
-        /// <param name="instanceGuid">The unique id of the instance.</param>
-        /// <param name="dataGuid">The unique id of the data element.</param>
+        /// <param name="instanceOwnerPartyId">The party id of the owner of the instance.</param>
+        /// <param name="instanceGuid">The id of the instance.</param>
+        /// <param name="dataGuid">The id of the data element.</param>
         /// <returns>A <see cref="TagsList"/> object with a list of tags.</returns>
         [HttpGet]
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
@@ -90,11 +90,11 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Retrieves all tags associated with the given data element.
         /// </summary>
-        /// <param name="org">The unique short name for the application owner.</param>
+        /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
-        /// <param name="instanceOwnerPartyId">The unique party id of the owner of the instance.</param>
-        /// <param name="instanceGuid">The unique id of the instance.</param>
-        /// <param name="dataGuid">The unique id of the data element.</param>
+        /// <param name="instanceOwnerPartyId">The party id of the owner of the instance.</param>
+        /// <param name="instanceGuid">The id of the instance.</param>
+        /// <param name="dataGuid">The id of the data element.</param>
         /// <param name="tag">The new tag to be added.</param>
         /// <returns>A <see cref="TagsList"/> object with a list of tags.</returns>
         [HttpPost]
@@ -143,11 +143,11 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Retrieves all tags associated with the given data element.
         /// </summary>
-        /// <param name="org">The unique short name for the application owner.</param>
+        /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
-        /// <param name="instanceOwnerPartyId">The unique party id of the owner of the instance.</param>
-        /// <param name="instanceGuid">The unique id of the instance.</param>
-        /// <param name="dataGuid">The unique id of the data element.</param>
+        /// <param name="instanceOwnerPartyId">The party id of the owner of the instance.</param>
+        /// <param name="instanceGuid">The id of the instance.</param>
+        /// <param name="dataGuid">The id of the data element.</param>
         /// <param name="tag">The name of the tag to be removed.</param>
         [HttpDelete("{tag}")]
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
