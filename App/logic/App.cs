@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Models;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Altinn.App.AppLogic
 {
@@ -204,7 +205,8 @@ namespace Altinn.App.AppLogic
 
     private void UpdatePageOrder(List<string> pageOrder, NestedGroup formdata)
     {
-      if (formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788[0]?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value > 10)
+      var newValue = formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value; 
+      if (newValue.HasValue && newValue > 10)
       {
         pageOrder.Remove("side2");
       }

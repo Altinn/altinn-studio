@@ -82,7 +82,8 @@
             "prefix": "NOK ",
             "allowNegative": false
           }
-        }
+        },
+        "triggers": ["validation"]
       },
       {
         "id": "subGroup",

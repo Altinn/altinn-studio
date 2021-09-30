@@ -123,7 +123,7 @@
         "dataModelBindings": {
           "simpleBinding": "Radioknapp"
         },
-        "optionsId": "reasons",        
+        "optionsId": "reasons",
         "required": true,
         "readOnly": false,
         "preselectedOptionIndex": 0
@@ -306,9 +306,9 @@
       },
       {
         "id": "sources",
-        "type": "Dropdown",        
+        "type": "Dropdown",
         "textResourceBindings": {
-          "title": "hvor fikk du vite om skjemaet?"          
+          "title": "hvor fikk du vite om skjemaet?"
         },
         "dataModelBindings": {
           "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"
@@ -319,7 +319,7 @@
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "xs": 6
-        }      
+        }
       },
       {
         "id": "fileUpload-changename",

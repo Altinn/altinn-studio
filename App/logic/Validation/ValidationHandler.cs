@@ -48,17 +48,22 @@ namespace Altinn.App.AppLogic.Validation
                 NestedGroup model = (NestedGroup)data;
                 String comments = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788.FirstOrDefault()?.nestedgrp1234.FirstOrDefault()?.SkattemeldingEndringEtterFristKommentardatadef37133?.value;
                 String name = model?.Endringsmeldinggrp9786?.Avgivergrp9787?.OppgavegiverNavndatadef68?.value;
+                var newValue = model?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value;
                 if (!string.IsNullOrEmpty(name) && name.Contains("test"))
                 {
-                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "Name cannot contain test");
+                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "test er ikke en gyldig verdi");
                 }
                 if (!string.IsNullOrEmpty(name) && !name.Contains("test"))
                 {
-                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "*FIXED*Name cannot contain test");
+                    validationResults.AddModelError("Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value", "*FIXED*test er ikke en gyldig verdi");
                 }
                 if (!string.IsNullOrEmpty(comments) && comments.Contains("test"))
                 {
-                    validationResults.AddModelError("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].SkattemeldingEndringEtterFristKommentar-datadef-37133.value", "Comments cannot contain test");
+                    validationResults.AddModelError("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].SkattemeldingEndringEtterFristKommentar-datadef-37133.value", "test er ikke en gyldig verdi");
+                }
+                if (newValue.HasValue && newValue == 0)
+                {
+                    validationResults.AddModelError("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value", "0 er ikke en gyldig verdi");
                 }
             }
             await Task.CompletedTask;
