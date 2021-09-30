@@ -459,7 +459,8 @@ namespace Designer.Tests.Controllers
                 var location = postResponse.Headers.Location;
                 var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
                 var getResponse = await client.SendAsync(getRequestMessage);
-                //TODO: Not getting the correct location url back - query params instead of path
+
+                // TODO: Not getting the correct location url back - query params instead of path
             }
             finally
             {
