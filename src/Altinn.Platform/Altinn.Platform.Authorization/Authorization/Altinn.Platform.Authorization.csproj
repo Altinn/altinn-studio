@@ -12,7 +12,7 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
