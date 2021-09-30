@@ -697,7 +697,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
                 Process = instanceTemplate.Process,
-                DataValues = instanceTemplate.DataValues
+                DataValues = instanceTemplate.DataValues,
             };
 
             return createdInstance;
