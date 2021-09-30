@@ -148,7 +148,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">The unique party id of the owner of the instance.</param>
         /// <param name="instanceGuid">The unique id of the instance.</param>
         /// <param name="dataGuid">The unique id of the data element.</param>
-        /// <param name="tag">The new tag to be added.</param>
+        /// <param name="tag">The name of the tag to be removed.</param>
         [HttpDelete("{tag}")]
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
