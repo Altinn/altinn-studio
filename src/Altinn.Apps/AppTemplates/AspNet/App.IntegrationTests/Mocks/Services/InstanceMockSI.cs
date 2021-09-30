@@ -38,6 +38,7 @@ namespace App.IntegrationTests.Mocks.Services
                 InstanceOwner = instanceTemplate.InstanceOwner,
                 Process = instanceTemplate.Process,
                 Data = new List<DataElement>(),
+                DataValues = instanceTemplate.DataValues
             };
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
