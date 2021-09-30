@@ -64,15 +64,10 @@ namespace Altinn.App.Api.Controllers
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
-                return NotFound($"There are no instance with the provided id.");
+                return NotFound($"Unable to find instance based on the given parameters.");
             }
 
             DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
-
-            if (dataElement == null)
-            {
-                return NotFound("Did not find data element with the provided id.");
-            }
 
             if (dataElement == null)
             {
@@ -116,14 +111,14 @@ namespace Altinn.App.Api.Controllers
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
-                return NotFound($"There are no instance with the provided id.");
+                return NotFound("Unable to find instance based on the given parameters.");
             }
 
             DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
             
             if (dataElement == null)
             {
-                return NotFound("Did not find data element with the provided id.");
+                return NotFound("Unable to find data element based on the given parameters.");
             }
 
             if (!dataElement.Tags.Contains(tag))
@@ -163,20 +158,20 @@ namespace Altinn.App.Api.Controllers
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
-                return NotFound($"There are no instance with the provided id.");
+                return NotFound("Unable to find instance based on the given parameters.");
             }
 
             DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
             if (dataElement == null)
             {
-                return NotFound("Did not find data element with the provided id.");
+                return NotFound("Unable to find data element based on the given parameters.");
             }
 
             if (dataElement.Tags.Contains(tag))
             {
                 dataElement.Tags.Remove(tag);
-                dataElement = await _dataClient.Update(instance, dataElement);
+                await _dataClient.Update(instance, dataElement);
             }
 
             return NoContent();
