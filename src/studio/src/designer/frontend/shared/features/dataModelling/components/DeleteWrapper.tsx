@@ -29,7 +29,8 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
         disabled={!props.schemaName}
         startIcon={<DeleteOutline />}
         onClick={onDeleteClick}
-        hideText={true}
+        hideText
+        warning
       >
         {getLanguageFromKey('general.delete', props.language)}
       </TopToolbarButton>

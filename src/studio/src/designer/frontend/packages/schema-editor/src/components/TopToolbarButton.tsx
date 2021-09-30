@@ -7,30 +7,46 @@ interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   startIcon: React.ReactNode;
   disabled?: boolean;
   hideText?: boolean;
+  warning?: boolean;
 }
 
 const useStyles = makeStyles({
   toolbarButton: {
-    margin: 4,
+    margin: 1,
+    border: 0,
+    padding: '4px 8px',
+    height: 36,
+    boxShadow: 'none',
+    borderRadius: 0,
     background: '#fff',
+    fontFamily: 'Roboto',
+    fontSize: '1em',
+    fontWeight: 'normal',
+    textTransform: 'none',
+    '&:hover': {
+      background: '#006BD8',
+      color: '#fff',
+    },
+    '&.warn:hover': {
+      background: '#D02F4C',
+    },
   },
   noText: {
     '& > span .MuiButton-startIcon': {
       margin: 0,
     },
     '&.MuiButton-root': {
-      padding: 6,
-      minWidth: 20,
+      minWidth: 36,
     },
   },
 });
 
-export default function TopToolbarButton({ onClick, disabled, startIcon, children, hideText }: TopToolbarButtonProps) {
+export default function TopToolbarButton({ onClick, disabled, startIcon, children, hideText, warning }: TopToolbarButtonProps) {
   const classes = useStyles();
-  const buttonTextClasses = hideText ? 'sr-only' : '';
+  const buttonTextClasses = classNames([hideText && 'sr-only']);
   return (
     <Button
-      className={classNames([classes.toolbarButton, hideText && classes.noText])}
+      className={classNames([classes.toolbarButton, hideText && classes.noText, warning && 'warn'])}
       onClick={onClick}
       type='button'
       variant='contained'
@@ -43,4 +59,5 @@ export default function TopToolbarButton({ onClick, disabled, startIcon, childre
 TopToolbarButton.defaultProps = {
   disabled: false,
   hideText: false,
+  warning: false,
 };
