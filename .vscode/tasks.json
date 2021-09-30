@@ -1,20 +1,103 @@
 {
-    // See https://code.visualstudio.com/docs/editor/tasks for documentation about the tasks.json format
-    "version": "2.0.0",
-    "command": "dotnet",
-    "isShellCommand": true,
-    "args": [],
-    "tasks": [
-         {
-            "taskName": "restore",
-            "isBuildCommand": false,
-            "showOutput": "always"
-        },
-        {
-            "taskName": "build",
-            "isBuildCommand": true,
-            "showOutput": "always",
-            "problemMatcher": "$msCompile"
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "RunLocalTest",
+      "dependsOn": [
+        "docker up LocalTest",
+        "LocalTest"
+      ]
+    },
+    {
+      "label": "Run studio docker",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "--abort-on-container-exit"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/studio/src/designer"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "RunStudioLocalDesigner",
+      "dependsOn": [
+        "designer frontend",
+        "designer backend",
+        "docker up no designer"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker up LocalTest",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "--build",
+        "--abort-on-container-exit"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/development"
+      }
+    },
+    {
+      "label": "LocalTest",
+      "command": "dotnet",
+      "args": [
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/development/LocalTest"
+      }
+    },
+    {
+      "label": "designer frontend",
+      "type": "shell",
+      "command": "npm",
+      "args": [
+        "run",
+        "webpack-watch"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/studio/src/designer/frontend/app-development"
+      }
+    },
+    {
+      "label": "designer backend",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "watch",
+        "run"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/studio/src/designer/backend",
+        "env": {
+          "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1"
         }
-    ]
+      }
+    },
+    {
+      "label": "docker up no designer",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-fdocker-compose.yml",
+        "-fdocker-compose.no-designer.yml",
+        "up",
+        "--build",
+        "--abort-on-container-exit"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/studio/"
+      },
+      "problemMatcher": []
+    }
+  ]
 }
