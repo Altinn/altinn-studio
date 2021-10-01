@@ -239,7 +239,14 @@ export function GenericComponent(props: IGenericComponentProps) {
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) &&
-      <Grid item={true} xs={12}>
+      <Grid
+        item={true}
+        xs={props.grid?.labelGrid?.xs || 12}
+        sm={props.grid?.labelGrid?.sm || false}
+        md={props.grid?.labelGrid?.md || false}
+        lg={props.grid?.labelGrid?.lg || false}
+        xl={props.grid?.labelGrid?.xl || false}
+      >
         <RenderLabelScoped
           props={props}
           passThroughProps={passThroughProps}

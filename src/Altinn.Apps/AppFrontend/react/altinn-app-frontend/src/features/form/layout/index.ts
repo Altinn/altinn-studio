@@ -78,6 +78,7 @@ export interface IFileuploadProps extends ILayoutComponent {
 }
 
 export interface IGrid extends IGridStyling {
+  labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
 }
 
