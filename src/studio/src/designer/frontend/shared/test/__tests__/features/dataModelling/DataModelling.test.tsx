@@ -45,7 +45,7 @@ describe('>>> DataModelling.tsx', () => {
       },
     },
   };
-  let preferredLabel: {label: string, clear: () => void} = null;
+  let preferredLabel: { label: string, clear: () => void } = null;
   const clear = jest.fn();
 
   beforeEach(() => {
@@ -78,11 +78,13 @@ describe('>>> DataModelling.tsx', () => {
   });
 
   it('selects the preferred model', () => {
-    preferredLabel = { label: modelName2,
+    preferredLabel = {
+      label: modelName2,
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      } };
+      }
+    };
     expect(clear).toHaveBeenCalledTimes(0);
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
@@ -99,11 +101,13 @@ describe('>>> DataModelling.tsx', () => {
 
   it('does not run clear after preferred model has been selected', () => {
     expect(clear).toHaveBeenCalledTimes(0);
-    preferredLabel = { label: modelName2,
+    preferredLabel = {
+      label: modelName2,
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      } };
+      }
+    };
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
     });
@@ -135,7 +139,6 @@ describe('>>> DataModelling.tsx', () => {
     act(() => {
       wrapper = mountComponent();
     });
-    expect(wrapper.find('input').length).toBe(1); // dropdown selector
     wrapper.update();
     const createNew = wrapper.find('CreateNewWrapper');
     act(() => {
