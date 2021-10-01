@@ -110,19 +110,19 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
-            Tuple<XacmlPolicy, ETag> existingDelegationPolicyBlob = null;
+            (XacmlPolicy, ETag) existingDelegationPolicyAndETag = (null, ETag.All);
             if (currentChange != null)
             {
                 // What if app/existing policy couldn't be read cause blobstorage downtime?
-                existingDelegationPolicyBlob = await _prp.GetPolicyConditionallyAsync(policyPath, currentChange.BlobStorageVersionId);
+                existingDelegationPolicyAndETag = await _prp.GetPolicyVersionAndETagAsync(policyPath, currentChange.BlobStorageVersionId);
             }
 
             XacmlPolicy delegationPolicy;
             ETag originalETag;
-            if (existingDelegationPolicyBlob?.Item1 != null)
+            if (existingDelegationPolicyAndETag.Item1 != null)
             {
-                delegationPolicy = existingDelegationPolicyBlob?.Item1;
-                originalETag = existingDelegationPolicyBlob.Item2;
+                delegationPolicy = existingDelegationPolicyAndETag.Item1;
+                originalETag = existingDelegationPolicyAndETag.Item2;
                 foreach (Rule rule in rules)
                 {
                     if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))

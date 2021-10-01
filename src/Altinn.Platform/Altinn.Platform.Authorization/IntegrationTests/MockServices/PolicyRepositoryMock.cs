@@ -17,9 +17,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return Task.FromResult(GetTestDataStream(filepath));
         }
 
-        public Task<Tuple<Stream, ETag>> GetPolicyAndETagByVersionAsync(string filepath, string version)
+        public Task<Stream> GetPolicyVersionAsync(string filepath, string version)
         {
-            return Task.FromResult(new Tuple<Stream, ETag>(GetTestDataStream(filepath), new ETag("ETagSuccess")));
+            return Task.FromResult(GetTestDataStream(filepath));
+        }
+
+        public Task<(Stream, ETag)> GetPolicyVersionAndETagAsync(string filepath, string version)
+        {
+            return Task.FromResult((GetTestDataStream(filepath), new ETag("ETagSuccess")));
         }
 
         public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)

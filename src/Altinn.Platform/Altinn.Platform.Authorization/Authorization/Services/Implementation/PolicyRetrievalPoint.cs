@@ -72,9 +72,31 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Tuple<XacmlPolicy, ETag>> GetPolicyConditionallyAsync(string policyPath, string version)
+        public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
         {
-            return await GetPolicyConditionallyInternalAsync(policyPath, version);
+            XacmlPolicy policy;
+            Stream policyBlob = await _repository.GetPolicyVersionAsync(policyPath, version);
+
+            using (policyBlob)
+            {
+                policy = (policyBlob.Length > 0) ? PolicyHelper.ParsePolicy(policyBlob) : null;
+            }
+
+            return policy;
+        }
+
+        /// <inheritdoc/>
+        public async Task<(XacmlPolicy, ETag)> GetPolicyVersionAndETagAsync(string policyPath, string version)
+        {
+            XacmlPolicy policy;
+            (Stream, ETag) policyStreamAndETag = await _repository.GetPolicyVersionAndETagAsync(policyPath, version);
+
+            using (policyStreamAndETag.Item1)
+            {
+                policy = (policyStreamAndETag.Item1.Length > 0) ? PolicyHelper.ParsePolicy(policyStreamAndETag.Item1) : null;
+            }
+
+            return (policy, policyStreamAndETag.Item2);
         }
 
         private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)
@@ -88,19 +110,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return policy;
-        }
-
-        private async Task<Tuple<XacmlPolicy, ETag>> GetPolicyConditionallyInternalAsync(string policyPath, string version)
-        {
-            XacmlPolicy policy;
-            Tuple<Stream, ETag> policyBlob = await _repository.GetPolicyAndETagByVersionAsync(policyPath, version);
-
-            using (policyBlob.Item1)
-            {
-                policy = (policyBlob.Item1.Length > 0) ? PolicyHelper.ParsePolicy(policyBlob.Item1) : null;
-            }
-
-            return new Tuple<XacmlPolicy, ETag>(policy, policyBlob.Item2);
         }
     }
 }

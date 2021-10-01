@@ -19,12 +19,20 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         Task<Stream> GetPolicyAsync(string filepath);
 
         /// <summary>
+        /// Gets file stream for the specified version of a policy file from blob storage, if it exists at the specified path.
+        /// </summary>
+        /// <param name="filepath">The file path.</param>
+        /// <param name="version">The blob storage version</param>
+        /// <returns>File stream of the policy file</returns>
+        Task<Stream> GetPolicyVersionAsync(string filepath, string version);
+
+        /// <summary>
         /// Gets file stream for the policy file and the curent ETag of the blob from blob storage, if it exists at the specified path.
         /// </summary>
         /// <param name="filepath">The file path.</param>
         /// <param name="version">The blob storage version</param>
-        /// <returns>Tuple consisting of the file stream of the policy file, and the current ETag of the blob entity wthat was read</returns>
-        Task<Tuple<Stream, ETag>> GetPolicyAndETagByVersionAsync(string filepath, string version);
+        /// <returns>Both the file stream of the policy file, and the ETag of the blob entity wthat was read</returns>
+        Task<(Stream, ETag)> GetPolicyVersionAndETagAsync(string filepath, string version);
 
         /// <summary>
         /// Writes a file stream to blobstorage to the specified path.

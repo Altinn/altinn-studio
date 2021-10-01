@@ -32,14 +32,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             {
                 if (File.Exists(Path.Combine(GetPolicyPath(request), "policy.xml")))
                 {
-                    return ParsePolicy("policy.xml", GetPolicyPath(request));
+                    return await Task.FromResult(ParsePolicy("policy.xml", GetPolicyPath(request)));
                 }
 
-                return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath()));
             }
             else
             {
-                return ParsePolicy(testID + "Policy.xml", GetConformancePath());
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetConformancePath()));
             }
         }
 
@@ -53,19 +53,24 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return null;
         }
 
-        public async Task<Tuple<XacmlPolicy, ETag>> GetPolicyConditionallyAsync(string policyPath, string version)
+        public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
         {
             if (File.Exists(policyPath))
             {
-                return await Task.FromResult(new Tuple<XacmlPolicy, ETag>(ParsePolicy("policy.xml", policyPath), new ETag("ETag")));
+                return await Task.FromResult(ParsePolicy("policy.xml", policyPath));
             }
 
             return null;
         }
 
-        public Task<Tuple<XacmlPolicy, ETag>> GetPolicyAsync(string policyPath)
+        public async Task<(XacmlPolicy, ETag)> GetPolicyVersionAndETagAsync(string policyPath, string version)
         {
-            throw new NotImplementedException();
+            if (File.Exists(policyPath))
+            {
+                return await Task.FromResult((ParsePolicy("policy.xml", policyPath), new ETag("ETag")));
+            }
+
+            return (null, ETag.All);
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
