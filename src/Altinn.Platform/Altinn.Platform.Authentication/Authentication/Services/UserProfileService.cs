@@ -78,7 +78,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Creating user failed {response.StatusCode}");
+                _logger.LogError($"Creating user failed {response.StatusCode} from {endpointUrl}");
             }
 
             return createdProfile;
