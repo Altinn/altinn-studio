@@ -74,6 +74,9 @@ describe('Group', () => {
       .should('be.visible')
       .should('have.text', texts.zeroIsNotValid);
     cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.newValue).should('be.visible').clear().type('1').blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', 'newValue')).should('not.exist');
+    cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
@@ -86,5 +89,11 @@ describe('Group', () => {
       .should('be.visible')
       .should('have.text', texts.testIsNotValidValue);
     cy.get(appFrontend.group.subGroup).siblings(mui.gridContainer).should('contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.comments).clear().type('automation').blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
+    cy.get(appFrontend.group.subGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
+    cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   });
 });
