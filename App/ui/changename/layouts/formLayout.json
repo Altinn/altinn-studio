@@ -319,7 +319,8 @@
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "xs": 6
-        }
+        },
+        "preselectedOptionIndex": 0
       },
       {
         "id": "fileUpload-changename",
