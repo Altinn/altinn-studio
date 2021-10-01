@@ -14,7 +14,7 @@ namespace LocalTest.Services.Localtest.Implementation
 
         public LocalTestAppSelectionSI(IConfiguration configuration)
         {
-            _appRepsitoryBasePath = configuration["LocalPlatformSettings:AppRepsitoryBasePath"];
+            _appRepsitoryBasePath = configuration["LocalPlatformSettings:AppRepositoryBasePath"];
         }
 
         public string GetAppPath(XacmlContextRequest request)
