@@ -1,7 +1,7 @@
 {
   "downloadAttachment": "last ned",
   "requiredField": "Feltet er påkrevd",
-  "customValidationInvalid": "test er ikke en gyldig verdi",
+  "testIsNotValidValue": "test er ikke en gyldig verdi",
   "errorReport": "Det er feil i skjema",
   "attachmentError": "Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse",
   "dateOfEffect": "Når vil du at navnendringen skal skje?",
@@ -13,5 +13,7 @@
   "clientSide": "client side validering",
   "missingRights": "Du mangler rettigheter for å se denne tjenesten",
   "tryAgain": "Det har skjedd en ukjent feil, vennligst prøv igjen senere",
-  "selectNewReportee": "Velg ny aktør under"
+  "selectNewReportee": "Velg ny aktør under",
+  "zeroIsNotValid": "0 er ikke en gyldig verdi",
+  "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn"
 }
