@@ -23,6 +23,7 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 4. Ensure the test suite passes.
 5. Make sure your code lints.
 6. Issue that pull request!
+7. Be part of the exclusive [external-contribution-❤️](https://github.com/Altinn/altinn-studio/pulls?q=is%3Apr+label%3Aexternal-contribution-%E2%9D%A4%EF%B8%8F+) list.
 
 ## Any contributions you make will be under the 3-Clause BSD License Software License
 
