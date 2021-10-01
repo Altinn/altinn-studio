@@ -14,7 +14,7 @@
             "nb": "/ttd/frontend-test/images/altinn-logo.svg"            
           },
           "width": "100%",
-          "align": "left"          
+          "align": "center"          
         },
         "grid": {
           "xs": 12
