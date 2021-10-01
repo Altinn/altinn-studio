@@ -1,10 +1,11 @@
-import { Button, makeStyles } from '@material-ui/core';
+import { Button, IconButton, makeStyles } from '@material-ui/core';
 import * as React from 'react';
 import classNames from 'classnames';
 
 interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   onClick: (event: any) => void;
-  startIcon: React.ReactNode;
+  faIcon: string;
+  iconSize?: number | undefined;
   disabled?: boolean;
   hideText?: boolean;
   warning?: boolean;
@@ -12,15 +13,13 @@ interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
 
 const useStyles = makeStyles({
   toolbarButton: {
-    margin: 1,
+    margin: 0,
     border: 0,
-    padding: '4px 8px',
     height: 36,
-    boxShadow: 'none',
     borderRadius: 0,
-    background: '#fff',
     fontFamily: 'Roboto',
     fontSize: '1em',
+    padding: '4px 8px',
     fontWeight: 'normal',
     textTransform: 'none',
     '&:hover': {
@@ -30,29 +29,41 @@ const useStyles = makeStyles({
     '&.warn:hover': {
       background: '#D02F4C',
     },
+    '& .MuiButton-startIcon': {
+      marginRight: 4,
+    },
   },
-  noText: {
-    '& > span .MuiButton-startIcon': {
-      margin: 0,
-    },
-    '&.MuiButton-root': {
-      minWidth: 36,
-    },
+  iconButton: {
+    width: 36,
+    padding: 0,
   },
 });
 
-export default function TopToolbarButton({ onClick, disabled, startIcon, children, hideText, warning }: TopToolbarButtonProps) {
+export default function TopToolbarButton({ onClick, disabled, faIcon, children, hideText, warning, iconSize }: TopToolbarButtonProps) {
   const classes = useStyles();
-  const buttonTextClasses = classNames([hideText && 'sr-only']);
+  const computedClasses = classNames([classes.toolbarButton, hideText && classes.iconButton, warning && 'warn']);
+  const icon = <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />;
+  if (hideText) {
+    return (
+      <IconButton
+        className={computedClasses}
+        onClick={onClick}
+        disabled={disabled}
+        color='primary'
+        aria-label={children}
+      >
+        {icon}
+      </IconButton>
+    );
+  }
   return (
     <Button
-      className={classNames([classes.toolbarButton, hideText && classes.noText, warning && 'warn'])}
+      className={computedClasses}
       onClick={onClick}
-      type='button'
-      variant='contained'
+      variant='text'
       disabled={disabled}
-      startIcon={startIcon}
-    ><span className={buttonTextClasses}>{children}</span>
+      startIcon={icon}
+    >{children}
     </Button>
   );
 }
@@ -60,4 +71,5 @@ TopToolbarButton.defaultProps = {
   disabled: false,
   hideText: false,
   warning: false,
+  iconSize: undefined,
 };

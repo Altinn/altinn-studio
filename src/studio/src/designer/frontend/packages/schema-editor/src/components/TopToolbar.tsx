@@ -1,5 +1,4 @@
 import { makeStyles } from '@material-ui/core';
-import { AiOutlineSave } from 'react-icons/ai';
 import * as React from 'react';
 import { ILanguage } from '../types';
 import { getTranslation } from '../utils';
@@ -30,7 +29,8 @@ export default function TopToolbar({ Toolbar, saveAction, language }: TopToolbar
       <TopToolbarButton
         onClick={saveAction || (() => undefined)}
         disabled={!saveAction}
-        startIcon={<AiOutlineSave />}
+        faIcon='fa fa-floppy'
+        iconSize={24}
       >
         {getTranslation('save_data_model', language)}
       </TopToolbarButton>

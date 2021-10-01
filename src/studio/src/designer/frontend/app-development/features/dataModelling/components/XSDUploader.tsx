@@ -4,7 +4,6 @@ import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSi
 import { FileSelector, AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { XSDUploadUrl } from 'utils/urlHelper';
-import { FaFileUpload } from 'react-icons/fa';
 import axios from 'axios';
 
 interface IXSDUploaderProps {
@@ -43,7 +42,8 @@ export default function XSDUploader(props: IXSDUploaderProps) {
   return (
     <>
       <TopToolbarButton
-        startIcon={<FaFileUpload />}
+        faIcon='fa fa-upload'
+        iconSize={38}
         onClick={onUploadClick}
         hideText={true}
       >

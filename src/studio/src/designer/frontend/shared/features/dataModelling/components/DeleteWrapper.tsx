@@ -1,5 +1,4 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { DeleteOutline } from '@material-ui/icons';
 import * as React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
@@ -27,7 +26,8 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
     <>
       <TopToolbarButton
         disabled={!props.schemaName}
-        startIcon={<DeleteOutline />}
+        faIcon='ai ai-trash'
+        iconSize={24}
         onClick={onDeleteClick}
         hideText
         warning

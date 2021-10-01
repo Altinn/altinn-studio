@@ -1,5 +1,4 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { AiOutlinePlus } from 'react-icons/ai';
 import * as React from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
@@ -61,7 +60,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   return (
     <>
       <TopToolbarButton
-        startIcon={<AiOutlinePlus />}
+        faIcon='fa fa-plus'
         onClick={onCreateClick}
         hideText={true}
       >
