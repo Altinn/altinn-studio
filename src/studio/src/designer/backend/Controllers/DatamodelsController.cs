@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -29,6 +32,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing all actions related to data modelling
     /// </summary>
     [AutoValidateAntiforgeryToken]
+    [Route("designer/api/{org}/{repository}/[controller]")]
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -49,13 +53,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// Method that 
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
-        /// <param name="app">the model repos</param>
+        /// <param name="repository">the model repos</param>
         /// <param name="modelName">The name of the data model.</param>
         /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string)"/> instead.</remarks>
         [Authorize]
         [HttpPut]
-        [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
-        public async Task<IActionResult> UpdateDatamodel(string org, string app, string modelName)
+        [Route("[Action]")]
+        public async Task<IActionResult> UpdateDatamodel(string org, string repository, string modelName)
         {
             SchemaKeywordCatalog.Add<InfoKeyword>();
 
@@ -79,7 +83,7 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonSchema jsonSchemas = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
 
                 // Create the directory if it does not exist
-                string appPath = _repository.GetAppPath(org, app);
+                string appPath = _repository.GetAppPath(org, repository);
                 string directory = appPath + Path.GetDirectoryName(filePath);
                 if (!Directory.Exists(directory))
                 {
@@ -91,14 +95,14 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonValue toar = serializer.Serialize(jsonSchemas);
                 byte[] byteArray = Encoding.UTF8.GetBytes(toar.ToString());
                 MemoryStream jsonstream = new MemoryStream(byteArray);
-                await _repository.WriteData(org, app, $"{filePath}.schema.json", jsonstream);
+                await _repository.WriteData(org, repository, $"{filePath}.schema.json", jsonstream);
 
                 // update meta data
-                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, jsonSchemas);
+                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, repository, jsonSchemas);
                 ModelMetadata modelMetadata = converter.GetModelMetadata();
                 string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
-                _repository.UpdateApplicationWithAppLogicModel(org, app, modelName, "Altinn.App.Models." + root);
-                _repository.UpdateModelMetadata(org, app, modelMetadata, modelName);
+                _repository.UpdateApplicationWithAppLogicModel(org, repository, modelName, "Altinn.App.Models." + root);
+                _repository.UpdateModelMetadata(org, repository, modelMetadata, modelName);
 
                 // Convert to XML Schema and store in repository
                 JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
@@ -108,14 +112,14 @@ namespace Altinn.Studio.Designer.Controllers
                 xwriter.Formatting = Formatting.Indented;
                 xwriter.WriteStartDocument(false);
                 xmlschema.Write(xsdStream);
-                await _repository.WriteData(org, app, $"{filePath}.xsd", xsdStream);
+                await _repository.WriteData(org, repository, $"{filePath}.xsd", xsdStream);
 
                 // Generate updated C# model
                 JsonMetadataParser modelGenerator = new JsonMetadataParser();
                 string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
                 byteArray = Encoding.UTF8.GetBytes(classes);
                 MemoryStream stream = new MemoryStream(byteArray);
-                await _repository.WriteData(org, app, $"{filePath}.cs", stream);
+                await _repository.WriteData(org, repository, $"{filePath}.cs", stream);
             }
 
             return Ok();
@@ -129,7 +133,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
@@ -154,14 +157,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="createModel">View model containing the data required to create the initial model.</param>
         [Authorize]
         [HttpPost]
-        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        [Route("[Action]")]
         public async Task<ActionResult> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
-
-            return new CreatedAtActionResult(nameof(Get), nameof(DatamodelsController), new { org = org, repository = repository, modelPath = relativePath }, model);            
+            
+            return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);            
         }
 
         /// <summary>
@@ -171,9 +174,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository name</param>
         /// <param name="modelPath">The path to the file to be updated.</param>        
         [Authorize]
-        [HttpPut]
+        [HttpPut]        
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -193,7 +195,6 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [Route("/designer/api/{org}/{repository}/datamodels")]
         public async Task<IActionResult> Delete(string org, string repository, [FromQuery] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -211,7 +212,6 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
-        [Route("/designer/api/{org}/{repository}/datamodels")]
         public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -229,7 +229,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [Route("/designer/api/{org}/{repository}/datamodels/{*modelPath}")]
+        [Route("{*modelPath}")]
         public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromRoute] string modelPath)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -247,7 +247,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet]
-        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        [Route("[Action]")]
         public async Task<IActionResult> GetDatamodel(string org, string repository, string modelName)
         {
             try
@@ -302,7 +302,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelName">The name of the data model.</param>
         [Authorize]
         [HttpDelete]
-        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        [Route("[Action]")]
         public IActionResult DeleteDatamodel(string org, string repository, string modelName)
         {
             try

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -436,31 +437,33 @@ namespace Designer.Tests.Controllers
             var createViewModel = new CreateModelViewModel() { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
             var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
+                // Content = JsonContent.Create(createViewModel)
                 Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(createViewModel), Encoding.UTF8, "application/json")
             };
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
 
-            // Act
+            // Act / Assert
             try
             {
                 var postResponse = await client.SendAsync(postRequestMessage);
                 Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-                // TODO: Why?
                 //Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
 
-                var content = await postResponse.Content.ReadAsStringAsync();
-                Json.Schema.JsonSchema jsonSchema = Json.Schema.JsonSchema.FromText(content);
-                Assert.NotNull(jsonSchema);
+                var postContent = await postResponse.Content.ReadAsStringAsync();
+                Json.Schema.JsonSchema postJsonSchema = Json.Schema.JsonSchema.FromText(postContent);
+                Assert.NotNull(postJsonSchema);
 
-                // Try to read the created schema back to verify it's stored
+                // Try to read back the created schema to verify it's stored
                 // at the location provided in the post response
                 var location = postResponse.Headers.Location;
                 var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
                 var getResponse = await client.SendAsync(getRequestMessage);
-
-                // TODO: Not getting the correct location url back - query params instead of path
+                var getContent = await getResponse.Content.ReadAsStringAsync();
+                var getJsonSchema = Json.Schema.JsonSchema.FromText(getContent);
+                Assert.NotNull(getJsonSchema);
+                Assert.Equal(postContent, getContent);
             }
             finally
             {
