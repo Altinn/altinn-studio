@@ -158,13 +158,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpPost]
         [Route("[Action]")]
-        public async Task<ActionResult> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
+        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
-            
-            return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);            
+
+            return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);
         }
 
         /// <summary>

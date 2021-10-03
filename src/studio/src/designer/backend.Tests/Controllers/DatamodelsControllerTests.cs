@@ -449,7 +449,7 @@ namespace Designer.Tests.Controllers
                 var postResponse = await client.SendAsync(postRequestMessage);
                 Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
 
-                //Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
+                Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
 
                 var postContent = await postResponse.Content.ReadAsStringAsync();
                 Json.Schema.JsonSchema postJsonSchema = Json.Schema.JsonSchema.FromText(postContent);
