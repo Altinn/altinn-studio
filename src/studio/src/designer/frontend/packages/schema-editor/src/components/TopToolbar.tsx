@@ -21,7 +21,11 @@ interface TopToolbarProps {
   saveAction?: (payload: any) => void;
   language: ILanguage;
 }
-export default function TopToolbar({ Toolbar, saveAction, language }: TopToolbarProps) {
+export default function TopToolbar({
+  Toolbar,
+  saveAction,
+  language,
+}: TopToolbarProps) {
   const classes = useStyles();
   return (
     <section className={classes.toolbar}>

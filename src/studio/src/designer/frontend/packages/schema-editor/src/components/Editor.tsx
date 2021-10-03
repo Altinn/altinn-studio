@@ -146,7 +146,11 @@ export const Editor = (props: IEditorProps) => {
   return (
     <div className={classes.root}>
       <main>
-        <TopToolbar Toolbar={Toolbar} language={language} saveAction={name ? saveSchema : undefined} />
+        <TopToolbar
+          Toolbar={Toolbar}
+          language={language}
+          saveAction={name ? saveSchema : undefined}
+        />
         {name && schema ? (
           <div id='schema-editor' className={classes.editor}>
             <TabContext value={selectedTab}>

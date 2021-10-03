@@ -5,7 +5,7 @@ import classNames from 'classnames';
 interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   onClick: (event: any) => void;
   faIcon: string;
-  iconSize?: number | undefined;
+  iconSize?: number;
   disabled?: boolean;
   hideText?: boolean;
   warning?: boolean;
@@ -39,10 +39,22 @@ const useStyles = makeStyles({
   },
 });
 
-export default function TopToolbarButton({ onClick, disabled, faIcon, children, hideText, warning, iconSize }: TopToolbarButtonProps) {
+export default function TopToolbarButton({
+  onClick,
+  disabled,
+  faIcon,
+  children,
+  hideText,
+  warning,
+  iconSize,
+}: TopToolbarButtonProps) {
   const classes = useStyles();
   const computedClasses = classNames([classes.toolbarButton, hideText && classes.iconButton, warning && 'warn']);
-  const icon = <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />;
+  const icon = <i
+    className={faIcon}
+    style={{ ...(iconSize && { fontSize: iconSize }) }}
+    aria-hidden
+  />;
   if (hideText) {
     return (
       <IconButton

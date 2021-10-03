@@ -83,7 +83,7 @@ describe('>>> DataModelling.tsx', () => {
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      }
+      },
     };
     expect(clear).toHaveBeenCalledTimes(0);
     act(() => {
@@ -106,7 +106,7 @@ describe('>>> DataModelling.tsx', () => {
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      }
+      },
     };
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
