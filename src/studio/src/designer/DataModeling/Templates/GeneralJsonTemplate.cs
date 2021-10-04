@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace Altinn.Studio.DataModeling.Templates
@@ -19,7 +20,9 @@ namespace Altinn.Studio.DataModeling.Templates
         /// </summary>
         static GeneralJsonTemplate()
         {
-            JsonSchemaTemplate = File.ReadAllText(JSON_TEMPLATE_FILEPATH, Encoding.UTF8);
+            var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var filePath = Path.Combine(directory, JSON_TEMPLATE_FILEPATH);
+            JsonSchemaTemplate = File.ReadAllText(filePath, Encoding.UTF8);
         }
 
         /// <summary>
