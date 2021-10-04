@@ -63,18 +63,18 @@ const schemaEditorSlice = createSlice({
       }
     },
     addRootItem(state, action) {
-      let { name } = action.payload;
-      const { location } = action.payload;
+      const { location, name, ...rest } = action.payload;
       // make sure name is unique.
-      if (state.uiSchema.findIndex((p) => p.displayName === name) !== -1) {
-        name += getUniqueNumber();
+      let displayName = name;
+      if (state.uiSchema.findIndex((p) => p.displayName === displayName) !== -1) {
+        displayName += getUniqueNumber();
       }
-      const path = `#/${location}/${name}`;
+      const path = `#/${location}/${displayName}`;
       state.uiSchema.push(
         {
+          ...rest,
           path,
-          type: 'object',
-          displayName: name,
+          displayName,
         },
       );
       if (location === 'definitions') {
@@ -88,12 +88,12 @@ const schemaEditorSlice = createSlice({
       state.focusNameField = undefined;
     },
     addProperty(state, action) {
-      const { path, keepSelection } = action.payload;
+      const { path, keepSelection, ...rest } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         path: `${path}/properties/name`,
         displayName: 'name',
-        type: 'object',
+        ...rest,
       };
       if (addToItem.properties) {
         if (addToItem.properties.findIndex((p) => p.path === item.path) !== -1) {

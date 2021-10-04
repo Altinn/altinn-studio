@@ -2,10 +2,9 @@
 import * as React from 'react';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Grid, IconButton, makeStyles, MenuItem, TextField, TextFieldProps } from '@material-ui/core';
+import { Button, Divider, Grid, IconButton, makeStyles, TextField, TextFieldProps } from '@material-ui/core';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
-import { MenuItemContent } from './PageMenuItem';
-import PageMenu from './PageMenu';
 import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 
 export interface IPageElementProps {
@@ -52,23 +51,23 @@ export default function PageElement({
   const disableUp = (layoutOrder.indexOf(name) === 0);
   const disableDown = (layoutOrder.indexOf(name) === (layoutOrder.length - 1));
 
-  function onPageClick() {
+  const onPageClick = () => {
     if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
     }
-  }
+  };
 
-  function onPageSettingsClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+  const onPageSettingsClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
-  }
+  };
 
-  function onMenuClose(event: React.SyntheticEvent) {
+  const onMenuClose = (event: React.SyntheticEvent) => {
     event.stopPropagation();
     setMenuAnchorEl(null);
-  }
+  };
 
-  function onMenuItemClick(event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') {
+  const onMenuItemClick = (event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     event.stopPropagation();
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
@@ -79,21 +78,21 @@ export default function PageElement({
       dispatch(FormLayoutActions.updateLayoutOrder({ layout: name, direction: action }));
     }
     setMenuAnchorEl(null);
-  }
+  };
 
-  function handleOnBlur(event: any) {
+  const handleOnBlur = (event: any) => {
     event.stopPropagation();
     setEditMode(false);
     if (!errorMessage && name !== newName) {
       dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
     }
-  }
+  };
 
-  function pageNameExists(candidateName: string): boolean {
+  const pageNameExists = (candidateName: string): boolean => {
     return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
-  }
+  };
 
-  function handleOnChange(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+  const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
@@ -108,9 +107,9 @@ export default function PageElement({
       setErrorMessage('');
       setNewName(newNameCandidate);
     }
-  }
+  };
 
-  function handleKeyPress(event: any) {
+  const handleKeyPress = (event: any) => {
     event.stopPropagation();
     if (event.key === 'Enter') {
       if (!errorMessage && name !== newName) {
@@ -122,18 +121,18 @@ export default function PageElement({
       setEditMode(false);
       setNewName('');
     }
-  }
+  };
 
-  function handleConfirmDeleteClose(event?: React.SyntheticEvent) {
+  const handleConfirmDeleteClose = (event?: React.SyntheticEvent) => {
     event?.stopPropagation();
     setDeleteAnchorEl(null);
-  }
+  };
 
-  function handleConfirmDelete(event?: React.SyntheticEvent) {
+  const handleConfirmDelete = (event?: React.SyntheticEvent) => {
     event?.stopPropagation();
     setDeleteAnchorEl(null);
     dispatch(FormLayoutActions.deleteLayout({ layout: name }));
-  }
+  };
 
   return (
     <Button
@@ -180,40 +179,39 @@ export default function PageElement({
             id='ellipsis-button'
             style={menuAnchorEl ? { visibility: 'visible' } : {}}
           >
-            <i className='fa fa-ellipsismenu' style={{ width: 'auto' }}/>
+            <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
           </IconButton>
         </Grid>
       </Grid>
-      <PageMenu
+      <AltinnMenu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
         onClose={onMenuClose}
       >
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'up')} disabled={disableUp}>
-          <MenuItemContent
-            text={getLanguageFromKey('right_menu.page_menu_up', language)}
-            iconClass='fa fa-arrowup'
-          />
-        </MenuItem>
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'down')} disabled={disableDown}>
-          <MenuItemContent
-            text={getLanguageFromKey('right_menu.page_menu_down', language)}
-            iconClass='fa fa-arrowdown'
-          />
-        </MenuItem>
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'delete')}>
-          <MenuItemContent
-            text={getLanguageFromKey('right_menu.page_menu_delete', language)}
-            iconClass='fa fa-trash'
-          />
-        </MenuItem>
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'edit')}>
-          <MenuItemContent
-            text={getLanguageFromKey('right_menu.page_menu_edit', language)}
-            iconClass='fa fa-write'
-          />
-        </MenuItem>
-      </PageMenu>
+        <AltinnMenuItem
+          onClick={(event) => onMenuItemClick(event, 'up')}
+          disabled={disableUp}
+          text={getLanguageFromKey('right_menu.page_menu_up', language)}
+          iconClass='fa fa-arrowup'
+        />
+        <AltinnMenuItem
+          onClick={(event) => onMenuItemClick(event, 'down')}
+          disabled={disableDown}
+          text={getLanguageFromKey('right_menu.page_menu_down', language)}
+          iconClass='fa fa-arrowdown'
+        />
+        <AltinnMenuItem
+          onClick={(event) => onMenuItemClick(event, 'edit')}
+          text={getLanguageFromKey('right_menu.page_menu_edit', language)}
+          iconClass='fa fa-write'
+        />
+        <Divider />
+        <AltinnMenuItem
+          onClick={(event) => onMenuItemClick(event, 'delete')}
+          text={getLanguageFromKey('right_menu.page_menu_delete', language)}
+          iconClass='fa fa-trash'
+        />
+      </AltinnMenu>
       <ConfirmModal
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}

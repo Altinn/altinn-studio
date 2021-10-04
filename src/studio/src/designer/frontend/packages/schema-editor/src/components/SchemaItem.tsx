@@ -145,9 +145,11 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(deleteProperty({ path: item.path }));
   };
 
-  const handleAddProperty = () => {
+  const handleAddProperty = (type: string) => {
     dispatch(addProperty({
       path: itemToDisplay.path,
+      type: (type === 'property' ? '' : undefined),
+      $ref: (type === 'reference' ? '' : undefined),
     }));
   };
 

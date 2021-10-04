@@ -2,9 +2,12 @@
 import * as React from 'react';
 import { withStyles, MenuProps, Menu } from '@material-ui/core';
 
-const PageMenu = withStyles({
+const AltinnMenu = withStyles({
   paper: {
     border: '1px solid #d3d4d5',
+  },
+  list: {
+    padding: 0,
   },
 })((props: MenuProps) => (
   <Menu
@@ -22,4 +25,4 @@ const PageMenu = withStyles({
   />
 ));
 
-export default PageMenu;
+export default AltinnMenu;
