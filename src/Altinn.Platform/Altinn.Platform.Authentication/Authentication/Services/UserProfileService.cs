@@ -51,7 +51,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Getting user by SSN or external identity failed with statuscode {response.StatusCode} for url {endpointUrl} and length {endpointUrl.AbsoluteUri.Length}");
+                _logger.LogError($"Getting user by SSN or external identity failed with statuscode {response.StatusCode}");
             }
 
             return user;
@@ -78,7 +78,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Creating user failed for externalIdentity {user.ExternalIdentity} status {response.StatusCode} from {endpointUrl} and length {endpointUrl.AbsoluteUri.Length}");
+                _logger.LogError($"Creating user failed for externalIdentity {user.ExternalIdentity}");
             }
 
             return createdProfile;

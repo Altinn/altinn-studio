@@ -805,11 +805,10 @@ namespace Altinn.Platform.Authentication.Controllers
                     return;
                 }
 
-                _logger.LogWarning("Not able to find user " + issExternalIdentity);
-
                 UserProfile userToCreate = new UserProfile();
                 userToCreate.ExternalIdentity = issExternalIdentity;
                 userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
+                userToCreate.UserType = Profile.Enums.UserType.SelfIdentified;
 
                 UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
                 userAuthenticationModel.UserID = userCreated.UserId;
