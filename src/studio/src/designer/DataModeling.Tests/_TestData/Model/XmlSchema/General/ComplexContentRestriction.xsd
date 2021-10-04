@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:restriction base="myBase">
+          <xsd:sequence>
+            <xsd:element name="be1">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:length value="10" />
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+          <xsd:attribute name="a1">
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:int">
+                <xsd:minExclusive value="100" />
+              </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+        </xsd:restriction>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  
+  <xsd:complexType name="myBase">
+    <xsd:sequence>
+      <xsd:element name="be1" type="xsd:string" />
+    </xsd:sequence>
+    <xsd:attribute name="a1" type="xsd:int" />
+  </xsd:complexType>
+
+</xsd:schema>

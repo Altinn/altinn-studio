@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -343,8 +347,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public async Task<RepositoryModel> CreateApp(string org, string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, string repository)
         {
+            try
+            {
+                Guard.AssertValidAppRepoName(repository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{repository} is an invalid repository name.");
+            }
+
             var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
@@ -352,6 +365,66 @@ namespace Altinn.Studio.Designer.Controllers
             };
 
             return await _repository.CreateService(org, config);
+        }
+
+        /// <summary>
+        /// Action used to copy an existing app under the current org.
+        /// </summary>
+        /// <remarks>
+        /// A pull request is automatically created in the new repository,
+        /// containing changes to ensure that the app is operational.
+        /// </remarks>
+        /// <returns>
+        /// The newly created repository.
+        /// </returns>
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
+        {
+            try
+            {
+                Guard.AssertValidAppRepoName(targetRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{targetRepository} is an invalid repository name.");
+            }
+
+            try
+            {
+                Guard.AssertValidAppRepoName(sourceRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{sourceRepository} is an invalid repository name.");
+            }
+
+            var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
+
+            if (existingRepo != null)
+            {
+                return StatusCode(409);
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                RepositoryModel repo = await _repository.CopyRepository(org, sourceRepository, targetRepository, developer);
+
+                if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
+                {
+                    return Created(repo.CloneUrl, repo);
+                }
+
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode((int)repo.RepositoryCreatedStatus);
+            }
+            catch (Exception e)
+            {
+                await _repository.DeleteRepository(org, targetRepository);
+                return StatusCode(500, e);
+            }
         }
 
         /// <summary>

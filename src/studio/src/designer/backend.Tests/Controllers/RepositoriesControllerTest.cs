@@ -3,28 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
-using Microsoft.AspNetCore.Authentication;
-
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 using Moq;
 
@@ -90,6 +83,158 @@ namespace Designer.Tests.Controllers
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
             {
             };
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_RepoHasCreatedStatus_DeleteRepositoryIsNotCalled()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+
+            Mock<IRepository> repositoryService = new Mock<IRepository>();
+            repositoryService
+                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://www.vg.no" });
+
+            HttpClient client = GetTestClient(repositoryService.Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            repositoryService.VerifyAll();
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_TargetRepoAlreadyExists_ConflictIsReturned()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_GiteaTimeout_DeleteRepositoryIsCalled()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+
+            Mock<IRepository> repositoryService = new Mock<IRepository>();
+            repositoryService
+                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
+
+            repositoryService
+                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+
+            HttpClient client = GetTestClient(repositoryService.Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            repositoryService.VerifyAll();
+            Assert.Equal(HttpStatusCode.GatewayTimeout, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_ExceptionIsThrownByService_InternalServerError()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+
+            Mock<IRepository> repositoryService = new Mock<IRepository>();
+            repositoryService
+                .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+               .Throws(new IOException());
+
+            repositoryService
+                 .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
+
+            HttpClient client = GetTestClient(repositoryService.Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            repositoryService.VerifyAll();
+            Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_InvalidTargetRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task CopyApp_InvalidSourceRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = "/designerapi/Repository/CopyApp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            string actual = await res.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+            Assert.Contains("is an invalid repository name", actual);
+        }
+
+        [Fact]
+        public async Task CreateApp_InvalidRepoName_BadRequest()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CreateApp?org=ttd&repository=2021-application";
+
+            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             // Act

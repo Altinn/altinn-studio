@@ -12,9 +12,7 @@ module.exports = {
   mode: 'production',
   devtool: false,
   entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
+    "core-js/es",
     "./src/index.tsx"
   ],
   output: {
@@ -55,13 +53,18 @@ module.exports = {
     ],
   },
   module: {
-    rules: [{
-      test: /\.jsx?/,
-      exclude: /node_modules/,
-      use: {
-        loader: "babel-loader",
-      }
-    },
+    rules: [
+      {
+        test: /\.jsx?/,
+        include: [
+          path.resolve(__dirname, "./src"),
+          path.resolve(__dirname, "../node_modules/ajv"),
+          path.resolve(__dirname, "../node_modules/ajv-formats")
+        ],
+        use: {
+          loader: "babel-loader",
+        }
+      },
     {
       test: /\.scss$/,
       use: [

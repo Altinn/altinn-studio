@@ -1,0 +1,274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/customer"
+    }
+  ],
+  "$defs": {
+    "customer": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/contact"
+        },
+        {
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "address_norwegian": {
+                      "$ref": "#/$defs/address_norwegian"
+                    }
+                  },
+                  "required": [
+                    "address_norwegian"
+                  ]
+                },
+                {
+                  "properties": {
+                    "address_swedish": {
+                      "$ref": "#/$defs/address_swedish"
+                    }
+                  },
+                  "required": [
+                    "address_swedish"
+                  ]
+                }
+              ]
+            },
+            {
+              "properties": {
+                "email": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minItems": 1
+                  },
+                  "@xsdType": "string"
+                },
+                "contacts": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/contact",
+                    "maxItems": 10
+                  }
+                }
+              },
+              "required": [
+                "email"
+              ]
+            }
+          ]
+        },
+        {
+          "$ref": "#/$defs/priorityAndTags",
+          "@xsdType": "#ref"
+        }
+      ]
+    },
+    "priorityAndTags": {
+      "properties": {
+        "priority": {
+          "$ref": "#/$defs/priority",
+          "@xsdAttribute": true
+        },
+        "tags": {
+          "$ref": "#/$defs/tags",
+          "@xsdAttribute": true
+        }
+      }
+    },
+    "contact": {
+      "$ref": "#/$defs/name",
+      "@xsdType": "#ref"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "@xsdType": "string"
+      }
+    },
+    "priority": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "Low",
+            "Medium",
+            "High"
+          ]
+        }
+      ]
+    },
+    "name": {
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/title"
+        },
+        "firstName": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "lastName": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "title",
+        "firstName",
+        "lastName"
+      ]
+    },
+    "title": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "mr",
+            "ms",
+            "miss"
+          ]
+        }
+      ]
+    },
+    "address": {
+      "properties": {
+        "street": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "co": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "zipCode": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "city": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "country": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "street",
+        "zipCode",
+        "city",
+        "country"
+      ]
+    },
+    "address_norwegian": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/address"
+        },
+        {
+          "properties": {
+            "street": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "co": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "zipCode": {
+              "allOf": [
+                {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                {
+                  "pattern": "^\\d{4}$"
+                }
+              ]
+            },
+            "city": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "country": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "street",
+            "zipCode",
+            "city",
+            "country"
+          ]
+        }
+      ]
+    },
+    "address_swedish": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/address"
+        },
+        {
+          "properties": {
+            "street": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "co": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "zipCode": {
+              "allOf": [
+                {
+                  "type": "string",
+                  "@xsdType": "string"
+                },
+                {
+                  "pattern": "^\\d{3} \\d{2}$"
+                }
+              ]
+            },
+            "city": {
+              "type": "string",
+              "@xsdType": "string"
+            },
+            "country": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "street",
+            "zipCode",
+            "city",
+            "country"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -6,11 +6,8 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Formatting', () => {
-  before(() => {
-    cy.navigateToChangeName();
-  });
-
   it('Number formatting', () => {
+    cy.navigateToChangeName();
     cy.get(appFrontend.changeOfName.mobilenummer)
       .should('be.visible')
       .type('44444444')

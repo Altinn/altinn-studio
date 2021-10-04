@@ -18,6 +18,9 @@ indent_size = 2
 
 [*.cs]
 indent_size = 4
+# IDE0090: Use 'new(...)'
+csharp_style_implicit_object_creation_when_type_is_apparent = false
+
 
 # Xml project files
 [*.{csproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj,xproj}]

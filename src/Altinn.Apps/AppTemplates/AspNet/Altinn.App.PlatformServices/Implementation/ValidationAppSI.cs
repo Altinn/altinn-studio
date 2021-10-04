@@ -37,7 +37,7 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="ValidationAppSI"/> class.
         /// </summary>
         public ValidationAppSI(
-            ILogger<ApplicationAppSI> logger,
+            ILogger<ValidationAppSI> logger,
             IData dataService,
             IInstance instanceService,
             IAltinnApp altinnApp,

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:brreg="http://www.brreg.no/or">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="e1" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE" xmlns:brreg="http://www.brreg.no/or">
+                <p>Documentation</p>
+              </brreg:tekst>
+            </xsd:documentation>
+            <xsd:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="HJELP" xmlns:brreg="http://www.brreg.no/or">
+                <p>Alle beløp skal oppgis i hele kroner.  </p>
+                <p/>
+                <p>Omsetning fra annen næring enn jordbruk, hagebruk, gartneri, skogbruk,  husdyrhold og fiske.  </p>
+                <p>Omsetning fra annen næring under kr 30.000 rapporteres i post 3, 4, 5  eller 6, avhengig av hvilken sats merverdiavgiften skal beregnes  med.  </p>
+                <p>Det er ikke adgang til å rapportere samlet omsetning fra annen næring  over kr 30.000 i primærnæringsoppgaven. Omsetning i annen næring over  kr 30.000, skal rapporteres i alminnelig omsetningsoppgave. Dersom  det avdekkes
+                              omsetning fra annen næring over kr 30.000 innrapportert  på primærnæringsoppgaven, vil det bli beregnet renter og eventuelt  fastsatt tilleggsavgift.  </p>
+                <p/>
+                <p>Forklaringsfelter  </p>
+                <p>Aktiverte forklaringsfelt må fylles ut. Uten forklaring vil ikke  oppgaven bli videresendt til skattekontoret.  </p>
+                <p/>
+                <p>Om utfylling og innsending  </p>
+                <p>Fyll ut og send inn omsetningsoppgaven så snart den er klar, selv om  avgiftsbeløpet først blir betalt nærmere fristen. Rund av alle beløp  ned til nærmeste hele krone. Husk å sende inn oppgave også for  terminer der
+                              omsetningen er null.  </p>
+                <p>Når omsetningsoppgaven ikke er innkommet til rett tid eller i korrekt  form, kan skattekontoret øke utgående avgift med inntil 3 prosent,  minimum 250 kroner og maksimum 5000 kroner. Bruk alltid skjema for  rett termin.  </p>
+                <p/>
+                <p>Innbetaling og utbetaling  </p>
+                <p>Avgiftsbeløp under 100 kroner per termin skal innberettes, men ikke  betales. Tilgodebeløp på under 100 kroner skal innberettes, men blir  ikke betalt tilbake. Beløp under disse grensene skal heller ikke  avregnes i oppgavene
+                              for senere terminer.  </p>
+                <p>Beløp som blir betalt tilbake, blir sendt til kontoen som den  avgiftspliktige har oppgitt til skattekontoret. Ved endring av  kontonummer, husk å varsle skattekontoret.  </p>
+                <p>Bruk opplysningene oppgitt i Betalingsinformasjon ved betaling på  post, bank eller nettbank. Beløp som ikke er betalt i rett tid, blir  tillagt renter etter gjeldende sats.  </p>
+                <p/>
+                <p>Frister og terminer  </p>
+                <p>Fristen for å sende inn omsetningsoppgave for primærnæringene og  innbetaling av avgift er tre måneder og ti dager etter utløpet av  året (10. april).  </p>
+                <p/>
+                <p>Etter søknad kan skattekontoret samtykke i avvikende (kortere)  terminer når det foreligger særlige forhold. Fristen vil da være en  måned og ti dager etter utløpet av terminen. For næringsdrivende som  her har fått samtykke
+                              til å levere to-måneders terminer, er fristen  for innsendelse og innbetaling av 3. terminsoppgaven satt til 31.  august.  </p>
+                <p/>
+                <p>Plikt  </p>
+                <p>Plikten til å sende inn omsetningsoppgave og betale avgift går fram av  merverdiavgiftsloven.</p>
+              </brreg:tekst>
+            </xsd:documentation>
+            <xsd:appinfo>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE" xmlns:brreg="http://www.brreg.no/or">
+                <p>Documentation</p>
+              </brreg:tekst>
+            </xsd:appinfo>
+            <xsd:appinfo>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="HJELP" xmlns:brreg="http://www.brreg.no/or">
+                <p>Alle beløp skal oppgis i hele kroner.  </p>
+                <p/>
+                <p>Omsetning fra annen næring enn jordbruk, hagebruk, gartneri, skogbruk,  husdyrhold og fiske.  </p>
+                <p>Omsetning fra annen næring under kr 30.000 rapporteres i post 3, 4, 5  eller 6, avhengig av hvilken sats merverdiavgiften skal beregnes  med.  </p>
+                <p>Det er ikke adgang til å rapportere samlet omsetning fra annen næring  over kr 30.000 i primærnæringsoppgaven. Omsetning i annen næring over  kr 30.000, skal rapporteres i alminnelig omsetningsoppgave. Dersom  det avdekkes
+                              omsetning fra annen næring over kr 30.000 innrapportert  på primærnæringsoppgaven, vil det bli beregnet renter og eventuelt  fastsatt tilleggsavgift.  </p>
+                <p/>
+                <p>Forklaringsfelter  </p>
+                <p>Aktiverte forklaringsfelt må fylles ut. Uten forklaring vil ikke  oppgaven bli videresendt til skattekontoret.  </p>
+                <p/>
+                <p>Om utfylling og innsending  </p>
+                <p>Fyll ut og send inn omsetningsoppgaven så snart den er klar, selv om  avgiftsbeløpet først blir betalt nærmere fristen. Rund av alle beløp  ned til nærmeste hele krone. Husk å sende inn oppgave også for  terminer der
+                              omsetningen er null.  </p>
+                <p>Når omsetningsoppgaven ikke er innkommet til rett tid eller i korrekt  form, kan skattekontoret øke utgående avgift med inntil 3 prosent,  minimum 250 kroner og maksimum 5000 kroner. Bruk alltid skjema for  rett termin.  </p>
+                <p/>
+                <p>Innbetaling og utbetaling  </p>
+                <p>Avgiftsbeløp under 100 kroner per termin skal innberettes, men ikke  betales. Tilgodebeløp på under 100 kroner skal innberettes, men blir  ikke betalt tilbake. Beløp under disse grensene skal heller ikke  avregnes i oppgavene
+                              for senere terminer.  </p>
+                <p>Beløp som blir betalt tilbake, blir sendt til kontoen som den  avgiftspliktige har oppgitt til skattekontoret. Ved endring av  kontonummer, husk å varsle skattekontoret.  </p>
+                <p>Bruk opplysningene oppgitt i Betalingsinformasjon ved betaling på  post, bank eller nettbank. Beløp som ikke er betalt i rett tid, blir  tillagt renter etter gjeldende sats.  </p>
+                <p/>
+                <p>Frister og terminer  </p>
+                <p>Fristen for å sende inn omsetningsoppgave for primærnæringene og  innbetaling av avgift er tre måneder og ti dager etter utløpet av  året (10. april).  </p>
+                <p/>
+                <p>Etter søknad kan skattekontoret samtykke i avvikende (kortere)  terminer når det foreligger særlige forhold. Fristen vil da være en  måned og ti dager etter utløpet av terminen. For næringsdrivende som  her har fått samtykke
+                              til å levere to-måneders terminer, er fristen  for innsendelse og innbetaling av 3. terminsoppgaven satt til 31.  august.  </p>
+                <p/>
+                <p>Plikt  </p>
+                <p>Plikten til å sende inn omsetningsoppgave og betale avgift går fram av  merverdiavgiftsloven.</p>
+              </brreg:tekst>
+            </xsd:appinfo>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

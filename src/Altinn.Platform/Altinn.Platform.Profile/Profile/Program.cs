@@ -1,14 +1,18 @@
 using System;
 using System.IO;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace Altinn.Platform.Profile
 {
@@ -59,57 +63,57 @@ namespace Altinn.Platform.Profile
         /// <returns>The web host builder</returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-              .ConfigureAppConfiguration((hostingContext, config) =>
-              {
-                  _logger.LogInformation("Program // (ConfigureAppConfiguration");
-
-                  string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-
-                  string basePathCurrentDirectory = Directory.GetCurrentDirectory();
-                  _logger.LogInformation($"Current directory is: {basePathCurrentDirectory}");
-
-                  LoadConfigurationSettings(config, basePath, args);
-              })
-            .ConfigureLogging(builder =>
-            {
-                // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
-                // Console, Debug, EventSource
-                // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
-
-                // Clear log providers
-                builder.ClearProviders();
-
-                // Setup up application insight if ApplicationInsightsKey is available
-                if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
-                    // Providing an instrumentation key here is required if you're using
-                    // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-                    // or if you want to capture logs from early in the application startup 
-                    // pipeline from Startup.cs or Program.cs itself.
-                    builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
+                    _logger.LogInformation("Program // (ConfigureAppConfiguration");
 
-                    // Optional: Apply filters to control what logs are sent to Application Insights.
-                    // The following configures LogLevel Information or above to be sent to
-                    // Application Insights for all categories.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+                    string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
-                    // Adding the filter below to ensure logs of all severity from Program.cs
-                    // is sent to ApplicationInsights.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+                    string basePathCurrentDirectory = Directory.GetCurrentDirectory();
+                    _logger.LogInformation($"Current directory is: {basePathCurrentDirectory}");
 
-                    // Adding the filter below to ensure logs of all severity from Startup.cs
-                    // is sent to ApplicationInsights.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
-                }
-                else
+                    LoadConfigurationSettings(config, basePath, args);
+                })
+                .ConfigureLogging(builder =>
                 {
-                    // If not application insight is available log to console
-                    builder.AddFilter("Microsoft", LogLevel.Warning);
-                    builder.AddFilter("System", LogLevel.Warning);
-                    builder.AddConsole();
-                }
-            })
+                    // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
+                    // Console, Debug, EventSource
+                    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
+
+                    // Clear log providers
+                    builder.ClearProviders();
+
+                    // Setup up application insight if ApplicationInsightsKey is available
+                    if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                    {
+                        // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
+                        // Providing an instrumentation key here is required if you're using
+                        // standalone package Microsoft.Extensions.Logging.ApplicationInsights
+                        // or if you want to capture logs from early in the application startup 
+                        // pipeline from Startup.cs or Program.cs itself.
+                        builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
+
+                        // Optional: Apply filters to control what logs are sent to Application Insights.
+                        // The following configures LogLevel Information or above to be sent to
+                        // Application Insights for all categories.
+                        builder.AddFilter<ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+
+                        // Adding the filter below to ensure logs of all severity from Program.cs
+                        // is sent to ApplicationInsights.
+                        builder.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+
+                        // Adding the filter below to ensure logs of all severity from Startup.cs
+                        // is sent to ApplicationInsights.
+                        builder.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
+                    }
+                    else
+                    {
+                        // If not application insight is available log to console
+                        builder.AddFilter("Microsoft", LogLevel.Warning);
+                        builder.AddFilter("System", LogLevel.Warning);
+                        builder.AddConsole();
+                    }
+                })
                 .UseStartup<Startup>();
 
         /// <summary>

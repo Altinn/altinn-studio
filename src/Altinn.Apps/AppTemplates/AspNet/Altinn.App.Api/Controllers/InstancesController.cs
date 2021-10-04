@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
+using Altinn.App.Api.Mappers;
+using Altinn.App.Api.Models;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
@@ -24,6 +26,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -32,6 +35,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
 
@@ -49,15 +53,17 @@ namespace Altinn.App.Api.Controllers
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> _logger;
-        private readonly IInstance _instanceService;
-        private readonly IData _dataService;
+
+        private readonly IInstance _instanceClient;
+        private readonly IData _dataClient;
+        private readonly IRegister _registerClient;
+        private readonly IEvents _eventsService;
+        private readonly IProfile _profileClientClient;
 
         private readonly IAppResources _appResourcesService;
-        private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
-        private readonly IEvents _eventsService;
         private readonly IPrefill _prefillService;
 
         private readonly AppSettings _appSettings;
@@ -69,28 +75,30 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         public InstancesController(
             ILogger<InstancesController> logger,
-            IRegister registerService,
-            IInstance instanceService,
-            IData dataService,
+            IRegister registerClient,
+            IInstance instanceClient,
+            IData dataClient,
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
             IPDP pdp,
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
-            IPrefill prefillService)
+            IPrefill prefillService,
+            IProfile profileClient)
         {
             _logger = logger;
-            _instanceService = instanceService;
-            _dataService = dataService;
+            _instanceClient = instanceClient;
+            _dataClient = dataClient;
             _appResourcesService = appResourcesService;
-            _registerService = registerService;
+            _registerClient = registerClient;
             _altinnApp = altinnApp;
             _processService = processService;
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
+            _profileClientClient = profileClient;
         }
 
         /// <summary>
@@ -105,7 +113,6 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
@@ -122,14 +129,14 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 string userOrgClaim = User.GetOrg();
 
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                    await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
                 }
 
                 return Ok(instance);
@@ -281,7 +288,7 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 // create the instance
-                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
+                instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
             }
             catch (Exception exception)
             {
@@ -293,7 +300,7 @@ namespace Altinn.App.Api.Controllers
                 await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
-                instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+                instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
                 // notify app and store events
                 await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
@@ -304,7 +311,7 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
-            await RegisterInstanceCreatedEvent(instance);
+            await RegisterEvent("app.instance.created", instance);
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
@@ -333,7 +340,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.AddCompleteConfirmation(instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.AddCompleteConfirmation(instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
@@ -370,7 +377,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
             }
 
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
             string orgClaim = User.GetOrg();
             if (!instance.Org.Equals(orgClaim))
@@ -380,8 +387,10 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                Instance updatedInstance = await _instanceService.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
+                Instance updatedInstance = await _instanceClient.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                await RegisterEvent("app.instance.substatus.changed", instance);
 
                 return Ok(updatedInstance);
             }
@@ -409,7 +418,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance deletedInstance = await _instanceService.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
+                Instance deletedInstance = await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
                 SelfLinkHelper.SetInstanceAppSelfLinks(deletedInstance, Request);
 
                 return Ok(deletedInstance);
@@ -418,6 +427,54 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(exception, $"Deleting instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
+        }
+
+        /// <summary>
+        /// Retrieves all active instances that fulfull the org, app, and instanceOwnerParty Id combination.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <returns>A list of light weight instance objects that contains instanceId, lastChanged and lastChangedBy (full name).</returns>
+        [Authorize]
+        [HttpGet("{instanceOwnerPartyId:int}/active")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
+        {
+            Dictionary<string, StringValues> queryParams = new ()
+            {
+                { "appId", $"{org}/{app}" },
+                { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
+                { "status.isArchived", "false" }
+            };
+
+            List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
+
+            if (!activeInstances.Any())
+            {
+                return Ok(new List<SimpleInstance>());
+            }
+
+            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).ToList();
+
+            Dictionary<string, string> userAndOrgLookup = new Dictionary<string, string>();
+
+            foreach (string userOrOrgId in userAndOrgIds)
+            {
+                if (userOrOrgId.Length == 9)
+                {
+                    Organization organization = await _registerClient.ER.GetOrganization(userOrOrgId);
+                    userAndOrgLookup.Add(userOrOrgId, organization.Name);
+                }
+                else
+                {
+                    UserProfile user = await _profileClientClient.GetUserProfile(int.Parse(userOrOrgId));
+                    userAndOrgLookup.Add(userOrOrgId, user.Party.Name);
+                }
+            }
+
+            return SimpleInstanceMapper.MapInstanceListToSimpleInstanceList(activeInstances, userAndOrgLookup);
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)
@@ -468,7 +525,7 @@ namespace Altinn.App.Api.Controllers
             {
                 try
                 {
-                    party = await _registerService.GetParty(int.Parse(instanceOwner.PartyId));
+                    party = await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
                     if (!string.IsNullOrEmpty(party.SSN))
                     {
                         instanceOwner.PersonNumber = party.SSN;
@@ -500,12 +557,12 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        party = await _registerService.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
+                        party = await _registerClient.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        party = await _registerService.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
+                        party = await _registerClient.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
                     }
                     else
                     {
@@ -561,7 +618,7 @@ namespace Altinn.App.Api.Controllers
                     await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
                     await _altinnApp.RunDataCreation(instance, data);
 
-                    dataElement = await _dataService.InsertFormData(
+                    dataElement = await _dataClient.InsertFormData(
                         data,
                         instanceGuid,
                         type,
@@ -572,7 +629,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
-                    dataElement = await _dataService.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
+                    dataElement = await _dataClient.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
                 }
 
                 if (dataElement == null)
@@ -615,13 +672,13 @@ namespace Altinn.App.Api.Controllers
             return instanceTemplate;
         }
 
-        private async Task RegisterInstanceCreatedEvent(Instance instance)
+        private async Task RegisterEvent(string eventType, Instance instance)
         {
             if (_appSettings.RegisterEventsWithEventsComponent)
             {
                 try
                 {
-                    await _eventsService.AddEvent("app.instance.created", instance);
+                    await _eventsService.AddEvent(eventType, instance);
                 }
                 catch (Exception exception)
                 {

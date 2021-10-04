@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,10 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json.Schema;
@@ -42,6 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ISourceControl _sourceControl;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -54,6 +58,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="sourceControl">the source control</param>
         /// <param name="loggerFactory">the logger factory</param>
         /// <param name="logger">The logger</param>
+        /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -62,7 +67,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IGitea gitea,
             ISourceControl sourceControl,
             ILoggerFactory loggerFactory,
-            ILogger<RepositorySI> logger)
+            ILogger<RepositorySI> logger,
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -72,6 +78,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl = sourceControl;
             _loggerFactory = loggerFactory;
             _logger = logger;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
@@ -97,7 +104,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());            
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
@@ -929,7 +936,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A boolean indicating if the delete was a success</returns>
         public bool DeleteLanguage(string org, string app, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
+            string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             bool deleted = false;
 
             if (File.Exists(filename))
@@ -1037,7 +1044,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
             PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
-            
+
             if (logicElement == null)
             {
                 logicElement = new PlatformStorageModels.DataType
@@ -1116,7 +1123,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
             var options = new RepositoryClient.Model.CreateRepoOption(serviceConfig.RepositoryName);
 
-            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
@@ -1159,6 +1166,62 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
+
+            return repository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer)
+        {
+            var options = new CreateRepoOption(targetRepository);
+
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+
+            if (repository == null || repository.RepositoryCreatedStatus != System.Net.HttpStatusCode.Created)
+            {
+                return repository;
+            }
+
+            string targetRepositoryPath = _settings.GetServicePath(org, targetRepository, developer);
+
+            if (Directory.Exists(targetRepositoryPath))
+            {
+                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
+                Directory.Move(targetRepositoryPath, backupPath);
+            }
+
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
+            var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+
+            PlatformStorageModels.Application appMetadata = await targetAppRepository.GetApplicationMetadata();
+            appMetadata.Id = $"{org}/{targetRepository}";
+            appMetadata.CreatedBy = developer;
+            appMetadata.LastChangedBy = developer;
+            appMetadata.Created = DateTime.UtcNow;
+            appMetadata.LastChanged = appMetadata.Created;
+            await targetAppRepository.UpdateApplicationMetadata(appMetadata);
+
+            CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            _sourceControl.PushChangesForRepository(commitInfo);
+
+            // Final changes are made in a seperate branch to be reviewed by developer
+            string branchName = "complete_copy_of_app";
+            string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
+
+            await _sourceControl.CreateBranch(org, targetRepository, branchName);
+            _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
+
+            var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
+
+            await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
+
+            _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
+
+            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
         }
@@ -1243,7 +1306,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return await _gitea.CreateRepository(org, options);
         }
@@ -1832,6 +1895,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 File.Delete(path);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteRepository(string org, string repository)
+        {
+            await _sourceControl.DeleteRepository(org, repository);
         }
 
         private class ResourceWrapper

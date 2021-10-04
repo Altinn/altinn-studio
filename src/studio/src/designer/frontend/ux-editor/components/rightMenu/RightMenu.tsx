@@ -1,4 +1,4 @@
-import { Grid, IconButton, makeStyles, createMuiTheme, Typography } from '@material-ui/core';
+import { Grid, IconButton, makeStyles, createTheme, Typography } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
@@ -8,7 +8,7 @@ import { getLanguageFromKey } from '../../../shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles({
   main: {
@@ -121,7 +121,7 @@ export default function RightMenu(props: IRightMenuProps) {
             <a
               target='_blank'
               rel='noopener noreferrer'
-              href='https://altinn.github.io/docs/altinn-studio/app-creation/logic/#dynamics'
+              href='https://docs.altinn.studio/app/development/logic/dynamic/'
             >
               {getLanguageFromKey('right_menu.dynamics_link', props.language)}
             </a>

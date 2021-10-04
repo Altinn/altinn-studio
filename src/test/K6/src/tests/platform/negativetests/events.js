@@ -1,6 +1,6 @@
 /* 
     Negative test script to platform events api with user token
-    Command: docker-compose run k6 run /src/tests/platform/events/events.js 
+    Command: docker-compose run k6 run /src/tests/platform/negativetests/events.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
 import { check } from 'k6';

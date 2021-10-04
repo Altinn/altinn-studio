@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { createMuiTheme, makeStyles } from '@material-ui/core';
+import { createTheme, makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {

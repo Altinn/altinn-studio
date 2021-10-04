@@ -1,22 +1,43 @@
 /* eslint-disable import/no-named-as-default */
-import { AltinnAppHeader, AltinnContentIconFormData, AltinnContentLoader, AltinnModal } from 'altinn-shared/components';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty } from 'altinn-shared/types';
+import { AltinnContentIconFormData, AltinnContentLoader } from 'altinn-shared/components';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import Presentation from 'src/shared/containers/Presentation';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
-import { IRuntimeState, PresentationType } from 'src/types';
+import { IRuntimeState, PresentationType, ProcessTaskType } from 'src/types';
+import { HttpStatusCodes, post } from 'src/utils/networking';
+import { getPartyValidationUrl } from 'src/utils/urlHelper';
 import Form from '../form/containers/Form';
 import Instantiate from '../instantiate/containers';
+import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
 
 export default function Entrypoint() {
-  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const applicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const [action, setAction] = React.useState<string>(null);
+  const [partyValidation, setPartyValidation] = React.useState(null);
   const statelessLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.stateless);
   const dispatch = useDispatch();
+
+  const validatatePartySelection = async () => {
+    if (!selectedParty) {
+      return;
+    }
+    try {
+      const { data } = await post(getPartyValidationUrl(selectedParty.partyId));
+      setPartyValidation(data);
+    } catch (err) {
+      console.error(err);
+      throw new Error('Server did not respond with party validation');
+    }
+  };
+
+  React.useEffect(() => {
+    if (selectedParty) {
+      validatatePartySelection();
+    }
+  }, [selectedParty]);
 
   React.useEffect(() => {
     if (applicationMetadata) {
@@ -29,11 +50,24 @@ export default function Entrypoint() {
     }
   }, [applicationMetadata]);
 
-  if (action === 'new-instance') {
+  if (partyValidation?.valid === false) {
+    if (partyValidation.validParties?.length === 0) {
+      return (
+        <NoValidPartiesError />
+      );
+    }
+    return (
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />
+    );
+  }
+
+  // regular view with instance
+  if (action === 'new-instance' && partyValidation?.valid) {
     return <Instantiate />;
   }
 
-  if (action && action !== '') {
+  // stateless view
+  if (action && partyValidation?.valid) {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }
@@ -44,7 +78,7 @@ export default function Entrypoint() {
           type={PresentationType.Stateless}
         >
           <div>
-            <Form/>
+            <Form />
           </div>
         </Presentation>
       );
@@ -52,23 +86,13 @@ export default function Entrypoint() {
   }
 
   return (
-    <>
-      <AltinnAppHeader
-        logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-        headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
-        party={selectedParty}
-        userParty={profile ? profile.party : {} as IParty}
-      />
-      <AltinnModal
-        isOpen={true}
-        onClose={null}
-        hideBackdrop={true}
-        hideCloseIcon={true}
-      >
-        <AltinnContentLoader width='100%' height='400'>
-          <AltinnContentIconFormData/>
-        </AltinnContentLoader>
-      </AltinnModal>
-    </>
+    <Presentation
+      header=''
+      type={ProcessTaskType.Unknown}
+    >
+      <AltinnContentLoader width='100%' height='400'>
+        <AltinnContentIconFormData/>
+      </AltinnContentLoader>
+    </Presentation>
   );
 }

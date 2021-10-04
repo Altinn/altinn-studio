@@ -5,7 +5,7 @@ import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILabelSettings, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
-import { Grid } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
 import components from '.';
@@ -42,13 +42,21 @@ export interface IGenericComponentProps {
   hidden?: boolean;
 }
 
+const useStyles = makeStyles({
+  container: {
+    '@media print': {
+      display: 'flex !important',
+    },
+  },
+});
+
 export function GenericComponent(props: IGenericComponentProps) {
   const {
     id,
     ...passThroughProps
   } = props;
   const dispatch = useDispatch();
-
+  const classes = useStyles(props);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
   const [isSimple, setIsSimple] = React.useState(true);
@@ -207,6 +215,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const noLabelComponents: string[] = [
     'Header',
     'Paragraph',
+    'Image',
     'Submit',
     'ThirdParty',
     'AddressComponent',
@@ -226,7 +235,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       lg={props.grid?.lg || false}
       xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
-      className='form-group a-form-group'
+      className={`form-group a-form-group ${classes.container}`}
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) &&

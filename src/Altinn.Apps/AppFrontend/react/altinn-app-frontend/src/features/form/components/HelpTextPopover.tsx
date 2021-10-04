@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { createMuiTheme, makeStyles } from '@material-ui/core';
+import { createTheme, makeStyles } from '@material-ui/core';
 import { AltinnPopover } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { isMobile } from 'react-device-detect';
 
-const theme = createMuiTheme(AltinnAppTheme);
+const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextPopoverPaper: {

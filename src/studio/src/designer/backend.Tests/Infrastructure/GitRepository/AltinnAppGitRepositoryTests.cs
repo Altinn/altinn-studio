@@ -73,5 +73,42 @@ namespace Designer.Tests.Infrastructure.GitRepository
             applicationMetadata.LastChanged.Should().BeSameDateAs(DateTime.Parse("2021-04-08T17:42:09.08847Z"));
             applicationMetadata.LastChangedBy.Should().Be("Ronny");
         }
+
+        [Fact]
+        public async Task GetTextResources_ResourceExists_ShouldReturn()
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+            var developer = "testUser";
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            var textResource = await altinnAppGitRepository.GetTextResources("nb");
+
+            textResource.Should().NotBeNull();
+            textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
+        }
+
+        [Fact]
+        public async Task GetTextResourcesForAllLanguages_ResourceExists_ShouldReturn()
+        {
+            var org = "ttd";
+            var repository = "hvem-er-hvem";
+            var developer = "testUser";
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
+            var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
+
+            var allResources = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
+
+            allResources.Should().NotBeNull();
+            allResources.Should().HaveCount(12);
+            allResources.First(r => r.Key == "ServiceName").Value.Should().HaveCount(2);
+            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "en").Value.Value.Should().Be("who-is-who");
+            allResources.First(r => r.Key == "ServiceName").Value.First(r => r.Key == "nb").Value.Value.Should().Be("Hvem er hvem?");
+        }
     }
 }

@@ -14,6 +14,9 @@ export default class AppFrontend {
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
+    this.profileIconButton = '#profile-icon-button';
+    this.logOut = '#logout-menu-item';
+    this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -50,6 +53,7 @@ export default class AppFrontend {
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
+      sources: '#sources',
     };
 
     //group - task 3
@@ -77,6 +81,16 @@ export default class AppFrontend {
       number: '#number',
       idnumber: '#idnummer',
       idnummer2: '#idnummer2',
+    };
+
+    this.reporteeSelection = {
+      appHeader: 'div[class*=AltinnAppHeader-toolbarContainer]',
+      searchReportee: 'input[placeholder="Søk etter aktør"]',
+      checkbox: 'input[type="checkbox"]',
+      seeSubUnits: '.ai.ai-expand-circle',
+      reportee: 'div[class*=AltinnParty-partyWrapper][id^=party-]',
+      subUnits: 'div[class*=AltinnParty-subUnitWrapper]',
+      error: '#party-selection-error',
     };
   }
 }

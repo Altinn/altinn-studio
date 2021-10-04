@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -8,6 +9,7 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,38 +25,25 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class PartiesController : ControllerBase
     {
-        private readonly ILogger _logger;
-        private readonly IAuthorization _authorization;
+        private readonly IAuthorization _authorizationClient;
         private readonly UserHelper _userHelper;
-        private readonly IApplication _application;
-        private readonly IProfile _profile;
+        private readonly IProfile _profileClient;
         private readonly GeneralSettings _settings;
         private readonly IAppResources _appResourcesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
         /// </summary>
-        /// <param name="logger">The logger</param>
-        /// <param name="authorization">the authorization service handler</param>
-        /// <param name="profileService">the profile service</param>
-        /// <param name="registerService">the register service</param>
-        /// <param name="application">The repository service</param>
-        /// <param name="settings">The general settings</param>
-        /// <param name="appResourcesService">The app resources service</param>
         public PartiesController(
-                    ILogger<PartiesController> logger,
-                    IAuthorization authorization,
-                    IProfile profileService,
-                    IRegister registerService,
-                    IApplication application,
-                    IOptions<GeneralSettings> settings,
-                    IAppResources appResourcesService)
+                           IAuthorization authorizationClient,
+                           IProfile profileClient,
+                           IRegister registerClient,
+                           IOptions<GeneralSettings> settings,
+                           IAppResources appResourcesService)
         {
-            _logger = logger;
-            _authorization = authorization;
-            _userHelper = new UserHelper(profileService, registerService, settings);
-            _application = application;
-            _profile = profileService;
+            _authorizationClient = authorizationClient;
+            _userHelper = new UserHelper(profileClient, registerClient, settings);
+            _profileClient = profileClient;
             _settings = settings.Value;
             _appResourcesService = appResourcesService;
         }
@@ -71,7 +60,7 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            List<Party> partyList = await _authorization.GetPartyList(userContext.UserId);
+            List<Party> partyList = await _authorizationClient.GetPartyList(userContext.UserId);
 
             if (allowedToInstantiateFilter)
             {
@@ -95,8 +84,8 @@ namespace Altinn.App.Api.Controllers
         public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            UserProfile user = await _profile.GetUserProfile(userContext.UserId);
-            List<Party> partyList = await _authorization.GetPartyList(userContext.UserId);
+            UserProfile user = await _profileClient.GetUserProfile(userContext.UserId);
+            List<Party> partyList = await _authorizationClient.GetPartyList(userContext.UserId);
             Application application = _appResourcesService.GetApplication();
 
             if (application == null)
@@ -161,7 +150,7 @@ namespace Altinn.App.Api.Controllers
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             int userId = userContext.UserId;
 
-            bool? isValid = await _authorization.ValidateSelectedParty(userId, partyId);
+            bool? isValid = await _authorizationClient.ValidateSelectedParty(userId, partyId);
 
             if (!isValid.HasValue)
             {

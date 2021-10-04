@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2016-12-14T13:28:58.147+01:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/altinn/test/basic" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="altinn-test" />
+      <xsd:attribute name="modellnavn" fixed="melding-modell" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="t01" type="xsd:duration" />
+        <xsd:element name="t02" type="xsd:dateTime" />
+        <xsd:element name="t03" type="xsd:time" />
+        <xsd:element name="t04" type="xsd:date" />
+        <xsd:element name="t05" type="xsd:gYearMonth" />
+        <xsd:element name="t06" type="xsd:gYear" />
+        <xsd:element name="t07" type="xsd:gMonthDay" />
+        <xsd:element name="t08" type="xsd:gDay" />
+        <xsd:element name="t09" type="xsd:gMonth" />
+        <xsd:element name="t10" type="xsd:boolean" />
+        <xsd:element name="t11" type="xsd:base64Binary" />
+        <xsd:element name="t12" type="xsd:hexBinary" />
+        <xsd:element name="t13" type="xsd:float" />
+        <xsd:element name="t14" type="xsd:double" />
+        <xsd:element name="t15" type="xsd:anyURI" />
+        <xsd:element name="t16" type="xsd:QName" />
+        <xsd:element name="t17" type="xsd:decimal" />
+        <xsd:element name="t18" type="xsd:integer" />
+        <xsd:element name="t19" type="xsd:long" />
+        <xsd:element name="t20" type="xsd:unsignedLong" />
+        <xsd:element name="t21" type="xsd:int" />
+        <xsd:element name="t22" type="xsd:unsignedInt" />
+        <xsd:element name="t23" type="xsd:short" />
+        <xsd:element name="t24" type="xsd:unsignedShort" />
+        <xsd:element name="t25" type="xsd:byte" />
+        <xsd:element name="t26" type="xsd:unsignedByte" />
+        <xsd:element name="t27" type="xsd:nonPositiveInteger" />
+        <xsd:element name="t28" type="xsd:nonNegativeInteger" />
+        <xsd:element name="t29" type="xsd:negativeInteger" />
+        <xsd:element name="t30" type="xsd:positiveInteger" />
+        <xsd:element name="t31" type="xsd:string" />
+        <xsd:element name="t32" type="xsd:normalizedString" />
+        <xsd:element name="t33" type="xsd:token" />
+        <xsd:element name="t34" type="xsd:language" />
+        <xsd:element name="t35" type="xsd:Name" />
+        <xsd:element name="t36" type="xsd:NCName" />
+        <xsd:element name="t37" type="xsd:ID" />
+        <xsd:element name="t38" type="xsd:IDREF" />
+        <xsd:element name="t39" type="xsd:ENTITY" />
+        <xsd:element name="t40" type="xsd:NMTOKEN" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

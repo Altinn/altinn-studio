@@ -3,10 +3,10 @@
 exports[`components/base/InputComponent.tsx components/form/RepeatingGroupsAddButton -- should match snapshot 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-center"
+    class="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-center"
   >
     <div
-      class="MuiGrid-root makeStyles-addButton-1 MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-center MuiGrid-grid-xs-12"
+      class="MuiGrid-root makeStyles-addButton-1 MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-center MuiGrid-grid-xs-12"
       role="button"
       tabindex="0"
     >

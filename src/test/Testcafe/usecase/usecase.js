@@ -9,7 +9,6 @@ let designerPage = new DesignerPage();
 let environment = process.env.ENV.toLowerCase();
 let appName = config[environment].deployApp;
 const pullRepo = RequestLogger(/.*designerapi\/Repository\/Pull.*/);
-const resetRepo = RequestLogger(/.*designerapi\/Repository\/ResetLocalRepository.*/);
 
 const getLocation = ClientFunction(() => document.location.href);
 
@@ -38,29 +37,15 @@ test('Navigation', async () => {
 
 //Gitea connection
 test('Gitea connection - Pull changes', async () => {
-  await t.addRequestHooks(pullRepo).click(designerPage.pullChanges);
-  if (pullRepo.requests[0].response.statusCode != 200) {
-    await t.eval(() => location.reload());
-    await t
-      .expect(designerPage.deleteLocalChanges.exists)
-      .ok()
-      .click(designerPage.deleteLocalChanges)
-      .expect(designerPage.deleteAppRepoName.exists)
-      .ok()
-      .typeText(designerPage.deleteAppRepoName, appName.split('/')[1], {
-        replace: true,
-      })
-      .addRequestHooks(resetRepo)
-      .expect(designerPage.confirmDeleteLocalChanges.exists)
-      .ok()
-      .click(designerPage.confirmDeleteLocalChanges)
-      .expect(resetRepo.contains((r) => r.response.statusCode === 200))
-      .ok()
-      .click(designerPage.pullChanges)
-      .expect(pullRepo.contains((r) => r.response.statusCode === 200))
-      .ok();
-  }
-  await t.expect(Selector('h3').withText('Appen din er oppdatert til siste versjon').visible).ok();
+  await t.wait(10000);
+  await designerPage.deleteLocalAppChanges(t, appName.split('/')[1]);
+  await t
+    .addRequestHooks(pullRepo)
+    .click(designerPage.pullChanges)
+    .expect(pullRepo.contains((r) => r.response.statusCode === 200))
+    .ok()
+    .expect(Selector('h3').withText('Appen din er oppdatert til siste versjon').visible)
+    .ok();
 });
 
 //App builds and deploy information from cosmos

@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, IconButton, Modal, Typography } from '@material-ui/core';
+import { createTheme, createStyles, IconButton, Modal, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -29,7 +29,7 @@ export interface IAltinnModalComponentState {
   isOpen: boolean;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   modal: {
@@ -98,7 +98,7 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
           open={this.props.isOpen}
           className={this.props.classes.scroll}
           hideBackdrop={this.props.hideBackdrop}
-          onBackdropClick={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
+          onClose={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
         >
           <div className={classes.modal}>
             <div className={classes.header}>

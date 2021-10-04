@@ -12,8 +12,8 @@ export async function get(url: string, options?: AxiosRequestConfig): Promise<an
   const response: AxiosResponse = await axios.get(
     url,
     {
-      headers: { Pragma: 'no-cache' },
       ...options,
+      headers: { Pragma: 'no-cache', ...options?.headers },
     },
   );
   return response.data ? response.data : null;

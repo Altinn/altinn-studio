@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "$defs": {
+    "definition": {
+      "oneOf": [
+        {
+          "allOf": [
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "e1": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "e1"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "allOf": [
+                {
+                  "properties": {
+                    "e2": {
+                      "type": "string",
+                      "@xsdType": "string"
+                    }
+                  },
+                  "required": [
+                    "e2"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,10 +1,10 @@
 import { CircularProgress, Grid } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 export interface IMonacoEditorComponentProps {
   classes: any;

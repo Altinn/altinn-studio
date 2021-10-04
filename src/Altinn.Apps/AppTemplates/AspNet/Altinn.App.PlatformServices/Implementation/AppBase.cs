@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 using Altinn.App.Common.Enums;
-using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Extensions;
@@ -21,8 +20,6 @@ using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
-
-using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -40,50 +37,50 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly Application _appMetadata;
         private readonly IAppResources _resourceService;
-        private readonly ILogger<AppBase> _logger;
-        private readonly IData _dataService;
         private readonly IProcess _processService;
-        private readonly IPDF _pdfService;
-        private readonly IPrefill _prefillService;
-        private readonly IInstance _instanceService;
-        private readonly IRegister _registerService;
+        private readonly ILogger<AppBase> _logger;
+        private readonly IEFormidlingClient _eFormidlingClient;
         private readonly string pdfElementType = "ref-data-as-pdf";
         private readonly UserHelper _userHelper;
-        private readonly IProfile _profileService;
-        private readonly IText _textService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IEFormidlingClient _eFormidlingClient;
         private readonly AppSettings _appSettings;
+        private readonly IData _dataClient;
+        private readonly IPDF _pdfClient;
+        private readonly IPrefill _prefillService;
+        private readonly IInstance _instanceClient;
+        private readonly IRegister _registerClient;
+        private readonly IProfile _profileClient;
+        private readonly IText _textClient;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
         /// </summary>
         /// <param name="resourceService">The service giving access to local resources.</param>
         /// <param name="logger">A logging service.</param>
-        /// <param name="dataService">The service giving access to data.</param>
+        /// <param name="dataClient">The data client.</param>
         /// <param name="processService">The service giving access the App process.</param>
-        /// <param name="pdfService">The service giving access to the PDF generator.</param>
+        /// <param name="pdfClient">The pdf client.</param>
         /// <param name="prefillService">The service giving access to prefill mechanisms.</param>
-        /// <param name="instanceService">The service giving access to instance data</param>
-        /// <param name="registerService">The service giving access to register data</param>
+        /// <param name="instanceClient">The instance client</param>
+        /// <param name="registerClient">The register client</param>
         /// <param name="settings">the general settings</param>
-        /// <param name="profileService">the profile service</param>
-        /// <param name="textService">The text service</param>
+        /// <param name="profileClient">the profile client</param>
+        /// <param name="textClient">The text client</param>
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
         /// <param name="eFormidlingClient">The eFormidling client</param>
         /// <param name="appSettings">The appsettings</param>
         protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
-            IData dataService,
+            IData dataClient,
             IProcess processService,
-            IPDF pdfService,
+            IPDF pdfClient,
             IPrefill prefillService,
-            IInstance instanceService,
-            IRegister registerService,
+            IInstance instanceClient,
+            IRegister registerClient,
             IOptions<GeneralSettings> settings,
-            IProfile profileService,
-            IText textService,
+            IProfile profileClient,
+            IText textClient,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient eFormidlingClient = null,
             IOptions<AppSettings> appSettings = null)
@@ -91,15 +88,15 @@ namespace Altinn.App.Services.Implementation
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
             _logger = logger;
-            _dataService = dataService;
+            _dataClient = dataClient;
             _processService = processService;
-            _pdfService = pdfService;
+            _pdfClient = pdfClient;
             _prefillService = prefillService;
-            _instanceService = instanceService;
-            _registerService = registerService;
-            _userHelper = new UserHelper(profileService, registerService, settings);
-            _profileService = profileService;
-            _textService = textService;
+            _instanceClient = instanceClient;
+            _registerClient = registerClient;
+            _userHelper = new UserHelper(profileClient, registerClient, settings);
+            _profileClient = profileClient;
+            _textClient = textClient;
             _httpContextAccessor = httpContextAccessor;
             _appSettings = appSettings?.Value;
             _eFormidlingClient = eFormidlingClient;
@@ -196,7 +193,7 @@ namespace Altinn.App.Services.Implementation
                     await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
-                    DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
+                    DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data, type);
                     instance.Data.Add(createdDataElement);
 
                     await UpdatePresentationTextsOnInstance(instance, dataType.Id, data);
@@ -205,7 +202,7 @@ namespace Altinn.App.Services.Implementation
                     _logger.LogInformation($"Created data element: {createdDataElement.Id}");
                 }
             }
-        }        
+        }
 
         /// <inheritdoc />
         public async Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues)
@@ -248,7 +245,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dataElement.Locked = true;
                     _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    Task updateData = _dataService.Update(instance, dataElement);
+                    Task updateData = _dataClient.Update(instance, dataElement);
 
                     if (generatePdf)
                     {
@@ -273,7 +270,7 @@ namespace Altinn.App.Services.Implementation
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-                await _instanceService.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
+                await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
             }
 
             await Task.CompletedTask;
@@ -328,7 +325,7 @@ namespace Altinn.App.Services.Implementation
 
             if (updatedValues.Count > 0)
             {
-                var updatedInstance = await _instanceService.UpdatePresentationTexts(
+                var updatedInstance = await _instanceClient.UpdatePresentationTexts(
                       int.Parse(instance.Id.Split("/")[0]),
                       Guid.Parse(instance.Id.Split("/")[1]),
                       new PresentationTexts { Texts = updatedValues });
@@ -347,7 +344,7 @@ namespace Altinn.App.Services.Implementation
 
             if (updatedValues.Count > 0)
             {
-                var updatedInstance = await _instanceService.UpdateDataValues(
+                var updatedInstance = await _instanceClient.UpdateDataValues(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     new DataValues { Values = updatedValues });
@@ -380,7 +377,7 @@ namespace Altinn.App.Services.Implementation
                 layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
 
-            object data = await _dataService.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
+            object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
             layoutSettings = await FormatPdf(layoutSettings, data);
             XmlSerializer serializer = new XmlSerializer(dataElementModelType);
@@ -401,7 +398,7 @@ namespace Altinn.App.Services.Implementation
 
             if (userId != null)
             {
-                UserProfile userProfile = await _profileService.GetUserProfile((int)userId);
+                UserProfile userProfile = await _profileClient.GetUserProfile((int)userId);
                 actingParty = userProfile.Party;
 
                 if (!string.IsNullOrEmpty(userProfile.ProfileSettingPreference?.Language))
@@ -412,18 +409,18 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 string orgNumber = user.GetOrgNumber().ToString();
-                actingParty = await _registerService.LookupParty(new PartyLookup { OrgNo = orgNumber });
+                actingParty = await _registerClient.LookupParty(new PartyLookup { OrgNo = orgNumber });
             }
 
             // If layoutset exists pick correct layotFiles
             string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
 
-            TextResource textResource = await _textService.GetText(org, app, language);
+            TextResource textResource = await _textClient.GetText(org, app, language);
 
             if (textResource == null && language != "nb")
             {
                 // fallback to norwegian if texts does not exist
-                textResource = await _textService.GetText(org, app, "nb");
+                textResource = await _textClient.GetText(org, app, "nb");
             }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
@@ -436,13 +433,13 @@ namespace Altinn.App.Services.Implementation
                 LayoutSettings = layoutSettings,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 OptionsDictionary = optionsDictionary,
-                Party = await _registerService.GetParty(instanceOwnerId),
+                Party = await _registerClient.GetParty(instanceOwnerId),
                 Instance = instance,
                 UserParty = actingParty,
                 Language = language
             };
 
-            Stream pdfContent = await _pdfService.GeneratePDF(pdfContext);
+            Stream pdfContent = await _pdfClient.GeneratePDF(pdfContext);
             await StorePDF(pdfContent, instance, textResource);
             pdfContent.Dispose();
         }
@@ -465,7 +462,7 @@ namespace Altinn.App.Services.Implementation
 
             fileName = GetValidFileName(fileName);
 
-            return await _dataService.InsertBinaryData(
+            return await _dataClient.InsertBinaryData(
                 instance.Id,
                 pdfElementType,
                 "application/pdf",
@@ -542,7 +539,7 @@ namespace Altinn.App.Services.Implementation
 
                 string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
 
-                using Stream stream = await _dataService.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
+                using Stream stream = await _dataClient.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
 
                 bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
 

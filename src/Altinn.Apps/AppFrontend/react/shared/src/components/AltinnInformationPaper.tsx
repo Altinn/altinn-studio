@@ -1,10 +1,10 @@
 /* eslint-disable no-undef */
-import { createMuiTheme, Paper } from '@material-ui/core';
+import { createTheme, Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 const useStyles = makeStyles({
   paper: {
     background: theme.altinnPalette.primary.white,

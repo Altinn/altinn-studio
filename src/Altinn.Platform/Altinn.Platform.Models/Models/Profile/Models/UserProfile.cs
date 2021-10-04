@@ -19,6 +19,11 @@ namespace Altinn.Platform.Profile.Models
         public string UserName { get; set; }
 
         /// <summary>
+        /// Gets or sets ExternalIdentity
+        /// </summary>
+        public string ExternalIdentity { get; set; }
+
+        /// <summary>
         /// Gets or sets the phone number
         /// </summary>
         public string PhoneNumber { get; set; }

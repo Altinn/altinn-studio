@@ -85,7 +85,7 @@ export function GroupContainer({
   }, [formData, container]);
 
   React.useEffect(() => {
-    const {edit} = container;
+    const { edit } = container;
     if (!edit) {
       return;
     }
@@ -127,14 +127,18 @@ export function GroupContainer({
   };
 
   const onClickSave = () => {
-    const validate: boolean = container.triggers?.includes(Triggers.Validation);
+    const validate: boolean = !!container.triggers?.includes(Triggers.Validation);
     dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
       group: id, index: -1, validate,
     }));
   };
 
   const setEditIndex = (index: number) => {
-    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index }));
+    // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
+    const validate: boolean = (index === -1) && !!container.triggers?.includes(Triggers.Validation);
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({
+      group: id, index, validate,
+    }));
   };
 
   if (hidden) {
@@ -169,7 +173,7 @@ export function GroupContainer({
       }
       <Grid
         container={true}
-        justify='flex-end'
+        justifyContent='flex-end'
       />
       {(container.edit?.mode !== 'showAll' && (editIndex < 0 && ((repeatingGroupIndex + 1) < container.maxCount))) &&
         <RepeatingGroupAddButton

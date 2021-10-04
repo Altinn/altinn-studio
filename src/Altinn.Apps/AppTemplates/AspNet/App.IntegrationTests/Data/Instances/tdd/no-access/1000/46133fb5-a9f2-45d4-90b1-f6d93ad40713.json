@@ -1,1 +1,15 @@
-{"id":"1000/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd","instanceOwner":{"partyId":"1000","personNumber":"12345678901"},"appId":"tdd/no-access","org":"tdd"}
+{
+  "id": "1000/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
+  "instanceOwner": {
+    "partyId": "1000",
+    "personNumber": "12345678901"
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "appId": "tdd/no-access",
+  "org": "tdd"
+}

@@ -3,13 +3,14 @@ export interface ISchemaState {
   uiSchema: UiSchemaItem[];
   name: string;
   saveSchemaUrl: string;
-  selectedId?: string;
-  selectedTreeNodeId?: string;
+  selectedDefinitionNodeId: string;
+  selectedPropertyNodeId: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.
   navigate?: string; // used to trigger navigation in tree, the value is not used.
+  selectedEditorTab: 'definitions' | 'properties';
 }
 export interface ILanguage {
-  [key: string]: string;
+  [key: string]: string | ILanguage;
 }
 export interface ISetValueAction {
   path: string,

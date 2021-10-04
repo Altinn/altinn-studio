@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -82,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);         
+                _logger.LogError("Cold not retrieve teams for user " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetTeams failed with statuscode " + response.StatusCode);
             }
 
             return teams;
@@ -250,25 +252,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
-            Stopwatch watchOwnerType = Stopwatch.StartNew();
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
             {
-                Stopwatch watch = Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
-                watch.Stop();
-                _logger.Log(LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
-                watch = Stopwatch.StartNew();
+
                 Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
-                watch.Stop();
-                _logger.Log(LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
                 if (organisation.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
-            watchOwnerType.Stop();
-            _logger.Log(LogLevel.Information, "To find if local repo and owner type - {0} ", watchOwnerType.ElapsedMilliseconds);
             return returnRepository;
         }
 
@@ -310,6 +304,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
+
+            HttpRequestMessage m = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            m.Content = new StringContent(content, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.SendAsync(m);
+
+            if (response.StatusCode == HttpStatusCode.Created)
+            {
+                return await response.Content.ReadAsAsync<Branch>();
+            }
+            else
+            {
+                _logger.LogError($"//GiteaAPIWrapper // CreateBranch // Error ({response.StatusCode}) occured when creating branch {branchName} for repo {org}/{repository}");
+            }
 
             return null;
         }
@@ -385,6 +401,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
             return await response.Content.ReadAsAsync<List<FileSystemObject>>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
+        {
+            string content = JsonSerializer.Serialize(createPullRequestOption);
+            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+
+            return response.IsSuccessStatusCode;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteRepository(string org, string repository)
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"repos/{org}/{repository}");
+            return response.IsSuccessStatusCode;
         }
 
         private async Task<Organization> GetOrganization(string name)
