@@ -201,8 +201,9 @@ function DatepickerComponent(props: IDatePickerProps) {
               disableUnderline: true,
               'aria-describedby': `description-${props.id}`,
               error: (!props.isValid || !validDate),
+              readOnly: props.readOnly,
               classes: {
-                root: classes.root + ((validationMessages?.errors?.length || !validDate) ? ` ${classes.invalid}` : ''),
+                root: classes.root + ((validationMessages?.errors?.length || !validDate) ? ` ${classes.invalid}` : '') + (props.readOnly ? ' disabled' : ''),
                 input: classes.input,
               },
             }}
