@@ -84,7 +84,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Retrieves all tags associated with the given data element.
+        /// Adds a new tag to a <see cref="DataElement"/>.
         /// </summary>
         /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
@@ -137,7 +137,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Retrieves all tags associated with the given data element.
+        /// Removes a tag from a <see cref="DataElement"/>.
         /// </summary>
         /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
