@@ -457,7 +457,7 @@ namespace Altinn.App.Api.Controllers
                 return Ok(new List<SimpleInstance>());
             }
 
-            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).ToList();
+            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).Distinct().ToList();
 
             Dictionary<string, string> userAndOrgLookup = new Dictionary<string, string>();
 
