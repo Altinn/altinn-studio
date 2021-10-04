@@ -26,28 +26,11 @@ using Microsoft.Extensions.Options;
 using Moq;
 
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
-    public class RepositorySITests : IDisposable
+    public class RepositorySITests
     {
-        public void Dispose()
-        {
-            string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test-clone", "testUser");
-            if (Directory.Exists(path))
-            {
-                Directory.Delete(path, true);
-            }
-
-            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-clone");
-            TestDataHelper.CleanUpLocalBranches("ttd", "apps-test-clone", "testUser");
-
-            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
-            GC.SuppressFinalize(this);
-        }
-
         [Fact]
         public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
         {
@@ -160,6 +143,10 @@ namespace Designer.Tests.Services
             // Assert
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
             int actualCloneCount = Directory.GetDirectories(developerClonePath).Where(d => d.Contains("apps-test-2021")).Count();
+
+            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
+            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
+
             Assert.Equal(2, actualCloneCount);
         }
 
@@ -190,12 +177,23 @@ namespace Designer.Tests.Services
             string gitConfigString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, ".git/config");
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
 
-            TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
+            try
+            {
+                Assert.True(Directory.Exists(expectedRepoPath));
+                Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);
+                Assert.Contains("https://dev.altinn.studio/repos/ttd/apps-test-clone.git", gitConfigString);
+                Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
+            }
+            finally
+            {
+                string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test-clone", "testUser");
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, true);
+                }
 
-            Assert.True(Directory.Exists(expectedRepoPath));
-            Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);
-            Assert.Contains("https://dev.altinn.studio/repos/ttd/apps-test-clone.git", gitConfigString);
-            Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
+                TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
+            }
         }
 
         [Fact]

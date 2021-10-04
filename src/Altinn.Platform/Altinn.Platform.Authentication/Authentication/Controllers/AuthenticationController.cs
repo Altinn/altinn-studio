@@ -795,7 +795,8 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (!string.IsNullOrEmpty(userAuthenticationModel.ExternalIdentity))
             {
-                profile = await _userProfileService.GetUser(userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity);
+                string issExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
+                profile = await _userProfileService.GetUser(issExternalIdentity);
 
                 if (profile != null)
                 {
@@ -805,8 +806,9 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
 
                 UserProfile userToCreate = new UserProfile();
-                userToCreate.ExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
+                userToCreate.ExternalIdentity = issExternalIdentity;
                 userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
+                userToCreate.UserType = Profile.Enums.UserType.SelfIdentified;
 
                 UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
                 userAuthenticationModel.UserID = userCreated.UserId;

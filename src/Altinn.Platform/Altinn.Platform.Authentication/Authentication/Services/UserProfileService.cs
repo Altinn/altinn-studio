@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.Services
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users");
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssnOrExternalIdentity), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Authentication.Services
             UserProfile createdProfile = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create");
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create/");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
@@ -78,7 +78,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Creating user failed {response.StatusCode}");
+                _logger.LogError($"Creating user failed for externalIdentity {user.ExternalIdentity}");
             }
 
             return createdProfile;

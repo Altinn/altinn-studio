@@ -446,7 +446,8 @@ namespace Altinn.App.Api.Controllers
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
-                { "status.isArchived", "false" }
+                { "status.isArchived", "false" },
+                { "status.isSoftDeleted", "false" }
             };
 
             List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
@@ -456,7 +457,7 @@ namespace Altinn.App.Api.Controllers
                 return Ok(new List<SimpleInstance>());
             }
 
-            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).ToList();
+            List<string> userAndOrgIds = activeInstances.Select(i => i.LastChangedBy).Distinct().ToList();
 
             Dictionary<string, string> userAndOrgLookup = new Dictionary<string, string>();
 
