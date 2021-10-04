@@ -795,8 +795,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (!string.IsNullOrEmpty(userAuthenticationModel.ExternalIdentity))
             {
-                string issExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
-                profile = await _userProfileService.GetUser(issExternalIdentity);
+                profile = await _userProfileService.GetUser(userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity);
 
                 if (profile != null)
                 {
@@ -805,10 +804,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     return;
                 }
 
-                _logger.LogWarning("User not found. Creating new for issexternal identity " + issExternalIdentity);
-
                 UserProfile userToCreate = new UserProfile();
-                userToCreate.ExternalIdentity = issExternalIdentity;
+                userToCreate.ExternalIdentity = userAuthenticationModel.Iss + ":" + userAuthenticationModel.ExternalIdentity;
                 userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
 
                 UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);

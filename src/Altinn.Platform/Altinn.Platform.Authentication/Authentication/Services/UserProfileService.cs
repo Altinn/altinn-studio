@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.Services
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users");
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssnOrExternalIdentity), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Getting user by SSN or external identity failed with statuscode {response.StatusCode} for url {endpointUrl} with url length {endpointUrl.AbsoluteUri.Length}");
+                _logger.LogError($"Getting user by SSN or external identity failed with statuscode {response.StatusCode} for url {endpointUrl}");
             }
 
             return user;
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Authentication.Services
             UserProfile createdProfile = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create");
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create/");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
