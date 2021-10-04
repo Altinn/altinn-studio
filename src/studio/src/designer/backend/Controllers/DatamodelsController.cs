@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -156,15 +157,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository name</param>
         /// <param name="createModel">View model containing the data required to create the initial model.</param>
         [Authorize]
+        [Produces("application/json")]
         [HttpPost]
-        [Route("[Action]")]
+        [Route("[Action]")] 
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
-            return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);
+            Response.StatusCode = (int)HttpStatusCode.Created;
+            return Content(model, "application/json");
+
+            //return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);
         }
 
         /// <summary>
