@@ -80,12 +80,17 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             foreach (string delegationPolicypath in delegationDict.Keys)
             {
                 bool writePolicySuccess = await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
-                if (writePolicySuccess)
-                {
-                    delegationDict[delegationPolicypath].ForEach(r => r.CreatedSuccessfully = true);
-                }
 
-                result.AddRange(delegationDict[delegationPolicypath]);
+                foreach (Rule rule in delegationDict[delegationPolicypath])
+                {
+                    if (writePolicySuccess)
+                    {
+                        rule.CreatedSuccessfully = true;
+                        rule.Type = RuleType.DirectlyDelegated;
+                    }
+
+                    result.Add(rule);
+                }
             }
 
             result.AddRange(unsortables);

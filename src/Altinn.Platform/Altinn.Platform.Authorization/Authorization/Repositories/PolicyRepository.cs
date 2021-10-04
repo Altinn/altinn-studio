@@ -20,6 +20,8 @@ namespace Altinn.Platform.Authorization.Repositories
     {
         private readonly ILogger<PolicyRepository> _logger;
         private readonly AzureStorageConfiguration _storageConfig;
+        private readonly BlobContainerClient _metadataContainerClient;
+        private readonly BlobContainerClient _delegationsContainerClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRepository"/> class
@@ -32,6 +34,14 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             _logger = logger;
             _storageConfig = storageConfig.Value;
+
+            StorageSharedKeyCredential metadataCredentials = new StorageSharedKeyCredential(_storageConfig.MetadataAccountName, _storageConfig.MetadataAccountKey);
+            BlobServiceClient metadataServiceClient = new BlobServiceClient(new Uri(_storageConfig.MetadataBlobEndpoint), metadataCredentials);
+            _metadataContainerClient = metadataServiceClient.GetBlobContainerClient(_storageConfig.MetadataContainer);
+
+            StorageSharedKeyCredential delegationsCredentials = new StorageSharedKeyCredential(_storageConfig.DelegationsAccountName, _storageConfig.DelegationsAccountKey);
+            BlobServiceClient delegationsServiceClient = new BlobServiceClient(new Uri(_storageConfig.DelegationsBlobEndpoint), delegationsCredentials);
+            _delegationsContainerClient = delegationsServiceClient.GetBlobContainerClient(_storageConfig.DelegationsContainer);           
         }
 
         /// <inheritdoc/>
@@ -55,16 +65,20 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
+                Stream memoryStream = new MemoryStream();
+                ETag originalETag = ETag.All;
+
                 BlobClient blobClient = CreateBlobClient(filepath).WithVersion(version);
 
                 if (await blobClient.ExistsAsync())
                 {
                     Response<BlobProperties> properties = await blobClient.GetPropertiesAsync();
 
-                    return (await GetBlobStreamInternal(blobClient), properties.Value.ETag);
+                    originalETag = properties.Value.ETag;
+                    memoryStream = await GetBlobStreamInternal(blobClient);
                 }
 
-                return (null, ETag.All);
+                return (memoryStream, originalETag);
             }
             catch (Exception ex)
             {
@@ -126,11 +140,12 @@ namespace Altinn.Platform.Authorization.Repositories
 
         private BlobClient CreateBlobClient(string blobName)
         {
-            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfig.AccountName, _storageConfig.AccountKey);
-            BlobServiceClient serviceClient = new BlobServiceClient(new Uri(_storageConfig.BlobEndpoint), storageCredentials);
-            BlobContainerClient blobContainerClient = serviceClient.GetBlobContainerClient(_storageConfig.MetadataContainer);
+            if (blobName.Contains("delegationpolicy.xml"))
+            {
+                return _delegationsContainerClient.GetBlobClient(blobName);
+            }
 
-            return blobContainerClient.GetBlobClient(blobName);
+            return _metadataContainerClient.GetBlobClient(blobName);
         }
 
         private async Task<Stream> GetBlobStreamInternal(BlobClient blobClient)
