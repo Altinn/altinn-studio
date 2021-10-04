@@ -454,9 +454,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             {
                 handlerMock.Protected()
                 .SetupSequence<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])),
-                ItExpr.IsAny<CancellationToken>())
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])),
+                    ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessages[0])
                .ReturnsAsync(httpResponseMessages[1]);
             }
@@ -464,9 +464,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             {
                 handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0])),
-                ItExpr.IsAny<CancellationToken>())
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0])),
+                    ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessages[0])
                 .Verifiable();
             }
