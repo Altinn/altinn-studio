@@ -446,7 +446,8 @@ namespace Altinn.App.Api.Controllers
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
-                { "status.isArchived", "false" }
+                { "status.isArchived", "false" },
+                { "status.isSoftDeleted", "false" }
             };
 
             List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);

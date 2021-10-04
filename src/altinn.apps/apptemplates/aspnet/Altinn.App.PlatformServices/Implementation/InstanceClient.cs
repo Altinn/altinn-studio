@@ -11,6 +11,7 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using AltinnCore.Authentication.Utils;
@@ -95,7 +96,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            StringBuilder apiUrl = new ($"instances?");
+            StringBuilder apiUrl = new($"instances?");
 
             foreach (var queryParameter in queryParams)
             {
@@ -106,18 +107,39 @@ namespace Altinn.App.Services.Implementation
             }
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            QueryResponse<Instance> queryResponse = await QueryInstances(token, apiUrl.ToString());
 
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl.ToString());
+            if (queryResponse.Count == 0)
+            {
+                return new List<Instance>();
+            }
+
+            List<Instance> instances = new();
+
+            instances.AddRange(queryResponse.Instances);
+
+            while (!string.IsNullOrEmpty(queryResponse.Next))
+            {
+                queryResponse = await QueryInstances(token, queryResponse.Next);
+                instances.AddRange(queryResponse.Instances);
+            }
+
+            return instances;
+        }
+
+        private async Task<QueryResponse<Instance>> QueryInstances(string token, string url)
+        {
+            HttpResponseMessage response = await _client.GetAsync(token, url);
+
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                string instanceData = await response.Content.ReadAsStringAsync();
-                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
-
-                return instances;
-            }          
+                string responseString = await response.Content.ReadAsStringAsync();
+                QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
+                return queryResponse;
+            }
             else
             {
-                _logger.LogError("Unable to fetch instances");
+                _logger.LogError("Unable to query instances from Platform Storage");
                 throw await PlatformHttpException.CreateAsync(response);
             }
         }
