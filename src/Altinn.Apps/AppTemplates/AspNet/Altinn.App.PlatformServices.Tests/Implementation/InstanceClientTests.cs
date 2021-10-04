@@ -378,7 +378,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         public async Task QueryInstances_QueryResponseContainsNext()
         {
             // Arrange
-            QueryResponse<Instance> queryResponse1 = new()
+            QueryResponse<Instance> queryResponse1 = new ()
             {
                 Count = 1,
                 Instances = new List<Instance>
@@ -388,10 +388,10 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                         Id = $"{1337}/{Guid.NewGuid()}"
                     }
                 },
-                Next = "https://platform.altinn.no/storage/api/instances/continuationtoken=abcd"
+                Next = "https://platform.altinn.no/storage/api/instances?&appId=ttd/apps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
             };
 
-            QueryResponse<Instance> queryResponse2 = new()
+            QueryResponse<Instance> queryResponse2 = new ()
             {
                 Count = 1,
                 Instances = new List<Instance>
@@ -424,7 +424,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InstanceClient target = new InstanceClient(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
-            Dictionary<string, StringValues> queryParams = new()
+            Dictionary<string, StringValues> queryParams = new ()
             {
                 { "appId", $"ttd/apps-test" },
                 { "instanceOwner.partyId", "1337" },
