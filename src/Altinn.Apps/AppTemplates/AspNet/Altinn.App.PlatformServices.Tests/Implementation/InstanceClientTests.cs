@@ -433,7 +433,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             };
 
             // Act
-            List<Instances> instances = await target.GetInstances(queryParams);
+            List<Instance> instances = await target.GetInstances(queryParams);
 
             // Assert
             Assert.Equal(2, instances.Count);
