@@ -114,7 +114,7 @@ namespace Altinn.App.Services.Implementation
                 return new List<Instance>();
             }
 
-            List<Instance> instances = new();
+            List<Instance> instances = new ();
 
             instances.AddRange(queryResponse.Instances);
 
