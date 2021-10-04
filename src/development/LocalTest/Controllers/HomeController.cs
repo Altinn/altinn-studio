@@ -146,7 +146,7 @@ namespace LocalTest.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "4", ClaimValueTypes.Integer32, issuer));
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);
