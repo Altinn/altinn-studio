@@ -140,7 +140,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             XmlWriter writer = XmlWriter.Create(dataStream);
 
             // ToDo: Do xmlwriter through XacmlSerializer. Need ABAC nuget update or direct ABAC project dependency. Until this line is uncommented only empty xml files will be stored to blobstorage.
-            ////XacmlSerializer.WritePolicy(writer, delegationPolicy);
+            XacmlSerializer.WritePolicy(writer, delegationPolicy);
 
             writer.Flush();
             dataStream.Position = 0;
