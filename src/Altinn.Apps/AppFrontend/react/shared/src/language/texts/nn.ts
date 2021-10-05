@@ -118,12 +118,12 @@ export function nn() {
       row_error: 'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
     },
     instance_selection: {
-      changed_by: 'Endret av',
-      continue: 'Fortsett her',
-      description: 'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
-      header: 'Du har allerede startet å fylle ut dette skjemaet.',
-      last_changed: 'Sist endret',
-      left_of: 'Fortsett der du slapp',
+      changed_by: 'Endra av',
+      continue: 'Hald fram her',
+      description: 'Vel om du vil halde fram med eit skjema du har byrja på, eller om du vil starte på ny.',
+      header: 'Du har allereie starta å fylle ut dette skjemaet.',
+      last_changed: 'Sist endra',
+      left_of: 'Hald fram der du slapp',
       new_instance: 'Start på nytt',
     },
     instantiate: {
