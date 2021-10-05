@@ -30,7 +30,7 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substr(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.customValidationInvalid)
+      .should('have.text', texts.testIsNotValidValue)
       .then((error) => {
         cy.get(error).find(appFrontend.errorExclamation).should('be.visible');
         cy.get(error).find('a[href="https://www.altinn.no/"]').should('exist');
@@ -44,7 +44,7 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substr(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.customValidationInvalid)
+      .should('have.text', texts.testIsNotValidValue)
       .should('have.css', 'background-color', 'rgb(239, 239, 239)');
   });
 

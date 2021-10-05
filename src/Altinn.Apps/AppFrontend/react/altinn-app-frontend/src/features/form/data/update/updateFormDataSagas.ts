@@ -10,7 +10,6 @@ import FormDataActions from '../formDataActions';
 import { IUpdateFormData } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
-import { getKeyWithoutIndex } from '../../../../utils/databindings';
 
 function* updateFormDataSaga({ payload: {
   field,
@@ -66,12 +65,11 @@ function* runValidations(
   const validator = getValidator(currentDataTypeId, state.formDataModel.schemas);
   const component = getLayoutComponentById(componentId, state.formLayout.layouts);
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);
-  const fieldWithoutIndex = getKeyWithoutIndex(field);
 
   const validationResult: IValidationResult = validateComponentFormData(
     layoutId,
     data,
-    fieldWithoutIndex,
+    field,
     component,
     state.language.language,
     state.textResources.resources,

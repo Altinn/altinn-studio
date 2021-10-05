@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>0.0.0.4</AssemblyVersion>
-    <FileVersion>0.0.0.4</FileVersion>
+    <AssemblyVersion>0.0.0.5</AssemblyVersion>
+    <FileVersion>0.0.0.5</FileVersion>
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{C9ABF5DB-928C-4280-B587-13E6DCE010BC}</ProjectGuid>
     
     <!-- NuGet package properties -->
     <PackageId>Altinn.Authorization.ABAC</PackageId>
-    <PackageVersion>0.0.4-alpha</PackageVersion>
+    <PackageVersion>0.0.5-alpha</PackageVersion>
     <PackageTags>Altinn;Authorization;ABAC</PackageTags>
     <Description>
       Attribute Based Access Control library for .Net Core implementing XACML 3.0 xml and JSON Profile.

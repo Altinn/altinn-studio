@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-
+using Altinn.Platform.Authorization.Models;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Util
@@ -13,6 +14,40 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
     /// </summary>
     public static class AssertionUtil
     {
+        /// <summary>
+        /// Asserts that two collections of objects have the same property values in the same positions.
+        /// </summary>
+        /// <typeparam name="T">The Type</typeparam>
+        /// <param name="expected">A collection of expected instances</param>
+        /// <param name="actual">The collection of actual instances</param>
+        /// <param name="assertMethod">The assertion method to be used</param>
+        public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<T, T> assertMethod)
+        {
+            Assert.Equal(expected.Count, actual.Count);
+
+            Dictionary<int, T> expectedDict = new Dictionary<int, T>();
+            Dictionary<int, T> actualDict = new Dictionary<int, T>();
+
+            int i = 1;
+            foreach (T ex in expected)
+            {
+                expectedDict.Add(i, ex);
+                i++;
+            }
+
+            i = 1;
+            foreach (T ac in actual)
+            {
+                actualDict.Add(i, ac);
+                i++;
+            }
+
+            foreach (int key in expectedDict.Keys)
+            {
+                assertMethod(expectedDict[key], actualDict[key]);
+            }
+        }
+
         /// <summary>
         /// Assert that two <see cref="XacmlContextResponse"/> have the same property values.
         /// </summary>
@@ -63,6 +98,25 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             AssertEqual(expected.Attributes, actual.Attributes);
         }
 
+        /// <summary>
+        /// Assert that two <see cref="ResourcePolicyResponse"/> have the same property in the same positions.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertResourcePolicyResponseEqual(ResourcePolicyResponse expected, ResourcePolicyResponse actual)
+        {
+            if (actual.ResourcePolicies != null || expected.ResourcePolicies != null)
+            {
+                AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
+            }
+            
+            AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
+            if (expected.ErrorResponse != null && actual.ErrorResponse != null)
+            {
+                Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
+            }
+        }
+
         private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
         {
             Assert.Equal(expected.Decision, actual.Decision);
@@ -88,7 +142,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static void AssertEqual(List<XacmlJsonCategory> expected, List<XacmlJsonCategory> actual)
         {
-            if(expected == null)
+            if (expected == null)
             {
                 Assert.Null(actual);
                 return;
@@ -256,6 +310,41 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.AttributeId, actual.AttributeId);
             Assert.Equal(expected.DataType, actual.DataType);
+        }
+
+        private static void AssertResourcePolicyEqual(ResourcePolicy expected, ResourcePolicy actual)
+        {
+            Assert.Equal(expected.Title, actual.Title);
+            AssertCollections(expected.Actions, actual.Actions, AssertResourceActionEqual);
+            AssertCollections(expected.Resource, actual.Resource, AssertAttributeMatchEqual);
+            if (expected.Description != null || actual.Description != null)
+            {
+                Assert.Equal(expected.Description, actual.Description);
+            }
+        }
+
+        private static void AssertResourceActionEqual(ResourceAction expected, ResourceAction actual)
+        {
+            Assert.Equal(expected.Title, actual.Title);
+            AssertAttributeMatchEqual(expected.Match, actual.Match);
+            AssertCollections(expected.RoleGrants, actual.RoleGrants, AssertRoleGrantEqual);
+
+            if (expected.Description != null && actual.Description != null)
+            {
+                Assert.Equal(expected.Description, actual.Description);
+            }
+        }
+
+        private static void AssertRoleGrantEqual(RoleGrant expected, RoleGrant actual)
+        {
+            Assert.Equal(expected.IsDelegable, actual.IsDelegable);
+            Assert.Equal(expected.RoleTypeCode, actual.RoleTypeCode);
+        }
+
+        private static void AssertAttributeMatchEqual(AttributeMatch expected, AttributeMatch actual)
+        {
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Value, actual.Value);
         }
     }
 }

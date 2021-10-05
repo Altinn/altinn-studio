@@ -3,6 +3,8 @@ module.exports = (on, config) => {
     case 'local':
       config.baseUrl = config.env.localTest;
       config.env.userFullName = 'Ola Nordmann';
+      config.defaultCommandTimeout = 15000;
+      config.requestTimeout = 15000;
       break;
     case 'at21':
       config.baseUrl = `https://${config.env.at21}`;
