@@ -3,6 +3,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
+using LocalTest.Services.Localtest.Interface;
 
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -20,11 +21,16 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly IDataRepository _dataRepository;
 
-        public InstanceRepository(IOptions<LocalPlatformSettings> localPlatformSettings, IDataRepository dataRepository)
+        public InstanceRepository(
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            ILocalTestAppSelection localTestAppSelectionService,
+            IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _localTestAppSelectionService = localTestAppSelectionService;
             _dataRepository = dataRepository;
         }
 
@@ -106,6 +112,17 @@ namespace LocalTest.Services.Storage.Implementation
             if (!string.IsNullOrEmpty(invalidKey))
             {
                 throw new ArgumentException($"Invalid query parameter {invalidKey}");
+            }
+
+            if (!queryParams.ContainsKey("appId"))
+            {
+                throw new NotImplementedException($"Queries for instances must include applicationId in local test.");
+            }
+
+            string appName = queryParams["appId"].First().Split("/")[1];
+            if (!_localTestAppSelectionService.GetAppPath().Contains(appName))
+            {
+                throw new NotImplementedException($"Only possible to query active application in local test ");
             }
 
             List<Instance> instances = new List<Instance>();
