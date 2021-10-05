@@ -80,7 +80,7 @@ namespace LocalTest.Services.Storage.Implementation
             return null;
         }
 
-        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             List<string> validQueryParams = new List<string>
             {
@@ -186,11 +186,13 @@ namespace LocalTest.Services.Storage.Implementation
 
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
-            return Task.FromResult(new InstanceQueryResponse
+            instances.ForEach(async i => await PostProcess(i));
+
+            return new InstanceQueryResponse
             {
                 Instances = instances,
                 Count = instances.Count,
-            });
+            };
         }
 
         public async Task<Instance> Update(Instance instance)
