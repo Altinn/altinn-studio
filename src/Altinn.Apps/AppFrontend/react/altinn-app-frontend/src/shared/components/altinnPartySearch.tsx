@@ -29,9 +29,9 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
     onSearchUpdated(searchString);
   }, [searchString]);
 
-  function onChangeSearchString(e: any) {
+  const onChangeSearchString = (e: any) => {
     setSearchString(e.target.value);
-  }
+  };
 
   return (
     <Grid container={true} className={classes.partySearchContainer}>

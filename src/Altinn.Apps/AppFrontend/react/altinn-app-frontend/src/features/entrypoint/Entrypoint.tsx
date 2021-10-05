@@ -8,9 +8,10 @@ import { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
 import { IRuntimeState, ISimpleInstance, PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
-import { HttpStatusCodes, post } from 'src/utils/networking';
-import { getPartyValidationUrl } from 'src/utils/urlHelper';
+import { get, HttpStatusCodes, post } from 'src/utils/networking';
+import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urlHelper';
 import Form from '../form/containers/Form';
+import { updateValidations } from '../form/validation/validationSlice';
 import Instantiate from '../instantiate/containers';
 import InstanceSelection from '../instantiate/containers/InstanceSelection';
 import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
@@ -39,23 +40,8 @@ export default function Entrypoint() {
 
   const fetchExistingInstances = async () => {
     try {
-      // const { data } = await get(getActiveInstancesUrl(selectedParty.partyId));'
-      // TODO: remove this dummy api response when api has been fixed
-      const data: ISimpleInstance[] = [
-        {
-          id: 'some-id', lastChanged: '28-01-1992', lastChangedBy: 'Steffen Ekeberg',
-        },
-        {
-          id: 'some-id', lastChanged: '06-03-1974', lastChangedBy: 'Marius Ekeberg',
-        },
-        {
-          id: 'some-id', lastChanged: '12-07-2004', lastChangedBy: 'Emma Ekeberg',
-        },
-        {
-          id: 'some-id', lastChanged: '19-10-1998', lastChangedBy: 'Tine Ekeberg',
-        },
-      ];
-      setActiveInstances(data);
+      const instances = await get(getActiveInstancesUrl(selectedParty.partyId));
+      setActiveInstances(instances || []);
     } catch (err) {
       console.error(err);
       throw new Error('Server did not return active instances');
@@ -77,6 +63,11 @@ export default function Entrypoint() {
       validatatePartySelection();
     }
   }, [selectedParty]);
+
+  React.useEffect(() => {
+    // If user comes back to entrypoint from an active instance we need to clear validation messages
+    dispatch(updateValidations({ validations: {} }));
+  }, []);
 
   React.useEffect(() => {
     if (applicationMetadata) {

@@ -1,4 +1,4 @@
-import { Grid, IconButton, makeStyles, Table, TableCell, TableContainer, TableRow, Typography } from '@material-ui/core';
+import { Grid, IconButton, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnStudioTheme';
 
@@ -70,33 +70,35 @@ export default function AltinnMobileTableItem({
       className={`${classes.tableContainer} ${valid ? '' : classes.tableRowError}`}
     >
       <Table className={classes.table}>
-        {items.map((item) => {
-          return (
-            <TableRow>
-              <TableCell variant='head' width='40%'>
-                <Typography variant='body1' className={`${classes.labelText} ${classes.textContainer}`}>
-                  {item.label}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography variant='body1' className={classes.textContainer}>
-                  {item.value}
-                </Typography>
-              </TableCell>
-            </TableRow>
-          );
-        })}
-        <TableRow>
-          <TableCell width='40%' />
-          <TableCell>
-            <IconButton
-              className={classes.iconButton}
-              onClick={onClick}
-            >
-              {iconNode}
-            </IconButton>
-          </TableCell>
-        </TableRow>
+        <TableBody>
+          {items.map((item) => {
+            return (
+              <TableRow key={item.label}>
+                <TableCell variant='head' width='40%'>
+                  <Typography variant='body1' className={`${classes.labelText} ${classes.textContainer}`}>
+                    {item.label}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant='body1' className={classes.textContainer}>
+                    {item.value}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          <TableRow>
+            <TableCell width='40%' />
+            <TableCell>
+              <IconButton
+                className={classes.iconButton}
+                onClick={onClick}
+              >
+                {iconNode}
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        </TableBody>
       </Table>
     </ TableContainer>
   );

@@ -104,4 +104,50 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
       expect(mockStore.dispatch).toHaveBeenCalledWith({ type: 'queue/startInitialStatelessQueue' });
     });
   });
+
+  it('+++ should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
+    const application: IApplicationMetadata = {
+      ...mockInitialState.applicationMetadata.applicationMetadata,
+      onEntry: {
+        show: 'select-instance',
+      },
+    };
+    const mockStateWithStatelessApplication: IRuntimeState = {
+      ...mockInitialState,
+    };
+    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata = application;
+    mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
+    mockStore.dispatch = jest.fn();
+    (axios.post as jest.Mock).mockResolvedValue({
+      data: {
+        valid: true,
+        validParties: [],
+        message: '',
+      },
+    });
+    (axios.get as jest.Mock).mockResolvedValue({
+      data: [
+        {
+          id: 'some-id-1', lastChanged: '28-01-1992', lastChangedBy: 'Navn Navnesen',
+        },
+        {
+          id: 'some-id-2', lastChanged: '06-03-1974', lastChangedBy: 'Test Testesen',
+        }],
+    });
+
+    const rendered = render(
+      <Provider store={mockStore}>
+        <Entrypoint />
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      // validate party and fetch active instances
+      expect(axios.post).toBeCalled();
+      expect(axios.get).toBeCalled();
+    });
+
+    const selectInstnaceText = await rendered.findByText('Du har allerede startet å fylle ut dette skjemaet.');
+    expect(selectInstnaceText).not.toBeNull();
+  });
 });

@@ -41,6 +41,8 @@ const useStyles = makeStyles({
     minWidth: '0px',
     minHeight: '0px',
     width: 'auto',
+    color: theme.altinnPalette.primary.red,
+    marginBottom: '2px',
   },
   editIcon: {
     paddingLeft: '6px',

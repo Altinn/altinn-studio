@@ -72,41 +72,31 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            /**
-                Look away from this implementation. Only used for verifying locally during testing.
-            **/
-            queryParams.Keys.ToList().ForEach(key => Console.WriteLine(key));
             StringValues appId;
-            if (queryParams.TryGetValue("appId", out appId))
-            {
-                Console.WriteLine(appId);
-            }
-            String[] splitAppId = appId.ToString().Split("/");
-            String app = splitAppId[1];
-            String org = splitAppId[0];
-
             StringValues instanceOwnerPartyId;
-            if (queryParams.TryGetValue("instanceOwner.partyId", out instanceOwnerPartyId))
+            StringValues isArchived;
+
+            if (
+                !queryParams.TryGetValue("appId", out appId) ||
+                !queryParams.TryGetValue("instanceOwner.partyId", out instanceOwnerPartyId) ||
+                !queryParams.TryGetValue("status.isArchived", out isArchived)
+            )
             {
-                Console.WriteLine(instanceOwnerPartyId);
+                throw new NotImplementedException();
             }
 
-            StringValues isArchived;
-            if (queryParams.TryGetValue("status.isArchived", out isArchived))
-            {
-                Console.WriteLine(isArchived);
-            }
+            String[] splitAppId = appId.ToString().Split("/");
+            String org = splitAppId[0];
 
             List<Instance> instances = new List<Instance>();
             DirectoryInfo taskDirectory = new DirectoryInfo(GetInstanceFolder());
             FileInfo[] taskFiles = taskDirectory.GetFiles($"{instanceOwnerPartyId}*.json");
             taskFiles.ToList().ForEach(async file => {
                 string content = file.OpenText().ReadToEnd();
-                Console.WriteLine(content);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                 if (
                     instance.Status.IsArchived == Boolean.Parse(isArchived) &&
-                    instance.AppId == app &&
+                    instance.AppId == appId &&
                     instance.Org == org
                 )
                 {

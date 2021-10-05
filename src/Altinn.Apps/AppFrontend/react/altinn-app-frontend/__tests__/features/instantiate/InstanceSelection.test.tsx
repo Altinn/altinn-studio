@@ -18,8 +18,12 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
     mockStore = createStore(mockInitialState);
     mockStartNewInstance = jest.fn();
     mockActiveInstances = [
-      { id: 'some-id', lastChanged: '28-01-92', lastChangedBy: 'Navn Navnesen' },
-      { id: 'some-other-id', lastChanged: '03-05-2005', lastChangedBy: 'Kåre Nordmannsen' },
+      {
+        id: 'some-id', lastChanged: '2021-10-05T07:51:57.8795258Z', lastChangedBy: 'Navn Navnesen',
+      },
+      {
+        id: 'some-other-id', lastChanged: '2021-05-13T07:51:57.8795258Z', lastChangedBy: 'Kåre Nordmannsen',
+      },
     ];
   });
 
@@ -67,8 +71,8 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
     const firstInstanceChangedBy = await rendered.findByText(mockActiveInstances[0].lastChangedBy);
     const secondInstanceChangedBy = await rendered.findByText(mockActiveInstances[1].lastChangedBy);
 
-    const firstInstanceLastChanged = await rendered.findByText(mockActiveInstances[0].lastChanged);
-    const secondInstanceLastChanged = await rendered.findByText(mockActiveInstances[1].lastChanged);
+    const firstInstanceLastChanged = await rendered.findByText('10/05/2021');
+    const secondInstanceLastChanged = await rendered.findByText('05/13/2021');
 
     expect(firstInstanceChangedBy).not.toBeNull();
     expect(secondInstanceChangedBy).not.toBeNull();

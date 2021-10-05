@@ -11,6 +11,18 @@ export interface IInstanceSelectionProps {
   onNewInstance: () => void;
 }
 
+function getDateDisplayString(timeStamp: string) {
+  let date = new Date(timeStamp);
+  const offset = date.getTimezoneOffset();
+  date = new Date(date.getTime() - (offset * 60 * 1000));
+  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
+  return date.toLocaleDateString(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+}
+
 export default function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
@@ -30,10 +42,11 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
             return (
               <AltinnMobileTableItem
                 items={[
-                  { label: getLanguageFromKey('instance_selection.last_changed', language), value: instance.lastChanged },
+                  { label: getLanguageFromKey('instance_selection.last_changed', language), value: getDateDisplayString(instance.lastChanged) },
                   { label: getLanguageFromKey('instance_selection.changed_by', language), value: instance.lastChangedBy },
                 ]}
                 onClick={() => openInstance(instance.id)}
+                key={instance.id}
                 iconNode={
                   <>
                     <Typography
@@ -66,8 +79,8 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
         <AltinnTableBody id='instance-selection-table-body'>
           {instances.map((instance: ISimpleInstance) => {
             return (
-              <AltinnTableRow>
-                <TableCell>{instance.lastChanged}</TableCell>
+              <AltinnTableRow key={instance.id}>
+                <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
                 <TableCell>{instance.lastChangedBy}</TableCell>
                 <TableCell align='right'>
                   <IconButton onClick={() => openInstance(instance.id)}>
