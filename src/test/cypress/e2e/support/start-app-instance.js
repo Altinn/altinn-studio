@@ -5,12 +5,12 @@ const appFrontend = new AppFrontend();
 
 Cypress.Commands.add('startAppInstance', (appName) => {
   cy.visit('/');
-  if (Cypress.env('environment') === 'local') {
+  if (Cypress.env('environment').includes('local')) {
     cy.get(appFrontend.appSelection).select(appName);
     cy.get(appFrontend.startButton).click();
   } else {
     authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
-    cy.visit(`https://ttd.apps.${Cypress.env(Cypress.env('environment'))}/ttd/${appName}/`);
+    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}/ttd/${appName}/`);
   }
 });
 
