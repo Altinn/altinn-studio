@@ -1,10 +1,14 @@
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using LocalTest.Configuration;
+
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -59,7 +63,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
-            string path = GetInstancePath(instanceId.Replace("/","_"));
+            string path = GetInstancePath(instanceId.Replace("/", "_"));
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);
@@ -72,45 +76,104 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            StringValues appId;
-            StringValues instanceOwnerPartyId;
-            StringValues isArchived;
-
-            if (
-                !queryParams.TryGetValue("appId", out appId) ||
-                !queryParams.TryGetValue("instanceOwner.partyId", out instanceOwnerPartyId) ||
-                !queryParams.TryGetValue("status.isArchived", out isArchived)
-            )
+            List<string> validQueryParams = new List<string>
             {
-                throw new NotImplementedException();
+                "org",
+                "appId",
+                "process.currentTask",
+                "process.isComplete",
+                "process.endEvent",
+                "process.ended",
+                "instanceOwner.partyId",
+                "lastChanged",
+                "created",
+                "visibleAfter",
+                "dueBefore",
+                "excludeConfirmedBy",
+                "size",
+                "language",
+                "status.isSoftDeleted",
+                "status.isArchived",
+                "status.isHardDeleted",
+                "status.isArchivedOrSoftDeleted",
+                "status.isActiveorSoftDeleted",
+                "sortBy",
+                "archiveReference"
+            };
+
+            string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
+
+            if (!string.IsNullOrEmpty(invalidKey))
+            {
+                throw new ArgumentException($"Invalid query parameter {invalidKey}");
             }
 
-            String[] splitAppId = appId.ToString().Split("/");
-            String org = splitAppId[0];
-
             List<Instance> instances = new List<Instance>();
-            DirectoryInfo taskDirectory = new DirectoryInfo(GetInstanceFolder());
-            FileInfo[] taskFiles = taskDirectory.GetFiles($"{instanceOwnerPartyId}*.json");
-            taskFiles.ToList().ForEach(async file => {
-                string content = file.OpenText().ReadToEnd();
-                Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                if (
-                    instance.Status.IsArchived == Boolean.Parse(isArchived) &&
-                    instance.AppId == appId &&
-                    instance.Org == org
-                )
+
+            string instancesPath = GetInstanceFolder();
+
+            if (Directory.Exists(instancesPath))
+            {
+                string[] files = Directory.GetFiles(instancesPath, "*.json");
+
+                foreach (var file in files)
                 {
-                    await PostProcess(instance);
-                    instances.Add(instance);
+                    string content = File.ReadAllText(file);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    if (instance != null && instance.Id != null)
+                    {
+                        instances.Add(instance);
+                    }
                 }
-            });
+            }
+
+            if (queryParams.ContainsKey("org"))
+            {
+                string org = queryParams.GetValueOrDefault("org").ToString();
+                instances.RemoveAll(i => !i.Org.Equals(org, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appId = queryParams.GetValueOrDefault("appId").ToString();
+                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("instanceOwner.partyId"))
+            {
+                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));
+            }
+
+            if (queryParams.ContainsKey("archiveReference"))
+            {
+                string archiveRef = queryParams.GetValueOrDefault("archiveReference").ToString();
+                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
+            }
+
+            bool match;
+
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsArchived != match);
+            }
+
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
+            }
+
+            instances.RemoveAll(i => i.Status.IsHardDeleted == true);
+
             return Task.FromResult(new InstanceQueryResponse
             {
                 Instances = instances,
                 Count = instances.Count,
             });
-
-
         }
 
         public async Task<Instance> Update(Instance instance)
@@ -125,7 +188,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetInstancePath(string instanceId)
         {
-            return Path.Combine(GetInstanceFolder() + instanceId.Replace("/","_") + ".json");
+            return Path.Combine(GetInstanceFolder() + instanceId.Replace("/", "_") + ".json");
         }
 
         private string GetInstanceFolder()
