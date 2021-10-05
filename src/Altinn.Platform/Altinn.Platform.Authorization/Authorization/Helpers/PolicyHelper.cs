@@ -243,7 +243,7 @@ namespace Altinn.Platform.Authorization.Helpers
                     new XacmlMatch(
                         new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
                         new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), coveredByPartyId.Value.ToString()),
-                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.SubjectId), new Uri(AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
+                        new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeCategory.Subject), new Uri(AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute), new Uri(XacmlConstants.DataTypes.XMLString), false))
                 }));
             }
 
