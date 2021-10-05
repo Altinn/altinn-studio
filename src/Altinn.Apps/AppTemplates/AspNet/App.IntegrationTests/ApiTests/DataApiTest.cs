@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,15 +7,11 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Mocks.Services;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Newtonsoft.Json;
 
+using App.IntegrationTests.Utils;
+
+using Newtonsoft.Json;
 using Xunit;
 
 namespace App.IntegrationTests.ApiTests
