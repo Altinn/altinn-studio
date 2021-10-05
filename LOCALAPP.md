@@ -145,5 +145,6 @@ by exchanging `"2"` for a string containing your required authentication level.
     "value": "[Insert role code here]"
   }
   ```
-
+4. Save and close the file
+5. Restart LocalTest
 
