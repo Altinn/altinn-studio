@@ -116,7 +116,7 @@ export default function Entrypoint() {
   }
 
   // stateless view
-  if (isStatelessApp(applicationMetadata) && partyValidation?.valid) {
+  if (partyValidation?.valid && isStatelessApp(applicationMetadata)) {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }
