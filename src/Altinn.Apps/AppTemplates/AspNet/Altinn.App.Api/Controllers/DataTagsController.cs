@@ -84,7 +84,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Adds a new tag to a <see cref="DataElement"/>.
+        /// Adds a new tag to a data element.
         /// </summary>
         /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
@@ -133,11 +133,13 @@ namespace Altinn.App.Api.Controllers
                 Tags = dataElement.Tags
             };
 
-            return tagsList;
+            // There are no endpoint to GET a specific tag. Using the tags list endpoint.
+            var routeValues = new { org, app, instanceOwnerPartyId, instanceGuid, dataGuid };
+            return CreatedAtAction(nameof(Get), routeValues, tagsList);
         }
 
         /// <summary>
-        /// Removes a tag from a <see cref="DataElement"/>.
+        /// Removes a tag from a data element.
         /// </summary>
         /// <param name="org">The short name for the application owner.</param>
         /// <param name="app">The name of the application.</param>
