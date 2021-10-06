@@ -73,7 +73,7 @@ namespace KubernetesWrapper.Services.Implementation
         /// Maps a list of k8s.Models.V1DaemonSet to DaemonSet
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private IList<DaemonSet> MapDaemonSets(IList<V1DaemonSet> list)
+        private static IList<DaemonSet> MapDaemonSets(IList<V1DaemonSet> list)
         {
             IList<DaemonSet> mappedList = new List<DaemonSet>();
             if (list == null || list.Count == 0)
@@ -97,8 +97,7 @@ namespace KubernetesWrapper.Services.Implementation
                 var labels = element.Metadata?.Labels;
                 if (labels != null)
                 {
-                    string release;
-                    if (labels.TryGetValue("release", out release))
+                    if (labels.TryGetValue("release", out string release))
                     {
                         daemonSet.Release = release;
                     }
@@ -114,7 +113,7 @@ namespace KubernetesWrapper.Services.Implementation
         /// Maps a list of k8s.Models.V1Deployment to Deployment
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private IList<Deployment> MapDeployments(IList<V1Deployment> list)
+        private static IList<Deployment> MapDeployments(IList<V1Deployment> list)
         {
             IList<Deployment> mappedList = new List<Deployment>();
             if (list == null || list.Count == 0)
@@ -138,8 +137,7 @@ namespace KubernetesWrapper.Services.Implementation
                 var labels = element.Metadata?.Labels;
                 if (labels != null)
                 {
-                    string release;
-                    if (labels.TryGetValue("release", out release))
+                    if (labels.TryGetValue("release", out string release))
                     {
                         deployment.Release = release;
                     }

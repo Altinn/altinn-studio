@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 namespace KubernetesWrapper.Models
 {
+    /// <summary>
+    /// Class describing a daemon set
+    /// </summary>
     public class DaemonSet
     {
-
         /// <summary>
         /// Gets or sets the version of the deployment, the image tag number
         /// </summary>
