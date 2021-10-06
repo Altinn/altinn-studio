@@ -1,9 +1,6 @@
 {
-  "baseUrl": "http://altinn3.no",
+  "$schema": "https://on.cypress.io/cypress.schema.json",
   "env": {
-    "userName": "testuser",
-    "userPwd": "Studio@123",
-    "testEmail": "test1@test.com",
     "appOwner": "ttd",
     "multiData2Stage": "frontend-test",
     "stateless": "stateless-app"

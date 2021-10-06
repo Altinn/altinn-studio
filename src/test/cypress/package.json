@@ -13,7 +13,7 @@
     "prettier:format": "prettier -w e2e/**/*.js",
     "eslint:check": "eslint \"e2e/**\"",
     "eslint:fix": "eslint \"e2e/**\" --fix",
-    "cy:open": "cypress open --env environment=%npm_config_env%",
+    "cy:open": "cypress open --env component=%npm_config_component%,environment=%npm_config_env%",
     "cy:verify": "cypress verify",
     "before:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run --headless -b chrome -s 'e2e/integration/setup/after.js'",
@@ -26,7 +26,7 @@
     "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && npm start",
     "before:appfrontend": "run-p start:localtest start:app start:frontend",
     "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
-    "test:appfrontend": "npm run delete:reports && cypress run --env environment=%npm_config_env% -b chrome -s 'e2e/integration/app-frontend/*.js'",
+    "test:appfrontend": "npm run delete:reports && cypress run --env component=appfrontend,environment=%npm_config_env% -b chrome -s 'e2e/integration/app-frontend/*.js'",
     "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
