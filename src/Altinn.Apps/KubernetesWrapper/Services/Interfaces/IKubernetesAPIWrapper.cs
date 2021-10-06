@@ -48,7 +48,7 @@ namespace KubernetesWrapper.Services.Interfaces
         /// <param name="pretty">If 'true', then the output is pretty printed.</param>
         /// <returns>A list of deployments</returns>
         Task<IList<DaemonSet>> GetDeamonSets(
-             string continueParameter = null,
+            string continueParameter = null,
             bool? allowWatchBookmarks = null,
             string fieldSelector = null,
             string labelSelector = null,

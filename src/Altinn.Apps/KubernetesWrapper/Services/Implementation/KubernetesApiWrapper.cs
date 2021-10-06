@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using k8s;
 using k8s.Models;
+
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 
 namespace KubernetesWrapper.Services.Implementation
@@ -135,12 +138,10 @@ namespace KubernetesWrapper.Services.Implementation
                 }
 
                 var labels = element.Metadata?.Labels;
-                if (labels != null)
+
+                if (labels != null && labels.TryGetValue("release", out string release))
                 {
-                    if (labels.TryGetValue("release", out string release))
-                    {
-                        deployment.Release = release;
-                    }
+                    deployment.Release = release;
                 }
 
                 mappedList.Add(deployment);
