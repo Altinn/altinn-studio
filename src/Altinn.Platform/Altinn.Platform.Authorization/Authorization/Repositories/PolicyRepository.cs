@@ -8,6 +8,7 @@ using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -61,33 +62,6 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<(Stream, ETag)> GetPolicyVersionAndETagAsync(string filepath, string version)
-        {
-            try
-            {
-                Stream memoryStream = new MemoryStream();
-                ETag originalETag = ETag.All;
-
-                BlobClient blobClient = CreateBlobClient(filepath).WithVersion(version);
-
-                if (await blobClient.ExistsAsync())
-                {
-                    Response<BlobProperties> properties = await blobClient.GetPropertiesAsync();
-
-                    originalETag = properties.Value.ETag;
-                    memoryStream = await GetBlobStreamInternal(blobClient);
-                }
-
-                return (memoryStream, originalETag);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to read policy file at {filepath} with version {version}. " + ex);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
         public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
         {
             BlobClient blobClient = CreateBlobClient(filepath);
@@ -96,7 +70,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, ETag originalETag)
+        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, string blobLeaseId)
         {
             BlobClient blobClient = CreateBlobClient(filepath);
 
@@ -104,11 +78,42 @@ namespace Altinn.Platform.Authorization.Repositories
             {
                 Conditions = new BlobRequestConditions()
                 {
-                    IfMatch = originalETag
+                    LeaseId = blobLeaseId
                 }
             };
 
             return await WriteBlobStreamInternal(blobClient, fileStream, blobUploadOptions);
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> TryAcquireBlobLease(string filepath)
+        {
+            BlobClient blobClient = CreateBlobClient(filepath);
+            BlobLeaseClient blobLeaseClient = blobClient.GetBlobLeaseClient();
+
+            try
+            {
+                BlobLease blobLease = await blobLeaseClient.AcquireAsync(TimeSpan.FromSeconds(_storageConfig.DelegationsBlobLeaseTimeout));
+                return blobLease.LeaseId;
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogError(ex, "Failed to acquire blob lease for policy file at {0}. RequestFailedException", filepath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to acquire blob lease for policy file at {0}. Unexpected error", filepath);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public async void ReleaseBlobLease(string filepath, string leaseId)
+        {
+            BlobClient blobClient = CreateBlobClient(filepath);
+            BlobLeaseClient blobLeaseClient = blobClient.GetBlobLeaseClient(leaseId);
+            await blobLeaseClient.ReleaseAsync();
         }
 
         /// <inheritdoc/>
@@ -124,16 +129,16 @@ namespace Altinn.Platform.Authorization.Repositories
             {
                 if (ex.Status == (int)HttpStatusCode.Forbidden && ex.ErrorCode == "OperationNotAllowedOnRootBlob")
                 {
-                    _logger.LogError($"Failed to delete version {version} of policy file at {filepath}. Not allowed to delete current version. \n" + ex);
+                    _logger.LogError(ex, "Failed to delete version {0} of policy file at {1}. Not allowed to delete current version.", version, filepath);
                     throw;
                 }
 
-                _logger.LogError($"Failed to delete version {version} of policy file at {filepath}. RequestFailedException: \n" + ex);
+                _logger.LogError(ex, "Failed to delete version {0} of policy file at {1}. RequestFailedException", version, filepath);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to delete version {version} of policy file at {filepath}. Unexpected error: \n" + ex);
+                _logger.LogError(ex, "Failed to delete version {0} of policy file at {1}. Unexpected error", version, filepath);
                 throw;
             }
         }
@@ -166,7 +171,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to read policy file at {blobClient.Name}. " + ex);
+                _logger.LogError(ex, "Failed to read policy file at {0}.", blobClient.Name);
                 throw;
             }
         }
@@ -186,16 +191,16 @@ namespace Altinn.Platform.Authorization.Repositories
             {
                 if (ex.Status == (int)HttpStatusCode.PreconditionFailed)
                 {
-                    _logger.LogError($"Failed to save policy file {blobClient.Name}. Precondition failed: Blob's ETag does not match ETag provided. \n" + ex);
+                    _logger.LogError(ex, "Failed to save policy file {0}. Precondition failed", blobClient.Name);
                     throw;
                 }
 
-                _logger.LogError($"Failed to save policy file {blobClient.Name}. RequestFailedException: \n" + ex);
+                _logger.LogError(ex, "Failed to save policy file {0}. RequestFailedException", blobClient.Name);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to save policy file {blobClient.Name}. Unexpected exception: \n" + ex);
+                _logger.LogError(ex, "Failed to save policy file {0}. Unexpected exception", blobClient.Name);
                 throw;
             }
         }

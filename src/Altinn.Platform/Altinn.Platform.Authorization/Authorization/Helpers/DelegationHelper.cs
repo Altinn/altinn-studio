@@ -1,14 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
-using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.Helpers

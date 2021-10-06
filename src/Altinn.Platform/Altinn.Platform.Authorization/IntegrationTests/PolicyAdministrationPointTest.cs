@@ -20,6 +20,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -49,7 +50,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 new PolicyRepositoryMock(),
                 new PolicyDelegationRepositoryMock(),
                 memoryCache,
-                Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }));
+                Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }),
+                new Mock<ILogger<IPolicyAdministrationPoint>>().Object);
         }
 
         /// <summary>

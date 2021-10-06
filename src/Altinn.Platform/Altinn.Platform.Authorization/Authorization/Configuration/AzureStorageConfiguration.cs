@@ -44,5 +44,10 @@ namespace Altinn.Platform.Authorization.Configuration
         /// The url for the blob end point for Delegations
         /// </summary>
         public string DelegationsBlobEndpoint { get; set; }
+
+        /// <summary>
+        /// The blob lease timeout value in seconds
+        /// </summary>
+        public int DelegationsBlobLeaseTimeout { get; set; }
     }
 }

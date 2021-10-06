@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Helpers;
@@ -15,6 +13,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Azure;
 using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -24,6 +23,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyAdministrationPoint : IPolicyAdministrationPoint
     {
+        private readonly ILogger<IPolicyAdministrationPoint> _logger;
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyRepository _policyRepository;
         private readonly IPolicyDelegationRepository _delegationRepository;
@@ -34,32 +34,24 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
         /// </summary>
         /// <param name="policyRetrievalPoint">The policy retrieval point</param>
-        /// <param name="policyRepository">The policy repository</param>
-        /// <param name="delegationRepository">The delegation change repository</param>
+        /// <param name="policyRepository">The policy repository (blob storage)</param>
+        /// <param name="delegationRepository">The delegation change repository (postgresql)</param>
         /// <param name="memoryCache">The cache handler</param>
         /// <param name="settings">The app settings</param>
-        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        /// <param name="logger">Logger instance</param>
+        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings, ILogger<IPolicyAdministrationPoint> logger)
         {
             _prp = policyRetrievalPoint;
             _policyRepository = policyRepository;
             _delegationRepository = delegationRepository;
             _memoryCache = memoryCache;
             _generalSettings = settings.Value;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            if (string.IsNullOrWhiteSpace(org))
-            {
-                throw new ArgumentException("Org can not be null or empty");
-            }
-
-            if (string.IsNullOrWhiteSpace(app))
-            {
-                throw new ArgumentException("App can not be null or empty");
-            }
-
             if (fileStream == null)
             {
                 throw new ArgumentException("The policy file can not be null");
@@ -101,71 +93,80 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             if (!DelegationHelper.TryGetDelegationParamsFromRule(rules.First(), out string org, out string app, out int offeredByPartyId, out int? coveredByPartyId, out int? coveredByUserId, out int delegatedByUserId))
             {
-                // ToDo: Logging?
+                _logger.LogWarning("This should not happen. Incomplete rule model received for delegation to delegation policy at: {0}. Incomplete model should have been returned in unsortable rule set by TryWriteDelegationPolicyRules. DelegationHelper.SortRulesByDelegationPolicyPath might be broken.", policyPath);
                 return false;
             }
-
-            //// ToDo: reduce cyclomatic complexity and add try/catch for potential parse/read/downtime errors
 
             XacmlPolicy appPolicy = await _prp.GetPolicyAsync(org, app);
             if (appPolicy == null)
             {
-                // ToDo: Invalid Org/App. Logging? 
+                _logger.LogWarning("No valid App policy found for delegation policy path: {0}", policyPath);
                 return false;
             }
 
-            DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
-            (XacmlPolicy, ETag) existingDelegationPolicyAndETag = (null, ETag.All);
-            if (currentChange != null)
+            string leaseId = await _policyRepository.TryAcquireBlobLease(policyPath); // Test if not exists
+            if (leaseId != null)
             {
-                // What if app/existing policy couldn't be read cause blobstorage downtime?
-                existingDelegationPolicyAndETag = await _prp.GetPolicyVersionAndETagAsync(policyPath, currentChange.BlobStorageVersionId);
-            }
-
-            XacmlPolicy delegationPolicy;
-            ETag originalETag;
-            if (existingDelegationPolicyAndETag.Item1 != null)
-            {
-                delegationPolicy = existingDelegationPolicyAndETag.Item1;
-                originalETag = existingDelegationPolicyAndETag.Item2;
-                foreach (Rule rule in rules)
+                try
                 {
-                    if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
+                    DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
+                    XacmlPolicy existingDelegationPolicy = null;
+                    if (currentChange != null && !currentChange.IsDeleted)
                     {
-                        delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                        existingDelegationPolicy = await _prp.GetPolicyVersionAsync(policyPath, currentChange.BlobStorageVersionId);
                     }
+
+                    XacmlPolicy delegationPolicy;
+                    if (existingDelegationPolicy != null)
+                    {
+                        delegationPolicy = existingDelegationPolicy;
+                        foreach (Rule rule in rules)
+                        {
+                            if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
+                            {
+                                delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules, appPolicy);
+                    }
+
+                    MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(delegationPolicy);
+
+                    Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
+                    if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
+                    {
+                        _logger.LogError("Writing of delegation policy at path: {0} failed. Is delegation blob storage account alive and well?", policyPath, response.GetRawResponse());
+                        return false;
+                    }
+
+                    bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId);
+                    if (!postgreSuccess)
+                    {
+                        // Comment:
+                        // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
+                        // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
+                        _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {0}. is authorization postgresql database alive and well?", policyPath);
+                        return false;
+                    }
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An exception occured while processing autorization rules for delegation on delegation policy path: {0}", policyPath);
+                    return false;
+                }
+                finally
+                {
+                    _policyRepository.ReleaseBlobLease(policyPath, leaseId);
                 }
             }
-            else
-            {
-                delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules, appPolicy);
-            }            
 
-            MemoryStream dataStream = new MemoryStream();
-            XmlWriter writer = XmlWriter.Create(dataStream);
-
-            // ToDo: Do xmlwriter through XacmlSerializer. Need ABAC nuget update or direct ABAC project dependency. Until this line is uncommented only empty xml files will be stored to blobstorage.
-            XacmlSerializer.WritePolicy(writer, delegationPolicy);
-
-            writer.Flush();
-            dataStream.Position = 0;
-
-            Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, originalETag);
-
-            if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
-            {
-                // ToDo: How to handle transaction across blobstorage and postgresql and response to AltinnII
-                return false;
-            }
-                        
-            bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, response.Value.VersionId ?? response.Value.ETag.ToString());
-            if (!postgreSuccess)
-            {
-                // RollBack DelegationPolicy
-                return false;
-            }
-
-            return true;
+            _logger.LogInformation("Could not acquire blob lease lock on delegation policy at path: {0}", policyPath);
+            return false;
         }
     }
 }

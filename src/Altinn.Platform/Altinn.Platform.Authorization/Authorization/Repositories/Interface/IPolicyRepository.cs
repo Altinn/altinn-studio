@@ -27,14 +27,6 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         Task<Stream> GetPolicyVersionAsync(string filepath, string version);
 
         /// <summary>
-        /// Gets file stream for the policy file and the curent ETag of the blob from blob storage, if it exists at the specified path.
-        /// </summary>
-        /// <param name="filepath">The file path.</param>
-        /// <param name="version">The blob storage version</param>
-        /// <returns>Both the file stream of the policy file, and the ETag of the blob entity wthat was read</returns>
-        Task<(Stream, ETag)> GetPolicyVersionAndETagAsync(string filepath, string version);
-
-        /// <summary>
         /// Writes a file stream to blobstorage to the specified path.
         /// </summary>
         /// <param name="filepath">The file path.</param> 
@@ -43,13 +35,13 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream);
 
         /// <summary>
-        /// Writes a file stream to blobstorage to the specified path, including the conditional check that the current ETag of the blob is unchanged from the specified originalETag param.
+        /// Writes a file stream to blobstorage to the specified path, including the conditional check that the provided blob lease id is valid.
         /// </summary>
         /// <param name="filepath">The file path.</param> 
         /// <param name="fileStream">File stream of the policy file to be written</param>
-        /// <param name="originalETag">The original ETag for the policy in blob storage, for verification that the blob has not changed since it was originally read</param>
+        /// <param name="blobLeaseId">The blob lease id, required to be able to write after a lock</param>
         /// <returns>Azure response BlobContentInfo</returns>
-        Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, ETag originalETag);
+        Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, string blobLeaseId);
 
         /// <summary>
         /// Deletes a specific version of a blob storage file if it exits on the specified path.
@@ -58,5 +50,19 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="version">The blob storage version</param>
         /// <returns></returns>
         Task<Response> DeletePolicyVersionAsync(string filepath, string version);
+
+        /// <summary>
+        /// Tries to acquire a blob lease on the base blob for the provided filepath.
+        /// </summary>
+        /// <param name="filepath">The file path of the base blob to aquire a blob lease on</param>
+        /// <returns>The LeaseId if a release was possible, otherwise null</returns>
+        Task<string> TryAcquireBlobLease(string filepath);
+
+        /// <summary>
+        /// Releases a blob lease on the base blob for the provided filepath using the provided leaseId.
+        /// </summary>
+        /// <param name="filepath">The file path of the base blob to release</param>
+        /// <param name="leaseId">The lease id from to release</param>
+        void ReleaseBlobLease(string filepath, string leaseId);
     }
 }

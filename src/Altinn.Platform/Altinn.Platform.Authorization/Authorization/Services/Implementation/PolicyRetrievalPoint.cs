@@ -1,17 +1,11 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Helpers;
-using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
-using Azure;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -83,20 +77,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return policy;
-        }
-
-        /// <inheritdoc/>
-        public async Task<(XacmlPolicy, ETag)> GetPolicyVersionAndETagAsync(string policyPath, string version)
-        {
-            XacmlPolicy policy;
-            (Stream, ETag) policyStreamAndETag = await _repository.GetPolicyVersionAndETagAsync(policyPath, version);
-
-            using (policyStreamAndETag.Item1)
-            {
-                policy = (policyStreamAndETag.Item1.Length > 0) ? PolicyHelper.ParsePolicy(policyStreamAndETag.Item1) : null;
-            }
-
-            return (policy, policyStreamAndETag.Item2);
         }
 
         private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)

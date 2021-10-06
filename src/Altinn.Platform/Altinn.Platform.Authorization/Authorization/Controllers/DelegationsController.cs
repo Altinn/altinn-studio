@@ -1,25 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Authorization.Constants;
-using Altinn.Platform.Authorization.Helpers;
-using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
@@ -29,22 +15,16 @@ namespace Altinn.Platform.Authorization.Controllers
     [ApiController]
     public class DelegationsController : ControllerBase
     {
-        private readonly IContextHandler _contextHandler;
-        private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyAdministrationPoint _pap;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationsController"/> class.
         /// </summary>
-        /// <param name="contextHandler">The Context handler</param>
-        /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="policyAdministrationPoint">The policy administration point</param>
         /// <param name="logger">the logger.</param>
-        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, ILogger<DelegationsController> logger)
+        public DelegationsController(IPolicyAdministrationPoint policyAdministrationPoint, ILogger<DelegationsController> logger)
         {
-            _contextHandler = contextHandler;
-            _prp = policyRetrievalPoint;
             _pap = policyAdministrationPoint;
             _logger = logger;
         }
@@ -93,8 +73,8 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to store delegation rules in database. {e}");
-                return StatusCode(500, $"Unable to store delegation rules in database. {e}");
+                _logger.LogError(e, "Delegation could not be completed. Unexpected exception.");
+                return StatusCode(500, $"Delegation could not be completed due to an unexpected exception.");
             }
         }
 
