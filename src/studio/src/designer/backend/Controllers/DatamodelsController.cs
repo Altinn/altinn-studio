@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -166,10 +163,12 @@ namespace Altinn.Studio.Designer.Controllers
 
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
-            Response.StatusCode = (int)HttpStatusCode.Created;
-            return Content(model, "application/json");
+            var locationUrl = $"designer/api/{org}/{repository}/datamodels/{relativePath}";
 
-            //return new CreatedAtActionResult(nameof(Get), "datamodels", new { org = org, repository = repository, modelPath = relativePath }, model);
+            Response.Headers.Add("Location", locationUrl);
+            Response.StatusCode = (int)HttpStatusCode.Created;
+
+            return Content(model, "application/json");
         }
 
         /// <summary>
