@@ -98,12 +98,10 @@ namespace KubernetesWrapper.Services.Implementation
                 }
 
                 var labels = element.Metadata?.Labels;
-                if (labels != null)
+
+                if (labels != null && labels.TryGetValue("release", out string release))
                 {
-                    if (labels.TryGetValue("release", out string release))
-                    {
-                        daemonSet.Release = release;
-                    }
+                    daemonSet.Release = release;
                 }
 
                 mappedList.Add(daemonSet);
