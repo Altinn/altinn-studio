@@ -124,7 +124,7 @@ Log in with a test user, using your app name and org name. This will redirect yo
 ### Configuration of test data
 
 In some cases your application might differ from the default setup and require custom changes to the test data available. 
-This section contains the most common changes required by the app developers in localtest.
+This section contains the most common changes.
 
 #### Adjust authentication level of logged in test user
 1. Open the `src/development/LocalTest/Controllers/HomeController.cs` in your preffered tool. 
