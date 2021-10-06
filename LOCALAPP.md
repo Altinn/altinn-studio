@@ -135,6 +135,7 @@ by exchanging `"2"` for a string containing your required authentication level.
 5. Restart LocalTest
 
 #### Add a missing role for a test user
+This would be required if your app requires a role which none of the test users have.
 1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of the entity you want to represent
 2. Find the correct `roles.json` file in `C:\Repos\altinn-studio\src\development\TestData\authorization\roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
 3. Add a new entry in the list for the role you require 
