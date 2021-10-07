@@ -133,7 +133,7 @@ namespace Altinn.App.Api.Controllers
                 Tags = dataElement.Tags
             };
 
-            // There are no endpoint to GET a specific tag. Using the tags list endpoint.
+            // There is no endpoint to GET a specific tag. Using the tags list endpoint.
             var routeValues = new { org, app, instanceOwnerPartyId, instanceGuid, dataGuid };
             return CreatedAtAction(nameof(Get), routeValues, tagsList);
         }
