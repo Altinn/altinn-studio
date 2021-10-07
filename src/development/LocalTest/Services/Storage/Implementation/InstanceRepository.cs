@@ -76,9 +76,9 @@ namespace LocalTest.Services.Storage.Implementation
                 if (!key.Equals("org", StringComparison.OrdinalIgnoreCase) &&
                     !key.Equals("appId", StringComparison.OrdinalIgnoreCase) &&
                     !key.Equals("instanceOwner.partyId", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("isArchived", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("isHardDeleted", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("isSoftDeleted", StringComparison.OrdinalIgnoreCase))
+                    !key.Equals("status.isArchived", StringComparison.OrdinalIgnoreCase) &&
+                    !key.Equals("status.isHardDeleted", StringComparison.OrdinalIgnoreCase) &&
+                    !key.Equals("status.isSoftDeleted", StringComparison.OrdinalIgnoreCase))
                     throw new NotImplementedException();
 
             InstanceQueryResponse response = new InstanceQueryResponse() { Instances = new List<Instance>(), Count = 0 };
@@ -91,9 +91,9 @@ namespace LocalTest.Services.Storage.Implementation
                     await PostProcess(instance);
                     if (!queryParams.ContainsKey("org") || instance.Org.Equals(queryParams["org"], StringComparison.OrdinalIgnoreCase))
                         if (!queryParams.ContainsKey("appId") || instance.AppId.Equals(queryParams["appId"], StringComparison.OrdinalIgnoreCase))
-                            if (!queryParams.ContainsKey("isHardDeleted") || instance.Status.IsHardDeleted == bool.Parse(queryParams["isHardDeleted"]))
-                                if (!queryParams.ContainsKey("isSoftDeleted") || instance.Status.IsSoftDeleted == bool.Parse(queryParams["isSoftDeleted"]))
-                                    if (!queryParams.ContainsKey("isArchived ") || instance.Status.IsArchived == bool.Parse(queryParams["isArchived "]))
+                            if (!queryParams.ContainsKey("isHardDeleted") || instance.Status.IsHardDeleted == bool.Parse(queryParams["status.isHardDeleted"]))
+                                if (!queryParams.ContainsKey("isSoftDeleted") || instance.Status.IsSoftDeleted == bool.Parse(queryParams["status.isSoftDeleted"]))
+                                    if (!queryParams.ContainsKey("isArchived ") || instance.Status.IsArchived == bool.Parse(queryParams["status.isArchived "]))
                                     {
                                         response.Instances.Add(instance);
                                         response.Count++;
