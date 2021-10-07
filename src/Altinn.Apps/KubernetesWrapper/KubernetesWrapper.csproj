@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="5.0.20" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
