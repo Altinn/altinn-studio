@@ -49,7 +49,7 @@ namespace KubernetesWrapper.Services.Implementation
             string resourceVersion,
             int? timeoutSeconds,
             bool? watch,
-            bool? pretty)
+            string pretty)
         {
             IList<DeployedResource> mappedResources = new List<DeployedResource>();
 
