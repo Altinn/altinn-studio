@@ -110,7 +110,8 @@ namespace App.IntegrationTestsRef.ApiTests
             TestDataUtil.DeleteDataElement(Org, App, 1337, new Guid(InstanceGuid), new Guid(dataGuid));
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.EndsWith("/tags", response.Headers.Location.ToString());
 
             string responsBody = await response.Content.ReadAsStringAsync();
             TagsList tagsList = JsonSerializer.Deserialize<TagsList>(responsBody);
