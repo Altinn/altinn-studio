@@ -39,7 +39,8 @@ namespace KubernetesWrapper.Services.Implementation
         }
 
         /// <inheritdoc/>
-        async Task<IList<Deployment>> IKubernetesApiWrapper.GetDeployments(
+        async Task<IList<DeployedResource>> IKubernetesApiWrapper.GetDeployedResources(
+            ResourceType resourceType,
             string continueParameter,
             bool? allowWatchBookmarks,
             string fieldSelector,
@@ -50,26 +51,21 @@ namespace KubernetesWrapper.Services.Implementation
             bool? watch,
             string pretty)
         {
-            V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
-            IList<Deployment> mappedDeployments = MapDeployments(deployments.Items);
-            return mappedDeployments;
-        }
+            IList<DeployedResource> mappedResources = new List<DeployedResource>();
 
-        /// <inheritdoc/>
-        public async Task<IList<DaemonSet>> GetDeamonSets(
-            string continueParameter,
-            bool? allowWatchBookmarks,
-            string fieldSelector,
-            string labelSelector,
-            int? limit,
-            string resourceVersion,
-            int? timeoutSeconds,
-            bool? watch,
-            string pretty)
-        {
-            V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
-            IList<DaemonSet> mappedDaemonSets = MapDaemonSets(deamonSets.Items);
-            return mappedDaemonSets;
+            switch (resourceType)
+            {
+                case ResourceType.Deployment:
+                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    mappedResources = (List<DeployedResource>)MapDeployments(deployments.Items);
+                    break;
+                case ResourceType.DaemonSet:
+                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    mappedResources = (List<DeployedResource>)MapDaemonSets(deamonSets.Items);
+                    break;
+            }
+
+            return mappedResources;
         }
 
         /// <summary>
