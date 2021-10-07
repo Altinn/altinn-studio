@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using k8s;
 using k8s.Models;
+
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 
 namespace KubernetesWrapper.Services.Implementation
@@ -36,7 +39,8 @@ namespace KubernetesWrapper.Services.Implementation
         }
 
         /// <inheritdoc/>
-        async Task<IList<Deployment>> IKubernetesApiWrapper.GetDeployments(
+        async Task<IList<DeployedResource>> IKubernetesApiWrapper.GetDeployedResources(
+            ResourceType resourceType,
             string continueParameter,
             bool? allowWatchBookmarks,
             string fieldSelector,
@@ -45,18 +49,68 @@ namespace KubernetesWrapper.Services.Implementation
             string resourceVersion,
             int? timeoutSeconds,
             bool? watch,
-            string pretty)
+            bool? pretty)
         {
-            V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
-            IList<Deployment> mappedDeployments = MapDeployments(deployments.Items);
-            return mappedDeployments;
+            IList<DeployedResource> mappedResources = new List<DeployedResource>();
+
+            switch (resourceType)
+            {
+                case ResourceType.Deployment:
+                    V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    mappedResources = (List<DeployedResource>)MapDeployments(deployments.Items);
+                    break;
+                case ResourceType.DaemonSet:
+                    V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
+                    mappedResources = (List<DeployedResource>)MapDaemonSets(deamonSets.Items);
+                    break;
+            }
+
+            return mappedResources;
+        }
+
+        /// <summary>
+        /// Maps a list of k8s.Models.V1DaemonSet to DaemonSet
+        /// </summary>
+        /// <param name="list">The list to be mapped</param>
+        private static IList<DaemonSet> MapDaemonSets(IList<V1DaemonSet> list)
+        {
+            IList<DaemonSet> mappedList = new List<DaemonSet>();
+            if (list == null || list.Count == 0)
+            {
+                return mappedList;
+            }
+
+            foreach (V1DaemonSet element in list)
+            {
+                DaemonSet daemonSet = new DaemonSet();
+                IList<V1Container> containers = element.Spec?.Template?.Spec?.Containers;
+                if (containers != null && containers.Count > 0)
+                {
+                    string[] splittedVersion = containers[0].Image?.Split(":");
+                    if (splittedVersion != null && splittedVersion.Length > 1)
+                    {
+                        daemonSet.Version = splittedVersion[1];
+                    }
+                }
+
+                var labels = element.Metadata?.Labels;
+
+                if (labels != null && labels.TryGetValue("release", out string release))
+                {
+                    daemonSet.Release = release;
+                }
+
+                mappedList.Add(daemonSet);
+            }
+
+            return mappedList;
         }
 
         /// <summary>
         /// Maps a list of k8s.Models.V1Deployment to Deployment
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private IList<Deployment> MapDeployments(IList<V1Deployment> list)
+        private static IList<Deployment> MapDeployments(IList<V1Deployment> list)
         {
             IList<Deployment> mappedList = new List<Deployment>();
             if (list == null || list.Count == 0)
@@ -78,13 +132,10 @@ namespace KubernetesWrapper.Services.Implementation
                 }
 
                 var labels = element.Metadata?.Labels;
-                if (labels != null)
+
+                if (labels != null && labels.TryGetValue("release", out string release))
                 {
-                    string release;
-                    if (labels.TryGetValue("release", out release))
-                    {
-                        deployment.Release = release;
-                    }
+                    deployment.Release = release;
                 }
 
                 mappedList.Add(deployment);
