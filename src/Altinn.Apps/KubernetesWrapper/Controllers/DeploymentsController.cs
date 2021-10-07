@@ -42,7 +42,6 @@ namespace KubernetesWrapper.Controllers
         {
             try
             {
-                _logger.LogError($"ENDPOINT HIT");
                 var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
                 return Ok(deployments);
             }
