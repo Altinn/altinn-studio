@@ -20,11 +20,11 @@ namespace KubernetesWrapper.Controllers
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentsController"/> class
+        /// Initializes a new instance of the <see cref="DaemonSetsController"/> class
         /// </summary>
         /// <param name="apiWrapper">The kubernetes api wrapper client</param>
         /// <param name="logger">The logger</param>
-        public DaemonSetsController(IKubernetesApiWrapper apiWrapper, ILogger<DeploymentsController> logger)
+        public DaemonSetsController(IKubernetesApiWrapper apiWrapper, ILogger<DaemonSetsController> logger)
         {
             _apiWrapper = apiWrapper;
             _logger = logger;
