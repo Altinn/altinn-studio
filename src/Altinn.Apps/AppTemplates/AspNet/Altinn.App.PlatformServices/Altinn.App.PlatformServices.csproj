@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.16.0-alpha.1</Version>
+    <Version>4.16.0</Version>
     <AssemblyVersion>4.16.0.0</AssemblyVersion>
     <PackageId>Altinn.App.PlatformServices</PackageId>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
