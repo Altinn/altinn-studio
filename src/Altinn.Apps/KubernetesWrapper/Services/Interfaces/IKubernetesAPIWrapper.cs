@@ -34,6 +34,6 @@ namespace KubernetesWrapper.Services.Interfaces
             string resourceVersion = null,
             int? timeoutSeconds = null,
             bool? watch = null,
-            string pretty = null);
+            bool? pretty = null);
     }
 }

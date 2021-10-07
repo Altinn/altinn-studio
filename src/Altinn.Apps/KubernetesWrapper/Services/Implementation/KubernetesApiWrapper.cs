@@ -49,7 +49,7 @@ namespace KubernetesWrapper.Services.Implementation
             string resourceVersion,
             int? timeoutSeconds,
             bool? watch,
-            string pretty)
+            bool? pretty)
         {
             IList<DeployedResource> mappedResources = new List<DeployedResource>();
 
@@ -57,11 +57,11 @@ namespace KubernetesWrapper.Services.Implementation
             {
                 case ResourceType.Deployment:
                     V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
-                    mappedResources = (List<DeployedResource>)MapDeployments(deployments.Items);
+                    mappedResources = MapDeployments(deployments.Items);
                     break;
                 case ResourceType.DaemonSet:
                     V1DaemonSetList deamonSets = await _client.ListNamespacedDaemonSetAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
-                    mappedResources = (List<DeployedResource>)MapDaemonSets(deamonSets.Items);
+                    mappedResources = MapDaemonSets(deamonSets.Items);
                     break;
             }
 
@@ -72,9 +72,9 @@ namespace KubernetesWrapper.Services.Implementation
         /// Maps a list of k8s.Models.V1DaemonSet to DaemonSet
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private static IList<DaemonSet> MapDaemonSets(IList<V1DaemonSet> list)
+        private static IList<DeployedResource> MapDaemonSets(IList<V1DaemonSet> list)
         {
-            IList<DaemonSet> mappedList = new List<DaemonSet>();
+            IList<DeployedResource> mappedList = new List<DeployedResource>();
             if (list == null || list.Count == 0)
             {
                 return mappedList;
@@ -110,9 +110,9 @@ namespace KubernetesWrapper.Services.Implementation
         /// Maps a list of k8s.Models.V1Deployment to Deployment
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private static IList<Deployment> MapDeployments(IList<V1Deployment> list)
+        private static IList<DeployedResource> MapDeployments(IList<V1Deployment> list)
         {
-            IList<Deployment> mappedList = new List<Deployment>();
+            IList<DeployedResource> mappedList = new List<DeployedResource>();
             if (list == null || list.Count == 0)
             {
                 return mappedList;
