@@ -156,6 +156,9 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
     case 'completeprocess':
       value = '/instances/' + instanceOwnerId + '/' + instanceId + '/process/completeprocess';
       break;
+    case 'active':
+      value = `/instances/${instanceOwnerId}/active`;
+      break;
   }
   return value;
 }

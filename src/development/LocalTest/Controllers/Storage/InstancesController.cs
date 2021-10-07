@@ -679,7 +679,8 @@ namespace Altinn.Platform.Storage.Controllers
                 Status = instanceTemplate.Status ?? new InstanceStatus(),
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
-                Process = instanceTemplate.Process
+                Process = instanceTemplate.Process,
+                DataValues = instanceTemplate.DataValues,
             };
 
             return createdInstance;

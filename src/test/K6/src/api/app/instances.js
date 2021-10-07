@@ -94,3 +94,17 @@ export function postInstanceWithMultipartData(altinnStudioRuntimeCookie, partyId
 
   return http.post(endpoint, requestBody, params);
 }
+
+/**
+ * Get an array on active instances of an app for a party id
+ * @param {*} altinnToken token to authenticate the api request
+ * @param {*} partyId partyid of an user
+ * @param {*} appOwner name of the app owner
+ * @param {*} appName name of the app
+ * @returns response of the http get request
+ */
+export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, null, null, 'active');
+  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  return http.get(endpoint, params);
+}
