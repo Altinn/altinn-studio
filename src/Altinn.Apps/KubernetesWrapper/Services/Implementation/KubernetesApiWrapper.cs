@@ -72,7 +72,7 @@ namespace KubernetesWrapper.Services.Implementation
         /// Maps a list of k8s.Models.V1DaemonSet to DaemonSet
         /// </summary>
         /// <param name="list">The list to be mapped</param>
-        private static IList<DeployedResource> MapDaemonSets(IList<V1DaemonSet> list)
+        private IList<DeployedResource> MapDaemonSets(IList<V1DaemonSet> list)
         {
             IList<DeployedResource> mappedList = new List<DeployedResource>();
             if (list == null || list.Count == 0)
@@ -82,6 +82,8 @@ namespace KubernetesWrapper.Services.Implementation
 
             foreach (V1DaemonSet element in list)
             {
+                _logger.LogError($"\r\n{System.Text.Json.JsonSerializer.Serialize(element)}");
+
                 DaemonSet daemonSet = new DaemonSet();
                 IList<V1Container> containers = element.Spec?.Template?.Spec?.Containers;
                 if (containers != null && containers.Count > 0)

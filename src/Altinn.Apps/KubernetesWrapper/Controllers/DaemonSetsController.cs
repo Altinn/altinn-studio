@@ -31,11 +31,11 @@ namespace KubernetesWrapper.Controllers
         }
 
         /// <summary>
-        /// Get a list of deployments. For a more detailed spec of parameters see Kubernetes API DOC
+        /// Get a list of daemonSets. For a more detailed spec of parameters see Kubernetes API DOC
         /// </summary>
         /// <param name="labelSelector">A selector to restrict the list of returned objects by their labels. Defaults to everything.</param>
         /// <param name="fieldSelector">A selector to restrict the list of returned objects by their fields. Defaults to everything.</param>
-        /// <returns>A list of deployments in the cluster</returns>
+        /// <returns>A list of daemonSets in the cluster</returns>
         [HttpGet]
         [EnableCors]
         public async Task<ActionResult> GetDaemonSets(string labelSelector, string fieldSelector)
