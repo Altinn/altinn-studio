@@ -71,7 +71,7 @@ namespace KubernetesWrapper
             });
         }
 
-        private void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
+        private static void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
         {
             try
             {
@@ -81,6 +81,7 @@ namespace KubernetesWrapper
             }
             catch
             {
+                // not critical for the application
             }
         }
 
