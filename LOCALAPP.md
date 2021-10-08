@@ -4,8 +4,6 @@ It is possible to test and debug applications created in Altinn Studio on local 
 
 Currently we have not been able to provide a 100% common setup between Windows and Linux.
 
-
-
 ### Prerequisites
 
 1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
@@ -13,10 +11,6 @@ Currently we have not been able to provide a 100% common setup between Windows a
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 4. For Windows/MacOS [Docker Desktop](https://www.docker.com/products/docker-desktop)
-5. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values. On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`.
-   ```txt
-   127.0.0.1 altinn3local.no
-   ```
 
 ### Setup
 
@@ -30,12 +24,12 @@ Currently we have not been able to provide a 100% common setup between Windows a
    cd src/development
    ```
 2. Setting up loadbalancer
-   - **Windows:**  
+   - **Windows:**
      Start the loadbalancer container that routes between the local platform services and the app
      ```shell
      docker-compose up -d --build
      ```
-   - **Linux:**  
+   - **Linux:**
      Install NGINX
      ```shell
      sudo apt-get update
@@ -52,20 +46,20 @@ Currently we have not been able to provide a 100% common setup between Windows a
      worker_processes 1;
      events { worker_connections 1024; }
 
-     http { 
+     http {
        client_max_body_size 50M;
        sendfile on;
-       
+
        upstream localtest {
          server 127.0.0.1:5101;
        }
        upstream app {
          server 127.0.0.1:5005;
        }
-       
+
        server {
          listen 80;
-         server_name altinn3local.no localhost;
+         server_name local.altinn.cloud localhost;
          proxy_redirect      off;
          proxy_set_header    Host $host;
          proxy_set_header    X-Real-IP $remote_addr;
@@ -86,7 +80,7 @@ Currently we have not been able to provide a 100% common setup between Windows a
        }
      }
      ```
-     Save and go back to src/develpment folder in altinn-studio  
+     Save and go back to src/develpment folder in altinn-studio
      Reload NGINX configuration
      ```shell
      sudo nginx -s reload
@@ -99,7 +93,7 @@ Currently we have not been able to provide a 100% common setup between Windows a
      ```
    - Change the setting `AppRepositoryBasePath` to the parent folder where you have your application repos (`C:/repos/` as an example) as  to your app on the disk.
    - Change the setting `LocalTestingStaticTestDataPath` to the full path of the altinn-studio repository.
-     For example:  
+     For example:
      ```json
      "C:/repos/altinn-studio/src/development/TestData/"
      ```
@@ -117,6 +111,6 @@ Currently we have not been able to provide a 100% common setup between Windows a
    dotnet run -p App.csproj
    ```
 
-The app and local platform services are now running locally. The app can be accessed on <http://altinn3local.no>.
+The app and local platform services are now running locally. The app can be accessed on <http://local.altinn.cloud>.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.

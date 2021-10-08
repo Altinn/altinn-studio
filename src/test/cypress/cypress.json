@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://altinn3.no",
+  "baseUrl": "http://local.altinn.studio",
   "env": {
     "userName": "testuser",
     "userPwd": "Studio@123",
@@ -7,7 +7,7 @@
     "appOwner": "ttd",
     "multiData2Stage": "frontend-test",
     "stateless": "stateless-app",
-    "localTest": "http://altinn3local.no/",
+    "localTest": "http://local.altinn.cloud/",
     "at21": "at21.altinn.cloud",
     "at22": "at22.altinn.cloud",
     "tt02": "tt02.altinn.no"

@@ -1,6 +1,6 @@
 # Altinn 3
 
-**Altinn Studio** is the next generation Altinn application development solution.  
+**Altinn Studio** is the next generation Altinn application development solution.
 Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), this is a complete application development and hosting platform.
 
 Altinn Studio is available at <https://altinn.studio>.
@@ -56,10 +56,10 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 
 #### Develop or run Apps
 
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).  
+First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).
 _If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
 
-It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  
+It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
 
 ```bash
@@ -120,7 +120,7 @@ docker-compose down
      ```
 
      - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
-  
+
      ```bash
      npm install # only needed first time, or when dependencies are updated
      npm run install-deps # only needed first time, or when dependencies are updated
@@ -135,7 +135,7 @@ docker-compose down
   ```
 
 The app and local platform services are now running locally.
-If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
+If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on local.altinn.cloud.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 

@@ -1,6 +1,6 @@
 {
   "local": {
-    "baseUrl": "http://altinn3.no/"
+    "baseUrl": "http://local.altinn.studio/"
   },
   "dev": {
     "baseUrl": "https://dev.altinn.studio/",

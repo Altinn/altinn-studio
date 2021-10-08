@@ -20,17 +20,7 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
-6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values as an local administrator:
-
-   ```txt
-   localhost altinn3.no
-   127.0.0.1 altinn3.no
-   127.0.0.1 altinn3local.no
-   ```
-
-   _On MacOS add the same values to values `/private/etc/hosts` with `sudo nano /private/etc/hosts` in treminal._
-
-7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives
+6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives
    The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows container mode all files are automatically shared by Windows.
 
    On MacOS: Change docker-compose.yml (both)
@@ -47,7 +37,7 @@ These instructions will get you a copy of Altinn Studio up and running on your l
       - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
     ```
 
-8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
+7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
 
@@ -64,7 +54,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [altinn3.no](http://altinn3.no). (Just create a new user for testing. No email verification required)
+The solution is now available locally at [local.altinn.studio](http://local.altinn.studio). (Just create a new user for testing. No email verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
 

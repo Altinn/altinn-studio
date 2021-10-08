@@ -55,7 +55,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn3.no/repos/api/v1")
+                BaseAddress = new Uri("http://local.altinn.studio/repos/api/v1")
             };
 
             GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
@@ -87,7 +87,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn3.no/repos/api/v1")
+                BaseAddress = new Uri("http://local.altinn.studio/repos/api/v1")
             };
 
             GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);

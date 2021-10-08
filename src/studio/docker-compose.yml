@@ -46,7 +46,7 @@ services:
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
-      - ServiceRepositorySettings:GiteaLoginUrl=http://altinn3.no/repos/user/login
+      - ServiceRepositorySettings:GiteaLoginUrl=http://local.altinn.studio/repos/user/login
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
@@ -54,7 +54,7 @@ services:
       - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
       - GeneralSettings:AppLocation=Templates/AspNet/App
       - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
-      - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
+      - GeneralSettings:AltinnStudioEndpoint=http://local.altinn.studio/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "5000:5000"

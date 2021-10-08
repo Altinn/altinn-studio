@@ -13,7 +13,7 @@ export function getExtendedInstanceUrl(): string{
 export function getAltinnCloudUrl(): string {
   if (window.location.hostname === 'localhost'
     || window.location.hostname === '127.0.0.1'
-    || window.location.hostname === 'altinn3.no'
+    || window.location.hostname === 'local.altinn.studio'
   ) {
     // if we are developing locally, point to test data in at21
     return altinnAt21PlatformUrl;

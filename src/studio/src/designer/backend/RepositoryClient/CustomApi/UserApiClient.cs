@@ -32,8 +32,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.CustomApi
             Altinn.Studio.Designer.RepositoryClient.Model.User user;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Altinn.Studio.Designer.RepositoryClient.Model.User));
 
-            Uri giteaUrl = new Uri("http://altinn3.no:3000/api/v1/user");
-            Cookie cookie = new Cookie(giteaCoookieId, giteaSession, "/", "altinn3.no");
+            Uri giteaUrl = new Uri("http://local.altinn.studio:3000/api/v1/user");
+            Cookie cookie = new Cookie(giteaCoookieId, giteaSession, "/", "local.altinn.studio");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };

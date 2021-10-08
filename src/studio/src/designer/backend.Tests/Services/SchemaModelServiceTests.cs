@@ -109,7 +109,7 @@ namespace Designer.Tests.Services
 
                 var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
                 updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
-                
+
                 var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
 
                 // Generated XSD included for reference
@@ -185,7 +185,7 @@ namespace Designer.Tests.Services
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
-                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());                
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
@@ -259,11 +259,11 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var repository = "apprepo";
             var schemaName = "test";
-            var repositoryBaseUrl = "http://altinn3.no/repos";
+            var repositoryBaseUrl = "http://local.altinn.studio/repos";
 
             var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName);
 
-            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}/{schemaName}.schema.json");            
+            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}/{schemaName}.schema.json");
         }
     }
 }

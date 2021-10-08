@@ -28,7 +28,7 @@ export const returnUrlToMessagebox = (url: string): string => {
   const [org, repo] = getNamesFromLocation();
   const baseHostnameAltinnProd = 'altinn.no';
   const baseHostnameAltinnTest = 'altinn.cloud';
-  const baseHostnameAltinnStudio = 'altinn3.no';
+  const baseHostnameAltinnStudio = 'local.altinn.studio';
   const pathToMessageBox = 'ui/messagebox';
   const prodRegex = new RegExp(baseHostnameAltinnProd);
   const testRegex = new RegExp(baseHostnameAltinnTest);

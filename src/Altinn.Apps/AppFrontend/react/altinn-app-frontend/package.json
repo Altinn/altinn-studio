@@ -135,6 +135,6 @@
       "enzyme-to-json/serializer"
     ],
     "testEnvironment": "jsdom",
-    "testURL": "http:/altinn3local.no/ttd/test"
+    "testURL": "http:/local.altinn.cloud/ttd/test"
   }
 }

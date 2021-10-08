@@ -9,7 +9,7 @@ describe('Shared urlHelper.ts', () => {
     });
     // const localContext =
     const runUrlTests = () => {
-      expect(sharedUrls().dataModelsApi).toBe('https://altinn3.no/designer/api/org/repo/datamodels');
+      expect(sharedUrls().dataModelsApi).toBe('https://local.altinn.studio/designer/api/org/repo/datamodels');
       expect(sharedUrls().dataModelUploadPageUrl).toContain('/designer/org/repo#/datamodel');
       expect(sharedUrls().dataModelXsdUrl).toContain('/designer/org/repo/Model/GetXsd');
       expect(sharedUrls().repositoryGitUrl).toContain('/repos/org/repo.git');
@@ -19,7 +19,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'https://altinn3.no',
+        origin: 'https://local.altinn.studio',
         hash: '#/datamodelling',
         pathname: '/designer/org/repo',
       };
@@ -29,7 +29,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'https://altinn3.no',
+        origin: 'https://local.altinn.studio',
         hash: '#/datamodelling/org/repo',
         pathname: '/Home/Index',
       };
@@ -48,8 +48,8 @@ describe('Shared urlHelper.ts', () => {
     });
 
     test('returnUrlToMessagebox() returning studio messagebox', () => {
-      const origin = 'http://altinn3.no/tdd/tjeneste-20190826-1130';
-      expect(returnUrlToMessagebox(origin)).toContain('altinn3.no');
+      const origin = 'http://local.altinn.studio/tdd/tjeneste-20190826-1130';
+      expect(returnUrlToMessagebox(origin)).toContain('local.altinn.studio');
     });
 
     test('returnUrlToMessagebox() returning null when unknown origin', () => {

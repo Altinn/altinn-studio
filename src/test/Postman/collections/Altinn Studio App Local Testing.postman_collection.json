@@ -23,7 +23,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://altinn3local.no/Home/GetTestOrgToken/ttd",
+					"raw": "http://local.altinn.cloud/Home/GetTestOrgToken/ttd",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
@@ -51,7 +51,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://altinn3local.no/ttd/mva/instances?instanceOwnerPartyId=1337",
+					"raw": "http://local.altinn.cloud/ttd/mva/instances?instanceOwnerPartyId=1337",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
@@ -85,7 +85,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://altinn3local.no/ttd/mva/instances/1337/d3f22c61-ba82-4f5c-9fd7-e260c28ce18d/data/85264404-f9a9-4870-99bd-4d1bffd891c3",
+					"raw": "http://local.altinn.cloud/ttd/mva/instances/1337/d3f22c61-ba82-4f5c-9fd7-e260c28ce18d/data/85264404-f9a9-4870-99bd-4d1bffd891c3",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
@@ -116,7 +116,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://altinn3local.no/ttd/mva/instances/500000/d536a623-cbbe-41f3-a303-ee5577890065",
+					"raw": "http://local.altinn.cloud/ttd/mva/instances/500000/d536a623-cbbe-41f3-a303-ee5577890065",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
@@ -154,7 +154,7 @@
 					"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": \"500000\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"RF0002\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"212\" spesifikasjonsnummer=\"10420\" blankettnummer=\"RF-0002\" tittel=\"Alminnelig omsetningsoppgave\" gruppeid=\"20\">\r\n\t<GenerellInformasjon-grp-2581 gruppeid=\"2581\">\r\n\t\t<Avgiftspliktig-grp-50 gruppeid=\"50\">\r\n\t\t\t<RapporteringsenhetNavn-datadef-21771 orid=\"21771\">DDG Fitness</RapporteringsenhetNavn-datadef-21771>\r\n\t\t\t<RapporteringsenhetAdresse-datadef-21773 orid=\"21773\">Sofies Gate 1</RapporteringsenhetAdresse-datadef-21773>\r\n\t\t\t<RapporteringsenhetPostnummer-datadef-21774 orid=\"21774\">0170</RapporteringsenhetPostnummer-datadef-21774>\r\n            <RapporteringsenhetPoststed-datadef-21775 orid=\"21775\">By</RapporteringsenhetPoststed-datadef-21775>\r\n            <RapporteringsenhetOrganisasjonsnummer-datadef-21772 orid=\"21772\">897069650</RapporteringsenhetOrganisasjonsnummer-datadef-21772>\r\n        </Avgiftspliktig-grp-50>\r\n    </GenerellInformasjon-grp-2581>\r\n</Skjema>\r\n\r\n--abcdefg--"
 				},
 				"url": {
-					"raw": "http://altinn3local.no/ttd/mva/instances",
+					"raw": "http://local.altinn.cloud/ttd/mva/instances",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
@@ -192,7 +192,7 @@
 					"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"organisationNumber\" : \"897069650\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"RF0002\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"212\" spesifikasjonsnummer=\"10420\" blankettnummer=\"RF-0002\" tittel=\"Alminnelig omsetningsoppgave\" gruppeid=\"20\">\r\n\t<GenerellInformasjon-grp-2581 gruppeid=\"2581\">\r\n\t\t<Avgiftspliktig-grp-50 gruppeid=\"50\">\r\n\t\t\t<RapporteringsenhetNavn-datadef-21771 orid=\"21771\">DDG Fitness</RapporteringsenhetNavn-datadef-21771>\r\n\t\t\t<RapporteringsenhetAdresse-datadef-21773 orid=\"21773\">Sofies Gate 1</RapporteringsenhetAdresse-datadef-21773>\r\n\t\t\t<RapporteringsenhetPostnummer-datadef-21774 orid=\"21774\">0170</RapporteringsenhetPostnummer-datadef-21774>\r\n            <RapporteringsenhetPoststed-datadef-21775 orid=\"21775\">By</RapporteringsenhetPoststed-datadef-21775>\r\n            <RapporteringsenhetOrganisasjonsnummer-datadef-21772 orid=\"21772\">897069650</RapporteringsenhetOrganisasjonsnummer-datadef-21772>\r\n        </Avgiftspliktig-grp-50>\r\n    </GenerellInformasjon-grp-2581>\r\n</Skjema>\r\n\r\n--abcdefg--"
 				},
 				"url": {
-					"raw": "http://altinn3local.no/ttd/mva/instances",
+					"raw": "http://local.altinn.cloud/ttd/mva/instances",
 					"protocol": "http",
 					"host": [
 						"altinn3local",

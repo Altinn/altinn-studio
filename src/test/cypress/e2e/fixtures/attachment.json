@@ -1,10 +1,10 @@
 {
-  "id": "326e50d6-befd-445d-a2d2-999e411748c0",  
+  "id": "326e50d6-befd-445d-a2d2-999e411748c0",
   "dataType": "fileUpload-message",
   "filename": "test.pdf",
-  "contentType": "application/pdf",  
+  "contentType": "application/pdf",
   "selfLinks": {
-    "apps": "https://altinn3local.no/ttd/frontend-test/instances/"    
+    "apps": "https://local.altinn.cloud/ttd/frontend-test/instances/"
   },
   "size": 4,
   "locked": false,
