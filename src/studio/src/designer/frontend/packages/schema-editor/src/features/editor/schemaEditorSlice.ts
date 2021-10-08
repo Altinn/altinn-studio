@@ -64,7 +64,7 @@ const schemaEditorSlice = createSlice({
     },
     addRootItem(state, action) {
       const {
-        location, name, ...rest,
+        location, name, ...rest
       } = action.payload;
       // make sure name is unique.
       let displayName = name;
@@ -91,7 +91,7 @@ const schemaEditorSlice = createSlice({
     },
     addProperty(state, action) {
       const {
-        path, keepSelection, ...rest,
+        path, keepSelection, ...rest
       } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
