@@ -82,7 +82,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId.HasValue ? coveredByPartyId.Value : DBNull.Value);
 
                 using NpgsqlDataReader reader = pgcom.ExecuteReader();
-                while (reader.Read())
+                if (reader.Read())
                 {
                     return GetDelegationChange(reader);
                 }
