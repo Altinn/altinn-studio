@@ -58,6 +58,14 @@ export default function (data) {
   });
   addErrorCount(success);
 
+  //Test to get all active instances of an app for a partyid
+  res = appInstances.getActiveInstances(runtimeToken, partyId, appOwner, level2App);
+  success = check(res, {
+    'GET all active instances of an app - status is 200': (r) => r.status === 200,
+    'GET all active instances of an app - count greater than 0': (r) => r.json().length > 0,
+  });
+  addErrorCount(success);
+
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
 }
 
