@@ -3,6 +3,8 @@ using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
 using Altinn.Studio.Designer.Configuration;
 using Manatee.Json;
 using Manatee.Json.Schema;
@@ -55,6 +57,31 @@ namespace Designer.Tests.Utils
             string unitTestFolder = Path.GetDirectoryName(new Uri(assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
             Stream resource = File.OpenRead(unitTestFolder + resourceName);
+
+            if (resource == null)
+            {
+                throw new InvalidOperationException("Unable to find test data.");
+            }
+
+            return resource;
+        }
+
+        public static XmlSchema LoadXmlSchemaTestData(string resourceName)
+        {
+            using XmlReader xmlReader = XmlReader.Create(LoadTestData(resourceName));
+            var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
+
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(xmlSchema);
+            schemaSet.Compile();
+
+            return xmlSchema;
+        }
+
+        public static Stream LoadTestData(string resourceName)
+        {
+            string unitTestFolder = GetTestDataDirectory();
+            Stream resource = File.OpenRead(Path.Combine(unitTestFolder, resourceName));
 
             if (resource == null)
             {

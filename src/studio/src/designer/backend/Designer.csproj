@@ -83,6 +83,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="Views\Home\AppToken.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

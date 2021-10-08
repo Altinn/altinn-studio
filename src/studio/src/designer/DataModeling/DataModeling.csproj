@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <AssemblyName>Altinn.Studio.Designer</AssemblyName>
+    <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
     <Company>Altinn</Company>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
