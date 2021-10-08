@@ -117,6 +117,22 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<bool> PolicyExistsAsync(string filepath)
+        {
+            try
+            {
+                BlobClient blobClient = CreateBlobClient(filepath);
+                return await blobClient.ExistsAsync();
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogError(ex, "Failed to check if blob exists for policy file at {0}. RequestFailedException", filepath);
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc/>
         public async Task<Response> DeletePolicyVersionAsync(string filepath, string version)
         {
             try

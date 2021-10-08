@@ -191,7 +191,10 @@ namespace Altinn.Platform.Authorization.Helpers
 
             foreach (Rule rule in rules)
             {
-                delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
+                {
+                    delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                }
             }
 
             foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)

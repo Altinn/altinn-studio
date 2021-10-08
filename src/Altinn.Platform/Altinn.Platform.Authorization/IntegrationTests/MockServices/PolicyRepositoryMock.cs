@@ -51,6 +51,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         {
         }
 
+        public Task<bool> PolicyExistsAsync(string filepath)
+        {
+            return Task.FromResult(true);
+        }
+
         private string GetDataBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
