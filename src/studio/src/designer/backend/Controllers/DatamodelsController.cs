@@ -159,6 +159,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("[Action]")] 
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);

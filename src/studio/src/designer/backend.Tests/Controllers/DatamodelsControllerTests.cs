@@ -15,7 +15,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using FluentAssertions;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -437,8 +437,7 @@ namespace Designer.Tests.Controllers
             var createViewModel = new CreateModelViewModel() { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
             var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                // Content = JsonContent.Create(createViewModel)
-                Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(createViewModel), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(createViewModel, null, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })
             };
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
@@ -469,6 +468,30 @@ namespace Designer.Tests.Controllers
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        [Theory]
+        [InlineData("", "ServiceA", true)]
+        [InlineData("test<", "", false)]
+        [InlineData("test>", "", false)]
+        [InlineData("test|", "", false)]
+        [InlineData("test\"", "", false)]
+        public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/xyz/dummyRepo/Datamodels/Post";
+
+            var createViewModel = new CreateModelViewModel() { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+            var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(createViewModel, null, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
+
+            var postResponse = await client.SendAsync(postRequestMessage);
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
         private HttpClient GetTestClient()
