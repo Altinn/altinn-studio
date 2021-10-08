@@ -7,7 +7,6 @@ function getConfigurationByFile(pathToFile, file) {
 }
 
 module.exports = (on, config) => {
-  console.log(config);
   if (config.env.component === 'appfrontend') {
     var pathToConfig = 'e2e/config/app';
     switch (config.env.environment) {
