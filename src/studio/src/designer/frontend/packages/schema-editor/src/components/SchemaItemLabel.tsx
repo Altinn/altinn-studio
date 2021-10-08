@@ -49,7 +49,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(e.currentTarget);
     e.stopPropagation();
   };
-  const handleAddPropertyClick = (e: React.SyntheticEvent, type: string) => {
+  const handleAddPropertyClick = (e: React.SyntheticEvent, type: PropertyType) => {
     setContextAnchor(null);
     e.stopPropagation();
     props.onAddProperty?.(type);
@@ -104,7 +104,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             />,
             <AltinnMenuItem
               key='add_property'
-              onClick={(event) => handleAddPropertyClick(event, 'property')} text={getTranslation('add_property', props.language)}
+              onClick={(event) => handleAddPropertyClick(event, 'field')} text={getTranslation('add_property', props.language)}
               iconClass='fa fa-datamodel-properties'
             />,
           ]
