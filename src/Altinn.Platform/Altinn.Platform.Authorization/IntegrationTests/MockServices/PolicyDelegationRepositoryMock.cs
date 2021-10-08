@@ -28,5 +28,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         {
             return Task.FromResult(new List<DelegationChange>());
         }
+
+        public Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -32,6 +32,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IContextHandler _contextHandler;
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyAdministrationPoint _pap;
+        private readonly Services.Interface.IPolicyInformationPoint _pip;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -40,12 +41,14 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="contextHandler">The Context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="policyAdministrationPoint">The policy administration point</param>
+        /// <param name="policyInformationPoint">The policy information point</param>
         /// <param name="logger">the logger.</param>
-        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, ILogger<DelegationsController> logger)
+        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, Services.Interface.IPolicyInformationPoint policyInformationPoint, ILogger<DelegationsController> logger)
         {
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;
             _pap = policyAdministrationPoint;
+            _pip = policyInformationPoint;
             _logger = logger;
         }
 
@@ -103,11 +106,53 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         [HttpPost]
         [Route("authorization/api/v1/[controller]/GetRules")]
-        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleMatch ruleMatch, [FromQuery] bool onlyDirectDelegations = false)
+        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleQuery ruleQuery, [FromQuery] bool onlyDirectDelegations = false)
         {
+            var ruleMatches = ruleQuery.RuleMatch;
+            List<int> coveredByPartyIds = new List<int>();
+            List<int> coveredByUserIds = new List<int>();
+            List<int> offeredByPartyIds = new List<int>();
+            List<string> orgApps = new List<string>();
+
+            foreach (List<AttributeMatch> resource in ruleQuery.RuleMatch.Resources)
+            {
+                string org = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value; // må iterere over org og app
+                string app = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
+                if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(app))
+                {
+                    orgApps.Add($"{org}/{app}");
+                }
+            }
+
+            string coveredByUserId = string.Empty;
+            if (ruleQuery.RuleMatch.CoveredBy.Id == XacmlRequestAttribute.PartyAttribute)
+            {
+                coveredByPartyIds.Add(int.Parse(ruleQuery.RuleMatch.CoveredBy.Value));
+            }
+            else if (ruleQuery.RuleMatch.CoveredBy.Id == XacmlRequestAttribute.UserAttribute)
+            {
+                coveredByUserIds.Add(int.Parse(ruleQuery.RuleMatch.CoveredBy.Value));
+            }
+
+            if (ruleQuery.KeyRolePartyIds.Any(id => id != 0))
+            {
+                coveredByPartyIds.AddRange(ruleQuery.KeyRolePartyIds);
+            }
+
+            if (ruleQuery.ParentPartyId != 0)
+            {
+                offeredByPartyIds.Add(ruleQuery.ParentPartyId);
+            }
+
+            if (ruleQuery.RuleMatch.OfferedByPartyId != 0)
+            {
+                offeredByPartyIds.Add(ruleQuery.RuleMatch.OfferedByPartyId);
+            }
+
             try
             {
-                return StatusCode(404, "Not yet implemented");
+                return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
+                ////return StatusCode(404, "Not yet implemented");
             }
             catch (Exception e)
             {

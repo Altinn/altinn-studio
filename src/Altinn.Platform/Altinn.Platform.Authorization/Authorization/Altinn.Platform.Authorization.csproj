@@ -33,6 +33,10 @@
     </AdditionalFiles>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
