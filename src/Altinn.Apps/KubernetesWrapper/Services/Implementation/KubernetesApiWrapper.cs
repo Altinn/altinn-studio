@@ -82,25 +82,19 @@ namespace KubernetesWrapper.Services.Implementation
 
             foreach (V1DaemonSet element in list)
             {
-                DaemonSet daemonSet = new DaemonSet();
                 IList<V1Container> containers = element.Spec?.Template?.Spec?.Containers;
                 if (containers != null && containers.Count > 0)
                 {
+                    DaemonSet daemonSet = new DaemonSet { Release = element.Metadata?.Name };
+
                     string[] splittedVersion = containers[0].Image?.Split(":");
                     if (splittedVersion != null && splittedVersion.Length > 1)
                     {
                         daemonSet.Version = splittedVersion[1];
                     }
+
+                    mappedList.Add(daemonSet);
                 }
-
-                var labels = element.Metadata?.Labels;
-
-                if (labels != null && labels.TryGetValue("release", out string release))
-                {
-                    daemonSet.Release = release;
-                }
-
-                mappedList.Add(daemonSet);
             }
 
             return mappedList;
