@@ -21,6 +21,9 @@ const AltinnMenu = withStyles({
       vertical: 'top',
       horizontal: 'center',
     }}
+    PaperProps={{
+      square: true,
+    }}
     {...props}
   />
 ));

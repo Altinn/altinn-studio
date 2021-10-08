@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { IconButton, Divider, makeStyles } from '@material-ui/core';
 import { getTranslation } from '../utils';
-import { ILanguage } from '../types';
+import { ILanguage, PropertyType } from '../types';
 import { AltinnMenu, AltinnMenuItem } from '../../../../shared/components';
 
 export interface SchemaItemLabelProps {
   icon: string;
   label: string;
   language: ILanguage;
-  onAddProperty?: (type: string) => void;
+  onAddProperty?: (type: PropertyType) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
@@ -95,30 +95,40 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {props.onAddProperty && <AltinnMenuItem
-          onClick={(event) => handleAddPropertyClick(event, 'reference')} text={getTranslation('add_reference', props.language)}
-          iconClass='fa fa-datamodel-ref'
-        />}
-        {props.onAddProperty && <AltinnMenuItem
-          onClick={(event) => handleAddPropertyClick(event, 'property')} text={getTranslation('add_property', props.language)}
-          iconClass='fa fa-datamodel-properties'
-        />}
+        {props.onAddProperty &&
+          [
+            <AltinnMenuItem
+              key='add_reference'
+              onClick={(event) => handleAddPropertyClick(event, 'reference')} text={getTranslation('add_reference', props.language)}
+              iconClass='fa fa-datamodel-ref'
+            />,
+            <AltinnMenuItem
+              key='add_property'
+              onClick={(event) => handleAddPropertyClick(event, 'property')} text={getTranslation('add_property', props.language)}
+              iconClass='fa fa-datamodel-properties'
+            />,
+          ]
+        }
         {props.onPromote && <AltinnMenuItem
+          key='promote'
           onClick={handlePromoteClick} text={getTranslation('promote', props.language)}
           iconClass='fa fa-arrowup'
         />}
         {props.onGoToType && <AltinnMenuItem
+          key='go_to_type'
           onClick={handleGoToType} text={getTranslation('go_to_type', props.language)}
           iconClass='fa fa-datamodel-ref'
         />}
         {props.onDelete &&
           [
-            <Divider />,
+            <Divider key='delete-divider' />,
             <AltinnMenuItem
+              key='delete'
               onClick={handleDeleteClick} text={getTranslation('delete', props.language)}
               iconClass='fa fa-trash'
             />,
-          ]}
+          ]
+        }
       </AltinnMenu>
     </div>);
 };
