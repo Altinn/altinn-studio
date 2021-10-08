@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 using Xunit;
