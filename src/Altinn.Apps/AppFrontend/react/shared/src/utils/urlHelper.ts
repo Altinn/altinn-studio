@@ -81,7 +81,7 @@ export const returnBaseUrlToAltinn = (url: string): string => {
     } else {
       result = `https://${baseHostnameAltinnProd}/`;
     }
-  } else if (url.search(testRegex) >= 0) {
+  } else if (url.search(testRegex) >= 0 && !url.includes('local')) {
     const split = url.split('.');
     const env = split[split.length - 3];
     result = `https://${env}.${baseHostnameAltinnTest}/`;
