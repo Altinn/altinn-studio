@@ -191,7 +191,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
               </Typography>
               <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {formatNameAndDate(this.state.lastChangedBy, repoInfo.updated_at)}
+                {getLanguageFromKey('dashboard.last_changed_service', this.props.language)} {formatNameAndDate(this.state.lastChangedBy, repoInfo.updated_at)}
               </Typography>
             </div>
             <div className={classes.descriptionStyle}>
