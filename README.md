@@ -103,15 +103,19 @@ docker-compose down
    ```
 
    - If you need to debug (or run locally) the app front-end:
-     - Open the file `views/Home/Index.cshtml` and change the line
+     - Open the file `views/Home/Index.cshtml` in your app repo and change the lines (don't commit these changes)
 
      ```html
+     <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css">
+     ...
      <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
      ```
 
      to
 
      ```html
+      <link rel="stylesheet" type="text/css" href="http://localhost:8080/altinn-app-frontend.css">
+      ....
       <script src="http://localhost:8080/altinn-app-frontend.js"></script>
      ```
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { ArrowDropDown, ArrowRight, ArchiveOutlined } from '@material-ui/icons';
+import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
@@ -11,6 +11,7 @@ import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
+import TopToolbar from './TopToolbar';
 
 const useStyles = makeStyles({
   root: {
@@ -22,33 +23,12 @@ const useStyles = makeStyles({
       flex: 1,
       maxWidth: 'calc(100% - 501px)',
     },
-    '& > aside': {
-      position: 'sticky',
-      top: 110,
-      width: 500,
-      height: 'calc(100vh - 110px)',
-      overflowX: 'clip',
-      overflowY: 'auto',
-    },
   },
   editor: {
     backgroundColor: 'white',
     boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
     minHeight: 200,
     margin: 18,
-  },
-  toolbar: {
-    display: 'flex',
-    background: '#fff',
-    padding: 8,
-    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-    '& > button': {
-      margin: 4,
-      background: '#fff',
-      '&:last-child': {
-        marginLeft: 'auto',
-      },
-    },
   },
   appBar: {
     border: 'none',
@@ -85,7 +65,12 @@ const useStyles = makeStyles({
   inspector: {
     background: 'white',
     borderLeft: '1px solid #C9C9C9',
-    overflow: 'auto',
+    position: 'sticky',
+    top: 110,
+    width: 500,
+    height: 'calc(100vh - 110px)',
+    overflowX: 'clip',
+    overflowY: 'auto',
   },
   addButton: {
     border: '1px dashed rgba(0, 0, 0, 1)',
@@ -191,30 +176,15 @@ export const Editor = (props: IEditorProps) => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
 
-  if (!name) {
-    return (
-      <div className={classes.root}>
-        <div className={classes.toolbar}>
-          {Toolbar}
-        </div>
-      </div>
-    );
-  }
   return (
     <div className={classes.root}>
       <main>
-        <section className={classes.toolbar}>
-          {Toolbar}
-          <Button
-            onClick={saveSchema}
-            type='button'
-            variant='contained'
-            disabled={!name}
-            startIcon={<ArchiveOutlined />}
-          >{getTranslation('save_data_model', language)}
-          </Button>
-        </section>
-        {schema ? (
+        <TopToolbar
+          Toolbar={Toolbar}
+          language={language}
+          saveAction={name ? saveSchema : undefined}
+        />
+        {name && schema ? (
           <div id='schema-editor' className={classes.editor}>
             <TabContext value={selectedTab}>
               <AppBar
@@ -301,7 +271,8 @@ export const Editor = (props: IEditorProps) => {
       {schema &&
         <aside className={classes.inspector}>
           <SchemaInspector language={language} />
-        </aside>}
+        </aside>
+      }
       <AltinnMenu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
