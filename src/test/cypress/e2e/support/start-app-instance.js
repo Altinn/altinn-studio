@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 
 Cypress.Commands.add('startAppInstance', (appName) => {
   cy.visit('/');
-  if (Cypress.env('environment').includes('local')) {
+  if (Cypress.env('environment') === 'local') {
     cy.get(appFrontend.appSelection).select(appName);
     cy.get(appFrontend.startButton).click();
   } else {
