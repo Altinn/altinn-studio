@@ -13,7 +13,7 @@
     "variables": null
   }, {
     "id": "messageBody",
-    "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2",
+    "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe",
     "variables": null
   }, {
     "id": "messageAttachments",

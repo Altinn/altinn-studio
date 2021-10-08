@@ -72,6 +72,9 @@
     "person": false,
     "subUnit": false
   },
+  "onEntry": {
+    "show": "select-instance"
+  },
   "autoDeleteOnProcessEnd": false,
   "created": "2021-02-06T15:18:12.2060944Z",
   "createdBy": "jeeva",
