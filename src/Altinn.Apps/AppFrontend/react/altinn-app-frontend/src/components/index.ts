@@ -12,6 +12,7 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
+import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
 
 export interface IComponent {
@@ -26,6 +27,7 @@ export interface IComponent {
 export enum ComponentTypes {
   Header,
   Paragraph,
+  Image,
   Input,
   Datepicker,
   DropDown,
@@ -55,6 +57,11 @@ export const textComponents: IComponent[] = [
 ];
 
 export const schemaComponents: IComponent[] = [
+  {
+    name: 'Image',
+    Tag: ImageComponent,
+    Type: ComponentTypes.Image,
+  },
   {
     name: 'Input',
     Tag: InputComponent,

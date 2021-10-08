@@ -14,7 +14,6 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Mocks.Apps.tdd.sirius;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 using Xunit;

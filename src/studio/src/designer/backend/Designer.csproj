@@ -19,10 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Manatee.Json" Version="13.0.5" />
@@ -33,14 +33,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.10" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.19" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.36" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Include="Markdig" Version="0.26.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
@@ -48,7 +48,7 @@
     <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
     <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
     <PackageReference Include="RestSharp" Version="106.12.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
