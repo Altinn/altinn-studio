@@ -5,7 +5,7 @@ import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from '../../../../shared/components';
-import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchema, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
@@ -145,11 +145,11 @@ export const Editor = (props: IEditorProps) => {
     setMenuAnchorEl(null);
   };
 
-  const handleAddProperty = (type: string) => {
+  const handleAddProperty = (type: PropertyType) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',
-      type: (type === 'property' ? '' : undefined),
+      type: (type === 'field' ? '' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
     }));
     setMenuAnchorEl(null);
@@ -279,7 +279,7 @@ export const Editor = (props: IEditorProps) => {
         onClose={closeMenu}
       >
         <AltinnMenuItem
-          onClick={() => handleAddProperty('property')}
+          onClick={() => handleAddProperty('field')}
           text={getTranslation('field', language)}
           iconClass='fa fa-datamodel-properties'
         />
