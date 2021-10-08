@@ -63,7 +63,9 @@ const schemaEditorSlice = createSlice({
       }
     },
     addRootItem(state, action) {
-      const { location, name, ...rest } = action.payload;
+      const {
+        location, name, ...rest,
+      } = action.payload;
       // make sure name is unique.
       let displayName = name;
       if (state.uiSchema.findIndex((p) => p.displayName === displayName) !== -1) {
@@ -88,7 +90,9 @@ const schemaEditorSlice = createSlice({
       state.focusNameField = undefined;
     },
     addProperty(state, action) {
-      const { path, keepSelection, ...rest } = action.payload;
+      const {
+        path, keepSelection, ...rest,
+      } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         path: `${path}/properties/name`,
