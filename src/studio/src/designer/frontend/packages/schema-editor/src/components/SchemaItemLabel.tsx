@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IconButton, Divider, makeStyles } from '@material-ui/core';
-import { AltinnMenu, AltinnMenuItem } from 'altinn-shared/components';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { getTranslation } from '../utils';
 import { ILanguage, PropertyType } from '../types';
 

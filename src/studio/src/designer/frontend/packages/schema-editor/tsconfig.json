@@ -22,9 +22,9 @@
     "sourceMap": true,
     "rootDir": "../..",
     "paths": {
-      "altinn-shared/*": [
-        "../../shared/src/*",
-      ]
+      "app-shared/*": [
+        "../../shared/*"
+      ],
     },
   },
   "include": [

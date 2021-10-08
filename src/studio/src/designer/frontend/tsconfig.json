@@ -16,7 +16,12 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "paths": {
+      "altinn-shared/*": [
+        "./shared/src/*",
+      ]
+    },
   },
   "include": [
     "**/*.ts",

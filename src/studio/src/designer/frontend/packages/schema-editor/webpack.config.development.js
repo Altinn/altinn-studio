@@ -13,8 +13,8 @@ module.exports = {
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
     alias: {
-      'altinn-shared': path.resolve(__dirname, './../../shared/src'),
-    },
+      "app-shared": path.resolve(__dirname, "../../shared/")
+    }
   },
   module: {
     rules: [
