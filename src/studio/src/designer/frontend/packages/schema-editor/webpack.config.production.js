@@ -10,6 +10,9 @@ module.exports = {
   },
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
+    alias: {
+      'altinn-shared': path.resolve(__dirname, './../../shared/src'),
+    },
   },
   module: {
     rules: [

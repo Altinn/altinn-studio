@@ -4,7 +4,7 @@ import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import { AltinnMenu, AltinnMenuItem } from '../../../../shared/components';
+import { AltinnMenu, AltinnMenuItem } from 'altinn-shared/components';
 import { ILanguage, ISchema, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
