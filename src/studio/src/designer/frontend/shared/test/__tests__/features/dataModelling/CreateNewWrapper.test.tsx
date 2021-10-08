@@ -33,7 +33,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     act(() => {
       wrapper = mountComponent([]);
     });
-    const newButton = wrapper.find('button#new-button');
+    const newButton = wrapper.find('TopToolbarButton');
     expect(wrapper.find('input').length).toBe(0);
     newButton.at(0).simulate('click');
     expect(wrapper.find('input').length).toBe(1);
@@ -41,7 +41,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     expect(inputField).toBeTruthy();
   });
   const openDialog = () => {
-    const newButton = wrapper.find('button#new-button');
+    const newButton = wrapper.find('TopToolbarButton');
     newButton.at(0).simulate('click');
     return wrapper.find('div#newModelInput').find('input');
   };
