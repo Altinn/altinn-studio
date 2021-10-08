@@ -68,19 +68,24 @@ function FileSelector(props: IFileSelectorProps) {
     language, labelTextResource, accept, formFileName, busy, submitHandler,
   } = props;
   const classes = useStyles();
-  const fileInput = React.useRef<HTMLInputElement>();
+  const fileInput = React.useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = React.useState('');
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const file = fileInput.current.files[0];
-    const formData = new FormData();
-    formData.append(formFileName, file);
-    submitHandler(formData, file.name);
+    const file = fileInput?.current?.files?.item(0);
+    if (file) {
+      const formData = new FormData();
+      formData.append(formFileName, file);
+      submitHandler(formData, file.name);
+    }
   };
 
   const handleInputChange = () => {
-    setSelectedFileName(fileInput.current?.files[0]?.name);
+    const file = fileInput?.current?.files?.item(0);
+    if (file) {
+      setSelectedFileName(file.name);
+    }
   };
 
   return (
