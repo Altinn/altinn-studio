@@ -75,7 +75,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                 try
                 {
-                    await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
+                    writePolicySuccess = await WriteDelegationPolicyInternal(delegationPolicypath, delegationDict[delegationPolicypath]);
                 }
                 catch (Exception ex)
                 {
