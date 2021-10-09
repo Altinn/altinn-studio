@@ -221,6 +221,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 ProcessPrimitiveType(path, subSchema);   
             }
+            else
+            {
+                ProcessNonPrimitiveType(path, subSchema);
+            }
 
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
         }
@@ -252,6 +256,40 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 default:
                     return;
             }
+        }
+
+        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema)
+        {
+            if (IsRefType(subSchema))
+            {
+                ProcessRefType(path, subSchema);
+            }
+        }
+
+        private void ProcessRefType(JsonPointer path, JsonSchema subSchema)
+        {
+            var typeName = GetTypeNameFromRef(subSchema);
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = typeName });
+        }
+
+        private static string GetTypeNameFromRef(JsonSchema subSchema)
+        {
+            var refKeyword = subSchema.GetKeyword<RefKeyword>();
+
+            var pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
+            if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
+            {
+                throw new ArgumentException("Reference uri must point to a definition in $defs/definitions to be used as TypeName");
+            }
+
+            return pointer.Segments[1].Value;
+        }
+
+        private static bool IsRefType(JsonSchema subSchema)
+        {
+            var refkeyword = subSchema.GetKeyword<RefKeyword>();
+
+            return refkeyword != null;
         }
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema)
