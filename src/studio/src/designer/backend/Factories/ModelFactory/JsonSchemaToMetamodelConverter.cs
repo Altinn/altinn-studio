@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
@@ -49,7 +51,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         public ModelMetadata Convert(string jsonSchema)
         {
             _modelMetadata = new ModelMetadata();
-            
+                        
             var schema = JsonSchema.FromText(jsonSchema);
 
             ProcessSchema(schema);
@@ -215,7 +217,67 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 ProcessKeyword(keywordPath, keyword);
             }
 
+            if (IsPrimitiveType(subSchema))
+            {
+                ProcessPrimitiveType(path, subSchema);   
+            }
+
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
+        }
+
+        private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema)
+        {
+            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+
+            if (typeKeyword == null)
+            {
+                return;
+            }
+
+            switch (typeKeyword.Type)
+            {
+                case SchemaValueType.Boolean:
+                    break;
+
+                case SchemaValueType.Integer:
+                    break;
+
+                case SchemaValueType.Number:
+                    break;
+
+                case SchemaValueType.String:
+                    ProcessStringPrimitiveType(path, subSchema);
+                    break;
+
+                default:
+                    return;
+            }
+        }
+
+        private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema)
+        {
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = path.Segments.Last().Source });
+        }
+
+        private static bool IsPrimitiveType(JsonSchema subSchema)
+        {
+            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+
+            if (typeKeyword == null)
+            {
+                return false;
+            }
+
+            switch (typeKeyword.Type)
+            {
+                case SchemaValueType.Boolean:
+                case SchemaValueType.Integer:
+                case SchemaValueType.Number:
+                case SchemaValueType.String:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }
