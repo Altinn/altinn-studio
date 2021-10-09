@@ -1,4 +1,4 @@
-FROM maven:3.8.2-openjdk-16 AS build
+FROM maven:3.8.3-openjdk-16 AS build
 WORKDIR build
 COPY . .
 RUN mvn -Pprod package

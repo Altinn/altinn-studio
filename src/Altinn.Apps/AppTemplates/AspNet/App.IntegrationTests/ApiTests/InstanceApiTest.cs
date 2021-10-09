@@ -14,7 +14,6 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 
