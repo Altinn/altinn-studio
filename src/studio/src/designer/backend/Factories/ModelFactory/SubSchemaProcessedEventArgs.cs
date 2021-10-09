@@ -5,18 +5,18 @@ using Json.Schema;
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
-    /// Event args added when a keyword has been processed.
+    /// Event args added when a sub schema has been processed.
     /// </summary>
-    public class KeywordProcessedEventArgs : EventArgs
+    public class SubSchemaProcessedEventArgs : EventArgs
     {
         /// <summary>
-        /// The path to the keyword that was processed.
+        /// The path to the sub schema that was processed.
         /// </summary>
         public JsonPointer Path { get; set; }
 
         /// <summary>
-        /// The keyword that was processed.
+        /// The sub schema that was processed.
         /// </summary>
-        public IJsonSchemaKeyword Keyword { get; set; }
+        public JsonSchema SubSchema { get; set; }
     }
 }

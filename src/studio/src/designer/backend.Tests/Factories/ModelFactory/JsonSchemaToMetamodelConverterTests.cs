@@ -39,6 +39,7 @@ namespace Designer.Tests.Factories.ModelFactory
             // Convert to Metadata model
             var metamodelConverter = new JsonSchemaToMetamodelConverter();
             metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
+            metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
 
             var metamodel = metamodelConverter.Convert(convertedJsonSchemaString);
         }
@@ -46,6 +47,11 @@ namespace Designer.Tests.Factories.ModelFactory
         public void KeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
         {
             _outputHelper.WriteLine($"Processed keyword {e.Keyword.Keyword()} at {e.Path.Source}");
+        }
+
+        public void SubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
+        {
+            _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
         }
     }
 }

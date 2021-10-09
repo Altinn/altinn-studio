@@ -19,11 +19,25 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         public event EventHandler<KeywordProcessedEventArgs> KeywordProcessed;
 
         /// <summary>
+        /// Event raised when a subschema is processed.
+        /// </summary>
+        public event EventHandler<SubSchemaProcessedEventArgs> SubSchemaProcessed;
+
+        /// <summary>
         /// Handler for the <see cref="KeywordProcessed"/> event.
         /// </summary>
         protected virtual void OnKeywordProcessed(KeywordProcessedEventArgs e)
         {
             EventHandler<KeywordProcessedEventArgs> handler = KeywordProcessed;
+            handler?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// Handler for the <see cref="SubSchemaProcessed"/> event.
+        /// </summary>
+        protected virtual void OnSubSchemaProcessed(SubSchemaProcessedEventArgs e)
+        {
+            EventHandler<SubSchemaProcessedEventArgs> handler = SubSchemaProcessed;
             handler?.Invoke(this, e);
         }
 
@@ -49,7 +63,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             foreach (var keyword in schema.Keywords)
             {
-                ProcessKeyword(path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}")), keyword);
+                var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+                ProcessKeyword(keywordPath, keyword);
             }
         }
 
@@ -72,15 +87,22 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case XsdSchemaAttributesKeyword:
                     break;
 
+                case XsdTypeKeyword:
+                    break;
+
                 case InfoKeyword:
                     break;
 
                 case DefinitionsKeyword k:
-                    ProcessDefinitions(path, k);
+                    ProcessDefinitionsKeyword(path, k);
                     break;
 
                 case DefsKeyword k:                    
-                    ProcessDefs(path, k);
+                    ProcessDefsKeyword(path, k);
+                    break;
+
+                case RefKeyword k:
+                    ProcessRefKeyword(path, k);
                     break;
 
                 case OneOfKeyword k:
@@ -99,14 +121,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ProcessPropertiesKeyword(path, k);
                     break;
 
+                case RequiredKeyword:
+                    break;
+
                 default:
+                    throw new NotImplementedException($"Keyword {keyword.Keyword()} not processed!");
                     break;
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
         }
 
-        private void ProcessDefinitions(JsonPointer path, DefinitionsKeyword keyword)
+        private void ProcessDefinitionsKeyword(JsonPointer path, DefinitionsKeyword keyword)
         {
             foreach (var (name, definition) in keyword.Definitions)
             {
@@ -115,12 +141,24 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private void ProcessDefs(JsonPointer path, DefsKeyword keyword)
+        private void ProcessDefsKeyword(JsonPointer path, DefsKeyword keyword)
         {
             foreach (var (name, definition) in keyword.Definitions)
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
                 ProcessSubSchema(subSchemaPath, definition);
+            }
+        }
+
+        private void ProcessRefKeyword(JsonPointer path, RefKeyword keyword)
+        {
+            int subSchemaIndex = 0;
+            foreach (var subSchema in keyword.GetSubschemas())
+            {
+                var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
+                ProcessSubSchema(subSchemaPath, subSchema);
+
+                subSchemaIndex++;
             }
         }
 
@@ -164,7 +202,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             foreach (var (name, property) in keyword.Properties)
             {
-                ProcessSubSchema(path.Combine(JsonPointer.Parse($"/{name}")), property);
+                var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
+                ProcessSubSchema(subSchemaPath, property);
             }
         }
 
@@ -175,6 +214,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
                 ProcessKeyword(keywordPath, keyword);
             }
+
+            OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
         }
     }
 }
