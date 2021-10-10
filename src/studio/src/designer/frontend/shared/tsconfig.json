@@ -22,7 +22,10 @@
     "paths": {
       "@altinn/schema-editor/*": [
         "../packages/schema-editor/src/*"
-      ]
+      ],
+      "app-shared/*": [
+        "./*"
+      ],
     },
   },
   "include": [
