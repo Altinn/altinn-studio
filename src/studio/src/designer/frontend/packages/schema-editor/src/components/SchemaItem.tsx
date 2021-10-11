@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
 
@@ -145,9 +145,11 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(deleteProperty({ path: item.path }));
   };
 
-  const handleAddProperty = () => {
+  const handleAddProperty = (type: PropertyType) => {
     dispatch(addProperty({
       path: itemToDisplay.path,
+      type: (type === 'field' ? '' : undefined),
+      $ref: (type === 'reference' ? '' : undefined),
     }));
   };
 
