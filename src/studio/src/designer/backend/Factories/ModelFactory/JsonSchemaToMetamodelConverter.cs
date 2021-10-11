@@ -15,6 +15,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     {
         private ModelMetadata _modelMetadata;
 
+        private string ModelName { get; set; }
+
         /// <summary>
         /// Event raised when a keyword is processed.
         /// </summary>
@@ -46,12 +48,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <summary>
         /// Converts a Json Schema string to a <see cref="ModelMetadata"/>
         /// </summary>
+        /// <param name="modelName">The name of the model.</param>
         /// <param name="jsonSchema">The Json Schema to be converted</param>
         /// <returns>An flattened representation of the Json Schema in the form of <see cref="ModelMetadata"/></returns>
-        public ModelMetadata Convert(string jsonSchema)
+        public ModelMetadata Convert(string modelName, string jsonSchema)
         {
+            ModelName = modelName;
+
             _modelMetadata = new ModelMetadata();
-                        
+
             var schema = JsonSchema.FromText(jsonSchema);
 
             ProcessSchema(schema);
@@ -62,6 +67,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private void ProcessSchema(JsonSchema schema)
         {
             var path = JsonPointer.Parse("#");
+            var name = ConvertToCSharpCompatibleName(ModelName);
+            var id = name;
+            var elementContext = new ElementContext() { Id = id, Name = name, Path = path };
 
             foreach (var keyword in schema.Keywords)
             {
@@ -128,7 +136,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                 default:
                     throw new NotImplementedException($"Keyword {keyword.Keyword()} not processed!");
-                    break;
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
@@ -214,6 +221,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             foreach (var keyword in subSchema.Keywords)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+
                 ProcessKeyword(keywordPath, keyword);
             }
 
@@ -264,12 +272,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 ProcessRefType(path, subSchema);
             }
+            else
+            {
+                _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = path.Segments.Last().Source });
+            }
         }
 
         private void ProcessRefType(JsonPointer path, JsonSchema subSchema)
         {
             var typeName = GetTypeNameFromRef(subSchema);
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = typeName });
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { TypeName = typeName });
         }
 
         private static string GetTypeNameFromRef(JsonSchema subSchema)
@@ -316,6 +328,25 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 default:
                     return false;
             }
+        }
+
+        private string ConvertToCSharpCompatibleName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            return name.Replace("-", string.Empty);
+        }
+
+        private class ElementContext
+        {
+            public string Id { get; set; }
+
+            public string Name { get; set; }
+
+            public JsonPointer Path { get; set; }
         }
     }
 }
