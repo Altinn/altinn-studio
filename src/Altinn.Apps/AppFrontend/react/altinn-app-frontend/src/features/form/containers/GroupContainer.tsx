@@ -85,8 +85,17 @@ export function GroupContainer({
   }, [formData, container]);
 
   React.useEffect(() => {
-    if (container.edit?.multiPage) {
+    const { edit } = container;
+    if (!edit) {
+      return;
+    }
+
+    if (edit.multiPage) {
       setMultiPageIndex(0);
+    }
+
+    if (edit.openByDefault && repeatingGroupIndex === -1) {
+      onClickAdd();
     }
   }, [container]);
 
@@ -104,12 +113,17 @@ export function GroupContainer({
   };
 
   const onClickRemove = (groupIndex: number) => {
-    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));
+    dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: -1 }));    
     dispatch(FormLayoutActions.updateRepeatingGroups({
       layoutElementId: id,
       remove: true,
       index: groupIndex,
     }));
+
+    if(container.edit?.openByDefault && groupIndex === 0 && repeatingGroups[id].count === 0) {
+      dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+      dispatch(FormLayoutActions.updateRepeatingGroupsEditIndex({ group: id, index: (groupIndex) }));
+    }
   };
 
   const onClickSave = () => {
