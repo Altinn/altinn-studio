@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing all actions related to data modelling
     /// </summary>
     [AutoValidateAntiforgeryToken]
-    [Route("designer/api/{org}/{repository}/[controller]")]
+    [Route("designer/api/{org}/{repository}/datamodels")]
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -56,7 +56,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string)"/> instead.</remarks>
         [Authorize]
         [HttpPut]
-        [Route("[Action]")]
+        [Route("updatedatamodel")]
         public async Task<IActionResult> UpdateDatamodel(string org, string repository, string modelName)
         {
             SchemaKeywordCatalog.Add<InfoKeyword>();
@@ -156,7 +156,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [Produces("application/json")]
         [HttpPost]
-        [Route("[Action]")] 
+        [Route("post")] 
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             if (!ModelState.IsValid)
@@ -256,7 +256,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet]
-        [Route("[Action]")]
+        [Route("getdatamodel")]
         public async Task<IActionResult> GetDatamodel(string org, string repository, string modelName)
         {
             try
@@ -311,7 +311,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="modelName">The name of the data model.</param>
         [Authorize]
         [HttpDelete]
-        [Route("[Action]")]
+        [Route("deletedatamodel")]
         public IActionResult DeleteDatamodel(string org, string repository, string modelName)
         {
             try
