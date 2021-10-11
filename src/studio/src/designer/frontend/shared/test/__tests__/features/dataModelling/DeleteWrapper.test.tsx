@@ -31,7 +31,7 @@ describe('>>> DeleteWrapper.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
   const openDialog = () => {
-    const deleteButton = wrapper.find('button#delete-button');
+    const deleteButton = wrapper.find('TopToolbarButton');
     deleteButton.at(0).simulate('click');
     return wrapper.find(Modal).find('div.MuiGrid-root');
   };

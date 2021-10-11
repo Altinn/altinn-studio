@@ -12,7 +12,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Platform.Models</PackageId>
-    <PackageVersion>1.1.1-alpha</PackageVersion>
+    <PackageVersion>1.1.1</PackageVersion>
     <PackageTags>Altinn;Studio;Platform;Models;Register;Profile;Authorization</PackageTags>
     <Description>
       Altinn.Platform.Models is a package for models used by platform register and profile.
@@ -25,7 +25,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
