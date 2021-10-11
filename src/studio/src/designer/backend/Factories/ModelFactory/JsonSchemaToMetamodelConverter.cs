@@ -296,7 +296,25 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema, SchemaContext context)
         {
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = "string", ParentElement = context.ParentId });
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata()
+            {
+                ID = GetId(context.ParentId, context.Name),
+                Name = context.Name,
+                TypeName = context.Name,
+                ParentElement = context.ParentId,
+                XsdValueType = MapToXsdValueType(SchemaValueType.String)
+            });
+        }
+
+        private BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType)
+        {
+            switch (jsonValueType)
+            {
+                case SchemaValueType.String:
+                    return BaseValueType.String;
+                default:
+                    return null;
+            }
         }
 
         private static string GetTypeNameFromRef(JsonSchema subSchema)
