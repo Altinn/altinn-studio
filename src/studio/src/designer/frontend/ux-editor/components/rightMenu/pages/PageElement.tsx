@@ -193,23 +193,27 @@ export default function PageElement({
           disabled={disableUp}
           text={getLanguageFromKey('right_menu.page_menu_up', language)}
           iconClass='fa fa-arrowup'
+          id='move-page-up-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'down')}
           disabled={disableDown}
           text={getLanguageFromKey('right_menu.page_menu_down', language)}
           iconClass='fa fa-arrowdown'
+          id='move-page-down-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
           text={getLanguageFromKey('right_menu.page_menu_edit', language)}
           iconClass='fa fa-write'
+          id='edit-page-button'
         />
         <Divider />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'delete')}
           text={getLanguageFromKey('right_menu.page_menu_delete', language)}
           iconClass='fa fa-trash'
+          id='delete-page-button'
         />
       </AltinnMenu>
       <ConfirmModal

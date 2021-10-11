@@ -6,6 +6,7 @@ export interface IAltinnMenuItemProps {
   iconClass: string;
   onClick: (event: React.SyntheticEvent) => void;
   disabled?: boolean;
+  id: string;
 }
 
 const StyledMenuItem = withStyles({
@@ -22,12 +23,13 @@ const AltinnMenuItemIcon = withStyles({
 })(ListItemIcon);
 
 export function AltinnMenuItem({
-  text, iconClass, onClick, disabled,
+  text, iconClass, onClick, disabled, id,
 }: IAltinnMenuItemProps) {
   return (
     <StyledMenuItem
       onClick={onClick}
       disabled={disabled}
+      id={id}
     >
       <AltinnMenuItemIcon>
         <i className={iconClass} />

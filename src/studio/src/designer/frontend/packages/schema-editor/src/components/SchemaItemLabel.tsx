@@ -98,11 +98,13 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         {props.onAddProperty &&
           [
             <AltinnMenuItem
+              id='add-reference-to-node-button'
               key='add_reference'
               onClick={(event) => handleAddPropertyClick(event, 'reference')} text={getTranslation('add_reference', props.language)}
               iconClass='fa fa-datamodel-ref'
             />,
             <AltinnMenuItem
+              id='add-property-to-node-button'
               key='add_property'
               onClick={(event) => handleAddPropertyClick(event, 'field')} text={getTranslation('add_property', props.language)}
               iconClass='fa fa-datamodel-properties'
@@ -110,11 +112,13 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
           ]
         }
         {props.onPromote && <AltinnMenuItem
+          id='promote-item-button'
           key='promote'
           onClick={handlePromoteClick} text={getTranslation('promote', props.language)}
           iconClass='fa fa-arrowup'
         />}
         {props.onGoToType && <AltinnMenuItem
+          id='go-to-type-button'
           key='go_to_type'
           onClick={handleGoToType} text={getTranslation('go_to_type', props.language)}
           iconClass='fa fa-datamodel-ref'
@@ -123,6 +127,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
           [
             <Divider key='delete-divider' />,
             <AltinnMenuItem
+              id='delete-node-button'
               key='delete'
               onClick={handleDeleteClick} text={getTranslation('delete', props.language)}
               iconClass='fa fa-trash'

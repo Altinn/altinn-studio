@@ -212,6 +212,7 @@ export const Editor = (props: IEditorProps) => {
                   endIcon={<i className='fa fa-drop-down'/>}
                   onClick={openMenu}
                   className={classes.addButton}
+                  id='add-button'
                 >
                   <Typography variant='body1'>{getTranslation('add', language)}</Typography>
                 </Button>
@@ -282,11 +283,13 @@ export const Editor = (props: IEditorProps) => {
           onClick={() => handleAddProperty('field')}
           text={getTranslation('field', language)}
           iconClass='fa fa-datamodel-properties'
+          id='add-field-button'
         />
         <AltinnMenuItem
           onClick={() => handleAddProperty('reference')}
           text={getTranslation('reference', language)}
           iconClass='fa fa-datamodel-ref'
+          id='add-reference-button'
         />
       </AltinnMenu>
     </div>
