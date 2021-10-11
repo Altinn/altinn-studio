@@ -51,7 +51,7 @@ The commands should be run in an order that makes sure the tests are intact on t
 
 2. Tests on different solutions of studio
 ```cmd
-    npm run test:studio
+    npm run test:studio --env=local
 ```
 
 3. Cleanup: After all the tests
@@ -88,7 +88,7 @@ If one has the frontend dependencies installed from  before, run the below comma
 ```
 5. To run a single test case open cypress runner using
 ```cmd
-    npm run cy:open --env=local
+    npm run cy:open --env=local --component=appfrontend
 ```
 
 ### Format files with prettier

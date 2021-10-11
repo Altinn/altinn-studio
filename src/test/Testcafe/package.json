@@ -22,7 +22,7 @@
     "eslint-plugin-testcafe": "^0.2.1",
     "prettier": "^2.4.1",
     "process": "^0.11.10",
-    "testcafe": "^1.16.0",
+    "testcafe": "^1.16.1",
     "testcafe-browser-provider-puppeteer": "^1.5.2"
   },
   "dependencies": {

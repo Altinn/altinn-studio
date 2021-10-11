@@ -1,4 +1,5 @@
 /* eslint-disable no-nested-ternary */
+/* eslint-disable react/jsx-no-bind */
 /* eslint-disable implicit-arrow-linebreak */
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';

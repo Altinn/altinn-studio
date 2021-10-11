@@ -136,6 +136,7 @@ export interface IGroupEditProperties {
   saveButton?: boolean;
   deleteButton?: boolean;
   multiPage?: boolean;
+  openByDefault?: boolean;
 }
 
 export interface IGroupFilter {

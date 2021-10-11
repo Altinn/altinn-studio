@@ -42,6 +42,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
             language.party_selection.search_placeholder
         }
         showLabel={false}
+        // eslint-disable-next-line react/jsx-no-bind
         onChange={onChangeSearchString}
         placeholder={
           !language.party_selection ?
