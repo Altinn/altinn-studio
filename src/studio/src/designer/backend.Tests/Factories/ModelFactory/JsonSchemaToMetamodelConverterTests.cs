@@ -41,7 +41,7 @@ namespace Designer.Tests.Factories.ModelFactory
             metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
             metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
 
-            var metamodel = metamodelConverter.Convert(convertedJsonSchemaString);
+            var metamodel = metamodelConverter.Convert("test", convertedJsonSchemaString);
         }
 
         public void KeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)

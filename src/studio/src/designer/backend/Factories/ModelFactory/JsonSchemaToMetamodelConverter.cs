@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
@@ -66,19 +67,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessSchema(JsonSchema schema)
         {
-            var path = JsonPointer.Parse("#");
+            var rootPath = JsonPointer.Parse("#");
             var name = ConvertToCSharpCompatibleName(ModelName);
-            var id = name;
-            var elementContext = new ElementContext() { Id = id, Name = name, Path = path };
+            var context = new SchemaContext() { Id = name,  ParentId = string.Empty, Name = name };
 
             foreach (var keyword in schema.Keywords)
             {
-                var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
-                ProcessKeyword(keywordPath, keyword);
+                var keywordPath = rootPath.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+                ProcessKeyword(keywordPath, keyword, context);
             }
         }
 
-        private void ProcessKeyword(JsonPointer path, IJsonSchemaKeyword keyword)
+        private void ProcessKeyword(JsonPointer path, IJsonSchemaKeyword keyword, SchemaContext context)
         {
             switch (keyword)
             {
@@ -104,31 +104,31 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     break;
 
                 case DefinitionsKeyword k:
-                    ProcessDefinitionsKeyword(path, k);
+                    ProcessDefinitionsKeyword(path, k, context);
                     break;
 
                 case DefsKeyword k:                    
-                    ProcessDefsKeyword(path, k);
+                    ProcessDefsKeyword(path, k, context);
                     break;
 
                 case RefKeyword k:
-                    ProcessRefKeyword(path, k);
+                    ProcessRefKeyword(path, k, context);
                     break;
 
                 case OneOfKeyword k:
-                    ProcessOneOfKeyword(path, k);
+                    ProcessOneOfKeyword(path, k, context);
                     break;
 
                 case AllOfKeyword k:
-                    ProcessAllOfKeyword(path, k);
+                    ProcessAllOfKeyword(path, k, context);
                     break;
 
                 case AnyOfKeyword k:
-                    ProcessAnyOfKeyword(path, k);
+                    ProcessAnyOfKeyword(path, k, context);
                     break;
 
                 case PropertiesKeyword k:
-                    ProcessPropertiesKeyword(path, k);
+                    ProcessPropertiesKeyword(path, k, context);
                     break;
 
                 case RequiredKeyword:
@@ -141,103 +141,108 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
         }
 
-        private void ProcessDefinitionsKeyword(JsonPointer path, DefinitionsKeyword keyword)
+        private void ProcessDefinitionsKeyword(JsonPointer path, DefinitionsKeyword keyword, SchemaContext context)
         {
-            foreach (var (name, definition) in keyword.Definitions)
+            ProcessDefinitons(path, keyword.Definitions, context);
+        }
+
+        private void ProcessDefsKeyword(JsonPointer path, DefsKeyword keyword, SchemaContext context)
+        {
+            ProcessDefinitons(path, keyword.Definitions, context);
+        }
+
+        private void ProcessDefinitons(JsonPointer path, IReadOnlyDictionary<string, JsonSchema> definitions, SchemaContext context)
+        {
+            foreach (var (name, definition) in definitions)
             {
+                var currentContext = new SchemaContext() { Id = GetId(context.Id, name), Name = name, ParentId = context.Id };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
-                ProcessSubSchema(subSchemaPath, definition);
+
+                ProcessSubSchema(subSchemaPath, definition, currentContext);
             }
         }
 
-        private void ProcessDefsKeyword(JsonPointer path, DefsKeyword keyword)
-        {
-            foreach (var (name, definition) in keyword.Definitions)
-            {
-                var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
-                ProcessSubSchema(subSchemaPath, definition);
-            }
-        }
-
-        private void ProcessRefKeyword(JsonPointer path, RefKeyword keyword)
+        private void ProcessRefKeyword(JsonPointer path, RefKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-                ProcessSubSchema(subSchemaPath, subSchema);
+                ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
             }
         }
 
-        private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword)
+        private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-                ProcessSubSchema(subSchemaPath, subSchema);
+                ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
             }
         }
 
-        private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword)
+        private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-                ProcessSubSchema(subSchemaPath, subSchema);
+                ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
             }
         }
 
-        private void ProcessAllOfKeyword(JsonPointer path, AllOfKeyword keyword)
+        private void ProcessAllOfKeyword(JsonPointer path, AllOfKeyword keyword, SchemaContext context)
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-                ProcessSubSchema(subSchemaPath, subSchema);
+                ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
             }
         }
 
-        private void ProcessPropertiesKeyword(JsonPointer path, PropertiesKeyword keyword)
+        private void ProcessPropertiesKeyword(JsonPointer path, PropertiesKeyword keyword, SchemaContext context)
         {
             foreach (var (name, property) in keyword.Properties)
             {
+                var currentContext = new SchemaContext() { Id = GetId(context.Id, name), Name = name, ParentId = context.Id };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
-                ProcessSubSchema(subSchemaPath, property);
+
+                ProcessSubSchema(subSchemaPath, property, currentContext);
             }
         }
 
-        private void ProcessSubSchema(JsonPointer path, JsonSchema subSchema)
+        private void ProcessSubSchema(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             foreach (var keyword in subSchema.Keywords)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
 
-                ProcessKeyword(keywordPath, keyword);
+                ProcessKeyword(keywordPath, keyword, context);
             }
 
             if (IsPrimitiveType(subSchema))
             {
-                ProcessPrimitiveType(path, subSchema);   
+                ProcessPrimitiveType(path, subSchema, context);   
             }
             else
             {
-                ProcessNonPrimitiveType(path, subSchema);
+                ProcessNonPrimitiveType(path, subSchema, context);
             }
 
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
         }
 
-        private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema)
+        private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
 
@@ -258,7 +263,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     break;
 
                 case SchemaValueType.String:
-                    ProcessStringPrimitiveType(path, subSchema);
+                    ProcessStringPrimitiveType(path, subSchema, context);
                     break;
 
                 default:
@@ -266,22 +271,32 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema)
+        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             if (IsRefType(subSchema))
             {
-                ProcessRefType(path, subSchema);
+                ProcessRefType(path, subSchema, context);
             }
             else
             {
-                _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = path.Segments.Last().Source });
+                _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = string.Empty, ParentElement = context.ParentId });
             }
         }
 
-        private void ProcessRefType(JsonPointer path, JsonSchema subSchema)
+        private static string GetId(string parentId, string elementName)
         {
-            var typeName = GetTypeNameFromRef(subSchema);
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { TypeName = typeName });
+            return string.IsNullOrEmpty(parentId) ? elementName : $"{parentId}.{elementName}";
+        }
+
+        private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            var typeName = GetTypeNameFromRef(subSchema);            
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = typeName, ParentElement = context.ParentId });
+        }
+
+        private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema, SchemaContext context)
+        {
+            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = "string", ParentElement = context.ParentId });
         }
 
         private static string GetTypeNameFromRef(JsonSchema subSchema)
@@ -302,11 +317,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var refkeyword = subSchema.GetKeyword<RefKeyword>();
 
             return refkeyword != null;
-        }
-
-        private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema)
-        {
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { Name = path.Segments.Last().Source });
         }
 
         private static bool IsPrimitiveType(JsonSchema subSchema)
@@ -330,7 +340,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private string ConvertToCSharpCompatibleName(string name)
+        private static string ConvertToCSharpCompatibleName(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -340,13 +350,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return name.Replace("-", string.Empty);
         }
 
-        private class ElementContext
+        private class SchemaContext
         {
             public string Id { get; set; }
 
-            public string Name { get; set; }
+            public string ParentId { get; set; }
 
-            public JsonPointer Path { get; set; }
+            public string Name { get; set; }
         }
     }
 }
