@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "{{id}}",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/{{rootType}}"
+    }
+  ],
+  "$defs": {
+    "{{rootType}}": {
+      "properties": {
+        "e1": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "e1"
+      ]
+    }
+  }
+}
