@@ -49,7 +49,7 @@ describe('>>> Editor.tsx', () => {
         add_reference: 'Legg til referanse',
         delete: 'Slett',
         field: 'Felt',
-        reference: 'Referanse'
+        reference: 'Referanse',
       },
     };
     mockStore = createStore(reducer, mockInitialState);
@@ -89,7 +89,7 @@ describe('>>> Editor.tsx', () => {
         name: 'name',
         location: 'properties',
         type: '',
-      }
+      },
     });
   });
 
@@ -103,20 +103,18 @@ describe('>>> Editor.tsx', () => {
         name: 'name',
         location: 'properties',
         $ref: '',
-      }
+      },
     });
   });
 
   it('+++ should show context menu and trigger correct dispatch when adding field on a specific node', () => {
     const customState = {
-      schema: { properties: { mockItem: { type: 'object'} }, definitions: {} },
-      uiSchema: buildUISchema({ mockItem: { type: 'object'}}, '#/properties')
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
     };
     mockStore = createStore(reducer,
-      {...mockInitialState,
-      ...customState,
-      }
-    );
+      { ...mockInitialState,
+        ...customState });
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
@@ -126,20 +124,18 @@ describe('>>> Editor.tsx', () => {
       payload: {
         path: '#/properties/mockItem',
         type: '',
-      }
+      },
     });
   });
 
   it('+++ should show context menu and trigger correct dispatch when adding reference on a specific node', () => {
     const customState = {
-      schema: { properties: { mockItem: { type: 'object'} }, definitions: {} },
-      uiSchema: buildUISchema({ mockItem: { type: 'object'}}, '#/properties')
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
     };
     mockStore = createStore(reducer,
-      {...mockInitialState,
-      ...customState,
-      }
-    );
+      { ...mockInitialState,
+        ...customState });
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
@@ -149,7 +145,7 @@ describe('>>> Editor.tsx', () => {
       payload: {
         path: '#/properties/mockItem',
         $ref: '',
-      }
+      },
     });
   });
 
@@ -160,8 +156,8 @@ describe('>>> Editor.tsx', () => {
     expect(mockStore.dispatch).toBeCalledWith({
       type: 'schemaEditor/deleteProperty',
       payload: {
-        path: '#/properties/melding'
-      }
+        path: '#/properties/melding',
+      },
     });
   });
 });
