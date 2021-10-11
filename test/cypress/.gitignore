@@ -17,3 +17,6 @@ e2e/fixtures/*.png
 
 # Reports
 reports/
+
+# Downloads
+downloads/
