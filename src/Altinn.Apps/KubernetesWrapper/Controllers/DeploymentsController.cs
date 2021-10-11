@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
+
 using KubernetesWrapper.Services.Interfaces;
+
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -40,7 +42,7 @@ namespace KubernetesWrapper.Controllers
         {
             try
             {
-                var deployments = await _apiWrapper.GetDeployments(null, null, fieldSelector, labelSelector);
+                var deployments = await _apiWrapper.GetDeployedResources(Models.ResourceType.Deployment, null, null, fieldSelector, labelSelector);
                 return Ok(deployments);
             }
             catch (Exception e)

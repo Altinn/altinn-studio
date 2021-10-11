@@ -78,6 +78,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "isRead")]
         public bool IsRead { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets a collection of tags associated with the data element.
+        /// </summary>
+        [JsonProperty(PropertyName = "tags")]
+        public List<string> Tags { get; set; } = new List<string>();
+
         /// <inheritdoc/>
         public override string ToString()
         {

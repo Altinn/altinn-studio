@@ -1,6 +1,7 @@
 {
   "plugins": ["cypress"],
   "extends": ["plugin:cypress/recommended"],
+  "ignorePatterns": ["e2e/fixtures/*.json", "e2e/fixtures/*.png", "e2e/fixtures/*.pdf", "e2e/support/*.ts"],
   "rules": {
     "eol-last": "error",
     "indent": ["warn", 2, { "SwitchCase": 1 }],

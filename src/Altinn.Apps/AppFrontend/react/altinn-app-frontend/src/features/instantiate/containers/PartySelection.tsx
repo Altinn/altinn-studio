@@ -1,4 +1,5 @@
 /* eslint-disable no-nested-ternary */
+/* eslint-disable react/jsx-no-bind */
 /* eslint-disable implicit-arrow-linebreak */
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
@@ -96,11 +97,11 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     PartyActions.getParties();
   }, []);
 
-  async function onSelectParty(party: IParty) {
+  const onSelectParty = (party: IParty) => {
     PartyActions.selectParty(party, true);
     // Clear any previous instantiation errors.
     InstantiationActions.instantiateRejected(null);
-  }
+  };
 
   function renderParties() {
     if (!parties || !appMetadata) {
@@ -234,9 +235,9 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     return returnString;
   }
 
-  function onFilterStringChange(filterStr: string) {
+  const onFilterStringChange = (filterStr: string) => {
     setFilterString(filterStr);
-  }
+  };
 
   function increaseNumberOfShownParties() {
     setNumberOfPartiesShown(numberOfPartiesShown + 4);
@@ -265,13 +266,13 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     );
   }
 
-  function toggleShowDeleted() {
+  const toggleShowDeleted = () => {
     setShowDeleted(!showDeleted);
-  }
+  };
 
-  function toggleShowSubUnits() {
+  const toggleShowSubUnits = () => {
     setShowSubUnits(!showSubUnits);
-  }
+  };
 
   if (!language) {
     return null;

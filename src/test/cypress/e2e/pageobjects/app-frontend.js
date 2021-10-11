@@ -10,13 +10,18 @@ export default class AppFrontend {
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
     this.sendinButton = '#sendInButton';
-    this.helpText = '.ai-circle-plus';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
+
+    this.helpText = {
+      open: '.ai-circle-plus',
+      close: '.ai-circle-minus',
+      alert: 'div[role="alert"]',
+    };
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -36,6 +41,8 @@ export default class AppFrontend {
     this.message = {
       header: '#appen-for-test-av-app-frontend',
       attachmentList: '.attachmentList-title',
+      logo: '#altinnLogo',
+      logoFormContent: '#form-content-altinnLogo',
     };
 
     //change of name - task_2

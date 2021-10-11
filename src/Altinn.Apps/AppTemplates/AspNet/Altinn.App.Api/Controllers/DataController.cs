@@ -161,7 +161,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-        [HttpGet("{dataGuid:guid?}")]
+        [HttpGet("{dataGuid:guid}")]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,

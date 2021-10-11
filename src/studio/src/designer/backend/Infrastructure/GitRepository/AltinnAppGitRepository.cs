@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// as it merges multiple on-disk models into another structure.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
-        private const string MODEL_METADATA_FOLDER_PATH = "App/models/";
+        private const string MODEL_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
 
@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task UpdateModelMetadata(ModelMetadata modelMetadata, string modelName)
         {
             string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_METADATA_FOLDER_PATH, $"{modelName}.metadata.json");
+            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
 
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, metadataAsJson, true);
         }
@@ -82,9 +82,24 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns></returns>
         public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
         {
-            string modelMetadataRelativeFilePath = Path.Combine(MODEL_METADATA_FOLDER_PATH, $"{modelName}.cs");
+            string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
 
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, csharpClasses, true);
+        }
+
+        /// <summary>
+        /// Updates the Json Schema file representing the application model.
+        /// </summary>
+        /// <param name="jsonSchema">The Json Schema that should be persisted</param>
+        /// <param name="modelName">The name of the model, will be used as filename.</param>
+        /// <returns></returns>
+        public async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
+        {
+            string relativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
+
+            await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+            return relativeFilePath;
         }
 
         /// <summary>

@@ -40,6 +40,11 @@ namespace App.IntegrationTests.Mocks.Services
                 Data = new List<DataElement>(),
             };
 
+            if (instanceTemplate.DataValues != null)
+            {
+                instance.DataValues = instanceTemplate.DataValues;
+            }
+
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
             _logger.LogInformation($"//// Created instance for app {org}/{app}. writing to path: {instancePath}");
             File.WriteAllText(instancePath, instance.ToString());

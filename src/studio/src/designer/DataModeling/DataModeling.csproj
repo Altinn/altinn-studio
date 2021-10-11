@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <AssemblyName>Altinn.Studio.Designer</AssemblyName>
+    <AssemblyName>Altinn.Studio.DataModeling</AssemblyName>
     <Company>Altinn</Company>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Altinn.Studio.DataModeling</RootNamespace>
@@ -11,7 +11,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JsonSchema.Net" Version="1.10.5" />
+    <None Remove="Templates\general.template.json" />
+    <None Remove="Templates\seres.template.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Templates\general.template.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Templates\seres.template.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="1.11.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

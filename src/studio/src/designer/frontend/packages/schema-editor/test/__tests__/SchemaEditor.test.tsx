@@ -1,17 +1,18 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
+import { createStore } from 'redux';
 import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import SchemaEditor from '../../src/components/Editor';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema } from '../../src/utils';
-import { ISchemaState, UiSchemaItem } from '../../src/types';
+import { ILanguage, ISchemaState, UiSchemaItem } from '../../src/types';
+import reducer from '../../src/features/editor/schemaEditorSlice';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
-let createStore: any;
 let mockUiSchema: UiSchemaItem[];
+let mockLanguage: ILanguage;
 
 const mountComponent = () => mount(
   <Provider store={mockStore}>
@@ -19,64 +20,144 @@ const mountComponent = () => mount(
       Toolbar={<div>toolbar goes here</div>}
       LoadingIndicator={<div>loading</div>}
       schema={dataMock}
-      language={{}}
-      onSaveSchema={() => {}}
+      language={mockLanguage}
+      onSaveSchema={() => { }}
       name='test'
     />
   </Provider>,
 );
 
-beforeEach(() => {
-  mockUiSchema = buildUISchema(dataMock.properties, '#/properties')
-    .concat(buildUISchema(dataMock.definitions, '#/definitions'));
+describe('>>> Editor.tsx', () => {
+  beforeEach(() => {
+    mockUiSchema = buildUISchema(dataMock.properties, '#/properties')
+      .concat(buildUISchema(dataMock.definitions, '#/definitions'));
 
-  mockInitialState = {
-    name: 'test',
-    saveSchemaUrl: '',
-    schema: { properties: {}, definitions: {} },
-    uiSchema: [],
-    selectedDefinitionNodeId: '',
-    selectedPropertyNodeId: '',
-    selectedEditorTab: 'properties',
-  };
-  createStore = configureStore();
-});
-
-afterEach(() => {
-  mockStore = null;
-});
-
-test('renders schema editor with populated schema', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
+    mockInitialState = {
+      name: 'test',
+      saveSchemaUrl: '',
+      schema: dataMock,
+      uiSchema: mockUiSchema,
+      selectedDefinitionNodeId: '',
+      selectedPropertyNodeId: '',
+      selectedEditorTab: 'properties',
+    };
+    mockLanguage = {
+      schema_editor: {
+        add: 'Legg til',
+        add_element: 'Add Element',
+        add_property: 'Legg til felt',
+        add_reference: 'Legg til referanse',
+        delete: 'Slett',
+        field: 'Felt',
+        reference: 'Referanse',
+      },
+    };
+    mockStore = createStore(reducer, mockInitialState);
+    mockStore.dispatch = jest.fn();
   });
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div />);
-  act(() => {
-    wrapper = mountComponent();
+  it('+++ renders schema editor with populated schema', () => {
+    let wrapper: ReactWrapper = new ReactWrapper(<div />);
+    act(() => {
+      wrapper = mountComponent();
+    });
+
+    expect(wrapper.find('.schema-editor')).toBeTruthy();
+    expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Save data model'))).toBeTruthy();
   });
 
-  expect(wrapper.find('.schema-editor')).toBeTruthy();
-  expect(wrapper.findWhere((n: ReactWrapper) => n.text().includes('Save data model'))).toBeTruthy();
-});
+  const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find(
+    '.MuiTypography-root',
+  ).findWhere((r: ReactWrapper) => r.text() === text);
 
-const findTreeItems = (wrapper: ReactWrapper, text: string) => wrapper.find(
-  '.MuiTypography-root',
-).findWhere((r: ReactWrapper) => r.text() === text);
-
-test('Does not renders properties on item click while in models view', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
+  it('+++ does not render properties on item click while in models view', () => {
+    let wrapper: ReactWrapper = new ReactWrapper(<div />);
+    act(() => {
+      wrapper = mountComponent();
+    });
+    wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
+    expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
   });
 
-  let wrapper: ReactWrapper = new ReactWrapper(<div />);
-  act(() => {
-    wrapper = mountComponent();
+  it('+++ should show context menu and trigger correct dispatch when adding a field on root', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    wrapper.find('#add-field-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addRootItem',
+      payload: {
+        name: 'name',
+        location: 'properties',
+        type: '',
+      },
+    });
   });
-  wrapper.find('.MuiTreeItem-iconContainer').hostNodes().at(0).simulate('click');
-  expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
+
+  it('+++ should show context menu and trigger correct dispatch when adding a reference on root', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    wrapper.find('#add-reference-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addRootItem',
+      payload: {
+        name: 'name',
+        location: 'properties',
+        $ref: '',
+      },
+    });
+  });
+
+  it('+++ should show context menu and trigger correct dispatch when adding field on a specific node', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    wrapper.find('#add-property-to-node-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addProperty',
+      payload: {
+        path: '#/properties/mockItem',
+        type: '',
+      },
+    });
+  });
+
+  it('+++ should show context menu and trigger correct dispatch when adding reference on a specific node', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    wrapper.find('#add-reference-to-node-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addProperty',
+      payload: {
+        path: '#/properties/mockItem',
+        $ref: '',
+      },
+    });
+  });
+
+  it('+++ should show context menu and trigger correct dispatch when deleting a specific node', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    wrapper.find('#delete-node-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/deleteProperty',
+      payload: {
+        path: '#/properties/melding',
+      },
+    });
+  });
 });

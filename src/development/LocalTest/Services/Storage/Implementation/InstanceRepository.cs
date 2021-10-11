@@ -1,10 +1,15 @@
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using LocalTest.Configuration;
+using LocalTest.Services.Localtest.Interface;
+
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,11 +21,16 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly IDataRepository _dataRepository;
 
-        public InstanceRepository(IOptions<LocalPlatformSettings> localPlatformSettings, IDataRepository dataRepository)
+        public InstanceRepository(
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            ILocalTestAppSelection localTestAppSelectionService,
+            IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _localTestAppSelectionService = localTestAppSelectionService;
             _dataRepository = dataRepository;
         }
 
@@ -59,7 +69,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
-            string path = GetInstancePath(instanceId.Replace("/","_"));
+            string path = GetInstancePath(instanceId.Replace("/", "_"));
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);
@@ -72,36 +82,117 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            foreach (string key in queryParams.Keys)
-                if (!key.Equals("org", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("appId", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("instanceOwner.partyId", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("status.isArchived", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("status.isHardDeleted", StringComparison.OrdinalIgnoreCase) &&
-                    !key.Equals("status.isSoftDeleted", StringComparison.OrdinalIgnoreCase))
-                    throw new NotImplementedException();
-
-            InstanceQueryResponse response = new InstanceQueryResponse() { Instances = new List<Instance>(), Count = 0 };
-            foreach (FileInfo instanceFile in new DirectoryInfo(GetInstanceFolder()).GetFiles($"*.json").OrderByDescending(f => f.LastWriteTime))
+            List<string> validQueryParams = new List<string>
             {
-                if (!queryParams.ContainsKey("instanceOwner.partyId") || instanceFile.Name.StartsWith($"{queryParams["instanceOwner.partyId"]}_"))
+                "org",
+                "appId",
+                "process.currentTask",
+                "process.isComplete",
+                "process.endEvent",
+                "process.ended",
+                "instanceOwner.partyId",
+                "lastChanged",
+                "created",
+                "visibleAfter",
+                "dueBefore",
+                "excludeConfirmedBy",
+                "size",
+                "language",
+                "status.isSoftDeleted",
+                "status.isArchived",
+                "status.isHardDeleted",
+                "status.isArchivedOrSoftDeleted",
+                "status.isActiveorSoftDeleted",
+                "sortBy",
+                "archiveReference"
+            };
+
+            string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
+
+            if (!string.IsNullOrEmpty(invalidKey))
+            {
+                throw new ArgumentException($"Invalid query parameter {invalidKey}");
+            }
+
+            if (!queryParams.ContainsKey("appId"))
+            {
+                throw new NotImplementedException($"Queries for instances must include applicationId in local test.");
+            }
+
+            string appName = queryParams["appId"].First().Split("/")[1];
+            if (!_localTestAppSelectionService.GetAppPath().Contains(appName))
+            {
+                throw new NotImplementedException($"Only possible to query active application in local test ");
+            }
+
+            List<Instance> instances = new List<Instance>();
+
+            string instancesPath = GetInstanceFolder();
+
+            if (Directory.Exists(instancesPath))
+            {
+                string[] files = Directory.GetFiles(instancesPath, "*.json");
+
+                foreach (var file in files)
                 {
-                    string content = File.ReadAllText(instanceFile.FullName);
+                    string content = File.ReadAllText(file);
                     Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    await PostProcess(instance);
-                    if (!queryParams.ContainsKey("org") || instance.Org.Equals(queryParams["org"], StringComparison.OrdinalIgnoreCase))
-                        if (!queryParams.ContainsKey("appId") || instance.AppId.Equals(queryParams["appId"], StringComparison.OrdinalIgnoreCase))
-                            if (!queryParams.ContainsKey("isHardDeleted") || instance.Status.IsHardDeleted == bool.Parse(queryParams["status.isHardDeleted"]))
-                                if (!queryParams.ContainsKey("isSoftDeleted") || instance.Status.IsSoftDeleted == bool.Parse(queryParams["status.isSoftDeleted"]))
-                                    if (!queryParams.ContainsKey("isArchived ") || instance.Status.IsArchived == bool.Parse(queryParams["status.isArchived "]))
-                                    {
-                                        response.Instances.Add(instance);
-                                        response.Count++;
-                                    }
+                    if (instance != null && instance.Id != null)
+                    {
+                        instances.Add(instance);
+                    }
                 }
             }
 
-            return response;
+            if (queryParams.ContainsKey("org"))
+            {
+                string org = queryParams.GetValueOrDefault("org").ToString();
+                instances.RemoveAll(i => !i.Org.Equals(org, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appId = queryParams.GetValueOrDefault("appId").ToString();
+                instances.RemoveAll(i => !i.AppId.Equals(appId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (queryParams.ContainsKey("instanceOwner.partyId"))
+            {
+                instances.RemoveAll(i => !queryParams["instanceOwner.partyId"].Contains(i.InstanceOwner.PartyId));
+            }
+
+            if (queryParams.ContainsKey("archiveReference"))
+            {
+                string archiveRef = queryParams.GetValueOrDefault("archiveReference").ToString();
+                instances.RemoveAll(i => !i.Id.EndsWith(archiveRef.ToLower()));
+            }
+
+            bool match;
+
+            if (queryParams.ContainsKey("status.isArchived") && bool.TryParse(queryParams.GetValueOrDefault("status.isArchived"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsArchived != match);
+            }
+
+            if (queryParams.ContainsKey("status.isHardDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isHardDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsHardDeleted != match);
+            }
+
+            if (queryParams.ContainsKey("status.isSoftDeleted") && bool.TryParse(queryParams.GetValueOrDefault("status.isSoftDeleted"), out match))
+            {
+                instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
+            }
+
+            instances.RemoveAll(i => i.Status.IsHardDeleted == true);
+
+            instances.ForEach(async i => await PostProcess(i));
+
+            return new InstanceQueryResponse
+            {
+                Instances = instances,
+                Count = instances.Count,
+            };
         }
 
         public async Task<Instance> Update(Instance instance)
@@ -116,7 +207,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetInstancePath(string instanceId)
         {
-            return Path.Combine(GetInstanceFolder() + instanceId.Replace("/","_") + ".json");
+            return Path.Combine(GetInstanceFolder() + instanceId.Replace("/", "_") + ".json");
         }
 
         private string GetInstanceFolder()

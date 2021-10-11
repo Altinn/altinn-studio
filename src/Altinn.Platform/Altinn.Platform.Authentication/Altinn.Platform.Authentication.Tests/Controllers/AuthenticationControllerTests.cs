@@ -711,7 +711,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(userProfileNotFound);
             _userProfileService.Setup(u => u.CreateUser(It.IsAny<UserProfile>())).ReturnsAsync(userProfile);
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication";
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?iss=uidp";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=uidp";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -742,7 +742,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             issClaims.Add(new Claim("sub", "XAWED"));
 
             string authorizationCode = CreateOidcCode(null, null, nonceParam, issClaims);
-            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, "https://uidp-qa.udir.no");
+            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, null);
             HttpRequestMessage redirectFromOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, redirectFromOidcProviderUri);
 
             // Act 2. This simulates the request the browser will do when user is authenticated at OIDC provider and returns to Altinn authentication.
@@ -788,7 +788,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             UserProfile userProfile = new UserProfile { UserId = 234235, PartyId = 234235, UserName = "steph" };
             _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(userProfile);
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object, true, true);
-            string redirectUri = "http://localhost/authentication/api/v1/authentication";
+            string redirectUri = "http://localhost/authentication/api/v1/authentication?iss=uidp";
 
             string url = "/authentication/api/v1/authentication?goto=" + HttpUtility.UrlEncode(gotoUrl) + "&DontChooseReportee=true&iss=uidp";
             HttpRequestMessage redirectToOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, url);
@@ -819,7 +819,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             issClaims.Add(new Claim("sub", "2346t44663423s"));
 
             string authorizationCode = CreateOidcCode(null, null, nonceParam, issClaims);
-            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, "https://uidp-qa.udir.no");
+            string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, null);
             HttpRequestMessage redirectFromOidcProviderRequest = new HttpRequestMessage(HttpMethod.Get, redirectFromOidcProviderUri);
 
             // Act 2. This simulates the request the browser will do when user is authenticated at OIDC provider and returns to Altinn authentication.
@@ -1402,7 +1402,22 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private static string GetAuthenticationUrlWithToken(string redirectUri, string state, string code, string iss)
         {
-            return redirectUri + "?state=" + state + "&code=" + code + "&iss=" + iss;
+            if (!redirectUri.Contains('?'))
+            {
+                redirectUri = redirectUri + "?";
+            }
+            else
+            {
+                redirectUri = redirectUri + "&";
+            }
+
+            redirectUri += "state=" + state + "&code=" + code;
+            if (!string.IsNullOrEmpty(iss))
+            {
+               redirectUri += "&iss=" + iss;
+            }
+
+            return redirectUri;
         }
 
         private static string CreateOidcCode(string userId, string partyId, string nonce, List<Claim> issClaims = null)

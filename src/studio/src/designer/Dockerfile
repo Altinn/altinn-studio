@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:14.17.6-alpine3.14 AS generate-studio-frontend
+FROM node:14.18.0-alpine3.14 AS generate-studio-frontend
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .
@@ -49,7 +49,7 @@ COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:14.17.6-alpine3.14 AS generate-designer-js
+FROM node:14.18.0-alpine3.14 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci
@@ -57,7 +57,9 @@ COPY src/designer/backend .
 RUN npm run gulp build
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0.401-alpine3.14 AS build
+COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
+COPY src/designer/DataModeling ./DataModeling/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://dev.altinn.studio",
+  "env": {
+    "autoTestUser": "AutoTest",
+    "noDeployUser": "automatedtest@email.com",
+    "useCaseUser": "bruksmonsterDev",
+    "deployApp": "ttd/autodeploy-v3",
+    "compilerErrorApp": "ttd/compile-error-app",
+    "designerApp": "AutoTest/auto-designer-app",
+    "withoutDataModelApp": "AutoTest/appwithout-dm",
+    "rulesApp": "AutoTest/rulesservice"
+  },
+  "defaultCommandTimeout": 20000,
+  "requestTimeout": 20000
+}
