@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.ModelMetadatalModels;
@@ -15,6 +17,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     public class JsonSchemaToMetamodelConverter
     {
         private ModelMetadata _modelMetadata;
+        IJsonSchemaAnalyzer _schemaAnalyzer;
+        JsonSchemaXsdMetadata _schemaXsdMetadata; 
 
         private string ModelName { get; set; }
 
@@ -46,6 +50,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             handler?.Invoke(this, e);
         }
 
+        ///
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSchemaToMetamodelConverter"/> class.
+        /// </summary>
+        /// <param name="schemaAnalyzer">An instance of <see cref="IJsonSchemaAnalyzer"/> used to analyze the various constructs used in the Schema.</param>
+        public JsonSchemaToMetamodelConverter(IJsonSchemaAnalyzer schemaAnalyzer)
+        {
+            _schemaAnalyzer = schemaAnalyzer;
+        }
+
         /// <summary>
         /// Converts a Json Schema string to a <see cref="ModelMetadata"/>
         /// </summary>
@@ -59,6 +73,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             _modelMetadata = new ModelMetadata();
 
             var schema = JsonSchema.FromText(jsonSchema);
+            var schemaUri = schema.GetKeyword<IdKeyword>().Id;
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(schema, schemaUri);
 
             ProcessSchema(schema);
 
@@ -297,18 +313,79 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else
             {
-                _modelMetadata.Elements.Add(
-                    context.Id,
-                    new ElementMetadata()
-                    {
-                        ID = CombineId(context.ParentId, context.Name),
-                        Name = context.Name,
-                        TypeName = string.Empty,
-                        ParentElement = context.ParentId,
-                        XPath = context.XPath,
-                        JsonSchemaPointer = path.Source
-                    });
+                ProcessRegularType(path, subSchema, context);
             }
+        }
+
+        private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            var typeName = GetTypeNameFromRef(subSchema);
+            _modelMetadata.Elements.Add(
+                context.Id,
+                new ElementMetadata()
+                {
+                    ID = CombineId(context.ParentId, context.Name),
+                    Name = context.Name,
+                    XName = ConvertToCSharpCompatibleName(context.Name),
+                    TypeName = ConvertToCSharpCompatibleName(context.Name),
+                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+                    XPath = CombineXPath(context.XPath, context.Name),
+                    JsonSchemaPointer = path.Source,
+                    MinOccurs = GetMinOccurs(subSchema),
+                    MaxOccurs = GetMaxOccurs(subSchema),
+                    Type = ElementType.Group
+                });
+        }
+
+        private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            _modelMetadata.Elements.Add(
+                context.Id,
+                new ElementMetadata()
+                {
+                    ID = CombineId(context.ParentId, context.Name),
+                    Name = context.Name,
+                    XName = ConvertToCSharpCompatibleName(context.Name),
+                    TypeName = ConvertToCSharpCompatibleName(context.Name),
+                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+                    XPath = CombineXPath(context.XPath, context.Name),
+                    JsonSchemaPointer = path.Source,
+                    MinOccurs = GetMinOccurs(subSchema),
+                    MaxOccurs = GetMaxOccurs(subSchema),
+                    Type = ElementType.Group
+                });
+        }
+
+        private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            _modelMetadata.Elements.Add(
+                context.Id,
+                new ElementMetadata()
+                {
+                    ID = CombineId(context.ParentId, context.Name),
+                    Name = context.Name,
+                    XName = ConvertToCSharpCompatibleName(context.Name),
+                    TypeName = ConvertToCSharpCompatibleName(context.Name),
+                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+                    XsdValueType = MapToXsdValueType(SchemaValueType.String),
+                    XPath = CombineXPath(context.XPath, context.Name),
+                    JsonSchemaPointer = path.Source,
+                    MinOccurs = GetMinOccurs(subSchema),
+                    MaxOccurs = GetMaxOccurs(subSchema),
+                    Type = ElementType.Field
+                });
+        }
+
+        private static int GetMinOccurs(JsonSchema subSchema)
+        {
+            var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
+            return minItemsKeyword == null ? 1 : (int)minItemsKeyword.Value;
+        }
+
+        private static int GetMaxOccurs(JsonSchema subSchema)
+        {
+            var maxitemsKeyword = subSchema.GetKeyword<MaxItemsKeyword>();
+            return maxitemsKeyword == null ? 1 : (int)maxitemsKeyword.Value;
         }
 
         private static string CombineId(string parentId, string elementName)
@@ -318,37 +395,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private static string CombineXPath(string baseXPath, string name)
         {
-            return string.IsNullOrEmpty(baseXPath) ? name : $"{baseXPath}/{name}";
-        }
-
-        private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
-        {
-            var typeName = GetTypeNameFromRef(subSchema);            
-            _modelMetadata.Elements.Add(
-                context.Id,
-                new ElementMetadata()
-                {
-                    ID = CombineId(context.ParentId, context.Name),
-                    Name = context.Name,
-                    TypeName = typeName,
-                    ParentElement = context.ParentId,
-                    XPath = CombineXPath(context.XPath, context.Name),
-                    JsonSchemaPointer = path.Source
-                });
-        }
-
-        private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema, SchemaContext context)
-        {
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata()
-            {
-                ID = CombineId(context.ParentId, context.Name),
-                Name = context.Name,
-                TypeName = context.Name,
-                ParentElement = context.ParentId,
-                XsdValueType = MapToXsdValueType(SchemaValueType.String),
-                XPath = CombineXPath(context.XPath, context.Name),
-                JsonSchemaPointer = path.Source
-            });
+            return (baseXPath == "/") ? $"/{name}" : $"{baseXPath}/{name}";
         }
 
         private BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType)

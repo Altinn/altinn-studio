@@ -3,8 +3,10 @@ using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -27,8 +29,9 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Theory]
-        [InlineData("Model/Xsd/HvemErHvem.xsd")]
-        public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath)
+        [InlineData("Model/Xsd/HvemErHvem.xsd", 11)]
+        [InlineData("Model/Xsd/SeresBasicSchema.xsd", 2)]
+        public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, int expectedElements)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
@@ -37,18 +40,20 @@ namespace Designer.Tests.Factories.ModelFactory
             // Convert the Seres XSD to JSON Schema
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
             JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
-            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
+            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true});
 
             // Convert to Metadata model
-            var metamodelConverter = new JsonSchemaToMetamodelConverter();
+            var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
             metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
             metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
             
             var metamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
 
-            var metamodelJson = System.Text.Json.JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var metamodelJson = JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } });
 
-            metamodel.Elements.Should().HaveCount(3);
+            var classes = new JsonMetadataParser().CreateModelFromMetadata(metamodel);
+
+            metamodel.Elements.Should().HaveCount(expectedElements);
 
             //var e1 = metamodel.Elements.First(e => e.Value.ID == "test.melding-modell.e1");
             //e1.Value.ParentElement.Should().Be("test.melding-modell");
