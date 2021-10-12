@@ -1,3 +1,4 @@
+using Altinn.Authorization.ABAC.Xacml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,8 @@ namespace LocalTest.Services.Localtest.Interface
 {
     public interface ILocalTestAppSelection
     {
+        public string GetAppPath(XacmlContextRequest request);
 
-        public void SetAppPath(string path);
-
-        public string GetAppPath();
+        public string GetAppPath(string app);
     }
 }
