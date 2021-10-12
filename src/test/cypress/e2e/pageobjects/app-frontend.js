@@ -99,5 +99,14 @@ export default class AppFrontend {
       subUnits: 'div[class*=AltinnParty-subUnitWrapper]',
       error: '#party-selection-error',
     };
+
+    this.selectInstance = {
+      container: '#instance-selection-container',
+      header: '#instance-selection-header',
+      description: '#instance-selection-description',
+      table: '#instance-selection-table',
+      tableBody: '#instance-selection-table-body',      
+      newInstance: '#new-instance-button'
+    };
   }
 }
