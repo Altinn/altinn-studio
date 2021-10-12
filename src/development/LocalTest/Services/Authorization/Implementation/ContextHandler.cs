@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
@@ -11,7 +12,9 @@ using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Authorization.Platform.Authorization.Models;
+
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -224,6 +227,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return attribute;
         }
 
+
         private async Task<List<Role>> GetRoles(int subjectUserId, int resourcePartyId)
         {
             string cacheKey = GetCacheKey(subjectUserId, resourcePartyId);
@@ -231,7 +235,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (!_memoryCache.TryGetValue(cacheKey, out List<Role> roles))
             {
                 // Key not in cache, so get data.
-                roles = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
+                roles = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId);
+                roles ??= new List<Role>();
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)

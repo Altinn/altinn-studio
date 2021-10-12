@@ -29,5 +29,10 @@ namespace Altinn.Platform.Authorization.Models
         /// Gets or sets the value for task attribute
         /// </summary>
         public string TaskValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value for app resource. 
+        /// </summary>
+        public string AppResourceValue { get; set; }
     }
 }

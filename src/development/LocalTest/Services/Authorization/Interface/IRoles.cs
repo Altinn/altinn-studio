@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Authorization.Interface.Models;
+
+using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {
