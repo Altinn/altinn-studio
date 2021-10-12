@@ -17,8 +17,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     public class JsonSchemaToMetamodelConverter
     {
         private ModelMetadata _modelMetadata;
-        IJsonSchemaAnalyzer _schemaAnalyzer;
-        JsonSchemaXsdMetadata _schemaXsdMetadata; 
+        private JsonSchema _schema;
+        private IJsonSchemaAnalyzer _schemaAnalyzer;
+        private JsonSchemaXsdMetadata _schemaXsdMetadata;
 
         private string ModelName { get; set; }
 
@@ -71,12 +72,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             ModelName = modelName;
 
             _modelMetadata = new ModelMetadata();
+            _schema = JsonSchema.FromText(jsonSchema);
+            var schemaUri = _schema.GetKeyword<IdKeyword>().Id;
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, schemaUri);
 
-            var schema = JsonSchema.FromText(jsonSchema);
-            var schemaUri = schema.GetKeyword<IdKeyword>().Id;
-            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(schema, schemaUri);
-
-            ProcessSchema(schema);
+            ProcessSchema(_schema);
 
             return _modelMetadata;
         }
@@ -319,26 +319,38 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            var typeName = GetTypeNameFromRef(subSchema);
-            _modelMetadata.Elements.Add(
-                context.Id,
-                new ElementMetadata()
-                {
-                    ID = CombineId(context.ParentId, context.Name),
-                    Name = context.Name,
-                    XName = ConvertToCSharpCompatibleName(context.Name),
-                    TypeName = ConvertToCSharpCompatibleName(context.Name),
-                    ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
-                    XPath = CombineXPath(context.XPath, context.Name),
-                    JsonSchemaPointer = path.Source,
-                    MinOccurs = GetMinOccurs(subSchema),
-                    MaxOccurs = GetMaxOccurs(subSchema),
-                    Type = ElementType.Group
-                });
+            var refKeyword = subSchema.GetKeyword<RefKeyword>();
+            var refPath = JsonPointer.Parse(refKeyword.Reference.ToString());
+            var refSchema = _schema.FollowReference(refPath);
+
+            ProcessSubSchema(refPath, refSchema, context);
+
+            //var typeName = GetTypeNameFromRef(subSchema);
+
+            //_modelMetadata.Elements.Add(
+            //    context.Id,
+            //    new ElementMetadata()
+            //    {
+            //        ID = CombineId(context.ParentId, context.Name),
+            //        Name = context.Name,
+            //        XName = ConvertToCSharpCompatibleName(context.Name),
+            //        TypeName = ConvertToCSharpCompatibleName(context.Name),
+            //        ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
+            //        XPath = CombineXPath(context.XPath, context.Name),
+            //        JsonSchemaPointer = path.Source,
+            //        MinOccurs = GetMinOccurs(subSchema),
+            //        MaxOccurs = GetMaxOccurs(subSchema),
+            //        Type = ElementType.Group
+            //    });
         }
 
         private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
+            if (PathAlreadyProcessed(path))
+            {
+                return;
+            }
+
             _modelMetadata.Elements.Add(
                 context.Id,
                 new ElementMetadata()
@@ -358,6 +370,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
+            if (PathAlreadyProcessed(path))
+            {
+                return;
+            }
+
             _modelMetadata.Elements.Add(
                 context.Id,
                 new ElementMetadata()
@@ -374,6 +391,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MaxOccurs = GetMaxOccurs(subSchema),
                     Type = ElementType.Field
                 });
+        }
+
+        private bool PathAlreadyProcessed(JsonPointer path)
+        {
+            return _modelMetadata.Elements.FirstOrDefault(e => e.Value.JsonSchemaPointer == path.Source).Value != null;
         }
 
         private static int GetMinOccurs(JsonSchema subSchema)
