@@ -19,6 +19,7 @@ describe('Reportee selection', () => {
         body: allowedParties,
       });
     });
+    cy.intercept('**/active', []).as('noActiveInstances');
   });
 
   it('Reportee selection in data app', () => {
