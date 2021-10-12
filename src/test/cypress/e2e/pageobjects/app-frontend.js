@@ -105,8 +105,8 @@ export default class AppFrontend {
       header: '#instance-selection-header',
       description: '#instance-selection-description',
       table: '#instance-selection-table',
-      tableBody: '#instance-selection-table-body',      
-      newInstance: '#new-instance-button'
+      tableBody: '#instance-selection-table-body',
+      newInstance: '#new-instance-button',
     };
   }
 }
