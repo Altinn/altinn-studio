@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             var rootPath = JsonPointer.Parse("#");
             var name = ConvertToCSharpCompatibleName(ModelName);
-            var context = new SchemaContext() { Id = name,  ParentId = string.Empty, Name = name };
+            var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
 
             foreach (var keyword in schema.Keywords)
             {
@@ -91,13 +91,28 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case TypeKeyword:
                     break;
 
+                case ConstKeyword:
+                    break;
+
                 case XsdNamespacesKeyword:
                     break;
 
                 case XsdSchemaAttributesKeyword:
                     break;
 
+                case XsdUnhandledAttributesKeyword:
+                    break;
+
+                case XsdUnhandledEnumAttributesKeyword:
+                    break;
+
                 case XsdTypeKeyword:
+                    break;
+
+                case XsdAttributeKeyword:
+                    break;
+
+                case XsdAnyAttributeKeyword:
                     break;
 
                 case InfoKeyword:
@@ -131,6 +146,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ProcessPropertiesKeyword(path, k, context);
                     break;
 
+                case EnumKeyword:
+                    break;
+
                 case RequiredKeyword:
                     break;
 
@@ -155,7 +173,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             foreach (var (name, definition) in definitions)
             {
-                var currentContext = new SchemaContext() { Id = GetId(context.Id, name), Name = name, ParentId = context.Id };
+                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
                 ProcessSubSchema(subSchemaPath, definition, currentContext);
@@ -214,7 +232,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             foreach (var (name, property) in keyword.Properties)
             {
-                var currentContext = new SchemaContext() { Id = GetId(context.Id, name), Name = name, ParentId = context.Id };
+                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
                 ProcessSubSchema(subSchemaPath, property, currentContext);
@@ -279,30 +297,57 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else
             {
-                _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = string.Empty, ParentElement = context.ParentId });
+                _modelMetadata.Elements.Add(
+                    context.Id,
+                    new ElementMetadata()
+                    {
+                        ID = CombineId(context.ParentId, context.Name),
+                        Name = context.Name,
+                        TypeName = string.Empty,
+                        ParentElement = context.ParentId,
+                        XPath = context.XPath,
+                        JsonSchemaPointer = path.Source
+                    });
             }
         }
 
-        private static string GetId(string parentId, string elementName)
+        private static string CombineId(string parentId, string elementName)
         {
             return string.IsNullOrEmpty(parentId) ? elementName : $"{parentId}.{elementName}";
+        }
+
+        private static string CombineXPath(string baseXPath, string name)
+        {
+            return string.IsNullOrEmpty(baseXPath) ? name : $"{baseXPath}/{name}";
         }
 
         private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             var typeName = GetTypeNameFromRef(subSchema);            
-            _modelMetadata.Elements.Add(path.Source, new ElementMetadata() { ID = GetId(context.ParentId, context.Name), Name = context.Name, TypeName = typeName, ParentElement = context.ParentId });
+            _modelMetadata.Elements.Add(
+                context.Id,
+                new ElementMetadata()
+                {
+                    ID = CombineId(context.ParentId, context.Name),
+                    Name = context.Name,
+                    TypeName = typeName,
+                    ParentElement = context.ParentId,
+                    XPath = CombineXPath(context.XPath, context.Name),
+                    JsonSchemaPointer = path.Source
+                });
         }
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema jsonSchema, SchemaContext context)
         {
             _modelMetadata.Elements.Add(path.Source, new ElementMetadata()
             {
-                ID = GetId(context.ParentId, context.Name),
+                ID = CombineId(context.ParentId, context.Name),
                 Name = context.Name,
                 TypeName = context.Name,
                 ParentElement = context.ParentId,
-                XsdValueType = MapToXsdValueType(SchemaValueType.String)
+                XsdValueType = MapToXsdValueType(SchemaValueType.String),
+                XPath = CombineXPath(context.XPath, context.Name),
+                JsonSchemaPointer = path.Source
             });
         }
 
@@ -375,6 +420,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public string ParentId { get; set; }
 
             public string Name { get; set; }
+
+            public string XPath { get; set; }
         }
     }
 }
