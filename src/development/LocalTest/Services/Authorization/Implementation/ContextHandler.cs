@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
@@ -27,17 +30,23 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     {
         private readonly IPolicyInformationRepository _policyInformationRepository;
         private readonly IRoles _rolesWrapper;
+        private readonly IMemoryCache _memoryCache;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextHandler"/> class
         /// </summary>
         /// <param name="policyInformationRepository">the policy information repository handler</param>
         /// <param name="rolesWrapper">the roles handler</param>
+        /// <param name="memoryCache">The cache handler </param>
+        /// <param name="settings">The app settings</param>
         public ContextHandler(
-            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper)
+            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _policyInformationRepository = policyInformationRepository;
             _rolesWrapper = rolesWrapper;
+            _memoryCache = memoryCache;
+            _generalSettings = settings.Value;
         }
 
         /// <summary>
@@ -76,6 +85,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.AppResourceValue) &&
+            resourceAttributes.AppResourceValue.Equals("events"))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
 
             if (!resourceAttributeComplete && !string.IsNullOrEmpty(resourceAttributes.InstanceValue))
             {
@@ -88,6 +107,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     if (instanceData.Process?.CurrentTask != null)
                     {
                         AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                    }
+                    else if (instanceData.Process?.EndEvent != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.EndEventAttribute, null, instanceData.Process.EndEvent);
                     }
 
                     AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwner.PartyId);
@@ -127,6 +150,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
                 {
                     resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppResourceAttribute))
+                {
+                    resourceAttributes.AppResourceValue = attribute.AttributeValues.First().Value;
                 }
             }
 
@@ -180,7 +208,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return;
             }
 
-            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
+            List<Role> roleList = await GetRoles(subjectUserId, resourcePartyId);
 
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
@@ -194,6 +222,30 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return attribute;
+        }
+
+        private async Task<List<Role>> GetRoles(int subjectUserId, int resourcePartyId)
+        {
+            string cacheKey = GetCacheKey(subjectUserId, resourcePartyId);
+
+            if (!_memoryCache.TryGetValue(cacheKey, out List<Role> roles))
+            {
+                // Key not in cache, so get data.
+                roles = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.RoleCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, roles, cacheEntryOptions);
+            }
+
+            return roles;
+        }
+
+        private string GetCacheKey(int userId, int partyId)
+        {
+            return "rolelist_" + userId + "_" + partyId;
         }
     }
 }
