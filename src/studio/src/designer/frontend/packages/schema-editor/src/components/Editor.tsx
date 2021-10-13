@@ -160,7 +160,7 @@ export const Editor = (props: IEditorProps) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'definitions',
-      type: '',
+      type: 'object',
     }));
   };
 
