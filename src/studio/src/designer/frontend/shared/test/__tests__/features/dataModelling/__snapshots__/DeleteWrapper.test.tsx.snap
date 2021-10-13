@@ -2,9 +2,9 @@
 
 exports[`>>> DeleteWrapper.tsx +++ Should match snapshot with the least amount of params 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root MuiButton-contained"
+  aria-label="general.delete"
+  className="MuiButtonBase-root MuiIconButton-root makeStyles-toolbarButton-1 makeStyles-iconButton-2 warn MuiIconButton-colorPrimary"
   disabled={false}
-  id="delete-button"
   onBlur={[Function]}
   onClick={[Function]}
   onDragLeave={[Function]}
@@ -21,23 +21,17 @@ exports[`>>> DeleteWrapper.tsx +++ Should match snapshot with the least amount o
   type="button"
 >
   <span
-    className="MuiButton-label"
+    className="MuiIconButton-label"
   >
-    <span
-      className="MuiButton-startIcon MuiButton-iconSizeMedium"
-    >
-      <svg
-        aria-hidden={true}
-        className="MuiSvgIcon-root"
-        focusable="false"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-        />
-      </svg>
-    </span>
-    general.delete
+    <i
+      aria-hidden={true}
+      className="ai ai-trash"
+      style={
+        Object {
+          "fontSize": 24,
+        }
+      }
+    />
   </span>
 </button>
 `;

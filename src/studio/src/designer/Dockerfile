@@ -57,7 +57,9 @@ COPY src/designer/backend .
 RUN npm run gulp build
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0.401-alpine3.14 AS build
+COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
+COPY src/designer/DataModeling ./DataModeling/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output

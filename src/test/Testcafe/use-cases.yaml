@@ -25,6 +25,8 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
+   echo testcafe version:`testcafe -v`
+
    export ENV=$(environment)
 
    export useCaseUserPwd=$(userPassword)

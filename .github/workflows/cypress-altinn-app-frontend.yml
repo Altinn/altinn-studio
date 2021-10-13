@@ -58,5 +58,5 @@ jobs:
           export CYPRESS_PROJECT_ID=y2jhp6
           export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend && npm start' 8080 'npm run test:appfrontend:headless -- --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }} --record --parallel --group altinn-app-frontend'
+          ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend && npm start' 8080 'npm run test:appfrontend:headless -- --env component=appfrontend,environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }} --record --parallel --tag "altinn-app-frontend" --group altinn-app-frontend'
         working-directory: src/test/cypress
