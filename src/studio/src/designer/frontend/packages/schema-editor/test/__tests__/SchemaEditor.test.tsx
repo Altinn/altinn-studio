@@ -162,14 +162,14 @@ describe('>>> Editor.tsx', () => {
   });
 
   it('+++ should not show add property or add reference buttons on a reference node', () => {
-    let mockProperties = {
+    const mockProperties = {
       mockItem: { $ref: '#/definitions/mockDefinition' },
     };
-    let mockDefinitions = {
+    const mockDefinitions = {
       mockDefinition: { type: 'object' },
     };
     const customState = {
-      schema: { properties: mockProperties, definitions: mockDefinitions},
+      schema: { properties: mockProperties, definitions: mockDefinitions },
       uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
     };
     mockStore = createStore(reducer,
@@ -183,14 +183,14 @@ describe('>>> Editor.tsx', () => {
   });
 
   it('+++ should not show add property or add reference buttons on a reference node that has not yet set reference', () => {
-    let mockProperties = {
+    const mockProperties = {
       mockItem: { $ref: '' },
     };
-    let mockDefinitions = {
+    const mockDefinitions = {
       mockDefinition: { type: 'object' },
     };
     const customState = {
-      schema: { properties: mockProperties, definitions: mockDefinitions},
+      schema: { properties: mockProperties, definitions: mockDefinitions },
       uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
     };
     mockStore = createStore(reducer,
