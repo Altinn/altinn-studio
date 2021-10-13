@@ -36,18 +36,16 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
-        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
-            _serviceRepositorySettings = serviceRepositorySettings;
         }
 
         /// <summary>
@@ -172,12 +170,17 @@ namespace Altinn.Studio.Designer.Controllers
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
-            var baseUrl = $"{Request.Scheme}{(Request.IsHttps ? "s" : string.Empty)}://{Request.Host}";
+            var baseUrl = GetBaseUrl();
             var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
             return Content(model, "application/json");
+        }
+
+        private string GetBaseUrl()
+        {
+            return $"{Request.Scheme}{(Request.IsHttps ? "s" : string.Empty)}://{Request.Host}";
         }
 
         /// <summary>
