@@ -25,12 +25,9 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
       textResourceBindings: {
-        title: 'Image',
+        altTextImg: 'originalAltTest'
       },
-      readOnly: false,
-      required: false,
       type: 'Image',
       image: {
         src: {},
@@ -71,12 +68,9 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
       textResourceBindings: {
-        title: 'Image',
+        altTextImg: 'originalAltTest'
       },
-      readOnly: false,
-      required: false,
       type: 'Image',
       image: {
         src: {},
@@ -115,12 +109,9 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
       textResourceBindings: {
-        title: 'Image',
+        altTextImg: 'originalAltTest'
       },
-      readOnly: false,
-      required: false,
       type: 'Image',
       image: {
         src: {},
@@ -166,13 +157,9 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
       textResourceBindings: {
-        title: 'Image',
         altTextImg: 'originalAltTest'
       },
-      readOnly: false,
-      required: false,
       type: 'Image',
       image: {
         src: {},
@@ -200,7 +187,6 @@ describe('>>> ImageComponent/SourceRow', () => {
         align: 'center',
       },
       textResourceBindings: {
-        title: 'Image',
         altTextImg: 'altTest',
       },
     });
@@ -215,7 +201,6 @@ describe('>>> ImageComponent/SourceRow', () => {
         align: 'center',
       },
       textResourceBindings: {
-        title: 'Image',
         altTextImg: null,
       },
     });
