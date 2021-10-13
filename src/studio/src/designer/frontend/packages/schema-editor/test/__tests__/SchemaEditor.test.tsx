@@ -181,4 +181,25 @@ describe('>>> Editor.tsx', () => {
     expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
+
+  it('+++ should not show add property or add reference buttons on a reference node that has not yet set reference', () => {
+    let mockProperties = {
+      mockItem: { $ref: '' },
+    };
+    let mockDefinitions = {
+      mockDefinition: { type: 'object' },
+    };
+    const customState = {
+      schema: { properties: mockProperties, definitions: mockDefinitions},
+      uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+  });
 });
