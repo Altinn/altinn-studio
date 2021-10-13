@@ -34,8 +34,8 @@ describe('>>> ImageComponent/SourceRow', () => {
       type: 'Image',
       image: {
         src: {},
-        width: '',
-        align: null as null,
+        width: '100%',
+        align: 'center',
       },
     };
 
@@ -60,8 +60,8 @@ describe('>>> ImageComponent/SourceRow', () => {
         src: {
           nb: 'placekitten.com/500/500',
         },
-        width: '',
-        align: null,
+        width: '100%',
+        align: 'center',
       },
     });
   });
@@ -80,8 +80,8 @@ describe('>>> ImageComponent/SourceRow', () => {
       type: 'Image',
       image: {
         src: {},
-        width: '',
-        align: null as null,
+        width: '100%',
+        align: 'center',
       },
     };
 
@@ -105,7 +105,7 @@ describe('>>> ImageComponent/SourceRow', () => {
       image: {
         src: {},
         width: '250px',
-        align: null,
+        align: 'center',
       },
     });
   });
@@ -124,8 +124,8 @@ describe('>>> ImageComponent/SourceRow', () => {
       type: 'Image',
       image: {
         src: {},
-        width: '',
-        align: null as null,
+        width: '100%',
+        align: 'center',
       },
     };
 
@@ -138,14 +138,25 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const select = component.find('[data-testid="image-placement-select"]').find(Select);
 
-    select.props().onChange({ value: 'center' });
+    select.props().onChange({ value: 'flex-start' });
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
       image: {
         src: {},
-        width: '',
-        align: 'center',
+        width: '100%',
+        align: 'flex-start',
+      },
+    });
+
+    select.props().onChange({ value: null });
+
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...componentData,
+      image: {
+        src: {},
+        width: '100%',
+        align: null,
       },
     });
   });
@@ -158,14 +169,15 @@ describe('>>> ImageComponent/SourceRow', () => {
       dataModelBindings: {},
       textResourceBindings: {
         title: 'Image',
+        altTextImg: 'originalAltTest'
       },
       readOnly: false,
       required: false,
       type: 'Image',
       image: {
         src: {},
-        width: '',
-        align: null as null,
+        width: '100%',
+        align: 'center',
       },
     };
 
@@ -184,12 +196,27 @@ describe('>>> ImageComponent/SourceRow', () => {
       ...componentData,
       image: {
         src: {},
-        width: '',
-        align: null,
+        width: '100%',
+        align: 'center',
       },
       textResourceBindings: {
         title: 'Image',
         altTextImg: 'altTest',
+      },
+    });
+
+    select.props().onChange({ value: null });
+
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...componentData,
+      image: {
+        src: {},
+        width: '100%',
+        align: 'center',
+      },
+      textResourceBindings: {
+        title: 'Image',
+        altTextImg: null,
       },
     });
   });

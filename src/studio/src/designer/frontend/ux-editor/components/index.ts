@@ -124,8 +124,8 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       image: {
         src: {},
-        width: '',
-        align: null,
+        width: '100%',
+        align: 'center',
       },
     },
   },
