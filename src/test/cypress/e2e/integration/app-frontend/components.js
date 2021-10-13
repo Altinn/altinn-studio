@@ -7,6 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('UI Components', () => {
   beforeEach(() => {
+    cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));
     cy.get(appFrontend.closeButton).should('be.visible');
   });

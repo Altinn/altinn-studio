@@ -13,6 +13,7 @@ describe('WCAG', () => {
   });
 
   it('WCAG test in data app', () => {
+    cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.message['header']).should('exist');

@@ -9,6 +9,10 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Redirect', () => {
+  beforeEach(() => {
+    cy.intercept('**/active', []).as('noActiveInstances');
+  });
+
   it('User missing role to start the app is displayed', () => {
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`, {
       statusCode: 403,
