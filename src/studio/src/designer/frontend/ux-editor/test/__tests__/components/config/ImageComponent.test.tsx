@@ -26,7 +26,7 @@ describe('>>> ImageComponent/SourceRow', () => {
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       textResourceBindings: {
-        altTextImg: 'originalAltTest'
+        altTextImg: 'originalAltTest',
       },
       type: 'Image',
       image: {
@@ -69,7 +69,7 @@ describe('>>> ImageComponent/SourceRow', () => {
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       textResourceBindings: {
-        altTextImg: 'originalAltTest'
+        altTextImg: 'originalAltTest',
       },
       type: 'Image',
       image: {
@@ -110,7 +110,7 @@ describe('>>> ImageComponent/SourceRow', () => {
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       textResourceBindings: {
-        altTextImg: 'originalAltTest'
+        altTextImg: 'originalAltTest',
       },
       type: 'Image',
       image: {
@@ -158,7 +158,7 @@ describe('>>> ImageComponent/SourceRow', () => {
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       textResourceBindings: {
-        altTextImg: 'originalAltTest'
+        altTextImg: 'originalAltTest',
       },
       type: 'Image',
       image: {
