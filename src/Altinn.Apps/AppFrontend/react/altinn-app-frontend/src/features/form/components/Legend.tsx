@@ -20,13 +20,32 @@ export default function Legend(props: IFormLegendProps) {
     return null;
   }
 
+  var text;
+  var placeIconTrue;
+  
+  if(props.labelText[0]['props']['children'][0]['props'] == null) {
+    text = props.labelText[0]['props']['children'][0].toString();
+    placeIconTrue = text.indexOf('{help}');
+  } else {
+    text = props.labelText[0]['props']['children'][0]['props']['children'][0].toString();
+    placeIconTrue = text.indexOf('{help}');    
+  }
+  console.log(props.labelText[0]['props']['children']);
+  console.log(text);
+  console.log(placeIconTrue);
+
+  if(placeIconTrue !== -1 && props.helpText) {
+    var first = text.substring(0, placeIconTrue);
+    var last = text.substring(placeIconTrue + 6, text.length);
+  }
+
   return (
     <>
       <label
         className='a-form-label title-label'
         htmlFor={props.id}
       >
-        {props.labelText}
+        {placeIconTrue === -1 && props.labelText}
         {(props.labelSettings?.optionalIndicator === false || props.required) ?
           null
           :
@@ -34,6 +53,7 @@ export default function Legend(props: IFormLegendProps) {
             ({getLanguageFromKey('general.optional', props.language)})
           </span>
         }
+        {placeIconTrue !== -1 && first}
         {props.helpText &&
           <HelpTextContainer
             language={props.language}
@@ -41,6 +61,7 @@ export default function Legend(props: IFormLegendProps) {
             helpText={props.helpText}
           />
         }
+        {placeIconTrue !== -1 && last}
       </label>
       {props.descriptionText &&
         <Description
