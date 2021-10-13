@@ -48,30 +48,17 @@ namespace Designer.Tests.Factories.ModelFactory
             metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
             
             var metamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
-
             var metamodelJson = JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } });
 
-            var classes = new JsonMetadataParser().CreateModelFromMetadata(metamodel);
-
             metamodel.Elements.Should().HaveCount(expectedElements);
+            metamodel.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
 
-            //var e1 = metamodel.Elements.First(e => e.Value.ID == "test.melding-modell.e1");
-            //e1.Value.ParentElement.Should().Be("test.melding-modell");
-            //e1.Value.Name.Should().Be("e1");
-            //e1.Value.TypeName.Should().Be("e1");
-            //e1.Value.XsdValueType.Should().Be(BaseValueType.String);
-            //e1.Value.XPath.Should().Be("/melding/e1");
+            // TODO: Compare against existing metadata file.
 
-            //var melding = metamodel.Elements.First(e => e.Value.ID == "test.melding-modell");
-            //melding.Value.ParentElement.Should().Be("test");
-            //melding.Value.Name.Should().Be("melding-modell");
-            //melding.Value.TypeName.Should().Be(string.Empty);
-            //melding.Value.XPath.Should().Be("melding");
-
-            //var test = metamodel.Elements.First(e => e.Value.ID == "test");
-            //test.Value.ParentElement.Should().Be(string.Empty);
-            //test.Value.Name.Should().Be("test");
-            //test.Value.TypeName.Should().Be("test");
+            // Compile the generated class to verify it compiles without errors
+            var classes = new JsonMetadataParser().CreateModelFromMetadata(metamodel);
+            var compiledAssembly = Compiler.CompileToAssembly(classes);
+            compiledAssembly.Should().NotBeNull();
         }
 
         public void KeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
