@@ -43,6 +43,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.Input: {
       return language.ux_editor.component_input;
     }
+    case ComponentTypes.Image: {
+      return language.ux_editor.component_image;
+    }
     case ComponentTypes.Datepicker: {
       return language.ux_editor.component_datepicker;
     }

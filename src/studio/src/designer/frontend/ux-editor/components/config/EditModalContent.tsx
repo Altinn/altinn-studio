@@ -17,8 +17,10 @@ import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../
 import { getTextResourceByAddressKey, AddressKeys } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
+import { ImageComponent } from './ImageComponent';
 import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelect from './HeaderSizeSelect';
+import { ComponentTypes } from '../index';
 
 const styles = {
   gridItem: {
@@ -750,6 +752,21 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
+
+      case ComponentTypes.Image: {
+        return (
+          <Grid>
+            {this.renderChangeId()}
+            <ImageComponent
+              component={this.props.component as IFormImageComponent}
+              handleComponentUpdate={this.props.handleComponentUpdate}
+              language={this.props.language}
+              textResources={this.props.textResources}
+            />
+          </Grid>
+        );
+      }
+
       default: {
         return null;
       }
