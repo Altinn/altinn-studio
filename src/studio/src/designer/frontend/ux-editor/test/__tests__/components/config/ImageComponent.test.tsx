@@ -25,9 +25,7 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {
-        altTextImg: 'originalAltTest',
-      },
+      textResourceBindings: {},
       type: 'Image',
       image: {
         src: {},
@@ -68,9 +66,7 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {
-        altTextImg: 'originalAltTest',
-      },
+      textResourceBindings: {},
       type: 'Image',
       image: {
         src: {},
@@ -109,9 +105,7 @@ describe('>>> ImageComponent/SourceRow', () => {
 
     const componentData = {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {
-        altTextImg: 'originalAltTest',
-      },
+      textResourceBindings: {},
       type: 'Image',
       image: {
         src: {},
