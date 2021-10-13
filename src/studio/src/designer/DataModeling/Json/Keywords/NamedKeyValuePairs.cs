@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
+
+using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Json.Keywords
 {
     /// <summary>
     /// A set of keyvalue pairs and the name the belong to.
     /// </summary>
-    public class NamedKeyValuePairs
+    public class NamedKeyValuePairs : IEquatable<NamedKeyValuePairs>
     {
         private readonly List<(string key, string value)> _properties;
 
@@ -39,6 +42,37 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         public void Add(string key, string value)
         {
             _properties.Add((key, value));
+        }
+
+        /// <summary>
+        /// Compare this object to another object of the same type and determine if they hold the same values.
+        /// </summary>
+        /// <param name="obj">The object to compare with.</param>
+        /// <returns>true of the objects hold the same values. false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NamedKeyValuePairs);
+        }
+
+        /// <summary>
+        /// Compare this object to another object of the same type and determine if they hold the same values.
+        /// </summary>
+        /// <param name="other">The object to compare with.</param>
+        /// <returns>true of the objects hold the same values. false otherwise.</returns>
+        public bool Equals(NamedKeyValuePairs other)
+        {
+            return other != null &&
+                   Name == other.Name &&
+                   Properties.ContentsEqual(other.Properties);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Properties);
         }
     }
 }
