@@ -149,7 +149,7 @@ export const Editor = (props: IEditorProps) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',
-      type: (type === 'field' ? '' : undefined),
+      type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
     }));
     setMenuAnchorEl(null);
