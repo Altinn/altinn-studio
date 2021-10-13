@@ -1,8 +1,8 @@
-import { Grid } from '@material-ui/core';
+import { Grid, Typography } from '@material-ui/core';
 import * as React from 'react';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
 import Select from 'react-select';
-
+import AltinnInputField from 'app-shared/components/AltinnInputField';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { renderSelectTextFromResources, renderPropertyLabel, selectStyles } from '../../utils/render';
 
 type ImageComponentProps = {
@@ -127,6 +127,23 @@ export const ImageComponent = ({
             placeholder=''
           />
         </div>
+      </Grid>
+
+      <Grid
+        item={true}
+        xs={12}
+      >
+        <Typography>
+          <a
+            target='_blank'
+            rel='noopener noreferrer'
+            href='https://docs.altinn.studio/app/development/ux/images/'
+          >
+            {getLanguageFromKey(
+              'ux_editor.modal_properties_image_read_more', language,
+            )}
+          </a>
+        </Typography>
       </Grid>
     </Grid>);
 };
