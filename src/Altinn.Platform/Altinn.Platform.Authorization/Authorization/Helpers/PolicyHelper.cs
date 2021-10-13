@@ -105,6 +105,77 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Group RuleMatch objects so there is one group for each unique policypath so they can be processesed in one update 
+        /// </summary>
+        /// <param name="input">The list of RuleMAtches to group</param>
+        /// <param name="invalidEntries">List of elements failed to create an policy path for</param>
+        /// <returns>Dictionary with one key for each policy path</returns>
+        public static Dictionary<string, List<RuleMatch>> GroupRuleMatches(List<RuleMatch> input, out List<RuleMatch> invalidEntries)
+        {
+            Dictionary<string, List<RuleMatch>> result = new Dictionary<string, List<RuleMatch>>();
+            invalidEntries = new List<RuleMatch>();
+
+            foreach (RuleMatch ruleMatch in input)
+            {
+                if (!DelegationHelper.TryGetResourceFromAttributeMatch(ruleMatch.Resource, out string org, out string app))
+                {
+                    invalidEntries.Add(ruleMatch);
+                    continue;
+                }
+
+                string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, ruleMatch.OfferedByPartyId.ToString(), (ruleMatch.CoveredByUserId ?? ruleMatch.CoveredByPartyId)?.ToString());
+
+                List<RuleMatch> currentRulkeMatch;
+
+                if (result.ContainsKey(policyPath))
+                {
+                    currentRulkeMatch = result[policyPath];
+                }
+                else
+                {
+                    currentRulkeMatch = new List<RuleMatch>();
+                    result[policyPath] = currentRulkeMatch;
+                }
+
+                currentRulkeMatch.Add(ruleMatch);               
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a Rule represantation based on data used to match the rule in the XacmlPolicyFile and the match in this file
+        /// </summary>
+        /// <param name="search">The sarch to find the correct rule</param>
+        /// <param name="rule">the matched XacmlRule</param>
+        /// <returns>The created Rule</returns>
+        public static Rule CreateRuleFromPolicyAndRuleMatch(RuleMatch search, XacmlRule rule)
+        {
+            Rule result = new Rule();
+
+            result.RuleId = search.RuleId;
+            result.CreatedSuccessfully = true;
+            result.DelegatedByUserId = search.LastChangedByUserId;
+            result.OfferedByPartyId = search.OfferedByPartyId;
+            result.CoveredBy = new List<AttributeMatch>();
+            if (search.CoveredByUserId != null)
+            {
+                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:userid", Value = search.CoveredByUserId.ToString() });
+            }
+
+            if (search.CoveredByPartyId != null)
+            {
+                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:partyid", Value = search.CoveredByUserId.ToString() });
+            }
+
+            result.Resource = search.Resource;
+
+            result.Action = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = PolicyHelper.GetActionValueFromRule(rule) };
+            
+            return result;
+        }
+
+        /// <summary>
         /// Builds the delegation policy path based on org and app names, as well as identifiers for the delegating and receiving entities
         /// </summary>
         /// <param name="org">The organization name/identifier</param>
@@ -371,6 +442,27 @@ namespace Altinn.Platform.Authorization.Helpers
                     }
                 }
             }
+        }
+
+        private static string GetActionValueFromRule(XacmlRule rule)
+        {
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    AttributeMatch actionAttributeMatch = new AttributeMatch();
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+                        {
+                            actionAttributeMatch.Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString;
+                            return xacmlMatch.AttributeValue.Value;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static List<ResourceAction> GetActionsFromRule(XacmlRule rule, List<RoleGrant> roles)

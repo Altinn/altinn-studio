@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authorization.Repositories
     {
         private readonly string _connectionString;
         private readonly ILogger _logger;
-        private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performingUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_policyChangeId)";
+        private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performingUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_isDeleted, @_policyChangeId)";
         private readonly string getCurrentDelegationChangeSql = "select * from delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
         private readonly string getAllDelegationChangesSql = "select * from delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
 
@@ -38,7 +38,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId)
+        public async Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted = false)
         {
             try
             {
@@ -53,6 +53,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 pgcom.Parameters.AddWithValue("_performingUserId", delegatedByUserId);
                 pgcom.Parameters.AddWithValue("_blobStoragePolicyPath", blobStoragePolicyPath);
                 pgcom.Parameters.AddWithValue("_blobStorageVersionId", blobStorageVersionId);
+                pgcom.Parameters.AddWithValue("_isDeleted", isDeleted);
 
                 pgcom.Parameters.AddWithValue("_policyChangeId", 0); // Must be included since it's specified in stored proc, but so far unable to get inserted value back.
 

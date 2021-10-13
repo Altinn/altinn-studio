@@ -76,6 +76,36 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Gets Org, App as out params from a single Resource
+        /// </summary>
+        /// <param name="input">The resource</param>
+        /// <param name="org">the org</param>
+        /// <param name="app">the app</param>
+        /// <returns>A bool indicating whether params where found</returns>
+        public static bool TryGetResourceFromAttributeMatch(List<AttributeMatch> input, out string org, out string app)
+        {
+            org = null;
+            app = null;
+
+            try
+            {
+                org = input.First(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
+                app = input.First(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
+
+                if (!string.IsNullOrWhiteSpace(org) && !string.IsNullOrWhiteSpace(app))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                //Todo: logging?
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Gets Org, App, OfferedBy and CoveredBy as out params from a single Rule
         /// </summary>
         /// <returns>A bool indicating whether params where found</returns>

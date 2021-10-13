@@ -99,13 +99,49 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Endpoint for deleting delegated rules between parties
         /// </summary>
+        /// <response code="201" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
         [HttpPost]
+        ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
         [Route("authorization/api/v1/[controller]/DeleteRules")]
-        public async Task<ActionResult> DeleteRules([FromBody] List<string> ruleIds)
+        public async Task<ActionResult> DeleteRules([FromBody] List<RuleMatch> ruleMatches)
         {
+            if (ruleMatches == null || ruleMatches.Count < 1)
+            {
+                return BadRequest("Missing ruleMatches in body");
+            }
+
+            if (ruleMatches.All(r => string.IsNullOrWhiteSpace(r.RuleId)))
+            {
+                return BadRequest("Not all ruleMAtches has RuleId");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid model");
+            }
+
             try
             {
-                return StatusCode(404, "Not yet implemented");
+                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(ruleMatches);
+
+                if (deletionResults.Count == ruleMatches.Count )
+                {
+                    _logger.LogInformation("Deletion completed");
+                    return Created("Created", deletionResults);
+                }
+
+                if (deletionResults.Count > 0)
+                {
+                    _logger.LogInformation("Partial deletion completed");
+                    return StatusCode(206, deletionResults);
+                }
+
+                _logger.LogInformation("Deletion could not be completed");
+                return StatusCode(500, $"Unable to complete deletion");
+
             }
             catch (Exception e)
             {
@@ -119,16 +155,42 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         [HttpPost]
         [Route("authorization/api/v1/[controller]/DeletePolicy")]
-        public async Task<ActionResult> DeletePolicy([FromBody] RuleMatch policyMatch)
+        public async Task<ActionResult> DeletePolicy([FromBody] List<RuleMatch> policyMatches)
         {
+            if (policyMatches == null || policyMatches.Count < 1)
+            {
+                return BadRequest("Missing ruleMatches in body");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid model");
+            }
+
             try
             {
-                return StatusCode(404, "Not yet implemented");
+                List<RuleMatch> deletionResults = await _pap.TryDeleteDelegationPolicies(policyMatches);
+
+                if (deletionResults.Count == policyMatches.Count)
+                {
+                    _logger.LogInformation("Deletion completed");
+                    return Created("Created", deletionResults);
+                }
+
+                if (deletionResults.Count > 0)
+                {
+                    _logger.LogInformation("Partial deletion completed");
+                    return StatusCode(206, deletionResults);
+                }
+
+                _logger.LogInformation("Deletion could not be completed");
+                return StatusCode(500, $"Unable to complete deletion");
+
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to delete delegated policy. {e}");
-                return StatusCode(500, $"Unable to delete delegated policy. {e}");
+                _logger.LogError($"Unable to delete rules. {e}");
+                return StatusCode(500, $"Unable to delete rules. {e}");
             }
         }
 

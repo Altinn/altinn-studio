@@ -20,8 +20,9 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="delegatedByUserId">The user id of the entity performing the delegation of the policy</param>
         /// <param name="blobStoragePolicyPath">The path to the blobstorage location of the policy file</param>
         /// <param name="blobStorageVersionId">The current blobstorage version</param>
+        /// <param name="isDeleted">Value indicating the policy is delted</param>
         /// <returns>A bool value representing the whether the result of the asynchronous operation was successful</returns>
-        Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId);
+        Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted = false);
 
         /// <summary>
         /// Gets the latest delegation change

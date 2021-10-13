@@ -9,7 +9,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class PolicyDelegationRepositoryMock : IPolicyDelegationRepository
     {
-        public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId)
+        public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted)
         {
             if (offeredByPartyId != 0)
             {
