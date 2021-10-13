@@ -12,22 +12,6 @@ type ImageComponentProps = {
   textResources: any;
 }
 
-const gridJustificationOptions = [
-  'flex-start',
-  'center',
-  'flex-end',
-  'space-between',
-  'space-around',
-  'space-evenly',
-];
-
-const alignOptions = gridJustificationOptions.map((x) => {
-  return {
-    value: x,
-    label: x,
-  };
-});
-
 export const ImageComponent = ({
   component,
   language,
@@ -35,6 +19,21 @@ export const ImageComponent = ({
   textResources,
 }
   : ImageComponentProps) => {
+  const alignOptions = [
+    {
+      value: 'flex-start',
+      label: language.ux_editor.modal_properties_image_placement_left,
+    },
+    {
+      value: 'center',
+      label: language.ux_editor.modal_properties_image_placement_center,
+    },
+    {
+      value: 'flex-end',
+      label: language.ux_editor.modal_properties_image_placement_right,
+    },
+  ];
+
   const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
   const nbSrc = component.image?.src?.nb;
 
