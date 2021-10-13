@@ -48,7 +48,7 @@ namespace Altinn.Platform.Authorization.Models
         /// <summary>
         /// Gets or sets blobstoragepolicypath.
         /// </summary>
-        [JsonPropertyName("performinguserid")]
+        [JsonPropertyName("blobstoragepolicypath")]
         public string BlobStoragePolicyPath { get; set; }
 
         /// <summary>

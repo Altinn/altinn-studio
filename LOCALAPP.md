@@ -120,3 +120,33 @@ Currently we have not been able to provide a 100% common setup between Windows a
 The app and local platform services are now running locally. The app can be accessed on <http://altinn3local.no>.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
+
+### Configuration of test data
+
+In some cases your application might differ from the default setup and require custom changes to the test data available. 
+This section contains the most common changes.
+
+#### Adjust authentication level of logged in test user
+This would be required if your app requires a higher than default authentication level. You can also use this to give the user a lower authentication level if you want to test the app behaviour for those.
+1. Open the `src/development/LocalTest/Controllers/HomeController.cs` in your preffered text editor or IDE. 
+2. Find the function `LogInTestUser` 
+3. Modify this line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
+by exchanging `"2"` for a string containing your required authentication level.
+4. Save and close the file
+5. Restart LocalTest
+
+#### Add a missing role for a test user
+This would be required if your app requires a role which none of the test users have.
+1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of the entity you want to represent
+2. Find the correct `roles.json` file in `C:\Repos\altinn-studio\src\development\TestData\authorization\roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
+3. Add a new entry in the list for the role you require 
+
+  ```
+  {
+    "Type": "altinn",
+    "value": "[Insert role code here]"
+  }
+  ```
+4. Save and close the file
+5. Restart LocalTest
+
