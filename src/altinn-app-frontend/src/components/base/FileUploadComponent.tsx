@@ -94,16 +94,13 @@ export function FileUploadComponent(props: IFileUploadProps) {
   }, [currentAttachments]);
 
   const getComponentValidations = (): IComponentValidations => {
-    let validationMessages = props.componentValidations;
-    validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
-    if (!validationMessages || !validationMessages.simpleBinding) {
-      validationMessages = {
-        simpleBinding: {
-          errors: [],
-          warnings: [],
-        },
-      };
-    }
+    const validationMessages = {
+      simpleBinding: {
+        errors: [...(props.componentValidations?.simpleBinding?.errors || [])],
+        warnings: [...(props.componentValidations?.simpleBinding?.warnings || [])],
+        fixed: [...(props.componentValidations?.simpleBinding?.fixed || [])],
+      },
+    };
     if (!validations || validations.length === 0) {
       return validationMessages;
     }
