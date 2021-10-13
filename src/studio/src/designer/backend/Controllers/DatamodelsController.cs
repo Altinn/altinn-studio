@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
@@ -21,6 +21,7 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -35,16 +36,18 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
+        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
+            _serviceRepositorySettings = serviceRepositorySettings;
         }
 
         /// <summary>
@@ -165,11 +168,12 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
-            var locationUrl = $"designer/api/{org}/{repository}/datamodels/{relativePath}";
-            
+            // Sets the location header and content-type manually instead of using CreatedAtAction
+            // because the latter overrides the content type and sets it to text/plain.
+            var baseUrl = $"{Request.Scheme}{(Request.IsHttps ? "s" : string.Empty)}://{Request.Host}";
+            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
