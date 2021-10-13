@@ -140,7 +140,7 @@ describe('>>> ImageComponent/SourceRow', () => {
       },
     });
 
-    select.props().onChange({ value: null });
+    select.props().onChange();
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
@@ -191,7 +191,7 @@ describe('>>> ImageComponent/SourceRow', () => {
       },
     });
 
-    select.props().onChange({ value: null });
+    select.props().onChange();
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
