@@ -148,7 +148,7 @@ describe('>>> DataModelling.tsx', () => {
     expect(store.dispatch).toHaveBeenCalledTimes(2);
     expect(store.dispatch).toHaveBeenCalledWith(
       {
-        type: 'dataModelling/createNewDataModel',
+        type: 'dataModelling/createDataModel',
         payload: {
           modelName: 'test',
         },

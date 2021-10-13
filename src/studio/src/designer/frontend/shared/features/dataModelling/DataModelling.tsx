@@ -3,7 +3,7 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { SchemaEditor } from '@altinn/schema-editor/index';
 import { ILanguage } from '@altinn/schema-editor/types';
 import { getLanguageFromKey } from '../../utils/language';
-import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
+import { deleteDataModel, fetchDataModel, createDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import { sharedUrls } from '../../utils/urlHelper';
@@ -55,7 +55,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
 
   const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().getDataModellingUrl(
+    const $id = sharedUrls().getDataModelUrl(
       selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`,
     );
     dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
@@ -67,7 +67,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   };
 
   const createAction = (modelName: string) => {
-    dispatch(createNewDataModel({ modelName }));
+    dispatch(createDataModel({ modelName }));
     setSelectedOption({ label: modelName });
   };
 
