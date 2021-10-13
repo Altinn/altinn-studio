@@ -396,7 +396,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.type) {
-      case 'Header': {
+      case ComponentTypes.Header: {
         return (
           <HeaderSizeSelect
             renderChangeId={this.renderChangeId}
@@ -408,9 +408,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           />
         );
       }
-      case 'Datepicker':
-      case 'TextArea':
-      case 'Input': {
+      case ComponentTypes.Datepicker:
+      case ComponentTypes.TextArea:
+      case ComponentTypes.Input: {
         return (
           <>
             {this.renderChangeId()}
@@ -444,7 +444,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </>
         );
       }
-      case 'AttachmentList': {
+      case ComponentTypes.AttachmentList: {
         return (
           <Grid>
             {this.renderChangeId()}
@@ -457,7 +457,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-      case 'Paragraph': {
+      case ComponentTypes.Paragraph: {
         return (
           <Grid>
             {this.renderChangeId()}
@@ -470,8 +470,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-      case 'Checkboxes':
-      case 'RadioButtons': {
+      case ComponentTypes.Checkboxes:
+      case ComponentTypes.RadioButtons: {
         return (
           <>
             {this.renderChangeId()}
@@ -494,7 +494,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </>
         );
       }
-      case 'Dropdown': {
+      case ComponentTypes.Dropdown: {
         const component: IFormDropdownComponent = this.state.component as IFormDropdownComponent;
         return (
           <Grid container={true}>
@@ -552,8 +552,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-      case 'NavigationButtons':
-      case 'Button': {
+      case ComponentTypes.NavigationButtons:
+      case ComponentTypes.Button: {
         const types = [
           {
             value: 'Button',
@@ -589,7 +589,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         );
       }
 
-      case 'AddressComponent': {
+      case ComponentTypes.AddressComponent: {
         return (
           <Grid
             container={true}
@@ -634,7 +634,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         );
       }
 
-      case 'FileUpload': {
+      case ComponentTypes.FileUpload: {
         const component = (this.props.component as IFormFileUploaderComponent);
         return (
           <Grid>
