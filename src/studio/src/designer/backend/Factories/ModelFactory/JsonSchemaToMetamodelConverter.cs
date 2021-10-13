@@ -135,11 +135,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     break;
 
                 case DefinitionsKeyword k:
-                    ProcessDefinitionsKeyword(path, k, context);
+                    //ProcessDefinitionsKeyword(path, k, context);
                     break;
 
                 case DefsKeyword k:                    
-                    ProcessDefsKeyword(path, k, context);
+                    //ProcessDefsKeyword(path, k, context);
                     break;
 
                 case RefKeyword k:
