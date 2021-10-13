@@ -6,7 +6,6 @@ import { getLanguageFromKey } from '../../utils/language';
 import { deleteDataModel, fetchDataModel, createDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
-import { sharedUrls } from '../../utils/urlHelper';
 import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { AltinnSpinner } from '../../components';
@@ -55,15 +54,12 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
 
   const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().getDataModelUrl(
-      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`,
-    );
-    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
+    dispatch(saveDataModel({ schema, metadata: selectedOption }));
   };
 
   const onDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption }));
-    onSchemaSelected(null);
+    setSelectedOption(null);
   };
 
   const createAction = (modelName: string) => {
