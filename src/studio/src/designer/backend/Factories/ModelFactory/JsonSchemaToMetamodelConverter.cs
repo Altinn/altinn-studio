@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     {
         private ModelMetadata _modelMetadata;
         private JsonSchema _schema;
-        private IJsonSchemaAnalyzer _schemaAnalyzer;
+        private readonly IJsonSchemaAnalyzer _schemaAnalyzer;
         private JsonSchemaXsdMetadata _schemaXsdMetadata;
 
         private string ModelName { get; set; }
@@ -241,7 +241,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
-            }
+            }         
         }
 
         private void ProcessPropertiesKeyword(JsonPointer path, PropertiesKeyword keyword, SchemaContext context)
@@ -250,7 +250,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
-
                 ProcessSubSchema(subSchemaPath, property, currentContext);
             }
         }
@@ -266,7 +265,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (IsPrimitiveType(subSchema))
             {
-                ProcessPrimitiveType(path, subSchema, context);   
+                ProcessPrimitiveType(path, subSchema, context);
+            }
+            else if (IsEnumType(path))
+            {
+                // TODO: Handle enums
+            }
+            else if (IsNillableType(path))
+            {
+                // TODO: Handle nillable
             }
             else
             {
@@ -274,6 +281,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
+        }
+
+        private bool IsNillableType(JsonPointer path)
+        {
+            return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable);
+        }
+
+        private bool IsEnumType(JsonPointer path)
+        {
+            return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleTypeRestriction);
         }
 
         private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -285,24 +302,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            switch (typeKeyword.Type)
-            {
-                case SchemaValueType.Boolean:
-                    break;
+            context.SchemaValueType = typeKeyword.Type;
+            AddElement(path, subSchema, context);
 
-                case SchemaValueType.Integer:
-                    break;
+            //switch (typeKeyword.Type)
+            //{
+            //    case SchemaValueType.Boolean:
+            //        break;
 
-                case SchemaValueType.Number:
-                    break;
+            //    case SchemaValueType.Integer:
+            //        break;
 
-                case SchemaValueType.String:
-                    ProcessStringPrimitiveType(path, subSchema, context);
-                    break;
+            //    case SchemaValueType.Number:
+            //        break;
 
-                default:
-                    return;
-            }
+            //    case SchemaValueType.String:                    
+            //        ProcessStringPrimitiveType(path, subSchema, context);
+            //        break;
+
+            //    default:
+            //        return;
+            //}
         }
 
         private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -324,38 +344,22 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var refSchema = _schema.FollowReference(refPath);
 
             ProcessSubSchema(refPath, refSchema, context);
-
-            //var typeName = GetTypeNameFromRef(subSchema);
-
-            //_modelMetadata.Elements.Add(
-            //    context.Id,
-            //    new ElementMetadata()
-            //    {
-            //        ID = CombineId(context.ParentId, context.Name),
-            //        Name = context.Name,
-            //        XName = ConvertToCSharpCompatibleName(context.Name),
-            //        TypeName = ConvertToCSharpCompatibleName(context.Name),
-            //        ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
-            //        XPath = CombineXPath(context.XPath, context.Name),
-            //        JsonSchemaPointer = path.Source,
-            //        MinOccurs = GetMinOccurs(subSchema),
-            //        MaxOccurs = GetMaxOccurs(subSchema),
-            //        Type = ElementType.Group
-            //    });
         }
 
         private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            if (PathAlreadyProcessed(path))
+            var id = CombineId(context.ParentId, context.Name);
+
+            if (PathAlreadyProcessed(path) || IdAlreadyAdded(id))
             {
                 return;
             }
 
             _modelMetadata.Elements.Add(
-                context.Id,
+                id,
                 new ElementMetadata()
                 {
-                    ID = CombineId(context.ParentId, context.Name),
+                    ID = id,
                     Name = context.Name,
                     XName = ConvertToCSharpCompatibleName(context.Name),
                     TypeName = ConvertToCSharpCompatibleName(context.Name),
@@ -369,6 +373,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         }
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {            
+            AddElement(path, subSchema, context);
+        }
+
+        private void AddElement(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             if (PathAlreadyProcessed(path))
             {
@@ -384,7 +393,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     XName = ConvertToCSharpCompatibleName(context.Name),
                     TypeName = ConvertToCSharpCompatibleName(context.Name),
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
-                    XsdValueType = MapToXsdValueType(SchemaValueType.String),
+                    XsdValueType = MapToXsdValueType(context.SchemaValueType),
                     XPath = CombineXPath(context.XPath, context.Name),
                     JsonSchemaPointer = path.Source,
                     MinOccurs = GetMinOccurs(subSchema),
@@ -396,6 +405,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private bool PathAlreadyProcessed(JsonPointer path)
         {
             return _modelMetadata.Elements.FirstOrDefault(e => e.Value.JsonSchemaPointer == path.Source).Value != null;
+        }
+
+        private bool IdAlreadyAdded(string id)
+        {
+            return _modelMetadata.Elements.FirstOrDefault(e => e.Key == id).Value != null;
         }
 
         private static int GetMinOccurs(JsonSchema subSchema)
@@ -420,12 +434,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return (baseXPath == "/") ? $"/{name}" : $"{baseXPath}/{name}";
         }
 
-        private BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType)
+        private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType)
         {
             switch (jsonValueType)
             {
                 case SchemaValueType.String:
                     return BaseValueType.String;
+                case SchemaValueType.Boolean:
+                    return BaseValueType.Boolean;
+                case SchemaValueType.Number:
+                    return BaseValueType.Decimal;
+                case SchemaValueType.Integer:
+                    return BaseValueType.Integer;
                 default:
                     return null;
             }
@@ -491,6 +511,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public string Name { get; set; }
 
             public string XPath { get; set; }
+
+            public SchemaValueType SchemaValueType { get; set; }
         }
     }
 }
