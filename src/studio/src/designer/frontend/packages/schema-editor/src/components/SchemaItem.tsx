@@ -148,7 +148,7 @@ function SchemaItem(props: SchemaItemProps) {
   const handleAddProperty = (type: PropertyType) => {
     dispatch(addProperty({
       path: itemToDisplay.path,
-      type: (type === 'field' ? '' : undefined),
+      type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
     }));
   };
@@ -192,7 +192,7 @@ function SchemaItem(props: SchemaItemProps) {
         language={props.language}
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
-        onAddProperty={(item.$ref !== undefined && isPropertiesView) ? undefined : handleAddProperty}
+        onAddProperty={(item.type !== 'object') ? undefined : handleAddProperty}
         onDelete={handleDeleteClick}
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
