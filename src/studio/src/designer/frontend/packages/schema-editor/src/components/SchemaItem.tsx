@@ -192,9 +192,9 @@ function SchemaItem(props: SchemaItemProps) {
         language={props.language}
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
-        onAddProperty={(item.$ref && isPropertiesView) ? undefined : handleAddProperty}
+        onAddProperty={(item.$ref !== undefined && isPropertiesView) ? undefined : handleAddProperty}
         onDelete={handleDeleteClick}
-        onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+        onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
         key={`${item.path}-label`}
       />}
