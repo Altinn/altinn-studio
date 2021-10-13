@@ -92,7 +92,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model, will be used as filename.</param>
-        /// <returns></returns>
+        /// <returns>A string containging the relative path to the file saved.</returns>
         public async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
             string relativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");

@@ -169,7 +169,7 @@ namespace Altinn.Studio.Designer.Controllers
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
             var locationUrl = $"designer/api/{org}/{repository}/datamodels/{relativePath}";
-
+            
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
