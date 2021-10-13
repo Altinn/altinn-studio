@@ -161,7 +161,7 @@ describe('>>> Editor.tsx', () => {
     });
   });
 
-  it('+++ should now show add property or add reference buttons on a reference node', () => {
+  it('+++ should not show add property or add reference buttons on a reference node', () => {
     let mockProperties = {
       mockItem: { $ref: '#/definitions/mockDefinition' },
     };
