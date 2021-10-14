@@ -166,6 +166,7 @@ export default function () {
       var sleptSeconds = 0;
       var stepSleepCounter = 1;
       for (var i = 1; i <= 10; i++) {
+        sleep(stepSleepCounter);
         res = appProcess.getCurrentProcess(userToken, partyId, instanceId, appOwner, appName);
         success = check(res, {
           'Get Current process - status is 200': (r) => r.status === 200,
@@ -174,7 +175,6 @@ export default function () {
         if (res.json('ended') != null) break;
 
         stepSleepCounter = stepSleepCounter * 2;
-        sleep(stepSleepCounter);
         sleptSeconds = sleptSeconds + stepSleepCounter;
         if (sleptSeconds >= waitForTE) stopIterationOnFail('Instance is not archived by TE', null, null);
       }
