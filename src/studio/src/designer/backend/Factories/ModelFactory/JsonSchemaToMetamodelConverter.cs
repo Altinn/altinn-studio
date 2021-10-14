@@ -408,8 +408,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MinOccurs = GetMinOccurs(subSchema),
                     MaxOccurs = GetMaxOccurs(subSchema),
                     Type = GetType(subSchema),
-                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema)
+                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
+                    FixedValue = GetFixedValue(subSchema)
                 });
+        }
+
+        private static string GetFixedValue(JsonSchema subSchema)
+        {
+            var constKeyword = subSchema.GetKeyword<ConstKeyword>();
+            if (constKeyword != null)
+            {
+                return constKeyword.Value.GetString();
+            }
+
+            return null;
         }
 
         private static ElementType GetType(JsonSchema subSchema)
