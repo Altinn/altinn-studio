@@ -192,7 +192,7 @@
         {
           "maxLength": 10,
           "maximum": 100,
-          "minimum": -100
+          "minimum": -100.3
         }
       ]
     },
@@ -204,7 +204,7 @@
         },
         {
           "maxLength": 10,
-          "exclusiveMaximum": 100,
+          "exclusiveMaximum": 100.5,
           "exclusiveMinimum": -100
         }
       ]
