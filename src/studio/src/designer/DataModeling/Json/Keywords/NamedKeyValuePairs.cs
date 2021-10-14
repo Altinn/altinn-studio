@@ -8,7 +8,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     /// <summary>
     /// A set of keyvalue pairs and the name the belong to.
     /// </summary>
-    public class NamedKeyValuePairs : IEquatable<NamedKeyValuePairs>
+    public sealed class NamedKeyValuePairs : IEquatable<NamedKeyValuePairs>
     {
         private readonly List<(string key, string value)> _properties;
 
