@@ -56,7 +56,7 @@ RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.401-alpine3.14 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.402-alpine3.14 AS build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
 COPY src/designer/DataModeling ./DataModeling/
