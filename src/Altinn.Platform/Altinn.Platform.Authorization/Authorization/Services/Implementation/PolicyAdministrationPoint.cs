@@ -26,7 +26,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly ILogger<IPolicyAdministrationPoint> _logger;
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyRepository _policyRepository;
-        private readonly IPolicyDelegationRepository _delegationRepository;
+        private readonly IDelegationMetadataRepository _delegationRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
 
@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="memoryCache">The cache handler</param>
         /// <param name="settings">The app settings</param>
         /// <param name="logger">Logger instance</param>
-        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings, ILogger<IPolicyAdministrationPoint> logger)
+        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings, ILogger<IPolicyAdministrationPoint> logger)
         {
             _prp = policyRetrievalPoint;
             _policyRepository = policyRepository;

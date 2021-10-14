@@ -11,8 +11,8 @@ namespace Altinn.Platform.Authorization.Constants
         public const string POLICY_STUDIO_DESIGNER = "StudioDesignerAccess";
 
         /// <summary>
-        /// Policy tag for authorizing delegation api access from AltinnII
+        /// Policy tag for authorizing Altinn.Platform.Authorization API access from AltinnII Authorization
         /// </summary>
-        public const string DELEGATIONS_ALTINNII = "DelegationsAltinnIIAccess";
+        public const string ALTINNII_AUTHORIZATION = "AltinnIIAuthorizationAccess";
     }
 }
