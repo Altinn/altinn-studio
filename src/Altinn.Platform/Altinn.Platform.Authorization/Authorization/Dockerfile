@@ -7,7 +7,7 @@ WORKDIR Authorization/
 RUN dotnet build Altinn.Platform.Authorization.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Authorization.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.10-alpine3.14 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.11-alpine3.14 AS final
 EXPOSE 5030
 WORKDIR /app
 COPY --from=build /app_output .
