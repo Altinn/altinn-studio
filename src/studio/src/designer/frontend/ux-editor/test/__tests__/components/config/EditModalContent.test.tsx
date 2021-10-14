@@ -5,6 +5,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { EditModalContent, EditModalContentComponent } from '../../../../components/config/EditModalContent';
+import { ImageComponent } from '../../../../components/config/ImageComponent';
 
 describe('>>> containers/EditModalContent', () => {
   let mockComponent: any;
@@ -23,6 +24,10 @@ describe('>>> containers/EditModalContent', () => {
         modal_header_type_h2: 'H2',
         modal_header_type_h3: 'H3',
         modal_header_type_h4: 'H4',
+        modal_properties_image_src_value_label: 'Source',
+        modal_properties_image_placement_label: 'Placement',
+        modal_properties_image_alt_text_label: 'Alt text',
+        modal_properties_image_width_label: 'Width',
       },
     };
     mockComponent = {
@@ -187,5 +192,53 @@ describe('>>> containers/EditModalContent', () => {
       </Provider>,
     );
     expect(mountedEditModalContent.find('input').length).toBe(3);
+  });
+
+  it('+++ should render Image component when component type is Image', () => {
+    const componentData = {
+      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+      dataModelBindings: {},
+      textResourceBindings: {
+        title: 'Input',
+      },
+      readOnly: false,
+      required: false,
+      type: 'Image',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={componentData}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+        />
+      </Provider>,
+    );
+
+    expect(mountedEditModalContent.find(ImageComponent).length).toBe(1);
+  });
+
+  it('+++ should not render Image component when component type is not Image', () => {
+    const componentData = {
+      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'Button',
+      },
+      type: 'Button',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={componentData}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+        />
+      </Provider>,
+    );
+
+    expect(mountedEditModalContent.find(ImageComponent).length).toBe(0);
   });
 });
