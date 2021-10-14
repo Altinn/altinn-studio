@@ -44,8 +44,11 @@ const dataModellingSlice = createSlice({
   name: 'dataModelling',
   initialState,
   reducers: {
-    fetchDataModel(state, _) {
-      state.schema = null;
+    fetchDataModel(state, { payload }) {
+      const modelPath = payload?.metadata?.value?.repositoryRelativeUrl;
+      if (!(modelPath && state?.schema?.$id?.endsWith(modelPath))) {
+        state.schema = null;
+      }
     },
     fetchDataModelFulfilled(state, action) {
       const { schema } = action.payload;

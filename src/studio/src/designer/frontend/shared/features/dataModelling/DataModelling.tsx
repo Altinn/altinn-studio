@@ -15,10 +15,11 @@ import { IMetadataOption } from './functions/types';
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
   preferredOptionLabel?: { label: string, clear: () => void };
+  createPathOption?: boolean;
 }
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const { language } = props;
+  const { language, createPathOption } = props;
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
@@ -62,8 +63,8 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
     setSelectedOption(null);
   };
 
-  const createAction = (modelName: string) => {
-    dispatch(createDataModel({ modelName }));
+  const createAction = (modelName: string, relativeDirectory?: string) => {
+    dispatch(createDataModel({ modelName, relativeDirectory }));
     setSelectedOption({ label: modelName });
   };
 
@@ -84,6 +85,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         language={language}
         createAction={createAction}
         dataModelNames={getModelNames()}
+        createPathOption={createPathOption}
       />
       <SchemaSelect
         selectedOption={selectedOption}
@@ -101,4 +103,5 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 export default DataModelling;
 DataModelling.defaultProps = {
   preferredOptionLabel: undefined,
+  createPathOption: false,
 };
