@@ -45,7 +45,7 @@ namespace Designer.Tests.Factories.ModelFactory
             metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
             
             var metamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
-            var metamodelJson = JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } });
+            var metamodelJson = JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
 
             //metamodel.Elements.Should().HaveCount(expectedElements);
             metamodel.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);

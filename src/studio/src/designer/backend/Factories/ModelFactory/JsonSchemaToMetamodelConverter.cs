@@ -286,7 +286,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else if (IsNillableType(path))
             {
-                // TODO: Handle nillable
+                ProcessNillableType(path, subSchema, context);
             }
             else
             {
@@ -301,23 +301,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
+        private void ProcessNillableType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
+            var schema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
+
+            ProcessSubSchema(path, schema, context);
+        }
+
         private void ProcessEnumType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             var allOfKeyword = subSchema.GetKeyword<AllOfKeyword>();
 
             var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
             var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
-
-            //var refKeyword = subSchema.GetKeyword<RefKeyword>();
-            //var refPath = JsonPointer.Parse(refKeyword.Reference.ToString());
-            //var refSchema = _schema.FollowReference(refPath);
-
-            //var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
-
-            //if (typeKeyword == null)
-            //{
-            //    return;
-            //}
 
             context.SchemaValueType = typeKeyword.Type;
 
