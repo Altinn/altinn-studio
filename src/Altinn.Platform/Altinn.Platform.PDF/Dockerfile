@@ -1,9 +1,9 @@
-FROM maven:3.8.3-openjdk-16 AS build
+FROM maven:3.8.3-openjdk-17 AS build
 WORKDIR build
 COPY . .
 RUN mvn -Pprod package
 
-FROM mcr.microsoft.com/openjdk/jdk:16-ubuntu AS final
+FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu AS final
 WORKDIR app
 COPY --from=build /build/target .
 # setup the user and group
