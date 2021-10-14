@@ -174,8 +174,8 @@ export default function () {
         addErrorCount(success);
         if (res.json('ended') != null) break;
 
-        stepSleepCounter = stepSleepCounter * 2;
         sleptSeconds = sleptSeconds + stepSleepCounter;
+        stepSleepCounter = stepSleepCounter * 2;
         if (sleptSeconds >= waitForTE) stopIterationOnFail('Instance is not archived by TE', null, null);
       }
     }
