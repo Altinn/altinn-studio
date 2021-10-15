@@ -26,7 +26,7 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Theory]
-        [InlineData("Model/Xsd/HvemErHvem.xsd", 11)]
+        [InlineData("Model/Xsd/HvemErHvem.xsd", 12)]
         [InlineData("Model/Xsd/SeresBasicSchema.xsd", 2)]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, int expectedElements)
         {
@@ -47,7 +47,7 @@ namespace Designer.Tests.Factories.ModelFactory
             var metamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
             var metamodelJson = JsonSerializer.Serialize(metamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
 
-            //metamodel.Elements.Should().HaveCount(expectedElements);
+            metamodel.Elements.Should().HaveCount(expectedElements);
             metamodel.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
 
             // TODO: Compare against existing metadata file.

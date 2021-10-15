@@ -358,6 +358,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 typeName = ConvertToCSharpCompatibleName(context.Name);
             }
 
+            int minOccurs = GetMinOccurs(subSchema);
+            int maxOccurs = GetMaxOccurs(subSchema);
+
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
@@ -369,11 +372,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XPath = CombineXPath(context.XPath, context.Name),
                     JsonSchemaPointer = path.Source,
-                    MinOccurs = GetMinOccurs(subSchema),
-                    MaxOccurs = GetMaxOccurs(subSchema),
+                    MinOccurs = minOccurs,
+                    MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
-                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema)
+                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
+                    DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs)
                 });
+        }
+
+        private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
+        {
+            return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
         }
 
         private void ProcessStringPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -390,6 +399,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
+            var typeName = ConvertToCSharpCompatibleName(context.Name);
+            int minOccurs = GetMinOccurs(subSchema);
+            int maxOccurs = GetMaxOccurs(subSchema);
+
             _modelMetadata.Elements.Add(
                 context.Id,
                 new ElementMetadata()
@@ -397,16 +410,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ID = id,
                     Name = context.Name,
                     XName = ConvertToCSharpCompatibleName(context.Name),
-                    TypeName = ConvertToCSharpCompatibleName(context.Name),
+                    TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = MapToXsdValueType(context.SchemaValueType),
                     XPath = CombineXPath(context.XPath, context.Name),
                     JsonSchemaPointer = path.Source,
-                    MinOccurs = GetMinOccurs(subSchema),
-                    MaxOccurs = GetMaxOccurs(subSchema),
+                    MinOccurs = minOccurs,
+                    MaxOccurs = maxOccurs,
                     Type = GetType(subSchema),
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
-                    FixedValue = GetFixedValue(subSchema)
+                    FixedValue = GetFixedValue(subSchema),
+                    DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
                 });
         }
 
@@ -495,7 +509,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private static int GetMinOccurs(JsonSchema subSchema)
         {
             var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
-            return minItemsKeyword == null ? 1 : (int)minItemsKeyword.Value;
+            return minItemsKeyword == null ? 0 : (int)minItemsKeyword.Value;
         }
 
         private static int GetMaxOccurs(JsonSchema subSchema)
