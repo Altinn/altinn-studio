@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
@@ -221,6 +222,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
             string json = await response.Content.ReadAsStringAsync();
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(json);
+            Assert.NotNull(createdInstance);
         }
 
         /// <summary>
@@ -833,8 +835,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetOrgToken("tdd");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -872,8 +876,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetOrgToken("tdd");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -911,8 +917,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -942,8 +950,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetOrgToken("tdd");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -980,8 +990,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1022,8 +1034,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1067,8 +1081,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1110,8 +1126,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1143,8 +1161,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri);
-            httpPutRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpPutRequestMessage);
@@ -1186,8 +1206,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1198,7 +1220,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.NotNull(actual);
-            Assert.Equal(2, actual.Keys.Count);            
+            Assert.Equal(2, actual.Keys.Count);
         }
 
         /// <summary>
@@ -1227,8 +1249,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1271,8 +1295,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1313,8 +1339,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -1347,8 +1375,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             string token = PrincipalUtil.GetToken(3, 1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri);
-            httpPutRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json");
+            HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+            };
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpPutRequestMessage);

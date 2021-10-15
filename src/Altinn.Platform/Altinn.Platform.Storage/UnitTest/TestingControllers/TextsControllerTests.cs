@@ -23,7 +23,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Moq;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
@@ -92,7 +94,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     "application/json"));
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
         }
 
         /// <summary>
@@ -256,7 +257,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, responsePut.StatusCode);
         }
 
-        private Mock<ITextRepository> CreateMockTextRepo()
+        private static Mock<ITextRepository> CreateMockTextRepo()
         {
             Mock<ITextRepository> mockTextRepo = new Mock<ITextRepository>();
             mockTextRepo
@@ -306,7 +307,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             return client;
         }
 
-        private TextResource GetValidTextResource()
+        private static TextResource GetValidTextResource()
         {
             return new TextResource
             {
@@ -319,7 +320,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             };
         }
 
-        private TextResource GetTextResourceThatAlreadyExists()
+        private static TextResource GetTextResourceThatAlreadyExists()
         {
             return new TextResource
             {
