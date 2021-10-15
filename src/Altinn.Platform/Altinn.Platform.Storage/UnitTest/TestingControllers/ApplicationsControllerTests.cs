@@ -506,7 +506,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             return client;
         }
 
-        private Application CreateApplication(string org, string appName)
+        private static Application CreateApplication(string org, string appName)
         {
             Application appInfo = new Application
             {

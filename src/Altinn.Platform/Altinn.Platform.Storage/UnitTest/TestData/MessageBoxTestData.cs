@@ -243,13 +243,6 @@ namespace Altinn.Platform.Storage.UnitTest
         public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>
             { { Application_3.Id, AppTitles_App3 } };
 
-        private static readonly Dictionary<string, Dictionary<string, string>> AppTitles_InstanceList_InstanceOwner1 = new Dictionary<string, Dictionary<string, string>>()
-        {
-            { Application_1.Id, AppTitles_App1 },
-            { Application_2.Id, AppTitles_App2 },
-            { Application_3.Id, AppTitles_App3 },
-        };
-
         /// <summary>
         /// Gets instance owner id for all test instances
         /// </summary>

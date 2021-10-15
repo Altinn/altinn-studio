@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -32,7 +33,7 @@ namespace Altinn.Platform.Storage.Health
             Next.Process(item);
         }
 
-        private bool ExcludeItemTelemetry(ITelemetry item)
+        private static bool ExcludeItemTelemetry(ITelemetry item)
         {
             RequestTelemetry request = item as RequestTelemetry;
 
