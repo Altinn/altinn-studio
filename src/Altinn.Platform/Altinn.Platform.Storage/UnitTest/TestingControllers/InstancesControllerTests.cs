@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -164,7 +165,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(instance, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -189,7 +190,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(instance, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -215,7 +216,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Act
             HttpResponseMessage response = await client.PostAsync(
                 requestUri,
-                new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+                JsonContent.Create(instance, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -837,7 +838,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(expectedSubstatus, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -878,7 +879,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(expectedSubstatus, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -919,7 +920,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(substatus, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -952,7 +953,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(substatus, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -992,7 +993,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(presentationTexts, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1036,7 +1037,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(presentationTexts, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1083,7 +1084,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(presentationTexts, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1128,7 +1129,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(presentationTexts, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1163,7 +1164,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(presentationTexts), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(presentationTexts, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1208,7 +1209,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(dataValues, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1251,7 +1252,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(dataValues, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1297,7 +1298,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(dataValues, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1341,7 +1342,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(dataValues, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act
@@ -1377,7 +1378,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpPutRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestPutUri)
             {
-                Content = new StringContent(JsonConvert.SerializeObject(dataValues), Encoding.UTF8, "application/json")
+                Content = JsonContent.Create(dataValues, new MediaTypeHeaderValue("application/json"))
             };
 
             // Act

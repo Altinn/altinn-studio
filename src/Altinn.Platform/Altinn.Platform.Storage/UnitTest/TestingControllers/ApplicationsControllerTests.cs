@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
 
@@ -99,7 +100,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(appInfo, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -140,7 +141,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(appInfo, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -175,7 +176,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(appInfo, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -208,7 +209,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(appInfo, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -353,7 +354,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
 
             // Act
-            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PutAsync(requestUri, JsonContent.Create(updatedApp, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -394,7 +395,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
 
             // Act
-            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PutAsync(requestUri, JsonContent.Create(updatedApp, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -429,7 +430,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
 
             // Act
-            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PutAsync(requestUri, JsonContent.Create(updatedApp, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

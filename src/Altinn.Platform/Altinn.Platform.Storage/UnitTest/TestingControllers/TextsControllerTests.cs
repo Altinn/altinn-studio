@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
@@ -61,10 +62,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             HttpResponseMessage response = await _httpClient.PostAsync(
                 requestUri,
-                new StringContent(
-                    JsonConvert.SerializeObject(GetValidTextResource()),
-                    Encoding.UTF8,
-                    "application/json"));
+                JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string content = response.Content.ReadAsStringAsync().Result;
@@ -88,10 +86,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             HttpResponseMessage response = await _httpClient.PostAsync(
                 requestUri,
-                new StringContent(
-                    JsonConvert.SerializeObject(GetTextResourceThatAlreadyExists()),
-                    Encoding.UTF8,
-                    "application/json"));
+                JsonContent.Create(GetTextResourceThatAlreadyExists(), new MediaTypeHeaderValue("application/json")));
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
@@ -217,8 +212,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             HttpResponseMessage responseGet = await _httpClient.GetAsync(requestUriOthers);
             HttpResponseMessage responseDelete = await _httpClient.DeleteAsync(requestUriOthers);
-            HttpResponseMessage responseCreate = await _httpClient.PostAsync(requestUriPost, new StringContent(JsonConvert.SerializeObject(GetValidTextResource()), Encoding.UTF8, "application/json"));
-            HttpResponseMessage responsePut = await _httpClient.PutAsync(requestUriOthers, new StringContent(JsonConvert.SerializeObject(GetValidTextResource()), Encoding.UTF8, "application/json"));
+            HttpResponseMessage responseCreate = await _httpClient.PostAsync(requestUriPost, JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
+            HttpResponseMessage responsePut = await _httpClient.PutAsync(requestUriOthers, JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
 
             Assert.Equal(HttpStatusCode.Unauthorized, responseGet.StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, responseDelete.StatusCode);
@@ -248,8 +243,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             HttpResponseMessage responseGet = await _httpClient.GetAsync(requestUriOthers);
             HttpResponseMessage responseDelete = await _httpClient.DeleteAsync(requestUriOthers);
-            HttpResponseMessage responseCreate = await _httpClient.PostAsync(requestUriPost, new StringContent(JsonConvert.SerializeObject(GetValidTextResource()), Encoding.UTF8, "application/json"));
-            HttpResponseMessage responsePut = await _httpClient.PutAsync(requestUriOthers, new StringContent(JsonConvert.SerializeObject(GetValidTextResource()), Encoding.UTF8, "application/json"));
+            HttpResponseMessage responseCreate = await _httpClient.PostAsync(requestUriPost, JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
+            HttpResponseMessage responsePut = await _httpClient.PutAsync(requestUriOthers, JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
 
             Assert.Equal(HttpStatusCode.OK, responseGet.StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden, responseDelete.StatusCode);
