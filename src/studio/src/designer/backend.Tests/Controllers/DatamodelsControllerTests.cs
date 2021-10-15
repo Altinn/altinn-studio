@@ -420,6 +420,7 @@ namespace Designer.Tests.Controllers
         [Theory]
         [InlineData("ServiceA", true, "empty-app")]
         [InlineData("", false, "xyz-datamodels")]
+        [InlineData("relative/folder", false, "xyz-datamodels")]
         public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible, string sourceRepository)
         {
             // Arrange
