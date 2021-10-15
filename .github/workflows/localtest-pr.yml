@@ -8,17 +8,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: ['5.0.x' ]
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - name: Setup .NET Core SDK 5.0.x
         uses: actions/setup-dotnet@v1.7.2
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+          dotnet-version: '5.0.x'
       - name: Install dependencies
         run: dotnet restore
+        working-directory: 'src/development/LocalTest/'
       - name: Build LocalTest
-        run: dotnet build --configuration Debug 'src/development/LocalTest/LocalTest.csproj'
+        run: dotnet build --configuration Debug --no-restore
+        working-directory: 'src/development/LocalTest/'
