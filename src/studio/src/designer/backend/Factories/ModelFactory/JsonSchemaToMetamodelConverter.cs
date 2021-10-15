@@ -352,7 +352,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            var typeName = GetTypeNameFromRefPath(path);
+            var typeName = ConvertToCSharpCompatibleName(GetTypeNameFromRefPath(path));
             if (string.IsNullOrEmpty(typeName))
             {
                 typeName = ConvertToCSharpCompatibleName(context.Name);
