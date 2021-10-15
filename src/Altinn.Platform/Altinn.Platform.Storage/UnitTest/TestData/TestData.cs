@@ -84,7 +84,12 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = Org_1,
-            Process = CreateProcessState()
+            Process = CreateProcessState(),
+            DataValues = new Dictionary<string, string>
+            {
+                { "key1","value1" },
+                { "key2","value2" }
+            }
         };
 
         private static ProcessState CreateProcessState()
@@ -202,7 +207,7 @@ namespace Altinn.Platform.Storage.UnitTest
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
-            {                
+            {
             },
             LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
