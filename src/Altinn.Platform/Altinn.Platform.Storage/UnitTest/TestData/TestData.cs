@@ -87,8 +87,8 @@ namespace Altinn.Platform.Storage.UnitTest
             Process = CreateProcessState(),
             DataValues = new Dictionary<string, string>
             {
-                { "key1","value1" },
-                { "key2","value2" }
+                { "key1", "value1" },
+                { "key2", "value2" }
             }
         };
 
