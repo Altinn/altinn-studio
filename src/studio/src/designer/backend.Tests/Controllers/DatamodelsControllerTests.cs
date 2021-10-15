@@ -418,13 +418,12 @@ namespace Designer.Tests.Controllers
         }
 
         [Theory]
-        [InlineData("ServiceA", true)]
-        [InlineData("", false)]
-        public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible)
+        [InlineData("ServiceA", true, "empty-app")]
+        [InlineData("", false, "xyz-datamodels")]
+        public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible, string sourceRepository)
         {
             // Arrange
-            var org = "ttd";
-            var sourceRepository = "empty-app";
+            var org = "ttd";            
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 

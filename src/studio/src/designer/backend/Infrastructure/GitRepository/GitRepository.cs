@@ -126,6 +126,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
         public async Task WriteTextByRelativePathAsync(string relativeFilePath, string text, bool createDirectory = false)
         {
+            Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
+
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
@@ -150,6 +152,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
         public async Task WriteStreamByRelativePathAsync(string relativeFilePath, Stream stream, bool createDirectory = false)
         {
+            Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
+
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
@@ -172,6 +176,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="relativeFilePath">Relative path to file to be deleted.</param>
         public void DeleteFileByRelativePath(string relativeFilePath)
         {
+            Guard.AssertNotNullOrEmpty(relativeFilePath, nameof(relativeFilePath));
+
             var absoluteFilePath = GetAbsoluteFilePathSanitized(relativeFilePath);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
@@ -185,6 +191,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="absoluteFilePath">Absolute path to file to be deleted.</param>
         public void DeleteFileByAbsolutePath(string absoluteFilePath)
         {
+            Guard.AssertNotNullOrEmpty(absoluteFilePath, nameof(absoluteFilePath));
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
 
             File.Delete(absoluteFilePath);

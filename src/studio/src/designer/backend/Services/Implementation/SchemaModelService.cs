@@ -112,23 +112,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
         {
-            var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
-            JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
-
-            var jsonSchema = jsonTemplate.GetJsonString();
-
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
             if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
             {
+                var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
                 var relativeFilePath = Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json");
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeDirectory, jsonSchema, true);
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
                 return (relativeFilePath, jsonSchema);
             }
             else
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+                var modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+                var uri = GetSchemaUri(org, repository, schemaName, modelFolder);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
                 var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaName);
 
                 return (relativePath, jsonSchema);
