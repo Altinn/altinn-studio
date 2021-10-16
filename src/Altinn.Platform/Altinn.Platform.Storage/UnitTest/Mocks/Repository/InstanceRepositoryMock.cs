@@ -169,12 +169,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return Task.FromResult(instance);
         }
 
-        private string GetInstancePath(string instanceOwnerPartyId, Guid instanceGuid)
+        private static string GetInstancePath(string instanceOwnerPartyId, Guid instanceGuid)
         {
             return Path.Combine(GetInstancesPath(), instanceOwnerPartyId, instanceGuid.ToString() + ".json");
         }
 
-        private string GetInstancesPath()
+        private static string GetInstancesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
@@ -202,7 +202,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
-        private void PostProcess(Instance instance)
+        private static void PostProcess(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
@@ -218,7 +218,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             instance.LastChangedBy = lastChangedBy;
         }
 
-        private void SetReadStatus(Instance instance)
+        private static void SetReadStatus(Instance instance)
         {
             if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
             {

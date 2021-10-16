@@ -13,11 +13,6 @@ namespace Altinn.Platform.Storage.Helpers
     public static class InstanceHelper
     {
         /// <summary>
-        /// Initial task when an instance is instantiated
-        /// </summary>
-        public const string Task1 = "Task_1";
-
-        /// <summary>
         /// Converts to a simpler instance object that includes some application metadata
         /// </summary>
         public static MessageBoxInstance ConvertToMessageBoxInstance(Instance instance)
@@ -43,7 +38,8 @@ namespace Altinn.Platform.Storage.Helpers
                 DeletedDateTime = status.SoftDeleted,
                 ArchivedDateTime = status.Archived,
                 DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                ReadStatus = status.ReadStatus
+                ReadStatus = status.ReadStatus,
+                DataValues = instance.DataValues
             };
 
             if (instance.PresentationTexts is not null)
