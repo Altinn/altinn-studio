@@ -392,6 +392,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
+            var fixedValue = GetFixedValue(subSchema);
 
             _modelMetadata.Elements.Add(
                 context.Id,
@@ -409,9 +410,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MaxOccurs = maxOccurs,
                     Type = @type,
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
-                    FixedValue = GetFixedValue(subSchema),
+                    FixedValue = fixedValue,
+                    DataBindingName = GetDataBindingName(id, fixedValue),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
                 });
+        }
+
+        private string GetDataBindingName(string id, string fixedValue)
+        {
+            if (id.Contains(".") && string.IsNullOrEmpty(fixedValue))
+            {
+                return id[(id.IndexOf(".") + 1) ..];
+            }
+
+            return null;
         }
 
         private static string CombineId(string parentId, string elementName)

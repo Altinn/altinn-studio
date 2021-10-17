@@ -65,6 +65,16 @@ namespace Designer.Tests.Utils
             return resource;
         }
 
+        public static string LoadTestDataFromFileAsString(string resourceName)
+        {
+            var resourceStream = LoadTestDataFromFile(resourceName);
+
+            using StreamReader reader = new StreamReader(resourceStream);
+            string text = reader.ReadToEnd();
+
+            return text;
+        }
+
         public static XmlSchema LoadXmlSchemaTestData(string resourceName)
         {
             using XmlReader xmlReader = XmlReader.Create(LoadTestData(resourceName));
