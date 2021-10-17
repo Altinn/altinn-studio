@@ -29,8 +29,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public string XPath { get; set; }
 
             public SchemaValueType SchemaValueType { get; set; }
-
-            public IReadOnlyList<string> RequiredProperties { get; set; }
         }
 
         /// <summary>
@@ -383,7 +381,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             string typeName;
             if (@type == ElementType.Field)
             {
-                typeName = ConvertToCSharpCompatibleName(GetTypeNameFromRefPath(path));                
+                typeName = ConvertToCSharpCompatibleName(GetTypeNameFromRefPath(path));
+                if (string.IsNullOrEmpty(typeName))
+                {
+                    typeName = ConvertToCSharpCompatibleName(context.Name);
+                }
             }
             else
             {
@@ -414,16 +416,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     DataBindingName = GetDataBindingName(id, fixedValue),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
                 });
-        }
-
-        private string GetDataBindingName(string id, string fixedValue)
-        {
-            if (id.Contains(".") && string.IsNullOrEmpty(fixedValue))
-            {
-                return id[(id.IndexOf(".") + 1) ..];
-            }
-
-            return null;
         }
 
         private static string CombineId(string parentId, string elementName)
@@ -552,6 +544,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
         {
             return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
+        }
+
+        private static string GetDataBindingName(string id, string fixedValue)
+        {
+            if (id.Contains(".") && string.IsNullOrEmpty(fixedValue))
+            {
+                return id[(id.IndexOf(".") + 1)..];
+            }
+
+            return null;
         }
 
         private bool IsNillableType(JsonPointer path)

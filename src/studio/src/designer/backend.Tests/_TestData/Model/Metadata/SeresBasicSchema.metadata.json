@@ -9,7 +9,7 @@
             "parentElement": "melding",
             "typeName": "e1",
             "name": "e1",
-            "dataBindingName": null,
+            "dataBindingName": "e1",
             "xPath": "/melding/e1",
             "restrictions": {},
             "choices": null,
@@ -30,7 +30,7 @@
         "melding": {
             "id": "melding",
             "parentElement": null,
-            "typeName": "melding",
+            "typeName": "meldingmodell",
             "name": "melding",
             "dataBindingName": null,
             "xPath": "/melding",
