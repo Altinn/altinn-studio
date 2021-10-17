@@ -9,16 +9,21 @@ describe('>>> CreateNewWrapper.tsx', () => {
   const language = { administration: {} };
   let someValue = 'unchangedValue';
   let wrapper: any = null;
-  const changeValue = (v: string) => {
-    someValue = v;
+  const changeValue = (v: string, b: string = undefined) => {
+    someValue = `${v}${b}`;
   };
   beforeEach(() => {
     someValue = 'unchangedValue';
     wrapper = null;
   });
-  const mountComponent = (modelNames: string[], onCreate?: (v: string) => void) => mount(<CreateNewWrapper
+  const mountComponent = (
+    modelNames: string[],
+    onCreate?: (v: string) => void,
+    c: boolean = false,
+  ) => mount(<CreateNewWrapper
     language={language}
     dataModelNames={modelNames} createAction={onCreate}
+    createPathOption={c}
   />);
   it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
@@ -43,19 +48,42 @@ describe('>>> CreateNewWrapper.tsx', () => {
   const openDialog = () => {
     const newButton = wrapper.find('TopToolbarButton');
     newButton.at(0).simulate('click');
-    return wrapper.find('div#newModelInput').find('input');
+    return wrapper.find('div#newModelInput').find('ForwardRef(TextField)');
   };
   it('executes the on change function', () => {
     act(() => {
       wrapper = mountComponent(['some', 'names'], changeValue);
     });
-    const inputField = openDialog();
+    const inputField = openDialog().find('input');
     inputField.simulate('change', { target: { value: 'new-model' } });
     inputField.simulate('blur');
-    const okButton = wrapper.find('#newModelInput').find('button');
+    const okButton = wrapper.find('#newModelInput')
+      .find('button');
+    okButton.simulate('click');
+    wrapper.update();
+    expect(someValue).toBe('new-modelundefined');
+  });
+  it('executes the on change function with editable model-path', () => {
+    act(() => {
+      wrapper = mountComponent(['some', 'names'], changeValue, true);
+    });
+    const inputField = openDialog().find('input');
+    inputField.simulate('change', { target: { value: 'new-model' } });
+    inputField.simulate('blur');
+    const okButton = wrapper.find('#newModelInput')
+      .find('button');
     okButton.simulate('click');
     wrapper.update();
     expect(someValue).toBe('new-model');
+  });
+  it('reacts to enter being pressed', () => {
+    act(() => {
+      wrapper = mountComponent(['some', 'names'], changeValue);
+    });
+    const inputField = openDialog();
+    inputField.find('input').simulate('change', { target: { value: 'new-model' } });
+    inputField.find('input').simulate('keydown', { key: 'Enter', keyCode: 13 });
+    expect(someValue).toBe('new-modelundefined');
   });
   it('fails to run create name for an existing model', () => {
     act(() => {
