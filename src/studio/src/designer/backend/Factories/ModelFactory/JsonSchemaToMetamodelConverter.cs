@@ -29,6 +29,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public string XPath { get; set; }
 
             public SchemaValueType SchemaValueType { get; set; }
+
+            public IReadOnlyList<string> RequiredProperties { get; set; }
         }
 
         /// <summary>
@@ -60,6 +62,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         }
 
         private readonly IJsonSchemaAnalyzer _schemaAnalyzer;
+        private readonly Dictionary<string, List<string>> _requiredProperties = new Dictionary<string, List<string>>();
         private ModelMetadata _modelMetadata;
         private JsonSchema _schema;
         private JsonSchemaXsdMetadata _schemaXsdMetadata;
@@ -239,12 +242,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
+
                 ProcessSubSchema(subSchemaPath, property, currentContext);
             }
         }
 
         private void ProcessSubSchema(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
+            CheckForRequiredProperties(subSchema, context);
+
             if (IsPrimitiveType(subSchema))
             {
                 ProcessPrimitiveType(path, subSchema, context);
@@ -341,7 +347,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 typeName = ConvertToCSharpCompatibleName(context.Name);
             }
 
-            int minOccurs = GetMinOccurs(subSchema);
+            int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
 
             _modelMetadata.Elements.Add(
@@ -373,7 +379,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             var typeName = ConvertToCSharpCompatibleName(context.Name);
-            int minOccurs = GetMinOccurs(subSchema);
+            int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
 
             _modelMetadata.Elements.Add(
@@ -383,7 +389,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ID = id,
                     Name = context.Name,
                     XName = ConvertToCSharpCompatibleName(context.Name),
-                    TypeName = typeName,
+                    TypeName = context.SchemaValueType.ToString(),
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = MapToXsdValueType(context.SchemaValueType),
                     XPath = CombineXPath(context.XPath, context.Name),
@@ -439,10 +445,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return (baseXPath == "/") ? $"/{name}" : $"{baseXPath}/{name}";
         }
 
-        private static int GetMinOccurs(JsonSchema subSchema)
+        private int GetMinOccurs(JsonSchema subSchema, SchemaContext context)
         {
+            int minOccurs = IsRequired(context.Id) ? 1 : 0;
+
             var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
-            return minItemsKeyword == null ? 0 : (int)minItemsKeyword.Value;
+            if (minItemsKeyword?.Value > minOccurs)
+            {
+                minOccurs = (int)minItemsKeyword.Value;
+            }
+
+            return minOccurs;
         }
 
         private static int GetMaxOccurs(JsonSchema subSchema)
@@ -536,6 +549,56 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return pointer.Segments[1].Value;
+        }
+
+        private void CheckForRequiredProperties(JsonSchema subSchema, SchemaContext context)
+        {
+            AddRequiredProperties(subSchema, context);
+        }
+
+        private bool RequiredPropertiesAlreadyAdded(string id)
+        {
+            return _requiredProperties.ContainsKey(id);
+        }
+
+        private void AddRequiredProperties(JsonSchema subSchema, SchemaContext context)
+        {
+            var requiredKeyword = subSchema.GetKeyword<RequiredKeyword>();
+            if (requiredKeyword == null)
+            {
+                return;
+            }
+
+            if (RequiredPropertiesAlreadyAdded(context.Id))
+            {
+                _requiredProperties[context.Id].AddRange(requiredKeyword.Properties.ToList());
+            }
+            else
+            {
+                _requiredProperties.Add(context.Id, requiredKeyword.Properties.ToList());
+            }
+        }
+
+        private bool IsRequired(string id)
+        {
+            var parentId = string.Empty;
+            var name = string.Empty;
+            if (id.Contains("."))
+            {
+                parentId = id.Substring(0, id.LastIndexOf("."));
+                name = id[(id.LastIndexOf(".") + 1) ..];
+            }
+            else
+            {
+                name = id;
+            }
+
+            if (_requiredProperties.ContainsKey(parentId))
+            {
+                return _requiredProperties[parentId].Contains(name);
+            }
+
+            return false;
         }
 
         private static bool IsRefType(JsonSchema subSchema)
