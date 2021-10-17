@@ -378,7 +378,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            var typeName = ConvertToCSharpCompatibleName(context.Name);
+            var @type = GetType(subSchema);
+
+            string typeName;
+            if (@type == ElementType.Field)
+            {
+                typeName = ConvertToCSharpCompatibleName(GetTypeNameFromRefPath(path));                
+            }
+            else
+            {
+                typeName = context.SchemaValueType.ToString();
+            }
+
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
 
@@ -389,14 +400,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     ID = id,
                     Name = context.Name,
                     XName = ConvertToCSharpCompatibleName(context.Name),
-                    TypeName = context.SchemaValueType.ToString(),
+                    TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = MapToXsdValueType(context.SchemaValueType),
                     XPath = CombineXPath(context.XPath, context.Name),
                     JsonSchemaPointer = path.Source,
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
-                    Type = GetType(subSchema),
+                    Type = @type,
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
                     FixedValue = GetFixedValue(subSchema),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
