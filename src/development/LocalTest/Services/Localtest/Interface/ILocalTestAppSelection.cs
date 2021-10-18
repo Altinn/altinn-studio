@@ -1,8 +1,9 @@
-using Altinn.Authorization.ABAC.Xacml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Altinn.Authorization.ABAC.Xacml;
 
 namespace LocalTest.Services.Localtest.Interface
 {
