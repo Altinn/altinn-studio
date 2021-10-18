@@ -79,7 +79,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "An exception occured while processing autorization rules for delegation on delegation policy path: {0}", delegationPolicypath);
+                    _logger.LogError(ex, $"An exception occured while processing authorization rules for delegation on delegation policy path: {delegationPolicypath}", delegationPolicypath);
                 }                
 
                 foreach (Rule rule in delegationDict[delegationPolicypath])
@@ -102,14 +102,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             if (!DelegationHelper.TryGetDelegationParamsFromRule(rules.First(), out string org, out string app, out int offeredByPartyId, out int? coveredByPartyId, out int? coveredByUserId, out int delegatedByUserId))
             {
-                _logger.LogWarning("This should not happen. Incomplete rule model received for delegation to delegation policy at: {0}. Incomplete model should have been returned in unsortable rule set by TryWriteDelegationPolicyRules. DelegationHelper.SortRulesByDelegationPolicyPath might be broken.", policyPath);
+                _logger.LogWarning($"This should not happen. Incomplete rule model received for delegation to delegation policy at: {policyPath}. Incomplete model should have been returned in unsortable rule set by TryWriteDelegationPolicyRules. DelegationHelper.SortRulesByDelegationPolicyPath might be broken.", policyPath);
                 return false;
             }
 
             XacmlPolicy appPolicy = await _prp.GetPolicyAsync(org, app);
             if (appPolicy == null)
             {
-                _logger.LogWarning("No valid App policy found for delegation policy path: {0}", policyPath);
+                _logger.LogWarning($"No valid App policy found for delegation policy path: {policyPath}", policyPath);
                 return false;
             }
 
@@ -155,7 +155,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
                     if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
                     {
-                        _logger.LogError("Writing of delegation policy at path: {0} failed. Is delegation blob storage account alive and well?", policyPath, response.GetRawResponse());
+                        _logger.LogError($"Writing of delegation policy at path: {policyPath} failed. Is delegation blob storage account alive and well?", policyPath, response.GetRawResponse());
                         return false;
                     }
 
@@ -166,7 +166,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         // Comment:
                         // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
                         // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
-                        _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {0}. is authorization postgresql database alive and well?", policyPath);
+                        _logger.LogError($"Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {policyPath}. is authorization postgresql database alive and well?", policyPath);
                         return false;
                     }
 
@@ -174,7 +174,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "An exception occured while processing autorization rules for delegation on delegation policy path: {0}", policyPath);
+                    _logger.LogError(ex, $"An exception occured while processing authorization rules for delegation on delegation policy path: {policyPath}", policyPath);
                     return false;
                 }
                 finally
@@ -183,7 +183,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
             }
 
-            _logger.LogInformation("Could not acquire blob lease lock on delegation policy at path: {0}", policyPath);
+            _logger.LogInformation($"Could not acquire blob lease lock on delegation policy at path: {policyPath}", policyPath);
             return false;
         }
     }

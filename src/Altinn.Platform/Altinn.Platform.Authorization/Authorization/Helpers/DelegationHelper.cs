@@ -104,7 +104,6 @@ namespace Altinn.Platform.Authorization.Helpers
             }
             catch (Exception)
             {
-                // Todo logging?
             }
 
             return false;
@@ -127,7 +126,6 @@ namespace Altinn.Platform.Authorization.Helpers
             }
             catch (Exception)
             {
-                // Todo logging
             }
 
             return false;

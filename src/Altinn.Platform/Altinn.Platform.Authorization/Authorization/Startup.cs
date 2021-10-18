@@ -133,7 +133,7 @@ namespace Altinn.Platform.Authorization
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
-            });           
+            });
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
