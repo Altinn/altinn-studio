@@ -25,7 +25,7 @@ export default function Legend(props: IFormLegendProps) {
   var labelTextArr;
   var idxHelp;
   var startPos;
-  
+
   if(props.labelText[0]['props']['children'][0]['props'] == null) {
 
     labelTextArr = props.labelText[0]['props']['children'];
@@ -60,7 +60,7 @@ export default function Legend(props: IFormLegendProps) {
         className='a-form-label title-label'
         htmlFor={props.id}
       >
-        {placeIconTrue === -1 && labelTextArr.slice(0,idxHelp)}
+        {labelTextArr.slice(0,idxHelp)}
         {labelTextArr[idxHelp].substring(0,startPos)}
         {(props.labelSettings?.optionalIndicator === false || props.required) ?
           null
@@ -77,7 +77,7 @@ export default function Legend(props: IFormLegendProps) {
           />
         }
         {labelTextArr[idxHelp].substring(startPos + 6)}
-        {placeIconTrue === -1 && labelTextArr.slice(idxHelp + 1)}
+        {labelTextArr.slice(idxHelp + 1)}
       </label>
       {props.descriptionText &&
         <Description
