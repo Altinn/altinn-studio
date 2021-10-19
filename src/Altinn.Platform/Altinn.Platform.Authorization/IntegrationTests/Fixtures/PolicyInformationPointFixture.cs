@@ -2,48 +2,46 @@ using System;
 using System.IO;
 using System.Net.Http;
 
-using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.IntegrationTests.MockServices;
-using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
-    /// <summary>
-    /// Test fixture setting up a test server for policy information point testing.
-    /// </summary>
     public class PolicyInformationPointFixture : IDisposable
     {
         private readonly TestServer _testServer;
 
         /// <summary>
-        /// Gets a HttpClient connected to the TestServer.
+        /// Gets the client.
         /// </summary>
         public HttpClient Client { get; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyInformationPointFixture"/> class.
-        /// </summary>
         public PolicyInformationPointFixture()
         {
             string[] args = { };
 
-            ConfigurationBuilder configBuilder = new ConfigurationBuilder();
-            Program.LoadConfigurationSettings(configBuilder, GetContentRootPath(), args);
+            Program.ConfigureSetupLogging();
+            ConfigurationBuilder config = new ConfigurationBuilder();
+            Program.LoadConfigurationSettings(config, GetContentRootPath(), args);
 
             IWebHostBuilder builder = new WebHostBuilder()
                 .ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IContextHandler, ContextHandler>();
                     services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
-                    services.AddScoped<IPolicyInformationRepository, PolicyInformationRepository>();
+                    services.AddScoped<IPolicyInformationPoint, PolicyInformationPointMock>();
+                    services.AddScoped<IPolicyDelegationRepository, PolicyDelegationRepositoryMock>();
+                    services.AddScoped<IRoles, RolesMock>();
+                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
@@ -51,19 +49,20 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 })
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
-                .UseConfiguration(configBuilder.Build())
+                .UseConfiguration(config.Build())
                 .UseStartup<Startup>();
 
             _testServer = new TestServer(builder);
             Client = _testServer.CreateClient();
         }
 
-        private string GetContentRootPath()
+        /// <summary>
+        /// creates a new http client.
+        /// </summary>
+        /// <returns></returns>
+        public HttpClient GetClient()
         {
-            string testProjectPath = AppContext.BaseDirectory;
-            string relativePathToHostProject = "../../../../";
-
-            return Path.Combine(testProjectPath, relativePathToHostProject);
+            return Client;
         }
 
         /// <summary>
@@ -73,6 +72,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         {
             Client.Dispose();
             _testServer.Dispose();
+        }
+
+        private string GetContentRootPath()
+        {
+            var testProjectPath = AppContext.BaseDirectory;
+            var relativePathToHostProject = "../../../../";
+
+            return Path.Combine(testProjectPath, relativePathToHostProject);
         }
     }
 }

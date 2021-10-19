@@ -58,66 +58,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             foreach (DelegationChange delegationChange in delegationChanges)
             {
                 XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegationChange.BlobStoragePolicyPath, delegationChange.BlobStorageVersionId);
-                rules.AddRange(GetRulesFromPolicyAndDelegationChange(policy.Rules, delegationChange));
-            }
-
-            return rules;
-        }
-
-        private static List<Rule> GetRulesFromPolicyAndDelegationChange(ICollection<XacmlRule> xacmlRules, DelegationChange delegationChange)
-        {
-            List<Rule> rules = new List<Rule>();
-            foreach (XacmlRule xacmlRule in xacmlRules)
-            {
-                if (xacmlRule.Effect.Equals(XacmlEffectType.Permit) && xacmlRule.Target != null)
-                {
-                    Rule rule = new Rule
-                    {
-                        RuleId = xacmlRule.RuleId,
-                        OfferedByPartyId = delegationChange.OfferedByPartyId,
-                        DelegatedByUserId = delegationChange.DelegatedByUserId,
-                        CoveredBy = new List<AttributeMatch>(),
-                        Resource = new List<AttributeMatch>()
-                    };
-
-                    foreach (XacmlAnyOf anyOf in xacmlRule.Target.AnyOf)
-                    {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
-                        {
-                            foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                            {
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
-                                {
-                                    rule.Action = new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    };
-                                }
-
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
-                                {
-                                    rule.CoveredBy.Add(new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    });
-                                }
-
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                                {
-                                    rule.Resource.Add(new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    });
-                                }
-                            }
-                        }
-                    }
-
-                    rules.Add(rule);
-                }
+                rules.AddRange(DelegationHelper.GetRulesFromPolicyAndDelegationChange(policy.Rules, delegationChange));
             }
 
             return rules;

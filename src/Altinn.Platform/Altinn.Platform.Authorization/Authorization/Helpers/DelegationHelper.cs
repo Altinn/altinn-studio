@@ -199,5 +199,75 @@ namespace Altinn.Platform.Authorization.Helpers
         {
             return string.Concat(rule.Resource.Select(r => r.Id + r.Value));
         }
+
+        /// <summary>
+        /// Gets a list of rules by combining content from XacmlRules and a DelegationChange
+        /// </summary>
+        /// <param name="xacmlRules">The xacml rules</param>
+        /// <param name="delegationChange">The delegation change</param>
+        /// <returns>A list of rules</returns>
+        public static List<Rule> GetRulesFromPolicyAndDelegationChange(ICollection<XacmlRule> xacmlRules, DelegationChange delegationChange)
+        {
+            List<Rule> rules = new List<Rule>();
+            foreach (XacmlRule xacmlRule in xacmlRules)
+            {
+                if (xacmlRule.Effect.Equals(XacmlEffectType.Permit) && xacmlRule.Target != null)
+                {
+                    Rule rule = new Rule
+                    {
+                        RuleId = xacmlRule.RuleId.Split("ruleid:")[1],
+                        OfferedByPartyId = delegationChange.OfferedByPartyId,
+                        DelegatedByUserId = delegationChange.DelegatedByUserId,
+                        CoveredBy = new List<AttributeMatch>(),
+                        Resource = new List<AttributeMatch>()
+                    };
+
+                    foreach (XacmlAnyOf anyOf in xacmlRule.Target.AnyOf)
+                    {
+                        foreach (XacmlAllOf allOf in anyOf.AllOf)
+                        {
+                            FillRuleWithContent(rule, allOf);
+                        }
+                    }
+
+                    rules.Add(rule);
+                }
+            }
+
+            return rules;
+        }
+
+        private static void FillRuleWithContent(Rule rule, XacmlAllOf allOf)
+        {
+            foreach (XacmlMatch xacmlMatch in allOf.Matches)
+            {
+                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+                {
+                    rule.Action = new AttributeMatch
+                    {
+                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                        Value = xacmlMatch.AttributeValue.Value
+                    };
+                }
+
+                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
+                {
+                    rule.CoveredBy.Add(new AttributeMatch
+                    {
+                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                        Value = xacmlMatch.AttributeValue.Value
+                    });
+                }
+
+                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                {
+                    rule.Resource.Add(new AttributeMatch
+                    {
+                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                        Value = xacmlMatch.AttributeValue.Value
+                    });
+                }
+            }
+        }
     }
 }

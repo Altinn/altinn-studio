@@ -116,7 +116,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             foreach (List<AttributeMatch> resource in ruleQuery.RuleMatch.Resources)
             {
-                string org = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value; // må iterere over org og app
+                string org = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
                 string app = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
                 if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(app))
                 {
@@ -152,7 +152,6 @@ namespace Altinn.Platform.Authorization.Controllers
             try
             {
                 return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
-                ////return StatusCode(404, "Not yet implemented");
             }
             catch (Exception e)
             {

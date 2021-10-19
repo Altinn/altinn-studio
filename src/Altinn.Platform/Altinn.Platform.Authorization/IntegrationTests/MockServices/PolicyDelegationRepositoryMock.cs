@@ -31,7 +31,49 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
         {
-            throw new NotImplementedException();
+            List<DelegationChange> list = new List<DelegationChange>();
+            if (altinnAppIds[0] == "SKD/TaxReport" && offeredByPartyIds.Count > 0 && coveredByUserIds[0] == 20001336)
+            {
+                foreach (int offeredByPartyId in offeredByPartyIds)
+                {
+                    if (offeredByPartyId == 50001337)
+                    {
+                        list.Add(new DelegationChange
+                        {
+                            PolicyChangeId = 1,
+                            AltinnAppId = altinnAppIds[0],
+                            OfferedByPartyId = offeredByPartyIds[0],
+                            CoveredByUserId = coveredByUserIds[0],
+                            DelegatedByUserId = 20001337,
+                            BlobStoragePolicyPath = $"{altinnAppIds[0]}/{offeredByPartyIds[0]}/{coveredByUserIds[0]}",
+                            BlobStorageVersionId = DateTime.Today.ToString(),
+                            IsDeleted = false,
+                            Created = DateTime.Today
+                        });
+                    }
+                }
+            }
+
+            if (altinnAppIds[0] == "SKD/TaxReport" && offeredByPartyIds[0] == 50001337 && coveredByPartyIds.Count > 0)
+            {
+                if (coveredByPartyIds[0] == 50001336)
+                {
+                    list.Add(new DelegationChange
+                    {
+                        PolicyChangeId = 2,
+                        AltinnAppId = altinnAppIds[0],
+                        OfferedByPartyId = offeredByPartyIds[0],
+                        CoveredByPartyId = coveredByPartyIds[0],
+                        DelegatedByUserId = 20001337,
+                        BlobStoragePolicyPath = $"{altinnAppIds[0]}/{offeredByPartyIds[0]}/{coveredByPartyIds[0]}",
+                        BlobStorageVersionId = DateTime.Today.ToString(),
+                        IsDeleted = false,
+                        Created = DateTime.Today
+                    });
+                }
+            }
+
+            return Task.FromResult(list);
         }
     }
 }
