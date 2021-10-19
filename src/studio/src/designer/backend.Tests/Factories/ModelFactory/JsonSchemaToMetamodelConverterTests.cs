@@ -33,6 +33,7 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Model/Xsd/HvemErHvem.xsd", "Model/Metadata/HvemErhvem.metadata.json")]
         [InlineData("Model/Xsd/SeresBasicSchema.xsd", "Model/Metadata/SeresBasicSchema.metadata.json")]
         [InlineData("Model/Xsd/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
+        [InlineData("Model/Xsd/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.metadata.json")]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             // Arrange

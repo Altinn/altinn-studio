@@ -321,11 +321,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var allOfKeyword = subSchema.GetKeyword<AllOfKeyword>();
 
             var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
-            var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
-
             context.SchemaValueType = typeKeyword.Type;
 
-            AddElement(path, enumSchema, context);
+            var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
+            if (enumSchema != null)
+            {
+                AddElement(path, enumSchema, context);
+            }
+            else
+            {
+                AddElement(path, subSchema, context);
+            }
         }
 
         private void ProcessNillableType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -353,14 +359,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
+            string name = ConvertToCSharpCompatibleName(context.Name);
 
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
                 {
                     ID = id,
-                    Name = context.Name,
-                    XName = ConvertToCSharpCompatibleName(context.Name),
+                    Name = name,
+                    XName = context.Name,
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XPath = CombineXPath(context.XPath, context.Name),
@@ -401,6 +408,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
             var fixedValue = GetFixedValue(subSchema);
+            var xPath = CombineXPath(context.XPath, context.Name);
 
             _modelMetadata.Elements.Add(
                 context.Id,
@@ -412,21 +420,22 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = MapToXsdValueType(context.SchemaValueType),
-                    XPath = CombineXPath(context.XPath, context.Name),
+                    XPath = xPath,
                     JsonSchemaPointer = path.Source,
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = @type,
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
                     FixedValue = fixedValue,
-                    DataBindingName = GetDataBindingName(id, fixedValue),
+                    DataBindingName = GetDataBindingName(id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
                 });
         }
 
         private static string CombineId(string parentId, string elementName)
         {
-            return string.IsNullOrEmpty(parentId) ? elementName : $"{parentId}.{elementName}";
+            var typeSafeElementName = ConvertToCSharpCompatibleName(elementName);
+            return string.IsNullOrEmpty(parentId) ? typeSafeElementName : $"{parentId}.{typeSafeElementName}";
         }
 
         private bool IdAlreadyAdded(string id)
@@ -468,7 +477,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private int GetMinOccurs(JsonSchema subSchema, SchemaContext context)
         {
-            int minOccurs = IsRequired(context.Id) ? 1 : 0;
+            int minOccurs = IsRequired(context.Id, context.Name) ? 1 : 0;
 
             var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
             if (minItemsKeyword?.Value > minOccurs)
@@ -552,11 +561,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
         }
 
-        private static string GetDataBindingName(string id, string fixedValue)
+        private static string GetDataBindingName(string id, string fixedValue, string xPath)
         {
             if (id.Contains(".") && string.IsNullOrEmpty(fixedValue))
             {
-                return id[(id.IndexOf(".") + 1)..];
+                var firstPropertyName = id[0..id.IndexOf(".")];
+                string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
+                string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
+
+                return dataBindingName;
             }
 
             return null;
@@ -610,18 +623,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private bool IsRequired(string id)
+        private bool IsRequired(string id, string name)
         {
             var parentId = string.Empty;
-            var name = string.Empty;
             if (id.Contains("."))
             {
                 parentId = id.Substring(0, id.LastIndexOf("."));
-                name = id[(id.LastIndexOf(".") + 1) ..];
             }
             else
             {
-                name = id;
                 parentId = id;
             }
 
