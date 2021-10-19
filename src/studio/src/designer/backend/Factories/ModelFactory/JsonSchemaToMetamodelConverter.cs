@@ -204,6 +204,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
+
+                if (!_schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable))
+                {
+                    AddRequiredProperties(context.Id, new List<string>() { context.Name });
+                }
+
                 ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
@@ -247,7 +253,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessSubSchema(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            CheckForRequiredProperties(subSchema, context);
+            CheckForRequiredPropertiesKeyword(subSchema, context);
 
             if (IsPrimitiveType(subSchema))
             {
@@ -576,17 +582,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return pointer.Segments[1].Value;
         }
 
-        private void CheckForRequiredProperties(JsonSchema subSchema, SchemaContext context)
-        {
-            AddRequiredProperties(subSchema, context);
-        }
-
-        private bool RequiredPropertiesAlreadyAdded(string id)
-        {
-            return _requiredProperties.ContainsKey(id);
-        }
-
-        private void AddRequiredProperties(JsonSchema subSchema, SchemaContext context)
+        private void CheckForRequiredPropertiesKeyword(JsonSchema subSchema, SchemaContext context)
         {
             var requiredKeyword = subSchema.GetKeyword<RequiredKeyword>();
             if (requiredKeyword == null)
@@ -594,13 +590,23 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            if (RequiredPropertiesAlreadyAdded(context.Id))
+            AddRequiredProperties(context.Id, requiredKeyword.Properties.ToList());
+        }
+
+        private bool RequiredPropertiesAlreadyAdded(string id)
+        {
+            return _requiredProperties.ContainsKey(id);
+        }
+
+        private void AddRequiredProperties(string id, List<string> requiredProperties)
+        {
+            if (RequiredPropertiesAlreadyAdded(id))
             {
-                _requiredProperties[context.Id].AddRange(requiredKeyword.Properties.ToList());
+                _requiredProperties[id].AddRange(requiredProperties);
             }
             else
             {
-                _requiredProperties.Add(context.Id, requiredKeyword.Properties.ToList());
+                _requiredProperties.Add(id, requiredProperties);
             }
         }
 
@@ -616,6 +622,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             else
             {
                 name = id;
+                parentId = id;
             }
 
             if (_requiredProperties.ContainsKey(parentId))
