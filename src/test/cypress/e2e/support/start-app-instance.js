@@ -10,7 +10,7 @@ Cypress.Commands.add('startAppInstance', (appName) => {
     cy.get(appFrontend.startButton).click();
   } else {
     authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
-    cy.visit(`https://ttd.apps.${Cypress.env(Cypress.env('environment'))}/ttd/${appName}/`);
+    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}/ttd/${appName}/`);
   }
 });
 

@@ -547,7 +547,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?stephanie=kul");
-            string content = await responseMessage.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
@@ -868,7 +867,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
             Assert.True(actual.ContainsKey("appId"));
             actual.TryGetValue("appId", out StringValues actualAppid);
-            Assert.Equal(expectedCount, actualAppid.Count());
+            Assert.Equal(expectedCount, actualAppid.Count);
             Assert.False(actual.ContainsKey("searchString"));
             instanceRepositoryMock.VerifyAll();
         }
@@ -896,10 +895,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string content = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
             int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).Distinct().Count();
-                
+
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-            Assert.Equal(expectedCount, actual.Count());
+            Assert.Equal(expectedCount, actual.Count);
             Assert.Equal(expectedDistinctInstanceOwners, distinctInstanceOwners);
         }
 

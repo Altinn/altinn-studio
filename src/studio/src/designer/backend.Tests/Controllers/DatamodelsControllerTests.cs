@@ -4,17 +4,16 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -416,6 +415,81 @@ namespace Designer.Tests.Controllers
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        [Theory]
+        [InlineData("ServiceA", true)]
+        [InlineData("", false)]
+        public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible)
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/Post";
+
+            var createViewModel = new CreateModelViewModel() { ModelName = "test", RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+            var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(createViewModel, null, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
+
+            // Act / Assert
+            try
+            {
+                var postResponse = await client.SendAsync(postRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+                Assert.Equal("application/json", postResponse.Content.Headers.ContentType.MediaType);
+
+                var postContent = await postResponse.Content.ReadAsStringAsync();
+                Json.Schema.JsonSchema postJsonSchema = Json.Schema.JsonSchema.FromText(postContent);
+                Assert.NotNull(postJsonSchema);
+
+                // Try to read back the created schema to verify it's stored
+                // at the location provided in the post response
+                var location = postResponse.Headers.Location;
+                var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, location);
+                var getResponse = await client.SendAsync(getRequestMessage);
+                var getContent = await getResponse.Content.ReadAsStringAsync();
+                var getJsonSchema = Json.Schema.JsonSchema.FromText(getContent);
+                Assert.NotNull(getJsonSchema);
+                Assert.Equal(postContent, getContent);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Theory]
+        [InlineData("", "ServiceA", true)]
+        [InlineData("test<", "", false)]
+        [InlineData("test>", "", false)]
+        [InlineData("test|", "", false)]
+        [InlineData("test\"", "", false)]
+        public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
+        {
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/xyz/dummyRepo/Datamodels/Post";
+
+            var createViewModel = new CreateModelViewModel() { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };
+            var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(createViewModel, null, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase })
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, postRequestMessage);
+
+            var postResponse = await client.SendAsync(postRequestMessage);
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
         private HttpClient GetTestClient()

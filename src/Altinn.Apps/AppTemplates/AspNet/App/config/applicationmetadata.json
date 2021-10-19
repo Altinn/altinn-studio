@@ -23,5 +23,8 @@
     "organization": true,
     "person": true,
     "subUnit": true
+  },
+  "onEntry": {
+    "show": "select-instance"
   }
 }

@@ -18,6 +18,15 @@ export function getDataTypeByLayoutSetId(layoutSetId: string, layoutSets: ILayou
 }
 
 /**
+ * Application metadata onEntry.show values that have a state full application
+ */
+export const onEntryValuesThatHaveState: string[] = [
+  'new-instance',
+  'select-instance',
+  'start-page',
+];
+
+/**
  * Get the current layout set for application if it exists
  * @param application the application metadata
  * @param instance the instance if present
@@ -30,7 +39,7 @@ export function getLayoutSetIdForApplication(
   layoutSets?: ILayoutSets,
 ): string {
   const showOnEntry: string = application?.onEntry?.show;
-  if (showOnEntry && showOnEntry !== 'new-instance' && showOnEntry !== 'startpage') {
+  if (showOnEntry && !onEntryValuesThatHaveState.includes(showOnEntry)) {
     // we have a stateless app with a layout set
     return showOnEntry;
   }
@@ -57,7 +66,7 @@ export function getCurrentDataTypeForApplication(
   layoutSets?: ILayoutSets,
 ): string {
   const showOnEntry: string = application?.onEntry?.show;
-  if (showOnEntry && showOnEntry !== 'new-instance' && showOnEntry !== 'startpage') {
+  if (showOnEntry && !onEntryValuesThatHaveState.includes(showOnEntry)) {
     // we have a stateless app with a layout set
     return getDataTypeByLayoutSetId(showOnEntry, layoutSets);
   }
@@ -67,6 +76,6 @@ export function getCurrentDataTypeForApplication(
 }
 
 export function isStatelessApp(application: IApplication) {
-  const show = application.onEntry?.show;
-  return show && show !== 'new-instance';
+  const show = application?.onEntry?.show;
+  return show && !onEntryValuesThatHaveState.includes(show);
 }

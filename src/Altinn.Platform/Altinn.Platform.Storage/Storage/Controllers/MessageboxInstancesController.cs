@@ -419,7 +419,7 @@ namespace Altinn.Platform.Storage.Controllers
             return new StringValues(appIds.ToArray());
         }
 
-        private void GetStatusFromQueryParams(
+        private static void GetStatusFromQueryParams(
            bool includeActive,
            bool includeArchived,
            bool includeDeleted,
