@@ -36,7 +36,6 @@ namespace Designer.Tests.Factories.ModelFactory
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             // Arrange
-
             // Convert the Seres XSD to JSON Schema
             XmlSchema originalXsd = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
@@ -50,19 +49,16 @@ namespace Designer.Tests.Factories.ModelFactory
 
             // Act
             var actualMetamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
+
+            // Leaving this for easy access/manual verification
             var actualMetamodelJson = JsonSerializer.Serialize(actualMetamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
 
             // Assert
-            if (expectedMetamodelPath != string.Empty)
-            {
-                var expectedMetamodelJson = TestDataHelper.LoadTestDataFromFileAsString(expectedMetamodelPath);
-                var expectedMetamodel = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
-                MetadataAssertions.IsEquivalentTo(expectedMetamodel, actualMetamodel);
-            }
+            var expectedMetamodelJson = TestDataHelper.LoadTestDataFromFileAsString(expectedMetamodelPath);
+            var expectedMetamodel = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            MetadataAssertions.IsEquivalentTo(expectedMetamodel, actualMetamodel);
             
             actualMetamodel.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
-
-            // TODO: Compare against existing metadata file.
 
             // Compile the generated class to verify it compiles without errors
             var classes = new JsonMetadataParser().CreateModelFromMetadata(actualMetamodel);
