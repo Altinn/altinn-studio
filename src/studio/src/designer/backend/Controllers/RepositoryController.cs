@@ -491,20 +491,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpGet]
         [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
-        public async Task<ActionResult> ContentsZip(string org, string repository, [FromQuery] string path = "")
+        public async Task<ActionResult> ContentsZip(string org, string repository)
         {
-            string appRoot = _repository.GetAppPath(org, repository);
-
-            if (!Directory.Exists(appRoot))
-            {
-                return BadRequest("User does not have a local clone of the repository.");
-            }
-
-            var tempDir = _repository.GetAppPath(org, repository + "-content-copy");
-            var tempFile = Path.Join(tempDir, "content.zip");
-            byte[] bytes;
+            string tempDir = null;
+            string tempFile = null;
+            byte[] bytes = null;
             try
             {
+                string appRoot = _repository.GetAppPath(org, repository);
+            
+                if (!Directory.Exists(appRoot))
+                {
+                    return BadRequest("User does not have a local clone of the repository.");
+                }
+
+                tempDir = _repository.GetAppPath(org, repository + "-content-copy");
+                tempFile = Path.Join(tempDir, "content.zip");
+           
                 Directory.CreateDirectory(tempDir);
                 ZipFile.CreateFromDirectory(appRoot, tempFile);
 
@@ -513,9 +516,21 @@ namespace Altinn.Studio.Designer.Controllers
                 // figure out how to delete it afterwards.
                 bytes = System.IO.File.ReadAllBytes(tempFile);
             }
+            catch(ArgumentOutOfRangeException e)
+            {
+                return BadRequest("User does not have a local clone of the repository.");
+            }
             finally
             {
-                System.IO.File.Delete(tempFile);
+                try
+                {
+                    System.IO.File.Delete(tempFile);
+                    System.IO.Directory.Delete(tempDir);
+                }
+                catch(Exception)
+                {
+                    // Ignore, cleanup failed
+                }
             }
 
             return File(bytes, "application/zip", $"{org}-{repository}.zip");

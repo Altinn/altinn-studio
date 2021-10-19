@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import DownloadRepoModal from './DownloadRepoModal';
 
 const setupClasses = makeStyles({
   avatar: {
@@ -49,7 +50,14 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const [resetRepoModalOpen, setResetRepoModalOpen] = React.useState<boolean>(false);
   const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] = React.useState<any>(null);
+  const [downloadModalOpen, setDownloadModalOpen] = React.useState<boolean>(false);
+  const downloadModalRef = React.useRef<HTMLElement>();
+
   const repoStatus = useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict.repoStatus);
+
+  const toggleDownloadModal = () => {
+    setDownloadModalOpen(!downloadModalOpen);
+  };
 
   const onCloseModal = () => {
     setResetRepoModalOpen(false);
@@ -112,8 +120,7 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         id='reset-repo-button'
         btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
         onClickFunction={onClickResetRepo}
-      /><br/>
-      <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{getLanguageFromKey('administration.download_repo', props.language)}</a>
+      />
       <ResetRepoModal
         anchorEl={resetRepoModalAnchorEl}
         handleClickResetRepo={handleResetRepoClick}
@@ -122,6 +129,19 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         open={resetRepoModalOpen}
         repositoryName={props.service.name}
       />
+      <AltinnButton
+        btnText={getLanguageFromKey('administration.download_repo', props.language)}
+        onClickFunction={toggleDownloadModal}
+        ref={downloadModalRef}
+      />
+      <DownloadRepoModal
+        anchorRef={downloadModalRef}
+        language={props.language}
+        onClose={toggleDownloadModal}
+        open={downloadModalOpen}
+      />
+
+      <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{}</a>
     </>
   );
 };
