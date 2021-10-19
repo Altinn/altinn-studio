@@ -16,11 +16,6 @@ namespace Altinn.Platform.Events.Configuration
         public string InboundQueueName { get; set; }
 
         /// <summary>
-        /// Indicated if events should be pushed to queue.
-        /// </summary>
-        public bool EnablePushToQueue { get; set; }
-
-        /// <summary>
         /// Name of the queue to push outbound events to.
         /// </summary>
         public string OutboundQueueName { get; set; }
