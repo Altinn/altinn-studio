@@ -4,7 +4,7 @@ import theme from '../../theme/altinnStudioTheme';
 
 export interface IMobileTableItem {
   label: string;
-  value: string;
+  value: string | React.ReactElement;
 }
 
 export interface IAltinnMobileTableItemProps {

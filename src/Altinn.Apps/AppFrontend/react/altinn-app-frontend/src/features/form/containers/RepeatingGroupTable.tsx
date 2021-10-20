@@ -10,6 +10,8 @@ import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { getFormDataForComponentInRepeatingGroup, getTextResource } from 'src/utils/formComponentUtils';
 import { AltinnMobileTable, AltinnMobileTableItem, AltinnTable, AltinnTableBody, AltinnTableHeader, AltinnTableRow } from 'altinn-shared/components';
 import { IMobileTableItem } from 'altinn-shared/components/molecules/AltinnMobileTableItem';
+import NumberFormat from 'react-number-format';
+import { IInputProps } from 'src/components/base/InputComponent';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { setupGroupComponents } from '../../../utils/layout';
 import { ITextResource, IRepeatingGroups, IValidations, IOptions } from '../../../types';
@@ -88,8 +90,29 @@ export function RepeatingGroupTable({
     hiddenFields,
   );
 
-  const getFormDataForComponent = (component: ILayoutComponent | ILayoutGroup, index: number): string => {
-    return getFormDataForComponentInRepeatingGroup(formData, component, index, container.dataModelBindings.group, textResources, options);
+  const getFormDataForComponent = (component: ILayoutComponent | ILayoutGroup, index: number): string | React.ReactElement => {
+    const formDataValue = getFormDataForComponentInRepeatingGroup(formData, component, index, container.dataModelBindings.group, textResources, options);
+
+    // Use <NumberFormat if it is used on the field.
+    if (component.type === 'Input') {
+      const inputComponent = component as unknown as IInputProps;
+      if (inputComponent.formatting) {
+        const comp = inputComponent?.formatting?.number ? <NumberFormat
+          {...inputComponent.formatting.number}
+          displayType='text'
+          value={formDataValue}
+        /> : formDataValue;
+        if (inputComponent.formatting.align === 'right' || inputComponent.formatting.number.fixedDecimalScale) {
+          return <div style={{ textAlign: 'right' }}>{comp}</div>;
+        }
+        if (inputComponent.formatting.align === 'center') {
+          return <div style={{ textAlign: 'center' }}>{comp}</div>;
+        }
+
+        return comp;
+      }
+    }
+    return formDataValue;
   };
 
   const onClickEdit = (groupIndex: number) => {

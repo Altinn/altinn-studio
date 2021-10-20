@@ -99,16 +99,6 @@ export interface IHeaderProps extends ILayoutComponent {
   size: HeaderSize;
 }
 
-declare enum InputFieldType {
-  text,
-  email,
-  password,
-}
-
-export interface IInputProps extends ILayoutComponent {
-  inputType: InputFieldType;
-}
-
 export interface INavigationButtonProps extends ILayoutComponent {
   next?: string;
   previous?: string;
