@@ -1,5 +1,5 @@
 deployment:
-  replicaCount: 1
+  # replicaCount: 1
 
   image:
     # Set "repository" name of your image for manual Helm install and upgrade.
