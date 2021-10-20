@@ -139,9 +139,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// </summary>
         /// <summary>
         /// Scenario:
-        /// Calling the POST operation for AddRules to perform a valid delegation
+        /// Calling the POST operation for AddRules to perform a partially valid delegation
         /// Input:
-        /// List of two rules for delegation of the app org1/app1 between for a single offeredby/coveredby combination resulting in a single delegation policy.
+        /// List of 4 rules for delegation of from 4 different offeredBys to 4 different coveredBys for 4 different apps. Resulting in 4 different delegation policy files. 1 of the rules are for an app which does not exist
         /// Expected Result:
         /// 3 Rules are created and returned with the CreatedSuccessfully flag set and rule ids
         /// 1 Rule is not created and returned with the CreatedSuccessfully flag set to false and no rule id
@@ -149,7 +149,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// AddRules returns status code 206 and list of rules created match expected
         /// </summary>
         [Fact]
-        public async Task Post_AddRules_PartialSuccess_OneInvalidApp_Success()
+        public async Task Post_AddRules_OneInvalidApp_PartialSuccess()
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/Json/AddRules/OneOutOfFourInvalidApp.json");
@@ -165,6 +165,57 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org1", "INVALIDAPPNAME", createdSuccessfully: false),
                 TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
                 TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertionUtil.AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        /// <summary>
+        /// Test case: Calling the POST operation for AddRules to perform a partially valid delegation, as one of the four rules are incomplete (missing org/app resource specification)
+        /// Expected: AddRules returns status code 206 and list of resulting rules match expected
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a partially valid delegation
+        /// Input:
+        /// List of 4 rules for delegation of from 4 different offeredBys to 4 different coveredBys for 4 different apps. Resulting in 4 different delegation policy files. 1 of the rules are incomplete (missing org/app resource specification)
+        /// Expected Result:
+        /// 3 Rules are created and returned with the CreatedSuccessfully flag set and rule ids
+        /// 1 Rule is not created and returned with the CreatedSuccessfully flag set to false and no rule id
+        /// Success Criteria:
+        /// AddRules returns status code 206 and list of rules created match expected
+        /// </summary>
+        [Fact]
+        public async Task Post_AddRules_OneIncompleteInput_MissingOrgApp_PartialSuccess()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/OneOutOfFourIncompleteApp.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            Rule invalidRule = TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", null, null, createdSuccessfully: false);
+            invalidRule.Resource = new List<AttributeMatch>();
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+                invalidRule,
             };
 
             // Act

@@ -63,16 +63,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return null;
         }
 
-        public async Task<(XacmlPolicy, ETag)> GetPolicyVersionAndETagAsync(string policyPath, string version)
-        {
-            if (File.Exists(policyPath))
-            {
-                return await Task.FromResult((ParsePolicy("policy.xml", policyPath), new ETag("ETag")));
-            }
-
-            return (null, ETag.All);
-        }
-
         private string GetPolicyPath(XacmlContextRequest request)
         {
             string org = string.Empty;

@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, string blobLeaseId)
         {
-            if (blobLeaseId == "CorrectLeaseId")
+            if (blobLeaseId == "CorrectLeaseId" && !filepath.Contains("error/blobstorageleaselockwritefail"))
             {
                 return await WriteStreamToTestDataFolder(filepath, fileStream);
             }
