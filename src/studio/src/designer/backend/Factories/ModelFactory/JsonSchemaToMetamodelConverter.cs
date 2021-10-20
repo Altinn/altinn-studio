@@ -395,7 +395,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema);
             string name = ConvertToCSharpCompatibleName(context.Name);
-
+            
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
@@ -410,7 +410,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
-                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
+                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs)
                 });
         }
@@ -444,7 +444,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             int maxOccurs = GetMaxOccurs(subSchema);
             var fixedValue = GetFixedValue(subSchema);
             var xPath = CombineXPath(context.XPath, context.Name);
-
+            var xsdValueType = MapToXsdValueType(context.SchemaValueType, subSchema);
             _modelMetadata.Elements.Add(
                 context.Id,
                 new ElementMetadata()
@@ -454,13 +454,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     XName = ConvertToCSharpCompatibleName(context.Name),
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
-                    XsdValueType = MapToXsdValueType(context.SchemaValueType),
+                    XsdValueType = xsdValueType,
                     XPath = xPath,
                     JsonSchemaPointer = path.Source,
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = @type,
-                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType), subSchema),
+                    Restrictions = GetRestrictions(xsdValueType, subSchema),
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
@@ -488,12 +488,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return name.Replace("-", string.Empty);
         }
 
-        private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType)
+        private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType, JsonSchema subSchema)
         {
             switch (jsonValueType)
             {
                 case SchemaValueType.String:
-                    return BaseValueType.String;
+                    return MapStringValueTypes(jsonValueType, subSchema);
                 case SchemaValueType.Boolean:
                     return BaseValueType.Boolean;
                 case SchemaValueType.Number:
@@ -503,6 +503,52 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 default:
                     return null;
             }
+        }
+
+        private static BaseValueType MapStringValueTypes(SchemaValueType jsonValueType, JsonSchema subSchema)
+        {
+            var baseValueType = BaseValueType.String;
+            if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
+            {
+                var format = formatKeyword.Value.Key;
+                switch (format)
+                {
+                    case "date":
+                        return BaseValueType.Date;
+
+                    case "date-time":
+                        return BaseValueType.DateTime;
+
+                    case "duration":
+                        return BaseValueType.Duration;
+
+                    case "day":
+                        return BaseValueType.GDay;
+
+                    case "month":
+                        return BaseValueType.GMonth;
+
+                    case "month-day":
+                        return BaseValueType.GMonthDay;
+
+                    case "year":
+                        return BaseValueType.GYear;
+
+                    case "year-month":
+                        return BaseValueType.GYearMonth;
+
+                    case "time":
+                        return BaseValueType.Time;
+
+                    case "email":
+                        return BaseValueType.String;
+
+                    case "uri":
+                        return BaseValueType.AnyURI;
+                }
+            }
+
+            return baseValueType;
         }
 
         private static string CombineXPath(string baseXPath, string name)
@@ -572,6 +618,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private static void AddStringRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
         {
             var enumKeyword = subSchema.GetKeyword<EnumKeyword>();
+            if (enumKeyword != null)
+            {
+                AddEnumRestrictions(enumKeyword, restrictions);
+            }
+
+            if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+            {
+                var maxLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>()).GetKeyword<MaxLengthKeyword>();
+                restrictions.Add(maxLengthKeyword.Keyword(), new Restriction() { Value = maxLengthKeyword.Value.ToString() });
+            }
+        }
+
+        private static void AddEnumRestrictions(EnumKeyword enumKeyword, Dictionary<string, Restriction> restrictions)
+        {
             if (enumKeyword == null)
             {
                 return;
