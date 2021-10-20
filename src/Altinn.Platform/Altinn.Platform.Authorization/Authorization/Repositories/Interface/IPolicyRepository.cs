@@ -68,7 +68,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <summary>
         /// Checks whether there exists a blob at the specified path
         /// </summary>
-        /// <param name="filepath">The file path to check if a blob exists/param>
+        /// <param name="filepath">The file path to check if a blob exists</param>
         /// <returns>Bool whether the blob exists or not</returns>
         Task<bool> PolicyExistsAsync(string filepath);
     }

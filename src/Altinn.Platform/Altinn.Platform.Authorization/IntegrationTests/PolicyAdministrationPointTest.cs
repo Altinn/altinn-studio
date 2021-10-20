@@ -35,6 +35,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         private readonly IPolicyAdministrationPoint _pap;
         private readonly IPolicyRepository _prp;
+        private DelegationMetadataRepositoryMock _delegationMetadataRepositoryMock;
 
         public PolicyAdministrationPointTest()
         {
@@ -43,12 +44,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             IMemoryCache memoryCache = serviceProvider.GetService<IMemoryCache>();
+            _delegationMetadataRepositoryMock = new DelegationMetadataRepositoryMock();
 
             _prp = new PolicyRepositoryMock();
             _pap = new PolicyAdministrationPoint(
                 new PolicyRetrievalPoint(_prp, memoryCache, Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 })),
                 new PolicyRepositoryMock(),
-                new PolicyDelegationRepositoryMock(),
+                _delegationMetadataRepositoryMock,
                 memoryCache,
                 Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }),
                 new Mock<ILogger<IPolicyAdministrationPoint>>().Object);
@@ -103,6 +105,108 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _pap.WritePolicyAsync("org", "app", null));
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether all rules are returned as successfully created
+        /// Input:
+        /// List of unordered rules for delegation of the same apps from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of all rules (now in sorted order of the resulting 3 delegation policy files) with success flag and rule id set.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_Valid()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<RuleMatch> inputRuleMatchess = new List<RuleMatch>
+            {
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org1", "app3", "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", coveredByUserId: coveredBy),
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org1", "app3", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded", coveredByUserId: coveredBy),
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org2", "app3", "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f", coveredByUserId: coveredBy),
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org1", "app4", "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9", coveredByUserId: coveredBy)                
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether all rules are returned as successfully created
+        /// Input:
+        /// List of unordered rules for delegation of the same apps from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of all rules (now in sorted order of the resulting 3 delegation policy files) with success flag and rule id set.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_PolesyPathDoesNotExist()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<RuleMatch> inputRuleMatchess = new List<RuleMatch>
+            {
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org1", "app8", "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", coveredByUserId: coveredBy),
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org2", "app3", "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f", coveredByUserId: coveredBy),
+                TestDataHelper.GetRuleMatchModel(performedByUserId, offeredByPartyId, "org1", "app4", "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9", coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
         }
 
         /// <summary>

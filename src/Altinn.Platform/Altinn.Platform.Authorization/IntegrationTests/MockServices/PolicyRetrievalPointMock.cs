@@ -55,9 +55,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
         {
-            if (File.Exists(policyPath))
+            string fullpolicyPath = Path.GetFullPath(Path.Combine(GetDataInputBlobPath() + policyPath));
+
+            if (File.Exists(Path.Combine(fullpolicyPath, "policy.xml")))
             {
-                return await Task.FromResult(ParsePolicy("policy.xml", policyPath));
+                return await Task.FromResult(ParsePolicy("policy.xml", fullpolicyPath));
+            }
+
+            if (File.Exists(fullpolicyPath))
+            {
+                return await Task.FromResult(ParsePolicy(fullpolicyPath, string.Empty));
             }
 
             return null;
@@ -71,6 +78,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
 
             return (null, ETag.All);
+        }
+
+        private string GetDataInputBlobPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data//blobs/input/");
         }
 
         private string GetPolicyPath(XacmlContextRequest request)

@@ -53,18 +53,30 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<bool> PolicyExistsAsync(string filepath)
         {
-            return Task.FromResult(true);
+            switch (filepath)
+            {
+                case "org1/app8/50001337/20001337/delegationpolicy.xml":
+                    return Task.FromResult(false);
+                default:
+                    return Task.FromResult(true);
+            }
         }
 
-        private string GetDataBlobPath()
+        private string GetDataOutputBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, "../../../data/blobs/");
         }
 
+        private string GetDataInputBlobPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data/blobs/input");
+        }
+
         private Stream GetTestDataStream(string filepath)
         {
-            string dataPath = Path.Combine(GetDataBlobPath(), filepath);
+            string dataPath = Path.Combine(GetDataInputBlobPath(), filepath);
             Stream ms = new MemoryStream();
             if (File.Exists(dataPath))
             {
@@ -77,7 +89,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
         {
-            string dataPath = GetDataBlobPath() + filepath;
+            string dataPath = GetDataOutputBlobPath() + filepath;
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {

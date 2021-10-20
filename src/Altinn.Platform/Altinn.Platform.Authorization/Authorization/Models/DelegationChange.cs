@@ -40,10 +40,10 @@ namespace Altinn.Platform.Authorization.Models
         public int? CoveredByUserId { get; set; }
 
         /// <summary>
-        /// Gets or sets the user id of the user that performed the delegation.
+        /// Gets or sets the user id of the user that performed the delegation change (either added or removed rules to the policy, or deleted it entirely).
         /// </summary>
-        [JsonPropertyName("performinguserid")]
-        public int DelegatedByUserId { get; set; }
+        [JsonPropertyName("performedbyuserid")]
+        public int PerformedByUserId { get; set; }
 
         /// <summary>
         /// Gets or sets blobstoragepolicypath.

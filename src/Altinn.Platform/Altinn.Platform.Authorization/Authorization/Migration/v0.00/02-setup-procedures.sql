@@ -4,23 +4,34 @@ CREATE OR REPLACE PROCEDURE delegation.insert_change(
   _offeredByPartyId integer,
   _coveredByUserId integer,
   _coveredByPartyId integer,
-  _performingUserId integer,
+  _performedByUserId integer,
   _blobStoragePolicyPath character varying,
   _blobStorageVersionId character varying,
-  inout _policyChangeId bigint)
+  _isDeleted bool,
+  inout _delegationChangeId bigint)
 LANGUAGE 'plpgsql'
 AS $BODY$
 BEGIN
-INSERT INTO delegation.delegatedPolicy(
+INSERT INTO delegation.delegationChanges (
     altinnAppId, 
-    offeredByPartyId, coveredByUserId, coveredByPartyId, performingUserId,
-    blobStoragePolicyPath, blobStorageVersionId
+    offeredByPartyId,
+    coveredByUserId,
+    coveredByPartyId,
+    performedByUserId,
+    blobStoragePolicyPath,
+    blobStorageVersionId,
+    isDeleted
 )
 VALUES (
   _altinnAppId,
-  _offeredByPartyId, _coveredByUserId, _coveredByPartyId, _performingUserId,
-  _blobStoragePolicyPath, _blobStorageVersionId
-) RETURNING policyChangeId INTO _policyChangeId;
+  _offeredByPartyId,
+  _coveredByUserId,
+  _coveredByPartyId,
+  _performedByUserId,
+  _blobStoragePolicyPath,
+  _blobStorageVersionId,
+  _isDeleted
+) RETURNING delegationChangeId INTO _delegationChangeId;
 
 END;
 $BODY$;
@@ -33,15 +44,26 @@ CREATE OR REPLACE FUNCTION delegation.get_current_change(
   _coveredByUserId integer,
   _coveredByPartyId integer
 )
-RETURNS SETOF delegation.delegatedPolicy AS 
+RETURNS SETOF delegation.delegationChanges AS 
 $BODY$
-  SELECT * FROM delegation.delegatedPolicy
+  SELECT
+    delegationChangeId,
+    altinnAppId, 
+    offeredByPartyId,
+    coveredByUserId,
+    coveredByPartyId,
+    performedByUserId,
+    blobStoragePolicyPath,
+    blobStorageVersionId,
+    isDeleted,
+    created
+  FROM delegation.delegationChanges
   WHERE
-  altinnAppId = _altinnAppId
-  AND offeredByPartyId = _offeredByPartyId
-  AND (_coveredByUserId IS NULL OR coveredByUserId = _coveredByUserId)
-  AND (_coveredByPartyId IS NULL OR coveredByPartyId = _coveredByPartyId)
-  ORDER BY policyChangeId DESC LIMIT 1
+    altinnAppId = _altinnAppId
+    AND offeredByPartyId = _offeredByPartyId
+    AND (_coveredByUserId IS NULL OR coveredByUserId = _coveredByUserId)
+    AND (_coveredByPartyId IS NULL OR coveredByPartyId = _coveredByPartyId)
+  ORDER BY delegationChangeId DESC LIMIT 1
 $BODY$
 LANGUAGE sql;
 
@@ -53,9 +75,20 @@ CREATE OR REPLACE FUNCTION delegation.get_all_changes(
   IN _coveredByUserId integer,
   IN _coveredByPartyId integer
 )
-RETURNS SETOF delegation.delegatedPolicy AS
+RETURNS SETOF delegation.delegationChanges AS
 $BODY$
-  SELECT * FROM delegation.delegatedPolicy
+  SELECT
+    delegationChangeId,
+    altinnAppId, 
+    offeredByPartyId,
+    coveredByUserId,
+    coveredByPartyId,
+    performedByUserId,
+    blobStoragePolicyPath,
+    blobStorageVersionId,
+    isDeleted,
+    created
+  FROM delegation.delegationChanges
   WHERE
   altinnAppId = _altinnAppId
   AND offeredByPartyId = _offeredByPartyId

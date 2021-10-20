@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +40,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
+        ////[Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/AddRules")]
         public async Task<ActionResult> Post([FromBody] List<Rule> rules)
         {
@@ -58,18 +60,16 @@ namespace Altinn.Platform.Authorization.Controllers
 
                 if (delegationResults.All(r => r.CreatedSuccessfully))
                 {
-                    _logger.LogInformation("Delegation completed");
                     return Created("Created", delegationResults);
                 }
 
                 if (delegationResults.Any(r => r.CreatedSuccessfully))
                 {
-                    _logger.LogInformation("Partial delegation completed");
                     return StatusCode(206, delegationResults);
                 }
 
-                _logger.LogInformation("Delegation could not be completed");
-                return StatusCode(500, $"Unable to complete delegation");
+                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input.", rules);
+                return StatusCode(400, $"Delegation could not be completed");
             }
             catch (Exception e)
             {

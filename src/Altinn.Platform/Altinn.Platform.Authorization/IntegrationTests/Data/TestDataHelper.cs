@@ -34,6 +34,39 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return rule;
         }
 
+        public static RuleMatch GetRuleMatchModel(int lastChangedByUserId, int offeredByPartyId, string org, string app, string ruleId, int? coveredByPartyId = null, int? coveredByUserId = null, string action = null)
+        {
+            RuleMatch ruleMatch = new RuleMatch
+            {
+                LastChangedByUserId = lastChangedByUserId,
+                OfferedByPartyId = offeredByPartyId,
+                CoveredByPartyId = coveredByPartyId,
+                CoveredByUserId = coveredByUserId,
+                Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } },
+                Action = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = action },
+                RuleId = ruleId
+            };
+
+            return ruleMatch;
+        }
+
+        public static DelegationChange GetDelegationChange(string appid, int offeredByPartyId, int performedByUserId, bool isDeleted = true, int? coveredBypartyId = null, int? coveredByUserId = null)
+        {
+            DelegationChange result = new DelegationChange
+            {
+                AltinnAppId = appid,
+                OfferedByPartyId = offeredByPartyId,
+                CoveredByPartyId = coveredBypartyId,
+                CoveredByUserId = coveredByUserId,
+                PerformedByUserId = performedByUserId,
+                BlobStoragePolicyPath = $"{appid}/{offeredByPartyId}/{coveredBypartyId ?? coveredByUserId}/delegationpolicy.xml",
+                BlobStorageVersionId = "CorrectLeaseId",
+                IsDeleted = isDeleted,
+                Created = DateTime.Now
+            };
+            return result;
+        }
+
         public static ResourceAction GetResourceActionModel(string action, IEnumerable<string> roles)
         {
             ResourceAction resourceAction = new ResourceAction

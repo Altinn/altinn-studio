@@ -8,10 +8,10 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
     /// <summary>
     /// Interface for PostgreSQL operations on delegations.
     /// </summary>
-    public interface IPolicyDelegationRepository
+    public interface IDelegationMetadataRepository
     {
         /// <summary>
-        /// Writes the delegation meta data to the delegation database
+        /// Writes the delegation metadata to the delegation database
         /// </summary>
         /// <param name="altinnAppId">The AltinnApp identifier iin the format org/appname</param>
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
@@ -20,12 +20,12 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="delegatedByUserId">The user id of the entity performing the delegation of the policy</param>
         /// <param name="blobStoragePolicyPath">The path to the blobstorage location of the policy file</param>
         /// <param name="blobStorageVersionId">The current blobstorage version</param>
-        /// <param name="isDeleted">Value indicating the policy is delted</param>
+        /// <param name="isDeleted">Whether the delegation change is a (soft) deletion of the delegation policy</param>
         /// <returns>A bool value representing the whether the result of the asynchronous operation was successful</returns>
         Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted = false);
 
         /// <summary>
-        /// Gets the latest delegation change
+        /// Gets the latest delegation change matching the filter values
         /// </summary>
         /// <param name="altinnAppId">The AltinnApp identifier iin the format org/appname</param>
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         Task<DelegationChange> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId);
 
         /// <summary>
-        /// Gets the latest delegation change
+        /// Gets all the delegation change records matching the filter values for a complete changelog
         /// </summary>
         /// <param name="altinnAppId">The AltinnApp identifier iin the format org/appname</param>
         /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
