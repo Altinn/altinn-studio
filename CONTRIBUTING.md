@@ -1,21 +1,23 @@
 # Contributing to Altinn
 
-We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
+We love your input! We want to make contributing to this project as easy and transparent as possible.
+However we do recommend that you check our pages on
+[how to contribute to our development](https://docs.altinn.studio/community/contributing/) first.
 
+You can also contribute by:
 - Reporting a bug
 - Discussing the current state of the code
-- Submitting a fix
 - Proposing new features
-- Coding and submitting new features (but please write a comment tagging @lvbachmann in the corresponding [issue(s)](https://github.com/Altinn/altinn-studio/issues) in our backlog before you do)
 - Telling us what you want us to prioritise - by adding a :+1: to the issue.
 
 ## We develop with GitHub
 
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
-## Pull Requests
+## How to Pull Request
 
-Pull requests are the best way to propose changes to the codebase. We actively welcome your pull requests:
+Once you've finished developing something, Pull requests are the best way to propose changes to the codebase.
+We actively welcome your pull requests - even more so if you follow our [development guidelines](https://docs.altinn.studio/community/contributing/).
 
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested, add tests.
@@ -32,7 +34,7 @@ In short, when you submit code changes, your submissions are understood to be un
 ## Report bugs using GitHub issues
 
 We use GitHub [issues](https://github.com/Altinn/altinn-studio/issues) to track public bugs.
-Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new); it's that easy!
+Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new) and use the `bug` template; it's that easy!
 
 ### Write bug reports with detail, background, and sample code
 
