@@ -129,6 +129,10 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         open={resetRepoModalOpen}
         repositoryName={props.service.name}
       />
+      {/* Download local repository */}
+      <Typography className={classNames(classes.sidebarHeader, classes.sidebarHeaderSecond)}>
+        {getLanguageFromKey('administration.download_repo', props.language)}
+      </Typography>
       <AltinnButton
         btnText={getLanguageFromKey('administration.download_repo', props.language)}
         onClickFunction={toggleDownloadModal}
@@ -140,8 +144,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         onClose={toggleDownloadModal}
         open={downloadModalOpen}
       />
-
-      <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{}</a>
     </>
   );
 };

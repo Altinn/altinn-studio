@@ -535,5 +535,43 @@ namespace Altinn.Studio.Designer.Controllers
 
             return File(bytes, "application/zip", $"{org}-{repository}.zip");
         }
+
+        /// <summary>
+        /// Gets the repository content
+        /// </summary>
+        [HttpGet]
+        [Route("/designer/api/v1/repositories/{org}/{repository}/changed-contents.zip")]
+        public async Task<ActionResult> ChangedContentsZip(string org, string repository)
+        {
+            string appRoot = null;
+            try
+            {
+                appRoot = _repository.GetAppPath(org, repository);
+            
+                if (!Directory.Exists(appRoot))
+                {
+                    return BadRequest("User does not have a local clone of the repository.");
+                }
+
+            }
+            catch(ArgumentOutOfRangeException e)
+            {
+                return BadRequest("User does not have a local clone of the repository.");
+            }
+
+            var outStream = new MemoryStream();
+            using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach(var changedFile in _sourceControl.Status(org, repository))
+                {
+                    archive.CreateEntryFromFile(Path.Join(appRoot, changedFile.FilePath), changedFile.FilePath);
+                }
+            }
+            
+            outStream.Seek(0, SeekOrigin.Begin);
+
+            return File(outStream, "application/zip", $"{org}-{repository}.zip");
+        
+        }
     }
 }
