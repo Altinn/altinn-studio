@@ -9,8 +9,8 @@ describe('>>> CreateNewWrapper.tsx', () => {
   const language = { administration: {} };
   let someValue = 'unchangedValue';
   let wrapper: any = null;
-  const changeValue = (v: string, b: string = undefined) => {
-    someValue = `${v}${b}`;
+  const changeValue = (v: { name: string, relativePath?: string }) => {
+    someValue = `${v.name}${v.relativePath}`;
   };
   beforeEach(() => {
     someValue = 'unchangedValue';
@@ -18,7 +18,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
   });
   const mountComponent = (
     modelNames: string[],
-    onCreate?: (v: string) => void,
+    onCreate?: (payload: {name: string}) => void,
     c: boolean = false,
   ) => mount(<CreateNewWrapper
     language={language}
@@ -63,7 +63,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     wrapper.update();
     expect(someValue).toBe('new-modelundefined');
   });
-  it('executes the on change function with editable model-path', () => {
+  it('should call createAction callback when submit button is clicked', () => {
     act(() => {
       wrapper = mountComponent(['some', 'names'], changeValue, true);
     });
@@ -76,7 +76,7 @@ describe('>>> CreateNewWrapper.tsx', () => {
     wrapper.update();
     expect(someValue).toBe('new-model');
   });
-  it('reacts to enter being pressed', () => {
+  it('should call createAction callback when input is focused and enter key is pressed', () => {
     act(() => {
       wrapper = mountComponent(['some', 'names'], changeValue);
     });

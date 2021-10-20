@@ -10,7 +10,7 @@ export interface IDataModelAction {
 }
 export interface IDataModelActionPayload {
   relativeDirectory?: string;
-  modelName?: string;
+  name?: string;
   schema?: ISchema;
   repoType?: string;
   metadata?: any;

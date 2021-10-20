@@ -63,9 +63,12 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
     setSelectedOption(null);
   };
 
-  const createAction = (modelName: string, relativeDirectory?: string) => {
-    dispatch(createDataModel({ modelName, relativeDirectory }));
-    setSelectedOption({ label: modelName });
+  const createAction = (model: {
+    name: string,
+    relativeDirectory?: string,
+  }) => {
+    dispatch(createDataModel(model));
+    setSelectedOption({ label: model.name });
   };
 
   const getModelNames = () => {

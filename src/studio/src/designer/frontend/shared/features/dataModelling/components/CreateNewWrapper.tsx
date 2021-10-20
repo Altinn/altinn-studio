@@ -6,7 +6,7 @@ import { getLanguageFromKey } from '../../../utils/language';
 
 interface ICreateNewWrapper {
   language: any,
-  createAction: (modelName: string, relativePath: string | undefined) => void,
+  createAction: ({ name, relativePath }: { name: string, relativePath: string | undefined }) => void,
   dataModelNames: string[],
   createPathOption?: boolean;
 }
@@ -16,7 +16,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   const [newModelName, setNewModelName] = React.useState('');
   const [nameError, setNameError] = React.useState('');
   const [confirmedWithReturn, setConfirmedWithReturn] = React.useState(false);
-  const [relativePath] = React.useState(props.createPathOption ? '' : undefined);
+  const relativePath = props.createPathOption ? '' : undefined;
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
@@ -44,7 +44,10 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
       setNameError(`A model with name ${newModelName} already exists.`);
       return;
     }
-    props.createAction(newModelName, relativePath);
+    props.createAction({
+      name: newModelName,
+      relativePath,
+    });
     setCreateButtonAnchor(null);
     setNewModelName('');
     setNameError('');
