@@ -69,6 +69,7 @@
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+    <Watch Include="**\*.cs;**\*.csproj" Exclude="node_modules\**\*;**\*.js.map;obj\**\*;bin\**\*;**\*.js" />
   </ItemGroup>
 
   <ItemGroup>

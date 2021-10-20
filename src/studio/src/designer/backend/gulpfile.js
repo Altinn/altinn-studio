@@ -249,6 +249,15 @@ gulp.task('develop', gulp.parallel(
   })
 ));
 
+gulp.task('develop-designer-frontend', gulp.parallel(
+  copyNodeModulePackages,
+  setupWatchers,
+  // run('dotnet run'),
+  run('npm run webpack-watch', {
+    cwd: '../frontend/app-development',
+  })
+));
+
 gulp.task('develop-dashboard', gulp.parallel(
   copyNodeModulePackages,
   setupWatchers,
