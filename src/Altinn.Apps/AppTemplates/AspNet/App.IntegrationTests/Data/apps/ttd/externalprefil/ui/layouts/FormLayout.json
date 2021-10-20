@@ -1,0 +1,19 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "3ebfbc62-bdc4-4017-84b6-63ea18a6c042",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsnummer"
+        },
+        "required": true,
+        "readOnly": false
+      }
+    ]
+  }
+}

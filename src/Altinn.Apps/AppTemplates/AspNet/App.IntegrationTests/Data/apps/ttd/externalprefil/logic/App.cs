@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.DataProcessing;
@@ -17,7 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.AppLogic
+namespace App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil
 {
     /// <summary>
     /// Represents the core logic of an App
@@ -114,7 +113,7 @@ namespace Altinn.App.AppLogic
         /// Is called to run custom calculation events defined by app developer when data is read from app
         /// </summary>
         /// <param name="instance">Instance that data belongs to</param>
-        /// <param name="dataId">Data id for the data</param>
+        /// <param name="dataId">Data id for the  data</param>
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
         {
@@ -122,7 +121,7 @@ namespace Altinn.App.AppLogic
         }
 
         /// <summary>
-        /// Is called to run custom calculation events defined by app developer when data is written to app.
+        /// Is called to run custom calculation events defined by app developer when data is written to app
         /// </summary>
         /// <param name="instance">Instance that data belongs to</param>
         /// <param name="dataId">Data id for the  data</param>
@@ -169,10 +168,9 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="instance">The data to perform data creation on</param>
         /// <param name="data">The data object being created</param>
-        /// <param name="prefill">External prefill available under instansiation</param>
-        public override async Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        public override async Task RunDataCreation(Instance instance, object data)
         {
-           await _instantiationHandler.DataCreation(instance, data, prefill);
+           await _instantiationHandler.DataCreation(instance, data);
         }
 
         /// <inheritdoc />

@@ -234,7 +234,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instanceTemplate);
+                party = await LookupParty(instanceTemplate.InstanceOwner);
             }
             catch (Exception partyLookupException)
             {
@@ -309,6 +309,125 @@ namespace Altinn.App.Api.Controllers
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
+            }
+
+            await RegisterEvent("app.instance.created", instance);
+
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+            string url = instance.SelfLinks.Apps;
+
+            return Created(url, instance);
+        }
+
+        /// <summary>
+        /// Simplified Instanciation with support for fieldprefill 
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceInstansiation">instansiation information</param>
+        /// <returns></returns>
+        [HttpPost("create")]
+        [DisableFormValueModelBinding]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [RequestSizeLimit(RequestSizeLimit)]
+        public async Task<ActionResult<Instance>> PostSimplified(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromBody] InstanceInstansiation instanceInstansiation)
+        {
+            if (string.IsNullOrEmpty(org))
+            {
+                return BadRequest("The path parameter 'org' cannot be empty");
+            }
+
+            if (string.IsNullOrEmpty(app))
+            {
+                return BadRequest("The path parameter 'app' cannot be empty");
+            }
+
+            Application application = _appResourcesService.GetApplication();
+            if (application == null)
+            {
+                return NotFound($"AppId {org}/{app} was not found");
+            }
+
+            InstanceOwner lookup = instanceInstansiation.InstanceOwner;
+
+            if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
+            {
+                return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
+            }
+
+            Party party;
+            try
+            {
+                party = await LookupParty(instanceInstansiation.InstanceOwner);
+            }
+            catch (Exception partyLookupException)
+            {
+                if (partyLookupException is ServiceException)
+                {
+                    ServiceException sexp = partyLookupException as ServiceException;
+
+                    if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
+                    {
+                        return StatusCode((int)HttpStatusCode.Forbidden);
+                    }
+                }
+
+                return NotFound($"Cannot lookup party: {partyLookupException.Message}");
+            }
+
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
+            }
+
+            if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+            }
+
+            Instance instanceTemplate = new Instance() { InstanceOwner = instanceInstansiation.InstanceOwner };
+
+            // Run custom app logic to validate instantiation
+            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
+            if (validationResult != null && !validationResult.Valid)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            }
+
+            Instance instance;
+            ProcessStateChange processResult;
+            try
+            {
+                // start process and goto next task
+                instanceTemplate.Process = null;
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
+                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                string userOrgClaim = User.GetOrg();
+
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    instanceTemplate.Status ??= new InstanceStatus();
+                    instanceTemplate.Status.ReadStatus = ReadStatus.Read;
+                }
+
+                // create the instance
+                instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
+
+                // notify app and store events
+                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instanceInstansiation.Prefill);
+                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
             await RegisterEvent("app.instance.created", instance);
@@ -517,10 +636,8 @@ namespace Altinn.App.Api.Controllers
             return enforcementResult;
         }
 
-        private async Task<Party> LookupParty(Instance instanceTemplate)
+        private async Task<Party> LookupParty(InstanceOwner instanceOwner)
         {
-            InstanceOwner instanceOwner = instanceTemplate.InstanceOwner;
-
             Party party;
             if (instanceOwner.PartyId != null)
             {
@@ -616,8 +733,16 @@ namespace Altinn.App.Api.Controllers
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
-                    await _altinnApp.RunDataCreation(instance, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data, null);
+                    try
+                    {
+                        await _altinnApp.RunDataCreation(instance, data, null);
+                    }
+                    catch (NotImplementedException)
+                    {
+                        // Trigger application business logic the old way. DEPRICATED
+                        await _altinnApp.RunDataCreation(instance, data);
+                    }
 
                     dataElement = await _dataClient.InsertFormData(
                         data,

@@ -397,7 +397,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // runs prefill from repo configuration if config exists
-            await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType, appModel);
+            await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType, appModel, null);
 
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);

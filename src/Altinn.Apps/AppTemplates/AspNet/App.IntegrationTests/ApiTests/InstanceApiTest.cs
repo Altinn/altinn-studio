@@ -245,6 +245,42 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
+        [Fact]
+        public async Task Instance_Post_With_ExternalPrefil_Org()
+        {
+            string token = PrincipalUtil.GetOrgToken("ttd");
+
+            InstanceInstansiation instanceTemplate = new InstanceInstansiation
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                DueBefore = DateTime.Parse("2020-01-01")
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/externalprefil/instances/create")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+            TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
         /// <summary>
         /// create a multipart request with instance and xml prefil.
         /// </summary>

@@ -51,7 +51,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
         {
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
@@ -72,6 +72,12 @@ namespace Altinn.App.Services.Implementation
                 string errorMessage = $"Could find party for partyId: {partyId}";
                 _logger.LogError(errorMessage);
                 throw new Exception(errorMessage);
+            }
+
+            // Prefill from user profile
+            if (externalPrefill != null && externalPrefill.Count > 0)
+            {
+                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
             }
 
             // Prefill from user profile
@@ -219,7 +225,16 @@ namespace Altinn.App.Services.Implementation
                     throw new Exception(errorMessage);
                 }
 
-                JToken sourceValue = sourceObject.SelectToken(source);
+                JToken sourceValue = null;
+                if (sourceObject != null)
+                {
+                  sourceValue = sourceObject.SelectToken(source);
+                }
+                else
+                {
+                    sourceValue = JToken.Parse(source);
+                }
+
                 _logger.LogInformation($"Source: {source}, target: {target}");
                 _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
                 string[] keys = target.Split(".");
