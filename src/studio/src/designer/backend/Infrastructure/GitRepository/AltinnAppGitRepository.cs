@@ -65,7 +65,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="modelMetadata">Model metadata to persist.</param>
         /// <param name="modelName">The name of the model. </param>
-        /// <returns></returns>
         public async Task UpdateModelMetadata(ModelMetadata modelMetadata, string modelName)
         {
             string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
@@ -79,7 +78,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="csharpClasses">All C# classes that should be percisted (in one file).</param>
         /// <param name="modelName">The name of the model, will be used as filename.</param>
-        /// <returns></returns>
         public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
         {
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
@@ -106,7 +104,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Gets the relative path to a model.
         /// </summary>
         /// <param name="modelName">The name of the model without extensions.</param>
-        /// <returns></returns>
+        /// <returns>A string with the relative path to the model file, including file extension. </returns>
         public string GetRelativeModelFilePath(string modelName)
         {
             return Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.schema.json");
@@ -115,6 +113,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Gets the folder where the datamodels are stored.
         /// </summary>
+        /// <returns>A string with the relative path to the model folder within the app.</returns>
         public string GetRelativeModelFolder()
         {
             return MODEL_FOLDER_PATH;

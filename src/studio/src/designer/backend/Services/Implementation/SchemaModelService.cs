@@ -163,13 +163,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a resolvable uri to the location of the schema.
+        /// Gets the <see cref="Uri"/> to the schema within the repository.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="schemaName">The logical name of the schema ie. filename without extention.</param>
         /// <param name="relativePath">The relative path (from repository root) to where the schema should be stored.</param>
-        /// <returns></returns>
+        /// <returns>Returns a resolvable uri to the location of the schema.</returns>
         public Uri GetSchemaUri(string org, string repository, string schemaName, string relativePath = "")
         {
             var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
@@ -183,8 +183,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                relativePath = relativePath.TrimEnd("/".ToCharArray());
-                relativePath = relativePath.TrimStart("/".ToCharArray());
+                relativePath = relativePath.TrimEnd('/');
+                relativePath = relativePath.TrimStart('/');
                 schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{relativePath}/{schemaName}.schema.json");
             }
 
