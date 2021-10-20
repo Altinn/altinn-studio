@@ -51,3 +51,24 @@ deployment:
     - name: accesstoken
       secret:
         secretName: accesstoken
+
+## Options for configuring resources. See: https://docs.altinn.studio/app/development/configuration/autoscaling/
+  # resources:
+  #   requests:
+  #     cpu: 300m
+  #     memory: 256Mi
+  #   limits:
+  #     cpu: 1000m
+  #     memory: 512Mi
+
+## Options for autoscaling. See: https://docs.altinn.studio/app/development/configuration/autoscaling/
+  # autoscaling:
+  #   enabled: true
+  #   replicas:
+  #     min: 2
+  #     max: 10
+  #   avgCpuUtilization: 70
+  #   behavior:
+  #     stabilizationWindowSeconds:
+  #       scaleUp: 0
+  #       scaleDown: 120
