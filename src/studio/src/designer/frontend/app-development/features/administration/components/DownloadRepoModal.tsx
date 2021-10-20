@@ -88,12 +88,12 @@ function DownloadRepoModal(props: IDownloadRepoModalProps) {
           </Grid>
           <Grid item={true} className={classes.itemSeparator}>
             <Typography variant='body1' className={classes.blackText}>
-              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/changed-contents.zip`}>{getLanguageFromKey('administration.download_repo_changes', props.language)}</a>
+              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{getLanguageFromKey('administration.download_repo_changes', props.language)}</a>
             </Typography>
           </Grid>
           <Grid item={true}>
             <Typography variant='body1' className={classes.blackText}>
-              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip`}>{getLanguageFromKey('administration.download_repo_full', props.language)}</a>
+              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip?full=full`}>{getLanguageFromKey('administration.download_repo_full', props.language)}</a>
             </Typography>
           </Grid>
           <Grid container={true}>

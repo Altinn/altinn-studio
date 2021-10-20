@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -491,57 +492,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpGet]
         [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
-        public async Task<ActionResult> ContentsZip(string org, string repository)
-        {
-            string tempDir = null;
-            string tempFile = null;
-            byte[] bytes = null;
-            try
-            {
-                string appRoot = _repository.GetAppPath(org, repository);
-            
-                if (!Directory.Exists(appRoot))
-                {
-                    return BadRequest("User does not have a local clone of the repository.");
-                }
-
-                tempDir = _repository.GetAppPath(org, repository + "-content-copy");
-                tempFile = Path.Join(tempDir, "content.zip");
-           
-                Directory.CreateDirectory(tempDir);
-                ZipFile.CreateFromDirectory(appRoot, tempFile);
-
-                // Read file to memory, so it can be deleted before returning.
-                // It would probably be better to stream from disk, but I didn't
-                // figure out how to delete it afterwards.
-                bytes = System.IO.File.ReadAllBytes(tempFile);
-            }
-            catch(ArgumentOutOfRangeException e)
-            {
-                return BadRequest("User does not have a local clone of the repository.");
-            }
-            finally
-            {
-                try
-                {
-                    System.IO.File.Delete(tempFile);
-                    System.IO.Directory.Delete(tempDir);
-                }
-                catch(Exception)
-                {
-                    // Ignore, cleanup failed
-                }
-            }
-
-            return File(bytes, "application/zip", $"{org}-{repository}.zip");
-        }
-
-        /// <summary>
-        /// Gets the repository content
-        /// </summary>
-        [HttpGet]
-        [Route("/designer/api/v1/repositories/{org}/{repository}/changed-contents.zip")]
-        public async Task<ActionResult> ChangedContentsZip(string org, string repository)
+        public async Task<ActionResult> ContentsZip(string org, string repository, [FromQuery] string full)
         {
             string appRoot = null;
             try
@@ -562,16 +513,46 @@ namespace Altinn.Studio.Designer.Controllers
             var outStream = new MemoryStream();
             using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
             {
-                foreach(var changedFile in _sourceControl.Status(org, repository))
+                IEnumerable<string> changedFiles;
+                if(full == "full")
                 {
-                    archive.CreateEntryFromFile(Path.Join(appRoot, changedFile.FilePath), changedFile.FilePath);
+                    changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
+                }
+                else
+                {
+                    changedFiles = _sourceControl.Status(org, repository).Select(f=>f.FilePath);
+                }
+
+                foreach(var changedFile in changedFiles)
+                {
+                    archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
                 }
             }
             
             outStream.Seek(0, SeekOrigin.Begin);
 
             return File(outStream, "application/zip", $"{org}-{repository}.zip");
-        
+        }
+
+        private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
+        {
+            var ret = new List<string>();
+            foreach (var directory in currentDir.EnumerateDirectories())
+            {
+                if(directory.Name == ".git")
+                {
+                    continue;
+                }
+
+                ret.AddRange(GetFilesInDirectory(appRoot, directory));
+            }
+
+            foreach (var file in currentDir.GetFiles())
+            {
+                ret.Add(file.FullName.Replace('\\','/').Replace(appRoot, string.Empty));
+            }
+            
+            return ret;
         }
     }
 }
