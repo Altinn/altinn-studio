@@ -15,25 +15,25 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    [Collection("DelegationsController test collection")]
-    public class DelegationsControllerTest : IClassFixture<PolicyInformationPointFixture>
+    [Collection("DelegationController Tests")]
+    public class DelegationsControllerTest : IClassFixture<PolicyRetrievalPointFixture>
     {
         private readonly HttpClient _client;
-        private readonly PolicyInformationPointFixture _fixture;
+        private readonly PolicyRetrievalPointFixture _fixture;
 
-        public DelegationsControllerTest(PolicyInformationPointFixture fixture)
+        public DelegationsControllerTest(PolicyRetrievalPointFixture fixture)
         {
             _fixture = fixture;
             _client = _fixture.GetClient();
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("appliation/json"));
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         /// <summary>
-        /// Test case: GetRules returns a list of rules offeredby has given coveredby
-        /// Expected: GetRules returns a list of rules offeredby has given coveredby
+        /// Test case: Calling the "Hello world" GET endpoint on the DelegationsController
+        /// Expected: returns 200 OK with content: "Hello world!"
         /// </summary>
         [Fact]
-        public async Task GetRules_Success()
+        public async Task Get_HelloWorld()
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/GetRules_SuccessRequest.json");
@@ -42,112 +42,153 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             List<Rule> expectedRules = GetExpectedRulesForUser();
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            HttpResponseMessage response = await _client.GetAsync($"authorization/api/v1/delegations");
             string responseContent = await response.Content.ReadAsStringAsync();
             List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
+            Assert.Equal("\"Hello world!\"", responseContent);
         }
 
         /// <summary>
-        /// Test case: GetRules with missing values in the request
-        /// Expected: GetRules returns a BadRequest response
+        /// Test case: Calling the POST operation for AddRules to perform a valid delegation of org1/app1
+        /// Expected: AddRules returns status code 201 and list of rules created match expected
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a valid delegation
+        /// Input:
+        /// List of two rules for delegation of the app org1/app1 between for a single offeredby/coveredby combination resulting in a single delegation policy.
+        /// Expected Result:
+        /// Rules are created and returned with the CreatedSuccessfully flag set and rule ids
+        /// Success Criteria:
+        /// AddRules returns status code 201 and list of rules created match expected
         /// </summary>
         [Fact]
-        public async Task GetRules_MissingValuesInRequest()
+        public async Task Post_AddRules_Success()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/GetRules_MissingValuesInRequestRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/ReadWriteOrg1App1_50001337_20001336.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1", createdSuccessfully: true),
+            };
+
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
             string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
 
             // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
+            Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
         }
 
         /// <summary>
-        /// Test case: GetRules for a coveredby that does not have any rules
-        /// Expected: GetRules returns an empty list
+        /// Test case: Calling the POST operation for AddRules to perform a valid delegation of multiple rules from 4 different offeredBys to 4 different coveredBys for 4 different apps. Resulting in 4 different delegation policy files
+        /// Expected: AddRules returns status code 201 and list of rules created match expected
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a valid delegation
+        /// Input:
+        /// List of 4 rules for delegation of from 4 different offeredBys to 4 different coveredBys for 4 different apps. Resulting in 4 different delegation policy files
+        /// Expected Result:
+        /// Rules are created and returned with the CreatedSuccessfully flag set and rule ids
+        /// Success Criteria:
+        /// AddRules returns status code 201 and list of rules created match expected
         /// </summary>
         [Fact]
-        public async Task GetRules_NoRulesRequest()
+        public async Task Post_AddRules_MultipleAppsOfferedBysAndCoveredBys_Success()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/GetRules_NoRulesRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/MultipleAppsOfferedBysAndCoveredBys.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            List<Rule> expectedRules = new List<Rule>();
+
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org1", "app2", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+            };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
+            Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
         }
 
         /// <summary>
-        /// Test case: GetRules returns a list of rules offeredby has given two coveredbys (a userid and partyid)
-        /// Expected: GetRules returns a list of rules offeredby has given coveredby
+        /// Test case: Calling the POST operation for AddRules to perform a partially valid delegation, as one of the four rules are for an invalid app
+        /// Expected: AddRules returns status code 206 and list of resulting rules match expected
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a valid delegation
+        /// Input:
+        /// List of two rules for delegation of the app org1/app1 between for a single offeredby/coveredby combination resulting in a single delegation policy.
+        /// Expected Result:
+        /// 3 Rules are created and returned with the CreatedSuccessfully flag set and rule ids
+        /// 1 Rule is not created and returned with the CreatedSuccessfully flag set to false and no rule id
+        /// Success Criteria:
+        /// AddRules returns status code 206 and list of rules created match expected
         /// </summary>
         [Fact]
-        public async Task GetRules_WithKeyRolePartyIdsSuccess()
+        public async Task Post_AddRules_PartialSuccess_OneInvalidApp_Success()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/GetRules_UsingkeyRolePartyIdsRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/OneOutOfFourInvalidApp.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             List<Rule> expectedRules = GetExpectedRulesForUser();
-            expectedRules.AddRange(GetExpectedRulesForParty());
+
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org1", "INVALIDAPPNAME", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+            };
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
             string responseContent = await response.Content.ReadAsStringAsync();
-            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
-        }
-
-        /// <summary>
-        /// Test case: GetRules returns a list of rules where the offeredby is a subunit
-        /// Expected: GetRules returns a list of rules offeredby's main unit has given coveredby
-        /// </summary>
-        [Fact]
-        public async Task GetRules_WithParentPartyIdSuccess()
-        {
-            // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/GetRules_UsingParentPartyIdRequest.json");
-            StreamContent content = new StreamContent(dataStream);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            List<Rule> expectedRules = GetExpectedRulesForUser();
-
-            // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
-        }
-
-        private List<Rule> GetExpectedRulesForUser()
-        {
-            List<Rule> list = new List<Rule>();
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport"));
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "SKD", "TaxReport"));
-            return list;
-        }
+            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertionUtil.AssertEqual(expected[i], actual[i]);
+            }
 
         private List<Rule> GetExpectedRulesForParty()
         {

@@ -113,8 +113,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\blobs\ttd\rf-0002\" />
-    <Folder Include="Data\Xacml\3.0\AltinnApps\testorg\testapp\" />
+    <Content Include="Data\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

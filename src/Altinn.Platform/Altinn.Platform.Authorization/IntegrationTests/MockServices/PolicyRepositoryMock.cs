@@ -22,20 +22,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return Task.FromResult(GetTestDataStream(filepath));
         }
 
-        public Task<(Stream, ETag)> GetPolicyVersionAndETagAsync(string filepath, string version)
+        public Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
         {
-            return Task.FromResult((GetTestDataStream(filepath), new ETag("ETagSuccess")));
+            return WriteStreamToTestDataFolder(filepath, fileStream);            
         }
 
-        public async Task<Response<BlobContentInfo>> WritePolicyAsync(string filepath, Stream fileStream)
+        public Task<Response> DeletePolicyVersionAsync(string filepath, string version)
         {
-            return await WriteStreamToTestDataFolder(filepath, fileStream);            
+            throw new NotImplementedException();
         }
 
-        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, ETag originalETag)
+        public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, string blobLeaseId)
         {
-            ETag emptyETag;
-            if (originalETag.Equals(emptyETag) || originalETag.Equals(new ETag("ETagSuccess")))
+            if (blobLeaseId == "CorrectLeaseId")
             {
                 return await WriteStreamToTestDataFolder(filepath, fileStream);
             }
@@ -43,9 +42,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             throw new RequestFailedException((int)HttpStatusCode.PreconditionFailed, "The condition specified using HTTP conditional header(s) is not met.");
         }
 
-        public Task<Response> DeletePolicyVersionAsync(string filepath, string version)
+        public Task<string> TryAcquireBlobLease(string filepath)
         {
-            throw new NotImplementedException();
+            return Task.FromResult("CorrectLeaseId");
+        }
+
+        public void ReleaseBlobLease(string filepath, string leaseId)
+        {
+        }
+
+        public Task<bool> PolicyExistsAsync(string filepath)
+        {
+            return Task.FromResult(true);
         }
 
         private string GetDataBlobPath()

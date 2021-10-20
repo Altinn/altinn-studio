@@ -1,14 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
-using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.Helpers
@@ -109,7 +104,6 @@ namespace Altinn.Platform.Authorization.Helpers
             }
             catch (Exception)
             {
-                // Todo logging?
             }
 
             return false;
@@ -132,19 +126,20 @@ namespace Altinn.Platform.Authorization.Helpers
             }
             catch (Exception)
             {
-                // Todo logging
             }
 
             return false;
         }
 
         /// <summary>
-        /// Checks whether the provided XacmlPolicy contains a rule matching on both Resource signature and Action from the rule
+        /// Checks whether the provided XacmlPolicy contains a rule having an identical Resource signature and contains the Action from the rule,
+        /// to be used for checking for duplicate rules in delegation.
         /// </summary>
         /// <returns>A bool</returns>
         public static bool PolicyContainsMatchingRule(XacmlPolicy policy, Rule rule)
         {
-            string ruleResourceKey = GetResourceKeyFromRule(rule);
+            string ruleResourceKey = GetAttributeMatchKey(rule.Resource);
+            
             foreach (XacmlRule policyRule in policy.Rules)
             {
                 if (!policyRule.Effect.Equals(XacmlEffectType.Permit) || policyRule.Target == null)
@@ -152,18 +147,18 @@ namespace Altinn.Platform.Authorization.Helpers
                     continue;
                 }
 
-                List<string> resourceKeys = new List<string>();
+                List<List<AttributeMatch>> policyResourceMatches = new List<List<AttributeMatch>>();
                 bool matchingActionFound = false;
                 foreach (XacmlAnyOf anyOf in policyRule.Target.AnyOf)
                 {
                     foreach (XacmlAllOf allOf in anyOf.AllOf)
                     {
-                        string resourceKey = string.Empty;
+                        List<AttributeMatch> resourceMatch = new List<AttributeMatch>();
                         foreach (XacmlMatch xacmlMatch in allOf.Matches)
                         {
                             if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
                             {
-                                resourceKey += xacmlMatch.AttributeDesignator.AttributeId.OriginalString + xacmlMatch.AttributeValue.Value;
+                                resourceMatch.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
                             }
                             else if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action) &&
                                 xacmlMatch.AttributeDesignator.AttributeId.OriginalString == rule.Action.Id &&
@@ -173,14 +168,14 @@ namespace Altinn.Platform.Authorization.Helpers
                             }
                         }
 
-                        if (!string.IsNullOrEmpty(resourceKey))
+                        if (resourceMatch.Any())
                         {
-                            resourceKeys.Add(resourceKey);
+                            policyResourceMatches.Add(resourceMatch);
                         }
                     }
                 }
 
-                if (resourceKeys.Contains(ruleResourceKey) && matchingActionFound)
+                if (policyResourceMatches.Any(resourceMatch => GetAttributeMatchKey(resourceMatch) == ruleResourceKey) && matchingActionFound)
                 {
                     int guidIndex = policyRule.RuleId.IndexOf(AltinnXacmlConstants.Prefixes.RuleId);
                     rule.RuleId = policyRule.RuleId.Substring(guidIndex + AltinnXacmlConstants.Prefixes.RuleId.Length);
@@ -192,12 +187,12 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets a string key representing the resource of a rule
+        /// Gets a string key representing the a list of attributematches
         /// </summary>
-        /// <returns>A bool</returns>
-        public static string GetResourceKeyFromRule(Rule rule)
+        /// <returns>A key string</returns>
+        public static string GetAttributeMatchKey(List<AttributeMatch> attributeMatches)
         {
-            return string.Concat(rule.Resource.Select(r => r.Id + r.Value));
+            return string.Concat(attributeMatches.OrderBy(r => r.Id).Select(r => r.Id + r.Value));
         }
 
         /// <summary>

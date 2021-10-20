@@ -138,7 +138,7 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Takes the file IO stream and parses the policy file to a XacmlPolicy
+        /// Takes the file IO stream and parses the policy file to a XacmlPolicy <see cref="XacmlPolicy"/>
         /// </summary>
         /// <param name="stream">The file IO stream</param>
         /// <returns>XacmlPolicy</returns>
@@ -155,7 +155,24 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Builds a XacmlPolicy representation based on the DelegationPolicy input
+        /// Serializes the XacmlPolicy <see cref="XacmlPolicy"/> to Xml and returns it as a Memory stream
+        /// </summary>
+        /// <param name="policy">The XacmlPolicy model to serialize to a memory stream</param>
+        /// <returns>MemoryStream of the Xml serialized policy</returns>
+        public static MemoryStream GetXmlMemoryStreamFromXacmlPolicy(XacmlPolicy policy)
+        {
+            MemoryStream stream = new MemoryStream();
+            XmlWriter writer = XmlWriter.Create(stream);
+
+            XacmlSerializer.WritePolicy(writer, policy);
+
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
+
+        /// <summary>
+        /// Builds a XacmlPolicy <see cref="XacmlPolicy"/> representation based on the DelegationPolicy input
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -174,7 +191,10 @@ namespace Altinn.Platform.Authorization.Helpers
 
             foreach (Rule rule in rules)
             {
-                delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
+                {
+                    delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                }
             }
 
             foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
@@ -186,7 +206,7 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Builds a XacmlRule representation based on the Rule input
+        /// Builds a XacmlRule <see cref="XacmlRule"/> representation based on the Rule input
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -211,7 +231,7 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Builds a XacmlTarget representation based on the Rule input
+        /// Builds a XacmlTarget <see cref="XacmlTarget"/> representation based on the Rule input
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app</param>
         /// <param name="app">Application identifier which is unique within an organisation</param>
@@ -278,7 +298,7 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Builds a XacmlMatch model
+        /// Builds a XacmlMatch <see cref="XacmlMatch"/> model
         /// </summary>
         /// <param name="function">The compare function type</param>
         /// <param name="datatype">The attribute data type</param>

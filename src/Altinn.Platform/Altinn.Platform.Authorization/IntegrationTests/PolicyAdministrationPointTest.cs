@@ -20,6 +20,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -29,9 +30,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
     [Collection("PolicyAdministrationPointTest")]
     public class PolicyAdministrationPointTest : IClassFixture<PolicyRetrievalPointFixture>
     {
-        private const string ORG = "ttd";
-        private const string APP = "repository-test-app";
-
         private readonly IPolicyAdministrationPoint _pap;
         private readonly IPolicyRepository _prp;
 
@@ -47,9 +45,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _pap = new PolicyAdministrationPoint(
                 new PolicyRetrievalPoint(_prp, memoryCache, Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 })),
                 new PolicyRepositoryMock(),
-                new PolicyDelegationRepositoryMock(),
+                new DelegationMetadataRepositoryMock(),
                 memoryCache,
-                Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }));
+                Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }),
+                new Mock<ILogger<IPolicyAdministrationPoint>>().Object);
         }
 
         /// <summary>

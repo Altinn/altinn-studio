@@ -1,25 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.Constants;
-using Altinn.Platform.Authorization.Helpers;
-using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
@@ -29,8 +17,6 @@ namespace Altinn.Platform.Authorization.Controllers
     [ApiController]
     public class DelegationsController : ControllerBase
     {
-        private readonly IContextHandler _contextHandler;
-        private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyAdministrationPoint _pap;
         private readonly Services.Interface.IPolicyInformationPoint _pip;
         private readonly ILogger _logger;
@@ -38,15 +24,11 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationsController"/> class.
         /// </summary>
-        /// <param name="contextHandler">The Context handler</param>
-        /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="policyAdministrationPoint">The policy administration point</param>
         /// <param name="policyInformationPoint">The policy information point</param>
         /// <param name="logger">the logger.</param>
         public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, Services.Interface.IPolicyInformationPoint policyInformationPoint, ILogger<DelegationsController> logger)
         {
-            _contextHandler = contextHandler;
-            _prp = policyRetrievalPoint;
             _pap = policyAdministrationPoint;
             _pip = policyInformationPoint;
             _logger = logger;
@@ -61,7 +43,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/AddRules")]
         public async Task<ActionResult> Post([FromBody] List<Rule> rules)
         {
@@ -81,18 +63,16 @@ namespace Altinn.Platform.Authorization.Controllers
 
                 if (delegationResults.All(r => r.CreatedSuccessfully))
                 {
-                    _logger.LogInformation("Delegation completed");
                     return Created("Created", delegationResults);
                 }
 
                 if (delegationResults.Any(r => r.CreatedSuccessfully))
                 {
-                    _logger.LogInformation("Partial delegation completed");
                     return StatusCode(206, delegationResults);
                 }
 
-                _logger.LogInformation("Delegation could not be completed");
-                return StatusCode(500, $"Unable to complete delegation");
+                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input.", rules);
+                return StatusCode(400, $"Delegation could not be completed");
             }
             catch (Exception e)
             {

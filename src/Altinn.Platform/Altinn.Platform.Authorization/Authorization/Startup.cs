@@ -91,7 +91,7 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IPolicyAdministrationPoint, PolicyAdministrationPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
-            services.AddSingleton<IPolicyDelegationRepository, PolicyDelegationRepository>();
+            services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
@@ -126,6 +126,7 @@ namespace Altinn.Platform.Authorization
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(AuthzConstants.POLICY_STUDIO_DESIGNER, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "studio.designer")));
+                options.AddPolicy(AuthzConstants.ALTINNII_AUTHORIZATION, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "sbl.authorization")));
             });
 
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
@@ -133,7 +134,7 @@ namespace Altinn.Platform.Authorization
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
-            });           
+            });
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
