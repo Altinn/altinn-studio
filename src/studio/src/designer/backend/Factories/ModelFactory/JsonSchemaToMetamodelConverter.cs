@@ -259,39 +259,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 ProcessPrimitiveType(path, subSchema, context);
             }
+            else if (IsArrayType(subSchema))
+            {
+                ProcessArrayType(path, subSchema, context);
+            }
             else
             {
-                ProcessNonPrimitiveType(path, subSchema, context);
+                ProcessNonPrimitiveType(path, subSchema, context);            
             }
 
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
-        }
-
-        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
-        {
-            if (IsRefType(subSchema))
-            {
-                ProcessRefType(path, subSchema, context);
-            }
-            else if (IsNillableType(path))
-            {
-                ProcessNillableType(path, subSchema, context);
-            }
-            else if (IsEnumType(path))
-            {
-                ProcessEnumType(path, subSchema, context);
-            }            
-            else
-            {
-                ProcessRegularType(path, subSchema, context);
-
-                foreach (var keyword in subSchema.Keywords)
-                {
-                    var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
-
-                    ProcessKeyword(keywordPath, keyword, context);
-                }
-            }
         }
 
         private void ProcessPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -307,6 +284,48 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             AddElement(path, subSchema, context);
         }
 
+        private void ProcessArrayType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            var itemsKeyword = subSchema.GetKeyword<ItemsKeyword>();
+            var singleSchema = itemsKeyword.SingleSchema;
+
+            foreach (var keyword in singleSchema.Keywords)
+            {
+                var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+
+                ProcessKeyword(keywordPath, keyword, context);
+            }
+
+            //context.SchemaValueType = SchemaValueType.Array;
+        }
+
+        private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        {
+            if (IsRefType(subSchema))
+            {
+                ProcessRefType(path, subSchema, context);
+            }
+            else if (IsNillableType(path))
+            {
+                ProcessNillableType(path, subSchema, context);
+            }
+            else if (IsRestrictionType(path))
+            {
+                ProcessRestrictionType(path, subSchema, context);
+            }            
+            else
+            {
+                ProcessRegularType(path, subSchema, context);
+
+                foreach (var keyword in subSchema.Keywords)
+                {
+                    var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
+
+                    ProcessKeyword(keywordPath, keyword, context);
+                }
+            }
+        }
+
         private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             var refKeyword = subSchema.GetKeyword<RefKeyword>();
@@ -316,30 +335,46 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             ProcessSubSchema(refPath, refSchema, context);
         }
 
-        private void ProcessEnumType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessRestrictionType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
             var allOfKeyword = subSchema.GetKeyword<AllOfKeyword>();
 
-            var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
-            context.SchemaValueType = typeKeyword.Type;
-
-            var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
-            if (enumSchema != null)
+            // If it's a single subschema with only a reference then follow it.
+            if (allOfKeyword.GetSubschemas().Count() == 1 && allOfKeyword.GetSubschemas().First().HasKeyword<RefKeyword>())
             {
-                AddElement(path, enumSchema, context);
+                var refSchema = allOfKeyword.GetSubschemas().First();
+                ProcessRefType(path, refSchema, context);
             }
             else
             {
-                AddElement(path, subSchema, context);
+                var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
+                context.SchemaValueType = typeKeyword.Type;
+
+                var enumSchema = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<EnumKeyword>());
+                if (enumSchema != null)
+                {
+                    AddElement(path, enumSchema, context);
+                }
+                else
+                {
+                    AddElement(path, subSchema, context);
+                }
             }
         }
 
         private void ProcessNillableType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
-            var schema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
+            if (subSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
+            {
+                ProcessArrayType(path, subSchema, context);
+            }
+            else
+            {
+                var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
+                var schema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
 
-            ProcessSubSchema(path, schema, context);
+                ProcessSubSchema(path, schema, context);
+            }
         }
 
         private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -580,7 +615,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable);
         }
 
-        private bool IsEnumType(JsonPointer path)
+        private bool IsRestrictionType(JsonPointer path)
         {
             return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleTypeRestriction);
         }
@@ -669,6 +704,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 default:
                     return false;
             }
+        }
+
+        private bool IsArrayType(JsonSchema subSchema)
+        {
+            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+
+            if (typeKeyword == null)
+            {
+                return false;
+            }
+
+            return typeKeyword.Type == SchemaValueType.Array;
         }
 
         private static string GetTypeNameFromRef(JsonSchema subSchema)

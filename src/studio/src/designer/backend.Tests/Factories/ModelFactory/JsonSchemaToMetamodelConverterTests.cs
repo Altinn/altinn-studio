@@ -35,6 +35,7 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Model/Xsd/schema_5259_1_forms_9999_50000.xsd", "Model/Metadata/schema_5259_1_forms_9999_50000.metadata.json")]
         [InlineData("Model/Xsd/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.metadata.json")]
         [InlineData("Model/Xsd/schema_5222_2_forms_5909_43507.xsd", "Model/Metadata/schema_5222_2_forms_5909_43507.metadata.json")]
+        [InlineData("Model/Xsd/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.metadata.json")]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             // Arrange
