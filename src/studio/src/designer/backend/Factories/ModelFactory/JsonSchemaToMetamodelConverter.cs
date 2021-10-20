@@ -273,14 +273,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 ProcessRefType(path, subSchema, context);
             }
-            else if (IsEnumType(path))
-            {
-                ProcessEnumType(path, subSchema, context);
-            }
             else if (IsNillableType(path))
             {
                 ProcessNillableType(path, subSchema, context);
             }
+            else if (IsEnumType(path))
+            {
+                ProcessEnumType(path, subSchema, context);
+            }            
             else
             {
                 ProcessRegularType(path, subSchema, context);
