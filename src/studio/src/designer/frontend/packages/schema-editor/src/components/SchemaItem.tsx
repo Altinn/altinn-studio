@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
 
@@ -145,9 +145,11 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(deleteProperty({ path: item.path }));
   };
 
-  const handleAddProperty = () => {
+  const handleAddProperty = (type: PropertyType) => {
     dispatch(addProperty({
       path: itemToDisplay.path,
+      type: (type === 'field' ? 'object' : undefined),
+      $ref: (type === 'reference' ? '' : undefined),
     }));
   };
 
@@ -190,9 +192,9 @@ function SchemaItem(props: SchemaItemProps) {
         language={props.language}
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
-        onAddProperty={(item.$ref && isPropertiesView) ? undefined : handleAddProperty}
+        onAddProperty={(item.type !== 'object') ? undefined : handleAddProperty}
         onDelete={handleDeleteClick}
-        onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+        onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
         key={`${item.path}-label`}
       />}

@@ -196,6 +196,7 @@ describe('SchemaEditorSlice', () => {
   it('handles addProperty', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
+      type: 'object',
     };
     const nextState = reducer(state, addProperty(payload));
 
@@ -209,6 +210,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       name: 'superman',
       location: 'definitions',
+      type: 'object',
     };
     let nextState = reducer(state, addRootItem(payload));
     expect(nextState.uiSchema).toContainEqual({

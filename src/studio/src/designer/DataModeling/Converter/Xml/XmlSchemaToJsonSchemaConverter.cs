@@ -1,13 +1,16 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
+
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
+
 using Json.More;
 using Json.Schema;
 
@@ -359,14 +362,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMaxExclusiveFacet:
-                    if (!string.IsNullOrWhiteSpace(facet.Value) && decimal.TryParse(facet.Value, out dLength))
+                    if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMaximum(dLength);
                     }
 
                     break;
                 case XmlSchemaMaxInclusiveFacet:
-                    if (!string.IsNullOrWhiteSpace(facet.Value) && decimal.TryParse(facet.Value, out dLength))
+                    if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Maximum(dLength);
                     }
@@ -380,14 +383,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMinExclusiveFacet:
-                    if (!string.IsNullOrWhiteSpace(facet.Value) && decimal.TryParse(facet.Value, out dLength))
+                    if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMinimum(dLength);
                     }
 
                     break;
                 case XmlSchemaMinInclusiveFacet:
-                    if (!string.IsNullOrWhiteSpace(facet.Value) && decimal.TryParse(facet.Value, out dLength))
+                    if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Minimum(dLength);
                     }
@@ -1307,6 +1310,27 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     return stepBuilder.Build();
                 }));
             }
+        }
+
+        private static bool TryParseDecimal(string facetValue, out decimal dLength)
+        {
+            if (string.IsNullOrWhiteSpace(facetValue))
+            {
+                dLength = 0;
+                return false;
+            }
+
+            /*
+             * The XML schema spec specifies that floating point numbers are represented using a period and
+             * not using a comma. The locale doesn't have any affect on what is valid XML.
+             * 
+             * Default behaviour of TryParse is to use CurrentCulture. This must be overridden.
+             * 
+             * We assumed that XSD do not allow the use of group separators. This is why we have not
+             * made a similar override for parsing of whole numbers like integer.
+             */
+
+            return decimal.TryParse(facetValue, NumberStyles.Float, CultureInfo.InvariantCulture, out dLength);
         }
     }
 }

@@ -18,7 +18,7 @@ function DataModellingContainer(props: IStandaloneDataModellingProps): JSX.Eleme
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   return (
     <Grid item className={props.classes.containerGrid}>
-      <DataModelling language={props.language} />
+      <DataModelling language={props.language} createPathOption />
     </Grid>
   );
 }

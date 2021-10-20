@@ -13,8 +13,10 @@
     "withoutDataModelApp": "AutoTest/appwithout-dm",
     "rulesApp": "AutoTest/rulesservice"
   },
-  "uat": {
-    "baseUrl": "base for uat"
+  "staging": {
+    "baseUrl": "https://staging.altinn.studio/",    
+    "useCaseUser": "bruksmonster-staging",
+    "deployApp": "ttd/autodeploy-v4"
   },
   "prod": {
     "baseUrl": "https://altinn.studio/",

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -101,6 +102,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// the same app when displayed by the portal message box.
         /// </summary>
         public string PresentationText { get; set; }
+
+        /// <summary>
+        /// Dictionary holding metadata about the instance.
+        /// </summary>
+        public Dictionary<string, string> DataValues { get; set; }
     }
 
     /// <summary>
