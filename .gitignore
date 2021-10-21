@@ -318,7 +318,7 @@ src/studio/src/designer/backend/wwwroot/designer/css/fonts
 src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
 
 ######### Testdata created by testrun #########
-src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/*.xml
+src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/
 
 # Jest test coverage
 coverage
