@@ -40,29 +40,40 @@ const useStyles = makeStyles({
 
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
-  console.log(props.text);
 
   var text;
   var placeIconTrue;
   var textArr;
   var idxHelp;
+  var idxHelpInner;
   var startPos;
+
+  var strong1;
 
 textArr = props.text[0]['props']['children'];
 
   for(var i=0; i<textArr.length; i++) {
   // code for bold text
-  //   if(textArr[i]['props']) {
-  //     if(textArr[i]['props']['children']) {
-  //       text = textArr[i]['props']['children'][0].toString();
-  //       placeIconTrue = text.indexOf('{help}'); 
+    if(textArr[i]['props']) {
+      if(textArr[i]['props']['children']) {
 
-  //       if(placeIconTrue !== -1) {
-  //         idxHelp = i;
-  //         startPos = placeIconTrue;
-  //       }
-  //     }
-  //   } else {
+        for(var j=0; j<textArr[i]['props']['children'].length; j++) {
+
+          text = textArr[i]['props']['children'][j].toString();
+          placeIconTrue = text.indexOf('{help}'); 
+
+          if(placeIconTrue !== -1) {
+            idxHelp = i;
+            idxHelpInner = j;
+            startPos = placeIconTrue;
+
+          }
+          if(textArr[i]['type'] == "strong") {
+            strong1 = true;
+          }
+        }
+      }
+    } else {
       text = textArr[i].toString();
       placeIconTrue = text.indexOf('{help}'); 
 
@@ -70,7 +81,7 @@ textArr = props.text[0]['props']['children'];
         idxHelp = i;
         startPos = placeIconTrue;
       }
-    // }
+    }
   }
 
   return (
@@ -84,18 +95,26 @@ textArr = props.text[0]['props']['children'];
           id={props.id}
           className={`${classes.spacing} ${classes.typography}`}
         >
+          {props.text}
         </Typography>
       </Grid>
       {props.textResourceBindings?.help &&
       <Grid item={true} className={classes.spacing}>
+          <br/>
           {textArr.slice(0,idxHelp)}
-          {textArr[idxHelp].substring(0, startPos)}
+          {!strong1 && textArr[idxHelp].substring(0, startPos)}
+          {strong1 && <strong>
+            {textArr[idxHelp]['props']['children'].slice(0,idxHelpInner)}
+            {textArr[idxHelp]['props']['children'][idxHelpInner].substring(0, startPos)}
+          </strong>}
         <HelpTextContainer
           language={props.language}
           id={props.id}
           helpText={props.getTextResource(props.textResourceBindings.help)}
         />
-          {textArr[idxHelp].substring(startPos + 6)}
+          {strong1 && <strong>{textArr[idxHelp]['props']['children'][idxHelpInner].substring(startPos + 6)}</strong>}
+          {strong1 && <strong>{textArr[idxHelp]['props']['children'].slice(idxHelpInner + 1)}</strong>}
+          {!strong1 && textArr[idxHelp].substring(startPos + 6)}
           {textArr.slice(idxHelp + 1)}
       </Grid>
       }
