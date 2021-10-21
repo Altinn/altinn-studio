@@ -407,6 +407,18 @@ namespace Altinn.Studio.Designer.Configuration
         [Obsolete("GetFormLayoutPath gets the path of the old form layout (ui/FormLayout.json). Use GetFormLayoutPath(org, app, developer, formLayout) for new structure.")]
         public string GetFormLayoutPath(string org, string app, string developer)
         {
+            return GetOldFormLayoutPath(org, app, developer);
+        }
+
+        /// <summary>
+        /// Method that returns the path to the form layout file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetOldFormLayoutPath(string org, string app, string developer)
+        {
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
