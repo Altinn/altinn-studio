@@ -488,11 +488,13 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the repository content
+        /// Gets the repository content as a zip file
+        /// the boolean parameter full, indicates if only files git considers changed should be included,
+        /// or if the whole repo should be included
         /// </summary>
         [HttpGet]
         [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
-        public async Task<ActionResult> ContentsZip(string org, string repository, [FromQuery] string full)
+        public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
             string appRoot = null;
             try
@@ -503,9 +505,8 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     return BadRequest("User does not have a local clone of the repository.");
                 }
-
             }
-            catch(ArgumentOutOfRangeException e)
+            catch (ArgumentOutOfRangeException)
             {
                 return BadRequest("User does not have a local clone of the repository.");
             }
@@ -514,16 +515,16 @@ namespace Altinn.Studio.Designer.Controllers
             using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
             {
                 IEnumerable<string> changedFiles;
-                if(full == "full")
+                if (full)
                 {
                     changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
                 }
                 else
                 {
-                    changedFiles = _sourceControl.Status(org, repository).Select(f=>f.FilePath);
+                    changedFiles = _sourceControl.Status(org, repository).Select(f => f.FilePath);
                 }
 
-                foreach(var changedFile in changedFiles)
+                foreach (var changedFile in changedFiles)
                 {
                     archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
                 }
@@ -539,7 +540,7 @@ namespace Altinn.Studio.Designer.Controllers
             var ret = new List<string>();
             foreach (var directory in currentDir.EnumerateDirectories())
             {
-                if(directory.Name == ".git")
+                if (directory.Name == ".git")
                 {
                     continue;
                 }
@@ -549,7 +550,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             foreach (var file in currentDir.GetFiles())
             {
-                ret.Add(file.FullName.Replace('\\','/').Replace(appRoot, string.Empty));
+                ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
             }
             
             return ret;

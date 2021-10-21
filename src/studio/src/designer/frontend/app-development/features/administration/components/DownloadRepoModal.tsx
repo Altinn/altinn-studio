@@ -93,7 +93,7 @@ function DownloadRepoModal(props: IDownloadRepoModalProps) {
           </Grid>
           <Grid item={true}>
             <Typography variant='body1' className={classes.blackText}>
-              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip?full=full`}>{getLanguageFromKey('administration.download_repo_full', props.language)}</a>
+              <a href={`/designer/api/v1/repositories/${(window as any).org}/${(window as any).app}/contents.zip?full=true`}>{getLanguageFromKey('administration.download_repo_full', props.language)}</a>
             </Typography>
           </Grid>
           <Grid container={true}>
