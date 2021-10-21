@@ -12,7 +12,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil;
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
@@ -259,8 +259,10 @@ namespace App.IntegrationTests
                 DueBefore = DateTime.Parse("2020-01-01")
             };
 
+            string prefillValue = "extpref" + DateTime.Now.Second;
+
             instanceTemplate.Prefill = new Dictionary<string, string>();
-            instanceTemplate.Prefill.Add("test", "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
+            instanceTemplate.Prefill.Add(prefillValue, "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -277,10 +279,16 @@ namespace App.IntegrationTests
             string responseContent = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
-
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
-
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+
+            string dataUri = createdInstance.Data[0].SelfLinks.Apps;
+            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
+            HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+            responseContent = await response2.Content.ReadAsStringAsync();
+            ReelleRettighetshavere_M calculationResult = JsonConvert.DeserializeObject<ReelleRettighetshavere_M>(responseContent);
+            Assert.Equal(prefillValue, calculationResult.Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform);
+
             TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
@@ -330,7 +338,6 @@ namespace App.IntegrationTests
             Assert.NotNull(createdInstance);
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
-
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
