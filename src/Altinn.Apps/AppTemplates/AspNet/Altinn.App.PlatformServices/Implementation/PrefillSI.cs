@@ -53,6 +53,12 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
         {
+            // Prefill from external input. Only available during instansiation
+            if (externalPrefill != null && externalPrefill.Count > 0)
+            {
+                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
+            }
+
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
@@ -72,12 +78,6 @@ namespace Altinn.App.Services.Implementation
                 string errorMessage = $"Could find party for partyId: {partyId}";
                 _logger.LogError(errorMessage);
                 throw new Exception(errorMessage);
-            }
-
-            // Prefill from user profile
-            if (externalPrefill != null && externalPrefill.Count > 0)
-            {
-                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
             }
 
             // Prefill from user profile
@@ -232,7 +232,7 @@ namespace Altinn.App.Services.Implementation
                 }
                 else
                 {
-                    sourceValue = JToken.Parse(source);
+                    sourceValue = JToken.Parse($"'{source}'");
                 }
 
                 _logger.LogInformation($"Source: {source}, target: {target}");

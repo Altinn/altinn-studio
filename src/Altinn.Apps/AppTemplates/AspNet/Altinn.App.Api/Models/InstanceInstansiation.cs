@@ -8,6 +8,7 @@ namespace Altinn.App.Api.Models
     /// <summary>
     /// Specialized model for isntansiation of instances
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceInstansiation
     {
         /// <summary>
@@ -33,5 +34,11 @@ namespace Altinn.App.Api.Models
         /// </summary>
         [JsonProperty(PropertyName = "prefill")]
         public Dictionary<string, string> Prefill { get; set; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     }
 }

@@ -259,6 +259,9 @@ namespace App.IntegrationTests
                 DueBefore = DateTime.Parse("2020-01-01")
             };
 
+            instanceTemplate.Prefill = new Dictionary<string, string>();
+            instanceTemplate.Prefill.Add("test", "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
+
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
