@@ -293,6 +293,39 @@ namespace App.IntegrationTests
         }
 
         /// <summary>
+        /// Scenario: Failed retrival of register data
+        /// Succsess criteria: Forbidden
+        /// </summary>
+        [Fact]
+        public async Task Instance_Simplified_Post_UnuthorizedParty()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstanceInstansiation instanceTemplate = new InstanceInstansiation
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1001",
+                },
+                DueBefore = DateTime.Parse("2020-01-01"),
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
         /// create a multipart request with instance and xml prefil.
         /// </summary>
         [Fact]
