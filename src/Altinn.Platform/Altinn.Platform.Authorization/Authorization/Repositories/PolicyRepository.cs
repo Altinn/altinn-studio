@@ -93,7 +93,7 @@ namespace Altinn.Platform.Authorization.Repositories
 
             try
             {
-                BlobLease blobLease = await blobLeaseClient.AcquireAsync(TimeSpan.FromSeconds(_storageConfig.DelegationsBlobLeaseTimeout));
+                BlobLease blobLease = await blobLeaseClient.AcquireAsync(TimeSpan.FromSeconds(_storageConfig.BlobLeaseTimeout));
                 return blobLease.LeaseId;
             }
             catch (RequestFailedException ex)
