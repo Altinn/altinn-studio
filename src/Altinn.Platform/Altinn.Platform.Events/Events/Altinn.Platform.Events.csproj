@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.19" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.20" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.18.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />

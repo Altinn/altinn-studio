@@ -38,8 +38,14 @@ export { default as AltinnInformationCardForChildren } from './molecules/AltinnI
 export { default as AltinnModal } from './molecules/AltinnModal';
 export { default as AltinnPopoverSimple } from './molecules/AltinnPopoverSimple';
 export { default as AltinnSubstatusPaper } from './molecules/AltinnSubstatusPaper';
+export { AltinnTableHeader } from './molecules/AltinnTableHeader';
+export { default as AltinnTableBody } from './molecules/AltinnTableBody';
+export { default as AltinnTableRow } from './molecules/AltinnTableRow';
+export { default as AltinnMobileTable } from './molecules/AltinnMobileTable';
+export { default as AltinnMobileTableItem } from './molecules/AltinnMobileTableItem';
 
 // organisms
 export { default as AltinnAppHeader } from './organisms/AltinnAppHeader';
 export { default as AltinnReceipt } from './organisms/AltinnReceipt';
 export { default as AltinnReceiptSimple } from './organisms/AltinnReceiptSimple';
+export { default as AltinnTable } from './organisms/AltinnTable';

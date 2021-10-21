@@ -45,14 +45,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             IMemoryCache memoryCache = serviceProvider.GetService<IMemoryCache>();
             _delegationMetadataRepositoryMock = new DelegationMetadataRepositoryMock();
-
             _prp = new PolicyRepositoryMock();
             _pap = new PolicyAdministrationPoint(
                 new PolicyRetrievalPoint(_prp, memoryCache, Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 })),
-                new PolicyRepositoryMock(),
+                _prp,
                 _delegationMetadataRepositoryMock,
-                memoryCache,
-                Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 }),
                 new Mock<ILogger<IPolicyAdministrationPoint>>().Object);
         }
 
@@ -347,6 +344,123 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.Equal(expected.Count, actual.Count);
             Assert.True(actual.Where(r => r.CreatedSuccessfully).All(r => !string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.Where(r => !r.CreatedSuccessfully).All(r => string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when blob storage throws exception
+        /// Input:
+        /// Single rule
+        /// Expected Result:
+        /// The blob storage read throws exception
+        /// Success Criteria:
+        /// The blob storage exception is handled and logged. The rule is returned as not created.
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_Error_BlobStorageLeaseLockWriteException()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "blobstorageleaselockwritefail"),
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "blobstorageleaselockwritefail", createdSuccessfully: false),
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.All(r => !r.CreatedSuccessfully));
+            AssertionUtil.AssertEqual(expected, actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when getting current delegation change from postgre fails
+        /// Input:
+        /// Single rule
+        /// Expected Result:
+        /// The postgre integration throws exception when getting the current change from the database
+        /// Success Criteria:
+        /// The postgre exception is handled and logged. The rule is returned as not created.
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_Error_PostgreGetCurrentException()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "postgregetcurrentfail"),
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "postgregetcurrentfail", createdSuccessfully: false),
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.All(r => !r.CreatedSuccessfully));
+            AssertionUtil.AssertEqual(expected, actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when writing the new current delegation change to postgre fails
+        /// Input:
+        /// Single rule
+        /// Expected Result:
+        /// The postgre integration throws exception when writing the new delegation change to the database
+        /// Success Criteria:
+        /// The postgre exception is handled and logged. The rule is returned as not created.
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_Error_PostgreWriteDelegationChangeException()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "postgrewritechangefail"),
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "postgrewritechangefail", createdSuccessfully: false),
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.All(r => !r.CreatedSuccessfully));
             AssertionUtil.AssertEqual(expected, actual);
         }
     }

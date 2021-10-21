@@ -15,8 +15,10 @@ export interface IApplicationMetadata {
 }
 
 export interface IOnEntry {
-  show: 'new-instance' | 'startpage' | string;
+  show: ShowTypes;
 }
+
+export type ShowTypes = 'new-instance' | 'select-instance' | 'startpage' | string;
 
 interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;

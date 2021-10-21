@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public async Task<Response<BlobContentInfo>> WritePolicyConditionallyAsync(string filepath, Stream fileStream, string blobLeaseId)
         {
-            if (blobLeaseId == "CorrectLeaseId")
+            if (blobLeaseId == "CorrectLeaseId" && !filepath.Contains("error/blobstorageleaselockwritefail"))
             {
                 return await WriteStreamToTestDataFolder(filepath, fileStream);
             }
@@ -53,25 +53,26 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<bool> PolicyExistsAsync(string filepath)
         {
-            switch (filepath)
+            string fullpath = Path.Combine(GetDataInputBlobPath(), filepath);
+
+            if(File.Exists(fullpath))
             {
-                case "org1/app8/50001337/20001337/delegationpolicy.xml":
-                    return Task.FromResult(false);
-                default:
-                    return Task.FromResult(true);
+                return Task.FromResult(true);
             }
+
+            return Task.FromResult(false);
         }
 
         private string GetDataOutputBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, "../../../data/blobs/");
+            return Path.Combine(unitTestFolder, "../../../data/blobs/output/");
         }
 
         private string GetDataInputBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, "../../../data/blobs/input");
+            return Path.Combine(unitTestFolder, "../../../data/blobs/input/");
         }
 
         private Stream GetTestDataStream(string filepath)

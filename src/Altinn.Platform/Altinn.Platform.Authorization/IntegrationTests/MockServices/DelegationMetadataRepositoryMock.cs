@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 
@@ -9,6 +9,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class DelegationMetadataRepositoryMock : IDelegationMetadataRepository
     {
+        //private static List<string> validAppIds = new List<string> { "org1/app1" };
+
         public Dictionary<string, List<DelegationChange>> MetadataChanges { get; private set; }
 
         public DelegationMetadataRepositoryMock()
@@ -46,12 +48,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
             current.Add(currentDelegationChange);
 
-            if (offeredByPartyId != 0)
+            if (string.IsNullOrEmpty(altinnAppId) || altinnAppId == "error/postgrewritechangefail")
             {
-                return Task.FromResult(true);
+                return Task.FromResult(false);
             }
 
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         public Task<DelegationChange> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)
@@ -59,23 +61,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             DelegationChange result;
             switch (altinnAppId)
             {
+                case "org1/app1":
                 case "org1/app3":
                 case "org2/app3":
                 case "org1/app4":
-                    result = new DelegationChange
-                    {
-                        AltinnAppId = altinnAppId,
-                        BlobStorageVersionId = "CorrectLeaseId",
-                        BlobStoragePolicyPath = $"{altinnAppId}/{offeredByPartyId}/{coveredByPartyId ?? coveredByUserId}/delegationpolicy.xml",
-                        CoveredByPartyId = coveredByPartyId,
-                        CoveredByUserId = coveredByUserId,
-                        Created = DateTime.Now,
-                        IsDeleted = false,
-                        OfferedByPartyId = offeredByPartyId,
-                        PerformedByUserId = 20001336,
-                        PolicyChangeId = new Random().Next()
-                    };
+                    result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId);
                     break;
+                case "error/postgregetcurrentfail":
+                    throw new Exception("Some exception happened");            
                 default:
                     result = null;
                     break;

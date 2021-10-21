@@ -317,6 +317,9 @@ src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
 src/studio/src/designer/backend/wwwroot/designer/css/fonts
 src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
 
+######### Testdata created by testrun #########
+src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/*.xml
+
 # Jest test coverage
 coverage
 /deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz

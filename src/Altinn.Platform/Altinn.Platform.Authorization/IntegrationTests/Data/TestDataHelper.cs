@@ -111,5 +111,22 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             policy.Title = title;
             return policy;
         }
+
+        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId = 0, int? coveredByPartyId = null, int? coveredByUserId = null)
+        {
+            return new DelegationChange
+            {
+                AltinnAppId = altinnAppId,
+                BlobStorageVersionId = "CorrectLeaseId",
+                BlobStoragePolicyPath = $"{altinnAppId}/{offeredByPartyId}/{coveredByPartyId ?? coveredByUserId}/delegationpolicy.xml",
+                CoveredByPartyId = coveredByPartyId,
+                CoveredByUserId = coveredByUserId,
+                Created = DateTime.Now,
+                IsDeleted = false,
+                OfferedByPartyId = offeredByPartyId,
+                PerformedByUserId = 20001336,
+                PolicyChangeId = new Random().Next()
+            };
+        }
     }
 }

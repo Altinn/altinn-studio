@@ -61,21 +61,18 @@ namespace Altinn.Platform.Authorization.Helpers
             string org = string.Empty;
             string app = string.Empty;
 
-            foreach (XacmlContextAttributes attr in request.Attributes)
+            foreach (XacmlContextAttributes attr in request.Attributes.Where(attr => attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
             {
-                if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                foreach (XacmlAttribute asd in attr.Attributes)
                 {
-                    foreach (XacmlAttribute asd in attr.Attributes)
+                    if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute))
                     {
-                        if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute))
-                        {
-                            org = asd.AttributeValues.FirstOrDefault().Value;
-                        }
+                        org = asd.AttributeValues.FirstOrDefault().Value;
+                    }
 
-                        if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute))
-                        {
-                            app = asd.AttributeValues.FirstOrDefault().Value;
-                        }
+                    if (asd.AttributeId.OriginalString.Equals(AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute))
+                    {
+                        app = asd.AttributeValues.FirstOrDefault().Value;
                     }
                 }
             }

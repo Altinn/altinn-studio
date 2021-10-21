@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Models;
@@ -40,7 +41,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        ////[Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/AddRules")]
         public async Task<ActionResult> Post([FromBody] List<Rule> rules)
         {
@@ -68,7 +69,8 @@ namespace Altinn.Platform.Authorization.Controllers
                     return StatusCode(206, delegationResults);
                 }
 
-                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input.", rules);
+                string rulesJson = JsonSerializer.Serialize(rules);
+                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
                 return StatusCode(400, $"Delegation could not be completed");
             }
             catch (Exception e)

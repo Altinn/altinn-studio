@@ -17,9 +17,10 @@ export const sharedUrls = () => {
     dataModelXsdUrl: `${origin}/designer/${org}/${repo}/Model/GetXsd`,
     repositoryGitUrl: `${origin}/repos/${org}/${repo}.git`,
     repositoryUrl: `${origin}/repos/${org}/${repo}`,
-    getDataModellingUrl:
+    createDataModelUrl: `${dataModelsApi}/post`,
+    getDataModelUrl:
       (pathToModelFile: string) => `${dataModelsApi}${pathToModelFile}`,
-    createDataModellingUrl:
+    saveDataModelUrl:
       (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
   };
 };

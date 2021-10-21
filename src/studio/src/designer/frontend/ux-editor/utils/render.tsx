@@ -23,7 +23,7 @@ export const styles = {
   },
 };
 
-const selectStyles = {
+export const selectStyles = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',

@@ -2,6 +2,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Schema;
+
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -36,14 +38,14 @@ namespace DataModeling.Tests.Json
         {
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
 
-            System.Xml.Schema.XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
+            XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
 
             string actualXml = await Serialize(actualXsd);
 
             XmlSchemaAssertions.IsEquivalentTo(expectedXsd, actualXsd);
         }
 
-        private static async Task<System.Xml.Schema.XmlSchema> ConvertJsonSchema(string jsonPath)
+        private static async Task<XmlSchema> ConvertJsonSchema(string jsonPath)
         {
             var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
@@ -53,7 +55,7 @@ namespace DataModeling.Tests.Json
             return actualXsd;
         }
 
-        private static async Task<string> Serialize(System.Xml.Schema.XmlSchema actualXsd)
+        private static async Task<string> Serialize(XmlSchema actualXsd)
         {
             string actualXml;
             await using (var sw = new Utf8StringWriter())
