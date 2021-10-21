@@ -2,10 +2,7 @@
 import { CollapsableMenus } from '../containers/Toolbar';
 import { ComponentTypes } from '../components';
 
-export function getComponentHelperTextByComponentType(
-  type: string,
-  language: any,
-): string {
+export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {
     case ComponentTypes.Header: {
       return language.ux_editor.helper_text_for_header;
@@ -32,10 +29,7 @@ export function getComponentHelperTextByComponentType(
   }
 }
 
-export function getComponentTitleByComponentType(
-  type: string,
-  language: any,
-): string {
+export function getComponentTitleByComponentType(type: string, language: any): string {
   switch (type) {
     case ComponentTypes.Checkboxes: {
       return language.ux_editor.component_checkbox;
@@ -88,10 +82,7 @@ export function getComponentTitleByComponentType(
   }
 }
 
-export function getCollapsableMenuTitleByType(
-  menu: CollapsableMenus,
-  language: any,
-): string {
+export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: any): string {
   switch (menu) {
     case CollapsableMenus.Components: {
       return language.ux_editor.collapsable_schema_components;
@@ -113,24 +104,18 @@ export function getCollapsableMenuTitleByType(
 
 export function truncate(s: string, size: number) {
   if (s && s.length > size) {
-    return `${s.substring(0, size)}...`;
+    return (`${s.substring(0, size)}...`);
   }
   return s;
 }
 
-export function getTextResource(
-  resourceKey: string,
-  textResources: ITextResource[],
-): string {
+export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
   const textResource = textResources.find(
     (resource) => resource.id === resourceKey,
   );
   return textResource ? textResource.value : resourceKey;
 }
 
-export function formatCreateTextLabel(
-  textToCreate: string,
-  language: any,
-): string {
+export function formatCreateTextLabel(textToCreate: string, language: any): string {
   return language.general.create.concat(' ', textToCreate);
 }
