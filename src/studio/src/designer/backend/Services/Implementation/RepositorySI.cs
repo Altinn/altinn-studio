@@ -594,8 +594,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // If FormLayout.json exists in app/ui => move it to app/ui/layouts (for backwards comp)
+#pragma warning disable 0618
             string filedata = string.Empty;
             string formLayoutPath = _settings.GetFormLayoutPath(org, app, developer);
+#pragma warning restore 0618
             if (File.Exists(formLayoutPath))
             {
                 filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
@@ -1888,6 +1890,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return dataTypeId;
         }
 
+#pragma warning disable 0618
         private void DeleteOldFormLayoutJson(string org, string app, string developer)
         {
             string path = _settings.GetFormLayoutPath(org, app, developer);
@@ -1896,6 +1899,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 File.Delete(path);
             }
         }
+#pragma warning restore 0618
 
         /// <inheritdoc/>
         public async Task DeleteRepository(string org, string repository)
