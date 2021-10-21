@@ -78,5 +78,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             policy.Title = title;
             return policy;
         }
+
+        public static DelegationChange GetDelegationChange(string altinnAppId)
+        {
+            return new DelegationChange
+            {
+                AltinnAppId = altinnAppId
+            };
+        }
     }
 }

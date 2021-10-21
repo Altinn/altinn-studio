@@ -168,3 +168,11 @@ export function getCalculatePageOrderUrl() {
 export function getPartyValidationUrl(partyId: string) {
   return `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
 }
+
+export function getActiveInstancesUrl(partyId: string) {
+  return `${appPath}/instances/${partyId}/active`;
+}
+
+export function getInstanceUiUrl(instanceId: string) {
+  return `${appPath}#/instance/${instanceId}`;
+}

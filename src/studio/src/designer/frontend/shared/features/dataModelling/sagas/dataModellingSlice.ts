@@ -9,7 +9,9 @@ export interface IDataModelAction {
   type: string;
 }
 export interface IDataModelActionPayload {
-  schema: ISchema;
+  relativeDirectory?: string;
+  name?: string;
+  schema?: ISchema;
   repoType?: string;
   metadata?: any;
 }
@@ -32,17 +34,8 @@ export interface IDeleteDataModelRejected {
   error: any;
 }
 
-const newSchema: ISchema = {
-  properties: {
-    melding: {
-      type: 'object',
-    },
-  },
-  definitions: {},
-};
-
 const initialState: IDataModellingState = {
-  schema: newSchema,
+  schema: null,
   error: null,
   saving: false,
 };
@@ -51,8 +44,11 @@ const dataModellingSlice = createSlice({
   name: 'dataModelling',
   initialState,
   reducers: {
-    fetchDataModel(state, _) {
-      state.schema = null;
+    fetchDataModel(state, { payload }) {
+      const modelPath = payload?.metadata?.value?.repositoryRelativeUrl;
+      if (!(modelPath && state?.schema?.$id?.endsWith(modelPath))) {
+        state.schema = null;
+      }
     },
     fetchDataModelFulfilled(state, action) {
       const { schema } = action.payload;
@@ -64,9 +60,7 @@ const dataModellingSlice = createSlice({
       state.error = error;
     },
     saveDataModel(state, action) {
-      const { schema } = action.payload;
       state.saving = true;
-      state.schema = schema;
     },
     saveDataModelFulfilled(state) {
       state.saving = false;
@@ -76,14 +70,25 @@ const dataModellingSlice = createSlice({
       state.saving = false;
       state.error = error;
     },
-    createNewDataModel(state, { payload }) {
+    createDataModel(state, _) {
       state.error = null;
-      state.schema = newSchema;
+      state.schema = undefined;
+      state.saving = true;
+    },
+    createDataModelFulfilled(state, { payload }) {
+      state.schema = payload.schema;
+      state.saving = false;
+    },
+    createDataModelRejected(state, { payload }) {
+      const { error } = payload;
+      state.saving = undefined;
+      state.error = error;
     },
     deleteDataModel(state, _) {
       state.saving = true;
     },
     deleteDataModelFulfilled(state) {
+      state.schema = undefined;
       state.saving = false;
     },
     deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
@@ -100,7 +105,9 @@ export const {
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
-  createNewDataModel,
+  createDataModel,
+  createDataModelFulfilled,
+  createDataModelRejected,
   deleteDataModel,
   deleteDataModelFulfilled,
   deleteDataModelRejected,

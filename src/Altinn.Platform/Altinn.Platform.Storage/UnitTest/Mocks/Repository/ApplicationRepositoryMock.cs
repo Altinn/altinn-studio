@@ -75,7 +75,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return Task.FromResult(appTitles);
         }
 
-        private Application GetTestApplication(string org, string app)
+        private static Application GetTestApplication(string org, string app)
         {
             string applicationPath = Path.Combine(GetAppsPath(), org + @"\" + app + @"\config\applicationmetadata.json");
             if (File.Exists(applicationPath))
@@ -88,7 +88,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return null;
         }
 
-        private string GetAppsPath()
+        private static string GetAppsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ApplicationRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\apps");

@@ -159,6 +159,9 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
     case 'active':
       value = `/instances/${instanceOwnerId}/active`;
       break;
+    case 'datatags':
+      value = `/instances/${instanceOwnerId}/${instanceId}/data/${dataId}/tags`;
+      break;
   }
   return value;
 }

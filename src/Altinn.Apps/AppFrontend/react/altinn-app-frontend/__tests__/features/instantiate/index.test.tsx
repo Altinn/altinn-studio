@@ -4,11 +4,11 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import { render, waitFor } from '@testing-library/react'
 import configureStore from 'redux-mock-store';
+import { BrowserRouter } from 'react-router-dom';
 import Instantiate from '../../../src/features/instantiate/containers/index';
 import { IRuntimeState } from '../../../src/types';
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import InstantiationActions from '../../../src/features/instantiate/instantiation/actions';
-import { BrowserRouter } from 'react-router-dom';
 
 describe('>>> features/instantiate/index.ts', () => {
   let mockInitialState: IRuntimeState;
@@ -45,8 +45,5 @@ describe('>>> features/instantiate/index.ts', () => {
 
     const instantiationText = await rendered.findByText('Hold deg fast, nå starter vi!');
     expect(instantiationText).not.toBeNull();
-
   });
 });
-
-

@@ -34,6 +34,8 @@ steps:
   continueOnError: true
 
 - script: |
+   echo k6 version:`k6 version`
+
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
    
    cat result.txt

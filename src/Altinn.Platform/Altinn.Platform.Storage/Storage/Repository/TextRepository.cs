@@ -4,14 +4,17 @@ namespace Altinn.Platform.Storage.Repository
     using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
+
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Interface.Models;
+
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+
     using Newtonsoft.Json;
 
     /// <summary>
@@ -151,7 +154,7 @@ namespace Altinn.Platform.Storage.Repository
             return true;
         }
 
-        private string GetTextId(string org, string app, string language)
+        private static string GetTextId(string org, string app, string language)
         {
             return $"{org}-{app}-{language}";
         }
@@ -159,7 +162,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Pre processes the text resource. Creates id and adds partition key org
         /// </summary>
-        private void PreProcess(string org, string app, string language, TextResource textResource)
+        private static void PreProcess(string org, string app, string language, TextResource textResource)
         {
             textResource.Id = GetTextId(org, app, language);
             textResource.Org = org;
@@ -168,7 +171,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Validates that org and app are not null, checks that language is two letter ISO string
         /// </summary>
-        private void ValidateArguments(string org, string app, string language)
+        private static void ValidateArguments(string org, string app, string language)
         {
             if (string.IsNullOrEmpty(org))
             {

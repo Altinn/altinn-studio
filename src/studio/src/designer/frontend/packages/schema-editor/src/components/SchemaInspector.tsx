@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, Select, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
@@ -412,9 +412,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setIsRequired(checked);
   };
 
-  const onChangeObjectKind = (e: any) => {
-    setObjectKind(e.target.value);
-  };
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
@@ -442,18 +439,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           disableUnderline: true,
         }}
       />
-      <p className={classes.header}>{getTranslation('object_kind_label', props.language)}</p>
-      <Select
-        className={classes.field}
-        id='type-kind-select'
-        value={objectKind}
-        onChange={onChangeObjectKind}
-        disableUnderline={true}
-        fullWidth={true}
-      >
-        <MenuItem value='type'>{getTranslation('type', props.language)}</MenuItem>
-        <MenuItem value='reference'>{getTranslation('reference', props.language)}</MenuItem>
-      </Select>
       {selectedItem && objectKind === 'type' &&
       <>
         <p className={classes.header}>{getTranslation('type', props.language)}</p>

@@ -8,7 +8,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// Altinn specific prefixes
         /// </summary>
-        public sealed class Prefixes
+        public static class Prefixes
         {
             /// <summary>
             /// The Policy Id prefix.
@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// Match attribute identifiers
         /// </summary>
-        public sealed class MatchAttributeIdentifiers
+        public static class MatchAttributeIdentifiers
         {
             /// <summary>
             /// Org attribute match indentifier 
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// Attribute categories.
         /// </summary>
-        public sealed class MatchAttributeCategory
+        public static class MatchAttributeCategory
         {
             /// <summary>
             /// The minimum authentication level category.

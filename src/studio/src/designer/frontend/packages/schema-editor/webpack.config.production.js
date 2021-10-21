@@ -10,6 +10,9 @@ module.exports = {
   },
   resolve: {
     extensions: [ '.tsx', '.ts', '.js' ],
+    alias: {
+      "app-shared": path.resolve(__dirname, "../../shared/")
+    }
   },
   module: {
     rules: [

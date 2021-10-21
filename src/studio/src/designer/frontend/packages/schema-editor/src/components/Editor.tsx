@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
-import { TabContext, TabList, TabPanel, TreeItem, TreeView } from '@material-ui/lab';
+import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppBar } from '@material-ui/core';
-import { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
+import { AppBar, Button, Typography } from '@material-ui/core';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import { ILanguage, ISchema, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
@@ -71,6 +72,23 @@ const useStyles = makeStyles({
     overflowX: 'clip',
     overflowY: 'auto',
   },
+  addButton: {
+    border: '1px dashed rgba(0, 0, 0, 1)',
+    borderRadius: '0px',
+    '&:hover': {
+      border: '1px solid rgba(0, 0, 0, 1)',
+    },
+    textTransform: 'none',
+    color: 'black',
+    '& > i': {
+      fontSize: '24px',
+    },
+    marginBottom: '12px',
+    marginLeft: '8px',
+  },
+  startIcon: {
+    marginRight: '0px',
+  },
 });
 
 export interface IEditorProps {
@@ -97,10 +115,11 @@ export const Editor = (props: IEditorProps) => {
   const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
   const [expandedPropertiesNodes, setExpandedPropertiesNodes] = React.useState<string[]>([]);
   const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = React.useState<string[]>([]);
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
 
-  function saveSchema() {
+  const saveSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
-  }
+  };
 
   React.useEffect(() => {
     dispatch(setSchemaName({ name }));
@@ -116,18 +135,32 @@ export const Editor = (props: IEditorProps) => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
-  const handleAddProperty = (e: React.MouseEvent) => {
+  const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setMenuAnchorEl(e.currentTarget);
+  };
+
+  const closeMenu = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    setMenuAnchorEl(null);
+  };
+
+  const handleAddProperty = (type: PropertyType) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',
+      type: (type === 'field' ? 'object' : undefined),
+      $ref: (type === 'reference' ? '' : undefined),
     }));
+    setMenuAnchorEl(null);
   };
+
   const handleAddDefinition = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(addRootItem({
       name: 'name',
       location: 'definitions',
+      type: 'object',
     }));
   };
 
@@ -175,6 +208,14 @@ export const Editor = (props: IEditorProps) => {
                 </TabList>
               </AppBar>
               <TabPanel value='properties'>
+                <Button
+                  endIcon={<i className='fa fa-drop-down'/>}
+                  onClick={openMenu}
+                  className={classes.addButton}
+                  id='add-button'
+                >
+                  <Typography variant='body1'>{getTranslation('add', language)}</Typography>
+                </Button>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -193,15 +234,19 @@ export const Editor = (props: IEditorProps) => {
                     language={language}
                     isPropertiesView={true}
                   />)}
-                  <TreeItem
-                    nodeId='add_property'
-                    icon={<i className='fa fa-plus' />}
-                    label={getTranslation('add_property', language)}
-                    onClick={handleAddProperty}
-                  />
                 </TreeView>
               </TabPanel>
               <TabPanel value='definitions'>
+                <Button
+                  startIcon={<i className='fa fa-plus'/>}
+                  onClick={handleAddDefinition}
+                  className={classes.addButton}
+                  classes={{
+                    startIcon: classes.startIcon,
+                  }}
+                >
+                  <Typography variant='body1'>{getTranslation('add_element', language)}</Typography>
+                </Button>
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -219,12 +264,6 @@ export const Editor = (props: IEditorProps) => {
                     id={getDomFriendlyID(def.path)}
                     language={language}
                   />)}
-                  <TreeItem
-                    nodeId='add_def'
-                    icon={<i className='fa fa-plus' />}
-                    label={getTranslation('add_property', language)}
-                    onClick={handleAddDefinition}
-                  />
                 </TreeView>
               </TabPanel>
             </TabContext>
@@ -233,7 +272,26 @@ export const Editor = (props: IEditorProps) => {
       {schema &&
         <aside className={classes.inspector}>
           <SchemaInspector language={language} />
-        </aside>}
+        </aside>
+      }
+      <AltinnMenu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={closeMenu}
+      >
+        <AltinnMenuItem
+          onClick={() => handleAddProperty('field')}
+          text={getTranslation('field', language)}
+          iconClass='fa fa-datamodel-properties'
+          id='add-field-button'
+        />
+        <AltinnMenuItem
+          onClick={() => handleAddProperty('reference')}
+          text={getTranslation('reference', language)}
+          iconClass='fa fa-datamodel-ref'
+          id='add-reference-button'
+        />
+      </AltinnMenu>
     </div>
   );
 };

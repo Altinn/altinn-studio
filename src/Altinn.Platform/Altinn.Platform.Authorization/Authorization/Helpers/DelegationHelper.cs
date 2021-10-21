@@ -104,6 +104,7 @@ namespace Altinn.Platform.Authorization.Helpers
             }
             catch (Exception)
             {
+                // Any exceptions here are caused by invalid input which should be handled and logged by the calling entity
             }
 
             return false;
@@ -116,16 +117,10 @@ namespace Altinn.Platform.Authorization.Helpers
         public static bool TryGetDelegationPolicyPathFromRule(Rule rule, out string delegationPolicyPath)
         {
             delegationPolicyPath = null;
-            try
+            if (TryGetDelegationParamsFromRule(rule, out string org, out string app, out int offeredBy, out int? coveredByPartyId, out int? coveredByUserId, out _))
             {
-                if (TryGetDelegationParamsFromRule(rule, out string org, out string app, out int offeredBy, out int? coveredByPartyId, out int? coveredByUserId, out _))
-                {
-                    delegationPolicyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy.ToString(), coveredByPartyId?.ToString() ?? coveredByUserId?.ToString());
-                    return true;
-                }                
-            }
-            catch (Exception)
-            {
+                delegationPolicyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy.ToString(), coveredByPartyId?.ToString() ?? coveredByUserId?.ToString());
+                return true;
             }
 
             return false;

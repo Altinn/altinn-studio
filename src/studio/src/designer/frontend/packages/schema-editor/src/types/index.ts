@@ -25,6 +25,9 @@ export interface ISetRefAction {
   path: string,
   ref: string,
 }
+
+export type PropertyType = 'group' | 'reference' | 'field';
+
 export type Field = {
   key: string;
   value: any;

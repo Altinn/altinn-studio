@@ -161,7 +161,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
         }
 
-        private DelegationChange GetDelegationChange(NpgsqlDataReader reader)
+        private static DelegationChange GetDelegationChange(NpgsqlDataReader reader)
         {
             DelegationChange delegationChange = new DelegationChange();
             delegationChange.PolicyChangeId = reader.GetValue<int>("delegationchangeid");

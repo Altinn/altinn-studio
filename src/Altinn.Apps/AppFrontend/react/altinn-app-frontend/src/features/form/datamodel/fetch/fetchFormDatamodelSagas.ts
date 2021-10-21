@@ -3,7 +3,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, all, take, put } from 'redux-saga/effects';
 import { getJsonSchemaUrl } from 'src/utils/urlHelper';
 import { IInstance } from 'altinn-shared/types';
-import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication, isStatelessApp } from 'src/utils/appMetadata';
 import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { get } from '../../../../utils/networking';
@@ -43,7 +43,7 @@ export function* watchFetchJsonSchemaSaga(): SagaIterator {
     take(fetchJsonSchema),
   ]);
   const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
-  if (application?.onEntry?.show) {
+  if (isStatelessApp(application)) {
     yield call(fetchJsonSchemaSaga);
     while (true) {
       yield take(fetchJsonSchema);
