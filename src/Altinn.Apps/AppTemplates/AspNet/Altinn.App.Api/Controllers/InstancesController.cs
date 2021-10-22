@@ -335,7 +335,7 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<Instance>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromBody] InstanceInstansiation instanceInstansiation)
+        [FromBody] InstansiationInstance instanceInstansiation)
         {
             if (string.IsNullOrEmpty(org))
             {

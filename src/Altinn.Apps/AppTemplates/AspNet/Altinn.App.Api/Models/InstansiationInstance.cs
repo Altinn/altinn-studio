@@ -9,7 +9,7 @@ namespace Altinn.App.Api.Models
     /// Specialized model for isntansiation of instances
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class InstanceInstansiation
+    public class InstansiationInstance
     {
         /// <summary>
         /// Gets or sets the instance owner information. 

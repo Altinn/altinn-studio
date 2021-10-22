@@ -250,7 +250,7 @@ namespace App.IntegrationTests
         {
             string token = PrincipalUtil.GetOrgToken("ttd");
 
-            InstanceInstansiation instanceTemplate = new InstanceInstansiation
+            InstansiationInstance instanceTemplate = new InstansiationInstance
             {
                 InstanceOwner = new InstanceOwner
                 {
@@ -301,7 +301,7 @@ namespace App.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1337);
 
-            InstanceInstansiation instanceTemplate = new InstanceInstansiation
+            InstansiationInstance instanceTemplate = new InstansiationInstance
             {
                 InstanceOwner = new InstanceOwner
                 {
