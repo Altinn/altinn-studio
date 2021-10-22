@@ -149,8 +149,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<Instance> allInstances = queryResponse.Instances;
+            await RemoveHiddenInstances(allInstances);
 
-            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
+            if (!allInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
 
             allInstances.ForEach(i =>
             {
@@ -459,6 +463,21 @@ namespace Altinn.Platform.Storage.Controllers
             queryParams.Remove(nameof(includeActive));
             queryParams.Remove(nameof(includeArchived));
             queryParams.Remove(nameof(includeDeleted));
+        }
+
+        private async Task RemoveHiddenInstances(List<Instance> instances)
+        {
+            List<string> appIds = instances.Select(i => i.AppId).Distinct().ToList();
+            List<Application> apps = new List<Application>();
+
+            foreach (string id in appIds)
+            {
+                apps.Add(await _applicationRepository.FindOne(id, id.Split("/")[0]));
+            }
+
+            instances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
+
+            InstanceHelper.RemoveHiddenInstances(apps, instances);
         }
     }
 }
