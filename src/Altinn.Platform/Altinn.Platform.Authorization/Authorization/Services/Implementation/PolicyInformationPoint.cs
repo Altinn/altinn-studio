@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     {
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyRepository _policyRepository;
-        private readonly IPolicyDelegationRepository _delegationRepository;
+        private readonly IDelegationMetadataRepository _delegationRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
 
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="delegationRepository">The delegation change repository</param>
         /// <param name="memoryCache">The cache handler</param>
         /// <param name="settings">The app settings</param>
-        public PolicyInformationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IPolicyDelegationRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        public PolicyInformationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _prp = policyRetrievalPoint;
             _policyRepository = policyRepository;

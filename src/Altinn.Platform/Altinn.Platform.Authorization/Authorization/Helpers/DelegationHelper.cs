@@ -207,7 +207,7 @@ namespace Altinn.Platform.Authorization.Helpers
                     {
                         RuleId = xacmlRule.RuleId.Split("ruleid:")[1],
                         OfferedByPartyId = delegationChange.OfferedByPartyId,
-                        DelegatedByUserId = delegationChange.DelegatedByUserId,
+                        DelegatedByUserId = delegationChange.PerformedByUserId,
                         CoveredBy = new List<AttributeMatch>(),
                         Resource = new List<AttributeMatch>()
                     };

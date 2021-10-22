@@ -1,0 +1,25 @@
+{
+  "parentPartyId": 0,
+  "ruleMatch": {
+    "resources": [
+      [
+		{
+		  "id": "urn:altinn:org",
+		  "value": "SKD"
+		},
+		{
+		  "id": "urn:altinn:app",
+		  "value": "TaxReport"
+		}
+      ]
+    ],
+    "coveredBy": {
+      "id": "urn:altinn:userid",
+      "value": "20001338"
+    },
+    "offeredByPartyId": 50001337
+  },
+  "keyRolePartyIds": [
+  
+  ]
+}

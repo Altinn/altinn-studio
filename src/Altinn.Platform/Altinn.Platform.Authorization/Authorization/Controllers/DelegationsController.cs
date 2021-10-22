@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="policyAdministrationPoint">The policy administration point</param>
         /// <param name="policyInformationPoint">The policy information point</param>
         /// <param name="logger">the logger.</param>
-        public DelegationsController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IPolicyAdministrationPoint policyAdministrationPoint, Services.Interface.IPolicyInformationPoint policyInformationPoint, ILogger<DelegationsController> logger)
+        public DelegationsController(IPolicyAdministrationPoint policyAdministrationPoint, IPolicyInformationPoint policyInformationPoint, ILogger<DelegationsController> logger)
         {
             _pap = policyAdministrationPoint;
             _pip = policyInformationPoint;
