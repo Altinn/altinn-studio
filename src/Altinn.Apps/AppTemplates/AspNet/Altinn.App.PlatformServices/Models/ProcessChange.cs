@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
@@ -32,5 +33,20 @@ namespace Altinn.App.PlatformServices.Models
         /// The BPMN process
         /// </summary>
         public Process Process { get; set; }
+
+        /// <summary>
+        /// The performer triggering the ProcessChange
+        /// </summary>
+        public ClaimsPrincipal Performer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the old process state
+        /// </summary>
+        public ProcessState OldProcessState { get; set; }
+
+        /// <summary>
+        /// Gets or sets the new process state
+        /// </summary>
+        public ProcessState NewProcessState { get; set; }
     }
 }
