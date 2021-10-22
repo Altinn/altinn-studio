@@ -115,7 +115,7 @@ namespace Altinn.App.Api.Controllers
             object appModel = _altinnApp.CreateNewAppModel(classRef);
 
             // runs prefill from repo configuration if config exists
-            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel, null);
+            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
             Instance virutalInstance = new Instance() { InstanceOwner = owner };
             await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);
@@ -181,7 +181,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // runs prefill from repo configuration if config exists
-            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel, null);
+            await _prefillService.PrefillDataModel(owner.PartyId, dataType, appModel);
 
             Instance virutalInstance = new Instance() { InstanceOwner = owner };
             await _altinnApp.RunProcessDataRead(virutalInstance, null, appModel);

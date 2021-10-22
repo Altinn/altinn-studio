@@ -325,7 +325,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceInstansiation">instansiation information</param>
-        /// <returns></returns>
+        /// <returns>The new instance</returns>
         [HttpPost("create")]
         [DisableFormValueModelBinding]
         [Produces("application/json")]
@@ -733,7 +733,7 @@ namespace Altinn.App.Api.Controllers
                         throw new InvalidOperationException(deserializer.Error);
                     }
 
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data, null);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
                     try
                     {
                         await _altinnApp.RunDataCreation(instance, data, null);
