@@ -1,42 +1,6 @@
+# Additional configurations are available. See: https://docs.altinn.studio/app/development/configuration/deployment/
+
 deployment:
-  # replicaCount: 1
-
-  image:
-    # Set "repository" name of your image for manual Helm install and upgrade.
-    repository:
-    tag: latest
-    pullPolicy: Always
-    pullSecrets:
-      # Change this to the name of your pull secret
-      - name: acr-secret
-
-  service:
-    name: deployment
-    type: ClusterIP
-    externalPort: 80
-    # If your application is running on another port, change only the internal port.
-    internalPort: 5005
-
-  linkerd:
-      enabled: true
-
-  ingressRoute:
-    name: Will be inserted during deploy
-    entryPoints:
-      - http
-      - https
-    routes:
-      - match: Will be inserted during deploy
-        kind: Rule
-        services:
-          - name: Will be inserted during deploy
-            port: 80
-        middlewares:
-          - name: hsts-header
-    tls:
-      options:
-        name: tls-options
-      secretName: ssl-cert
 
   volumeMounts:
     - name: datakeys
@@ -51,24 +15,3 @@ deployment:
     - name: accesstoken
       secret:
         secretName: accesstoken
-
-## Options for configuring resources. See: https://docs.altinn.studio/app/development/configuration/autoscaling/
-  # resources:
-  #   requests:
-  #     cpu: 300m
-  #     memory: 256Mi
-  #   limits:
-  #     cpu: 1000m
-  #     memory: 512Mi
-
-## Options for autoscaling. See: https://docs.altinn.studio/app/development/configuration/autoscaling/
-  # autoscaling:
-  #   enabled: true
-  #   replicas:
-  #     min: 2
-  #     max: 10
-  #   avgCpuUtilization: 70
-  #   behavior:
-  #     stabilizationWindowSeconds:
-  #       scaleUp: 0
-  #       scaleDown: 120
