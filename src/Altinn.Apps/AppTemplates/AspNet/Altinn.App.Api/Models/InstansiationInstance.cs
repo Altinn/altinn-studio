@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Models
@@ -32,7 +33,7 @@ namespace Altinn.App.Api.Models
         /// <inheritdoc/>
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            return JsonSerializer.Serialize(this);
         }
     }
 }
