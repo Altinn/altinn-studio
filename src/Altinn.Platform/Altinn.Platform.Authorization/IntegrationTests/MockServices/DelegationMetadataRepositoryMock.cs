@@ -9,9 +9,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class DelegationMetadataRepositoryMock : IDelegationMetadataRepository
     {
-        //private static List<string> validAppIds = new List<string> { "org1/app1" };
-
-        public Dictionary<string, List<DelegationChange>> MetadataChanges { get; private set; }
+        public Dictionary<string, List<DelegationChange>> MetadataChanges { get; set; }
 
         public DelegationMetadataRepositoryMock()
         {
@@ -25,7 +23,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
             if (MetadataChanges.ContainsKey(key))
             {
-                current = MetadataChanges[altinnAppId];
+                current = MetadataChanges[key];
             }
             else
             {

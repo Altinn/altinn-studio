@@ -122,6 +122,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             int offeredByPartyId = 50001337;
             int coveredBy = 20001337;
             string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
 
             List<RuleMatch> inputRuleMatchess = new List<RuleMatch>
             {
@@ -175,6 +176,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             int offeredByPartyId = 50001337;
             int coveredBy = 20001337;
             string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
 
             List<RuleMatch> inputRuleMatchess = new List<RuleMatch>
             {
