@@ -58,6 +58,8 @@ namespace App.IntegrationTestsRef.Process
 
             Assert.NotNull(updated.Instance.Id);
             Assert.Equal("StartEvent_1", updated.Instance.Process.StartEvent);
+            Assert.Equal("Task_1", updated.Instance.Process.CurrentTask.ElementId);
+            Assert.Equal(2, updated.Events.Count);
         }
 
         private static string GetAppPath(string org, string app)

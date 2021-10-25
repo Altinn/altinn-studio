@@ -39,11 +39,13 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <summary>
-        /// Start process
+        /// Start application process and goes to 
         /// </summary>
         public Task<ProcessChange> StartProcess(ProcessChange processChange)
         {
-            ProcessStateChange change = _processService.ProcessStart(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
+            ProcessStateChange change = _processService.ProcessStartAndGotoNextTask(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
+            processChange.NewProcessState = change.NewProcessState;
+            processChange.Events = change.Events;
 
             // TODO. Add BPMN logic that verifies input and trigger start of process
             return _processChangeHandler.HandleStart(processChange);

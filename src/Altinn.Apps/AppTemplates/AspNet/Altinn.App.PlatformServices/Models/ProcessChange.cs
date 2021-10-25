@@ -48,5 +48,10 @@ namespace Altinn.App.PlatformServices.Models
         /// Gets or sets the new process state
         /// </summary>
         public ProcessState NewProcessState { get; set; }
+
+        /// <summary>
+        /// Instances events created relate to process change
+        /// </summary>
+        public List<InstanceEvent> Events { get; set; }
     }
 }
