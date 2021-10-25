@@ -6,7 +6,7 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Api.Models
 {
     /// <summary>
-    /// Specialized model for isntansiation of instances
+    /// Specialized model for instansiation of instances
     /// </summary>
     public class InstansiationInstance
     {
