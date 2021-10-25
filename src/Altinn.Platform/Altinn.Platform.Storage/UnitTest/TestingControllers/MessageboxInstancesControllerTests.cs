@@ -966,6 +966,32 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.True(bool.Parse(actualIsArchived.First()));
         }
 
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on appId.
+        /// Expected:
+        ///  VisibleAfter not reached for an instance, this is removed from the response.
+        /// Success:
+        ///  isArchived is set to true. isSoftDeleted is set to false.
+        /// </summary>
+        public async void Search_VisibleDateNotReached_InstanceRemovedFromResponse()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1600&archiveReference=bdb2a09da7ea&includeActive=true&includeDeleted=true");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsArchived);
+            Assert.True(bool.Parse(actualIsArchived.First()));
+        }
+
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
