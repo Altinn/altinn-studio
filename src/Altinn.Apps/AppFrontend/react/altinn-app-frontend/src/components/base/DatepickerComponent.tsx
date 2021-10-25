@@ -24,6 +24,7 @@ export interface IDatePickerProps{
   format: string;
   minDate: string;
   maxDate: string;
+  disableFutureDates?: boolean;
   language: any;
   componentValidations: IComponentValidations;
 }
@@ -85,7 +86,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
   const minDate = props.minDate || DatePickerMinDateDefault;
-  const maxDate = props.maxDate || DatePickerMaxDateDefault;
+  const maxDate = props.disableFutureDates ? moment().toISOString() : props.maxDate || DatePickerMaxDateDefault;
+
   const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   moment.locale(locale);
   const format = moment.localeData().longDateFormat('L') || props.format || DatePickerFormatDefault;
