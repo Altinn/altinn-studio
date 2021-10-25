@@ -740,7 +740,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (NotImplementedException)
                     {
-                        // Trigger application business logic the old way. DEPRICATED
+                        // Trigger application business logic the old way. DEPRECATED
                         await _altinnApp.RunDataCreation(instance, data);
                     }
 
