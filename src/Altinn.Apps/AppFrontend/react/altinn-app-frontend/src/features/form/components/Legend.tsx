@@ -20,39 +20,36 @@ export default function Legend(props: IFormLegendProps) {
     return null;
   }
 
-  var text;
-  var placeIconTrue;
-  var labelTextArr;
-  var idxHelp;
-  var startPos;
+  var iconPos;
+  var textArr;
 
-  if(props.labelText[0]['props']['children'][0]['props'] == null) {
+  function replaceIcon(element, patern){
 
-    labelTextArr = props.labelText[0]['props']['children'];
-
-    for(var i=0; i<props.labelText[0]['props']['children'].length; i++) {
-
-      text = props.labelText[0]['props']['children'][i].toString();
-      placeIconTrue = text.indexOf('{help}');
-
-      if(placeIconTrue !== -1) {
-        idxHelp = i;
-        startPos = placeIconTrue;
-      }
-    }
-  } else {
-      labelTextArr = props.labelText[0]['props']['children'][0]['props']['children'];
-      for(var i=0; i<props.labelText[0]['props']['children'][0]['props']['children'].length; i++) {
-
-        text = props.labelText[0]['props']['children'][0]['props']['children'][0].toString();
-        placeIconTrue = text.indexOf('{help}'); 
-
-        if(placeIconTrue !== -1) {
-          idxHelp = i;
-          startPos = placeIconTrue;
+    for(var j=0; j < element.length; j++){
+      if(element[j]['props']) {
+        if(element[j]['props']['children']) {
+          replaceIcon(element[j]['props']['children'], patern)
+        }
+      } else {
+        iconPos = element[j].indexOf(patern);
+        if(element[j].indexOf(patern) !== -1) {
+            element[j] = 
+              <> 
+                {element[j].substring(0, iconPos)} 
+                  <HelpTextContainer
+                    language={props.language}
+                    id={props.id}
+                    helpText={props.helpText}
+                  />
+                {element[j].substring(iconPos + 6)}
+              </>;
         }
       }
+    }
   }
+
+  textArr = props.labelText;
+  replaceIcon(textArr, '{help}');
 
   return (
     <>
@@ -60,8 +57,7 @@ export default function Legend(props: IFormLegendProps) {
         className='a-form-label title-label'
         htmlFor={props.id}
       >
-        {labelTextArr.slice(0,idxHelp)}
-        {labelTextArr[idxHelp].substring(0,startPos)}
+        {props.labelText}
         {(props.labelSettings?.optionalIndicator === false || props.required) ?
           null
           :
@@ -69,15 +65,6 @@ export default function Legend(props: IFormLegendProps) {
             ({getLanguageFromKey('general.optional', props.language)})
           </span>
         }
-        {props.helpText &&
-          <HelpTextContainer
-            language={props.language}
-            id={props.id}
-            helpText={props.helpText}
-          />
-        }
-        {labelTextArr[idxHelp].substring(startPos + 6)}
-        {labelTextArr.slice(idxHelp + 1)}
       </label>
       {props.descriptionText &&
         <Description
