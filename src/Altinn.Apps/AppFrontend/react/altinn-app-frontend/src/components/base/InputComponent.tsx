@@ -15,6 +15,7 @@ export interface IInputBaseProps {
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
+  align?: 'right' | 'center' | 'left';
 }
 
 export interface IInputProps extends IInputBaseProps {
@@ -112,6 +113,9 @@ export function InputComponent(props: IInputProps) {
       inputProps={{
         formatting,
         className: classNames('form-control', { 'validation-error': !isValid, disabled: readOnly }),
+        style: {
+          textAlign: formatting?.align,
+        },
       }}
     />
   );

@@ -40,6 +40,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_4582_2000_forms_5244_42360.xsd", "")]
         [InlineData("Seres/schema_5064_1_forms_5793_42882.xsd", "")]
         [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "")]
+        [InlineData("Seres/schema_4956_1_forms_5692_42617.xsd", "")]
         public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();

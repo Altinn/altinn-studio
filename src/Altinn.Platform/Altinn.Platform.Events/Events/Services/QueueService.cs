@@ -39,11 +39,6 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<PushQueueReceipt> PushToQueue(string content)
         {
-            if (!_settings.EnablePushToQueue)
-            {
-                return new PushQueueReceipt { Success = true };
-            }
-
             try
             {
                 QueueClient client = await GetInboundQueueClient();
@@ -60,11 +55,6 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<PushQueueReceipt> PushToOutboundQueue(string content)
         {
-            if (!_settings.EnablePushToQueue)
-            {
-                return new PushQueueReceipt { Success = true };
-            }
-
             try
             {
                 QueueClient client = await GetOutboundQueueClient();
@@ -81,11 +71,6 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<PushQueueReceipt> PushToValidationQueue(string content)
         {
-            if (!_settings.EnablePushToQueue)
-            {
-                return new PushQueueReceipt { Success = true };
-            }
-
             try
             {
                 QueueClient client = await GetValidationQueueClient();

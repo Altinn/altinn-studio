@@ -135,6 +135,16 @@ declare global {
     [key: string]: string | any;
   }
 
+  export interface IFormImageComponent extends IFormComponent {
+    image?: {
+      src?: {
+        [lang: string]: string;
+      };
+      align?: string | null;
+      width?: string;
+    };
+  }
+
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
   }
@@ -154,7 +164,8 @@ declare global {
     | IFormRadioButtonComponent
     | IFormDropdownComponent
     | IFormFileUploaderComponent
-    | IFormAddressComponent;
+    | IFormAddressComponent
+    | IFormImageComponent;
 
   export interface IFormDesignerComponents {
     [id: string]: IFormComponent;

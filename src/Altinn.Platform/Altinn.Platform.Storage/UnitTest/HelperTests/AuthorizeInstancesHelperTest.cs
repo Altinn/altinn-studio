@@ -11,7 +11,9 @@ using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 
 using Microsoft.Extensions.Logging;
+
 using Moq;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.HelperTests
@@ -95,7 +97,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Equal(expected, actual);
         }
 
-        private ClaimsPrincipal CreateUserClaims(int userId)
+        private static ClaimsPrincipal CreateUserClaims(int userId)
         {
             // Create the user
             List<Claim> claims = new List<Claim>();
@@ -110,7 +112,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             return user;
         }
 
-        private List<Instance> CreateInstances()
+        private static List<Instance> CreateInstances()
         {
             List<Instance> instances = new List<Instance>
             {

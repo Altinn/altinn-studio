@@ -275,6 +275,9 @@ namespace DataModeling.Tests.Assertions
                 case XsdSchemaAttributesKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (XsdSchemaAttributesKeyword)actual);
                     break;
+                case XsdUnhandledEnumAttributesKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdUnhandledEnumAttributesKeyword)actual);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(expected.GetType().Name, "Unknown Json Schema Keyword");
             }
@@ -283,6 +286,11 @@ namespace DataModeling.Tests.Assertions
         private static void KeywordEqual(AdditionalItemsKeyword expected, AdditionalItemsKeyword actual)
         {
             throw new NotImplementedException();
+        }
+
+        private static void KeywordEqual(XsdUnhandledEnumAttributesKeyword expected, XsdUnhandledEnumAttributesKeyword actual)
+        {
+            Assert.True(expected.Equals(actual));
         }
 
         private static void KeywordEqual(AdditionalPropertiesKeyword expected, AdditionalPropertiesKeyword actual)

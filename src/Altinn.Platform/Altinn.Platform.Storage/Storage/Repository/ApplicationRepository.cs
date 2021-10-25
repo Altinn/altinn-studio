@@ -8,12 +8,14 @@ namespace Altinn.Platform.Storage.Repository
 
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Interface.Models;
+
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+
     using Newtonsoft.Json;
 
     /// <summary>
@@ -189,7 +191,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="appId">the id to convert</param>
         /// <returns>the converted id</returns>
-        private string AppIdToCosmosId(string appId)
+        private static string AppIdToCosmosId(string appId)
         {
             string cosmosId = appId;
 
@@ -208,7 +210,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="cosmosId">the id to convert</param>
         /// <returns>the converted id</returns>
-        private string CosmosIdToAppId(string cosmosId)
+        private static string CosmosIdToAppId(string cosmosId)
         {
             string appId = cosmosId;
 
@@ -229,7 +231,7 @@ namespace Altinn.Platform.Storage.Repository
         /// fix appId so that cosmos can store it: org/app-23 -> org-app-23
         /// </summary>
         /// <param name="application">the application to preprocess</param>
-        private void PreProcess(Application application)
+        private static void PreProcess(Application application)
         {
             application.Id = AppIdToCosmosId(application.Id);
         }
@@ -238,12 +240,12 @@ namespace Altinn.Platform.Storage.Repository
         /// postprocess applications so that appId becomes org/app-23 to use outside cosmos
         /// </summary>
         /// <param name="application">the application to postprocess</param>
-        private void PostProcess(Application application)
+        private static void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
         }
 
-        private void PostProcess(List<Application> applications)
+        private static void PostProcess(List<Application> applications)
         {
             applications.ForEach(a => PostProcess(a));
         }

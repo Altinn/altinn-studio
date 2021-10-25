@@ -9,7 +9,7 @@ import CreateNewWrapper from '../../../../features/dataModelling/components/Crea
 import { SchemaSelect } from '../../../../features/dataModelling/components';
 import DeleteWrapper from '../../../../features/dataModelling/components/DeleteWrapper';
 
-describe('>>> DataModelling.tsx', () => {
+describe('DataModelling.tsx', () => {
   const language = { administration: Object({ first: 'some text', second: 'other text' }) };
   let wrapper: any = null;
   let store: any;
@@ -142,15 +142,15 @@ describe('>>> DataModelling.tsx', () => {
     wrapper.update();
     const createNew = wrapper.find('CreateNewWrapper');
     act(() => {
-      createNew.props().createAction('test');
+      createNew.props().createAction({ name: 'test' });
     });
     wrapper.update();
     expect(store.dispatch).toHaveBeenCalledTimes(2);
     expect(store.dispatch).toHaveBeenCalledWith(
       {
-        type: 'dataModelling/createNewDataModel',
+        type: 'dataModelling/createDataModel',
         payload: {
-          modelName: 'test',
+          name: 'test',
         },
       },
     );

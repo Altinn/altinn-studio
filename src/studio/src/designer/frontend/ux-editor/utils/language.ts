@@ -16,6 +16,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.RadioButtons: {
       return language.ux_editor.helper_text_for_radio_button;
     }
+    case ComponentTypes.Image: {
+      return language.ux_editor.helper_text_for_image;
+    }
     case ComponentTypes.AttachmentList: {
       return language.ux_editor.helper_text_for_attachment_list;
     }
@@ -42,6 +45,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     }
     case ComponentTypes.Input: {
       return language.ux_editor.component_input;
+    }
+    case ComponentTypes.Image: {
+      return language.ux_editor.component_image;
     }
     case ComponentTypes.Datepicker: {
       return language.ux_editor.component_datepicker;

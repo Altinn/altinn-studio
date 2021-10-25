@@ -131,6 +131,9 @@ namespace App.IntegrationTests.Utils
                         case "dayplanner":
                             services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
                             break;
+                        case "externalprefil":
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil.App>();
+                            break;
                         default:
                             services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
