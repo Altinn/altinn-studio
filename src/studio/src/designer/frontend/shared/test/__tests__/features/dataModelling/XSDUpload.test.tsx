@@ -16,7 +16,7 @@ const defaultProps = {
   },
   org: 'test-org',
   repo: 'test-repo',
-  onXSDUploaded: () => { },
+  onXSDUploaded: () => {},
 };
 
 const mockAnchorEl = document.getElementsByTagName('body')[0];
@@ -46,16 +46,14 @@ describe('XSDUpload', () => {
     expect(wrapper.find(AltinnSpinner).exists()).toBe(false);
   });
 
-  it('should show uploading spinner and hide file picker when file upload is in progress', async () => {
+  it('should show uploading spinner and hide file picker when file upload is in progress', () => {
     const wrapper = mountComponent();
 
-    mockedAxios.post.mockImplementation(() => {
-      return new Promise((resolve) => setTimeout(() => resolve({}), 10));
-    });
+    mockedAxios.post.mockImplementation(() => new Promise(() => {}));
 
     wrapper.find(TopToolbarButton).simulate('click', { currentTarget: mockAnchorEl });
 
-    await act(async () => {
+    act(() => {
       wrapper.find(FileSelector).props().submitHandler(undefined, 'filename');
     });
 
