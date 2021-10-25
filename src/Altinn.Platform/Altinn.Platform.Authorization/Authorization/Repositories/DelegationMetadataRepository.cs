@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Extensions;
@@ -14,6 +15,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// <summary>
     /// Repository implementation for PostgreSQL operations on delegations.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class DelegationMetadataRepository : IDelegationMetadataRepository
     {
         private readonly string _connectionString;
