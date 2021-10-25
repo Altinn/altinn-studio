@@ -1,13 +1,15 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
+import * as ReactRouter from 'react-router';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
 import StandaloneDataModelling from '../../../features/standaloneDataModelling/DataModelling';
+import { LoadingState } from '../../../../shared/features/dataModelling/sagas/metadata';
 
-describe('StandaloneDataModelling', () => {
+describe('Dashboard > StandaloneDataModelling', () => {
   const language = { administration: {} };
   const modelName = 'model-name';
   const initialState = {
@@ -19,6 +21,7 @@ describe('StandaloneDataModelling', () => {
           fileType: '.json',
         },
       ],
+      loadState: LoadingState.ModelsLoaded,
     },
     dataModelling: {
       schema: {},
@@ -39,22 +42,28 @@ describe('StandaloneDataModelling', () => {
   };
 
   beforeEach(() => {
+    jest.spyOn(ReactRouter, 'useParams').mockReturnValue({
+      org: 'test-org',
+      repoName: 'test-repo',
+    });
+
     store = configureStore()({ ...initialState, language: { language } });
     store.dispatch = jest.fn(dispatchMock);
   });
-  const mountComponent = () => mount(
-    <Provider store={store}>
-      <StandaloneDataModelling language={language} />
-    </Provider>,
-    { context: { store } },
-  );
-  it('fetches model on mount', () => {
+
+  const mountComponent = () =>
+    mount(
+      <Provider store={store}>
+        <StandaloneDataModelling language={language} />
+      </Provider>,
+      { context: { store } },
+    );
+
+  it('should fetch models on mount', () => {
     act(() => {
       mountComponent();
     });
-    expect(store.dispatch)
-      .toHaveBeenCalledTimes(2);
-    expect(store.dispatch)
-      .toHaveBeenCalledWith(initialStoreCall);
+
+    expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
 });
