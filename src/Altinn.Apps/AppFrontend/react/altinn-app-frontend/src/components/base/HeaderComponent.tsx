@@ -18,22 +18,52 @@ export function HeaderComponent(props: IHeaderProps) {
     marginBottom: '0',
   };
 
+  var iconPos;
+  var textArr;
+
+  function replaceIcon(element, patern){
+
+    iconPos = element.indexOf(patern);
+
+    if(element.indexOf(patern) !== -1) {
+      header = 
+          <> 
+            {element.substring(0, iconPos)} 
+            <HelpTextContainer
+              language={props.language}
+              id={props.id}
+              helpText={props.getTextResource(props.textResourceBindings.help)}
+            />
+            {element.substring(iconPos + 6)}
+          </>;
+    }
+      
+    
+  }
+
+  var header;
+  textArr = props.text;
+  replaceIcon(textArr, '{help}');
+
   const renderHeader = () => {
+
+
+
     switch (props.size) {
       case ('S'): {
-        return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
+        return <h4 id={props.id} style={marginStyling}>{header}</h4>;
       }
 
       case ('M'): {
-        return <h3 id={props.id} style={marginStyling}>{props.text}</h3>;
+        return <h3 id={props.id} style={marginStyling}>{header}</h3>;
       }
 
       case ('L'): {
-        return <h2 id={props.id} style={marginStyling}>{props.text}</h2>;
+        return <h2 id={props.id} style={marginStyling}>{header}</h2>;
       }
 
       default: {
-        return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
+        return <h4 id={props.id} style={marginStyling}>{header}</h4>;
       }
     }
   };
@@ -49,11 +79,6 @@ export function HeaderComponent(props: IHeaderProps) {
       </Grid>
       {props.textResourceBindings?.help &&
       <Grid item={true} style={marginStyling}>
-        <HelpTextContainer
-          language={props.language}
-          id={props.id}
-          helpText={props.getTextResource(props.textResourceBindings.help)}
-        />
       </Grid>}
     </Grid>
   );
