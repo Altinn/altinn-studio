@@ -29,6 +29,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public string XPath { get; set; }
 
             public SchemaValueType SchemaValueType { get; set; }
+
+            public bool IsNillable { get; set; } = false;
         }
 
         /// <summary>
@@ -200,20 +202,25 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword, SchemaContext context)
         {
+            // A oneOf keyword with only one subschema which isn't null makes it required 
+            if (KeywordHasSingleNonNullSchema(keyword))
+            {
+                AddRequiredProperties(context.Id, new List<string>() { context.Name });
+            }
+
             int subSchemaIndex = 0;
             foreach (var subSchema in keyword.GetSubschemas())
             {
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/[{subSchemaIndex}]"));
-
-                if (!_schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable))
-                {
-                    AddRequiredProperties(context.Id, new List<string>() { context.Name });
-                }
-
                 ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
             }
+        }
+
+        private static bool KeywordHasSingleNonNullSchema(OneOfKeyword keyword)
+        {
+            return keyword.GetSubschemas().Count() == 1 && keyword.GetSubschemas().First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null;
         }
 
         private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword, SchemaContext context)
@@ -372,6 +379,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 var oneOfKeyword = subSchema.GetKeyword<OneOfKeyword>();
                 var schema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => !s.HasKeyword<TypeKeyword>());
+
+                context.IsNillable = true;
 
                 ProcessSubSchema(path, schema, context);
             }
