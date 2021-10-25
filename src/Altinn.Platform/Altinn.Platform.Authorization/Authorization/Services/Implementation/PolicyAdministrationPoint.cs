@@ -211,9 +211,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<RuleMatch>> TryDeleteDelegationPolicies(List<RuleMatch> policyMatches)
+        public async Task<List<Rule>> TryDeleteDelegationPolicies(List<RuleMatch> policyMatches)
         {
-            List<RuleMatch> result = new List<RuleMatch>();
+            List<Rule> result = new List<Rule>();
 
             foreach (RuleMatch policyMatch in policyMatches)
             {
@@ -247,6 +247,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         }
 
                         existingDelegationPolicy = await _prp.GetPolicyVersionAsync(currentChange.BlobStoragePolicyPath, currentChange.BlobStorageVersionId);
+                        List<Rule> currentPolicyRules = new List<Rule>();
+                        foreach (XacmlRule xacmlRule in existingDelegationPolicy.Rules)
+                        {
+                            currentPolicyRules.Add(PolicyHelper.CreateRuleFromPolicyAndRuleMatch(policyMatch, xacmlRule));
+                        }
 
                         existingDelegationPolicy.Rules.Clear();
                         
@@ -270,7 +275,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                             continue;
                         }
 
-                        result.Add(policyMatch);
+                        result.AddRange(currentPolicyRules);
                     }
                     catch (Exception ex)
                     {

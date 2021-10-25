@@ -58,6 +58,49 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// AddRules returns status code 201 and list of rules created match expected
         /// </summary>
         [Fact]
+        public async Task Post_DeleteRules_Success()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeleteRules/ReadOrg1App1_50001337_20001337.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
+            Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+        }
+
+        /// <summary>
+        /// Test case: Calling the POST operation for AddRules to perform a valid delegation of org1/app1
+        /// Expected: AddRules returns status code 201 and list of rules created match expected
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a valid delegation
+        /// Input:
+        /// List of two rules for delegation of the app org1/app1 between for a single offeredby/coveredby combination resulting in a single delegation policy.
+        /// Expected Result:
+        /// Rules are created and returned with the CreatedSuccessfully flag set and rule ids
+        /// Success Criteria:
+        /// AddRules returns status code 201 and list of rules created match expected
+        /// </summary>
+        [Fact]
         public async Task Post_AddRules_Success()
         {
             // Arrange

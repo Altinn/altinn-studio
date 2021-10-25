@@ -1,0 +1,22 @@
+[
+  {
+    "ruleId": "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94",
+    "coveredByUserId": 20001337,
+    "offeredByPartyId": 50001337,
+    "lastChangedByUserId": 20001336,
+    "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app3"
+      }
+    ],
+    "action": {
+      "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+      "value": "Read"
+    }
+  }
+]

@@ -39,6 +39,6 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// </summary>
         /// <param name="policyMatches">entity containing match for all the policies to delete</param>
         /// <returns>A list containing all the policies that is deleted</returns>
-        Task<List<RuleMatch>> TryDeleteDelegationPolicies(List<RuleMatch> policyMatches);
+        Task<List<Rule>> TryDeleteDelegationPolicies(List<RuleMatch> policyMatches);
     }
 }

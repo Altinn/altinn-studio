@@ -150,7 +150,7 @@ namespace Altinn.Platform.Authorization.Helpers
         {
             Rule result = new Rule();
 
-            result.RuleId = search.RuleId;
+            result.RuleId = rule.RuleId;
             result.CreatedSuccessfully = true;
             result.DelegatedByUserId = search.LastChangedByUserId;
             result.OfferedByPartyId = search.OfferedByPartyId;
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
             if (search.CoveredByPartyId != null)
             {
-                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:partyid", Value = search.CoveredByUserId.ToString() });
+                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:partyid", Value = search.CoveredByPartyId.ToString() });
             }
 
             result.Resource = search.Resource;

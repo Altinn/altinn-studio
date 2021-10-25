@@ -108,7 +108,7 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
         [Route("authorization/api/v1/[controller]/DeleteRules")]
-        public async Task<ActionResult> DeleteRules([FromBody] List<RuleMatch> ruleMatches)
+        public async Task<ActionResult> DeleteRule([FromBody] List<RuleMatch> ruleMatches)
         {
             if (ruleMatches == null || ruleMatches.Count < 1)
             {
@@ -171,7 +171,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                List<RuleMatch> deletionResults = await _pap.TryDeleteDelegationPolicies(policyMatches);
+                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policyMatches);
 
                 if (deletionResults.Count == policyMatches.Count)
                 {
