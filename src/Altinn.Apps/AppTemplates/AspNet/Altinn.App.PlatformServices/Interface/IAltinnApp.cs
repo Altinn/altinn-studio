@@ -54,7 +54,7 @@ namespace Altinn.App.Services.Interface
         /// Callback to app after task has been started.
         /// </summary>
         /// <returns></returns>
-        Task OnStartProcessTask(string taskId, Instance instance);
+        Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill);
 
         /// <summary>
         ///  Called before a process task is ended. App can do extra validation logic and add validation issues to collection which will be returned by the controller.
@@ -124,6 +124,11 @@ namespace Altinn.App.Services.Interface
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
         Task RunDataCreation(Instance instance, object data);
+
+        /// <summary>
+        /// Is called to run data creation (custom prefill) defined by app developer. Includes external prefill
+        /// </summary>
+        Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill);
 
         /// <summary>
         /// Gets the App Options
