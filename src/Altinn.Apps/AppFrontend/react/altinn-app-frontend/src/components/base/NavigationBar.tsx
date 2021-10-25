@@ -146,7 +146,8 @@ export function NavigationBar(props: INavigationBar) {
     const pageList = orderedLayoutKeys.map((item) => 
       <li className={ currentView == item ? classes.selectedBtn : classes.buttons } >
           <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
-              onClick={() => OnClickNav(item)}>
+              onClick={() => OnClickNav(item)}
+              aria-curren={currentView == item ? 'page' : null}>
               {getTextResource(item, textResources)}
           </a>
       </li>
@@ -168,7 +169,8 @@ export function NavigationBar(props: INavigationBar) {
     const pageListMobile = orderedLayoutKeys.map((item) => 
       <li className={ currentView == item ? classes.selectedBtnMobile : classes.buttonsMobile } >
           <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
-              onClick={ currentView == item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }>
+              onClick={ currentView == item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }
+              aria-curren={currentView == item ? 'page' : null}>
                 {getTextResource(item, textResources)}
           </a>
       </li>
