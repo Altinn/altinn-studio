@@ -16,6 +16,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.RadioButtons: {
       return language.ux_editor.helper_text_for_radio_button;
     }
+    case ComponentTypes.Image: {
+      return language.ux_editor.helper_text_for_image;
+    }
     case ComponentTypes.AttachmentList: {
       return language.ux_editor.helper_text_for_attachment_list;
     }
