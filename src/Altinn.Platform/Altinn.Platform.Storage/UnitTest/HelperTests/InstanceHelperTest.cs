@@ -33,6 +33,7 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Equal(instanceGuid, actual.Id);
+            Assert.Equal(2, actual.DataValues.Count);
         }
 
         /// <summary>

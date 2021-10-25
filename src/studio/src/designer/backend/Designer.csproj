@@ -29,16 +29,16 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="2.0.1" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.19" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.20" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.19" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.20" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.37" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
@@ -48,7 +48,7 @@
     <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
     <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
     <PackageReference Include="RestSharp" Version="106.12.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

@@ -6,8 +6,8 @@
   <packaging>jar</packaging>
   <version>1.0</version>
   <properties>
-    <build.source>16</build.source>
-    <build.target>16</build.target>
+    <build.source>17</build.source>
+    <build.target>17</build.target>
   </properties>
   <build>
     <plugins>

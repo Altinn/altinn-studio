@@ -83,13 +83,13 @@
     <xsd:restriction base="xsd:decimal">
       <xsd:totalDigits value="10" />
       <xsd:maxInclusive value="100" />
-      <xsd:minInclusive value="-100" />
+      <xsd:minInclusive value="-100.3" />
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:simpleType name="numberRestrictions2">
     <xsd:restriction base="xsd:decimal">
       <xsd:totalDigits value="10" />
-      <xsd:maxExclusive value="100" />
+      <xsd:maxExclusive value="100.5" />
       <xsd:minExclusive value="-100" />
     </xsd:restriction>
   </xsd:simpleType>
