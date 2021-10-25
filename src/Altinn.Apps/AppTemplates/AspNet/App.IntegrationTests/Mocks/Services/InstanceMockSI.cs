@@ -47,6 +47,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
             _logger.LogInformation($"//// Created instance for app {org}/{app}. writing to path: {instancePath}");
+            Directory.CreateDirectory(Path.GetDirectoryName(instancePath));
             File.WriteAllText(instancePath, instance.ToString());
 
             return Task.FromResult(instance);
