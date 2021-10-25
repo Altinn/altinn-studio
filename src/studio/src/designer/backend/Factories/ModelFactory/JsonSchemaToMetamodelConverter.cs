@@ -61,6 +61,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             handler?.Invoke(this, e);
         }
 
+        private const int MAX_MAX_OCCURS = 99999;
+
         private readonly IJsonSchemaAnalyzer _schemaAnalyzer;
         private readonly Dictionary<string, List<string>> _requiredProperties = new Dictionary<string, List<string>>();
         private ModelMetadata _modelMetadata;
@@ -220,7 +222,23 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private static bool KeywordHasSingleNonNullSchema(OneOfKeyword keyword)
         {
-            return keyword.GetSubschemas().Count() == 1 && keyword.GetSubschemas().First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null;
+            if (keyword.GetSubschemas().Count() > 1)
+            {
+                return false;
+            }
+
+            if (keyword.GetSubschemas().First().TryGetKeyword<TypeKeyword>(out var typeKeyword) && typeKeyword.Type != SchemaValueType.Null)
+            {
+                return true;
+            }
+            else if (keyword.GetSubschemas().First().HasKeyword<RefKeyword>())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private void ProcessAnyOfKeyword(JsonPointer path, AnyOfKeyword keyword, SchemaContext context)
@@ -295,6 +313,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             var itemsKeyword = subSchema.GetKeyword<ItemsKeyword>();
             var singleSchema = itemsKeyword.SingleSchema;
+            context.SchemaValueType = SchemaValueType.Array;
 
             foreach (var keyword in singleSchema.Keywords)
             {
@@ -302,8 +321,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                 ProcessKeyword(keywordPath, keyword, context);
             }
-
-            //context.SchemaValueType = SchemaValueType.Array;
         }
 
         private void ProcessNonPrimitiveType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -402,7 +419,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             int minOccurs = GetMinOccurs(subSchema, context);
-            int maxOccurs = GetMaxOccurs(subSchema);
+            int maxOccurs = GetMaxOccurs(subSchema, context);
             string name = ConvertToCSharpCompatibleName(context.Name);
             
             _modelMetadata.Elements.Add(
@@ -450,7 +467,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             int minOccurs = GetMinOccurs(subSchema, context);
-            int maxOccurs = GetMaxOccurs(subSchema);
+            int maxOccurs = GetMaxOccurs(subSchema, context);
             var fixedValue = GetFixedValue(subSchema);
             var xPath = CombineXPath(context.XPath, context.Name);
             var xsdValueType = MapToXsdValueType(context.SchemaValueType, subSchema);
@@ -578,10 +595,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return minOccurs;
         }
 
-        private static int GetMaxOccurs(JsonSchema subSchema)
+        private static int GetMaxOccurs(JsonSchema subSchema, SchemaContext context)
         {
+            int maxOccurs = 1;
+            if (context.SchemaValueType == SchemaValueType.Array)
+            {
+                maxOccurs = MAX_MAX_OCCURS;
+            }
+
             var maxitemsKeyword = subSchema.GetKeyword<MaxItemsKeyword>();
-            return maxitemsKeyword == null ? 1 : (int)maxitemsKeyword.Value;
+            return maxitemsKeyword == null ? maxOccurs : (int)maxitemsKeyword.Value;
         }
 
         private static string GetFixedValue(JsonSchema subSchema)
