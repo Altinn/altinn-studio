@@ -420,6 +420,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             int minOccurs = GetMinOccurs(subSchema, context);
             int maxOccurs = GetMaxOccurs(subSchema, context);
+            string xPath = CombineXPath(context.XPath, context.Name);
             string name = ConvertToCSharpCompatibleName(context.Name);
             
             _modelMetadata.Elements.Add(
@@ -431,12 +432,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     XName = context.Name,
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
-                    XPath = CombineXPath(context.XPath, context.Name),
+                    XPath = xPath,
                     JsonSchemaPointer = path.Source,
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema),
+                    DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs)
                 });
         }
@@ -488,7 +490,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     Type = @type,
                     Restrictions = GetRestrictions(xsdValueType, subSchema),
                     FixedValue = fixedValue,
-                    DataBindingName = GetDataBindingName(id, fixedValue, xPath),
+                    DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
                 });
         }
@@ -688,18 +690,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
         }
 
-        private static string GetDataBindingName(string id, string fixedValue, string xPath)
+        private static string GetDataBindingName(ElementType @type, int maxOccurs, string id, string fixedValue, string xPath)
         {
-            if (id.Contains(".") && string.IsNullOrEmpty(fixedValue))
+            if (@type != ElementType.Group && id.Contains(".") && string.IsNullOrEmpty(fixedValue))
             {
-                var firstPropertyName = id[0..id.IndexOf(".")];
-                string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
-                string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
-
-                return dataBindingName;
+                return GetDataBindingName(id, xPath);
+            }
+            else if (@type == ElementType.Group && maxOccurs > 1)
+            {
+                return GetDataBindingName(id, xPath); 
             }
 
             return null;
+        }
+
+        private static string GetDataBindingName(string id, string xPath)
+        {
+            var firstPropertyName = id[0..id.IndexOf(".")];
+            string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
+            string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
+
+            return dataBindingName;
         }
 
         private bool IsNillableType(JsonPointer path)
