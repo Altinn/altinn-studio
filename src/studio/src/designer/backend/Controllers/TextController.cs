@@ -180,7 +180,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service name of the service</returns>
         [HttpGet]
-        public string GetServiceName(string org, string app)
+        public IActionResult GetServiceName(string org, string app)
         {
             string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
@@ -191,16 +191,25 @@ namespace Altinn.Studio.Designer.Controllers
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                if (textResourceObject != null)
+                try
                 {
-                    serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
+                    ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+                    if (textResourceObject != null)
+                    {
+                        serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    watch.Stop();
+                    _logger.Log(LogLevel.Error, "Getservicename (parse failed) - {0} ", watch.ElapsedMilliseconds);
+                    return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n"+ex.Message);
                 }
             }
 
             watch.Stop();
             _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
-            return serviceName;
+            return Content(serviceName);
         }
 
         /// <summary>
