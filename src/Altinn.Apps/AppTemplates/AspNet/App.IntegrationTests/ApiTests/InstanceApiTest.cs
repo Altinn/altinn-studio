@@ -262,7 +262,7 @@ namespace App.IntegrationTests
             string prefillValue = "extpref" + DateTime.Now.Second;
 
             instanceTemplate.Prefill = new Dictionary<string, string>();
-            instanceTemplate.Prefill.Add(prefillValue, "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
+            instanceTemplate.Prefill.Add("Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform", prefillValue);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
