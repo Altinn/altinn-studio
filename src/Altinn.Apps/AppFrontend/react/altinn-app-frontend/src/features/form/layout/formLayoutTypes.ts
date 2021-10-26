@@ -26,10 +26,6 @@ export interface IUpdateAutoSave {
   autoSave: boolean;
 }
 
-export interface IUpdateMenu {
-  showMenu: boolean;
-}
-
 export interface IUpdateAutoSaveFulfilled {
   autoSave: boolean;
 }

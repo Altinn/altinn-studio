@@ -3,9 +3,9 @@ import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { getTextResource } from '../../utils/formComponentUtils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames from 'classnames';
+import { getTextResource } from '../../utils/formComponentUtils';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -15,184 +15,132 @@ const useStyles = makeStyles({
     listStyleType: 'none',
     textDecoration: 'none!important',
     paddingLeft: '0px!important',
-    position: 'relative'
+    position: 'relative',
   },
   menuMobile: {
-    height: '200px'
+    height: '200px',
   },
-  buttonsDesktop: {
-    float: 'left', 
-    border: '2px solid #008FD6',
-    '&:hover': {
-      border: '3px solid #008FD6'
-    },
-    borderRadius: '40px',
-    marginRight: '20px',
-    "&:active": {
-      backgroundColor: "#0062BA"
-    },
+  containerDesktop: {
+    float: 'left',
     [theme.breakpoints.down(600)]: {
       float: 'none',
-      display: 'none'
-    }
+      display: 'none',
+    },
   },
-  buttonsSmallScreen: {
+  containerSmallScreen: {
     marginBottom: '6px',
-    border: '2px solid #008FD6',
-    '&:hover': {
-      border: '3px solid #008FD6'
-    },
-    borderRadius: '40px',
-    marginRight: '20px',
-    "&:active": {
-      backgroundColor: "#0062BA"
-    },
     [theme.breakpoints.up(600)]: {
       float: 'none',
-      display: 'none'
-    }
-  },
-  selectedBtn: {
-    float: 'left', 
-    border: '2px solid #008FD6',
-    '&:hover': {
-      border: '3px solid #008FD6'
+      display: 'none',
     },
+  },
+  containerBase: {
     borderRadius: '40px',
     marginRight: '20px',
-    backgroundColor: "#022f51",
-    [theme.breakpoints.down(600)]: {
-      float: 'none',
-      display: 'none'
-    }
-  },
-  selectedBtnMobile: {
-    marginBottom: '6px',
     border: '2px solid #008FD6',
-    '&:hover': {
-      border: '3px solid #008FD6'
+    '&:active': {
+      backgroundColor: '#0062BA',
     },
-    borderRadius: '40px',
-    marginRight: '20px',
-    backgroundColor: "#022f51",
-    [theme.breakpoints.up(600)]: {
-      float: 'none',
-      display: 'none'
-    }
   },
-  navMobile: {
-    border: '2px solid #008FD6',
-    '&:hover': {
-      border: '3px solid #008FD6'
-    },
-    borderRadius: '40px',
-    marginRight: '20px',
-    backgroundColor: "#022f51",
-    [theme.breakpoints.up(600)]: {
-      float: 'none',
-      display: 'none'
-    }
-  },
-  btnText: {
-    display: 'block', 
-    textAlign: "center", 
-    padding: '12px', 
-    borderBottom: '0',
-    "&:hover": {
-      borderBottom: "0px solid rgba(0,0,0,0)"
-    }
-  },
-  btnTextSelected: {
-    display: 'block',   
-    textAlign: "center", 
-    padding: '12px', 
-    borderBottom: '0',
-    color: 'white!important',
-    "&:hover": {
-      borderBottom: "0px solid rgba(0,0,0,0)"
-    },
+  buttonBase: {
+    background: 'none',
+    font: 'inherit',
+    border: 'none',
     width: '100%',
-    fontSize: '1.5rem'
-  }
+    height: '100%',
+    display: 'block',
+    textAlign: 'center',
+    padding: '12px',
+    borderRadius: '40px',
+    '&:hover': {
+      outline: '3px solid #008FD6',
+    },
+  },
+  buttonSelected: {
+    color: 'white',
+    fontSize: '1.5rem',
+    backgroundColor: '#022f51',
+  },
 });
 
 export interface INavigationBar {
-  id: string;
-  showBackButton: boolean;
-  textResourceBindings: any;
   triggers?: Triggers[];
 }
 
-export function NavigationBar(props: INavigationBar) {
+export function NavigationBarComponent(props: INavigationBar) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const orderedLayoutKeys = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
+  const pageIds = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
   const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
   const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
   const triggers = props.triggers || pageTriggers;
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const currentView: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-  const showMenu: boolean = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.showMenu);
+  const currentPageId: string = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+  const [showMenu, setShowMenu] = React.useState(false);
 
   const OnClickNav = (index: string) => {
     const runPageValidations = !returnToView && triggers?.includes(Triggers.ValidatePage);
     const runAllValidations = returnToView || triggers?.includes(Triggers.ValidateAllPages);
-    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || null;
+    const runValidations = (runAllValidations && 'allPages') || (runPageValidations && 'page') || undefined;
 
     dispatch(FormLayoutActions.updateCurrentView({ newView: index, runValidations }));
   };
 
-  const NavBar = () => {
+  const Button = (prop: {
+    onClick: () => void,
+    children: any,
+    current: boolean,
+  }) => (
+    <button
+      type='button'
+      className={classNames(classes.buttonBase, prop.current && classes.buttonSelected)}
+      onClick={prop.onClick}
+      {...(prop.current && { 'aria-current': 'page' })}
+    >
+      {prop.children}
+    </button>
+  );
 
-    const pageList = orderedLayoutKeys.map((item) => 
-      <li className={ classNames( classes.buttonsDesktop, currentView === item ? classes.selectedBtn : undefined )}>
-          <a className={ classNames( classes.btnText, currentView === item ? classes.btnTextSelected : undefined )}
-              onClick={() => OnClickNav(item)}
-              aria-current={currentView === item ? 'page' : null}>
-              {getTextResource(item, textResources)}
-          </a>
-      </li>
-    );
+  const listPages = () => pageIds.map((pageId) => (
+    <li className={classNames(classes.containerBase, classes.containerDesktop)}>
+      <Button current={currentPageId === pageId} onClick={() => OnClickNav(pageId)}>
+        {getTextResource(pageId, textResources)}
+      </Button>
+    </li>
+  ));
 
-    if(!showMenu) {
-      pageList.unshift(
-        <li className={ classes.navMobile } >
-          <a className={ classes.btnTextSelected } 
-              onClick={() => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu}))}>
-                {orderedLayoutKeys.indexOf(currentView) + 1} / {pageList.length} {getTextResource(currentView, textResources)}
-                <i className={'ai ai-expand'} />
-            </a>
-            
-        </li>  
-      );
-    }
+  const pageList = showMenu ? listPages() : [
+    <li className={classNames(classes.containerBase, classes.containerSmallScreen)}>
+      <Button current onClick={() => setShowMenu(!showMenu)}>
+        {pageIds.indexOf(currentPageId) + 1} / {pageIds.length} {getTextResource(currentPageId, textResources)}
+        <i className='ai ai-expand' />
+      </Button>
+    </li>,
+    ...listPages(),
+  ];
 
-    const pageListMobile = orderedLayoutKeys.map((item) => 
-      <li className={ classNames( classes.buttonsSmallScreen, currentView === item ? classes.selectedBtnMobile : undefined )}>
-          <a className={ classNames( classes.btnText, currentView === item ? classes.btnTextSelected : undefined )}
-              onClick={ currentView === item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }
-              aria-current={currentView === item ? 'page' : null}>
-                {getTextResource(item, textResources)}
-          </a>
-      </li>
-    );
-
-    return (
-      <div>
-        {<ul className={ classes.menu }>{pageList}</ul>}
-        {showMenu && <ul className={`${classes.menu} ${classes.menuMobile}`}>{pageListMobile}</ul> }
-        
-      </div>
-    );
-  };
+  const renderSmallScreenMenu = () => pageIds.map((pageId) => (
+    <li className={classNames(classes.containerBase, classes.containerSmallScreen)}>
+      <Button
+        current={currentPageId === pageId}
+        onClick={currentPageId === pageId
+          ? () => setShowMenu(!showMenu)
+          : () => OnClickNav(pageId)}
+      >
+        {getTextResource(pageId, textResources)}
+      </Button>
+    </li>
+  ));
 
   return (
-    <Grid
-      container={true}
-      justify='space-between'
-    >
-      <Grid item={true} xs={10}>
-        <NavBar />
+    <Grid container justify='space-between' >
+      <Grid item xs={10}>
+        <nav>
+          <ul className={classNames([classes.menu, showMenu && classes.menuMobile])}>
+            {pageList}
+            {showMenu && (renderSmallScreenMenu())}
+          </ul>
+        </nav>
       </Grid>
     </Grid>
   );
