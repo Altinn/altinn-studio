@@ -19,13 +19,12 @@ describe('Dashboard > App', () => {
     },
   };
 
-  const mountComponent = () =>
-    mount(
-      <Provider store={store}>
-        <App />
-      </Provider>,
-      { context: { store } },
-    );
+  const mountComponent = () => mount(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    { context: { store } },
+  );
 
   beforeEach(() => {
     store = configureStore()(initialState);
@@ -43,7 +42,10 @@ describe('Dashboard > App', () => {
       type: 'dashboard/fetchCurrentUser',
     });
     expect(store.dispatch).toHaveBeenNthCalledWith(2, {
-      payload: { languageCode: 'nb', url: 'http://localhost/designerapi/Language/GetLanguageAsJSON' },
+      payload: {
+        languageCode: 'nb',
+        url: 'http://localhost/designerapi/Language/GetLanguageAsJSON',
+      },
       type: 'language/fetchLanguage',
     });
     expect(store.dispatch).toHaveBeenNthCalledWith(3, {
