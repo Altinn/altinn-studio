@@ -51,8 +51,14 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
         {
+            // Prefill from external input. Only available during instansiation
+            if (externalPrefill != null && externalPrefill.Count > 0)
+            {
+                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
+            }
+
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
@@ -219,7 +225,16 @@ namespace Altinn.App.Services.Implementation
                     throw new Exception(errorMessage);
                 }
 
-                JToken sourceValue = sourceObject.SelectToken(source);
+                JToken sourceValue = null;
+                if (sourceObject != null)
+                {
+                  sourceValue = sourceObject.SelectToken(source);
+                }
+                else
+                {
+                    sourceValue = JToken.Parse($"'{source}'");
+                }
+
                 _logger.LogInformation($"Source: {source}, target: {target}");
                 _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
                 string[] keys = target.Split(".");

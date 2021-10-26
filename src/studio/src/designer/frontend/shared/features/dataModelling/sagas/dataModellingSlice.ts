@@ -9,7 +9,7 @@ export interface IDataModelAction {
   type: string;
 }
 export interface IDataModelActionPayload {
-  relativeDirectory?: string;
+  relativePath?: string;
   name?: string;
   schema?: ISchema;
   repoType?: string;
@@ -59,7 +59,7 @@ const dataModellingSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    saveDataModel(state, action) {
+    saveDataModel(state, _) {
       state.saving = true;
     },
     saveDataModelFulfilled(state) {
