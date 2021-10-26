@@ -6,6 +6,7 @@ using System.Text.Unicode;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
@@ -27,6 +28,7 @@ namespace Designer.Tests.Factories.ModelFactory
             _outputHelper = outputHelper;
 
             JsonSchemaKeywords.RegisterXsdKeywords();
+            JsonSchemaFormats.RegisterFormats();
         }
 
         [Theory]
@@ -36,6 +38,7 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Model/Xsd/schema_5064_1_forms_5793_42882.xsd", "Model/Metadata/schema_5064_1_forms_5793_42882.metadata.json")]
         [InlineData("Model/Xsd/schema_5222_2_forms_5909_43507.xsd", "Model/Metadata/schema_5222_2_forms_5909_43507.metadata.json")]
         [InlineData("Model/Xsd/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.metadata.json")]
+        [InlineData("Model/Xsd/schema_4582_2000_forms_5244_42360.xsd", "Model/Metadata/schema_4582_2000_forms_5244_42360.metadata.json")]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             // Arrange

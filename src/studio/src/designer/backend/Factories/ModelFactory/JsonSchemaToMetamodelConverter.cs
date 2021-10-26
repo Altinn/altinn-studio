@@ -521,7 +521,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             switch (jsonValueType)
             {
                 case SchemaValueType.String:
-                    return MapStringValueTypes(jsonValueType, subSchema);
+                    return MapStringValueTypes(subSchema);
                 case SchemaValueType.Boolean:
                     return BaseValueType.Boolean;
                 case SchemaValueType.Number:
@@ -533,9 +533,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private static BaseValueType MapStringValueTypes(SchemaValueType jsonValueType, JsonSchema subSchema)
+        private static BaseValueType MapStringValueTypes(JsonSchema subSchema)
         {
-            var baseValueType = BaseValueType.String;
+            //if (TryParseXsdTypeKeyword(subSchema, out var baseValueType))
+            //{
+            //    return baseValueType;
+            //}
+
+            BaseValueType baseValueType = BaseValueType.String;
+
             if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
             {
                 var format = formatKeyword.Value.Key;
@@ -577,6 +583,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return baseValueType;
+        }
+
+        private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
+        {
+            BaseValueType parsedBaseValueType = BaseValueType.String;
+            bool parseSuccess = false;
+
+            if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
+            {
+                parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+            }
+
+            baseValueType = parsedBaseValueType;
+            return parseSuccess;
         }
 
         private static string CombineXPath(string baseXPath, string name)
