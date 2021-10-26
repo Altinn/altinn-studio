@@ -75,7 +75,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       />
       <div className='container'>
         <div className='row'>
-          <div className='col-xl-10 offset-xl-1 a-p-static'>
+          <div className='col-xl-12 a-p-static'>
             <ErrorReport
               language={language}
             />
