@@ -63,16 +63,33 @@ export const App = () => {
             path='/'
             exact={true}
             render={() => (
-              <Grid container={true} justifyContent='center' direction='row' className='block-with-text'>
+              <Grid
+                container={true}
+                justifyContent='center'
+                direction='row'
+                className='block-with-text'
+              >
                 <Grid item={true} xs={10}>
                   <ServicesOverview />
                 </Grid>
               </Grid>
             )}
           />
-          <Route path='/clone-app/:org/:serviceName' exact={true} component={CloneService} />
-          <Route path='/known-issues' exact={true} component={KnownIssues} />
-          <Route path='/datamodelling/:org/:repoName' exact={true} component={StandaloneDataModelling} />
+          <Route
+            path='/clone-app/:org/:serviceName'
+            exact={true}
+            component={CloneService}
+          />
+          <Route
+            path='/known-issues'
+            exact={true}
+            component={KnownIssues}
+          />
+          <Route
+            path='/datamodelling/:org/:repoName'
+            exact={true}
+            component={StandaloneDataModelling}
+          />
         </div>
       </Router>
     </MuiThemeProvider>
