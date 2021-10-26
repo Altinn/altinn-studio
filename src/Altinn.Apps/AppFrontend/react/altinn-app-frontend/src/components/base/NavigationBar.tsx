@@ -5,6 +5,7 @@ import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import classNames from 'classnames';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -19,7 +20,7 @@ const useStyles = makeStyles({
   menuMobile: {
     height: '200px'
   },
-  buttons: {
+  buttonsDesktop: {
     float: 'left', 
     border: '2px solid #008FD6',
     '&:hover': {
@@ -35,7 +36,7 @@ const useStyles = makeStyles({
       display: 'none'
     }
   },
-  buttonsMobile: {
+  buttonsSmallScreen: {
     marginBottom: '6px',
     border: '2px solid #008FD6',
     '&:hover': {
@@ -144,10 +145,10 @@ export function NavigationBar(props: INavigationBar) {
   const NavBar = () => {
 
     const pageList = orderedLayoutKeys.map((item) => 
-      <li className={ currentView == item ? classes.selectedBtn : classes.buttons } >
-          <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
+      <li className={ classNames( classes.buttonsDesktop, currentView === item ? classes.selectedBtn : undefined )}>
+          <a className={ classNames( classes.btnText, currentView === item ? classes.btnTextSelected : undefined )}
               onClick={() => OnClickNav(item)}
-              aria-current={currentView == item ? 'page' : null}>
+              aria-current={currentView === item ? 'page' : null}>
               {getTextResource(item, textResources)}
           </a>
       </li>
@@ -167,10 +168,10 @@ export function NavigationBar(props: INavigationBar) {
     }
 
     const pageListMobile = orderedLayoutKeys.map((item) => 
-      <li className={ currentView == item ? classes.selectedBtnMobile : classes.buttonsMobile } >
-          <a className={ currentView == item ? classes.btnTextSelected : classes.btnText } 
-              onClick={ currentView == item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }
-              aria-current={currentView == item ? 'page' : null}>
+      <li className={ classNames( classes.buttonsSmallScreen, currentView === item ? classes.selectedBtnMobile : undefined )}>
+          <a className={ classNames( classes.btnText, currentView === item ? classes.btnTextSelected : undefined )}
+              onClick={ currentView === item ? () => dispatch(FormLayoutActions.updateMenu({showMenu: !showMenu})) : () => OnClickNav(item) }
+              aria-current={currentView === item ? 'page' : null}>
                 {getTextResource(item, textResources)}
           </a>
       </li>
