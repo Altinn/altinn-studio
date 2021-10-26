@@ -35,6 +35,7 @@ namespace Altinn.App.PlatformServices.Implementation
             ProcessStateChange change = _processService.ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
             processChange.OldProcessState = change.OldProcessState;
             processChange.NewProcessState = change.NewProcessState;
+            processChange.Events = change.Events;
             return _processChangeHandler.HandleNext(processChange);
         }
 

@@ -62,6 +62,50 @@ namespace App.IntegrationTestsRef.Process
             Assert.Equal(2, updated.Events.Count);
         }
 
+        /// <summary>
+        /// Test to verify start process
+        /// </summary>
+        [Fact]
+        public async void ProcessNext()
+        {
+            PlatformSettings plattformSettings = new PlatformSettings();
+            plattformSettings.ApiStorageEndpoint = "http://platform.mock.no";
+            Moq.Mock<IOptions<PlatformSettings>> moqPlattformSettings = new Mock<IOptions<PlatformSettings>>();
+            moqPlattformSettings.Setup(c => c.Value).Returns(plattformSettings);
+
+            AppSettings appSettings = new AppSettings();
+            appSettings.AppBasePath = GetAppPath("ttd", "presentationfields-app");
+            Moq.Mock<IOptions<AppSettings>> moqappSettings = new Mock<IOptions<AppSettings>>();
+            moqappSettings.Setup(c => c.Value).Returns(appSettings);
+
+            Moq.Mock<IInstanceEvent> moqInstanceEvents = new Mock<IInstanceEvent>();
+
+            Moq.Mock<ILogger<ProcessAppSI>> moqLogger = new Mock<ILogger<ProcessAppSI>>();
+            Moq.Mock<IHttpContextAccessor> moqContextAccessor = new Mock<IHttpContextAccessor>();
+            HttpClient httpClient = new HttpClient();
+
+            Instance instance = new Instance();
+            instance.Id = "1337/" + Guid.NewGuid();
+            instance.InstanceOwner = new InstanceOwner() { PartyId = "1337" };
+
+            ProcessChangeHandler processChangeHandler = new ProcessChangeHandler();
+            ProcessAppSI processSi = new ProcessAppSI(moqPlattformSettings.Object, moqappSettings.Object, moqInstanceEvents.Object, moqLogger.Object, moqContextAccessor.Object, httpClient);
+            ProcessEngine processEngine = new ProcessEngine(processChangeHandler, processSi);
+
+            ProcessChange processChange = new ProcessChange();
+            processChange.Instance = instance;
+            processChange.Performer = PrincipalUtil.GetUserPrincipal(1337);
+
+            ProcessChange updated = await processEngine.StartProcess(processChange);
+            updated = await processEngine.Next(updated);
+
+            Assert.NotNull(updated.Instance.Id);
+            Assert.Equal("StartEvent_1", updated.Instance.Process.StartEvent);
+            Assert.NotNull(updated.Instance.Process.Ended);
+            Assert.Equal("EndEvent_1", updated.Instance.Process.EndEvent);
+            Assert.Equal(3, updated.Events.Count);
+        }
+
         private static string GetAppPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ProcessEngineTest).Assembly.Location).LocalPath);
