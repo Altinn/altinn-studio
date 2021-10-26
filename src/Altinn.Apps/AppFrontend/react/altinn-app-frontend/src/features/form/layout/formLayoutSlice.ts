@@ -139,7 +139,6 @@ const actions = {
   fetchLayoutSets: createAction(`${moduleName}/fetchLayoutSets`),
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
-  // updateMenu: createAction<LayoutTypes.IUpdateMenu>(`${moduleName}/updateMenu`),
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
   updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
   updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),
