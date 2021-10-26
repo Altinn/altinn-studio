@@ -257,7 +257,6 @@ export interface IUiConfig {
   layoutOrder: string[];
   pageTriggers?: Triggers[];
   hideCloseButton?: boolean;
-  showMenu: boolean;
 }
 
 export interface IValidationResult {

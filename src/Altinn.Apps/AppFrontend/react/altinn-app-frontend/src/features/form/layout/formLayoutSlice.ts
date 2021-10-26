@@ -22,8 +22,7 @@ const initialState: ILayoutState = {
     currentView: 'FormLayout',
     navigationConfig: {},
     layoutOrder: null,
-    pageTriggers: [],
-    showMenu: false
+    pageTriggers: []
   },
   layoutsets: null,
 };
@@ -89,10 +88,6 @@ const formLayoutSlice = createSlice({
     updateCurrentViewRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
-    },
-    updateMenu: (state, action: PayloadAction<LayoutTypes.IUpdateMenu>) => {
-      const { showMenu } = action.payload;
-      state.uiConfig.showMenu = showMenu;
     },
     updateFocusFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFocusFulfilled>) => {
       const { focusComponentId } = action.payload;
