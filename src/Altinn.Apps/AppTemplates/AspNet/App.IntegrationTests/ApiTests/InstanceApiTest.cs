@@ -12,7 +12,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil;
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
@@ -245,6 +245,86 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
+        [Fact]
+        public async Task Instance_Post_With_ExternalPrefil_Org()
+        {
+            string token = PrincipalUtil.GetOrgToken("ttd");
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                DueBefore = DateTime.Parse("2020-01-01")
+            };
+
+            string prefillValue = "extpref" + DateTime.Now.Second;
+
+            instanceTemplate.Prefill = new Dictionary<string, string>();
+            instanceTemplate.Prefill.Add(prefillValue, "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/externalprefil/instances/create")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+            Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+
+            string dataUri = createdInstance.Data[0].SelfLinks.Apps;
+            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
+            HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+            responseContent = await response2.Content.ReadAsStringAsync();
+            ReelleRettighetshavere_M calculationResult = JsonConvert.DeserializeObject<ReelleRettighetshavere_M>(responseContent);
+            Assert.Equal(prefillValue, calculationResult.Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform);
+
+            TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
+        /// <summary>
+        /// Scenario: Failed retrival of register data
+        /// Succsess criteria: Forbidden
+        /// </summary>
+        [Fact]
+        public async Task Instance_Simplified_Post_UnuthorizedParty()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1001",
+                },
+                DueBefore = DateTime.Parse("2020-01-01"),
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
         /// <summary>
         /// create a multipart request with instance and xml prefil.
         /// </summary>
@@ -291,7 +371,6 @@ namespace App.IntegrationTests
             Assert.NotNull(createdInstance);
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
-
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
