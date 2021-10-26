@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>2.4.1.0</AssemblyVersion>
-    <FileVersion>2.4.1.0</FileVersion>
+    <AssemblyVersion>2.4.2.0</AssemblyVersion>
+    <FileVersion>2.4.2.0</FileVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{3aa4860c-e86b-488f-ae89-b0a28bc1f701}</ProjectGuid>
   </PropertyGroup>
@@ -12,7 +12,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>JWTCookieAuthentication</PackageId>
-    <PackageVersion>2.4.1-alpha</PackageVersion>
+    <PackageVersion>2.4.2</PackageVersion>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <Description>
       JWTCookieAuthentication is a package for usage of JWT token for authentication both
@@ -31,7 +31,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.12.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.13.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

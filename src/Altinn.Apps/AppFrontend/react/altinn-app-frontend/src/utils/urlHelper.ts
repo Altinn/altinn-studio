@@ -164,3 +164,15 @@ export function getRulehandlerUrl(layoutset: string) {
 export function getCalculatePageOrderUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
 }
+
+export function getPartyValidationUrl(partyId: string) {
+  return `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
+}
+
+export function getActiveInstancesUrl(partyId: string) {
+  return `${appPath}/instances/${partyId}/active`;
+}
+
+export function getInstanceUiUrl(instanceId: string) {
+  return `${appPath}#/instance/${instanceId}`;
+}

@@ -86,9 +86,9 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         /// <param name="instance">Instance that data belongs to</param>
         /// <param name="dataId">Data id for the  data</param>
         /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
+        public override Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
         {
-            return _calculationHandler.Calculate(data);
+            return Task.FromResult(_calculationHandler.Calculate(data));
         }
 
         /// <summary>
@@ -122,9 +122,9 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
             return Task.FromResult(options);
         }
 
-        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

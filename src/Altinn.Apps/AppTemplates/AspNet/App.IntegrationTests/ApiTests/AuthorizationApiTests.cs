@@ -3,11 +3,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Register.Models;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 using Xunit;

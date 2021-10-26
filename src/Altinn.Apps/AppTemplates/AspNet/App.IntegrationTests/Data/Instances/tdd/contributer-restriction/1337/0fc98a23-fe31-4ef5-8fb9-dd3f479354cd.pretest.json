@@ -1,1 +1,39 @@
-{"id":"1337/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd","instanceOwner":{"partyId":"1337","personNumber":"01039012345"},"appId":"tdd/contributer-restriction","org":"tdd","process":{"started":"2019-12-05T13:24:34.8412179Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2019-12-05T13:24:34.9196661Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data","validated":{"timestamp":"2020-02-07T10:46:36.985894+01:00","canCompleteTask":false}}},"data":[{"id":"de288942-a8af-4f77-a1f1-6e1ede1cd502","dataType":"default","contentType":"application/xml","size":0,"locked":false}]}
+{
+  "id": "1337/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "01039012345"
+  },
+  "appId": "tdd/contributer-restriction",
+  "org": "tdd",
+  "process": {
+    "started": "2019-12-05T13:24:34.8412179Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-05T13:24:34.9196661Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data",
+      "validated": {
+        "timestamp": "2020-02-07T10:46:36.985894+01:00",
+        "canCompleteTask": false
+      }
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": [
+    {
+      "id": "de288942-a8af-4f77-a1f1-6e1ede1cd502",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    }
+  ]
+}

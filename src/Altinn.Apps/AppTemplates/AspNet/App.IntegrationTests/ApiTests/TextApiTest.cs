@@ -1,13 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
+
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
+
 using Newtonsoft.Json;
 using Xunit;
 

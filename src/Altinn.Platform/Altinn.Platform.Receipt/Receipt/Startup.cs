@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Receipt.Configuration;
+using Altinn.Platform.Receipt.Filters;
 using Altinn.Platform.Receipt.Health;
 using Altinn.Platform.Receipt.Services;
 using Altinn.Platform.Receipt.Services.Interfaces;
@@ -107,7 +108,7 @@ namespace Altinn.Platform.Receipt
             services.AddHttpClient<IProfile, ProfileWrapper>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
-            services.AddTransient<Common.AccessTokenClient.Services.ISigningCredentialsResolver, SigningCredentialsResolver>();
+            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
@@ -116,6 +117,7 @@ namespace Altinn.Platform.Receipt
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");

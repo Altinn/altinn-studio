@@ -31,7 +31,7 @@ services:
       - ./grafana-dashboard.yaml/:/etc/grafana/provisioning/dashboards/dashboard.yaml
 
   k6:
-    image: loadimpact/k6:0.33.0
+    image: loadimpact/k6:0.34.1
     networks:
       - k6
     ports:

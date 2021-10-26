@@ -121,6 +121,15 @@ export function nb() {
     group: {
       row_error: 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
     },
+    instance_selection: {
+      changed_by: 'Endret av',
+      continue: 'Fortsett her',
+      description: 'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
+      header: 'Du har allerede startet å fylle ut dette skjemaet.',
+      last_changed: 'Sist endret',
+      left_of: 'Fortsett der du slapp',
+      new_instance: 'Start på nytt',
+    },
     instantiate: {
       all_forms: 'alle skjema',
       inbox: 'innboks',

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,8 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Templates;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -15,6 +18,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -28,16 +32,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="loggerFactory">Factory class that knows how to create an instance of <see cref="ILogger"/>.</param>
-        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILoggerFactory loggerFactory)
+        /// <param name="serviceRepositorySettings">Settings for the ServiceRepository. Service is the old name on Apps. This settings class contains alot, only use the parts related to SchemaModels to make it easier to separate out later.</param>
+        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ILoggerFactory loggerFactory, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
+            _serviceRepositorySettings = serviceRepositorySettings;
         }
 
         /// <inheritdoc/>
@@ -67,7 +74,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else 
             {              
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent);
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
             } 
         }
 
@@ -79,7 +86,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
             {
                 await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
-
+                
                 JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
 
                 var jsonContent = SerializeJson(jsonSchema);
@@ -103,6 +110,39 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            {
+                var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
+                var relativeFilePath = Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json");
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+                return (relativeFilePath, jsonSchema);
+            }
+            else
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+                var modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+                var uri = GetSchemaUri(org, repository, schemaName, modelFolder);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
+                var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaName);
+
+                return (relativePath, jsonSchema);
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
@@ -120,6 +160,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
             }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Uri"/> to the schema within the repository.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="schemaName">The logical name of the schema ie. filename without extention.</param>
+        /// <param name="relativePath">The relative path (from repository root) to where the schema should be stored.</param>
+        /// <returns>Returns a resolvable uri to the location of the schema.</returns>
+        public Uri GetSchemaUri(string org, string repository, string schemaName, string relativePath = "")
+        {
+            var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
+            baseUrl = baseUrl.TrimEnd("/".ToCharArray());
+
+            Uri schemaUri;
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{schemaName}.schema.json");
+            }
+            else
+            {
+                relativePath = relativePath.TrimEnd('/');
+                relativePath = relativePath.TrimStart('/');
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{relativePath}/{schemaName}.schema.json");
+            }
+
+            return schemaUri;
         }
 
         private async Task UpdateAllAppModelFiles(string org, string repository, string developer, string relativeFilePath, string jsonContent)

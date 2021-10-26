@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
@@ -22,7 +23,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Moq;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
@@ -55,7 +58,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             };
 
             // Act
-            StringContent content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json");
+            JsonContent content = JsonContent.Create(instance, new MediaTypeHeaderValue("application/json"));
             HttpResponseMessage response = await client.PostAsync(requestUri, content);
 
             // Assert
@@ -79,7 +82,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             InstanceEvent instance = new InstanceEvent();
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(instance, new MediaTypeHeaderValue("application/json")));
 
             if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
             {
@@ -108,7 +111,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             InstanceEvent instance = new InstanceEvent();
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await client.PostAsync(requestUri, JsonContent.Create(instance, new MediaTypeHeaderValue("application/json")));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

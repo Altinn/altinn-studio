@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, getDomFriendlyID, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
+import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
 import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -8,9 +8,10 @@ export const initialState: ISchemaState = {
   uiSchema: [],
   name: '/',
   saveSchemaUrl: '',
-  selectedId: '',
-  selectedTreeNodeId: '',
+  selectedPropertyNodeId: '',
+  selectedDefinitionNodeId: '',
   focusNameField: '',
+  selectedEditorTab: 'properties',
 };
 
 const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
@@ -62,34 +63,41 @@ const schemaEditorSlice = createSlice({
       }
     },
     addRootItem(state, action) {
-      let { name } = action.payload;
-      const { location } = action.payload;
+      const {
+        location, name, ...rest
+      } = action.payload;
       // make sure name is unique.
-      if (state.uiSchema.findIndex((p) => p.displayName === name) !== -1) {
-        name += getUniqueNumber();
+      let displayName = name;
+      if (state.uiSchema.findIndex((p) => p.displayName === displayName) !== -1) {
+        displayName += getUniqueNumber();
       }
-      const path = `#/${location}/${name}`;
+      const path = `#/${location}/${displayName}`;
       state.uiSchema.push(
         {
+          ...rest,
           path,
-          type: 'object',
-          displayName: name,
+          displayName,
         },
       );
-      state.selectedId = path;
-      state.selectedTreeNodeId = getDomFriendlyID(path);
+      if (location === 'definitions') {
+        state.selectedDefinitionNodeId = path;
+      } else {
+        state.selectedPropertyNodeId = path;
+      }
       state.focusNameField = path;
     },
     clearNameFocus(state) {
       state.focusNameField = undefined;
     },
     addProperty(state, action) {
-      const { path, keepSelection } = action.payload;
+      const {
+        path, keepSelection, ...rest
+      } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         path: `${path}/properties/name`,
         displayName: 'name',
-        type: 'object',
+        ...rest,
       };
       if (addToItem.properties) {
         if (addToItem.properties.findIndex((p) => p.path === item.path) !== -1) {
@@ -102,8 +110,7 @@ const schemaEditorSlice = createSlice({
         addToItem.properties = [item];
       }
       if (!keepSelection) {
-        state.selectedId = item.path;
-        state.selectedTreeNodeId = getDomFriendlyID(item.path);
+        state.selectedPropertyNodeId = item.path;
         state.focusNameField = item.path;
       }
     },
@@ -157,8 +164,10 @@ const schemaEditorSlice = createSlice({
     },
     deleteProperty(state, action) {
       const path: string = action.payload.path;
-      if (state.selectedId === path) {
-        state.selectedId = undefined;
+      if (state.selectedDefinitionNodeId === path) {
+        state.selectedDefinitionNodeId = '';
+      } else if (state.selectedPropertyNodeId === path) {
+        state.selectedPropertyNodeId = '';
       }
       const [parentPath, propertyName] = splitParentPathAndName(path);
       if (parentPath) {
@@ -306,8 +315,7 @@ const schemaEditorSlice = createSlice({
         }
 
         if (navigate) {
-          state.selectedId = item.path;
-          state.selectedTreeNodeId = getDomFriendlyID(item.path);
+          state.selectedPropertyNodeId = item.path;
         }
       }
     },
@@ -319,9 +327,14 @@ const schemaEditorSlice = createSlice({
       const {
         id, focusName,
       } = action.payload;
-      state.selectedId = id;
-      state.selectedTreeNodeId = getDomFriendlyID(id);
       state.focusNameField = focusName;
+      if (state.selectedEditorTab === 'definitions') {
+        // triggered from definitions view
+        state.selectedDefinitionNodeId = id;
+      } else {
+        // triggered from properties view
+        state.selectedPropertyNodeId = id;
+      }
     },
     setSaveSchemaUrl(state, action) {
       state.saveSchemaUrl = action.payload.saveUrl;
@@ -338,12 +351,19 @@ const schemaEditorSlice = createSlice({
       state.uiSchema = uiSchema;
       state.name = name;
 
+      // reset state if switching between schemas
+      state.selectedPropertyNodeId = '';
+      state.selectedDefinitionNodeId = '';
+
       // set first item as selected
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
-        state.selectedId = id;
-        state.selectedTreeNodeId = getDomFriendlyID(id);
         state.focusNameField = id;
+        if (id.startsWith('#/definitions')) {
+          state.selectedDefinitionNodeId = id;
+        } else {
+          state.selectedPropertyNodeId = id;
+        }
       }
     },
     updateJsonSchema(state, action) {
@@ -356,6 +376,15 @@ const schemaEditorSlice = createSlice({
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
       }
+    },
+    setSelectedTab(state, action) {
+      const { selectedTab } = action.payload;
+      state.selectedEditorTab = selectedTab;
+    },
+    navigateToType(state, action) {
+      const { id } = action.payload;
+      state.selectedEditorTab = 'definitions';
+      state.selectedDefinitionNodeId = id;
     },
   },
 });
@@ -385,6 +414,8 @@ export const {
   setDescription,
   setType,
   setRequired,
+  setSelectedTab,
+  navigateToType,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

@@ -9,7 +9,7 @@ import CreateNewWrapper from '../../../../features/dataModelling/components/Crea
 import { SchemaSelect } from '../../../../features/dataModelling/components';
 import DeleteWrapper from '../../../../features/dataModelling/components/DeleteWrapper';
 
-describe('>>> DataModelling.tsx', () => {
+describe('DataModelling.tsx', () => {
   const language = { administration: Object({ first: 'some text', second: 'other text' }) };
   let wrapper: any = null;
   let store: any;
@@ -45,7 +45,7 @@ describe('>>> DataModelling.tsx', () => {
       },
     },
   };
-  let preferredLabel: {label: string, clear: () => void} = null;
+  let preferredLabel: { label: string, clear: () => void } = null;
   const clear = jest.fn();
 
   beforeEach(() => {
@@ -78,11 +78,13 @@ describe('>>> DataModelling.tsx', () => {
   });
 
   it('selects the preferred model', () => {
-    preferredLabel = { label: modelName2,
+    preferredLabel = {
+      label: modelName2,
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      } };
+      },
+    };
     expect(clear).toHaveBeenCalledTimes(0);
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
@@ -99,11 +101,13 @@ describe('>>> DataModelling.tsx', () => {
 
   it('does not run clear after preferred model has been selected', () => {
     expect(clear).toHaveBeenCalledTimes(0);
-    preferredLabel = { label: modelName2,
+    preferredLabel = {
+      label: modelName2,
       clear: () => {
         preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
         clear();
-      } };
+      },
+    };
     act(() => {
       wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
     });
@@ -135,19 +139,18 @@ describe('>>> DataModelling.tsx', () => {
     act(() => {
       wrapper = mountComponent();
     });
-    expect(wrapper.find('input').length).toBe(1); // dropdown selector
     wrapper.update();
     const createNew = wrapper.find('CreateNewWrapper');
     act(() => {
-      createNew.props().createAction('test');
+      createNew.props().createAction({ name: 'test' });
     });
     wrapper.update();
     expect(store.dispatch).toHaveBeenCalledTimes(2);
     expect(store.dispatch).toHaveBeenCalledWith(
       {
-        type: 'dataModelling/createNewDataModel',
+        type: 'dataModelling/createDataModel',
         payload: {
-          modelName: 'test',
+          name: 'test',
         },
       },
     );

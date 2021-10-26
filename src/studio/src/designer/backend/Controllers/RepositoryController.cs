@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -390,6 +393,15 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{targetRepository} is an invalid repository name.");
             }
 
+            try
+            {
+                Guard.AssertValidAppRepoName(sourceRepository);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{sourceRepository} is an invalid repository name.");
+            }
+
             var existingRepo = await _giteaApi.GetRepository(org, targetRepository);
 
             if (existingRepo != null)
@@ -473,6 +485,75 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok(contents);
+        }
+
+        /// <summary>
+        /// Gets the repository content as a zip file
+        /// the boolean parameter full, indicates if only files git considers changed should be included,
+        /// or if the whole repo should be included
+        /// </summary>
+        [HttpGet]
+        [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
+        public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
+        {
+            string appRoot = null;
+            try
+            {
+                appRoot = _repository.GetAppPath(org, repository);
+            
+                if (!Directory.Exists(appRoot))
+                {
+                    return BadRequest("User does not have a local clone of the repository.");
+                }
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return BadRequest("User does not have a local clone of the repository.");
+            }
+
+            var outStream = new MemoryStream();
+            using (var archive = new ZipArchive(outStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                IEnumerable<string> changedFiles;
+                if (full)
+                {
+                    changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
+                }
+                else
+                {
+                    changedFiles = _sourceControl.Status(org, repository).Select(f => f.FilePath);
+                }
+
+                foreach (var changedFile in changedFiles)
+                {
+                    archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
+                }
+            }
+            
+            outStream.Seek(0, SeekOrigin.Begin);
+
+            return File(outStream, "application/zip", $"{org}-{repository}.zip");
+        }
+
+        private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
+        {
+            var ret = new List<string>();
+            foreach (var directory in currentDir.EnumerateDirectories())
+            {
+                if (directory.Name == ".git")
+                {
+                    continue;
+                }
+
+                ret.AddRange(GetFilesInDirectory(appRoot, directory));
+            }
+
+            foreach (var file in currentDir.GetFiles())
+            {
+                ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
+            }
+            
+            return ret;
         }
     }
 }

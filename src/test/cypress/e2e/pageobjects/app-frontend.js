@@ -10,13 +10,18 @@ export default class AppFrontend {
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
     this.sendinButton = '#sendInButton';
-    this.helpText = '.ai-circle-plus';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
+
+    this.helpText = {
+      open: '.ai-circle-plus',
+      close: '.ai-circle-minus',
+      alert: 'div[role="alert"]',
+    };
 
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
@@ -36,6 +41,8 @@ export default class AppFrontend {
     this.message = {
       header: '#appen-for-test-av-app-frontend',
       attachmentList: '.attachmentList-title',
+      logo: '#altinnLogo',
+      logoFormContent: '#form-content-altinnLogo',
     };
 
     //change of name - task_2
@@ -81,6 +88,25 @@ export default class AppFrontend {
       number: '#number',
       idnumber: '#idnummer',
       idnummer2: '#idnummer2',
+    };
+
+    this.reporteeSelection = {
+      appHeader: 'div[class*=AltinnAppHeader-toolbarContainer]',
+      searchReportee: 'input[placeholder="Søk etter aktør"]',
+      checkbox: 'input[type="checkbox"]',
+      seeSubUnits: '.ai.ai-expand-circle',
+      reportee: 'div[class*=AltinnParty-partyWrapper][id^=party-]',
+      subUnits: 'div[class*=AltinnParty-subUnitWrapper]',
+      error: '#party-selection-error',
+    };
+
+    this.selectInstance = {
+      container: '#instance-selection-container',
+      header: '#instance-selection-header',
+      description: '#instance-selection-description',
+      table: '#instance-selection-table',
+      tableBody: '#instance-selection-table-body',
+      newInstance: '#new-instance-button',
     };
   }
 }

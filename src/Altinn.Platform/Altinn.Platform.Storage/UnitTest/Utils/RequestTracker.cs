@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         {
             if (_tracker.ContainsKey(requestKey))
             {
-                return _tracker[requestKey].Count();
+                return _tracker[requestKey].Count;
             }
 
             return 0;

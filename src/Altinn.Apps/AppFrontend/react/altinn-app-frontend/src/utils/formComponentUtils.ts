@@ -142,7 +142,7 @@ export const getFormDataForComponentInRepeatingGroup = (
   textResources: ITextResource[],
   options: IOptions,
 ) => {
-  if (component.type === 'Group' || component.type === 'Header' || component.type === 'Paragraph') {
+  if (component.type === 'Group' || component.type === 'Header' || component.type === 'Paragraph' || component.type === 'Image') {
     return '';
   }
   const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;

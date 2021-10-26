@@ -1,14 +1,14 @@
 using System;
-using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Configuration;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Designer.Tests.Utils
 {
@@ -242,6 +242,15 @@ namespace Designer.Tests.Utils
                     options.TimestampFormat = "hh:mm:ss ";
                 });
         });
+
+        public static IOptions<ServiceRepositorySettings> GetServiceRepositorySettings()
+        {
+            IOptions<ServiceRepositorySettings> options = Options.Create(new ServiceRepositorySettings());
+            options.Value.RepositoryBaseURL = @"http://altinn3.no/repos";
+            return options;
+        }
+
+        public static IOptions<ServiceRepositorySettings> ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

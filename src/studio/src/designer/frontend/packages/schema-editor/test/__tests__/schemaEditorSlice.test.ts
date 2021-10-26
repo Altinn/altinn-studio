@@ -1,9 +1,7 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems,
-  promoteProperty,
-  addRootItem } from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -101,8 +99,33 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(state, setSelectedId(payload));
-    expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
+    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/Kommentar2000Restriksjon');
+  });
+
+  it('handles setSelectedId by properties tab', () => {
+    const payload = {
+      id: '#/properties/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
+  });
+
+  it('handles navigateToType', () => {
+    const payload = {
+      id: '#/definitions/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/someField');
+  });
+
+  it('handles setSelectedTab', () => {
+    const payload = {
+      selectedTab: 'definitions',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
   });
 
   it('handles deleteField', () => {
@@ -134,6 +157,32 @@ describe('SchemaEditorSlice', () => {
     expect(item.properties).not.toContainEqual({ path: '#/definitions/Kontaktperson/properties/navn' });
   });
 
+  it('resets selected id when deleting selected definition', () => {
+    const payload = {
+      path: '#/definitions/someField',
+    };
+    const mockState = {
+      ...state,
+      selectedEditorTab: 'definitions',
+      selectedDefinitionNodeId: '#/definitions/someField',
+    } as ISchemaState;
+    const nextState = reducer(mockState, deleteProperty(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('');
+  });
+
+  it('resets selected id when deleting selected property', () => {
+    const payload = {
+      path: '#/properties/someField',
+    };
+    const mockState = {
+      ...state,
+      selectedEditorTab: 'properties',
+      selectedPropertyNodeId: '#/properties/someField',
+    } as ISchemaState;
+    const nextState = reducer(mockState, deleteProperty(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('');
+  });
+
   it('handles deleteProperty (root definition)', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
@@ -147,6 +196,7 @@ describe('SchemaEditorSlice', () => {
   it('handles addProperty', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
+      type: 'object',
     };
     const nextState = reducer(state, addProperty(payload));
 
@@ -160,6 +210,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       name: 'superman',
       location: 'definitions',
+      type: 'object',
     };
     let nextState = reducer(state, addRootItem(payload));
     expect(nextState.uiSchema).toContainEqual({
@@ -169,7 +220,7 @@ describe('SchemaEditorSlice', () => {
     expect(nextState.uiSchema).toContainEqual({
       path: '#/definitions/superman0', displayName: 'superman0', type: 'object',
     });
-    expect(nextState.selectedId).toBe('#/definitions/superman0');
+    expect(nextState.selectedDefinitionNodeId).toBe('#/definitions/superman0');
   });
 
   it('handles addEnum & deleteEnum', () => {

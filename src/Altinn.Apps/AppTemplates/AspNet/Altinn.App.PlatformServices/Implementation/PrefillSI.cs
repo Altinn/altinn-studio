@@ -18,9 +18,9 @@ namespace Altinn.App.Services.Implementation
     public class PrefillSI : IPrefill
     {
         private readonly ILogger _logger;
-        private readonly IProfile _profile;
+        private readonly IProfile _profileClient;
         private readonly IAppResources _appResourcesService;
-        private readonly IRegister _registerService;
+        private readonly IRegister _registerClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
@@ -32,27 +32,33 @@ namespace Altinn.App.Services.Implementation
         /// Creates a new instance of the <see cref="PrefillSI"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
-        /// <param name="profile">The profile service</param>
+        /// <param name="profileClient">The profile client</param>
         /// <param name="appResourcesService">The app's resource service</param>
-        /// <param name="registerService">A service with access to register data and register related logic.</param>
+        /// <param name="registerClient">The register client</param>
         /// <param name="httpContextAccessor">A service with access to the http context.</param>
         public PrefillSI(
             ILogger<PrefillSI> logger,
-            IProfile profile,
+            IProfile profileClient,
             IAppResources appResourcesService,
-            IRegister registerService,
+            IRegister registerClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
-            _profile = profile;
+            _profileClient = profileClient;
             _appResourcesService = appResourcesService;
-            _registerService = registerService;
+            _registerClient = registerClient;
             _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
         {
+            // Prefill from external input. Only available during instansiation
+            if (externalPrefill != null && externalPrefill.Count > 0)
+            {
+                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
+            }
+
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
@@ -66,7 +72,7 @@ namespace Altinn.App.Services.Implementation
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
             }
 
-            Party party = await _registerService.GetParty(int.Parse(partyId));
+            Party party = await _registerClient.GetParty(int.Parse(partyId));
             if (party == null)
             {
                 string errorMessage = $"Could find party for partyId: {partyId}";
@@ -83,7 +89,7 @@ namespace Altinn.App.Services.Implementation
                 if (userProfileDict.Count > 0)
                 {
                     int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
-                    UserProfile userProfile = userId != 0 ? await _profile.GetUserProfile(userId) : null;
+                    UserProfile userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
                     if (userProfile != null)
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
@@ -219,7 +225,16 @@ namespace Altinn.App.Services.Implementation
                     throw new Exception(errorMessage);
                 }
 
-                JToken sourceValue = sourceObject.SelectToken(source);
+                JToken sourceValue = null;
+                if (sourceObject != null)
+                {
+                  sourceValue = sourceObject.SelectToken(source);
+                }
+                else
+                {
+                    sourceValue = JToken.Parse($"'{source}'");
+                }
+
                 _logger.LogInformation($"Source: {source}, target: {target}");
                 _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
                 string[] keys = target.Split(".");

@@ -35,13 +35,13 @@ namespace Altinn.Platform.Authentication.Services
         }
 
         /// <inheritdoc/>
-        public async Task<UserProfile> GetUser(string ssn)
+        public async Task<UserProfile> GetUser(string ssnOrExternalIdentity)
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users");
-            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssnOrExternalIdentity), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -51,10 +51,37 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Getting user by SSN failed with statuscode {response.StatusCode}");
+                _logger.LogError($"Getting user by SSN or external identity failed with statuscode {response.StatusCode}");
             }
 
             return user;
+        }
+
+        /// <summary>
+        /// Method to create a new user based on identity
+        /// </summary>
+        /// <param name="user">The userprofile</param>
+        /// <returns>The created users with userId and partyID</returns>
+        public async Task<UserProfile> CreateUser(UserProfile user)
+        {
+            UserProfile createdProfile = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
+
+            Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users/create/");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync();
+                createdProfile = serializer.ReadObject(stream) as UserProfile;
+            }
+            else
+            {
+                _logger.LogError($"Creating user failed for externalIdentity {user.ExternalIdentity}");
+            }
+
+            return createdProfile;
         }
     }
 }

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="t01" type="xsd:duration" />
+        <xsd:element name="t02" type="xsd:dateTime" />
+        <xsd:element name="t03" type="xsd:time" />
+        <xsd:element name="t04" type="xsd:date" />
+        <xsd:element name="t05" type="xsd:gYearMonth" />
+        <xsd:element name="t06" type="xsd:gYear" />
+        <xsd:element name="t07" type="xsd:gMonthDay" />
+        <xsd:element name="t08" type="xsd:gDay" />
+        <xsd:element name="t09" type="xsd:gMonth" />
+        <xsd:element name="t10" type="xsd:boolean" />
+        <xsd:element name="t11" type="xsd:base64Binary" />
+        <xsd:element name="t12" type="xsd:hexBinary" />
+        <xsd:element name="t13" type="xsd:float" />
+        <xsd:element name="t14" type="xsd:double" />
+        <xsd:element name="t15" type="xsd:anyURI" />
+        <xsd:element name="t16" type="xsd:QName" />
+        <xsd:element name="t17" type="xsd:decimal" />
+        <xsd:element name="t18" type="xsd:integer" />
+        <xsd:element name="t19" type="xsd:long" />
+        <xsd:element name="t20" type="xsd:unsignedLong" />
+        <xsd:element name="t21" type="xsd:int" />
+        <xsd:element name="t22" type="xsd:unsignedInt" />
+        <xsd:element name="t23" type="xsd:short" />
+        <xsd:element name="t24" type="xsd:unsignedShort" />
+        <xsd:element name="t25" type="xsd:byte" />
+        <xsd:element name="t26" type="xsd:unsignedByte" />
+        <xsd:element name="t27" type="xsd:nonPositiveInteger" />
+        <xsd:element name="t28" type="xsd:nonNegativeInteger" />
+        <xsd:element name="t29" type="xsd:negativeInteger" />
+        <xsd:element name="t30" type="xsd:positiveInteger" />
+        <xsd:element name="t31" type="xsd:string" />
+        <xsd:element name="t32" type="xsd:normalizedString" />
+        <xsd:element name="t33" type="xsd:token" />
+        <xsd:element name="t34" type="xsd:language" />
+        <xsd:element name="t35" type="xsd:Name" />
+        <xsd:element name="t36" type="xsd:NCName" />
+        <xsd:element name="t37" type="xsd:ID" />
+        <xsd:element name="t38" type="xsd:IDREF" />
+        <xsd:element name="t39" type="xsd:ENTITY" />
+        <xsd:element name="t40" type="xsd:NMTOKEN" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

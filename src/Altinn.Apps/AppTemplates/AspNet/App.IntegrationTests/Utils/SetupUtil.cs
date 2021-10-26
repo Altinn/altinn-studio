@@ -25,7 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace App.IntegrationTestsRef.Utils
+namespace App.IntegrationTests.Utils
 {
     public static class SetupUtil
     {
@@ -130,6 +130,9 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "dayplanner":
                             services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
+                            break;
+                        case "externalprefil":
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil.App>();
                             break;
                         default:
                             services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

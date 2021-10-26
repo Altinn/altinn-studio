@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<melding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" dataFormatProvider="SERES" dataFormatId="5742" dataFormatVersion="34627">
+  <Innrapportoer>
+    <geek>
+      <navn>Ronny</navn>
+      <foedselsdato>1971-11-02</foedselsdato>
+      <epost>ronny.birkeli@gmail.com</epost>
+    </geek>
+  </Innrapportoer>
+  <InnrapporterteData>
+    <geekType>backend</geekType>
+    <altinnErfaringAAr>0</altinnErfaringAAr>
+  </InnrapporterteData>
+</melding>

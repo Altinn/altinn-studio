@@ -25,11 +25,13 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
+   echo testcafe version:`testcafe -v`
+
    export ENV=$(environment)
 
    export useCaseUserPwd=$(userPassword)
 
-   testcafe 'chrome:headless' ./usecase/usecase.js --disable-screenshots --assertion-timeout 10000 -u -e -q --reporter junit > testresult.xml
+   npm run usecase
   
   workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'   
   displayName: 'Studio Tests'

@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+
 using KubernetesWrapper.Services.Implementation;
 using KubernetesWrapper.Services.Interfaces;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +16,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace KubernetesWrapper
 {
@@ -55,6 +62,27 @@ namespace KubernetesWrapper
 
             // dependency injection
             services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
+
+            // Add Swagger support (Swashbuckle)
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Kuberneteswrapper", Version = "v1" });
+                IncludeXmlComments(c);
+            });
+        }
+
+        private static void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
+        {
+            try
+            {
+                string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                swaggerGenOptions.IncludeXmlComments(xmlPath);
+            }
+            catch
+            {
+                // not critical for the application
+            }
         }
 
         /// <summary>
@@ -73,6 +101,14 @@ namespace KubernetesWrapper
             {
                 app.UseHsts();
             }
+
+            app.UseSwagger(o => o.RouteTemplate = "kuberneteswrapper/swagger/{documentName}/swagger.json");
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/kuberneteswrapper/swagger/v1/swagger.json", "Altinn Platform kuberneteswrapper API");
+                c.RoutePrefix = "kuberneteswrapper/swagger";
+            });
 
             app.UseRouting();
             app.UseCors();

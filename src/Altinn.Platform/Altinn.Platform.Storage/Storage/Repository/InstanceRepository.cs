@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
@@ -147,7 +148,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryResponse;
         }
 
-        private IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
+        private static IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
         {
             foreach (KeyValuePair<string, StringValues> param in queryParams)
             {
@@ -266,7 +267,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForDueBefore(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForDueBefore(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -305,7 +306,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -344,7 +345,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForEnded(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForEnded(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -382,7 +383,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryBuilder.Where(i => i.Process.Ended == dateValue);
         }
 
-        private IQueryable<Instance> QueryBuilderExcludeConfirmedBy(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderExcludeConfirmedBy(IQueryable<Instance> queryBuilder, string queryValue)
         {
             return queryBuilder.Where(i =>
 
@@ -390,7 +391,7 @@ namespace Altinn.Platform.Storage.Repository
                 !i.CompleteConfirmations.Any(cc => cc.StakeholderId == queryValue));
         }
 
-        private IQueryable<Instance> QueryBuilderForSortBy(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForSortBy(IQueryable<Instance> queryBuilder, string queryValue)
         {
             string[] value = queryValue.Split(':');
             string direction = value[0].ToLower();
@@ -422,7 +423,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForCreated(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForCreated(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -461,7 +462,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForVisibleAfter(IQueryable<Instance> queryBuilder, string queryValue)
+        private static IQueryable<Instance> QueryBuilderForVisibleAfter(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -510,14 +511,27 @@ namespace Altinn.Platform.Storage.Repository
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
-            Instance instance = await Client
+            try
+            {
+                Instance instance = await Client
                 .ReadDocumentAsync<Instance>(
-                    uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
+                uri,
+                new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
-            await PostProcess(instance);
-
-            return instance;
+                await PostProcess(instance);
+                return instance;
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -540,7 +554,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Ensures dataElements are not included in the document. 
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
-        private void PreProcess(Instance instance)
+        private static void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
             instance.Data = new List<DataElement>();
@@ -591,7 +605,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceId">the id to convert to cosmos</param>
         /// <returns>the guid of the instance</returns>
-        private string InstanceIdToCosmosId(string instanceId)
+        private static string InstanceIdToCosmosId(string instanceId)
         {
             string cosmosId = instanceId;
 
@@ -603,7 +617,7 @@ namespace Altinn.Platform.Storage.Repository
             return cosmosId;
         }
 
-        private void SetReadStatus(Instance instance)
+        private static void SetReadStatus(Instance instance)
         {
             if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
             {

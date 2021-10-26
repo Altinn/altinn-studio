@@ -1,5 +1,6 @@
 using System;
 
+using Altinn.App.PlatformServices.Filters;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
@@ -37,20 +38,20 @@ namespace Altinn.App.PlatformServices.Extensions
         public static void AddPlatformServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
             // Registered as HttpClients so default HttpClientFactory is used
-            services.AddHttpClient<IApplication, ApplicationAppSI>();
-            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
-            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
-            services.AddHttpClient<IData, DataAppSI>();
-            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
-            services.AddHttpClient<IER, RegisterERAppSI>();
-            services.AddHttpClient<IInstance, InstanceAppSI>();
-            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
-            services.AddHttpClient<IEvents, EventsAppSI>();
-            services.AddHttpClient<IPDF, PDFSI>();
+            services.AddHttpClient<IApplication, ApplicationClient>();
+            services.AddHttpClient<IAuthentication, AuthenticationClient>();
+            services.AddHttpClient<IAuthorization, AuthorizationClient>();
+            services.AddHttpClient<IData, DataClient>();
+            services.AddHttpClient<IDSF, RegisterDSFClient>();
+            services.AddHttpClient<IER, RegisterERClient>();
+            services.AddHttpClient<IInstance, InstanceClient>();
+            services.AddHttpClient<IInstanceEvent, InstanceEventClient>();
+            services.AddHttpClient<IEvents, EventsClient>();
+            services.AddHttpClient<IPDF, PDFClient>();
+            services.AddHttpClient<IProfile, ProfileClient>();
+            services.AddHttpClient<IRegister, RegisterClient>();
+            services.AddHttpClient<IText, TextClient>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
-            services.AddHttpClient<IProfile, ProfileAppSI>();
-            services.AddHttpClient<IRegister, RegisterAppSI>();
-            services.AddHttpClient<IText, TextAppSI>();
 
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
             services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
@@ -96,6 +97,7 @@ namespace Altinn.App.PlatformServices.Extensions
             if (!string.IsNullOrEmpty(applicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
         }

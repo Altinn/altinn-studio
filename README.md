@@ -5,9 +5,9 @@ Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), 
 
 Altinn Studio is available at <https://altinn.studio>.
 
-Read [the Altinn Studio documentation](https://docs.altinn.studio/teknologi/altinnstudio/) to get started.
+Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get started.
 
-![Altinn 3 concept](https://docs.altinn.studio/teknologi/altinnstudio/about/concept3.svg "Altinn 3 - Concept")
+![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg "Altinn 3 - Concept")
 
 ## Build status
 
@@ -56,7 +56,7 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 
 #### Develop or run Apps
 
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites)  
+First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).  
 _If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  
@@ -103,15 +103,19 @@ docker-compose down
    ```
 
    - If you need to debug (or run locally) the app front-end:
-     - Open the file `views/Home/Index.cshtml` and change the line
+     - Open the file `views/Home/Index.cshtml` in your app repo and change the lines (don't commit these changes)
 
      ```html
+     <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css">
+     ...
      <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
      ```
 
      to
 
      ```html
+      <link rel="stylesheet" type="text/css" href="http://localhost:8080/altinn-app-frontend.css">
+      ....
       <script src="http://localhost:8080/altinn-app-frontend.js"></script>
      ```
 

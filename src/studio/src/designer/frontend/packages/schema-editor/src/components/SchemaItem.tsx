@@ -3,8 +3,8 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
 
@@ -12,6 +12,11 @@ type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
   keyPrefix: string;
   language: ILanguage;
+  isPropertiesView?: boolean;
+};
+
+SchemaItem.defaultProps = {
+  isPropertiesView: false,
 };
 
 const useStyles = (isRef: boolean) => makeStyles({
@@ -95,7 +100,7 @@ const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
 function SchemaItem(props: SchemaItemProps) {
   const dispatch = useDispatch();
   const {
-    item, keyPrefix, ...other
+    item, keyPrefix, isPropertiesView, ...other
   } = props;
   const classes = useStyles(item.$ref !== undefined || item.items?.$ref !== undefined)();
 
@@ -128,6 +133,7 @@ function SchemaItem(props: SchemaItemProps) {
         nodeId={`${getDomFriendlyID(property.path)}`}
         onLabelClick={(e) => onItemClick(e, property)}
         language={props.language}
+        isPropertiesView={isPropertiesView}
       />
     );
   });
@@ -139,9 +145,17 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(deleteProperty({ path: item.path }));
   };
 
-  const handleAddProperty = () => {
+  const handleAddProperty = (type: PropertyType) => {
     dispatch(addProperty({
       path: itemToDisplay.path,
+      type: (type === 'field' ? 'object' : undefined),
+      $ref: (type === 'reference' ? '' : undefined),
+    }));
+  };
+
+  const handleGoToType = () => {
+    dispatch(navigateToType({
+      id: item?.$ref,
     }));
   };
 
@@ -163,6 +177,7 @@ function SchemaItem(props: SchemaItemProps) {
         item={refItem}
         nodeId={getDomFriendlyID(refItem.path)}
         language={props.language}
+        isPropertiesView={isPropertiesView}
       />);
     }
     if (itemToDisplay.properties) {
@@ -176,12 +191,15 @@ function SchemaItem(props: SchemaItemProps) {
       label={<SchemaItemLabel
         language={props.language}
         icon={getIconStr()}
-        label={refItem ? `${item.displayName} : ${itemToDisplay.displayName}` : item.displayName}
-        onAddProperty={handleAddProperty}
+        label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
+        onAddProperty={(item.type !== 'object') ? undefined : handleAddProperty}
         onDelete={handleDeleteClick}
-        onPromote={item.$ref || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+        onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+        onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
+        key={`${item.path}-label`}
       />}
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
+      key={item.path}
       {...other}
     >
       { renderTreeChildren() }

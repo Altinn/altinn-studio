@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.11.0</Version>
-    <AssemblyVersion>4.11.0.0</AssemblyVersion>
+    <Version>4.16.0</Version>
+    <AssemblyVersion>4.16.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
       This class library holds classes with logic that is common for the other Altinn.App packages.
     </Description>
-    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/community/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

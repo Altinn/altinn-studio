@@ -1,1 +1,14 @@
-{"id":"1000/7566a8ee-3c05-4ed0-a02b-5bcfb7eef47e","instanceOwner":{"partyId":"1000","personNumber":"12345678901"},"appId":"skd/taxreport"}
+{
+  "id": "1000/7566a8ee-3c05-4ed0-a02b-5bcfb7eef47e",
+  "instanceOwner": {
+    "partyId": "1000",
+    "personNumber": "12345678901"
+  },
+  "appId": "skd/taxreport",
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  }
+}

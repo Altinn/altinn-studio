@@ -34,7 +34,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            string policyPath = GetPolicyPath();
+            string policyPath = GetPolicyPath(request);
             return Task.FromResult(ParsePolicy(policyPath));
         }
 
@@ -44,9 +44,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             throw new NotImplementedException();
         }
 
-        private string GetPolicyPath()
+        private string GetPolicyPath(XacmlContextRequest request)
         {
-            return _localTestAppSelectionService.GetAppPath() + $"config/authorization/policy.xml";
+            return _localTestAppSelectionService.GetAppPath(request) + $"config/authorization/policy.xml";
         }
               
         public static XacmlPolicy ParsePolicy(string policyPath)

@@ -29,9 +29,9 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
     onSearchUpdated(searchString);
   }, [searchString]);
 
-  function onChangeSearchString(e: any) {
+  const onChangeSearchString = (e: any) => {
     setSearchString(e.target.value);
-  }
+  };
 
   return (
     <Grid container={true} className={classes.partySearchContainer}>
@@ -42,6 +42,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
             language.party_selection.search_placeholder
         }
         showLabel={false}
+        // eslint-disable-next-line react/jsx-no-bind
         onChange={onChangeSearchString}
         placeholder={
           !language.party_selection ?

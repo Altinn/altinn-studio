@@ -1,5 +1,4 @@
-import { Button } from '@material-ui/core';
-import { AddCircleOutline } from '@material-ui/icons';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import * as React from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
@@ -7,15 +6,17 @@ import { getLanguageFromKey } from '../../../utils/language';
 
 interface ICreateNewWrapper {
   language: any,
-  createAction: (modelName: string) => void,
+  createAction: ({ name, relativePath }: { name: string, relativePath: string | undefined }) => void,
   dataModelNames: string[],
+  createPathOption?: boolean;
 }
+
 export default function CreateNewWrapper(props: ICreateNewWrapper) {
   const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
   const [newModelName, setNewModelName] = React.useState('');
   const [nameError, setNameError] = React.useState('');
   const [confirmedWithReturn, setConfirmedWithReturn] = React.useState(false);
-
+  const relativePath = props.createPathOption ? '' : undefined;
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
@@ -43,7 +44,10 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
       setNameError(`A model with name ${newModelName} already exists.`);
       return;
     }
-    props.createAction(newModelName);
+    props.createAction({
+      name: newModelName,
+      relativePath,
+    });
     setCreateButtonAnchor(null);
     setNewModelName('');
     setNameError('');
@@ -60,14 +64,13 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   };
   return (
     <>
-      <Button
-        id='new-button'
-        variant='contained'
-        startIcon={<AddCircleOutline />}
+      <TopToolbarButton
+        faIcon='fa fa-plus'
         onClick={onCreateClick}
+        hideText={true}
       >
         {getLanguageFromKey('general.create_new', props.language)}
-      </Button>
+      </TopToolbarButton>
       {createButtonAnchor &&
         <AltinnPopoverSimple
           anchorEl={createButtonAnchor}
@@ -93,3 +96,6 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     </>
   );
 }
+CreateNewWrapper.defaultProps = {
+  createPathOption: false,
+};
