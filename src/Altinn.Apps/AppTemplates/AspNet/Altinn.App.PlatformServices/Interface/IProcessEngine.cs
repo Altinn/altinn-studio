@@ -11,16 +11,16 @@ namespace Altinn.App.PlatformServices.Interface
         /// <summary>
         /// Method to start a new process
         /// </summary>
-        Task<ProcessChange> StartProcess(ProcessChange processChange);
+        Task<ProcessChangeContext> StartProcess(ProcessChangeContext processChange);
 
         /// <summary>
         /// Method to move process to next task/event
         /// </summary>
-        Task<ProcessChange> Next(ProcessChange processChange);
+        Task<ProcessChangeContext> Next(ProcessChangeContext processChange);
 
         /// <summary>
         /// Method to Start Task
         /// </summary>
-        Task<ProcessChange> StartTask(ProcessChange processChange);
+        Task<ProcessChangeContext> StartTask(ProcessChangeContext processChange);
     }
 }

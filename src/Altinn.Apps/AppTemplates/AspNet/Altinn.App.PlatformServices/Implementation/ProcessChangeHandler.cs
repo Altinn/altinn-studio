@@ -10,19 +10,19 @@ namespace Altinn.App.PlatformServices.Implementation
     public class ProcessChangeHandler : IProcessChangeHandler
     {
         /// <inheritdoc />
-        public Task<ProcessChange> HandleNext(ProcessChange processChange)
+        public Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
         {
             return Task.FromResult(processChange);
         }
 
         /// <inheritdoc />
-        public Task<ProcessChange> HandleStart(ProcessChange processChange)
+        public Task<ProcessChangeContext> HandleStart(ProcessChangeContext processChange)
         {
             return Task.FromResult(processChange);
         }
 
         /// <inheritdoc />
-        public Task<ProcessChange> HandleStartTask(ProcessChange processChange)
+        public Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange)
         {
             return Task.FromResult(processChange);
         }

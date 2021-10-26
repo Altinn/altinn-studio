@@ -12,7 +12,7 @@ namespace Altinn.App.PlatformServices.Models
     /// <summary>
     /// Data entity that will floow between Process Api, Process Engine, Process Handlers and the TaskImpl/Gateway implt
     /// </summary>
-    public class ProcessChange
+    public class ProcessChangeContext
     {
         /// <summary>
         /// The current instance

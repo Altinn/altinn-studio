@@ -11,17 +11,17 @@ namespace Altinn.App.PlatformServices.Interface
         /// <summary>
         /// Handle start of process
         /// </summary>
-        Task<ProcessChange> HandleStart(ProcessChange processChange);
+        Task<ProcessChangeContext> HandleStart(ProcessChangeContext processChange);
 
         /// <summary>
         /// Handle navigation to ext
         /// </summary>
         /// <returns></returns>
-        Task<ProcessChange> HandleNext(ProcessChange processChange);
+        Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange);
 
         /// <summary>
         /// Handle start task
         /// </summary>
-        Task<ProcessChange> HandleStartTask(ProcessChange processChange);
+        Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange);
     }
 }

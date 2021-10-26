@@ -31,7 +31,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Move process to next element in process
         /// </summary>
-        public Task<ProcessChange> Next(ProcessChange processChange)
+        public Task<ProcessChangeContext> Next(ProcessChangeContext processChange)
         {
             ProcessStateChange change = _processService.ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
             processChange.OldProcessState = change.OldProcessState;
@@ -43,7 +43,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Start application process and goes to first valid Task
         /// </summary>
-        public Task<ProcessChange> StartProcess(ProcessChange processChange)
+        public Task<ProcessChangeContext> StartProcess(ProcessChangeContext processChange)
         {
             ProcessStateChange change = _processService.ProcessStartAndGotoNextTask(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
             processChange.NewProcessState = change.NewProcessState;
@@ -54,7 +54,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Process Start Current task. The main goal is to trigger the Task related business logic seperate from start process
         /// </summary>
-        public Task<ProcessChange> StartTask(ProcessChange processChange)
+        public Task<ProcessChangeContext> StartTask(ProcessChangeContext processChange)
         {
             return _processChangeHandler.HandleStartTask(processChange);
         }

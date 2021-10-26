@@ -50,11 +50,11 @@ namespace App.IntegrationTestsRef.Process
             ProcessAppSI processSi = new ProcessAppSI(moqPlattformSettings.Object, moqappSettings.Object, moqInstanceEvents.Object, moqLogger.Object, moqContextAccessor.Object, httpClient);
             ProcessEngine processEngine = new ProcessEngine(processChangeHandler, processSi);
 
-            ProcessChange processChange = new ProcessChange();
+            ProcessChangeContext processChange = new ProcessChangeContext();
             processChange.Instance = instance;
             processChange.Performer = PrincipalUtil.GetUserPrincipal(1337);
 
-            ProcessChange updated = await processEngine.StartProcess(processChange);
+            ProcessChangeContext updated = await processEngine.StartProcess(processChange);
 
             Assert.NotNull(updated.Instance.Id);
             Assert.Equal("StartEvent_1", updated.Instance.Process.StartEvent);
@@ -92,11 +92,11 @@ namespace App.IntegrationTestsRef.Process
             ProcessAppSI processSi = new ProcessAppSI(moqPlattformSettings.Object, moqappSettings.Object, moqInstanceEvents.Object, moqLogger.Object, moqContextAccessor.Object, httpClient);
             ProcessEngine processEngine = new ProcessEngine(processChangeHandler, processSi);
 
-            ProcessChange processChange = new ProcessChange();
+            ProcessChangeContext processChange = new ProcessChangeContext();
             processChange.Instance = instance;
             processChange.Performer = PrincipalUtil.GetUserPrincipal(1337);
 
-            ProcessChange updated = await processEngine.StartProcess(processChange);
+            ProcessChangeContext updated = await processEngine.StartProcess(processChange);
             updated = await processEngine.Next(updated);
 
             Assert.NotNull(updated.Instance.Id);
@@ -136,12 +136,12 @@ namespace App.IntegrationTestsRef.Process
             ProcessAppSI processSi = new ProcessAppSI(moqPlattformSettings.Object, moqappSettings.Object, moqInstanceEvents.Object, moqLogger.Object, moqContextAccessor.Object, httpClient);
             ProcessEngine processEngine = new ProcessEngine(processChangeHandler, processSi);
 
-            ProcessChange processChange = new ProcessChange();
+            ProcessChangeContext processChange = new ProcessChangeContext();
             processChange.Instance = instance;
             processChange.Performer = PrincipalUtil.GetUserPrincipal(1337);
 
             // First start task 
-            ProcessChange updated = await processEngine.StartProcess(processChange);
+            ProcessChangeContext updated = await processEngine.StartProcess(processChange);
             Assert.Equal("Task_1", updated.Instance.Process.CurrentTask.ElementId);
 
             // Trigger next
