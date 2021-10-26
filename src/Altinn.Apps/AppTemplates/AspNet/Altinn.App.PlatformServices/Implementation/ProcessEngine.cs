@@ -8,7 +8,8 @@ using Altinn.App.Services.Interface;
 namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
-    /// The process engine
+    /// The process engine is responsible for handeling the BMPN process. It will call processChange handler that is responsible
+    /// for the business logic happening for any process change. 
     /// </summary>
     public class ProcessEngine : IProcessEngine
     {
@@ -40,24 +41,22 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <summary>
-        /// Start application process and goes to 
+        /// Start application process and goes to first valid Task
         /// </summary>
         public Task<ProcessChange> StartProcess(ProcessChange processChange)
         {
             ProcessStateChange change = _processService.ProcessStartAndGotoNextTask(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
             processChange.NewProcessState = change.NewProcessState;
             processChange.Events = change.Events;
-
-            // TODO. Add BPMN logic that verifies input and trigger start of process
             return _processChangeHandler.HandleStart(processChange);
         }
 
         /// <summary>
-        /// Process Start Task
+        /// Process Start Current task. The main goal is to trigger the Task related business logic seperate from start process
         /// </summary>
         public Task<ProcessChange> StartTask(ProcessChange processChange)
         {
-            return _processChangeHandler.HandleStart(processChange);
+            return _processChangeHandler.HandleStartTask(processChange);
         }
     }
 }
