@@ -10,6 +10,10 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
       if (item.properties instanceof Array && depth > 0) {
         flat(item.properties, depth - 1, stack);
       }
+      const groupItems = item.allOf || item.oneOf || item.anyOf;
+      if (groupItems instanceof Array && depth > 0) {
+        flat(groupItems, depth - 1, stack);
+      }
     }
   }
   return stack;
@@ -20,7 +24,9 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
   if (matches.length === 1 && matches[0].path === path) {
     return matches[0];
   }
+  console.log('matches', matches);
   const items = flat(matches, 999);
+  console.log('items', items);
   const result = items.find((i) => i.path === path);
   if (!result) {
     throw new Error(`no uiSchema found: ${path}`);
@@ -98,6 +104,15 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       }
       case 'value': {
         item = uiSchemaItem.value;
+        break;
+      }
+      case 'allOf':
+      case 'anyOf':
+      case 'oneOf': {
+        item[key] = [];
+        uiSchemaItem[key]?.forEach((property: UiSchemaItem, index: number) => {
+          item[key][index] = createJsonSchemaItem(property);
+        });
         break;
       }
       case 'path':
