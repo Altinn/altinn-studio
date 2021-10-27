@@ -13,7 +13,8 @@ import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
-import { NavigationBar } from './base/NavigationBar';
+import { NavigationBarComponent } from './base/NavigationBar';
+
 export interface IComponent {
   name: string;
   Tag: any;
@@ -134,7 +135,7 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'NavigationBar',
-    Tag: NavigationBar,
+    Tag: NavigationBarComponent,
     Type: ComponentTypes.NavigationBar,
   },
 ];

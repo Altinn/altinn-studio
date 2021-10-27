@@ -22,7 +22,11 @@ const initialState: ILayoutState = {
     currentView: 'FormLayout',
     navigationConfig: {},
     layoutOrder: null,
+<<<<<<< HEAD
     pageTriggers: []
+=======
+    pageTriggers: [],
+>>>>>>> 712e201739f2d54cbe244e79106e39cd806aaddc
   },
   layoutsets: null,
 };
