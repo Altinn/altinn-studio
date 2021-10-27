@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import DownloadRepoModal from './DownloadRepoModal';
 
 const setupClasses = makeStyles({
   avatar: {
@@ -49,7 +50,14 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const [resetRepoModalOpen, setResetRepoModalOpen] = React.useState<boolean>(false);
   const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] = React.useState<any>(null);
+  const [downloadModalOpen, setDownloadModalOpen] = React.useState<boolean>(false);
+  const downloadModalRef = React.useRef<HTMLElement>();
+
   const repoStatus = useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict.repoStatus);
+
+  const toggleDownloadModal = () => {
+    setDownloadModalOpen(!downloadModalOpen);
+  };
 
   const onCloseModal = () => {
     setResetRepoModalOpen(false);
@@ -120,6 +128,21 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         onClose={onCloseModal}
         open={resetRepoModalOpen}
         repositoryName={props.service.name}
+      />
+      {/* Download local repository */}
+      <Typography className={classNames(classes.sidebarHeader, classes.sidebarHeaderSecond)}>
+        {getLanguageFromKey('administration.download_repo', props.language)}
+      </Typography>
+      <AltinnButton
+        btnText={getLanguageFromKey('administration.download_repo', props.language)}
+        onClickFunction={toggleDownloadModal}
+        ref={downloadModalRef}
+      />
+      <DownloadRepoModal
+        anchorRef={downloadModalRef}
+        language={props.language}
+        onClose={toggleDownloadModal}
+        open={downloadModalOpen}
       />
     </>
   );
