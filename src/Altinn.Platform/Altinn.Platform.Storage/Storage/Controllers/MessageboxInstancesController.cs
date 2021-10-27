@@ -474,11 +474,11 @@ namespace Altinn.Platform.Storage.Controllers
         private async Task RemoveHiddenInstances(List<Instance> instances)
         {
             List<string> appIds = instances.Select(i => i.AppId).Distinct().ToList();
-            List<Application> apps = new List<Application>();
+            Dictionary<string, Application> apps = new();
 
             foreach (string id in appIds)
             {
-                apps.Add(await _applicationRepository.FindOne(id, id.Split("/")[0]));
+                apps.Add(id, await _applicationRepository.FindOne(id, id.Split("/")[0]));
             }
 
             instances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);

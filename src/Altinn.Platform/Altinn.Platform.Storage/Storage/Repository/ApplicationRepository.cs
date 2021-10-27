@@ -29,7 +29,8 @@ namespace Altinn.Platform.Storage.Repository
 
         private readonly ILogger _logger;
         private readonly IMemoryCache _memoryCache;
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptionsTitles;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptionsMetadata;
         private readonly string _cacheKey = "allAppTitles";
 
         /// <summary>
@@ -49,9 +50,12 @@ namespace Altinn.Platform.Storage.Repository
             _logger = logger;
 
             _memoryCache = memoryCache;
-            _cacheEntryOptions = new MemoryCacheEntryOptions()
+            _cacheEntryOptionsTitles = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
                 .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.AppTitleCacheLifeTimeInSeconds));
+            _cacheEntryOptionsMetadata = new MemoryCacheEntryOptions()
+              .SetPriority(CacheItemPriority.High)
+              .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.AppMetadataCacheLifeTimeInSeconds));
         }
 
         /// <inheritdoc/>
@@ -80,12 +84,19 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosAppId = AppIdToCosmosId(appId);
             Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosAppId);
-            Application application = await Client
+
+            if (!_memoryCache.TryGetValue(appId, out Application application))
+            {
+                application = await Client
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
-            PostProcess(application);
+                PostProcess(application);
+            }
+
+            _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
             return application;
+
         }
 
         /// <inheritdoc/>
@@ -165,7 +176,7 @@ namespace Altinn.Platform.Storage.Repository
                     }
                 }
 
-                _memoryCache.Set(_cacheKey, appTitles, _cacheEntryOptions);
+                _memoryCache.Set(_cacheKey, appTitles, _cacheEntryOptionsTitles);
             }
 
             return appTitles;

@@ -201,13 +201,13 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         /// <param name="applications">The list of applications</param>
         /// <param name="instances">The list of applications to process.</param>
-        public static void RemoveHiddenInstances(List<Application> applications, List<Instance> instances)
+        public static void RemoveHiddenInstances(Dictionary<string, Application> applications, List<Instance> instances)
         {
             List<Instance> instancesToRemove = new List<Instance>();
 
             foreach (Instance instance in instances)
             {
-                Application app = applications.First(a => a.Id.Equals(instance.AppId));
+                Application app = applications[instance.AppId];
                 HideSettings hideSettings = app.MessageBoxConfig?.HideSettings;
 
                 if (hideSettings == null)
