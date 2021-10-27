@@ -11,10 +11,10 @@ const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   menu: {
-    marginBottom: '6pxt',
+    marginBottom: '6px',
     listStyleType: 'none',
-    textDecoration: 'none!important',
-    paddingLeft: '0px!important',
+    textDecoration: 'none',
+    paddingLeft: '0px',
     position: 'relative',
   },
   menuMobile: {
