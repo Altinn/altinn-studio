@@ -151,6 +151,7 @@ export const Editor = (props: IEditorProps) => {
       location: 'properties',
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
+      allOf: (type === 'group') ? [] : undefined,
     }));
     setMenuAnchorEl(null);
   };
@@ -196,7 +197,7 @@ export const Editor = (props: IEditorProps) => {
                   aria-label='model-tabs'
                 >
                   <SchemaTab
-                    label='models'
+                    label='model'
                     language={language}
                     value='properties'
                   />
@@ -290,6 +291,12 @@ export const Editor = (props: IEditorProps) => {
           text={getTranslation('reference', language)}
           iconClass='fa fa-datamodel-ref'
           id='add-reference-button'
+        />
+        <AltinnMenuItem
+          onClick={() => handleAddProperty('group')}
+          text={getTranslation('group', language)}
+          iconClass='fa fa-group'
+          id='add-group-button'
         />
       </AltinnMenu>
     </div>

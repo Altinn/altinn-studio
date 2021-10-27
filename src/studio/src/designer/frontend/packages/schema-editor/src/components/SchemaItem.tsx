@@ -150,6 +150,7 @@ function SchemaItem(props: SchemaItemProps) {
       path: itemToDisplay.path,
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
+      allOf: (type === 'group' ? [] : undefined),
     }));
   };
 
@@ -164,6 +165,15 @@ function SchemaItem(props: SchemaItemProps) {
     if (type !== 'array' && refItem) {
       return 'fa-datamodel-ref';
     }
+
+    if (item.anyOf || item.allOf || item.oneOf) {
+      return 'fa-group';
+    }
+
+    if (item.type === 'integer') {
+      return 'fa-datamodel-number';
+    }
+
     return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
   };
 
@@ -192,7 +202,9 @@ function SchemaItem(props: SchemaItemProps) {
         language={props.language}
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
-        onAddProperty={(item.type !== 'object') ? undefined : handleAddProperty}
+        onAddProperty={(item.type === 'object') ? handleAddProperty : undefined}
+        onAddReference={(item.type === 'object' || (item.allOf || item.anyOf || item.oneOf)) ? handleAddProperty : undefined}
+        onAddGroup={(item.type === 'object') ? handleAddProperty : undefined}
         onDelete={handleDeleteClick}
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}

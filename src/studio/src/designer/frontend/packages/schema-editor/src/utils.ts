@@ -141,7 +141,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else if (typeof item === 'object' && item !== null) {
       const {
-        title, description, type, enum: enums, items, ...restrictions
+        title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
       } = item;
       result.push({
         path,
@@ -152,6 +152,9 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
+        oneOf,
+        allOf,
+        anyOf,
       });
     } else {
       result.push({
@@ -174,7 +177,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
     const {
-      type, title, description, properties, enum: enums, items, ...restrictions
+      type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
     const item: UiSchemaItem = {
       path: `${name}/properties/${key}`,
@@ -184,6 +187,9 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       enum: enums,
       items,
       description,
+      oneOf,
+      allOf,
+      anyOf,
     };
 
     if (currentProperty.$ref) {

@@ -1,7 +1,7 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab } from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setGroupType } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -369,5 +369,47 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, promoteProperty(payload2));
     const item2 = getUiSchemaItem(nextState.uiSchema, '#/properties/melding');
     expect(item2 && item2.$ref).toBe('#/definitions/melding');
+  });
+
+  it('handles setting group type', () => {
+
+    // verify initial state => type is allOf
+    let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    console.log('item', item);
+    expect(item?.oneOf).toEqual(undefined);
+    expect(item?.allOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.anyOf).toEqual(undefined);
+
+    const payload = {
+      path: '#/definitions/allOfTest',
+      type: 'oneOf',
+    };
+
+    // change to oneOf => verify changed state
+    let nextState = reducer(state, setGroupType(payload));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.oneOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.allOf).toEqual(undefined);
+    expect(item?.anyOf).toEqual(undefined);
+
+    // change to anyOf => verify changed state
+    nextState = reducer(state, setGroupType({
+      ...payload,
+      type: 'anyOf'
+    }));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.oneOf).toEqual(undefined);
+    expect(item?.allOf).toEqual(undefined);
+    expect(item?.anyOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+
+    // change back to allOf => verify state
+    nextState = reducer(nextState, setGroupType({
+      ...payload,
+      type: 'allOf'
+    }));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.oneOf).toEqual(undefined);
+    expect(item?.allOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.anyOf).toEqual(undefined);
   });
 });

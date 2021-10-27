@@ -21,43 +21,43 @@ exports[`Should match snapshot (enums): enums 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit Mui-selected Component-selected-10"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-11 PrivateTabIndicator-colorSecondary-13 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               fields
             </span>
@@ -99,7 +99,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -136,13 +136,13 @@ exports[`Should match snapshot (enums): enums 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-19"
+              class="PrivateSwitchBase-input-20"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -257,43 +257,43 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit Mui-selected Component-selected-10"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-11 PrivateTabIndicator-colorSecondary-13 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               fields
             </span>
@@ -335,7 +335,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -372,13 +372,13 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-19"
+              class="PrivateSwitchBase-input-20"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -493,43 +493,43 @@ exports[`Should match snapshot 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit Mui-selected Component-selected-10"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-11 PrivateTabIndicator-colorSecondary-13 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-9 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper"
+              class="MuiTab-wrapper Component-wrapper-11"
             >
               fields
             </span>
@@ -571,7 +571,7 @@ exports[`Should match snapshot 1`] = `
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-15 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -608,13 +608,13 @@ exports[`Should match snapshot 1`] = `
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-16 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-19"
+              class="PrivateSwitchBase-input-20"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"

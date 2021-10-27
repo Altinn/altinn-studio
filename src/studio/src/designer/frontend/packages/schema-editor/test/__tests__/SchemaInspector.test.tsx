@@ -9,6 +9,8 @@ import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
+import { TypeSelect } from '../../src/components/Select';
+import { MenuItem } from '@material-ui/core';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
@@ -310,7 +312,7 @@ it('renders no item if nothing is selected', () => {
     const wrapper = mountComponent();
     expect(wrapper).not.toBeNull();
 
-    expect(wrapper.find('.no-item-selected').last().text()).toBe('no_item_selected');
+    expect(wrapper.find('#no-item-paragraph').last().text()).toBe('no_item_selected');
   });
 });
 
@@ -414,4 +416,19 @@ it('dispatches correctly when adding fields', () => {
       path: '#/definitions/RA-0678_M',
     },
   });
+});
+
+  it('dispatches correctly when changing type of group', () => {
+    const wrapper = mountWithId('#/definitions/allOfTest');
+    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+    // https://github.com/mui-org/material-ui/issues/5259#issuecomment-783488623
+    wrapper.find("#definitionsallOfTest-change-group").hostNodes().at(0).simulate("mousedown", { button: 0 });
+    wrapper.find(MenuItem).at(2).simulate('click');
+    expect(mockStore.dispatch).toHaveBeenCalledWith({
+      type: 'schemaEditor/setGroupType',
+      payload: {
+        type: 'oneOf',
+        path: '#/definitions/allOfTest',
+      },
+    });
 });

@@ -209,7 +209,6 @@ const schemaEditorSlice = createSlice({
       const {
         path, items,
       } = action.payload;
-      // eslint-disable-next-line no-nested-ternary
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.items = items;
     },
@@ -277,6 +276,42 @@ const schemaEditorSlice = createSlice({
         } else if (!schemaItem.required.includes(key)) {
           schemaItem.required.push(key);
         }
+      }
+    },
+    setGroupType(state, action) {
+      const {
+        type,
+        path,
+      } = action.payload;
+
+      const schemaItem = getUiSchemaItem(state.uiSchema, path);
+
+      if (type === 'oneOf') {
+        schemaItem.oneOf = schemaItem.allOf || schemaItem.anyOf;
+        schemaItem.allOf = undefined;
+        schemaItem.anyOf = undefined;
+      }
+      if (type === 'anyOf') {
+        schemaItem.anyOf = schemaItem.allOf || schemaItem.oneOf;
+        schemaItem.allOf = undefined;
+        schemaItem.oneOf = undefined;
+      }
+      if (type === 'allOf') {
+        schemaItem.allOf = schemaItem.oneOf || schemaItem.anyOf;
+        schemaItem.anyOf = undefined;
+        schemaItem.oneOf = undefined;
+      }
+    },
+    addGroupItem(state, action) {
+      const { path, ...rest } = action.payload;
+      const addToItem = getUiSchemaItem(state.uiSchema, path);
+      const groupArray = addToItem.allOf || addToItem.oneOf || addToItem.anyOf || [];
+      const item: UiSchemaItem = {
+        path: `${path}/${groupArray?.length}`,
+        ...rest,
+      };
+      if (groupArray) {
+        groupArray.push(item);
       }
     },
     setJsonSchema(state, action) {
@@ -414,6 +449,7 @@ export const {
   setDescription,
   setType,
   setRequired,
+  setGroupType,
   setSelectedTab,
   navigateToType,
 } = schemaEditorSlice.actions;

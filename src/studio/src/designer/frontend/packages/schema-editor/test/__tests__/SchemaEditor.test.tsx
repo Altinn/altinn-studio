@@ -220,7 +220,66 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
-    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+    expect(wrapper.find('#add-property-to-node-button')).toHaveLength(0)
+    expect(wrapper.find('#add-reference-to-node-button')).toHaveLength(0)
+  });
+
+  it('+++ should show menu with option field, reference, and group when pressing add', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    expect(wrapper.find('#add-field-button').hostNodes()).toHaveLength(1)
+    expect(wrapper.find('#add-reference-button').hostNodes()).toHaveLength(1)
+    expect(wrapper.find('#add-group-button').hostNodes()).toHaveLength(1)
+  });
+
+  it('+++ should trigger correct dispatch when adding group to root', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    wrapper.find('#add-group-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addRootItem',
+      payload: {
+        name: 'name',
+        location: 'properties',
+        allOf: []
+      },
+    });
+  });
+
+  it('+++ should show context menu and trigger correct dispatch when adding a group on a specific node', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    wrapper.find('#add-group-to-node-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addProperty',
+      payload: {
+        path: '#/properties/mockItem',
+        allOf: [],
+      },
+    });
+  });
+
+  it('+++ should only be possible to add a reference to a group type', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { allOf: [], name: 'allOfTest' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.find('#add-property-to-node-button').hostNodes()).toHaveLength(0);
+    expect(wrapper.find('#add-reference-to-node-button').hostNodes()).toHaveLength(1);
+    expect(wrapper.find('#add-group-to-node-button').hostNodes()).toHaveLength(0);
   });
 });

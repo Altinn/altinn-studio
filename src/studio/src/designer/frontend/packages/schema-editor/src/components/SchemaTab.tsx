@@ -25,7 +25,11 @@ export const SchemaTab = withStyles((theme) => ({
       color: '#40a9ff',
     },
   },
-  selected: {},
+  wrapper: {
+    textTransform: 'none',
+    fontWeight: theme.typography.fontWeightMedium,
+    fontSize: 16,
+  },
 }))((props: ISchemaTabProps) => {
   const {
     label, value, hide, language, ...other

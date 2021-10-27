@@ -9,6 +9,8 @@ export interface SchemaItemLabelProps {
   label: string;
   language: ILanguage;
   onAddProperty?: (type: PropertyType) => void;
+  onAddReference?: (type: PropertyType) => void;
+  onAddGroup?: (type: PropertyType) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
@@ -49,10 +51,20 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(e.currentTarget);
     e.stopPropagation();
   };
-  const handleAddPropertyClick = (e: React.SyntheticEvent, type: PropertyType) => {
+  const handleAddNode = (e: React.SyntheticEvent, type: PropertyType) => {
     setContextAnchor(null);
     e.stopPropagation();
-    props.onAddProperty?.(type);
+    switch (type) {
+      case 'group':
+        props?.onAddGroup?.(type);
+        break;
+      case 'reference':
+        props?.onAddReference?.(type);
+        break;
+      case 'field':
+      default:
+        props?.onAddProperty?.(type);
+    }
   };
   const handlePromoteClick = (e: React.SyntheticEvent) => {
     setContextAnchor(null);
@@ -95,21 +107,29 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
+        {props.onAddReference &&
+          <AltinnMenuItem
+            id='add-reference-to-node-button'
+            key='add_reference'
+            onClick={(event) => handleAddNode(event, 'reference')} text={getTranslation('add_reference', props.language)}
+            iconClass='fa fa-datamodel-ref'
+          />
+        }
         {props.onAddProperty &&
-          [
-            <AltinnMenuItem
-              id='add-reference-to-node-button'
-              key='add_reference'
-              onClick={(event) => handleAddPropertyClick(event, 'reference')} text={getTranslation('add_reference', props.language)}
-              iconClass='fa fa-datamodel-ref'
-            />,
-            <AltinnMenuItem
-              id='add-property-to-node-button'
-              key='add_property'
-              onClick={(event) => handleAddPropertyClick(event, 'field')} text={getTranslation('add_property', props.language)}
-              iconClass='fa fa-datamodel-properties'
-            />,
-          ]
+          <AltinnMenuItem
+            id='add-property-to-node-button'
+            key='add_property'
+            onClick={(event) => handleAddNode(event, 'field')} text={getTranslation('add_property', props.language)}
+            iconClass='fa fa-datamodel-properties'
+          />
+        }
+        {props.onAddGroup &&
+          <AltinnMenuItem
+            id='add-group-to-node-button'
+            key='add_group'
+            onClick={(event) => handleAddNode(event, 'group')} text={getTranslation('add_group', props.language)}
+            iconClass='fa fa-group'
+          />
         }
         {props.onPromote && <AltinnMenuItem
           id='promote-item-button'

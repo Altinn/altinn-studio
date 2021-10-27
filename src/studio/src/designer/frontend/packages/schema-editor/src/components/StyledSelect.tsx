@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { makeStyles, MenuItem, Select } from '@material-ui/core';
-import { ILanguage } from '../types';
-import { getDomFriendlyID, getTranslation } from '../utils';
+import { makeStyles, Select } from '@material-ui/core';
 
 export interface ITypeSelectProps {
   id: string;
   value?: string;
-  language: ILanguage;
-  onChange: (id: string, value: string) => void;
+  onChange: (value: string) => void;
   readOnly?: boolean;
   fullWidth?: boolean;
   label?: string;
+  children: React.ReactNode;
 }
 
 const useStyles = makeStyles({
@@ -30,19 +28,19 @@ const useStyles = makeStyles({
   },
 });
 
-export const TypeSelect = (props: ITypeSelectProps) => {
+export const StyledSelect = (props: ITypeSelectProps) => {
   const classes = useStyles();
   const {
     id, value, onChange,
   } = props;
 
   const onValueChange = (event: any) => {
-    onChange(id, event.target.value);
+    onChange(event.target.value);
   };
 
   return (
     <Select
-      id={`${getDomFriendlyID(id)}-type-select`}
+      id={id}
       disabled={props.readOnly}
       label={props.label}
       value={value}
@@ -51,11 +49,7 @@ export const TypeSelect = (props: ITypeSelectProps) => {
       disableUnderline={true}
       fullWidth={props.fullWidth}
     >
-      <MenuItem value='string'>{getTranslation('string', props.language)}</MenuItem>
-      <MenuItem value='integer'>{getTranslation('integer', props.language)}</MenuItem>
-      <MenuItem value='number'>{getTranslation('number', props.language)}</MenuItem>
-      <MenuItem value='boolean'>{getTranslation('boolean', props.language)}</MenuItem>
-      <MenuItem value='object'>{getTranslation('object', props.language)}</MenuItem>
+      {props.children}
     </Select>
   );
 };
