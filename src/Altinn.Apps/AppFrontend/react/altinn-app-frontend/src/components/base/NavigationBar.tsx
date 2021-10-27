@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
+import { Grid, makeStyles, createMuiTheme, List } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -132,14 +132,14 @@ export function NavigationBarComponent(props: INavigationBar) {
   ));
 
   return (
-    <Grid container justify='space-between' >
+    <Grid container>
       <Grid item xs={10}>
-        <nav>
+        <List component='nav'>
           <ul className={classNames([classes.menu, showMenu && classes.menuMobile])}>
             {pageList}
             {showMenu && (renderSmallScreenMenu())}
           </ul>
-        </nav>
+        </List>
       </Grid>
     </Grid>
   );
