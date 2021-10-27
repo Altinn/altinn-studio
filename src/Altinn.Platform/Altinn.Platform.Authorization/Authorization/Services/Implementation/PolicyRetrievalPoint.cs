@@ -1,13 +1,9 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.Helpers.Extensions;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,8 +17,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
-        private readonly string orgAttributeId = "urn:altinn:org";
-        private readonly string appAttributeId = "urn:altinn:app";
         private readonly IPolicyRepository _repository;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
@@ -43,122 +37,48 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            string policyPath = GetPolicyPath(request);
-            if (!_memoryCache.TryGetValue(policyPath, out XacmlPolicy policy))
-            {
-                // Key not in cache, so get data.
-                using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
-                {
-                    policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
-                }
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-               .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.PolicyCacheTimeout, 0));
-
-                _memoryCache.Set(policyPath, policy, cacheEntryOptions);
-            }
-
-            return policy;
+            string policyPath = PolicyHelper.GetPolicyPath(request);
+            return await GetPolicyInternalAsync(policyPath);
         }
 
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(string org, string app)
         {
-            string policyPath = GetAltinnAppsPolicyPath(org, app);
+            string policyPath = PolicyHelper.GetAltinnAppsPolicyPath(org, app);
             return await GetPolicyInternalAsync(policyPath);
         }
 
         /// <inheritdoc/>
-        public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
+        public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
         {
-            if (string.IsNullOrWhiteSpace(org))
-            {
-                throw new ArgumentException("Org can not be null or empty");
-            }
-
-            if (string.IsNullOrWhiteSpace(app))
-            {
-                throw new ArgumentException("App can not be null or empty");
-            }
-
-            if (fileStream == null)
-            {
-                throw new ArgumentException("The policy file can not be null");
-            }
-
-            return WritePolicyInternalAsync(org, app, fileStream);
+            return await GetPolicyInternalAsync(policyPath, version);
         }
 
-        private async Task<bool> WritePolicyInternalAsync(string org, string app, Stream fileStream)
+        private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath, string version = "")
         {
-            string filePath = GetAltinnAppsPolicyPath(org, app);
-            return await _repository.WritePolicyAsync(filePath, fileStream);
-        }
-
-        private async Task<XacmlPolicy> GetPolicyInternalAsync(string policyPath)
-        {
-            XacmlPolicy policy;
-            using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
+            if (!_memoryCache.TryGetValue(policyPath + version, out XacmlPolicy policy))
             {
-                policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
-            }
-
-            return policy;
-        }
-
-        private string GetPolicyPath(XacmlContextRequest request)
-        {
-            string org = string.Empty;
-            string app = string.Empty;
-
-            foreach (XacmlContextAttributes attr in request.Attributes)
-            {
-                if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                Stream policyBlob = string.IsNullOrEmpty(version) ?
+                    await _repository.GetPolicyAsync(policyPath) :
+                    await _repository.GetPolicyVersionAsync(policyPath, version);
+                using (policyBlob)
                 {
-                    foreach (XacmlAttribute asd in attr.Attributes)
-                    {
-                        if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
-                        {
-                            org = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-
-                        if (asd.AttributeId.OriginalString.Equals(appAttributeId))
-                        {
-                            app = asd.AttributeValues.FirstOrDefault().Value;
-                        }
-                    }
+                    policy = (policyBlob.Length > 0) ? PolicyHelper.ParsePolicy(policyBlob) : null;
                 }
-            }
 
-            return GetAltinnAppsPolicyPath(org, app);
-        }
-
-        private string GetAltinnAppsPolicyPath(string org, string app)
-        {
-            if (string.IsNullOrEmpty(org))
-            {
-                throw new ArgumentException("Org was not defined");
-            }
-
-            if (string.IsNullOrEmpty(app))
-            {
-                throw new ArgumentException("App was not defined");
-            }
-
-            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xml";
-        }
-
-        private static XacmlPolicy ParsePolicy(Stream stream)
-        {
-            stream.Position = 0;
-            XacmlPolicy policy;
-            using (XmlReader reader = XmlReader.Create(stream))
-            {
-                policy = XacmlParser.ParseXacmlPolicy(reader);
+                PutXacmlPolicyInCache(policyPath, policy);
             }
 
             return policy;
+        }
+
+        private void PutXacmlPolicyInCache(string policyPath, XacmlPolicy policy)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.PolicyCacheTimeout, 0));
+
+            _memoryCache.Set(policyPath, policy, cacheEntryOptions);
         }
     }
 }
