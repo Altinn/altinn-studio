@@ -109,10 +109,12 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'allOf':
       case 'anyOf':
       case 'oneOf': {
-        item[key] = [];
-        uiSchemaItem[key]?.forEach((property: UiSchemaItem, index: number) => {
-          item[key][index] = createJsonSchemaItem(property);
-        });
+        if (uiSchemaItem[key]?.length) {
+          item[key] = [];
+          uiSchemaItem[key]?.forEach((property: UiSchemaItem, index: number) => {
+            item[key][index] = createJsonSchemaItem(property);
+          });
+        }
         break;
       }
       case 'path':
