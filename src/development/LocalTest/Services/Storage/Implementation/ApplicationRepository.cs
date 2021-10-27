@@ -37,7 +37,7 @@ namespace LocalTest.Services.Storage.Implementation
         public Task<Application> FindOne(string appId, string org)
         {
             string filedata = string.Empty;
-            string filename = GetApplicationPath();
+            string filename = GetApplicationPath(string.IsNullOrEmpty(appId) ? appId : appId.Split('/')[1]);
 
             try
             {
@@ -70,9 +70,9 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        private string GetApplicationPath()
+        private string GetApplicationPath(string app)
         {
-           return  _localTestAppSelectionService.GetAppPath() + "config/applicationmetadata.json";
+           return  _localTestAppSelectionService.GetAppPath(app) + "config/applicationmetadata.json";
         }
 
         public Task<List<Application>> FindAll()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Altinn.Platform.Storage.Configuration
 {
@@ -26,6 +27,11 @@ namespace Altinn.Platform.Storage.Configuration
         /// Gets or sets the URI for the SBL Bridge Authorization API.
         /// </summary>
         public Uri BridgeApiAuthorizationEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the scopes for Instance Read.
+        /// </summary>
+        public List<string> InstanceReadScope { get; set; }
 
         /// <summary>
         /// Gets or sets the cache lifetime for text resources.

@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
-import { get, put as axiosPut, del } from '../../../utils/networking';
+import { ISchema } from '@altinn/schema-editor/types';
+import * as net from '../../../utils/networking';
 import { sharedUrls } from '../../../utils/urlHelper';
 import { fetchDataModel,
   fetchDataModelFulfilled,
@@ -8,6 +9,9 @@ import { fetchDataModel,
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
+  createDataModel,
+  createDataModelFulfilled,
+  createDataModelRejected,
   IDataModelAction,
   deleteDataModel,
   deleteDataModelFulfilled,
@@ -18,7 +22,7 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, sharedUrls().getDataModellingUrl(modelPath));
+    const result = yield call(net.get, sharedUrls().getDataModelUrl(modelPath));
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -32,14 +36,9 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 function* saveDataModelSaga(action: IDataModelAction) {
   const { schema, metadata } = action.payload;
   try {
-    const isNewSchema = !metadata?.value?.repositoryRelativeUrl;
-    const schemaName = metadata.label;
-    const modelPath = metadata?.value?.repositoryRelativeUrl || `/App/models/${schemaName}.schema.json`;
-    yield call(axiosPut, sharedUrls().createDataModellingUrl(modelPath), schema);
+    const modelPath = metadata?.value?.repositoryRelativeUrl;
+    yield call(net.put, sharedUrls().saveDataModelUrl(modelPath), schema);
     yield put(saveDataModelFulfilled());
-    if (isNewSchema) {
-      yield put(DataModelsMetadataActions.getDataModelsMetadata()); // Update metadata to include new schema
-    }
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
   }
@@ -49,11 +48,27 @@ export function* watchSaveDataModelSaga(): SagaIterator {
   yield takeLatest(saveDataModel.type, saveDataModelSaga);
 }
 
+function* createDataModelSaga(action: IDataModelAction) {
+  const { name, relativePath } = action.payload;
+  const body = { modelName: name, relativeDirectory: relativePath };
+  try {
+    const schema: ISchema = yield call(net.post, sharedUrls().createDataModelUrl, body);
+    yield put(createDataModelFulfilled({ schema }));
+    yield put(DataModelsMetadataActions.getDataModelsMetadata());
+  } catch (err) {
+    yield put(createDataModelRejected({ error: err }));
+  }
+}
+
+export function* watchCreateDataModelSaga(): SagaIterator {
+  yield takeLatest(createDataModel.type, createDataModelSaga);
+}
+
 function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(del, sharedUrls().createDataModellingUrl(modelPath));
+    yield call(net.del, sharedUrls().saveDataModelUrl(modelPath));
     yield put(deleteDataModelFulfilled());
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
   } catch (err) {

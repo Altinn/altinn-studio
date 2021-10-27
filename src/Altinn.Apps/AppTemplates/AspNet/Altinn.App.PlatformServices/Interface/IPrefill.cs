@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
 
 namespace Altinn.App.Services.Interface
 {
@@ -14,7 +14,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="partyId">The partyId of the instance owner</param>
         /// <param name="dataModelName">The data model name</param>
         /// <param name="dataModel">The data model object</param>
-        /// <returns></returns>
-        Task PrefillDataModel(string partyId, string dataModelName, object dataModel);
+        /// <param name="externalPrefill">External given prefill</param>
+        Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill = null);
     }
 }

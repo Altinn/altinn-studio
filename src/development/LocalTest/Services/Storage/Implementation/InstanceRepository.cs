@@ -119,12 +119,6 @@ namespace LocalTest.Services.Storage.Implementation
                 throw new NotImplementedException($"Queries for instances must include applicationId in local test.");
             }
 
-            string appName = queryParams["appId"].First().Split("/")[1];
-            if (!_localTestAppSelectionService.GetAppPath().Contains(appName))
-            {
-                throw new NotImplementedException($"Only possible to query active application in local test ");
-            }
-
             List<Instance> instances = new List<Instance>();
 
             string instancesPath = GetInstanceFolder();
