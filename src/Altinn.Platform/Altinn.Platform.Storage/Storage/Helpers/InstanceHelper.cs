@@ -219,13 +219,23 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     instancesToRemove.Add(instance);
                 }
-                else if (hideSettings.HideOnTask != null && hideSettings.HideOnTask.Contains(instance.Process.CurrentTask?.ElementId))
+                else if (HideOnCurrentTask(hideSettings, instance.Process.CurrentTask))
                 {
                     instancesToRemove.Add(instance);
                 }
             }
 
             instances.RemoveAll(instancesToRemove.Contains);
+        }
+
+        private static bool HideOnCurrentTask(HideSettings hideSettings, ProcessElementInfo currentTask)
+        {
+            if (hideSettings.HideOnTask == null)
+            {
+                return false;
+            }
+
+            return hideSettings.HideOnTask.Contains(currentTask?.ElementId);
         }
     }
 }
