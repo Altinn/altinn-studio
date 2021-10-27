@@ -37,7 +37,6 @@ const useStyles = makeStyles({
   containerBase: {
     borderRadius: '40px',
     marginRight: '20px',
-    border: '2px solid #008FD6',
     '&:active': {
       backgroundColor: '#0062BA',
     },
@@ -45,7 +44,7 @@ const useStyles = makeStyles({
   buttonBase: {
     background: 'none',
     font: 'inherit',
-    border: 'none',
+    border: '2px solid #008FD6',
     width: '100%',
     height: '100%',
     display: 'block',
