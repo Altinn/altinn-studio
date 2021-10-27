@@ -20,7 +20,6 @@ const NavBar = (props: INavBarProps) => {
           onClick={props.handleBack}
         >
           <span className='ai-stack'>
-            <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
             <i className='ai-stack-1x ai ai-back' aria-hidden='true' />
           </span>
           <span className='hidden-button-text'>
@@ -36,7 +35,6 @@ const NavBar = (props: INavBarProps) => {
           onClick={props.handleClose}
         >
           <span className='ai-stack'>
-            <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
             <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
           </span>
           <span className='hidden-button-text'>

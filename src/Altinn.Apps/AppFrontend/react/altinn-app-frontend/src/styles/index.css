@@ -179,3 +179,77 @@ select.disabled {
   ) !important;
   background-size: 8px 10px, cover !important;
 }
+
+
+
+/* Modal header */
+.a-iconText.a-iconText-background {
+  background-color: #fff;
+  color: #000;
+  border-bottom: 1px solid #eee;
+}
+
+@media only screen and (min-width: 753px) {
+  .a-iconText.a-iconText-background {
+    padding-left: 84px;
+  }
+}
+
+@media only screen and (min-width: 977px) {
+  .a-iconText.a-iconText-background {
+    padding-left: 96px;
+  }
+}
+
+/* Modal body */
+
+.modal-content {
+  border: none;
+  box-shadow: 1px 1px 4px 0 rgb(137 137 137 / 50%);
+  margin-bottom: 60px;
+}
+
+#errorReport .modal-content {
+  margin-bottom: 24px;
+}
+
+/* Modal back and close buttons */
+
+.a-modal-back span.ai-stack,
+.a-modal-back span.reg-stack,
+.a-modal-close span.ai-stack,
+.a-modal-close span.reg-stack {
+  outline: 1px solid #022F51;
+  border-radius: 50%;
+  font-size: 2.2em;
+}
+
+.a-modal-back span.ai-stack:hover,
+.a-modal-back span.reg-stack:hover,
+.a-modal-close span.ai-stack:hover,
+.a-modal-close span.reg-stack:hover {
+  outline: 1px solid #022F51;
+}
+
+.a-modal-back,
+.a-modal-close {
+  background: transparent;
+}
+
+.a-modal-back:hover,
+.a-modal-close:hover {
+  opacity: 1;
+  background-color: #fff;
+}
+
+.a-modal-back span.ai-stack i:first-of-type,
+.a-modal-back span.reg-stack i:first-of-type,
+.a-modal-close span.ai-stack i:first-of-type,
+.a-modal-close span.reg-stack i:first-of-type {
+  color: #022F51;
+}
+
+.a-modal-close span.ai-stack:hover i,
+.a-modal-close span.reg-stack:hover i {
+  color: #E23B53;
+}

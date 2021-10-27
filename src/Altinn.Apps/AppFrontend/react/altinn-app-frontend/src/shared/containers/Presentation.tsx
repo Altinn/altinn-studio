@@ -60,7 +60,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   const isProcessStepsArchived = Boolean(props.type === ProcessTaskType.Archived);
   const backgroundColor = isProcessStepsArchived ?
     AltinnAppTheme.altinnPalette.primary.greenLight
-    : AltinnAppTheme.altinnPalette.primary.blue;
+    : AltinnAppTheme.altinnPalette.primary.greyLight;
   document.body.style.background = backgroundColor;
 
   return (

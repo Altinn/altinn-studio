@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import classNames from 'classnames';
-import { useMediaQuery } from '@material-ui/core';
 import { PresentationType, ProcessTaskType } from '../../types';
 
 export interface IHeaderProps {
@@ -12,8 +11,6 @@ export interface IHeaderProps {
 }
 
 const Header = (props: IHeaderProps) => {
-  const mobileView = useMediaQuery('(max-width:767px)');
-
   return (
     <div
       className={classNames(
@@ -23,13 +20,6 @@ const Header = (props: IHeaderProps) => {
       )}
     >
       <div className='a-iconText a-iconText-background a-iconText-large'>
-        <div className='a-iconText-icon'>
-          <i
-            className='fa fa-corp a-icon'
-            aria-hidden='true'
-            style={mobileView ? { fontSize: '2em' } : null}
-          />
-        </div>
         <h1 className='a-iconText-text mb-0'>
           <span className='a-iconText-text-large'>{props.type === ProcessTaskType.Archived ? (
             <span>{getLanguageFromKey('receipt.receipt', props.language)}</span>
