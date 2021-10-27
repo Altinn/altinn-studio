@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
@@ -9,7 +8,6 @@ import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
-import { TypeSelect } from '../../src/components/Select';
 import { MenuItem } from '@material-ui/core';
 
 let mockStore: any = null;

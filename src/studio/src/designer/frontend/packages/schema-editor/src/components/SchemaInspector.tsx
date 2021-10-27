@@ -323,21 +323,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     </IconButton>
   );
 
-  const renderItemChildren = (item: UiSchemaItem) => {
-    const children = item.properties || item.allOf || item.anyOf || item.oneOf || [];
-    return children.map((child: UiSchemaItem) => {
-      return <InputField
-        language={props.language}
-        key={child.path}
-        required={item.required?.includes(child.displayName)}
-        readOnly={readOnly}
-        value={child.displayName}
-        fullPath={child.path}
-        onChangeValue={onChangPropertyName}
-        onDeleteField={onDeleteObjectClick}
-      />;
-    });
-  };
+  const renderItemProperties = (item: UiSchemaItem) => item.properties?.map((p: UiSchemaItem) => {
+    return <InputField
+      language={props.language}
+      key={p.path}
+      required={item.required?.includes(p.displayName)}
+      readOnly={readOnly}
+      value={p.displayName}
+      fullPath={p.path}
+      onChangeValue={onChangPropertyName}
+      onDeleteField={onDeleteObjectClick}
+    />;
+  });
 
   const onRestrictionReturn = (e: any) => {
     onAddRestrictionClick(e);
@@ -637,7 +634,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             spacing={3}
             className={classes.gridContainer}
           >
-            {itemToDisplay && renderItemChildren(itemToDisplay)}
+            {itemToDisplay && renderItemProperties(itemToDisplay)}
           </Grid>
           { !readOnly && renderAddPropertyButton() }
         </TabPanel>
