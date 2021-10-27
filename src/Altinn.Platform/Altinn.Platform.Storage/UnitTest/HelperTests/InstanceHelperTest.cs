@@ -266,28 +266,23 @@ namespace Altinn.Platform.Storage.UnitTest
         public void RemoveHiddenInstances_NoHideConditionsMet()
         {
             // Arrange
-            List<Application> apps = new()
+            Dictionary<string, Application> apps = new();
+
+            apps.Add("ttd/no-hideSettings", new Application { Id = "ttd/no-hideSettings" });
+            apps.Add("ttd/hide-task-1", new Application
             {
-                new Application
+                Id = "ttd/hide-task-1",
+                MessageBoxConfig = new()
                 {
-                    Id = "ttd/no-hideSettings"
-                },
-                new Application
-                {
-                    Id = "ttd/hide-task-1",
-                    MessageBoxConfig = new()
+                    HideSettings = new()
                     {
-                        HideSettings = new()
+                        HideOnTask = new()
                         {
-                            HideOnTask = new()
-                            {
-                                "Task_1"
-                            }
+                            "Task_1"
                         }
                     }
                 }
-
-            };
+            });
 
             Instance i1 = new Instance
             {
@@ -322,27 +317,23 @@ namespace Altinn.Platform.Storage.UnitTest
         public void RemoveHiddenInstances_TaskConditionMet_OneInstanceRemoved()
         {
             // Arrange
-            List<Application> apps = new()
+            Dictionary<string, Application> apps = new();
+
+            apps.Add("ttd/no-hideSettings", new Application { Id = "ttd/no-hideSettings" });
+            apps.Add("ttd/hide-task-1", new Application
             {
-                new Application
+                Id = "ttd/hide-task-1",
+                MessageBoxConfig = new()
                 {
-                    Id = "ttd/no-hideSettings"
-                },
-                new Application
-                {
-                    Id = "ttd/hide-task-1",
-                    MessageBoxConfig = new()
+                    HideSettings = new()
                     {
-                        HideSettings = new()
+                        HideOnTask = new()
                         {
-                            HideOnTask = new()
-                            {
-                                "Task_1"
-                            }
+                            "Task_1"
                         }
                     }
                 }
-            };
+            });
 
             Instance i1 = new Instance
             {
@@ -377,8 +368,9 @@ namespace Altinn.Platform.Storage.UnitTest
         public void RemoveHiddenInstances_AlwaysConditionMet_AllInstancsRemoved()
         {
             // Arrange
-            List<Application> apps = new()
-            {
+            Dictionary<string, Application> apps = new();
+            apps.Add(
+                "ttd/hideAlwayshideSettings",
                 new Application
                 {
                     Id = "ttd/hideAlwayshideSettings",
@@ -389,8 +381,7 @@ namespace Altinn.Platform.Storage.UnitTest
                             HideAlways = true
                         }
                     }
-                }
-            };
+                });
 
             Instance i1 = new Instance
             {

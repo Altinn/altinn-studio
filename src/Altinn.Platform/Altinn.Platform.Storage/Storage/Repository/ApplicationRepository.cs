@@ -96,7 +96,6 @@ namespace Altinn.Platform.Storage.Repository
 
             _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
             return application;
-
         }
 
         /// <inheritdoc/>
