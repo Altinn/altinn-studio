@@ -179,3 +179,16 @@ select.disabled {
   ) !important;
   background-size: 8px 10px, cover !important;
 }
+
+
+/* Button */
+.a-btn-sm-fullwidth {
+  width: 100%;
+  padding-bottom: 6px;
+}
+
+@media screen and (min-width: 576px) {
+  .a-btn-sm-fullwidth {
+    width: auto;
+  }
+}
