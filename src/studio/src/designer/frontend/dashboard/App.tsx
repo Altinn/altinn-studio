@@ -53,7 +53,7 @@ export const App = () => {
       <Router>
         <div>
           <AppBarComponent
-            org={user ? user.full_name || user.login : ''}
+            org={user.full_name || user.login}
             app={null}
             user={user.login}
             logoutButton={true}

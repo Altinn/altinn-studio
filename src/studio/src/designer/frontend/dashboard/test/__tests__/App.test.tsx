@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
+import AppBarComponent from '../../../shared/navigation/main-header/appBar';
 
 import { App } from '../../App';
 
@@ -56,5 +57,36 @@ describe('Dashboard > App', () => {
       payload: { url: 'http://localhost/designerapi/Repository/Organizations' },
       type: 'dashboard/fetchOrganisations',
     });
+  });
+
+  it('should set AppBarComponent org to user.full_name if set', () => {
+    let component: any;
+    act(() => {
+      component = mountComponent();
+    });
+
+    const appBarProps = component.find(AppBarComponent).props();
+
+    expect(appBarProps.org).toBe('John Smith');
+  });
+
+  it('should set AppBarComponent org to user.login when user.full_name is not set', () => {
+    const storeState = {
+      dashboard: {
+        user: {
+          login: 'johnsmith',
+        },
+      },
+    };
+
+    store = configureStore()(storeState);
+    let component: any;
+    act(() => {
+      component = mountComponent();
+    });
+
+    const appBarProps = component.find(AppBarComponent).props();
+
+    expect(appBarProps.org).toBe('johnsmith');
   });
 });
