@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        private string GetTextId(string org, string app, string language)
+        private static string GetTextId(string org, string app, string language)
         {
             return $"{org}-{app}-{language}";
         }
@@ -75,13 +75,13 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// <summary>
         /// Pre processes the text resource. Creates id and adds partition key org
         /// </summary>
-        private void PreProcess(string org, string app, string language, TextResource textResource)
+        private static void PreProcess(string org, string app, string language, TextResource textResource)
         {
             textResource.Id = GetTextId(org, app, language);
             textResource.Org = org;
         }
 
-        private void ValidateArguments(string org, string app, string language)
+        private static void ValidateArguments(string org, string app, string language)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -99,7 +99,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             }
         }
 
-        private string GetTextsPath(string id)
+        private static string GetTextsPath(string id)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TextRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\texts\" + id + ".json");

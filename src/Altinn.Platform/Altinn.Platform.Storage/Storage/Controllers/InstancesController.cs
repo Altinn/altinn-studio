@@ -39,11 +39,6 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
-        private readonly List<string> _instanceReadScope = new List<string>()
-        {
-            "altinn:serviceowner/instances.read"
-        };
-
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
@@ -145,7 +140,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 isOrgQuerying = true;
 
-                if (!_authzHelper.ContainsRequiredScope(_instanceReadScope, User))
+                if (!_authzHelper.ContainsRequiredScope(_generalSettings.InstanceReadScope, User))
                 {
                     return Forbid();
                 }
@@ -681,7 +676,7 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(updatedInstance);
         }
 
-        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
+        private static Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
             {

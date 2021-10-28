@@ -523,8 +523,9 @@ namespace Altinn.App.Api.Controllers
         /// <param name="altinnApp">The application core logic.</param>
         /// <param name="instance">The currently loaded instance.</param>
         /// <param name="events">The events to trigger.</param>
+        /// <param name="prefill">Prefill values.</param>
         /// <returns>A Task to enable async await.</returns>
-        internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events)
+        internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events, Dictionary<string, string> prefill = null)
         {
             foreach (InstanceEvent processEvent in events)
             {
@@ -537,7 +538,7 @@ namespace Altinn.App.Api.Controllers
                             break;
 
                         case InstanceEventType.process_StartTask:
-                            await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                            await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance, prefill);
                             break;
 
                         case InstanceEventType.process_EndTask:

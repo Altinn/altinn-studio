@@ -547,7 +547,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?stephanie=kul");
-            string content = await responseMessage.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
@@ -868,7 +867,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
             Assert.True(actual.ContainsKey("appId"));
             actual.TryGetValue("appId", out StringValues actualAppid);
-            Assert.Equal(expectedCount, actualAppid.Count());
+            Assert.Equal(expectedCount, actualAppid.Count);
             Assert.False(actual.ContainsKey("searchString"));
             instanceRepositoryMock.VerifyAll();
         }
@@ -896,10 +895,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string content = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
             int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).Distinct().Count();
-                
+
             // Assert
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-            Assert.Equal(expectedCount, actual.Count());
+            Assert.Equal(expectedCount, actual.Count);
             Assert.Equal(expectedDistinctInstanceOwners, distinctInstanceOwners);
         }
 
@@ -965,6 +964,31 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.True(actual.ContainsKey("instanceOwner.partyId"));
             actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsArchived);
             Assert.True(bool.Parse(actualIsArchived.First()));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on appId.
+        /// Expected:
+        ///  VisibleAfter not reached for an instance, this is removed from the response.
+        /// Success:
+        ///  Single instance is returned.
+        /// </summary>
+        [Fact]
+        public async void Search_VisibleDateNotReached_InstanceRemovedFromResponse()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1606");
+
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Single(actual);
         }
 
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)

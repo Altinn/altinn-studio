@@ -33,6 +33,7 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Equal(instanceGuid, actual.Id);
+            Assert.Equal(2, actual.DataValues.Count);
         }
 
         /// <summary>
@@ -256,6 +257,154 @@ namespace Altinn.Platform.Storage.UnitTest
             // Assert
             Assert.Equal(expectedlastChangedBy, lastChangedBy);
             Assert.Equal(expectedlastChanged, lastChanged);
+        }
+
+        /// <summary>
+        /// Call Remove instances, list stays the same as no conditions are met.
+        /// </summary>
+        [Fact]
+        public void RemoveHiddenInstances_NoHideConditionsMet()
+        {
+            // Arrange
+            Dictionary<string, Application> apps = new();
+
+            apps.Add("ttd/no-hideSettings", new Application { Id = "ttd/no-hideSettings" });
+            apps.Add("ttd/hide-task-1", new Application
+            {
+                Id = "ttd/hide-task-1",
+                MessageBoxConfig = new()
+                {
+                    HideSettings = new()
+                    {
+                        HideOnTask = new()
+                        {
+                            "Task_1"
+                        }
+                    }
+                }
+            });
+
+            Instance i1 = new Instance
+            {
+                AppId = "ttd/no-hideSettings"
+            };
+
+            Instance i2 = new Instance
+            {
+                AppId = "ttd/hide-task-1",
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_2"
+                    }
+                }
+            };
+
+            List<Instance> instances = new() { i1, i2 };
+
+            // Act
+            InstanceHelper.RemoveHiddenInstances(apps, instances);
+
+            // Assert
+            Assert.Equal(2, instances.Count);
+        }
+
+        /// <summary>
+        /// Call Remove instances, single instance is removed as it is on a task in the hide list.
+        /// </summary>
+        [Fact]
+        public void RemoveHiddenInstances_TaskConditionMet_OneInstanceRemoved()
+        {
+            // Arrange
+            Dictionary<string, Application> apps = new();
+
+            apps.Add("ttd/no-hideSettings", new Application { Id = "ttd/no-hideSettings" });
+            apps.Add("ttd/hide-task-1", new Application
+            {
+                Id = "ttd/hide-task-1",
+                MessageBoxConfig = new()
+                {
+                    HideSettings = new()
+                    {
+                        HideOnTask = new()
+                        {
+                            "Task_1"
+                        }
+                    }
+                }
+            });
+
+            Instance i1 = new Instance
+            {
+                AppId = "ttd/no-hideSettings"
+            };
+
+            Instance i2 = new Instance
+            {
+                AppId = "ttd/hide-task-1",
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_1"
+                    }
+                }
+            };
+
+            List<Instance> instances = new() { i1, i2 };
+
+            // Act
+            InstanceHelper.RemoveHiddenInstances(apps, instances);
+
+            // Assert
+            Assert.Single(instances);
+        }
+
+        /// <summary>
+        /// Call Remove instances, all instances removed as the app is marked with hideAlways.
+        /// </summary>
+        [Fact]
+        public void RemoveHiddenInstances_AlwaysConditionMet_AllInstancsRemoved()
+        {
+            // Arrange
+            Dictionary<string, Application> apps = new();
+            apps.Add(
+                "ttd/hideAlwayshideSettings",
+                new Application
+                {
+                    Id = "ttd/hideAlwayshideSettings",
+                    MessageBoxConfig = new MessageBoxConfig()
+                    {
+                        HideSettings = new()
+                        {
+                            HideAlways = true
+                        }
+                    }
+                });
+
+            Instance i1 = new Instance
+            {
+                AppId = "ttd/hideAlwayshideSettings"
+            };
+
+            Instance i2 = new Instance
+            {
+                AppId = "ttd/hideAlwayshideSettings"
+            };
+
+            Instance i3 = new Instance
+            {
+                AppId = "ttd/hideAlwayshideSettings"
+            };
+
+            List<Instance> instances = new() { i1, i2, i3 };
+
+            // Act
+            InstanceHelper.RemoveHiddenInstances(apps, instances);
+
+            // Assert
+            Assert.Empty(instances);
         }
     }
 }

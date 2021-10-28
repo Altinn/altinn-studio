@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.DataProcessing;
@@ -168,9 +169,10 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="instance">The data to perform data creation on</param>
         /// <param name="data">The data object being created</param>
-        public override async Task RunDataCreation(Instance instance, object data)
+        /// <param name="prefill">External prefill available under instansiation</param>
+        public override async Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
-           await _instantiationHandler.DataCreation(instance, data);
+           await _instantiationHandler.DataCreation(instance, data, prefill);
         }
 
         /// <inheritdoc />
