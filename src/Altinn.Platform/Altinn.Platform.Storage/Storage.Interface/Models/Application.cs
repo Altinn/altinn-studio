@@ -104,7 +104,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         public MessageBoxConfig MessageBoxConfig { get; set; }
 
         /// <summary>
-        /// Gets or setts the copy instance settings
+        /// Gets or sets the copy instance settings
         /// </summary>
         [JsonProperty(PropertyName = "copyInstanceSettings")]
 
