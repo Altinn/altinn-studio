@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -18,7 +19,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     {
         // Parameter class used to group parameters
         // related to the context of the schema to process.
-        private class SchemaContext
+        private sealed class SchemaContext
         {
             public string Id { get; set; }
 
@@ -118,6 +119,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             switch (keyword)
             {
+                // We only travese the actual schema and their referenced/used sub-schemas.
+                // This means that there might be types defined in $def/definitions that is
+                // not included in the generated model - which is fine since they are not in use.
                 case SchemaKeyword:
                 case IdKeyword:
                 case TypeKeyword:
@@ -132,16 +136,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case InfoKeyword:
                 case RequiredKeyword:
                 case EnumKeyword:
+                case DefinitionsKeyword:
+                case DefsKeyword:
                     break;
-
-                case DefinitionsKeyword k:
-                    //ProcessDefinitionsKeyword(path, k, context);
-                    break;
-
-                case DefsKeyword k:                    
-                    //ProcessDefsKeyword(path, k, context);
-                    break;
-
+                
                 case RefKeyword k:
                     ProcessRefKeyword(path, k, context);
                     break;
@@ -167,27 +165,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             OnKeywordProcessed(new KeywordProcessedEventArgs() { Path = path, Keyword = keyword });
-        }
-
-        private void ProcessDefinitionsKeyword(JsonPointer path, DefinitionsKeyword keyword, SchemaContext context)
-        {
-            ProcessDefinitons(path, keyword.Definitions, context);
-        }
-
-        private void ProcessDefsKeyword(JsonPointer path, DefsKeyword keyword, SchemaContext context)
-        {
-            ProcessDefinitons(path, keyword.Definitions, context);
-        }
-
-        private void ProcessDefinitons(JsonPointer path, IReadOnlyDictionary<string, JsonSchema> definitions, SchemaContext context)
-        {
-            foreach (var (name, definition) in definitions)
-            {
-                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
-                var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
-
-                ProcessSubSchema(subSchemaPath, definition, currentContext);
-            }
         }
 
         private void ProcessRefKeyword(JsonPointer path, RefKeyword keyword, SchemaContext context)
@@ -327,7 +304,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             if (IsRefType(subSchema))
             {
-                ProcessRefType(path, subSchema, context);
+                ProcessRefType(subSchema, context);
             }
             else if (IsNillableType(path))
             {
@@ -350,7 +327,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private void ProcessRefType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
+        private void ProcessRefType(JsonSchema subSchema, SchemaContext context)
         {
             var refKeyword = subSchema.GetKeyword<RefKeyword>();
             var refPath = JsonPointer.Parse(refKeyword.Reference.ToString());
@@ -367,7 +344,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (allOfKeyword.GetSubschemas().Count() == 1 && allOfKeyword.GetSubschemas().First().HasKeyword<RefKeyword>())
             {
                 var refSchema = allOfKeyword.GetSubschemas().First();
-                ProcessRefType(path, refSchema, context);
+                ProcessRefType(refSchema, context);
             }
             else
             {
@@ -535,11 +512,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private static BaseValueType MapStringValueTypes(JsonSchema subSchema)
         {
-            //if (TryParseXsdTypeKeyword(subSchema, out var baseValueType))
-            //{
-            //    return baseValueType;
-            //}
-
             BaseValueType baseValueType = BaseValueType.String;
 
             if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
@@ -583,20 +555,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return baseValueType;
-        }
-
-        private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
-        {
-            BaseValueType parsedBaseValueType = BaseValueType.String;
-            bool parseSuccess = false;
-
-            if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
-            {
-                parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
-            }
-
-            baseValueType = parsedBaseValueType;
-            return parseSuccess;
         }
 
         private static string CombineXPath(string baseXPath, string name)
@@ -651,7 +609,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return ElementType.Field;
         }
 
-        private Dictionary<string, Restriction> GetRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema)
+        private static Dictionary<string, Restriction> GetRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema)
         {
             var restrictions = new Dictionary<string, Restriction>();
             if (xsdValueType == null)
@@ -691,18 +649,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            string value = string.Empty;
+            var valueBuilder = new StringBuilder();
             foreach (var @enum in enumKeyword.Values)
             {
-                if (value.Length > 0)
+                if (valueBuilder.Length > 0)
                 {
-                    value += ";";
+                    valueBuilder.Append(';');
                 }
 
-                value += @enum.GetString();
+                valueBuilder.Append(@enum.GetString());
             }
 
-            restrictions.Add("enumeration", new Restriction() { Value = value });
+            restrictions.Add("enumeration", new Restriction() { Value = valueBuilder.ToString() });
         }
 
         private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
@@ -829,7 +787,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private bool IsArrayType(JsonSchema subSchema)
+        private static bool IsArrayType(JsonSchema subSchema)
         {
             var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
 
@@ -839,27 +797,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return typeKeyword.Type == SchemaValueType.Array;
-        }
-
-        private static string GetTypeNameFromRef(JsonSchema subSchema)
-        {
-            var refKeyword = subSchema.GetKeyword<RefKeyword>();
-
-            var pointer = JsonPointer.Parse(refKeyword.Reference.ToString());
-
-            var typeName = GetTypeNameFromRefPath(pointer);
-
-            if (string.IsNullOrEmpty(typeName))
-            {
-                throw new ArgumentException("Reference uri must point to a definition in $defs/definitions to be used as TypeName");
-            }
-
-            return typeName;
-        }
-
-        private bool PathAlreadyProcessed(JsonPointer path)
-        {
-            return _modelMetadata.Elements.FirstOrDefault(e => e.Value.JsonSchemaPointer == path.Source).Value != null;
-        }
+        }        
     }
 }

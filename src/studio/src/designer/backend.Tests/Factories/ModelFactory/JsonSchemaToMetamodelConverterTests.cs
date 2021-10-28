@@ -46,7 +46,7 @@ namespace Designer.Tests.Factories.ModelFactory
             XmlSchema originalXsd = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
             JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
-            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true});
+            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
 
             // Convert to Metadata model
             var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());

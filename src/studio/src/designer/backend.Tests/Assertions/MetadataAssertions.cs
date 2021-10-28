@@ -33,7 +33,9 @@ namespace Designer.Tests.Assertions
             Assert.Equal(expectedElement.ParentElement, expectedElement.ParentElement);
             Assert.Equal(expectedElement.Name, actualElement.Name);
 
-            //Assert.Equal(expectedElement.TypeName, actualElement.TypeName);
+            // Commented out for now. Needs to be verified with frontend as
+            // it might be a bug in the old code causing expected to be wrong.
+            // Assert.Equal(expectedElement.TypeName, actualElement.TypeName);
             Assert.Equal(expectedElement.Type, actualElement.Type);
             Assert.Equal(expectedElement.XName, actualElement.XName);
             Assert.Equal(expectedElement.XPath, actualElement.XPath);
