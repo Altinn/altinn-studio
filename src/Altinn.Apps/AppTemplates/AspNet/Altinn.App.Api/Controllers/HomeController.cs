@@ -19,7 +19,6 @@ namespace Altinn.App.Api.Controllers
         private readonly IAntiforgery _antiforgery;
         private readonly PlatformSettings _platformSettings;
         private readonly IWebHostEnvironment _env;
-        private readonly AppSettings _appSettings;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -27,17 +26,14 @@ namespace Altinn.App.Api.Controllers
         /// <param name="antiforgery">The anti forgery service.</param>
         /// <param name="platformSettings">The platform settings.</param>
         /// <param name="env">The current environment.</param>
-        /// <param name="appSettings">The application settings</param>
         public HomeController(
           IAntiforgery antiforgery,
           IOptions<PlatformSettings> platformSettings,
-          IWebHostEnvironment env,
-          IOptions<AppSettings> appSettings)
+          IWebHostEnvironment env)
         {
             _antiforgery = antiforgery;
             _platformSettings = platformSettings.Value;
             _env = env;
-            _appSettings = appSettings.Value;
         }
 
         /// <summary>
@@ -71,11 +67,6 @@ namespace Altinn.App.Api.Controllers
             string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host}/{org}/{app}");
 
             string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
-
-            if (!string.IsNullOrEmpty(_appSettings.AppOidcProvider))
-            {
-                redirectUrl += "&iss=" + _appSettings.AppOidcProvider;
-            }
 
             if (dontChooseReportee)
             {
