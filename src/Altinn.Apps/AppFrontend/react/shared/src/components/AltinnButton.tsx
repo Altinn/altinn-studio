@@ -55,7 +55,8 @@ const useStyles = makeStyles(() => createStyles({
       background: theme.altinnPalette.primary.blueHover,
       color: theme.altinnPalette.primary.black,
       boxShadow: 'none',
-      outline: 'none',
+      outline: '2px solid',
+      outlineColor: theme.altinnPalette.primary.blueDark,
     },
   },
   secondaryButton: {

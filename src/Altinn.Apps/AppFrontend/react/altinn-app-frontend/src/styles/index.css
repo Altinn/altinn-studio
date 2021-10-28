@@ -192,3 +192,7 @@ select.disabled {
     width: auto;
   }
 }
+
+.a-btn-success:focus {
+  outline: 2px solid #0062BA;
+}
