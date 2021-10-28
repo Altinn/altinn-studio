@@ -18,7 +18,7 @@
   "devDependencies": {
     "axe-testcafe": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.1.0",
     "eslint-plugin-testcafe": "^0.2.1",
     "prettier": "^2.4.1",
     "process": "^0.11.10",
