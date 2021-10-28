@@ -15,7 +15,7 @@
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.1" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.2" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
