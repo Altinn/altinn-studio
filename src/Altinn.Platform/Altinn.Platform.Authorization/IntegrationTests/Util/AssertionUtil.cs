@@ -99,6 +99,52 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         }
 
         /// <summary>
+        /// Assert that two Lists of <see cref="Rule"/> have the same number of rules and each rule have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        /// <param name="assertOutputValues">Whether output only values should also be asserted</param>
+        public static void AssertEqual(List<Rule> expected, List<Rule> actual, bool assertOutputValues = false)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i], assertOutputValues);
+            }
+        }
+
+        /// <summary>
+        /// Assert that two <see cref="Rule"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        /// <param name="assertOutputValues">Whether output only values should also be asserted</param>
+        public static void AssertEqual(Rule expected, Rule actual, bool assertOutputValues = false)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            if (assertOutputValues)
+            {
+                Assert.Equal(expected.RuleId, actual.RuleId);
+                Assert.Equal(expected.Type, actual.Type);
+            }
+
+            Assert.Equal(expected.CreatedSuccessfully, actual.CreatedSuccessfully);
+            Assert.Equal(expected.DelegatedByUserId, actual.DelegatedByUserId);
+            Assert.Equal(expected.OfferedByPartyId, actual.OfferedByPartyId);
+            AssertEqual(expected.CoveredBy, actual.CoveredBy);
+            AssertEqual(expected.Resource, actual.Resource);
+            AssertEqual(expected.Action, actual.Action);
+        }
+
+        /// <summary>
         /// Assert that two <see cref="ResourcePolicyResponse"/> have the same property in the same positions.
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
@@ -115,6 +161,30 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
             }
+        }
+
+        private static void AssertEqual(List<AttributeMatch> expected, List<AttributeMatch> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        private static void AssertEqual(AttributeMatch expected, AttributeMatch actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Value, actual.Value);
         }
 
         private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
