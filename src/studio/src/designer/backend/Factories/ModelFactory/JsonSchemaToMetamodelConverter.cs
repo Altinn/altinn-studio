@@ -429,6 +429,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
+            var name = ConvertToCSharpCompatibleName(context.Name);
             var @type = GetType(subSchema);
 
             string typeName;
@@ -455,8 +456,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 new ElementMetadata()
                 {
                     ID = id,
-                    Name = context.Name,
-                    XName = ConvertToCSharpCompatibleName(context.Name),
+                    Name = name,
+                    XName = context.Name,
                     TypeName = typeName,
                     ParentElement = string.IsNullOrEmpty(context.ParentId) ? null : context.ParentId,
                     XsdValueType = xsdValueType,
@@ -504,10 +505,49 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case SchemaValueType.Number:
                     return BaseValueType.Decimal;
                 case SchemaValueType.Integer:
-                    return BaseValueType.Integer;
+                    return MapIntegerValueTypes(subSchema);
                 default:
                     return null;
             }
+        }
+
+        private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
+        {
+            var baseValueType = BaseValueType.Integer;
+
+            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
+            {
+                decimal? minimum = minimumKeyword.Value;
+
+                if (minimum > 0.0m)
+                {
+                    return BaseValueType.PositiveInteger;
+                }
+                else if (minimum == 0.0m)
+                {
+                    return BaseValueType.NonNegativeInteger;
+                }
+            }
+            else if (TryParseXsdTypeKeyword(subSchema, out baseValueType))
+            {
+                return baseValueType;
+            }
+
+            return baseValueType;
+        }
+
+        private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
+        {
+            BaseValueType parsedBaseValueType = BaseValueType.String;
+            bool parseSuccess = false;
+
+            if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
+            {
+                parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+            }
+
+            baseValueType = parsedBaseValueType;
+            return parseSuccess;
         }
 
         private static BaseValueType MapStringValueTypes(JsonSchema subSchema)
@@ -741,7 +781,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private bool IsRequired(string id, string name)
         {
-            var parentId = string.Empty;
+            string parentId;
             if (id.Contains("."))
             {
                 parentId = id.Substring(0, id.LastIndexOf("."));
