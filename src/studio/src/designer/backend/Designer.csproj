@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.4.0" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
@@ -34,7 +34,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
