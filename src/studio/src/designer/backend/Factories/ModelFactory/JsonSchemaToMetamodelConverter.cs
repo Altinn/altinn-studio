@@ -521,16 +521,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                 if (minimum > 0.0m)
                 {
-                    return BaseValueType.PositiveInteger;
+                    baseValueType = BaseValueType.PositiveInteger;
                 }
                 else if (minimum == 0.0m)
                 {
-                    return BaseValueType.NonNegativeInteger;
+                    baseValueType = BaseValueType.NonNegativeInteger;
                 }
             }
-            else if (TryParseXsdTypeKeyword(subSchema, out baseValueType))
+            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
             {
-                return baseValueType;
+                baseValueType = parsedBaseValueType;
             }
 
             return baseValueType;
