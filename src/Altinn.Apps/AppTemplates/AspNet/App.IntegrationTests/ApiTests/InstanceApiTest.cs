@@ -950,7 +950,12 @@ namespace App.IntegrationTests
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string json = await response.Content.ReadAsStringAsync();
-            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+
+            List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
 
             SimpleInstance actual = activeInstances.First();
 
