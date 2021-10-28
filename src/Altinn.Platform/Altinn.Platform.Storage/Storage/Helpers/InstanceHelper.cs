@@ -195,5 +195,47 @@ namespace Altinn.Platform.Storage.Helpers
 
             return instances;
         }
+
+        /// <summary>
+        /// Goes through the hide settings for each app's message box configuration and removes instances that satisfy the hide conditions
+        /// </summary>
+        /// <param name="applications">The list of applications</param>
+        /// <param name="instances">The list of applications to process.</param>
+        public static void RemoveHiddenInstances(Dictionary<string, Application> applications, List<Instance> instances)
+        {
+            List<Instance> instancesToRemove = new List<Instance>();
+
+            foreach (Instance instance in instances)
+            {
+                Application app = applications[instance.AppId];
+                HideSettings hideSettings = app.MessageBoxConfig?.HideSettings;
+
+                if (hideSettings == null)
+                {
+                    continue;
+                }
+
+                if (hideSettings.HideAlways)
+                {
+                    instancesToRemove.Add(instance);
+                }
+                else if (HideOnCurrentTask(hideSettings, instance.Process.CurrentTask))
+                {
+                    instancesToRemove.Add(instance);
+                }
+            }
+
+            instances.RemoveAll(instancesToRemove.Contains);
+        }
+
+        private static bool HideOnCurrentTask(HideSettings hideSettings, ProcessElementInfo currentTask)
+        {
+            if (hideSettings.HideOnTask == null)
+            {
+                return false;
+            }
+
+            return hideSettings.HideOnTask.Contains(currentTask?.ElementId);
+        }
     }
 }
