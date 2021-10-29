@@ -185,31 +185,28 @@ namespace Altinn.Studio.Designer.Controllers
             string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
             string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-            string serviceName = string.Empty;
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            if (System.IO.File.Exists(serviceResourceDirectoryPath))
+            try
             {
-                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                try
+                if (System.IO.File.Exists(serviceResourceDirectoryPath))
                 {
+                    string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
                     ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                    if (textResourceObject != null)
-                    {
-                        serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
-                    }
+                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "ServiceName")?.Value ?? string.Empty);
                 }
-                catch (JsonException ex)
-                {
-                    watch.Stop();
-                    _logger.Log(LogLevel.Error, "Getservicename (parse failed) - {0} ", watch.ElapsedMilliseconds);
-                    return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n"+ex.Message);
-                }
-            }
 
-            watch.Stop();
-            _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
-            return Content(serviceName);
+                return Problem($"Working directory does not exist for {org}/{app}");
+            }
+            catch (JsonException ex)
+            {
+                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
+            }
+            finally
+            {
+                watch.Stop();
+                _logger.Log(LogLevel.Error, "Getservicename - {0} ", watch.ElapsedMilliseconds);
+            }
         }
 
         /// <summary>
