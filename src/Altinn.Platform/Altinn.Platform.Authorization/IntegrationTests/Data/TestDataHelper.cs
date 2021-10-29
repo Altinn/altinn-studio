@@ -34,20 +34,34 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return rule;
         }
 
-        public static RuleMatch GetRuleMatchModel(int lastChangedByUserId, int offeredByPartyId, string org, string app, string ruleId = null, int? coveredByPartyId = null, int? coveredByUserId = null, string action = null)
+        public static RequestToDelete GetRequestToDeleteModel(int lastChangedByUserId, int offeredByPartyId, string org, string app, List<string> ruleIds = null, int? coveredByPartyId = null, int? coveredByUserId = null)
         {
-            RuleMatch ruleMatch = new RuleMatch
+            AttributeMatch coveredBy = new AttributeMatch();
+            if(coveredByUserId == null)
             {
-                LastChangedByUserId = lastChangedByUserId,
-                OfferedByPartyId = offeredByPartyId,
-                CoveredByPartyId = coveredByPartyId,
-                CoveredByUserId = coveredByUserId,
-                Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } },
-                Action = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = action },
-                RuleId = ruleId
+                coveredBy.Id = AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute;
+                coveredBy.Value = coveredByPartyId.ToString();
+            }
+            else
+            {
+                coveredBy.Id = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+                coveredBy.Value = coveredByUserId.ToString();
+            }
+
+            RequestToDelete requestToDelete = new RequestToDelete
+            {
+                DeletedByUserId = lastChangedByUserId,
+                PolicyMatch = new PolicyMatch
+                {
+                    CoveredBy = new List<AttributeMatch> { coveredBy },
+                    OfferedByPartyId  = offeredByPartyId,
+                    Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } }
+                },
+                
+                RuleIds = ruleIds
             };
 
-            return ruleMatch;
+            return requestToDelete;
         }
 
         public static DelegationChange GetDelegationChange(string appid, int offeredByPartyId, int performedByUserId, bool isDeleted = true, int? coveredByPartyId = null, int? coveredByUserId = null)

@@ -76,6 +76,31 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId
+        /// </summary>
+        /// <returns>The CoveredByUserId and CoveredBy PartyId value</returns>
+        public static string GetCoveredByFromMatch(List<AttributeMatch> match, out int? coveredByUserId, out int? coveredByPartyId)
+        {
+            bool validUser = TryGetCoveredByUserIdFromMatch(match, out int coveredByUserIdTemp);
+            bool validParty = TryGetCoveredByPartyIdFromMatch(match, out int coveredByPartyIdTemp);
+            coveredByPartyId = validParty ? coveredByPartyIdTemp : null;
+            coveredByUserId = validUser ? coveredByUserIdTemp : null;
+
+            if(validUser)
+            {
+                return coveredByUserIdTemp.ToString();
+            }
+            else if (validParty)
+            {
+                return coveredByPartyIdTemp.ToString();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Gets Org, App as out params from a single Resource
         /// </summary>
         /// <param name="input">The resource</param>
@@ -154,6 +179,26 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the count of unique Policies in a list of Rules
+        /// </summary>
+        /// <param name="rules">List of rules to check how many individual policies exist</param>
+        /// <returns>count of policies</returns>
+        public static int GetPolicyCount(List<Rule> rules)
+        {
+            List<string> policyPaths = new List<string>();
+            foreach (Rule rule in rules)
+            {
+                bool pathOk = DelegationHelper.TryGetDelegationPolicyPathFromRule(rule, out string delegationPolicyPath);
+                if (pathOk && !policyPaths.Contains(delegationPolicyPath))
+                {
+                    policyPaths.Add(delegationPolicyPath);
+                }
+            }
+
+            return policyPaths.Count;
         }
 
         /// <summary>

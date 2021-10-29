@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -85,7 +86,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         [HttpPost]
         [Route("authorization/api/v1/[controller]/GetRules")]
-        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleMatch ruleMatch, [FromQuery] bool onlyDirectDelegations = false)
+        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RequestToDelete ruleMatch, [FromQuery] bool onlyDirectDelegations = false)
         {
             try
             {
@@ -108,16 +109,16 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
         [Route("authorization/api/v1/[controller]/DeleteRules")]
-        public async Task<ActionResult> DeleteRule([FromBody] List<RuleMatch> ruleMatches)
+        public async Task<ActionResult> DeleteRule([FromBody] List<RequestToDelete> rulesToDelete)
         {
-            if (ruleMatches == null || ruleMatches.Count < 1)
+            if (rulesToDelete == null || rulesToDelete.Count < 1)
             {
-                return BadRequest("Missing ruleMatches in body");
+                return BadRequest("Missing rulesToDelete in body");
             }
 
-            if (ruleMatches.All(r => string.IsNullOrWhiteSpace(r.RuleId)))
+            if (rulesToDelete.All(r => r.RuleIds == null || r.RuleIds.Count == 0))
             {
-                return BadRequest("Not all ruleMAtches has RuleId");
+                return BadRequest("Not all RequestToDelete has RuleId");
             }
 
             if (!ModelState.IsValid)
@@ -127,9 +128,8 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(ruleMatches);
-
-                if (deletionResults.Count == ruleMatches.Count )
+                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
+                if (deletionResults.Count == rulesToDelete.Count )
                 {
                     _logger.LogInformation("Deletion completed");
                     return Created("Created", deletionResults);
@@ -157,11 +157,11 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         [HttpPost]
         [Route("authorization/api/v1/[controller]/DeletePolicy")]
-        public async Task<ActionResult> DeletePolicy([FromBody] List<RuleMatch> policyMatches)
+        public async Task<ActionResult> DeletePolicy([FromBody] List<RequestToDelete> policiesToDelete)
         {
-            if (policyMatches == null || policyMatches.Count < 1)
+            if (policiesToDelete == null || policiesToDelete.Count < 1)
             {
-                return BadRequest("Missing ruleMatches in body");
+                return BadRequest("Missing policiesToDelete in body");
             }
 
             if (!ModelState.IsValid)
@@ -171,15 +171,16 @@ namespace Altinn.Platform.Authorization.Controllers
 
             try
             {
-                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policyMatches);
+                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
+                int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
 
-                if (deletionResults.Count == policyMatches.Count)
+                if (countPolicies == policiesToDelete.Count)
                 {
                     _logger.LogInformation("Deletion completed");
                     return Created("Created", deletionResults);
                 }
 
-                if (deletionResults.Count > 0)
+                if (countPolicies > 0)
                 {
                     _logger.LogInformation("Partial deletion completed");
                     return StatusCode(206, deletionResults);

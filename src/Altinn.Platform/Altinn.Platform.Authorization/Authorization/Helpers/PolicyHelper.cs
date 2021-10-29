@@ -107,34 +107,34 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="input">The list of RuleMAtches to group</param>
         /// <param name="invalidEntries">List of elements failed to create an policy path for</param>
         /// <returns>Dictionary with one key for each policy path</returns>
-        public static Dictionary<string, List<RuleMatch>> GroupRuleMatches(List<RuleMatch> input, out List<RuleMatch> invalidEntries)
+        public static Dictionary<string, List<RequestToDelete>> GroupRuleMatches(List<RequestToDelete> input, out List<RequestToDelete> invalidEntries)
         {
-            Dictionary<string, List<RuleMatch>> result = new Dictionary<string, List<RuleMatch>>();
-            invalidEntries = new List<RuleMatch>();
+            Dictionary<string, List<RequestToDelete>> result = new Dictionary<string, List<RequestToDelete>>();
+            invalidEntries = new List<RequestToDelete>();
 
-            foreach (RuleMatch ruleMatch in input)
+            foreach (RequestToDelete request in input)
             {
-                if (!DelegationHelper.TryGetResourceFromAttributeMatch(ruleMatch.Resource, out string org, out string app))
+                if (!DelegationHelper.TryGetResourceFromAttributeMatch(request.PolicyMatch.Resource, out string org, out string app))
                 {
-                    invalidEntries.Add(ruleMatch);
+                    invalidEntries.Add(request);
                     continue;
                 }
 
-                string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, ruleMatch.OfferedByPartyId.ToString(), (ruleMatch.CoveredByUserId ?? ruleMatch.CoveredByPartyId)?.ToString());
+                string policyPath = GetAltinnAppDelegationPolicyPath(org, app, request.PolicyMatch.OfferedByPartyId.ToString(), request.PolicyMatch.CoveredBy.FirstOrDefault(m => m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute || m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute)?.Value);
 
-                List<RuleMatch> currentRulkeMatch;
+                List<RequestToDelete> currentRequestToDelete;
 
                 if (result.ContainsKey(policyPath))
                 {
-                    currentRulkeMatch = result[policyPath];
+                    currentRequestToDelete = result[policyPath];
                 }
                 else
                 {
-                    currentRulkeMatch = new List<RuleMatch>();
-                    result[policyPath] = currentRulkeMatch;
+                    currentRequestToDelete = new List<RequestToDelete>();
+                    result[policyPath] = currentRequestToDelete;
                 }
 
-                currentRulkeMatch.Add(ruleMatch);               
+                currentRequestToDelete.Add(request);               
             }
 
             return result;
@@ -146,28 +146,17 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="search">The sarch to find the correct rule</param>
         /// <param name="rule">the matched XacmlRule</param>
         /// <returns>The created Rule</returns>
-        public static Rule CreateRuleFromPolicyAndRuleMatch(RuleMatch search, XacmlRule rule)
+        public static Rule CreateRuleFromPolicyAndRuleMatch(RequestToDelete search, XacmlRule rule)
         {
             Rule result = new Rule();
 
             result.RuleId = rule.RuleId;
             result.CreatedSuccessfully = true;
-            result.DelegatedByUserId = search.LastChangedByUserId;
-            result.OfferedByPartyId = search.OfferedByPartyId;
-            result.CoveredBy = new List<AttributeMatch>();
-            if (search.CoveredByUserId != null)
-            {
-                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:userid", Value = search.CoveredByUserId.ToString() });
-            }
-
-            if (search.CoveredByPartyId != null)
-            {
-                result.CoveredBy.Add(new AttributeMatch { Id = "urn:altinn:partyid", Value = search.CoveredByPartyId.ToString() });
-            }
-
-            result.Resource = search.Resource;
-
-            result.Action = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = PolicyHelper.GetActionValueFromRule(rule) };
+            result.DelegatedByUserId = search.DeletedByUserId;
+            result.OfferedByPartyId = search.PolicyMatch.OfferedByPartyId;
+            result.CoveredBy = search.PolicyMatch.CoveredBy;
+            result.Resource = GetResourceFromXcamlRule(rule);
+            result.Action = GetActionValueFromRule(rule);
             
             return result;
         }
@@ -441,25 +430,43 @@ namespace Altinn.Platform.Authorization.Helpers
             }
         }
 
-        private static string GetActionValueFromRule(XacmlRule rule)
+        private static AttributeMatch GetActionValueFromRule(XacmlRule rule)
         {
             foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
-                    AttributeMatch actionAttributeMatch = new AttributeMatch();
                     foreach (XacmlMatch xacmlMatch in allOf.Matches)
                     {
                         if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
                         {
-                            actionAttributeMatch.Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString;
-                            return xacmlMatch.AttributeValue.Value;
+                            return new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value };
                         }
                     }
                 }
             }
 
             return null;
+        }
+
+        private static List<AttributeMatch> GetResourceFromXcamlRule(XacmlRule rule)
+        {
+            List<AttributeMatch> result = new List<AttributeMatch>();
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                        {
+                            result.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         private static List<ResourceAction> GetActionsFromRule(XacmlRule rule, List<RoleGrant> roles)

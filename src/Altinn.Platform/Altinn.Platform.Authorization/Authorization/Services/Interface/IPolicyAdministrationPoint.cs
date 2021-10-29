@@ -30,15 +30,15 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <summary>
         /// Trys to sort and delete the set of rules matching the list of ruleMatches to delete from delegation policy files in blob storage.
         /// </summary>
-        /// <param name="ruleMatches">The set of rules to be delegated</param>
+        /// <param name="rulesToDelete">Entity to define which rules to be deleted</param>
         /// <returns>The list of rules with created Id and result status</returns>
-        Task<List<Rule>> TryDeleteDelegationPolicyRules(List<RuleMatch> ruleMatches);
+        Task<List<Rule>> TryDeleteDelegationPolicyRules(List<RequestToDelete> rulesToDelete);
 
         /// <summary>
         /// Deletes a List of policies based on input list of matches to remove
         /// </summary>
-        /// <param name="policyMatches">entity containing match for all the policies to delete</param>
+        /// <param name="policiesToDelete">entity containing match for all the policies to delete</param>
         /// <returns>A list containing all the policies that is deleted</returns>
-        Task<List<Rule>> TryDeleteDelegationPolicies(List<RuleMatch> policyMatches);
+        Task<List<Rule>> TryDeleteDelegationPolicies(List<RequestToDelete> policiesToDelete);
     }
 }

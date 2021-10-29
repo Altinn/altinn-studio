@@ -1,10 +1,12 @@
 [
   {
-    "ruleId": "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94",
-    "coveredByUserId": 20001337,
-    "offeredByPartyId": 50001337,
-    "lastChangedByUserId": 20001336,
-    "resource": [
+    "ruleIds": [
+      "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
       {
         "id": "urn:altinn:org",
         "value": "org1"
@@ -14,9 +16,12 @@
         "value": "app3"
       }
     ],
-    "action": {
-      "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-      "value": "Read"
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
     }
   }
 ]
