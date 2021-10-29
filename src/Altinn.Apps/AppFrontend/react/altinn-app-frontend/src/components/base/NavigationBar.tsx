@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Grid, makeStyles, createMuiTheme, List } from '@material-ui/core';
+import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRuntimeState, Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
