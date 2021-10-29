@@ -8,7 +8,7 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
-import { IComponentValidations, IComponentBindingValidation } from 'src/types';
+import { IComponentValidations, IComponentBindingValidation, DatepickerRestrictionFlags } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 // eslint-disable-next-line import/no-cycle
 import { validateDatepickerFormData } from '../../utils/validation';
@@ -24,7 +24,6 @@ export interface IDatePickerProps{
   format: string;
   minDate: string;
   maxDate: string;
-  disableFutureDates?: boolean;
   language: any;
   componentValidations: IComponentValidations;
 }
@@ -86,7 +85,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
   const minDate = props.minDate || DatePickerMinDateDefault;
-  const maxDate = props.disableFutureDates ? moment().toISOString() : props.maxDate || DatePickerMaxDateDefault;
+  const maxDate = props.maxDate || DatePickerMaxDateDefault;
 
   const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   moment.locale(locale);
@@ -196,6 +195,8 @@ function DatepickerComponent(props: IDatePickerProps) {
             minDateMessage=''
             minDate={minDate}
             maxDate={maxDate}
+            disableFuture={maxDate === DatepickerRestrictionFlags.Today}
+            disablePast={minDate === DatepickerRestrictionFlags.Today}
             cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
             clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
             todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
