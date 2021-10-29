@@ -10,22 +10,22 @@ type IStandaloneDataModellingProps = Partial<RouteChildrenProps> & {
   classes: any;
 }
 
+interface IOrgRepoType {
+  org: string;
+  repoName: string;
+}
+
 const styles = createStyles({
   containerGrid: {
     marginTop: 70,
   },
 });
 
-type orgRepoType = {
-  org: string;
-  repoName: string;
-}
-
 const DataModellingContainer = ({ classes, language }: IStandaloneDataModellingProps) => {
   const dispatch = useDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
 
-  const { org, repoName } = useParams() as orgRepoType;
+  const { org, repoName } = useParams() as IOrgRepoType;
 
   return (
     <Grid item className={classes.containerGrid}>
