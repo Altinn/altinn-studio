@@ -417,6 +417,80 @@ namespace Designer.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task UploadXsd_AppRepository_ShouldReturnCreated()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/datamodels/upload";
+
+            var fileStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+            var formData = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = formData
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task UploadXsd_DatamodelsRepository_ShouldReturnCreated()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-datamodels";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var client = GetTestClient();
+            var url = $"{_versionPrefix}/{org}/{targetRepository}/datamodels/upload";
+
+            var fileStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+            var formData = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileStream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+            formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = formData
+            };
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            try
+            {
+                var response = await client.SendAsync(httpRequestMessage);
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
         [Theory]
         [InlineData("ServiceA", true, "empty-app")]
         [InlineData("", false, "xyz-datamodels")]

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.Studio.Designer.Configuration;
+
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
@@ -15,13 +15,13 @@ using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -125,12 +125,41 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Upload an XSD.
+        /// </summary>
+        /// <remarks>
+        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema,
+        /// metadata model and C# class.
+        /// </remarks>
+        /// <param name="org">The short name of the application owner.</param>
+        /// <param name="repository">The name of the repository to which the file is being added.</param>
+        /// <param name="thefile">The XSD file being uploaded.</param>
+        [Authorize]
+        [HttpPost("upload")]
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
+        {
+            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+
+            string fileName = GetFileNameFromUploadedFile(thefile);
+            Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
+
+            MemoryStream fileMemoryStream = CopyFileStream(thefile);
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, fileMemoryStream);
+
+            return Created(fileName, jsonSchema);
+        }
+
+        /// <summary>
         /// Post action that is used when uploading a XSD and secondary XSD
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Application identifier which is unique within an organisation.</param>
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
         {
@@ -364,7 +393,7 @@ namespace Altinn.Studio.Designer.Controllers
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
-            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+            return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString().AsFileName();
         }
     }
 }
