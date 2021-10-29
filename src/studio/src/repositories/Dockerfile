@@ -1,5 +1,5 @@
 # base image
-FROM gitea/gitea:1.15.4
+FROM gitea/gitea:1.15.6
 
 # copy configuration file
 # Has to be copied to the templates-folder so parsing of environment variables is correct
