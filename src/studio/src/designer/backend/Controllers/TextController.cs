@@ -205,7 +205,7 @@ namespace Altinn.Studio.Designer.Controllers
             finally
             {
                 watch.Stop();
-                _logger.Log(LogLevel.Error, "Getservicename - {0} ", watch.ElapsedMilliseconds);
+                _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
             }
         }
 
