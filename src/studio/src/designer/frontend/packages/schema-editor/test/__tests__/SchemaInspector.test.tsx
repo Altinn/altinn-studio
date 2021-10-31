@@ -440,7 +440,7 @@ it('dispatches correctly when setting group to nullable', () => {
     payload: {
       path: '#/definitions/allOfTest',
       type: 'NULL',
-      displayName: 'Inline Object'
+      displayName: 'Inline object'
     },
   });
 });
@@ -461,4 +461,11 @@ it('a ref in a allOf/anyOf/oneOf should not display name', () => {
   let wrapper = mountWithId('#/definitions/allOfTest/allOf/0');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   expect(wrapper.find('#selectedItemName').hostNodes()).toHaveLength(0);
+});
+
+it('an inline object in a allOf/anyOf/oneOf should present a textual visualization and information about inline objects', () => {
+  let wrapper = mountWithId('#/definitions/oneOfTestNullable/oneOf/1');
+  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  expect(wrapper.find('#json-paper').hostNodes()).toHaveLength(1);
+  expect(wrapper.find('#information-paper').hostNodes()).toHaveLength(1);
 });

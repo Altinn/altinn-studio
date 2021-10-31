@@ -16,6 +16,7 @@ import { StyledSelect } from './StyledSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
+import InlineObject from './InlineObject';
 
 const useStyles = makeStyles(
   createStyles({
@@ -400,7 +401,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeNullable = (_x: any, nullable: boolean) => {
     if (nullable) {
       dispatch(addGroupItem({
-        path: itemToDisplay?.path, type: 'NULL', displayName: 'Inline Object',
+        path: itemToDisplay?.path, type: 'NULL', displayName: 'Inline object',
       }));
     } else {
       const itemToRemove =
@@ -598,19 +599,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label='restrictions'
               language={props.language}
               value='1'
-              hide={objectKind === 'group'}
+              hide={objectKind === 'group' || selectedItem?.groupItem}
             />
             <SchemaTab
               label='fields'
               language={props.language}
               value='2'
-              hide={itemToDisplay?.type !== 'object'}
+              hide={selectedItem?.type !== 'object' || selectedItem.groupItem}
             />
           </TabList>
 
         </AppBar>
         <TabPanel value='0'>
-          { renderItemData() }
+          { (selectedItem?.groupItem && !selectedItem.$ref) ?
+            <InlineObject item={selectedItem} language={props.language}/> :
+            renderItemData()
+          }
         </TabPanel>
         <TabPanel value='1'>
           <Grid

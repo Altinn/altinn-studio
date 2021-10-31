@@ -377,6 +377,7 @@ describe('SchemaEditorSlice', () => {
       $ref: '#/definitions/Tekst_50',
       displayName: 'ref',
       path: "#/definitions/allOfTest/allOf/0",
+      groupItem: true,
      };
 
     // verify initial state => type is allOf

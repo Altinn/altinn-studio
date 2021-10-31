@@ -217,7 +217,7 @@ export const mapGroupItemToUiSchemaItem = (item: any, index: number, key: GroupK
   };
 };
 
-export const nullType = (item: UiSchemaItem) => item.type === 'NULL';
+export const nullType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
 export const groupIsNullable = (item: UiSchemaItem): boolean => {
   return Boolean(
