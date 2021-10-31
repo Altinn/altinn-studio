@@ -373,11 +373,16 @@ describe('SchemaEditorSlice', () => {
 
   it('handles setting group type', () => {
 
+    const groupItemChild = {
+      $ref: '#/definitions/Tekst_50',
+      displayName: 'ref',
+      path: "#/definitions/allOfTest/allOf/0",
+     };
+
     // verify initial state => type is allOf
     let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    console.log('item', item);
     expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.allOf).toEqual([groupItemChild]);
     expect(item?.anyOf).toEqual(undefined);
 
     const payload = {
@@ -388,7 +393,7 @@ describe('SchemaEditorSlice', () => {
     // change to oneOf => verify changed state
     let nextState = reducer(state, setGroupType(payload));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.oneOf).toEqual([groupItemChild]);
     expect(item?.allOf).toEqual(undefined);
     expect(item?.anyOf).toEqual(undefined);
 
@@ -400,7 +405,7 @@ describe('SchemaEditorSlice', () => {
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.oneOf).toEqual(undefined);
     expect(item?.allOf).toEqual(undefined);
-    expect(item?.anyOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.anyOf).toEqual([groupItemChild]);
 
     // change back to allOf => verify state
     nextState = reducer(nextState, setGroupType({
@@ -409,7 +414,16 @@ describe('SchemaEditorSlice', () => {
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([{ $ref: '#/definitions/Tekst_50' }]);
+    expect(item?.allOf).toEqual([groupItemChild]);
     expect(item?.anyOf).toEqual(undefined);
   });
+
+  it('handles deleting a "group" (anyOf, allOf, oneOf) child', () => {
+    let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.allOf?.length).toBe(1);
+    let nextState = reducer(state, deleteProperty({path: '#/definitions/allOfTest/allOf/0'}));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.allOf?.length).toBe(0);
+  });
+
 });

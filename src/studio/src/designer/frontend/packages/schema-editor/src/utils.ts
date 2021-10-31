@@ -1,4 +1,4 @@
-import { ILanguage, UiSchemaItem } from './types';
+import { GroupKeys, ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
@@ -24,9 +24,7 @@ export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaI
   if (matches.length === 1 && matches[0].path === path) {
     return matches[0];
   }
-  console.log('matches', matches);
   const items = flat(matches, 999);
-  console.log('items', items);
   const result = items.find((i) => i.path === path);
   if (!result) {
     throw new Error(`no uiSchema found: ${path}`);
@@ -41,6 +39,28 @@ export const splitParentPathAndName = (path: string): [string | null, string | n
     const name = path.substring(index + 12);
     return [p, name];
   }
+
+  if (path.match(/oneOf/)) {
+    const index = path.lastIndexOf('/oneOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
+  if (path.match(/allOf/)) {
+    const index = path.lastIndexOf('/allOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
+  if (path.match(/oneOf/)) {
+    const index = path.lastIndexOf('/oneOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
   return [null, null];
 };
 
@@ -169,9 +189,9 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
-        oneOf,
-        allOf,
-        anyOf,
+        oneOf: oneOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
+        allOf: allOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
+        anyOf: anyOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
       });
     } else {
       result.push({
@@ -187,6 +207,14 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   return result;
 }
 
+export const mapGroupItemToUiSchemaItem = (item: any, index: number, key: GroupKeys, parentPath: string) => {
+  return {
+    ...item,
+    path: `${parentPath}/${key}/${index}`,
+    displayName: item.$ref !== undefined ? 'ref' : 'Inline object',
+  };
+};
+
 export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
   name: string, displayName?: string): UiSchemaItem => {
   const rootProperties: any[] = [];
@@ -196,17 +224,18 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
     const {
       type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
+    const path = `${name}/properties/${key}`;
     const item: UiSchemaItem = {
-      path: `${name}/properties/${key}`,
+      path,
       displayName: key,
       type,
       title,
       enum: enums,
       items,
       description,
-      oneOf,
-      allOf,
-      anyOf,
+      oneOf: oneOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
+      allOf: allOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
+      anyOf: anyOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
     };
 
     if (currentProperty.$ref) {

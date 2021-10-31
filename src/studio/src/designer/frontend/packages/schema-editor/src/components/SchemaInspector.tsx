@@ -139,7 +139,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       const [parentPath] = splitParentPathAndName(selectedId);
-      if (parentPath != null) {
+      if (parentPath) {
         return getUiSchemaItem(state.uiSchema, parentPath);
       }
     }

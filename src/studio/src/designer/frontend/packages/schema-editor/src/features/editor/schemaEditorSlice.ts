@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
-import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { GroupKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -172,11 +172,19 @@ const schemaEditorSlice = createSlice({
       const [parentPath, propertyName] = splitParentPathAndName(path);
       if (parentPath) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
-        if (removeFromItem) {
-          const removeIndex = removeFromItem
-            .properties?.findIndex((property) => property.displayName === propertyName) ?? -1;
-          if (removeIndex >= 0) {
-            removeFromItem.properties?.splice(removeIndex, 1);
+        if (removeFromItem && propertyName) {
+          if (removeFromItem.properties) {
+            // removing a object (foo.bar)
+            const removeIndex = removeFromItem
+              .properties?.findIndex((property) => property.displayName === propertyName) ?? -1;
+            if (removeIndex >= 0) {
+              removeFromItem.properties?.splice(removeIndex, 1);
+            }
+          } else {
+            // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
+            const splitPath = path.split('/');
+            const groupKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as GroupKeys;
+            removeFromItem[groupKey]?.splice(parseInt(propertyName, 10), 1);
           }
         }
         return;
@@ -305,9 +313,22 @@ const schemaEditorSlice = createSlice({
     addGroupItem(state, action) {
       const { path, ...rest } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      const groupArray = addToItem.allOf || addToItem.oneOf || addToItem.anyOf || [];
+      let groupType: string;
+      let groupArray: UiSchemaItem[];
+      if (addToItem.allOf) {
+        groupArray = addToItem.allOf;
+        groupType = 'allOf';
+      } else if (addToItem.anyOf) {
+        groupArray = addToItem.anyOf;
+        groupType = 'anyOf';
+      } else if (addToItem.oneOf) {
+        groupArray = addToItem.oneOf;
+        groupType = 'oneOf';
+      } else {
+        throw new Error('adding to invalid group');
+      }
       const item: UiSchemaItem = {
-        path: `${path}/${groupArray?.length}`,
+        path: `${path}/${groupType}/${groupArray?.length}`,
         ...rest,
       };
       if (groupArray) {
@@ -429,6 +450,7 @@ export const {
   addEnum,
   addRootItem,
   addProperty,
+  addGroupItem,
   clearNameFocus,
   deleteField,
   deleteEnum,

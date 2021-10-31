@@ -17,19 +17,19 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/properties/allOfTest',
     displayName: 'allOfTest',
-    allOf: [ { path: '#/properties/allOfTest/0', $ref: '#/$defs/refTest' } as UiSchemaItem],
+    allOf: [ { path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref' } as UiSchemaItem],
     restrictions: [],
   },
   {
     path: '#/properties/oneOfTest',
     displayName: 'oneOfTest',
-    oneOf: [ { path: '#/properties/oneOfTest/0', $ref: '#/$defs/refTest' } as UiSchemaItem],
+    oneOf: [ { path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref' } as UiSchemaItem],
     restrictions: [],
   },
   {
     path: '#/properties/anyOfTest',
     displayName: 'anyOfTest',
-    anyOf: [ { path: '#/properties/anyOfTest/0', $ref: '#/$defs/refTest' } as UiSchemaItem],
+    anyOf: [ { path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref' } as UiSchemaItem],
     restrictions: [],
   },
   {
@@ -98,13 +98,13 @@ test('gets UI schema item', () => {
 });
 
 test('gets UI schema item from allOf/anyOf/oneOf ', () => {
-  const allOfItem = getUiSchemaItem(mockUiSchema, '#/properties/allOfTest/0');
-  const anyOfItem = getUiSchemaItem(mockUiSchema, '#/properties/anyOfTest/0');
-  const oneOfItem = getUiSchemaItem(mockUiSchema, '#/properties/oneOfTest/0');
+  const allOfItem = getUiSchemaItem(mockUiSchema, '#/properties/allOfTest/allOf/0');
+  const anyOfItem = getUiSchemaItem(mockUiSchema, '#/properties/anyOfTest/anyOf/0');
+  const oneOfItem = getUiSchemaItem(mockUiSchema, '#/properties/oneOfTest/oneOf/0');
 
-  expect(allOfItem).toEqual({ path: '#/properties/allOfTest/0', $ref: '#/$defs/refTest' });
-  expect(anyOfItem).toEqual({ path: '#/properties/anyOfTest/0', $ref: '#/$defs/refTest' });
-  expect(oneOfItem).toEqual({ path: '#/properties/oneOfTest/0', $ref: '#/$defs/refTest' });
+  expect(allOfItem).toEqual({ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref' });
+  expect(anyOfItem).toEqual({ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref'  });
+  expect(oneOfItem).toEqual({ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref'  });
 });
 
 test('build json schema', () => {

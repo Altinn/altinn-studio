@@ -3,7 +3,7 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addGroupItem, addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
@@ -146,12 +146,21 @@ function SchemaItem(props: SchemaItemProps) {
   };
 
   const handleAddProperty = (type: PropertyType) => {
-    dispatch(addProperty({
+    const newItem = {
       path: itemToDisplay.path,
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
       allOf: (type === 'group' ? [] : undefined),
-    }));
+    } as UiSchemaItem;
+
+    if (itemToDisplay.allOf || itemToDisplay.anyOf || itemToDisplay.oneOf) {
+      dispatch(addGroupItem({
+        ...newItem,
+        displayName: (type === 'reference') ? 'ref' : '',
+      }));
+    } else {
+      dispatch(addProperty(newItem));
+    }
   };
 
   const handleGoToType = () => {
@@ -192,6 +201,10 @@ function SchemaItem(props: SchemaItemProps) {
     }
     if (itemToDisplay.properties) {
       items.push(renderProperties(itemToDisplay.properties));
+    }
+    const groupChildren = item.allOf || item.oneOf || item.anyOf;
+    if (groupChildren) {
+      items.push(renderProperties(groupChildren));
     }
     return items;
   };

@@ -28,6 +28,8 @@ export interface ISetRefAction {
 
 export type PropertyType = 'group' | 'reference' | 'field';
 
+export type GroupKeys = 'allOf' | 'anyOf' | 'oneOf';
+
 export type Field = {
   key: string;
   value: any;
@@ -49,6 +51,7 @@ export interface UiSchemaItem {
   anyOf?: UiSchemaItem[],
   allOf?: UiSchemaItem[],
   oneOf?: UiSchemaItem[],
+  groupItem?: boolean,
 }
 
 export interface ISchema {
