@@ -506,6 +506,16 @@ const mockString = `
 						}
 					]
 				},
+      "oneOfTestNullable": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "NULL"
+            }
+          ]
+      },
 			"Dato" : {
 					"type" : "string",
 					"format" : "date",

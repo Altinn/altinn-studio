@@ -139,6 +139,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       }
       case 'path':
       case 'displayName':
+      case 'groupItem':
         break;
       default:
         item[key] = uiSchemaItem[key];
@@ -212,7 +213,18 @@ export const mapGroupItemToUiSchemaItem = (item: any, index: number, key: GroupK
     ...item,
     path: `${parentPath}/${key}/${index}`,
     displayName: item.$ref !== undefined ? 'ref' : 'Inline object',
+    groupItem: true,
   };
+};
+
+export const nullType = (item: UiSchemaItem) => item.type === 'NULL';
+
+export const groupIsNullable = (item: UiSchemaItem): boolean => {
+  return Boolean(
+    item?.anyOf?.some(nullType) ||
+    item?.allOf?.some(nullType) ||
+    item?.oneOf?.some(nullType),
+  );
 };
 
 export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},

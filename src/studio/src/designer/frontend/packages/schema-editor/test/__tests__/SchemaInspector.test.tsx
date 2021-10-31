@@ -416,17 +416,43 @@ it('dispatches correctly when adding fields', () => {
   });
 });
 
-  it('dispatches correctly when changing type of group', () => {
-    const wrapper = mountWithId('#/definitions/allOfTest');
-    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-    // https://github.com/mui-org/material-ui/issues/5259#issuecomment-783488623
-    wrapper.find("#definitionsallOfTest-change-group").hostNodes().at(0).simulate("mousedown", { button: 0 });
-    wrapper.find(MenuItem).at(2).simulate('click');
-    expect(mockStore.dispatch).toHaveBeenCalledWith({
-      type: 'schemaEditor/setGroupType',
-      payload: {
-        type: 'oneOf',
-        path: '#/definitions/allOfTest',
-      },
-    });
+it('dispatches correctly when changing type of group', () => {
+  const wrapper = mountWithId('#/definitions/allOfTest');
+  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  // https://github.com/mui-org/material-ui/issues/5259#issuecomment-783488623
+  wrapper.find("#definitionsallOfTest-change-group").hostNodes().at(0).simulate("mousedown", { button: 0 });
+  wrapper.find(MenuItem).at(2).simulate('click');
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/setGroupType',
+    payload: {
+      type: 'oneOf',
+      path: '#/definitions/allOfTest',
+    },
+  });
+});
+
+it('dispatches correctly when setting group to nullable', () => {
+  let wrapper = mountWithId('#/definitions/allOfTest');
+  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0).simulate('change', { target: { checked: true } });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/addGroupItem',
+    payload: {
+      path: '#/definitions/allOfTest',
+      type: 'NULL',
+      displayName: 'Inline Object'
+    },
+  });
+});
+
+it('dispatches correctly when removing nullable option on group', () => {
+  const wrapper = mountWithId('#/definitions/oneOfTestNullable');
+  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  wrapper.find('input[type="checkbox"]').hostNodes().at(0).simulate('change', { target: { checked: false } });
+  expect(mockStore.dispatch).toHaveBeenCalledWith({
+    type: 'schemaEditor/deleteProperty',
+    payload: {
+      path: '#/definitions/oneOfTestNullable/oneOf/1',
+    },
+  });
 });

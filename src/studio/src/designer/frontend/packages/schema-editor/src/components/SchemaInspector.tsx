@@ -8,10 +8,10 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
-  addEnum, deleteEnum, navigateToType, setGroupType }
+  addEnum, deleteEnum, navigateToType, setGroupType, addGroupItem }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, groupIsNullable, nullType } from '../utils';
 import { StyledSelect } from './StyledSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -397,6 +397,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     }));
   };
 
+  const onChangeNullable = (_x: any, nullable: boolean) => {
+    if (nullable) {
+      dispatch(addGroupItem({
+        path: itemToDisplay?.path, type: 'NULL', displayName: 'Inline Object',
+      }));
+    } else {
+      const itemToRemove =
+        itemToDisplay?.oneOf?.find(nullType) ||
+        itemToDisplay?.allOf?.find(nullType) ||
+        itemToDisplay?.anyOf?.find(nullType);
+      if (itemToRemove) {
+        dispatch(deleteProperty({ path: itemToRemove.path }));
+      }
+    }
+  };
+
   const onChangeTitle = () => {
     dispatch(setTitle({ path: selectedId, title }));
   };
@@ -502,6 +518,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             <MenuItem value='oneOf'>{getTranslation('one_of', props.language)}</MenuItem>
           </StyledSelect>
         </>
+      }
+      {(itemToDisplay?.oneOf || itemToDisplay?.allOf || itemToDisplay?.anyOf) &&
+        <FormControlLabel
+          id='multiple-answers-checkbox'
+          className={classes.header}
+          control={<Checkbox
+            color='primary'
+            checked={groupIsNullable(itemToDisplay)}
+            onChange={onChangeNullable}
+            name='checkedNullable'
+          />}
+          label={getTranslation('nullable', props.language)}
+        />
       }
       <hr className={classes.divider} />
       <p className={classes.header}>{getTranslation('descriptive_fields', props.language)}</p>
