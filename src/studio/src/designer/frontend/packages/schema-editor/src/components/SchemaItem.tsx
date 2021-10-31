@@ -171,7 +171,7 @@ function SchemaItem(props: SchemaItemProps) {
 
   const getIconStr = () => {
     const type = item.type;
-    if (type !== 'array' && refItem) {
+    if (type !== 'array' && item.$ref !== undefined) {
       return 'fa-datamodel-ref';
     }
 
@@ -181,6 +181,10 @@ function SchemaItem(props: SchemaItemProps) {
 
     if (item.type === 'integer') {
       return 'fa-datamodel-number';
+    }
+
+    if (type === 'NULL') {
+      return 'fa-datamodel-object';
     }
 
     return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
