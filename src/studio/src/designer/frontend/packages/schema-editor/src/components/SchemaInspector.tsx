@@ -458,22 +458,26 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      <p className={classes.name}>{getTranslation('name', props.language)}</p>
-      <TextField
-        id='selectedItemName'
-        className={classes.field}
-        inputRef={nameFieldRef}
-        placeholder='Name'
-        fullWidth={true}
-        value={nodeName}
-        error={!!nameError}
-        helperText={nameError}
-        onChange={onNameChange}
-        onBlur={onChangeNodeName}
-        InputProps={{
-          disableUnderline: true,
-        }}
-      />
+      {!selectedItem?.groupItem &&
+        <>
+          <p className={classes.name}>{getTranslation('name', props.language)}</p>
+          <TextField
+            id='selectedItemName'
+            className={classes.field}
+            inputRef={nameFieldRef}
+            placeholder='Name'
+            fullWidth={true}
+            value={nodeName}
+            error={!!nameError}
+            helperText={nameError}
+            onChange={onNameChange}
+            onBlur={onChangeNodeName}
+            InputProps={{
+              disableUnderline: true,
+            }}
+          />
+        </>
+      }
       {selectedItem && objectKind === 'type' &&
         <>
           <p className={classes.header}>{getTranslation('type', props.language)}</p>

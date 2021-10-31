@@ -329,6 +329,7 @@ const schemaEditorSlice = createSlice({
       }
       const item: UiSchemaItem = {
         path: `${path}/${groupType}/${groupArray?.length}`,
+        groupItem: true,
         ...rest,
       };
       if (groupArray) {

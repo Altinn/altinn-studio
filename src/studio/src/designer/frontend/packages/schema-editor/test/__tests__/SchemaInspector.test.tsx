@@ -456,3 +456,9 @@ it('dispatches correctly when removing nullable option on group', () => {
     },
   });
 });
+
+it('a ref in a allOf/anyOf/oneOf should not display name', () => {
+  let wrapper = mountWithId('#/definitions/allOfTest/allOf/0');
+  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+  expect(wrapper.find('#selectedItemName').hostNodes()).toHaveLength(0);
+});
