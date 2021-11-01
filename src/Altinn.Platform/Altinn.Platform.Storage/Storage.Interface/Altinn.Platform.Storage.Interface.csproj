@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>3.4.0</Version>
-    <AssemblyVersion>3.4.0.0</AssemblyVersion>
+    <Version>3.5.0</Version>
+    <AssemblyVersion>3.5.0.0</AssemblyVersion>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
     <PackageTags>Altinn;Studio;Platform;Storage;Models</PackageTags>
     <Description>
