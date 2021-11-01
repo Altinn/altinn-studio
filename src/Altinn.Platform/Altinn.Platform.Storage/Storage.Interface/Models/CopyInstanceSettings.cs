@@ -22,9 +22,9 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<string> ExcludedDataTypes { get; set; }
 
         /// <summary>
-        /// Gets or sets a dictionary indexed by data type that contains a list of excluded datafields.
+        /// Gets or sets a list of excluded datafields.
         /// </summary>
         [JsonProperty(PropertyName = "excludedDataFields")]
-        public Dictionary<string, List<string>> ExcludedDataFields { get; set; }
+        public List<string> ExcludedDataFields { get; set; }
     }
 }
