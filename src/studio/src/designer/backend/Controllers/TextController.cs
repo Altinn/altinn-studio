@@ -186,7 +186,6 @@ namespace Altinn.Studio.Designer.Controllers
             string filename = $"resource.{defaultLang}.json";
             string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 if (System.IO.File.Exists(serviceResourceDirectoryPath))
@@ -201,11 +200,6 @@ namespace Altinn.Studio.Designer.Controllers
             catch (JsonException ex)
             {
                 return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
-            }
-            finally
-            {
-                watch.Stop();
-                _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
             }
         }
 
