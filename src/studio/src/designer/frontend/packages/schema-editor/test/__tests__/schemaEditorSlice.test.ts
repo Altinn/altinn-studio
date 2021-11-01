@@ -383,7 +383,7 @@ describe('SchemaEditorSlice', () => {
     // verify initial state => type is allOf
     let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([groupItemChild]);
+    expect(item?.allOf).toEqual([{ ...groupItemChild, path: '#/definitions/allOfTest/allOf/0'}]);
     expect(item?.anyOf).toEqual(undefined);
 
     const payload = {
@@ -394,7 +394,7 @@ describe('SchemaEditorSlice', () => {
     // change to oneOf => verify changed state
     let nextState = reducer(state, setGroupType(payload));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual([groupItemChild]);
+    expect(item?.oneOf).toEqual([{ ...groupItemChild, path: '#/definitions/allOfTest/oneOf/0'}]);
     expect(item?.allOf).toEqual(undefined);
     expect(item?.anyOf).toEqual(undefined);
 
@@ -406,7 +406,7 @@ describe('SchemaEditorSlice', () => {
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.oneOf).toEqual(undefined);
     expect(item?.allOf).toEqual(undefined);
-    expect(item?.anyOf).toEqual([groupItemChild]);
+    expect(item?.anyOf).toEqual([{ ...groupItemChild, path: '#/definitions/allOfTest/anyOf/0'}]);
 
     // change back to allOf => verify state
     nextState = reducer(nextState, setGroupType({
@@ -415,7 +415,7 @@ describe('SchemaEditorSlice', () => {
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([groupItemChild]);
+    expect(item?.allOf).toEqual([{ ...groupItemChild, path: '#/definitions/allOfTest/allOf/0'}]);
     expect(item?.anyOf).toEqual(undefined);
   });
 

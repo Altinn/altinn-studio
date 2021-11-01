@@ -227,6 +227,21 @@ export const groupIsNullable = (item: UiSchemaItem): boolean => {
   );
 };
 
+export const mapGroupChildren = (children: UiSchemaItem[], toType: GroupKeys): UiSchemaItem[] => {
+  // example case, going from oneOf to allOf
+  // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
+  // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0
+  return children.map((child) => {
+    const splitPath = child.path.split('/');
+    splitPath[splitPath.length - 2] = toType;
+    const mappedPath = splitPath.join('/');
+    return {
+      ...child,
+      path: mappedPath,
+    };
+  });
+};
+
 export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
   name: string, displayName?: string): UiSchemaItem => {
   const rootProperties: any[] = [];

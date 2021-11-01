@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber } from '../../utils';
+import { createSlice, current } from '@reduxjs/toolkit';
+import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapGroupChildren } from '../../utils';
 import { GroupKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -294,21 +294,18 @@ const schemaEditorSlice = createSlice({
 
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
 
-      if (type === 'oneOf') {
-        schemaItem.oneOf = schemaItem.allOf || schemaItem.anyOf;
-        schemaItem.allOf = undefined;
-        schemaItem.anyOf = undefined;
+      let currentType: GroupKeys;
+      if (schemaItem.allOf) {
+        currentType = 'allOf';
+      } else if (schemaItem.anyOf) {
+        currentType = 'anyOf';
+      } else {
+        currentType = 'oneOf';
       }
-      if (type === 'anyOf') {
-        schemaItem.anyOf = schemaItem.allOf || schemaItem.oneOf;
-        schemaItem.allOf = undefined;
-        schemaItem.oneOf = undefined;
-      }
-      if (type === 'allOf') {
-        schemaItem.allOf = schemaItem.oneOf || schemaItem.anyOf;
-        schemaItem.anyOf = undefined;
-        schemaItem.oneOf = undefined;
-      }
+
+      const mappedChildren = mapGroupChildren(schemaItem[currentType] || [], type);
+      schemaItem[type as GroupKeys] = mappedChildren;
+      schemaItem[currentType] = undefined;
     },
     addGroupItem(state, action) {
       const { path, ...rest } = action.payload;
