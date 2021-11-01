@@ -14,7 +14,7 @@ Summary of the changes (max 80 characters)
 
 {Detail}
 
-Fixes #{issu number} (in this specific format)
+Fixes #{issue number} (in this specific format)
 
 ## Verification
 - [ ] Your code builds clean without any errors or warnings
