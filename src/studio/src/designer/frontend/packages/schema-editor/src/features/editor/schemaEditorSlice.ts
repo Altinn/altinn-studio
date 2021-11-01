@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { createSlice, current } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapGroupChildren } from '../../utils';
 import { GroupKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
