@@ -279,6 +279,7 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.OnEntry = application.OnEntry;
             existingApplication.DataFields = application.DataFields;
             existingApplication.MessageBoxConfig = application.MessageBoxConfig;
+            existingApplication.CopyInstanceSettings = application.CopyInstanceSettings;
 
             try
             {
