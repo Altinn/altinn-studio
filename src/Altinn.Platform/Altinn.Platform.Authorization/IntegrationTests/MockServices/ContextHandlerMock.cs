@@ -240,7 +240,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
 
             return attribute;
-
         }
 
         private Instance GetInstance(string instanceId)
