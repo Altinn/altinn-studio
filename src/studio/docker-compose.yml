@@ -26,7 +26,6 @@ services:
       - NGINX_PORT=80
     depends_on:
       - altinn_repositories
-      - altinn_designer
     build:
       context: ./src/load-balancer
 
