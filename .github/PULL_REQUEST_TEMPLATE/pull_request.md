@@ -15,12 +15,13 @@ Summary of the changes (max 80 characters)
 ## Description
 
 {Detail}
+
 ## Fixes
-- #{issue number} (in this specific format)
+- #{issue number}
 
 ## Verification
-- [ ] Your code builds clean without any errors or warnings
+- [ ] **Your** code builds clean without any errors or warnings
 - [ ] Manual testing done (required)
-- [ ] Relevant automated test added
+- [ ] Relevant automated test added (if you find this hard, leave it and we'll help out)
 - [ ] All tests run green
 - [ ] Documentation is updated
