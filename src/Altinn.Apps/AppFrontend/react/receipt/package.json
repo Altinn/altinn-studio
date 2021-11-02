@@ -9,7 +9,7 @@
     "test": "jest",
     "compile-ts": "tsc",
     "clean": "rimraf dist compiled",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress",
+    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
