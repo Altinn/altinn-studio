@@ -439,7 +439,7 @@ it('dispatches correctly when setting group to nullable', () => {
     type: 'schemaEditor/addGroupItem',
     payload: {
       path: '#/definitions/allOfTest',
-      type: 'NULL',
+      type: 'null',
       displayName: 'Inline object'
     },
   });

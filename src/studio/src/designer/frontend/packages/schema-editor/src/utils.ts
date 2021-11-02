@@ -40,8 +40,8 @@ export const splitParentPathAndName = (path: string): [string | null, string | n
     return [p, name];
   }
 
-  if (path.match(/oneOf/)) {
-    const index = path.lastIndexOf('/oneOf/');
+  if (path.match(/anyOf/)) {
+    const index = path.lastIndexOf('/anyOf/');
     const p = path.substring(0, index);
     const name = path.substring(index + 7);
     return [p, name];

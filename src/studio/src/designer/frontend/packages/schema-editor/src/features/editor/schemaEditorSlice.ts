@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, current } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapGroupChildren } from '../../utils';
 import { GroupKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
@@ -184,7 +184,17 @@ const schemaEditorSlice = createSlice({
             // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
             const splitPath = path.split('/');
             const groupKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as GroupKeys;
-            removeFromItem[groupKey]?.splice(parseInt(propertyName, 10), 1);
+            const children = removeFromItem[groupKey];
+            const index = parseInt(propertyName, 10);
+            if (children) {
+              children.splice(index, 1);
+              // shift child item paths if necessary
+              for (let i = index; i < children.length; i += 1) {
+                const splitChildPath = children[i].path.split('/');
+                splitChildPath[splitChildPath.length - 1] = i.toString();
+                children[i].path = splitChildPath.join('/');
+              }
+            }
           }
         }
         return;

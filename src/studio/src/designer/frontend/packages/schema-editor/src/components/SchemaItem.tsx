@@ -183,7 +183,7 @@ function SchemaItem(props: SchemaItemProps) {
       return 'fa-datamodel-number';
     }
 
-    if (type === 'NULL') {
+    if (type === 'null') {
       return 'fa-datamodel-object';
     }
 
@@ -226,6 +226,7 @@ function SchemaItem(props: SchemaItemProps) {
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
         key={`${item.path}-label`}
+        limitedItem={item.groupItem}
       />}
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
       key={item.path}

@@ -512,7 +512,23 @@ const mockString = `
               "$ref": "#/definitions/Tekst_50"
             },
             {
-              "type": "NULL"
+              "type": "null"
+            }
+          ]
+      },
+      "anyOfTestSeveralItems": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "string"
             }
           ]
       },

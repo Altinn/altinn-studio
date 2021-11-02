@@ -8,6 +8,7 @@ export interface SchemaItemLabelProps {
   icon: string;
   label: string;
   language: ILanguage;
+  limitedItem?: boolean,
   onAddProperty?: (type: PropertyType) => void;
   onAddReference?: (type: PropertyType) => void;
   onAddGroup?: (type: PropertyType) => void;
@@ -107,7 +108,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {props.onAddReference &&
+        {props.onAddReference && !props.limitedItem &&
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'
@@ -115,7 +116,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             iconClass='fa fa-datamodel-ref'
           />
         }
-        {props.onAddProperty &&
+        {props.onAddProperty && !props.limitedItem &&
           <AltinnMenuItem
             id='add-property-to-node-button'
             key='add_property'
@@ -123,7 +124,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             iconClass='fa fa-datamodel-properties'
           />
         }
-        {props.onAddGroup &&
+        {props.onAddGroup && !props.limitedItem &&
           <AltinnMenuItem
             id='add-group-to-node-button'
             key='add_group'
@@ -131,7 +132,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             iconClass='fa fa-group'
           />
         }
-        {props.onPromote && <AltinnMenuItem
+        {props.onPromote && !props.limitedItem && <AltinnMenuItem
           id='promote-item-button'
           key='promote'
           onClick={handlePromoteClick} text={getTranslation('promote', props.language)}

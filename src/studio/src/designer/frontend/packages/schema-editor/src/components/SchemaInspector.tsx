@@ -401,13 +401,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeNullable = (_x: any, nullable: boolean) => {
     if (nullable) {
       dispatch(addGroupItem({
-        path: itemToDisplay?.path, type: 'NULL', displayName: 'Inline object',
+        path: selectedItem?.path, type: 'null', displayName: 'Inline object',
       }));
     } else {
       const itemToRemove =
-        itemToDisplay?.oneOf?.find(nullType) ||
-        itemToDisplay?.allOf?.find(nullType) ||
-        itemToDisplay?.anyOf?.find(nullType);
+        selectedItem?.oneOf?.find(nullType) ||
+        selectedItem?.allOf?.find(nullType) ||
+        selectedItem?.anyOf?.find(nullType);
       if (itemToRemove) {
         dispatch(deleteProperty({ path: itemToRemove.path }));
       }
@@ -611,7 +611,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
         </AppBar>
         <TabPanel value='0'>
-          { (selectedItem?.groupItem && !selectedItem.$ref) ?
+          { (selectedItem?.groupItem && selectedItem.$ref === undefined) ?
             <InlineObject item={selectedItem} language={props.language}/> :
             renderItemData()
           }

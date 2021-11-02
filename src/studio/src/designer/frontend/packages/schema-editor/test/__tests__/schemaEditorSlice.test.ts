@@ -419,12 +419,15 @@ describe('SchemaEditorSlice', () => {
     expect(item?.anyOf).toEqual(undefined);
   });
 
-  it('handles deleting a "group" (anyOf, allOf, oneOf) child', () => {
-    let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.allOf?.length).toBe(1);
-    let nextState = reducer(state, deleteProperty({path: '#/definitions/allOfTest/allOf/0'}));
-    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.allOf?.length).toBe(0);
+  it('handles deleting a "group" (anyOf, allOf, oneOf) child and shifting children paths', () => {
+    let item = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(item?.anyOf?.length).toBe(4);
+    let nextState = reducer(state, deleteProperty({path: '#/definitions/anyOfTestSeveralItems/anyOf/1'}));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(item?.anyOf?.length).toBe(3);
+    expect(item?.anyOf?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');
+    expect(item?.anyOf?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
+    expect(item?.anyOf?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
   });
 
 });
