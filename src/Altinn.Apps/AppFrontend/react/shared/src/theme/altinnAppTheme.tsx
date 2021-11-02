@@ -1,5 +1,5 @@
 declare module '@material-ui/core/styles/createTheme' {
-  // tslint:disable-next-line:interface-name
+
   interface Theme {
     accessibility: {
       focusVisible: {
@@ -45,7 +45,7 @@ const AltinnAppTheme = {
     },
   },
   altinnPalette: {
-    // tslint:disable-next-line:max-line-length
+
     // These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
     primary: {
       blueDarker: '#022F51',

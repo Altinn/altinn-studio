@@ -101,7 +101,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       </Typography>
       {props.initialCommit &&
         <Typography className={classNames(classes.sidebarCreatedBy)}>
-          {/* tslint:disable-next-line:max-line-length */}
           {getLanguageFromKey('administration.created_by', props.language)} {formatNameAndDate(props.initialCommit.author.name, props.service.created_at)}
         </Typography>
       }

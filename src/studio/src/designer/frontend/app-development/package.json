@@ -8,11 +8,8 @@
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "test": "jest",
     "compile-ts": "tsc",
-    "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",
-    "format": "prettier-tslint fix src/**/*.{ts,tsx}",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress --mode development",
-    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix"
+    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress --mode development"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
@@ -76,7 +73,6 @@
     "mini-css-extract-plugin": "^1.6.2",
     "monaco-editor-webpack-plugin": "^4.2.0",
     "prettier": "^2.4.1",
-    "prettier-tslint": "^0.4.2",
     "react-test-renderer": "^17.0.2",
     "redux-mock-store": "^1.5.4",
     "resolve-url-loader": "^3.1.4",

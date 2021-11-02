@@ -47,7 +47,6 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
 export class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps, IAltinnDropdownComponentState> {
   public render() {
     const { classes } = this.props;

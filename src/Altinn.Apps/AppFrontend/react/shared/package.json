@@ -6,7 +6,6 @@
   "license": "3-Clause BSD",
   "scripts": {
     "test": "jest",
-    "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
     "styleguide": "styleguidist server",
     "styleguide:build": "styleguidist build"
   },

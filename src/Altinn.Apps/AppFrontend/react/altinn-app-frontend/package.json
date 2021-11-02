@@ -9,10 +9,8 @@
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "test": "jest",
     "compile-ts": "tsc",
-    "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
-    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix",
     "styleguidist:run": "npx styleguidist server",
     "styleguidist:build": "npx styleguidist build"
   },
