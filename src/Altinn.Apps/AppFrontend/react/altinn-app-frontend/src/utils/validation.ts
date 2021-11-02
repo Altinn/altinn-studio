@@ -7,7 +7,7 @@ import * as AjvCore from 'ajv/dist/core';
 import Ajv2020 from 'ajv/dist/2020';
 import dot from 'dot-object';
 import addFormats from 'ajv-formats';
-import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings, IRuntimeState } from 'src/types';
+import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings, IRuntimeState, DatepickerRestrictionFlags } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
@@ -384,6 +384,20 @@ function attachmentsValid(attachments: any, component: any): boolean {
   );
 }
 
+export function getRuleBasedDate(date: string, defaultDate?: string): moment.Moment | string {
+  if (!date) {
+    return defaultDate ?? null;
+  }
+
+  if (date === DatepickerRestrictionFlags.Today) {
+    const today = moment();
+    today.set('hour', 12);
+    today.set('minute', 0);
+    return today;
+  }
+
+  return moment(date);
+}
 /*
   Validates the datepicker form data, returns an array of error messages or empty array if no errors found
 */
@@ -403,9 +417,9 @@ export function validateDatepickerFormData(
     validations.errors.push(getParsedLanguageFromKey('date_picker.invalid_date_message', language, [format]));
   }
 
-  if (date && date.isBefore(minDate)) {
+  if (date && date.isBefore(getRuleBasedDate(minDate))) {
     messages.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
-  } else if (date && date.isAfter(maxDate)) {
+  } else if (date && date.isAfter(getRuleBasedDate(maxDate))) {
     messages.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
   }
   messages.forEach((message: string) => {
