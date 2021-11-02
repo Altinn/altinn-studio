@@ -230,7 +230,7 @@ export function RepeatingGroupTable({
                     <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(index)}>
                       {rowHasErrors ?
                         getLanguageFromKey('general.edit_alt_error', language) :
-                        getLanguageFromKey('general.edit_alt', language)}
+                        editIndex === index ? getLanguageFromKey('general.save', language) : getLanguageFromKey('general.edit_alt', language)}
                       <i className={rowHasErrors ?
                         `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}` :
                         `fa fa-editing-file ${classes.editIcon}`}
@@ -267,7 +267,7 @@ export function RepeatingGroupTable({
                 >
                   {rowHasErrors ?
                     getLanguageFromKey('general.edit_alt_error', language) :
-                    getLanguageFromKey('general.edit_alt', language)}
+                    editIndex === index ? getLanguageFromKey('general.save', language) : getLanguageFromKey('general.edit_alt', language)}
                   <i className={rowHasErrors ?
                     `ai ai-circle-exclamation ${classes.errorIcon}` :
                     `fa fa-editing-file ${classes.editIcon}`}
