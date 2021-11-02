@@ -24,4 +24,4 @@ Summary of the changes (max 80 characters)
 - [ ] Manual testing done (required)
 - [ ] Relevant automated test added (if you find this hard, leave it and we'll help out)
 - [ ] All tests run green
-- [ ] Documentation is updated
+- [ ] Documentation is updated with a separate linked PR in altinn-docs (if applicable)
