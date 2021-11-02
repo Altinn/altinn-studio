@@ -12,7 +12,7 @@
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
     <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.10" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.4.0" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.8.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />

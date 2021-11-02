@@ -30,12 +30,12 @@
     "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
-    "axe-core": "^4.3.3",
-    "cypress": "^8.6.0",
+    "axe-core": "^4.3.4",
+    "cypress": "^8.7.0",
     "cypress-axe": "^0.13.0",
     "cypress-file-upload": "^5.0.8",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^7.32.0",
+    "eslint": "^8.1.0",
     "eslint-plugin-cypress": "^2.12.1",
     "faker": "^5.5.3",
     "fs-extra": "^10.0.0",
