@@ -1,7 +1,7 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setGroupType } from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setGroupType, addGroupItem } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -428,6 +428,33 @@ describe('SchemaEditorSlice', () => {
     expect(item?.anyOf?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');
     expect(item?.anyOf?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
     expect(item?.anyOf?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
+  });
+
+  it('handles adding child items to groups', () => {
+    // anyOf
+    let anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(anyOfItem?.anyOf?.length).toBe(4);
+    let nextState = reducer(state, addGroupItem({ path: '#/definitions/anyOfTestSeveralItems', type: 'string'}));
+    let updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(updatedAnyOfItem?.anyOf?.length).toBe(5);
+    expect(updatedAnyOfItem?.anyOf?.[4].type).toBe('string');
+
+    // allOf
+    let allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(allOfItem?.allOf?.length).toBe(1);
+    nextState = reducer(state, addGroupItem({ path: '#/definitions/allOfTest', type: 'string'}));
+    let updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(updatedAllOfItem?.allOf?.length).toBe(2);
+    expect(updatedAllOfItem?.allOf?.[1].type).toBe('string');
+
+    // oneOf
+    let oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    expect(oneOfItem?.oneOf?.length).toBe(2);
+    nextState = reducer(state, addGroupItem({ path: '#/definitions/oneOfTestNullable', type: 'string'}));
+    let updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    expect(updatedOneOfItem?.oneOf?.length).toBe(3);
+    expect(updatedOneOfItem?.oneOf?.[2].type).toBe('string');
+
   });
 
 });
