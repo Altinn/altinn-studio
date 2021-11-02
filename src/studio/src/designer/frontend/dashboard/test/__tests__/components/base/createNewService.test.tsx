@@ -1,5 +1,5 @@
-/* tslint:disable:jsx-wrap-multiline */
-/* tslint:disable:max-line-length */
+
+
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';

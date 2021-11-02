@@ -336,7 +336,7 @@ describe('>>> utils/validations.ts', () => {
     };
 
     mockDataElementValidations = [
-      // tslint:disable max-line-length
+
       {
         field: 'dataModelField_1',
         severity: Severity.Error,

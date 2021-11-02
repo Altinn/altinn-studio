@@ -1,4 +1,4 @@
-// tslint:disable: max-line-length
+
 import 'jest';
 import { returnInstanceMetaDataObject } from './../../src/features/receipt/containers/receiptContainer';
 
