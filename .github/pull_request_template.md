@@ -1,12 +1,4 @@
----
-name: Pull request
-about: Create a pull request for an issue in Altinn Studio
----
-
-Thank you for contributing to Altinn:) We know this isn't the fun part, 
-but please make sure you follow our [contributing guidelines](../../CONTRIBUTING.md) and 
-put the same effort into the pull request as you did into the code and 
-it should soon find it's way to master.
+Thank you for contributing to Altinn:) We know this isn't the fun part, but please make sure you follow our [contributing guidelines](../../CONTRIBUTING.md) and put the same effort into the pull request as you did into the code and it should soon find it's way to master.
 
 # {PR title}
 
