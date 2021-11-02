@@ -1,5 +1,5 @@
 # Altinn 3
-
+TESTING
 **Altinn Studio** is the next generation Altinn application development solution.  
 Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), this is a complete application development and hosting platform.
 
