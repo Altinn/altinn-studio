@@ -107,7 +107,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        ////[Authorize(Policy = AuthzConstants.DELEGATIONS_ALTINNII)]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/DeleteRules")]
         public async Task<ActionResult> DeleteRule([FromBody] List<RequestToDelete> rulesToDelete)
         {
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return BadRequest("Missing rulesToDelete in body");
             }
 
-            if (rulesToDelete.All(r => r.RuleIds == null || r.RuleIds.Count == 0))
+            if (rulesToDelete.Any(r => r.RuleIds == null || r.RuleIds.Count == 0))
             {
                 return BadRequest("Not all RequestToDelete has RuleId");
             }
@@ -129,7 +129,9 @@ namespace Altinn.Platform.Authorization.Controllers
             try
             {
                 List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
-                if (deletionResults.Count == rulesToDelete.Count )
+                int ruleCountToDelete = DelegationHelper.GetRulesCountToDeleteFromRequestToDelete(rulesToDelete);
+
+                if (deletionResults.Count == ruleCountToDelete)
                 {
                     _logger.LogInformation("Deletion completed");
                     return Created("Created", deletionResults);
@@ -156,6 +158,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// Endpoint for deleting an entire delegated policy between parties
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/DeletePolicy")]
         public async Task<ActionResult> DeletePolicy([FromBody] List<RequestToDelete> policiesToDelete)
         {

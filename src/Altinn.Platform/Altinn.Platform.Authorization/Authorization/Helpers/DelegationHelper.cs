@@ -202,6 +202,22 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Returns the count of unique Policies in a list of Rules
+        /// </summary>
+        /// <param name="rulesToDelete">List of rules and policies to check how many individual ruleids exist</param>
+        /// <returns>count of policies</returns>
+        public static int GetRulesCountToDeleteFromRequestToDelete(List<RequestToDelete> rulesToDelete)
+        {
+            int result = 0;
+            foreach (RequestToDelete ruleToDelete in rulesToDelete)
+            {
+                result += ruleToDelete.RuleIds.Count;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Checks whether the provided XacmlPolicy contains a rule having an identical Resource signature and contains the Action from the rule,
         /// to be used for checking for duplicate rules in delegation.
         /// </summary>
