@@ -203,7 +203,6 @@ function AltinnParty(props: IAltinnPartyProps) {
                   {childParty.name}
                 </Typography>
                 <Typography className={classes.partyInfo}>
-                  {/* tslint:disable-next-line:max-line-length*/}
                   &nbsp;{!language.party_selection ?
                     'party_selection.unit_org_number' :
                     language.party_selection.unit_org_number
@@ -233,7 +232,6 @@ function AltinnParty(props: IAltinnPartyProps) {
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
-          {/* tslint:disable-next-line:max-line-length */}
           {party.name + (party.isDeleted ? ` (${!language.party_selection ? 'party_selection.unit_deleted' : language.party_selection.unit_deleted}) ` : '')}
         </Typography>
         <Typography className={classes.partyInfo}>

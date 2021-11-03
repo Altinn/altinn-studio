@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 /* eslint-disable indent */
-// /* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -169,7 +168,6 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
 //     instance.onDrop([], mockFileList);
 //     const call = spy.mock.calls[0][0] as any;
 //     expect(call.validations.length).toBe(mockFileList.length);
-//     // tslint:disable-next-line: max-line-length
 //     expect(call.validations[0]).toBe('form_filler.file_uploader_validation_error_general_1 mock-name-1.txt form_filler.file_uploader_validation_error_general_2');
 //     expect(call.validations[3]).toBe('mock-name-4.txt form_filler.file_uploader_validation_error_file_size');
 //   });

@@ -595,7 +595,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // If FormLayout.json exists in app/ui => move it to app/ui/layouts (for backwards comp)
             string filedata = string.Empty;
-            string formLayoutPath = _settings.GetFormLayoutPath(org, app, developer);
+            string formLayoutPath = _settings.GetOldFormLayoutPath(org, app, developer);
             if (File.Exists(formLayoutPath))
             {
                 filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
@@ -1890,7 +1890,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void DeleteOldFormLayoutJson(string org, string app, string developer)
         {
-            string path = _settings.GetFormLayoutPath(org, app, developer);
+            string path = _settings.GetOldFormLayoutPath(org, app, developer);
             if (File.Exists(path))
             {
                 File.Delete(path);

@@ -203,7 +203,7 @@ namespace Altinn.Platform.Authorization.Repositories
                     return await blobClient.UploadAsync(fileStream, blobUploadOptions);
                 }
 
-                return await blobClient.UploadAsync(fileStream);
+                return await blobClient.UploadAsync(fileStream, true);
             }
             catch (RequestFailedException ex)
             {
