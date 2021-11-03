@@ -324,7 +324,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceInstansiation">instansiation information</param>
+        /// <param name="instansiationInstance">instansiation information</param>
         /// <returns>The new instance</returns>
         [HttpPost("create")]
         [DisableFormValueModelBinding]
@@ -335,7 +335,7 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<Instance>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromBody] InstansiationInstance instanceInstansiation)
+        [FromBody] InstansiationInstance instansiationInstance)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -353,7 +353,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"AppId {org}/{app} was not found");
             }
 
-            InstanceOwner lookup = instanceInstansiation.InstanceOwner;
+            InstanceOwner lookup = instansiationInstance.InstanceOwner;
 
             if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
             {
@@ -363,7 +363,7 @@ namespace Altinn.App.Api.Controllers
             Party party;
             try
             {
-                party = await LookupParty(instanceInstansiation.InstanceOwner);
+                party = await LookupParty(instansiationInstance.InstanceOwner);
             }
             catch (Exception partyLookupException)
             {
@@ -392,7 +392,7 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            Instance instanceTemplate = new Instance() { InstanceOwner = instanceInstansiation.InstanceOwner };
+            Instance instanceTemplate = new Instance() { InstanceOwner = instansiationInstance.InstanceOwner };
 
             // Run custom app logic to validate instantiation
             InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
@@ -418,11 +418,17 @@ namespace Altinn.App.Api.Controllers
                     instanceTemplate.Status.ReadStatus = ReadStatus.Read;
                 }
 
-                // create the instance
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
 
+                if (!string.IsNullOrEmpty(instansiationInstance.SourceInstanceId) && application.CopyInstanceSettings?.Enabled == true)
+                {
+                    await CopyDataFromSourceInstance(application, instansiationInstance.SourceInstanceId, instance);
+                }
+
+                instance = await _instanceClient.GetInstance(instance);
+
                 // notify app and store events
-                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instanceInstansiation.Prefill);
+                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instansiationInstance.Prefill);
                 await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
             }
             catch (Exception exception)
@@ -436,6 +442,91 @@ namespace Altinn.App.Api.Controllers
             string url = instance.SelfLinks.Apps;
 
             return Created(url, instance);
+        }
+
+        private async Task CopyDataFromSourceInstance(Application application, string sourceInstanceId, Instance instance)
+        {
+            string[] sourceSplit = sourceInstanceId.Split("/");
+
+            string sourceInstanceOwner = sourceSplit[0];
+            Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
+            if (!instance.InstanceOwner.PartyId.Equals(sourceInstanceOwner))
+            {
+                return;
+            }
+
+            Instance source = await _instanceClient.GetInstance(
+                app,
+                org,
+                instanceOwnerPartyId,
+                sourceInstanceGuid);
+
+            if (source.Process.Ended == null)
+            {
+                return;
+            }
+
+            List<DataType> dts = application.DataTypes
+                .Where(dt => dt.AppLogic != null)
+                .Where(dt => dt.TaskId != null && dt.TaskId.Equals(instance.Process.CurrentTask.ElementId))
+                .ToList();
+            List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
+
+            foreach (DataElement de in source.Data)
+            {
+                if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
+                {
+                    continue;
+                }
+
+                if (dts.Any(dts => dts.Id.Equals(de.DataType)))
+                {
+                    DataType dt = dts.First(dt => dt.Id.Equals(de.DataType));
+
+                    Type type;
+                    try
+                    {
+                        type = _altinnApp.GetAppModelType(dt.AppLogic.ClassRef);
+                    }
+                    catch (Exception altinnAppException)
+                    {
+                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
+                    }
+
+                    ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
+                    object data = await _dataClient.GetFormData(sourceInstanceGuid, type, org, app, instanceOwnerPartyId, Guid.Parse(de.Id));
+
+                    if (application.CopyInstanceSettings.ExcludedDataFields != null)
+                    {
+                        DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data.GetType().ToString(), data);
+                    }
+
+                    await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
+
+                    try
+                    {
+                        await _altinnApp.RunDataCreation(instance, data, null);
+                    }
+                    catch (NotImplementedException)
+                    {
+                        // Trigger application business logic the old way. DEPRECATED
+                        await _altinnApp.RunDataCreation(instance, data);
+                    }
+
+                    DataElement dataElement = await _dataClient.InsertFormData(
+                        data,
+                        Guid.Parse(instance.Id.Split("/")[1]),
+                        type,
+                        org,
+                        app,
+                        instanceOwnerPartyId,
+                        dt.Id);
+                }
+            }
         }
 
         /// <summary>
@@ -561,7 +652,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            Dictionary<string, StringValues> queryParams = new ()
+            Dictionary<string, StringValues> queryParams = new()
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },

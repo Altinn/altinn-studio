@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,6 +25,58 @@ namespace Altinn.App.Services.Helpers
         {
             Dictionary<string, string> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
             return CompareDictionaries(currentDataValues, dataFieldValues);
+        }
+
+        /// <summary>
+        /// Resets the value of the listed data fields in a data object. 
+        /// </summary>
+        /// <param name="dataFields">The data fields to monitor</param>
+        /// <param name="dataType">The type of the updated data objects</param>
+        /// <param name="data">The data object</param>
+        /// <returns>An updated data object</returns>
+        public static object ResetDataFields(List<string> dataFields, string dataType, object data)
+        {
+            foreach (string dataField in dataFields)
+            {
+                string fixedPath = dataField.Replace("-", string.Empty);
+                string[] keys = fixedPath.Split(".");
+                ResetDataField(keys, data);
+            }
+
+            return data;
+        }
+
+        private static void ResetDataField(string[] keys, object data, int index = 0)
+        {
+            string key = keys[index];
+            Type current = data.GetType();
+            bool isLastKey = (keys.Length - 1) == index;
+
+            PropertyInfo property = current.GetProperty(
+               key,
+               BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+            if (property == null)
+            {
+                return;
+            }
+            else
+            {
+                object propertyValue = property.GetValue(data, null);
+                if (propertyValue == null)
+                {
+                    return;
+                }
+                else if (isLastKey)
+                {
+                    property.SetValue(data, property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null);
+                    return;
+                }
+                else
+                {
+                    ResetDataField(keys, property.GetValue(data, null), index + 1);
+                }
+            }
         }
 
         /// <summary>

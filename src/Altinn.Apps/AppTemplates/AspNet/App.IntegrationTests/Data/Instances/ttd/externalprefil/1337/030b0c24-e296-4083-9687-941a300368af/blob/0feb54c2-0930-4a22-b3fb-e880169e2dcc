@@ -2,6 +2,7 @@
 <melding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" dataFormatProvider="SERES" dataFormatId="6900" dataFormatVersion="46449">
   <Skjemainnhold>
     <reelleRettigheter>
+      <rettighetId>this is a string that shouldn't be copied</rettighetId>
       <harIkkeReelleRettighetshavere>false</harIkkeReelleRettighetshavere>
       <kanIkkeIdentifisereReelleRettighetshavere>false</kanIkkeIdentifisereReelleRettighetshavere>
       <kanIkkeIdentifisereFlereReelleRettighetshavere xsi:nil="true" />
