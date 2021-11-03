@@ -9,9 +9,10 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 import { IComponentValidations, IComponentBindingValidation } from 'src/types';
+import { getFlagBasedDate } from 'src/utils/dateFlagParser';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 // eslint-disable-next-line import/no-cycle
-import { getRuleBasedDate, validateDatepickerFormData } from '../../utils/validation';
+import { validateDatepickerFormData } from '../../utils/validation';
 
 export interface IDatePickerProps {
   id: string;
@@ -85,8 +86,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
 
-  const minDate = getRuleBasedDate(props.minDate, DatePickerMinDateDefault) as string;
-  const maxDate = getRuleBasedDate(props.maxDate, DatePickerMaxDateDefault) as string;
+  const minDate = getFlagBasedDate(props.minDate) || moment(DatePickerMinDateDefault);
+  const maxDate = getFlagBasedDate(props.maxDate) || moment(DatePickerMaxDateDefault);
 
   const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   moment.locale(locale);
@@ -100,8 +101,10 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   const getValidationMessages = () => {
     const checkDate = isDateEmpty() ? '' : date?.toISOString();
+    const minDateISOString = minDate.toISOString();
+    const maxDateISOString = maxDate.toISOString();
     const validations: IComponentBindingValidation =
-      validateDatepickerFormData(checkDate, minDate, maxDate, format, props.language);
+      validateDatepickerFormData(checkDate, minDateISOString, maxDateISOString, format, props.language);
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
