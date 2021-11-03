@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';

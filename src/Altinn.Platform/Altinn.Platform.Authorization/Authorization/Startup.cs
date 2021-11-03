@@ -31,7 +31,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql.Logging;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 namespace Altinn.Platform.Authorization
 {
@@ -84,11 +87,14 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<IPolicyAdministrationPoint, PolicyAdministrationPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
+            services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
+            services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
@@ -119,6 +125,7 @@ namespace Altinn.Platform.Authorization
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(AuthzConstants.POLICY_STUDIO_DESIGNER, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "studio.designer")));
+                options.AddPolicy(AuthzConstants.ALTINNII_AUTHORIZATION, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "sbl.authorization")));
             });
 
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
@@ -175,6 +182,29 @@ namespace Altinn.Platform.Authorization
             else
             {
                 app.UseExceptionHandler("/authorization/api/v1/error");
+            }
+
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+            {
+                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+
+                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+                string connectionString = string.Format(
+                    Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                    Configuration.GetValue<string>("PostgreSQLSettings:authorizationDbAdminPwd"));
+
+                app.UseYuniql(
+                    new PostgreSqlDataService(traceService),
+                    new PostgreSqlBulkImportService(traceService),
+                    traceService,
+                    new Yuniql.AspNetCore.Configuration
+                    {
+                        Workspace = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                        ConnectionString = connectionString,
+                        IsAutoCreateDatabase = false,
+                        IsDebug = true
+                    });
             }
 
             app.UseSwagger(o => o.RouteTemplate = "authorization/swagger/{documentName}/swagger.json");

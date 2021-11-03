@@ -354,6 +354,47 @@ exports[`Administration Should match snapshot 1`] = `
         <div
           data-testid="reset-repo-container"
         />
+        <p
+          className="MuiTypography-root makeStyles-sidebarHeader-35 makeStyles-sidebarHeaderSecond-36 MuiTypography-body1"
+        >
+          administration.download_repo
+        </p>
+        <button
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-24 MuiButton-containedPrimary"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          style={
+            Object {
+              "fontSize": 16,
+            }
+          }
+          tabIndex={0}
+          type="button"
+        >
+          <span
+            className="MuiButton-label"
+          >
+            <span
+              className=""
+            >
+              administration.download_repo
+            </span>
+          </span>
+        </button>
+        <div
+          data-testid="download-repo-container"
+        />
       </div>
     </div>
   </div>
