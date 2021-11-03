@@ -1147,20 +1147,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
-                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
-                {
-                    // This creates the language resources file for nb
-                    JObject json = JObject.FromObject(new
-                    {
-                        language = "nb",
-                        resources = new[]
-                        {
-                            new { id = "ServiceName", value = serviceConfig.ServiceName }
-                        },
-                    });
-
-                    SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
-                }
+                CreateLanguageResources(org, serviceConfig);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -1168,6 +1155,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        private void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
+        {
+            if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
+            {
+                // This creates the language resources file for nb
+                JObject json = JObject.FromObject(new
+                {
+                    language = "nb",
+                    resources = new[]
+                    {
+                            new { id = "ServiceName", value = serviceConfig.ServiceName }
+                        },
+                });
+
+                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
+            }
         }
 
         /// <inheritdoc/>
