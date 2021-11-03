@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.4.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />

@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 import { Typography } from '@material-ui/core';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';

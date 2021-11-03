@@ -42,5 +42,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// Gets or sets the cache lifetime for application title dictionary.
         /// </summary>
         public int AppTitleCacheLifeTimeInSeconds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cache lifetime for application metadata document.
+        /// </summary>
+        public int AppMetadataCacheLifeTimeInSeconds { get; set; }
     }
 }

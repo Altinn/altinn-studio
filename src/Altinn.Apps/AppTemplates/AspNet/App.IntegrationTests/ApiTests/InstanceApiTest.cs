@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Models;
@@ -262,7 +263,7 @@ namespace App.IntegrationTests
             string prefillValue = "extpref" + DateTime.Now.Second;
 
             instanceTemplate.Prefill = new Dictionary<string, string>();
-            instanceTemplate.Prefill.Add(prefillValue, "Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform");
+            instanceTemplate.Prefill.Add("Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform", prefillValue);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -949,7 +950,12 @@ namespace App.IntegrationTests
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string json = await response.Content.ReadAsStringAsync();
-            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+
+            List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
 
             SimpleInstance actual = activeInstances.First();
 
@@ -983,7 +989,12 @@ namespace App.IntegrationTests
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string json = await response.Content.ReadAsStringAsync();
-            List<SimpleInstance> activeInstances = JsonConvert.DeserializeObject<List<SimpleInstance>>(json);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+
+            List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
             SimpleInstance actual = activeInstances.First();
 
             // Assert

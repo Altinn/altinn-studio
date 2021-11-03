@@ -126,7 +126,7 @@ namespace Altinn.Platform.Authorization
 
             config.SetBasePath(basePath);
             string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
-            string configJsonFile2 = $"{basePath}/Authorization/appsettings.json";
+            string configJsonFile2 = $"{Directory.GetCurrentDirectory()}/appsettings.json";
 
             if (basePath == "/")
             {

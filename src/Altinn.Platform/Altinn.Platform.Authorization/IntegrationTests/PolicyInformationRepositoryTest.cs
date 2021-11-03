@@ -21,7 +21,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 {
     public class PolicyInformationRepositoryTest : IClassFixture<PolicyInformationPointFixture>, IDisposable
     {
-        Mock<IOptions<AzureCosmosSettings>> _dbConfigMock;
+        private Mock<IOptions<AzureCosmosSettings>> _dbConfigMock;
         private readonly PolicyInformationPointFixture _fixture;
         private static DocumentClient _client;
         private readonly PolicyInformationRepository _pir;

@@ -1,4 +1,4 @@
-/* tslint:disable: max-line-length */
+
 const altinnWindow = window as any;
 const { org, app } = altinnWindow;
 const origin = window.location.origin;

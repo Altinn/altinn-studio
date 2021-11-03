@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';

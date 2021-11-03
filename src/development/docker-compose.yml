@@ -16,6 +16,8 @@ services:
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
+      - SUB_FILTER=${SUB_FILTER:-}
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     build:
       context: ./loadbalancer
   altinn_platform_pdf:

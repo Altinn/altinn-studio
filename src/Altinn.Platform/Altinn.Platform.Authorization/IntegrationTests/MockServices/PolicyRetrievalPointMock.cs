@@ -7,6 +7,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Services.Interface;
+using Azure;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
@@ -29,17 +30,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))
             {
-                if (File.Exists(Path.Combine(GetPolicyPath(request),"policy.xml")))
+                if (File.Exists(Path.Combine(GetPolicyPath(request), "policy.xml")))
                 {
-                    return ParsePolicy("policy.xml", GetPolicyPath(request));
+                    return await Task.FromResult(ParsePolicy("policy.xml", GetPolicyPath(request)));
                 }
 
-                return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
-              
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath()));
             }
             else
             {
-                return ParsePolicy(testID + "Policy.xml", GetConformancePath());
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetConformancePath()));
             }
         }
 
@@ -48,6 +48,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             if (File.Exists(Path.Combine(GetAltinnAppsPolicyPath(org, app), "policy.xml")))
             {
                 return await Task.FromResult(ParsePolicy("policy.xml", GetAltinnAppsPolicyPath(org, app)));
+            }
+
+            return null;
+        }
+
+        public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
+        {
+            if (File.Exists(policyPath))
+            {
+                return await Task.FromResult(ParsePolicy("policy.xml", policyPath));
             }
 
             return null;
@@ -121,11 +131,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
 
             return policy;
-        }
-
-        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
-        {
-            return await Task.FromResult(true);
         }
     }
 }

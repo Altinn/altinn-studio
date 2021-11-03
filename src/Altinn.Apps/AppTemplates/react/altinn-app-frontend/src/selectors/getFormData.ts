@@ -1,6 +1,5 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
 import { IRuntimeState } from '../types';
-// tslint:disable-next-line:no-var-requires
 const isEqual = require('lodash.isequal');
 
 const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: number) => {
