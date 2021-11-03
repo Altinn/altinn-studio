@@ -841,7 +841,7 @@ export function mapDataElementValidationToRedux(
             currentValidations[key] = componentValidations[key];
           } else {
             currentValidations[key].errors = currentValidations[key].errors.concat(componentValidations[key].errors);
-            // tslint:disable-next-line: max-line-length
+
             currentValidations[key].warnings = currentValidations[key].warnings
               .concat(componentValidations[key].warnings);
           }

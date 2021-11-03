@@ -48,6 +48,6 @@ namespace Altinn.Platform.Authorization.Configuration
         /// <summary>
         /// The blob lease timeout value in seconds
         /// </summary>
-        public int DelegationsBlobLeaseTimeout { get; set; }
+        public int BlobLeaseTimeout { get; set; }
     }
 }

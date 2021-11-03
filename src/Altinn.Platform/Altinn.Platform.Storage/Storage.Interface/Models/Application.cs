@@ -97,6 +97,19 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "onEntry")]
         public OnEntryConfig OnEntry { get; set; }
 
+        /// <summary>
+        /// Gets or sets the messagebox configuration of the app.
+        /// </summary>
+        [JsonProperty(PropertyName = "messageBoxConfig")]
+        public MessageBoxConfig MessageBoxConfig { get; set; }
+
+        /// <summary>
+        /// Gets or sets the copy instance settings
+        /// </summary>
+        [JsonProperty(PropertyName = "copyInstanceSettings")]
+
+        public CopyInstanceSettings CopyInstanceSettings { get; set; }
+
         /// <inheritdoc/>
         public override string ToString()
         {

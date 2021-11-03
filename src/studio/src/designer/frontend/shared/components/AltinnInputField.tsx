@@ -27,7 +27,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
   error?: string;
   clearError?: () => void;
-  onReturn?: (e: KeyboardEvent) => void;
+  onReturn?: React.KeyboardEventHandler;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -88,7 +88,7 @@ class AltinnInputFieldComponent extends
     }
   }
 
-  private onKeyDown(e: KeyboardEvent) {
+  private onKeyDown(e: React.KeyboardEvent) {
     if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
       e.preventDefault();
       this.props.onReturn(e);
@@ -143,7 +143,7 @@ class AltinnInputFieldComponent extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown((e as KeyboardEvent)))}
+            onKeyDown={this.props.onReturn && ((e: React.KeyboardEvent<HTMLDivElement>) => this.onKeyDown(e))}
           />
         </FormControl>
         {this.props.btnText &&

@@ -49,8 +49,8 @@ export function* watchSaveDataModelSaga(): SagaIterator {
 }
 
 function* createDataModelSaga(action: IDataModelAction) {
-  const { name, relativeDirectory } = action.payload;
-  const body = { modelName: name, relativeDirectory };
+  const { name, relativePath } = action.payload;
+  const body = { modelName: name, relativeDirectory: relativePath };
   try {
     const schema: ISchema = yield call(net.post, sharedUrls().createDataModelUrl, body);
     yield put(createDataModelFulfilled({ schema }));

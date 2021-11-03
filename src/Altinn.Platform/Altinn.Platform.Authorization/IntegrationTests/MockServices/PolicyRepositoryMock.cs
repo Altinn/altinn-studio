@@ -44,6 +44,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<string> TryAcquireBlobLease(string filepath)
         {
+            if (filepath.Contains("error/blobstoragegetleaselockfail"))
+            {
+                return Task.FromResult((string)null);
+            }
+
             return Task.FromResult("CorrectLeaseId");
         }
 

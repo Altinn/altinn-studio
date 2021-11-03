@@ -25,6 +25,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _fixture = fixture;
             _client = _fixture.GetClient();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
         /// <summary>
@@ -160,7 +163,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            
+
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             List<Rule> actual = null;
@@ -359,9 +362,76 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Calling the POST operation for AddRules to perform a valid delegation of org1/app1
-        /// Expected: AddRules returns status code 201 and list of rules created match expected
+        /// Scenario:
+        /// Calling the POST operation for AddRules to without AccessToken
+        /// Expected Result:
+        /// Call should return Unauthorized
+        /// Success Criteria:
+        /// AddRules returns status code 401 Unauthorized
         /// </summary>
+        [Fact]
+        public async Task Post_AddRules_Unauthorized()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/ReadWriteOrg1App1_50001337_20001336.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "ThisIsNotAValidToken");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to without any rules specified in the body
+        /// Expected Result:
+        /// Call should return Badrequest
+        /// Success Criteria:
+        /// AddRules returns status code 400 Badrequest
+        /// </summary>
+        [Fact]
+        public async Task Post_AddRules_Badrequest_NoRules()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/EmptyRuleModel.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to with invalid rule model
+        /// Expected Result:
+        /// Call should return Badrequest
+        /// Success Criteria:
+        /// AddRules returns status code 400 Badrequest
+        /// </summary>
+        [Fact]
+        public async Task Post_AddRules_Badrequest_InvalidModel()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/InvalidRuleModel.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
         /// <summary>
         /// Scenario:
         /// Calling the POST operation for AddRules to perform a valid delegation
@@ -379,9 +449,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/AddRules/ReadWriteOrg1App1_50001337_20001336.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             List<Rule> expected = new List<Rule>
             {
@@ -403,10 +470,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Calling the POST operation for AddRules to perform a valid delegation of multiple rules from 4 different offeredBys to 4 different coveredBys for 4 different apps. Resulting in 4 different delegation policy files
-        /// Expected: AddRules returns status code 201 and list of rules created match expected
-        /// </summary>
-        /// <summary>
         /// Scenario:
         /// Calling the POST operation for AddRules to perform a valid delegation
         /// Input:
@@ -423,9 +486,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/AddRules/MultipleAppsOfferedBysAndCoveredBys.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             List<Rule> expected = new List<Rule>
             {
@@ -449,10 +509,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Calling the POST operation for AddRules to perform a partially valid delegation, as one of the four rules are for an invalid app
-        /// Expected: AddRules returns status code 206 and list of resulting rules match expected
-        /// </summary>
-        /// <summary>
         /// Scenario:
         /// Calling the POST operation for AddRules to perform a partially valid delegation
         /// Input:
@@ -470,9 +526,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/AddRules/OneOutOfFourInvalidApp.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             List<Rule> expected = new List<Rule>
             {
@@ -498,10 +551,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Calling the POST operation for AddRules to perform a partially valid delegation, as one of the four rules are incomplete (missing org/app resource specification)
-        /// Expected: AddRules returns status code 206 and list of resulting rules match expected
-        /// </summary>
-        /// <summary>
         /// Scenario:
         /// Calling the POST operation for AddRules to perform a partially valid delegation
         /// Input:
@@ -519,9 +568,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/AddRules/OneOutOfFourIncompleteApp.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             Rule invalidRule = TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", null, null, createdSuccessfully: false);
             invalidRule.Resource = new List<AttributeMatch>();

@@ -157,6 +157,10 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Endpoint for deleting an entire delegated policy between parties
         /// </summary>
+        /// <response code="201" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
         [HttpPost]
         [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/DeletePolicy")]

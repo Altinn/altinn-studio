@@ -30,11 +30,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
     [Collection("PolicyAdministrationPointTest")]
     public class PolicyAdministrationPointTest : IClassFixture<PolicyAdministrationPointFixture>
     {
-        private const string ORG = "ttd";
-        private const string APP = "repository-test-app";
-
         private readonly IPolicyAdministrationPoint _pap;
         private readonly IPolicyRepository _prp;
+        private readonly Mock<ILogger<IPolicyAdministrationPoint>> _logger;
         private DelegationMetadataRepositoryMock _delegationMetadataRepositoryMock;
 
         public PolicyAdministrationPointTest()
@@ -44,13 +42,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             IMemoryCache memoryCache = serviceProvider.GetService<IMemoryCache>();
+
+            _logger = new Mock<ILogger<IPolicyAdministrationPoint>>();
             _delegationMetadataRepositoryMock = new DelegationMetadataRepositoryMock();
             _prp = new PolicyRepositoryMock();
             _pap = new PolicyAdministrationPoint(
                 new PolicyRetrievalPoint(_prp, memoryCache, Options.Create(new GeneralSettings { PolicyCacheTimeout = 1 })),
                 _prp,
                 _delegationMetadataRepositoryMock,
-                new Mock<ILogger<IPolicyAdministrationPoint>>().Object);
+                _logger.Object);
         }
 
         /// <summary>
@@ -672,7 +672,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Scenario:
         /// Tests the TryWriteDelegationPolicyRules function, whether all rules are returned as successfully created
         /// Input:
         /// List of unordered rules for delegation of the same apps from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
@@ -763,6 +762,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.Where(r => r.CreatedSuccessfully).All(r => !string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.Where(r => !r.CreatedSuccessfully).All(r => string.IsNullOrEmpty(r.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "No valid App policy found for delegation policy path: unknownorg/unknownapp/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -810,15 +817,70 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.Where(r => r.CreatedSuccessfully).All(r => !string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.Where(r => !r.CreatedSuccessfully).All(r => string.IsNullOrEmpty(r.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString().StartsWith("One or more rules could not be processed because of incomplete input:") && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
         /// Scenario:
-        /// Tests the TryWriteDelegationPolicyRules function, when blob storage throws exception
+        /// Tests the TryWriteDelegationPolicyRules function, when blobLeaseClient.AcquireAsync throws exception when trying to get lease lock on delegation policy blob
         /// Input:
         /// Single rule
         /// Expected Result:
-        /// The blob storage read throws exception
+        /// The blob storage throws exception when aqcuiring lease lock
+        /// Success Criteria:
+        /// The blob storage exception is handled and logged. The rule is returned as not created.
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_Error_BlobStorageAqcuireLeaseLockException()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "blobstoragegetleaselockfail"),
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "error", "error", "blobstoragegetleaselockfail", createdSuccessfully: false),
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.All(r => !r.CreatedSuccessfully));
+            AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease lock on delegation policy at path: error/blobstoragegetleaselockfail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when blob storage write throws exception caused by lease locking
+        /// Input:
+        /// Single rule
+        /// Expected Result:
+        /// The blob storage write throws exception
         /// Success Criteria:
         /// The blob storage exception is handled and logged. The rule is returned as not created.
         /// </summary>
@@ -849,6 +911,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.All(r => !r.CreatedSuccessfully));
             AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/blobstorageleaselockwritefail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -888,6 +958,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.All(r => !r.CreatedSuccessfully));
             AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/postgregetcurrentfail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -927,6 +1005,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => string.IsNullOrEmpty(r.RuleId)));
             Assert.True(actual.All(r => !r.CreatedSuccessfully));
             AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: error/postgrewritechangefail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
     }
 }

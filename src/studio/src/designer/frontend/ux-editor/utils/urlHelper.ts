@@ -26,22 +26,18 @@ export const getSaveLayoutSettingsUrl = (): string => {
 };
 
 export const getSaveServiceConfigurationUrl = (): string => {
-  /* tslint:disable-next-line:max-line-length */
   return `${basePath}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
 };
 
 export const getAddApplicationMetadataUrl = (): string => {
-  /* tslint:disable-next-line:max-line-length */
   return `${basePath}/UIEditor/AddMetadataForAttachment`;
 };
 
 export const getDeleteApplicationMetadataUrl = (): string => {
-  /* tslint:disable-next-line:max-line-length */
   return `${basePath}/UIEditor/DeleteMetadataForAttachment?id=`;
 };
 
 export const getUpdateApplicationMetadataUrl = (): string => {
-  /* tslint:disable-next-line:max-line-length */
   return `${basePath}/UIEditor/UpdateMetadataForAttachment`;
 };
 
