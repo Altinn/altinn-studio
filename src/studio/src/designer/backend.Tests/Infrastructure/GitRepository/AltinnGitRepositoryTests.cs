@@ -109,6 +109,22 @@ namespace Designer.Tests.Infrastructure.GitRepository
             Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
         }
 
+        [Fact]
+        public void ModelPreference_SettingsExists_ShouldUseThat()
+        {
+            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+
+            Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.DatamodellingPreference);
+        }
+
+        [Fact]
+        public void ModelPreference_SettingsDontExists_ShouldUseCorrectDefault()
+        {
+            var altinnGitRepository = GetTestRepository("ttd", "xyz-datamodels", "testUser");
+
+            Assert.Equal(DatamodellingPreference.Unknown, altinnGitRepository.DatamodellingPreference);
+        }
+
         private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();

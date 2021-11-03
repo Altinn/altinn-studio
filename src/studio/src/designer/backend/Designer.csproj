@@ -78,6 +78,7 @@
     <CoreLanguage Include="../Common/Languages/ini/*" />
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
+    <Watch Remove="Enums\DatamodellingPreference.cs" />
     <Content Include="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
