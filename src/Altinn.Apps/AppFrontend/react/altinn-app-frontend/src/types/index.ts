@@ -319,6 +319,6 @@ export interface ILabelSettings {
   optionalIndicator?: boolean;
 }
 
-export enum DatepickerRestrictionFlags {
+export enum DateFlags {
   Today = 'today'
 }

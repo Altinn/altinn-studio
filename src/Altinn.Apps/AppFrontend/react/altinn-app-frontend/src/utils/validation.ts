@@ -9,7 +9,7 @@ import dot from 'dot-object';
 import addFormats from 'ajv-formats';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups, ILayoutValidations, IDataModelBindings, IRuntimeState } from 'src/types';
 import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
-import { IValidationIssue, Severity } from '../types';
+import { IValidationIssue, Severity, DateFlags } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
@@ -19,7 +19,7 @@ import { convertDataBindingToModel, getKeyWithoutIndex } from './databindings';
 import { matchLayoutComponent, setupGroupComponents } from './layout';
 import { createRepeatingGroupComponents } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
-import { getFlagBasedDate } from './dateFlagParser';
+import { getFlagBasedDate } from './dateHelpers';
 
 const JsonPointer = require('jsonpointer');
 
@@ -364,8 +364,10 @@ export function validateFormComponentsForLayout(
       if (component.type === 'Datepicker') {
         let componentValidations: IComponentValidations = {};
         const date = getFormDataForComponent(formData, component.dataModelBindings);
+        const flagBasedMinDate = getFlagBasedDate(component.minDate as DateFlags) ?? component.minDate;
+        const flagBasedMaxDate = getFlagBasedDate(component.maxDate as DateFlags) ?? component.maxDate;
         const datepickerValidations =
-          validateDatepickerFormData(date, component.minDate, component.maxDate, component.format, language);
+          validateDatepickerFormData(date, flagBasedMinDate, flagBasedMaxDate, component.format, language);
         componentValidations = {
           [fieldKey]: datepickerValidations,
         };
@@ -404,9 +406,9 @@ export function validateDatepickerFormData(
     validations.errors.push(getParsedLanguageFromKey('date_picker.invalid_date_message', language, [format]));
   }
 
-  if (date && date.isBefore(getFlagBasedDate(minDate))) {
+  if (date && date.isBefore(minDate)) {
     messages.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
-  } else if (date && date.isAfter(getFlagBasedDate(maxDate))) {
+  } else if (date && date.isAfter(maxDate)) {
     messages.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
   }
   messages.forEach((message: string) => {

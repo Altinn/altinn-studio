@@ -1,34 +1,44 @@
 import 'jest';
 import moment from 'moment';
-import { getFlagBasedDate } from '../../src/utils/dateFlagParser';
+import { getFlagBasedDate, getISOString } from '../../src/utils/dateHelpers';
+import { DateFlags } from '../../src/types';
 
 describe('/utils/dateFlagParser.ts', () => {
   describe('getFlagBasedDate(...)', () => {
     test.each([
       '',
       undefined,
-      null
+      null,
+      'abcdef'
     ])
-    ('should return null if flagOrDate is %p', (flagOrDateValue) => {
-      expect(getFlagBasedDate(flagOrDateValue)).toBeNull();
-    });
-  
-    test.each([
-      ['a', false],
-      ['10.10.2020', true],
-    ])
-    ('should return moment.Moment if flagOrDate is %p and it is not a flag', (flagOrDateValue, isValidDate) => {
-      const result = getFlagBasedDate(flagOrDateValue);
-      expect(result).toBeInstanceOf(moment);
-      expect(result.isValid()).toEqual(isValidDate);
+    ('should return undefined if flag is %p', (flag) => {
+      expect(getFlagBasedDate(flag as DateFlags)).toBeUndefined();
     });
 
     test.each([
       [moment().set('hour', 12).set('minute', 0), 'today'],
     ])
-    ('should return %p if flagOrDate is %p', (expectedDate, flagOrDateValue) => {
-      const result = getFlagBasedDate(flagOrDateValue);
-      expect(result.isSame(expectedDate, 'day')).toEqual(true);
+    ('should return %p if flag is %p', (expectedDate, flag) => {
+      const result = getFlagBasedDate(flag as DateFlags);
+      expect(moment(result).isSame(expectedDate, 'day')).toEqual(true);
+    });
+  });
+
+  describe('getISOString(...)', () => {
+    test.each([
+      '',
+      undefined,
+      null,
+      'abcdef'
+    ])
+    ('should return undefined if input date is %p', (date) => {
+      expect(getISOString(date)).toBeUndefined();
+    });
+
+    it('should return ISO string if input date is valid ISO string', () => {
+      const validISOString = '2020-12-13T12:00:00Z';
+      const result = getISOString(validISOString);
+      expect(moment(result).isSame(validISOString, 'day')).toEqual(true);
     });
   });
 });

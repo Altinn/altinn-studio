@@ -7,9 +7,8 @@ import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/picker
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { Moment } from 'moment';
-import { IComponentValidations, IComponentBindingValidation } from 'src/types';
-import { getFlagBasedDate } from 'src/utils/dateFlagParser';
+import { IComponentValidations, IComponentBindingValidation, DateFlags } from 'src/types';
+import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 // eslint-disable-next-line import/no-cycle
 import { validateDatepickerFormData } from '../../utils/validation';
@@ -67,7 +66,7 @@ const useStyles = makeStyles({
 });
 
 class AltinnMomentUtils extends MomentUtils {
-  getDatePickerHeaderText(date: Moment) {
+  getDatePickerHeaderText(date: moment.Moment) {
     if (date && date.locale() === 'nb') {
       return date.format('ddd, D MMM');
     }
@@ -85,12 +84,16 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [date, setDate] = React.useState<moment.Moment>(null);
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
-
-  const minDate = getFlagBasedDate(props.minDate) || moment(DatePickerMinDateDefault);
-  const maxDate = getFlagBasedDate(props.maxDate) || moment(DatePickerMaxDateDefault);
-
-  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
+  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb';
   moment.locale(locale);
+
+  const minDate = getFlagBasedDate(props.minDate as DateFlags) ||
+    getISOString(props.minDate) ||
+    DatePickerMinDateDefault;
+  const maxDate = getFlagBasedDate(props.maxDate as DateFlags) ||
+    getISOString(props.minDate) ||
+    DatePickerMaxDateDefault;
+
   const format = moment.localeData().longDateFormat('L') || props.format || DatePickerFormatDefault;
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
@@ -101,10 +104,8 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   const getValidationMessages = () => {
     const checkDate = isDateEmpty() ? '' : date?.toISOString();
-    const minDateISOString = minDate.toISOString();
-    const maxDateISOString = maxDate.toISOString();
     const validations: IComponentBindingValidation =
-      validateDatepickerFormData(checkDate, minDateISOString, maxDateISOString, format, props.language);
+      validateDatepickerFormData(checkDate, minDate, maxDate, format, props.language);
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
