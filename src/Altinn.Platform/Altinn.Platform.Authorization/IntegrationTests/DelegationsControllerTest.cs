@@ -68,9 +68,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
             List<Rule> expected = new List<Rule>
             {
                 TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
@@ -110,9 +107,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/DeleteRules/ReadOrg1App3App4App8_50001337_20001337.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             List<Rule> expected = new List<Rule>
             {
@@ -156,9 +150,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
 
@@ -201,9 +192,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
 
@@ -245,9 +233,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/ReadOrg1App3App4_50001337_20001337.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             List<Rule> expected = new List<Rule>
             {
@@ -292,9 +277,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
             List<Rule> expected = new List<Rule>
             {
                 TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
@@ -337,9 +319,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/ReadOrg1App8-Errorpostgrewritechangefail_50001337_20001337_NoUpdates.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            string token = PrincipalUtil.GetAccessToken("sbl.authorization");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
