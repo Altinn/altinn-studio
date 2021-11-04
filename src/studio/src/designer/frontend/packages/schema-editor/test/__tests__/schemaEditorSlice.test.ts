@@ -432,26 +432,26 @@ describe('SchemaEditorSlice', () => {
 
   it('handles adding child items to groups', () => {
     // anyOf
-    let anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(anyOfItem?.anyOf?.length).toBe(4);
     let nextState = reducer(state, addGroupItem({ path: '#/definitions/anyOfTestSeveralItems', type: 'string'}));
-    let updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(updatedAnyOfItem?.anyOf?.length).toBe(5);
     expect(updatedAnyOfItem?.anyOf?.[4].type).toBe('string');
 
     // allOf
-    let allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    const allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(allOfItem?.allOf?.length).toBe(1);
     nextState = reducer(state, addGroupItem({ path: '#/definitions/allOfTest', type: 'string'}));
-    let updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    const updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(updatedAllOfItem?.allOf?.length).toBe(2);
     expect(updatedAllOfItem?.allOf?.[1].type).toBe('string');
 
     // oneOf
-    let oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    const oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
     expect(oneOfItem?.oneOf?.length).toBe(2);
     nextState = reducer(state, addGroupItem({ path: '#/definitions/oneOfTestNullable', type: 'string'}));
-    let updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    const updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
     expect(updatedOneOfItem?.oneOf?.length).toBe(3);
     expect(updatedOneOfItem?.oneOf?.[2].type).toBe('string');
 
