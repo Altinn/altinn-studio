@@ -60,24 +60,22 @@ namespace Altinn.App.Services.Helpers
             {
                 return;
             }
-            else
+
+            object propertyValue = property.GetValue(data, null);
+
+            if (propertyValue == null)
             {
-                object propertyValue = property.GetValue(data, null);
-
-                if (propertyValue == null)
-                {
-                    return;
-                }
-
-                if (isLastKey)
-                {
-                    object defaultValue = property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
-                    property.SetValue(data, defaultValue);
-                    return;
-                }
-
-                ResetDataField(keys, property.GetValue(data, null), index + 1);
+                return;
             }
+
+            if (isLastKey)
+            {
+                object defaultValue = property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+                property.SetValue(data, defaultValue);
+                return;
+            }
+
+            ResetDataField(keys, property.GetValue(data, null), index + 1);
         }
 
         /// <summary>
