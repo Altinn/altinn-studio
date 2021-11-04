@@ -13,7 +13,7 @@
     "build-dashboard": "npm run build --prefix dashboard/",
     "build-app-development": "npm run build --prefix app-development/",
     "start-dashboard": "npm start --prefix dashboard/",
-    "start-app-development": "npm start --prefix dashboard",
+    "start-app-development": "npm start --prefix app-development/",
     "update-packages": "lerna exec --concurrency 1 -- npm update --dev"
   },
   "devDependencies": {
