@@ -190,9 +190,9 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
-        oneOf: oneOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
-        allOf: allOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
-        anyOf: anyOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
+        oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
+        allOf: allOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
+        anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
       });
     } else {
       result.push({
@@ -208,7 +208,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   return result;
 }
 
-export const mapGroupItemToUiSchemaItem = (item: any, index: number, key: GroupKeys, parentPath: string) => {
+export const mapGroupItemToUiSchemaItem = (item: UiSchemaItem, index: number, key: GroupKeys, parentPath: string) => {
   return {
     ...item,
     path: `${parentPath}/${key}/${index}`,
@@ -260,9 +260,9 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       enum: enums,
       items,
       description,
-      oneOf: oneOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
-      allOf: allOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
-      anyOf: anyOf?.map((child: object, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
+      oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
+      allOf: allOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
+      anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
     };
 
     if (currentProperty.$ref) {
