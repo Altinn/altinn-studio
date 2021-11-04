@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
-import { returnUrlToMessagebox, getTextResourceByKey, getLanguageFromKey } from 'altinn-shared/utils';
+import { returnUrlToMessagebox, getTextResourceByKey, getLanguageFromKey, returnUrlFromQueryParameter } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessTaskType, ITextResource, PresentationType } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -51,9 +51,16 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
 
   const handleModalCloseButton = () => {
     const origin = window.location.origin;
-    if (window) {
-      window.location.href = returnUrlToMessagebox(origin, party.partyId);
+    const returnUrl = returnUrlFromQueryParameter();
+    let windowHref = '';
+
+    if (returnUrl) {
+      windowHref = returnUrl;
+    } else {
+      windowHref = returnUrlToMessagebox(origin, party.partyId);
     }
+
+    window.location.href = windowHref;
     return true;
   };
 
