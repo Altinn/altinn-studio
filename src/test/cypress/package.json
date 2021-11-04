@@ -30,7 +30,7 @@
     "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
-    "axe-core": "^4.3.4",
+    "axe-core": "^4.3.5",
     "cypress": "^8.7.0",
     "cypress-axe": "^0.13.0",
     "cypress-file-upload": "^5.0.8",
