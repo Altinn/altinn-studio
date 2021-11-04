@@ -34,7 +34,7 @@ export interface IPartyValidation {
 }
 
 function InstantiateContainer() {
-  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
+  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
   const { org, app } = window as Window as IAltinnWindow;
 
   const [instantiating, setInstantiating] = React.useState(false);
