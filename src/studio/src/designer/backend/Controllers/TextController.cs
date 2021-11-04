@@ -180,27 +180,27 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service name of the service</returns>
         [HttpGet]
-        public string GetServiceName(string org, string app)
+        public IActionResult GetServiceName(string org, string app)
         {
             string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
             string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-            string serviceName = string.Empty;
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            if (System.IO.File.Exists(serviceResourceDirectoryPath))
+            try
             {
-                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                if (textResourceObject != null)
+                if (System.IO.File.Exists(serviceResourceDirectoryPath))
                 {
-                    serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
+                    string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
+                    ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "ServiceName")?.Value ?? string.Empty);
                 }
-            }
 
-            watch.Stop();
-            _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
-            return serviceName;
+                return Problem($"Working directory does not exist for {org}/{app}");
+            }
+            catch (JsonException ex)
+            {
+                return Problem(title: $"Failed to parse App/config/texts/{filename} as JSON", instance:$"App/config/texts/{filename}", detail:$"Failed to parse App/config/texts/{filename} as JSON\n" + ex.Message);
+            }
         }
 
         /// <summary>

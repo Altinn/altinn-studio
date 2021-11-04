@@ -12,7 +12,6 @@ export class RedirectComponent extends
     const { org, app } = window as Window as IAltinnWindow;
     // eslint-disable-next-line max-len
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
-    // tslint:disable-next-line:jsx-self-close
     window.open(url, '_newWindow');
   }
 
