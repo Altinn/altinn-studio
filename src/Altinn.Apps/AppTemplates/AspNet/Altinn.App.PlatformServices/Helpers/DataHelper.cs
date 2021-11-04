@@ -28,7 +28,7 @@ namespace Altinn.App.Services.Helpers
         }
 
         /// <summary>
-        /// Resets the value of the listed data fields in a data object. 
+        /// Re-sets the listed data fields to their default value in the data object. 
         /// </summary>
         /// <param name="dataFields">The data fields to monitor</param>
         /// <param name="dataType">The type of the updated data objects</param>
@@ -63,19 +63,20 @@ namespace Altinn.App.Services.Helpers
             else
             {
                 object propertyValue = property.GetValue(data, null);
+
                 if (propertyValue == null)
                 {
                     return;
                 }
-                else if (isLastKey)
+
+                if (isLastKey)
                 {
-                    property.SetValue(data, property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null);
+                    object defaultValue = property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+                    property.SetValue(data, defaultValue);
                     return;
                 }
-                else
-                {
-                    ResetDataField(keys, property.GetValue(data, null), index + 1);
-                }
+
+                ResetDataField(keys, property.GetValue(data, null), index + 1);
             }
         }
 

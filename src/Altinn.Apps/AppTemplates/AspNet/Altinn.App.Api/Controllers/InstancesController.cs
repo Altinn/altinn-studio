@@ -497,7 +497,6 @@ namespace Altinn.App.Api.Controllers
                         throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
                     }
 
-                    ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
                     object data = await _dataClient.GetFormData(sourceInstanceGuid, type, org, app, instanceOwnerPartyId, Guid.Parse(de.Id));
 
                     if (application.CopyInstanceSettings.ExcludedDataFields != null)
@@ -517,7 +516,7 @@ namespace Altinn.App.Api.Controllers
                         await _altinnApp.RunDataCreation(instance, data);
                     }
 
-                    DataElement dataElement = await _dataClient.InsertFormData(
+                    await _dataClient.InsertFormData(
                         data,
                         Guid.Parse(instance.Id.Split("/")[1]),
                         type,

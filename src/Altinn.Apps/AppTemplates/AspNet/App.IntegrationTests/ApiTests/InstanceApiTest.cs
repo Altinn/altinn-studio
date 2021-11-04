@@ -258,8 +258,7 @@ namespace App.IntegrationTests
                 {
                     PartyId = "1337",
                 },
-                DueBefore = DateTime.Parse("2020-01-01"),
-
+                DueBefore = DateTime.Parse("2020-01-01")
             };
 
             string prefillValue = "extpref" + DateTime.Now.Second;
