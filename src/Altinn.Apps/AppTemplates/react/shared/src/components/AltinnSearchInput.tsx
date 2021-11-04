@@ -37,7 +37,7 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
+
 export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps, IAltinnSearchInputComponentState> {
   public render() {
     const { classes } = this.props;

@@ -324,7 +324,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         /// <returns>Object representation of the JSON string.</returns>
         public object Deserialize(IRestResponse response, Type type)
         {
-            IList<Parameter> headers = response.Headers;
+            var headers = response.Headers;
 
             // return byte array
             if (type == typeof(byte[]))

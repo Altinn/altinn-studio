@@ -1,0 +1,13 @@
+{
+  "partyId": "500801",
+  "partyTypeName": 2,
+  "orgNumber": "910471120",
+  "ssn": null,
+  "unitType": "AS",
+  "name": "EAS Health Consulting Stokmarknes",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

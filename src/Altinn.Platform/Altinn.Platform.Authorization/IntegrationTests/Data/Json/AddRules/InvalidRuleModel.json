@@ -1,0 +1,26 @@
+[
+  {
+    "delegatedByUserId": 20001337,
+    "offeredByPartyId": null, //Invalid as it is required 
+    "coveredBy": [
+      {
+        "id": "urn:altinn:userid",
+        "value": "20001336"
+      }
+    ],
+    "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+      {
+        "id": "urn:altinn:app",
+        "value": "app1"
+      }
+    ],
+    "action": {
+      "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+      "value": "Read"
+    }
+  }
+]
