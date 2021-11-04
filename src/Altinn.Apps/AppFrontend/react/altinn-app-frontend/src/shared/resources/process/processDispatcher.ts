@@ -1,4 +1,3 @@
-/* tslint:disable:max-line-length */
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 import { ProcessTaskType } from '../../../types';

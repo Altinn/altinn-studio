@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import '@testing-library/jest-dom/extend-expect';
 import 'jest';
 import * as React from 'react';
@@ -35,7 +35,7 @@ describe('components/base/InputComponent.tsx', () => {
     let inputComponent: any = await findByTestId(mockId);
 
     expect(inputComponent.value).toEqual('');
-  }); 
+  });
 
   test('components/base/InputComponent.tsx -- should have correct value with specified formdata', async () => {
     const customProps = {formData: 'Test123'};
@@ -43,11 +43,11 @@ describe('components/base/InputComponent.tsx', () => {
     let inputComponent: any = await findByTestId(mockId);
 
     expect(inputComponent.value).toEqual('Test123');
-  }); 
-  
+  });
+
   test('components/base/InputComponent.tsx -- should have correct form data after change', async () => {
     const {findByTestId} = renderInputComponent();
-    let inputComponent: any = await findByTestId(mockId);  
+    let inputComponent: any = await findByTestId(mockId);
 
     fireEvent.change(inputComponent, {target: {value: 'test'}});
 
@@ -74,7 +74,7 @@ describe('components/base/InputComponent.tsx', () => {
       required: mockRequired,
       type: mockType,
     };
-  
+
     return render(<InputComponent {...defaultProps} {...props}/>);
   }
 });

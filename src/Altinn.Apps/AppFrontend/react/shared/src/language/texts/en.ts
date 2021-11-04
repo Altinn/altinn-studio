@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 // eslint-disable-next-line import/prefer-default-export
 export function en() {
   return {

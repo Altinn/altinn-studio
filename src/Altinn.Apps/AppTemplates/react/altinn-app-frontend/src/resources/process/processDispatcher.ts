@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../redux/store';
 import { ProcessSteps } from '../../types';
