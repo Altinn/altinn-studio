@@ -102,7 +102,9 @@ export const App = () => {
         </div> : <Grid justifyContent='center'>
           <AltinnSpinner spinnerText='Venter på svar' />
           {showLogOutButton && <AltinnButton
-            onClickFunction={handleLogout}
+            onClickFunction={() => post(`${window.location.origin}/repos/user/logout`).then(() => {
+              window.location.assign(`${window.location.origin}/Home/Logout`);
+            })}
             btnText={'Logg ut'}
           />}
         </Grid>
@@ -113,11 +115,3 @@ export const App = () => {
 };
 
 export default App;
-const handleLogout = () => {
-  const altinnWindow: Window = window;
-  const url = `${altinnWindow.location.origin}/repos/user/logout`;
-  post(url).then(() => {
-    window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
-  });
-  return true;
-}
