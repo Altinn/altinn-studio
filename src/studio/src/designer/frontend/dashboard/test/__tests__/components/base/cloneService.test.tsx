@@ -156,7 +156,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     instance.componentDidMount();
     return Promise.resolve().then(() => {
-      expect(instance._isMounted).toBe(true);
+      expect(instance.componentMounted).toBe(true);
       expect(componentDidMountSpy).toHaveBeenCalled();
       expect(getSpy).toHaveBeenCalled();
       expect(instance.state.lastChangedBy).toBe(mockResult.commit.author.name);
@@ -270,7 +270,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     const componentWillUnmountSpy = jest.spyOn(instance, 'componentWillUnmount');
     instance.componentWillUnmount();
     expect(componentWillUnmountSpy).toHaveBeenCalled();
-    expect(instance._isMounted).toBe(false);
+    expect(instance.componentMounted).toBe(false);
   });
 
   it('+++ Should show correct date', () => {
