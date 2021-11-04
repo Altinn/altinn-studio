@@ -7,6 +7,9 @@
         <PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930 orid="34930">Oslo</PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930>
         <PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928 orid="34928">Grev Wedels Plass</PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928>
       </TilknytningMellomnavn2-grp-9353>
+      <TilknytningEtternavn2-grp-9351>
+        <PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908>This value should be deleted</PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908>
+      </TilknytningEtternavn2-grp-9351>
     </TilknytningTilNavnet-grp-9316>
   </Tilknytning-grp-9315>
 </Skjema>
