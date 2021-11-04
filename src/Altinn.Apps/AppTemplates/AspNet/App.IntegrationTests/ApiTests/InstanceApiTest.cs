@@ -14,6 +14,8 @@ using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
+using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
+
 using App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil;
 using App.IntegrationTests.Utils;
 
@@ -295,9 +297,9 @@ namespace App.IntegrationTests
         }
 
         [Fact]
-        public async Task Instance_CopyFromSourceInstance_ExcludeSingleField()
+        public async Task Instance_CopyFromSourceInstance_ExcludeSingleFieldValueType()
         {
-            string token = PrincipalUtil.GetOrgToken("ttd");
+            string token = PrincipalUtil.GetToken(1337);
 
             InstansiationInstance instanceTemplate = new InstansiationInstance
             {
@@ -341,6 +343,56 @@ namespace App.IntegrationTests
             finally
             {
                 TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, instanceGuid);
+            }
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_ExcludeSingleFieldReferenceType()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1337/d5d5c456-a154-44da-b5da-8d37640635bd"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            Guid instanceGuid = Guid.NewGuid();
+            try
+            {
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                response.EnsureSuccessStatusCode();
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+                instanceGuid = Guid.Parse(createdInstance.Id.Split("/")[1]);
+                Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+
+                string dataUri = createdInstance.Data[0].SelfLinks.Apps;
+                HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
+                HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+                responseContent = await response2.Content.ReadAsStringAsync();
+                Skjema data = JsonConvert.DeserializeObject<Skjema>(responseContent);
+                Assert.Null(data.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningEtternavn2grp9351);
+                Assert.Equal(9316, data.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.gruppeid);
+            }
+            finally
+            {
+                TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, instanceGuid);
             }
         }
 

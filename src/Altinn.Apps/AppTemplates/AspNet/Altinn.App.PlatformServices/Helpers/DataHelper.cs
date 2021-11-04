@@ -31,10 +31,8 @@ namespace Altinn.App.Services.Helpers
         /// Re-sets the listed data fields to their default value in the data object. 
         /// </summary>
         /// <param name="dataFields">The data fields to monitor</param>
-        /// <param name="dataType">The type of the updated data objects</param>
         /// <param name="data">The data object</param>
-        /// <returns>An updated data object</returns>
-        public static object ResetDataFields(List<string> dataFields, string dataType, object data)
+        public static void ResetDataFields(List<string> dataFields, object data)
         {
             foreach (string dataField in dataFields)
             {
@@ -42,8 +40,6 @@ namespace Altinn.App.Services.Helpers
                 string[] keys = fixedPath.Split(".");
                 ResetDataField(keys, data);
             }
-
-            return data;
         }
 
         private static void ResetDataField(string[] keys, object data, int index = 0)

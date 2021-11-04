@@ -501,7 +501,7 @@ namespace Altinn.App.Api.Controllers
 
                     if (application.CopyInstanceSettings.ExcludedDataFields != null)
                     {
-                        DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data.GetType().ToString(), data);
+                        DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
                     }
 
                     await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);

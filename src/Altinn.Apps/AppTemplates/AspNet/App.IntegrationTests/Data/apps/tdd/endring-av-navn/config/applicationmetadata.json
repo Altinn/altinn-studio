@@ -23,6 +23,6 @@
   ],
   "copyInstanceSettings": {
     "enabled": true,
-    "excludedDataFields": [ "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningMellomnavn2-grp-9353" ]
+    "excludedDataFields": [ "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351" ]
   }
 }
