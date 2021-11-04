@@ -217,13 +217,13 @@ export const mapGroupItemToUiSchemaItem = (item: any, index: number, key: GroupK
   };
 };
 
-export const nullType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
+export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
 export const groupIsNullable = (item: UiSchemaItem): boolean => {
-  return Boolean(
-    item?.anyOf?.some(nullType) ||
-    item?.allOf?.some(nullType) ||
-    item?.oneOf?.some(nullType),
+  return !!(
+    item?.anyOf?.some(nullableType) ||
+    item?.allOf?.some(nullableType) ||
+    item?.oneOf?.some(nullableType)
   );
 };
 

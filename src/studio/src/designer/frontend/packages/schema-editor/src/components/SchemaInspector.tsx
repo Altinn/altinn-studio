@@ -11,7 +11,7 @@ import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef
   addEnum, deleteEnum, navigateToType, setGroupType, addGroupItem }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, groupIsNullable, nullType } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, groupIsNullable, nullableType } from '../utils';
 import { StyledSelect } from './StyledSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -405,9 +405,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       }));
     } else {
       const itemToRemove =
-        selectedItem?.oneOf?.find(nullType) ||
-        selectedItem?.allOf?.find(nullType) ||
-        selectedItem?.anyOf?.find(nullType);
+        selectedItem?.oneOf?.find(nullableType) ||
+        selectedItem?.allOf?.find(nullableType) ||
+        selectedItem?.anyOf?.find(nullableType);
       if (itemToRemove) {
         dispatch(deleteProperty({ path: itemToRemove.path }));
       }
