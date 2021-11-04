@@ -53,18 +53,16 @@ const styles = createStyles({
 });
 
 export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentProps, IKnownIssuesComponentState> {
-  public _isMounted = false;
-
   // eslint-disable-next-line react/state-in-constructor
   public state: IKnownIssuesComponentState = {
     knownIssues: null,
   };
 
   public componentDidMount() {
-    this._isMounted = true;
+    this.componentMounted = true;
     get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
       .then((res) => {
-        if (this._isMounted) {
+        if (this.componentMounted) {
           marked.setOptions({
             headerIds: false,
           });
@@ -85,8 +83,10 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
+    this.componentMounted = false;
   }
+
+  public componentMounted = false;
 
   public render() {
     const { classes } = this.props;

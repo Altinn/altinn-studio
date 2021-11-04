@@ -1,4 +1,4 @@
-/* eslint-disable no-underscore-dangle */
+/* slint-disable no-underscore-dangle */
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -48,9 +48,12 @@ const styles = createStyles({
 });
 
 export const appNameRegex = /^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$/;
-export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
-  public _isMounted = false;
 
+const validateRepoName = (repoName: string) => {
+  return appNameRegex.test(repoName);
+};
+
+export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
   // eslint-disable-next-line react/state-in-constructor
   public state: ICreateNewServiceState = {
     isOpen: false,
@@ -65,22 +68,22 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   };
 
   public componentDidMount() {
-    this._isMounted = true;
+    this.componentMounted = true;
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
+    this.componentMounted = false;
   }
 
   public handleModalOpen = () => {
+    const { selectableUser } = this.props;
+    const user = selectableUser?.length === 1 && selectableUser[0];
     this.setState({
       isOpen: true,
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line no-nested-ternary
-      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0].full_name ? this.props.selectableUser[0].full_name : this.props.selectableUser[0].name : '',
-      selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
+      selectedOrgOrUser: user ? (user.full_name || user.name) : '',
+      selectedOrgOrUserDisabled: selectableUser.length === 1,
     });
-  }
+  };
 
   public handleModalClose = () => {
     this.setState({
@@ -92,44 +95,41 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       selectedOrgOrUser: '',
       repoName: '',
     });
-  }
-
-  public getListOfUsers() {
-    return this.props.selectableUser.map((user: any) => user.full_name || user.name);
-  }
-
-  public showServiceOwnerPopper = (message: string) => {
-    this.setState({
-      serviceOwnerAnchorEl: document.getElementById('service-owner'),
-      serviceOwnerPopperMessage: message,
-    });
-  }
-
-  public showRepoNamePopper = (message: string) => {
-    this.setState({
-      repoNameAnchorEl: document.getElementById('service-saved-name'),
-      repoNamePopperMessage: message,
-    });
-  }
+  };
 
   public handleUpdateDropdown = (event: any) => {
     this.setState({
       selectedOrgOrUser: event.target.value,
       serviceOwnerAnchorEl: null,
     });
-  }
+  };
 
   public handleRepoNameUpdated = (event: any) => {
     this.setState({
       repoName: event.target.value,
       repoNameAnchorEl: null,
     });
+  };
+
+  public getListOfUsers() {
+    return this.props.selectableUser.map((user: any) => user.full_name || user.name);
   }
 
-  public validateRepoName = (repoName: string) => {
-    // eslint-disable-next-line no-useless-escape
-    return appNameRegex.test(repoName);
-  }
+  public componentMounted = false;
+
+  public showServiceOwnerPopper = (message: string) => {
+    this.setState({
+      serviceOwnerAnchorEl: document.getElementById('service-owner'),
+      serviceOwnerPopperMessage: message,
+    });
+  };
+
+  public showRepoNamePopper = (message: string) => {
+    this.setState({
+      repoNameAnchorEl: document.getElementById('service-saved-name'),
+      repoNamePopperMessage: message,
+    });
+  };
 
   public validateService = () => {
     let serviceIsValid = true;
@@ -142,7 +142,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       serviceIsValid = false;
     }
 
-    if (this.state.repoName && !this.validateRepoName(this.state.repoName)) {
+    if (this.state.repoName && !validateRepoName(this.state.repoName)) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_has_illegal_characters', this.props.language));
       serviceIsValid = false;
     }
@@ -152,7 +152,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       serviceIsValid = false;
     }
     return serviceIsValid;
-  }
+  };
 
   public createNewService = () => {
     const serviceIsValid = this.validateService();
@@ -181,7 +181,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         }
       }).catch((error: Error) => {
         console.error('Unsucessful creating new app', error.message);
-        if (this._isMounted) {
+        if (this.componentMounted) {
           this.setState({
             isLoading: false,
           });
@@ -189,7 +189,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         }
       });
     }
-  }
+  };
 
   public render() {
     const { classes } = this.props;
@@ -250,10 +250,11 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           }
 
         </AltinnModal>
-      </div >
+      </div>
     );
   }
 }
+
 const combineCurrentUserAndOrg = (organisations: any, user: any) => {
   // eslint-disable-next-line camelcase
   const allUsers = organisations.map(({ username, full_name }: any) => ({ name: username, full_name }));
