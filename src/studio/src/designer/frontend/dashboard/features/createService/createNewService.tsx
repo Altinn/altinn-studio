@@ -1,4 +1,3 @@
-/* slint-disable no-underscore-dangle */
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
