@@ -386,7 +386,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            if (party.PartyId.ToString() != instansiationInstance.SourceInstanceId.Split("/")[0])
+            if (copySourceInstance && party.PartyId.ToString() != instansiationInstance.SourceInstanceId.Split("/")[0])
             {
                 return BadRequest("It is not possible to copy instances between instance owners.");
             }
@@ -436,13 +436,16 @@ namespace Altinn.App.Api.Controllers
                     string[] sourceSplit = instansiationInstance.SourceInstanceId.Split("/");
                     Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
-                    source = await _instanceClient.GetInstance(
-                    app,
-                    org,
-                    party.PartyId,
-                    sourceInstanceGuid);
+                    try
+                    {
+                        source = await _instanceClient.GetInstance(app, org, party.PartyId, sourceInstanceGuid);
+                    }
+                    catch (PlatformHttpException exception)
+                    {
+                        return StatusCode(500, $"Retrieving source instance failed with status code {exception.Response.StatusCode}");
+                    }
 
-                    if (source?.Process?.Ended == null)
+                    if (source.Process.Ended == null)
                     {
                         return BadRequest("It is not possible to copy an instance that isn't archived.");
                     }
