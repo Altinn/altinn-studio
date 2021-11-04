@@ -353,6 +353,12 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"AppId {org}/{app} was not found");
             }
 
+            bool copySourceInstance = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
+            if (copySourceInstance && application.CopyInstanceSettings?.Enabled != true)
+            {
+                return BadRequest("Creating instance based on a copy from an archived instance is not enabled for this app.");
+            }
+
             InstanceOwner lookup = instansiationInstance.InstanceOwner;
 
             if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
@@ -378,6 +384,11 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
+            }
+
+            if (party.PartyId.ToString() != instansiationInstance.SourceInstanceId.Split("/")[0])
+            {
+                return BadRequest("It is not possible to copy instances between instance owners.");
             }
 
             EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
@@ -418,11 +429,30 @@ namespace Altinn.App.Api.Controllers
                     instanceTemplate.Status.ReadStatus = ReadStatus.Read;
                 }
 
+                Instance source = null;
+
+                if (copySourceInstance)
+                {
+                    string[] sourceSplit = instansiationInstance.SourceInstanceId.Split("/");
+                    Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+
+                    source = await _instanceClient.GetInstance(
+                    app,
+                    org,
+                    party.PartyId,
+                    sourceInstanceGuid);
+
+                    if (source?.Process?.Ended == null)
+                    {
+                        return BadRequest("It is not possible to copy an instance that isn't archived.");
+                    }
+                }
+
                 instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
 
-                if (!string.IsNullOrEmpty(instansiationInstance.SourceInstanceId) && application.CopyInstanceSettings?.Enabled == true)
+                if (copySourceInstance)
                 {
-                    await CopyDataFromSourceInstance(application, instansiationInstance.SourceInstanceId, instance);
+                    await CopyDataFromSourceInstance(application, instance, source);
                 }
 
                 instance = await _instanceClient.GetInstance(instance);
@@ -444,39 +474,22 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        private async Task CopyDataFromSourceInstance(Application application, string sourceInstanceId, Instance instance)
+        private async Task CopyDataFromSourceInstance(Application application, Instance targetInstance, Instance sourceInstance)
         {
-            string[] sourceSplit = sourceInstanceId.Split("/");
+            string org = application.Org;
+            string app = application.Id.Split("/")[1];
+            int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId);
 
-            string sourceInstanceOwner = sourceSplit[0];
+            string[] sourceSplit = sourceInstance.Id.Split("/");
             Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-
-            if (!instance.InstanceOwner.PartyId.Equals(sourceInstanceOwner))
-            {
-                return;
-            }
-
-            Instance source = await _instanceClient.GetInstance(
-                app,
-                org,
-                instanceOwnerPartyId,
-                sourceInstanceGuid);
-
-            if (source.Process.Ended == null)
-            {
-                return;
-            }
 
             List<DataType> dts = application.DataTypes
                 .Where(dt => dt.AppLogic != null)
-                .Where(dt => dt.TaskId != null && dt.TaskId.Equals(instance.Process.CurrentTask.ElementId))
+                .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
                 .ToList();
             List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
 
-            foreach (DataElement de in source.Data)
+            foreach (DataElement de in sourceInstance.Data)
             {
                 if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
                 {
@@ -508,17 +521,17 @@ namespace Altinn.App.Api.Controllers
 
                     try
                     {
-                        await _altinnApp.RunDataCreation(instance, data, null);
+                        await _altinnApp.RunDataCreation(targetInstance, data, null);
                     }
                     catch (NotImplementedException)
                     {
                         // Trigger application business logic the old way. DEPRECATED
-                        await _altinnApp.RunDataCreation(instance, data);
+                        await _altinnApp.RunDataCreation(targetInstance, data);
                     }
 
                     await _dataClient.InsertFormData(
                         data,
-                        Guid.Parse(instance.Id.Split("/")[1]),
+                        Guid.Parse(targetInstance.Id.Split("/")[1]),
                         type,
                         org,
                         app,

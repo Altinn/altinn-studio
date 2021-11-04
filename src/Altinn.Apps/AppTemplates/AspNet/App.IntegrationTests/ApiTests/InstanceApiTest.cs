@@ -297,6 +297,80 @@ namespace App.IntegrationTests
         }
 
         [Fact]
+        public async Task Instance_CopyFromSourceInstance_DifferentInstanceOwnerBadRequest()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1606/030b0c24-e296-4083-9687-941a300368af"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/externalprefil/instances/create")
+            {
+                Content = content,
+            };
+
+            // Act 
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string expectedResponse = "It is not possible to copy instances between instance owners.";
+            string responseString = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(expectedResponse, responseString);
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_ActiveInstanceBadRequest()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1337/a4d5c456-a154-44da-b5da-8d37640635bd"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            // Act 
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string expectedResponse = "It is not possible to copy an instance that isn't archived.";
+            string responseString = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(expectedResponse, responseString);
+        }
+
+        [Fact]
         public async Task Instance_CopyFromSourceInstance_ExcludeSingleFieldValueType()
         {
             string token = PrincipalUtil.GetToken(1337);
