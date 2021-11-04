@@ -1146,7 +1146,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-
                 CreateLanguageResources(org, serviceConfig);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
@@ -1167,8 +1166,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     language = "nb",
                     resources = new[]
                     {
-                            new { id = "ServiceName", value = serviceConfig.ServiceName }
-                        },
+                        new { id = "ServiceName", value = serviceConfig.ServiceName }
+                    },
                 });
 
                 SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());

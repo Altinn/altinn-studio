@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -102,11 +103,25 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
+        public async Task RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
         {
-            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
 
-            Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            try
+            {
+                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
+                Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
+                Assert.True(altinnGitRepository.FileExistsByRelativePath(@".altinnstudio\settings.json"));
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
         }
 
         [Fact]
@@ -118,11 +133,24 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void ModelPreference_SettingsDontExists_ShouldUseCorrectDefault()
+        public async Task ModelPreference_SettingsFileExistsButNotDatamodellingPreference_ShouldUseCorrectDefault()
         {
-            var altinnGitRepository = GetTestRepository("ttd", "xyz-datamodels", "testUser");
+            var org = "ttd";
+            var sourceRepository = "xyz-datamodels";
+            var developer = "testUser";
+            var targetRepository = $"{Guid.NewGuid()}-datamodels";
 
-            Assert.Equal(DatamodellingPreference.Unknown, altinnGitRepository.DatamodellingPreference);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            try
+            {
+                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
+                Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.DatamodellingPreference);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
         }
 
         private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)

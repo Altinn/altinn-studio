@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -68,7 +69,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 if (_altinnStudioSettings == null)
                 {
-                    _altinnStudioSettings = GetAltinnStudioSettings();
+                    _altinnStudioSettings = GetAltinnStudioSettings().Result;
                 }
 
                 return _altinnStudioSettings;
@@ -80,10 +81,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public AltinnRepositoryType RepositoryType
         {
-            get
-            {
-                return AltinnStudioSettings.RepoType;
-            }
+            get => AltinnStudioSettings.RepoType;
         }
 
         /// <summary>
@@ -91,10 +89,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public DatamodellingPreference DatamodellingPreference
         {
-            get
-            {
-                return AltinnStudioSettings.DatamodellingPreference;
-            }
+            get => AltinnStudioSettings.DatamodellingPreference;            
         }
 
         /// <summary>
@@ -120,30 +115,59 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
-        private AltinnStudioSettings GetAltinnStudioSettings()
+        private async Task<AltinnStudioSettings> GetAltinnStudioSettings()
         {
-            var studioSettingsFilePath = Path.Combine(RepositoryDirectory, STUDIO_SETTINGS_FILEPATH);
-
             // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
             // need some reasonable defaults.
-            if (!File.Exists(studioSettingsFilePath))
+            if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
             {
+                AltinnStudioSettings newAltinnStudioSettings;
                 if (IsDatamodelsRepo())
                 {
-                    return new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
+                    newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
                 }
                 else
                 {
-                    return new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
+                    newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
                 }
+
+                await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
+
+                return newAltinnStudioSettings;
             }
+            else
+            {
+                var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
+                var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
 
-            var altinnStudioSettingsJson = ReadTextByAbsolutePathAsync(studioSettingsFilePath).Result;
-            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+                var needsSaving = false;
 
-            return altinnStudioSettings;
+                if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
+                {
+                    altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
+                    needsSaving = true;
+                }
+
+                if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
+                {
+                    altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
+                    needsSaving = true;
+                }
+
+                if (needsSaving)
+                {
+                    await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
+                }
+
+                return altinnStudioSettings;
+            }
         }
 
+        // Ideally this class should not know anything about app or datamodel differences.
+        // The Altinn Studio settings is shared between the repository types and is in fact
+        // where this knowledge is placed (RepoType), but in the case of a missing settings
+        // file we either need this "hack" or migrate old repositories when it's opened to
+        // include new files and/or settings added after the repository was crated.
         private bool IsDatamodelsRepo()
         {
             return Repository.Contains("-datamodels");
