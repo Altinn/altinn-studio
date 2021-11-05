@@ -1,4 +1,3 @@
-using Altinn.Authorization.ABAC.Xacml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
