@@ -1,7 +1,7 @@
 import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setGroupType, addGroupItem } from '../../src/features/editor/schemaEditorSlice';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setGroupType, addGroupItem, deleteGroupItem } from '../../src/features/editor/schemaEditorSlice';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
@@ -422,7 +422,7 @@ describe('SchemaEditorSlice', () => {
   it('handles deleting a "group" (anyOf, allOf, oneOf) child and shifting children paths', () => {
     let item = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(item?.anyOf?.length).toBe(4);
-    let nextState = reducer(state, deleteProperty({path: '#/definitions/anyOfTestSeveralItems/anyOf/1'}));
+    let nextState = reducer(state, deleteGroupItem({path: '#/definitions/anyOfTestSeveralItems/anyOf/1'}));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(item?.anyOf?.length).toBe(3);
     expect(item?.anyOf?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');

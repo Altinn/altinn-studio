@@ -3,7 +3,7 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addGroupItem, addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addGroupItem, addProperty, deleteGroupItem, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
@@ -142,7 +142,11 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(promoteProperty({ path: item.path }));
   };
   const handleDeleteClick = () => {
-    dispatch(deleteProperty({ path: item.path }));
+    if (item.groupItem) {
+      dispatch(deleteGroupItem({ path: item.path }));
+    } else {
+      dispatch(deleteProperty({ path: item.path }));
+    }
   };
 
   const handleAddProperty = (type: PropertyType) => {
@@ -236,5 +240,3 @@ function SchemaItem(props: SchemaItemProps) {
     </TreeItem>
   );
 }
-
-export default SchemaItem;

@@ -180,21 +180,6 @@ const schemaEditorSlice = createSlice({
             if (removeIndex >= 0) {
               removeFromItem.properties?.splice(removeIndex, 1);
             }
-          } else {
-            // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
-            const splitPath = path.split('/');
-            const groupKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as GroupKeys;
-            const children = removeFromItem[groupKey];
-            const index = parseInt(propertyName, 10);
-            if (children) {
-              children.splice(index, 1);
-              // shift child item paths if necessary
-              for (let i = index; i < children.length; i += 1) {
-                const splitChildPath = children[i].path.split('/');
-                splitChildPath[splitChildPath.length - 1] = i.toString();
-                children[i].path = splitChildPath.join('/');
-              }
-            }
           }
         }
         return;
@@ -204,6 +189,29 @@ const schemaEditorSlice = createSlice({
       const rootIndex = state.uiSchema.findIndex((e: UiSchemaItem) => e.path === path);
       if (rootIndex >= 0) {
         state.uiSchema.splice(rootIndex, 1);
+      }
+    },
+    deleteGroupItem(state, action) {
+      // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
+      const path: string = action.payload.path;
+      const [parentPath, propertyName] = splitParentPathAndName(path);
+      if (parentPath) {
+        const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
+        if (removeFromItem && propertyName) {
+          const splitPath = path.split('/');
+          const groupKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as GroupKeys;
+          const children = removeFromItem[groupKey];
+          const index = parseInt(propertyName, 10);
+          if (children) {
+            children.splice(index, 1);
+            // shift child item paths if necessary
+            for (let i = index; i < children.length; i += 1) {
+              const splitChildPath = children[i].path.split('/');
+              splitChildPath[splitChildPath.length - 1] = i.toString();
+              children[i].path = splitChildPath.join('/');
+            }
+          }
+        }
       }
     },
     setRestriction(state, action) {
@@ -463,6 +471,7 @@ export const {
   deleteField,
   deleteEnum,
   deleteProperty,
+  deleteGroupItem,
   promoteProperty,
   setRestriction,
   setRestrictionKey,
