@@ -240,3 +240,5 @@ function SchemaItem(props: SchemaItemProps) {
     </TreeItem>
   );
 }
+
+export default SchemaItem;
