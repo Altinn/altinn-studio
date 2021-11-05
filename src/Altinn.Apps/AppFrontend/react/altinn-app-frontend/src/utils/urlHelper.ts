@@ -12,6 +12,7 @@ export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
+export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${appPath}/api/v1/parties/${partyId}
 `;
