@@ -91,7 +91,7 @@ function DatepickerComponent(props: IDatePickerProps) {
     getISOString(props.minDate) ||
     DatePickerMinDateDefault;
   const maxDate = getFlagBasedDate(props.maxDate as DateFlags) ||
-    getISOString(props.minDate) ||
+    getISOString(props.maxDate) ||
     DatePickerMaxDateDefault;
 
   const format = moment.localeData().longDateFormat('L') || props.format || DatePickerFormatDefault;
