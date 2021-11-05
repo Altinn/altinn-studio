@@ -156,6 +156,8 @@ function DatepickerComponent(props: IDatePickerProps) {
     if (!dateValue) {
       return true;
     }
+    dateValue?.set('hour', 12);
+    dateValue?.set('minute', 0);
     return dateValue.isValid() && dateValue.isAfter(minDate) && dateValue.isBefore(maxDate);
   };
 
