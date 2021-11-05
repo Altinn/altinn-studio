@@ -80,7 +80,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return Path.Combine(unitTestFolder, "../../../data/blobs/input/");
         }
 
-        private Stream GetTestDataStream(string filepath)
+        private static Stream GetTestDataStream(string filepath)
         {
             string dataPath = Path.Combine(GetDataInputBlobPath(), filepath);
             Stream ms = new MemoryStream();
@@ -93,7 +93,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return ms;
         }
 
-        private async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
+        private static async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
         {
             string dataPath = GetDataOutputBlobPath() + filepath;
 

@@ -97,7 +97,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Count, actual.Count);
             foreach (KeyValuePair<string, List<DelegationChange>> expectedEntry in expected)
             {
-                List <DelegationChange> actualValue = actual[expectedEntry.Key];
+                List<DelegationChange> actualValue = actual[expectedEntry.Key];
                 Assert.NotNull(actualValue);
                 AssertEqual(expectedEntry.Value, actualValue);
             }
