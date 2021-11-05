@@ -18,7 +18,7 @@ export default class AppFrontend {
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     this.helpText = {
-      open: '.ai-circle-plus',
+      open: '.ai-help-popicon',
       close: '.ai-circle-minus',
       alert: 'div[role="alert"]',
     };

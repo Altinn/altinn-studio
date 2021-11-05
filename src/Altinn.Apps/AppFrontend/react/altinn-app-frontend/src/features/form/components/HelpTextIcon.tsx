@@ -39,7 +39,7 @@ export default function HelpTextIcon(props: IHelpTextIconProps) {
         aria-hidden={false}
       >
         <i
-          className={`${classes.helpTextIcon} ${props.openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+          className={`${classes.helpTextIcon} ${props.openPopover ? 'ai ai-circle-minus' : 'ai ai-help-popicon'}`}
         />
       </span>
     );
