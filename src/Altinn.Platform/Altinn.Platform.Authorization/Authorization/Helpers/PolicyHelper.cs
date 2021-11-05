@@ -102,45 +102,6 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Group RuleMatch objects so there is one group for each unique policypath so they can be processesed in one update 
-        /// </summary>
-        /// <param name="input">The list of RuleMAtches to group</param>
-        /// <param name="invalidEntries">List of elements failed to create an policy path for</param>
-        /// <returns>Dictionary with one key for each policy path</returns>
-        public static Dictionary<string, List<RequestToDelete>> GroupRuleMatches(List<RequestToDelete> input, out List<RequestToDelete> invalidEntries)
-        {
-            Dictionary<string, List<RequestToDelete>> result = new Dictionary<string, List<RequestToDelete>>();
-            invalidEntries = new List<RequestToDelete>();
-
-            foreach (RequestToDelete request in input)
-            {
-                if (!DelegationHelper.TryGetResourceFromAttributeMatch(request.PolicyMatch.Resource, out string org, out string app))
-                {
-                    invalidEntries.Add(request);
-                    continue;
-                }
-
-                string policyPath = GetAltinnAppDelegationPolicyPath(org, app, request.PolicyMatch.OfferedByPartyId.ToString(), request.PolicyMatch.CoveredBy.FirstOrDefault(m => m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute || m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute)?.Value);
-
-                List<RequestToDelete> currentRequestToDelete;
-
-                if (result.ContainsKey(policyPath))
-                {
-                    currentRequestToDelete = result[policyPath];
-                }
-                else
-                {
-                    currentRequestToDelete = new List<RequestToDelete>();
-                    result[policyPath] = currentRequestToDelete;
-                }
-
-                currentRequestToDelete.Add(request);               
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Creates a Rule represantation based on data used to match the rule in the XacmlPolicyFile and the match in this file
         /// </summary>
         /// <param name="search">The sarch to find the correct rule</param>
