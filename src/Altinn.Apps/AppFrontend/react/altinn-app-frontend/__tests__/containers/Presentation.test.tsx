@@ -6,10 +6,12 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import Presentation from '../../src/shared/containers/Presentation';
 import { ProcessTaskType, IRuntimeState } from '../../src/types';
 import { getInitialStateMock } from '../../__mocks__/mocks';
+import NavBar from '../../src/components/presentation/NavBar';
+import { AltinnAppTheme, returnUrlToMessagebox } from '../../../shared/src';
+import { mockParty } from '../../__mocks__/initialStateMock';
 
 describe('>>> containers/Presentation.tsx', () => {
   let mockHeader: string;
@@ -63,6 +65,58 @@ describe('>>> containers/Presentation.tsx', () => {
       </MemoryRouter>,
     );
     expect(rendered).toMatchSnapshot();
+  });
+
+  it('+++ should change window.location.href to query parameter returnUrl if it is found', () => {
+    const returnUrl = 'foo';
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window,
+        search: '?returnUrl=' + returnUrl
+      },
+      writable: true,
+    });
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id='mockFormFiller' />
+          </Presentation>
+        </Provider>
+      </MemoryRouter>,
+    );
+    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
+    closeButton.simulate('click');
+    expect(window.location.href).toEqual(returnUrl);
+  });
+
+  it('+++ should change window.location.href to default messagebox url if query parameter returnUrl is not found', () => {
+    const origin = 'http://altinn3local.no';
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window,
+        origin,
+      },
+      writable: true,
+    });
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id='mockFormFiller' />
+          </Presentation>
+        </Provider>
+      </MemoryRouter>,
+    );
+    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
+    closeButton.simulate('click');
+    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, mockParty.partyId));
   });
 
   it('+++ should render formfiller when step is "formfiller"', () => {

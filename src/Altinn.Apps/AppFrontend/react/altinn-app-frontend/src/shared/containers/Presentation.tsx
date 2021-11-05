@@ -50,18 +50,8 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   };
 
   const handleModalCloseButton = () => {
-    const origin = window.location.origin;
-    const returnUrl = returnUrlFromQueryParameter();
-    let windowHref = '';
-
-    if (returnUrl) {
-      windowHref = returnUrl;
-    } else {
-      windowHref = returnUrlToMessagebox(origin, party.partyId);
-    }
-
-    window.location.href = windowHref;
-    return true;
+    window.location.href = returnUrlFromQueryParameter() ||
+      returnUrlToMessagebox(window.location.origin, party.partyId);
   };
 
   const isProcessStepsArchived = Boolean(props.type === ProcessTaskType.Archived);
