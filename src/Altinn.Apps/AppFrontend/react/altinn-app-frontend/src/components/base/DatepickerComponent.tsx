@@ -135,8 +135,11 @@ function DatepickerComponent(props: IDatePickerProps) {
   }, [props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
-    dateValue?.set('hour', 12);
-    dateValue?.set('minute', 0);
+    dateValue
+      ?.set('hour', 12)
+      ?.set('minute', 0)
+      ?.set('second', 0)
+      ?.set('millisecond', 0);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
@@ -156,9 +159,12 @@ function DatepickerComponent(props: IDatePickerProps) {
     if (!dateValue) {
       return true;
     }
-    dateValue?.set('hour', 12);
-    dateValue?.set('minute', 0);
-    return dateValue.isValid() && dateValue.isAfter(minDate) && dateValue.isBefore(maxDate);
+    dateValue
+      .set('hour', 12)
+      .set('minute', 0)
+      .set('second', 0)
+      .set('millisecond', 0);
+    return dateValue.isValid() && dateValue.isSameOrAfter(minDate) && dateValue.isSameOrBefore(maxDate);
   };
 
   const handleOnBlur = () => {

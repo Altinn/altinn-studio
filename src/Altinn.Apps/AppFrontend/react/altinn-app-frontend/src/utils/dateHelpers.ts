@@ -10,6 +10,8 @@ export function getFlagBasedDate(flag: DateFlags): string | undefined {
     return moment()
       .set('hour', 12)
       .set('minute', 0)
+      .set('seconds', 0)
+      .set('milliseconds', 0)
       .toISOString();
   }
 
