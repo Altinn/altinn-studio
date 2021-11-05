@@ -86,8 +86,6 @@ const styles = createStyles({
 
 // eslint-disable-next-line max-len
 export class CloneServiceComponent extends React.Component<ICloneServiceComponentProps & RouteChildrenProps, ICloneServiceComponentState> {
-  public _isMounted = false;
-
   // eslint-disable-next-line react/state-in-constructor
   public state: ICloneServiceComponentState = {
     lastChangedBy: '',
@@ -95,13 +93,13 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   };
 
   public componentDidMount() {
-    this._isMounted = true;
+    this.componentMounted = true;
     const { location } = window as Window;
     const { org, serviceName } = (this.props.match.params as any);
     // eslint-disable-next-line max-len
     const url = `${location.origin}/designerapi/Repository/Branch?org=${org}&repository=${serviceName}&branch=master`;
     get(url).then((result: any) => {
-      if (result && this._isMounted) {
+      if (result && this.componentMounted) {
         this.setState({
           lastChangedBy: result.commit.author.name,
         });
@@ -110,12 +108,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
-  }
-
-  public redirectToCode = () => {
-    const repoInfo = this.getCurrentRepositoryInfo();
-    window.location.assign(`/repos/${repoInfo.full_name}`);
+    this.componentMounted = false;
   }
 
   public getCurrentRepositoryInfo = () => {
@@ -129,7 +122,14 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     });
 
     return returnService.length === 1 ? returnService[0] : null;
-  }
+  };
+
+  public redirectToCode = () => {
+    const repoInfo = this.getCurrentRepositoryInfo();
+    window.location.assign(`/repos/${repoInfo.full_name}`);
+  };
+
+  public componentMounted = false;
 
   public cloneAndEditService = () => {
     const altinnWindow = window as Window as IAltinnWindow;
@@ -148,12 +148,12 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     get(url).then((result: any) => {
-      if (this._isMounted) {
+      if (this.componentMounted) {
         // eslint-disable-next-line max-len
         window.location.assign(`${location.origin}/designer/${org}/${serviceName}`);
       }
     });
-  }
+  };
 
   public render() {
     const { classes } = this.props;
