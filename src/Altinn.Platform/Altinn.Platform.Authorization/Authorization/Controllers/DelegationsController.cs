@@ -82,24 +82,6 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Endpoint for retrieving delegated rules between parties
-        /// </summary>
-        [HttpPost]
-        [Route("authorization/api/v1/[controller]/GetRules")]
-        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RequestToDelete ruleMatch, [FromQuery] bool onlyDirectDelegations = false)
-        {
-            try
-            {
-                return StatusCode(404, "Not yet implemented");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Unable to get rules. {e}");
-                return StatusCode(500, $"Unable to get rules. {e}");
-            }
-        }
-
-        /// <summary>
         /// Endpoint for deleting delegated rules between parties
         /// </summary>
         /// <response code="201" cref="List{Rule}">Deleted</response>
@@ -145,7 +127,6 @@ namespace Altinn.Platform.Authorization.Controllers
 
                 _logger.LogInformation("Deletion could not be completed");
                 return StatusCode(500, $"Unable to complete deletion");
-
             }
             catch (Exception e)
             {
@@ -195,7 +176,6 @@ namespace Altinn.Platform.Authorization.Controllers
 
                 _logger.LogInformation("Deletion could not be completed");
                 return StatusCode(500, $"Unable to complete deletion");
-
             }
             catch (Exception e)
             {

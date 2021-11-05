@@ -170,7 +170,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                         isAllRulesDeleted = existingDelegationPolicy.Rules.Count == 0;
 
-                        //if nothing is deleted no update has been done and policy and postgree update can be skipped
+                        // if nothing is deleted no update has been done and policy and postgree update can be skipped
                         if (currentRules.Count > 0)
                         { 
                             // Write delegation policy to blob storage
@@ -205,7 +205,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
 
                     result.AddRange(currentRules);
-
                 }
                 else
                 {

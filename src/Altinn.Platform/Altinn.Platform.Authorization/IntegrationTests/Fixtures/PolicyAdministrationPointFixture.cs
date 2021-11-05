@@ -29,7 +29,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 
         public PolicyAdministrationPointFixture()
         {
-            string[] args = { };
+            string[] args = Array.Empty<string>();
 
             Program.ConfigureSetupLogging();
             ConfigurationBuilder config = new ConfigurationBuilder();
@@ -73,9 +73,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         {
             Client.Dispose();
             _testServer.Dispose();
+            GC.SuppressFinalize(this);
         }
 
-        private string GetContentRootPath()
+        private static string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;
             var relativePathToHostProject = "../../../../";

@@ -332,7 +332,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             }
             catch
             {
-                //Do nothing expected
+                // Do nothing expected
             }
 
             // Assert

@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
         public static RequestToDelete GetRequestToDeleteModel(int lastChangedByUserId, int offeredByPartyId, string org, string app, List<string> ruleIds = null, int? coveredByPartyId = null, int? coveredByUserId = null)
         {
             AttributeMatch coveredBy = new AttributeMatch();
-            if(coveredByUserId == null)
+            if (coveredByUserId == null)
             {
                 coveredBy.Id = AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute;
                 coveredBy.Value = coveredByPartyId.ToString();
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
                 PolicyMatch = new PolicyMatch
                 {
                     CoveredBy = new List<AttributeMatch> { coveredBy },
-                    OfferedByPartyId  = offeredByPartyId,
+                    OfferedByPartyId = offeredByPartyId,
                     Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } }
                 },
                 

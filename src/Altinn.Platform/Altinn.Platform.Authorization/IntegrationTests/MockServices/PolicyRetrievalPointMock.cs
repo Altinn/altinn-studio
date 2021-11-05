@@ -100,13 +100,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../Data/Xacml/3.0/AltinnApps/{org}/{app}/");
         }
 
-        private string GetAltinnAppsDelegationPolicyPath(string policyPath)
+        private static string GetAltinnAppsDelegationPolicyPath(string policyPath)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../Data/blobs/input/{policyPath}");
         }
 
@@ -117,13 +117,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetAltinnAppsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/AltinnApps");
         }
 
         private string GetConformancePath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/ConformanceTests");
         }
 

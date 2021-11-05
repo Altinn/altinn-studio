@@ -436,13 +436,12 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
-                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    XacmlMatch action = allOf.Matches.FirstOrDefault(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action));
+
+                    if (action != null)
                     {
-                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
-                        {
-                            return new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value };
-                        }
-                    }
+                        return new AttributeMatch { Id = action.AttributeDesignator.AttributeId.OriginalString, Value = action.AttributeValue.Value };
+                    }                    
                 }
             }
 
@@ -456,12 +455,9 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
-                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches.Where(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
                     {
-                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                        {
-                            result.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });
-                        }
+                        result.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });                        
                     }
                 }
             }

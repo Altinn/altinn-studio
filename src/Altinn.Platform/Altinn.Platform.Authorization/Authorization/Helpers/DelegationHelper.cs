@@ -86,7 +86,7 @@ namespace Altinn.Platform.Authorization.Helpers
             coveredByPartyId = validParty ? coveredByPartyIdTemp : null;
             coveredByUserId = validUser ? coveredByUserIdTemp : null;
 
-            if(validUser)
+            if (validUser)
             {
                 return coveredByUserIdTemp.ToString();
             }
@@ -112,21 +112,14 @@ namespace Altinn.Platform.Authorization.Helpers
             org = null;
             app = null;
 
-            try
-            {
-                org = input.First(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
-                app = input.First(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
+            org = input.FirstOrDefault(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
+            app = input.FirstOrDefault(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
 
-                if (!string.IsNullOrWhiteSpace(org) && !string.IsNullOrWhiteSpace(app))
-                {
-                    return true;
-                }
-            }
-            catch (Exception)
+            if (!string.IsNullOrWhiteSpace(org) && !string.IsNullOrWhiteSpace(app))
             {
-                //Todo: logging?
+                return true;
             }
-
+            
             return false;
         }
 

@@ -60,7 +60,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         {
             string fullpath = Path.Combine(GetDataInputBlobPath(), filepath);
 
-            if(File.Exists(fullpath))
+            if (File.Exists(fullpath))
             {
                 return Task.FromResult(true);
             }
@@ -68,13 +68,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return Task.FromResult(false);
         }
 
-        private string GetDataOutputBlobPath()
+        private static string GetDataOutputBlobPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../data/blobs/output/");
         }
 
-        private string GetDataInputBlobPath()
+        private static string GetDataInputBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../data/blobs/input/");
