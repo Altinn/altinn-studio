@@ -17,19 +17,19 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/properties/allOfTest',
     displayName: 'allOfTest',
-    allOf: [ { path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true } as UiSchemaItem],
+    allOf: [{ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
     restrictions: [],
   },
   {
     path: '#/properties/oneOfTest',
     displayName: 'oneOfTest',
-    oneOf: [ { path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true } as UiSchemaItem],
+    oneOf: [{ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
     restrictions: [],
   },
   {
     path: '#/properties/anyOfTest',
     displayName: 'anyOfTest',
-    anyOf: [ { path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true } as UiSchemaItem],
+    anyOf: [{ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
     restrictions: [],
   },
   {
@@ -64,13 +64,13 @@ const mockJsonSchema = {
       },
     },
     allOfTest: {
-      allOf: [ { $ref: '#/$defs/refTest' }],
+      allOf: [{ $ref: '#/$defs/refTest' }],
     },
     oneOfTest: {
-      oneOf: [ { $ref: '#/$defs/refTest' }],
+      oneOf: [{ $ref: '#/$defs/refTest' }],
     },
     anyOfTest: {
-      anyOf: [ { $ref: '#/$defs/refTest' }],
+      anyOf: [{ $ref: '#/$defs/refTest' }],
     },
   },
   $defs: {
@@ -102,9 +102,9 @@ test('gets UI schema item from allOf/anyOf/oneOf ', () => {
   const anyOfItem = getUiSchemaItem(mockUiSchema, '#/properties/anyOfTest/anyOf/0');
   const oneOfItem = getUiSchemaItem(mockUiSchema, '#/properties/oneOfTest/oneOf/0');
 
-  expect(allOfItem).toEqual({ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true });
-  expect(anyOfItem).toEqual({ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true  });
-  expect(oneOfItem).toEqual({ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', groupItem: true });
+  expect(allOfItem).toEqual({ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true });
+  expect(anyOfItem).toEqual({ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true });
+  expect(oneOfItem).toEqual({ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true });
 });
 
 test('build json schema', () => {

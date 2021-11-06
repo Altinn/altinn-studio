@@ -4,11 +4,11 @@ import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
+import { MenuItem } from '@material-ui/core';
 import SchemaInspector from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
-import { MenuItem } from '@material-ui/core';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
@@ -193,7 +193,7 @@ it('dispatches correctly when changing ref', () => {
 });
 
 it('supports switching a type into an array and back', () => {
-  let wrapper:any = null;
+  let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M/properties/dataFormatVersion');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
@@ -240,7 +240,7 @@ it('supports switching a type into an array and back', () => {
 });
 
 it('supports switching a reference into an array and back', () => {
-  let wrapper:any = null;
+  let wrapper: any = null;
   act(() => {
     wrapper = mountWithId('#/definitions/RA-0678_M/properties/InternInformasjon');
     wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
@@ -416,14 +416,14 @@ it('dispatches correctly when adding fields', () => {
   });
 });
 
-it('dispatches correctly when changing type of group', () => {
+it('dispatches correctly when changing type of combination', () => {
   const wrapper = mountWithId('#/definitions/allOfTest');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   // https://github.com/mui-org/material-ui/issues/5259#issuecomment-783488623
-  wrapper.find("#definitionsallOfTest-change-group").hostNodes().at(0).simulate("mousedown", { button: 0 });
+  wrapper.find('#definitionsallOfTest-change-combination').hostNodes().at(0).simulate('mousedown', { button: 0 });
   wrapper.find(MenuItem).at(2).simulate('click');
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setGroupType',
+    type: 'schemaEditor/setCombinationType',
     payload: {
       type: 'oneOf',
       path: '#/definitions/allOfTest',
@@ -431,26 +431,26 @@ it('dispatches correctly when changing type of group', () => {
   });
 });
 
-it('dispatches correctly when setting group to nullable', () => {
-  let wrapper = mountWithId('#/definitions/allOfTest');
+it('dispatches correctly when setting combination to nullable', () => {
+  const wrapper = mountWithId('#/definitions/allOfTest');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   wrapper.find('input[type="checkbox"]').hostNodes().at(0).simulate('change', { target: { checked: true } });
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/addGroupItem',
+    type: 'schemaEditor/addCombinationItem',
     payload: {
       path: '#/definitions/allOfTest',
       type: 'null',
-      displayName: 'Inline object'
+      displayName: 'Inline object',
     },
   });
 });
 
-it('dispatches correctly when removing nullable option on group', () => {
+it('dispatches correctly when removing nullable option on a combination', () => {
   const wrapper = mountWithId('#/definitions/oneOfTestNullable');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   wrapper.find('input[type="checkbox"]').hostNodes().at(0).simulate('change', { target: { checked: false } });
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteGroupItem',
+    type: 'schemaEditor/deleteCombinationItem',
     payload: {
       path: '#/definitions/oneOfTestNullable/oneOf/1',
     },
@@ -458,13 +458,13 @@ it('dispatches correctly when removing nullable option on group', () => {
 });
 
 it('a ref in a allOf/anyOf/oneOf should not display name', () => {
-  let wrapper = mountWithId('#/definitions/allOfTest/allOf/0');
+  const wrapper = mountWithId('#/definitions/allOfTest/allOf/0');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   expect(wrapper.find('#selectedItemName').hostNodes()).toHaveLength(0);
 });
 
 it('an inline object in a allOf/anyOf/oneOf should present a textual visualization and information about inline objects', () => {
-  let wrapper = mountWithId('#/definitions/oneOfTestNullable/oneOf/1');
+  const wrapper = mountWithId('#/definitions/oneOfTestNullable/oneOf/1');
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   expect(wrapper.find('#json-paper').hostNodes()).toHaveLength(1);
   expect(wrapper.find('#information-paper').hostNodes()).toHaveLength(1);

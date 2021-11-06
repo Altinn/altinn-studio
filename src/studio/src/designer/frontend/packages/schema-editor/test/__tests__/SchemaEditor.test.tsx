@@ -224,18 +224,18 @@ describe('>>> Editor.tsx', () => {
     expect(wrapper.find('#add-reference-to-node-button')).toHaveLength(0)
   });
 
-  it('+++ should show menu with option field, reference, and group when pressing add', () => {
+  it('+++ should show menu with option field, reference, and combination when pressing add', () => {
     const wrapper = mountComponent();
     wrapper.find('#add-button').hostNodes().simulate('click');
     expect(wrapper.find('#add-field-button').hostNodes()).toHaveLength(1)
     expect(wrapper.find('#add-reference-button').hostNodes()).toHaveLength(1)
-    expect(wrapper.find('#add-group-button').hostNodes()).toHaveLength(1)
+    expect(wrapper.find('#add-combination-button').hostNodes()).toHaveLength(1)
   });
 
-  it('+++ should trigger correct dispatch when adding group to root', () => {
+  it('+++ should trigger correct dispatch when adding combination to root', () => {
     const wrapper = mountComponent();
     wrapper.find('#add-button').hostNodes().simulate('click');
-    wrapper.find('#add-group-button').hostNodes().simulate('click');
+    wrapper.find('#add-combination-button').hostNodes().simulate('click');
     expect(mockStore.dispatch).toBeCalledWith({
       type: 'schemaEditor/addRootItem',
       payload: {
@@ -246,7 +246,7 @@ describe('>>> Editor.tsx', () => {
     });
   });
 
-  it('+++ should show context menu and trigger correct dispatch when adding a group on a specific node', () => {
+  it('+++ should show context menu and trigger correct dispatch when adding a combination on a specific node', () => {
     const customState = {
       schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
       uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
@@ -257,7 +257,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#add-group-to-node-button').hostNodes().simulate('click');
+    wrapper.find('#add-combination-to-node-button').hostNodes().simulate('click');
     expect(mockStore.dispatch).toBeCalledWith({
       type: 'schemaEditor/addProperty',
       payload: {
@@ -267,7 +267,7 @@ describe('>>> Editor.tsx', () => {
     });
   });
 
-  it('+++ should only be possible to add a reference to a group type', () => {
+  it('+++ should only be possible to add a reference to a combination type', () => {
     const customState = {
       schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
       uiSchema: buildUISchema({ mockItem: { allOf: [], name: 'allOfTest' } }, '#/properties'),
@@ -280,6 +280,6 @@ describe('>>> Editor.tsx', () => {
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
     expect(wrapper.find('#add-property-to-node-button').hostNodes()).toHaveLength(0);
     expect(wrapper.find('#add-reference-to-node-button').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#add-group-to-node-button').hostNodes()).toHaveLength(0);
+    expect(wrapper.find('#add-combination-to-node-button').hostNodes()).toHaveLength(0);
   });
 });

@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
-import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapGroupChildren } from '../../utils';
-import { GroupKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapCombinationChildren } from '../../utils';
+import { CombinationKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -191,8 +191,8 @@ const schemaEditorSlice = createSlice({
         state.uiSchema.splice(rootIndex, 1);
       }
     },
-    deleteGroupItem(state, action) {
-      // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
+    deleteCombinationItem(state, action) {
+      // removing a "combination" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
       const path: string = action.payload.path;
       if (state.selectedDefinitionNodeId === path) {
         state.selectedDefinitionNodeId = '';
@@ -204,8 +204,8 @@ const schemaEditorSlice = createSlice({
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem && propertyName) {
           const splitPath = path.split('/');
-          const groupKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as GroupKeys;
-          const children = removeFromItem[groupKey];
+          const combinationKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as CombinationKeys;
+          const children = removeFromItem[combinationKey];
           const index = parseInt(propertyName, 10);
           if (children) {
             children.splice(index, 1);
@@ -309,7 +309,7 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setGroupType(state, action) {
+    setCombinationType(state, action) {
       const {
         type,
         path,
@@ -317,7 +317,7 @@ const schemaEditorSlice = createSlice({
 
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
 
-      let currentType: GroupKeys;
+      let currentType: CombinationKeys;
       if (schemaItem.allOf) {
         currentType = 'allOf';
       } else if (schemaItem.anyOf) {
@@ -326,34 +326,34 @@ const schemaEditorSlice = createSlice({
         currentType = 'oneOf';
       }
 
-      const mappedChildren = mapGroupChildren(schemaItem[currentType] || [], type);
-      schemaItem[type as GroupKeys] = mappedChildren;
+      const mappedChildren = mapCombinationChildren(schemaItem[currentType] || [], type);
+      schemaItem[type as CombinationKeys] = mappedChildren;
       schemaItem[currentType] = undefined;
     },
-    addGroupItem(state, action) {
+    addCombinationItem(state, action) {
       const { path, ...rest } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      let groupType: string;
-      let groupArray: UiSchemaItem[];
+      let combinationKey: CombinationKeys;
+      let combinationArray: UiSchemaItem[];
       if (addToItem.allOf) {
-        groupArray = addToItem.allOf;
-        groupType = 'allOf';
+        combinationArray = addToItem.allOf;
+        combinationKey = 'allOf';
       } else if (addToItem.anyOf) {
-        groupArray = addToItem.anyOf;
-        groupType = 'anyOf';
+        combinationArray = addToItem.anyOf;
+        combinationKey = 'anyOf';
       } else if (addToItem.oneOf) {
-        groupArray = addToItem.oneOf;
-        groupType = 'oneOf';
+        combinationArray = addToItem.oneOf;
+        combinationKey = 'oneOf';
       } else {
-        throw new Error('adding to invalid group');
+        throw new Error('adding to invalid combination');
       }
       const item: UiSchemaItem = {
-        path: `${path}/${groupType}/${groupArray?.length}`,
-        groupItem: true,
+        path: `${path}/${combinationKey}/${combinationArray?.length}`,
+        combinationItem: true,
         ...rest,
       };
-      if (groupArray) {
-        groupArray.push(item);
+      if (combinationArray) {
+        combinationArray.push(item);
       }
     },
     setJsonSchema(state, action) {
@@ -471,12 +471,12 @@ export const {
   addEnum,
   addRootItem,
   addProperty,
-  addGroupItem,
+  addCombinationItem,
   clearNameFocus,
   deleteField,
   deleteEnum,
   deleteProperty,
-  deleteGroupItem,
+  deleteCombinationItem,
   promoteProperty,
   setRestriction,
   setRestrictionKey,
@@ -493,7 +493,7 @@ export const {
   setDescription,
   setType,
   setRequired,
-  setGroupType,
+  setCombinationType,
   setSelectedTab,
   navigateToType,
 } = schemaEditorSlice.actions;

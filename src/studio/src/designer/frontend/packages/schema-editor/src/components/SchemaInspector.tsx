@@ -8,10 +8,10 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
-  addEnum, deleteEnum, navigateToType, setGroupType, addGroupItem, deleteGroupItem }
+  addEnum, deleteEnum, navigateToType, setCombinationType, addCombinationItem, deleteCombinationItem }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, groupIsNullable, nullableType } from '../utils';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, combinationIsNullable, nullableType } from '../utils';
 import { StyledSelect } from './StyledSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -107,9 +107,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
   const [arrayType, setArrayType] = React.useState<string>('');
-  const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
+  const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'combination'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
-  const [groupKind, setGroupKind] = React.useState<'allOf' | 'anyOf' | 'oneOf' | undefined>(undefined);
+  const [combinationKind, setCombinationKind] = React.useState<'allOf' | 'anyOf' | 'oneOf' | undefined>(undefined);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === 'properties') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
@@ -161,13 +161,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       if (selectedItem.$ref !== undefined || selectedItem.items?.$ref !== undefined) {
         setObjectKind('reference');
       } else if (selectedItem.allOf || selectedItem.anyOf || selectedItem.oneOf) {
-        setObjectKind('group');
+        setObjectKind('combination');
         if (selectedItem.allOf) {
-          setGroupKind('allOf');
+          setCombinationKind('allOf');
         } else if (selectedItem.anyOf) {
-          setGroupKind('anyOf');
+          setCombinationKind('anyOf');
         } else if (selectedItem.oneOf) {
-          setGroupKind('oneOf');
+          setCombinationKind('oneOf');
         }
       } else {
         setObjectKind('type');
@@ -236,8 +236,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path: itemToDisplay?.path, value, oldValue,
     }));
   };
-  const onChangeGroupType = (value: string) => {
-    dispatch(setGroupType({
+  const onChangeCombinationType = (value: string) => {
+    dispatch(setCombinationType({
       path: itemToDisplay?.path, type: value,
     }));
   };
@@ -400,7 +400,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onChangeNullable = (_x: any, nullable: boolean) => {
     if (nullable) {
-      dispatch(addGroupItem({
+      dispatch(addCombinationItem({
         path: selectedItem?.path, type: 'null', displayName: 'Inline object',
       }));
     } else {
@@ -409,7 +409,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         selectedItem?.allOf?.find(nullableType) ||
         selectedItem?.anyOf?.find(nullableType);
       if (itemToRemove) {
-        dispatch(deleteGroupItem({ path: itemToRemove.path }));
+        dispatch(deleteCombinationItem({ path: itemToRemove.path }));
       }
     }
   };
@@ -459,7 +459,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
   const renderItemData = () => (
     <div>
-      {!selectedItem?.groupItem &&
+      {!selectedItem?.combinationItem &&
         <>
           <p className={classes.name}>{getTranslation('name', props.language)}</p>
           <TextField
@@ -509,14 +509,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           />}
           label={getTranslation('multiple_answers', props.language)}
         />}
-      {objectKind === 'group' &&
+      {objectKind === 'combination' &&
         <>
           <p className={classes.header}>{getTranslation('type', props.language)}</p>
           <StyledSelect
             fullWidth={true}
-            value={groupKind}
-            id={`${getDomFriendlyID(selectedItem?.path || '')}-change-group`}
-            onChange={onChangeGroupType}
+            value={combinationKind}
+            id={`${getDomFriendlyID(selectedItem?.path || '')}-change-combination`}
+            onChange={onChangeCombinationType}
           >
             <MenuItem value='allOf'>{getTranslation('all_of', props.language)}</MenuItem>
             <MenuItem value='anyOf'>{getTranslation('any_of', props.language)}</MenuItem>
@@ -530,7 +530,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           className={classes.header}
           control={<Checkbox
             color='primary'
-            checked={groupIsNullable(itemToDisplay)}
+            checked={combinationIsNullable(itemToDisplay)}
             onChange={onChangeNullable}
             name='checkedNullable'
           />}
@@ -599,19 +599,19 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label='restrictions'
               language={props.language}
               value='1'
-              hide={objectKind === 'group' || selectedItem?.groupItem}
+              hide={objectKind === 'combination' || selectedItem?.combinationItem}
             />
             <SchemaTab
               label='fields'
               language={props.language}
               value='2'
-              hide={selectedItem?.type !== 'object' || selectedItem.groupItem}
+              hide={selectedItem?.type !== 'object' || selectedItem.combinationItem}
             />
           </TabList>
 
         </AppBar>
         <TabPanel value='0'>
-          { (selectedItem?.groupItem && selectedItem.$ref === undefined) ?
+          { (selectedItem?.combinationItem && selectedItem.$ref === undefined) ?
             <InlineObject item={selectedItem} language={props.language}/> :
             renderItemData()
           }

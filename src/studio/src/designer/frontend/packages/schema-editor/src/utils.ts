@@ -1,4 +1,4 @@
-import { GroupKeys, ILanguage, UiSchemaItem } from './types';
+import { CombinationKeys, ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
@@ -10,9 +10,9 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
       if (item.properties instanceof Array && depth > 0) {
         flat(item.properties, depth - 1, stack);
       }
-      const groupItems = item.allOf || item.oneOf || item.anyOf;
-      if (groupItems instanceof Array && depth > 0) {
-        flat(groupItems, depth - 1, stack);
+      const combinationItems = item.allOf || item.oneOf || item.anyOf;
+      if (combinationItems instanceof Array && depth > 0) {
+        flat(combinationItems, depth - 1, stack);
       }
     }
   }
@@ -139,7 +139,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       }
       case 'path':
       case 'displayName':
-      case 'groupItem':
+      case 'combinationItem':
         break;
       default:
         item[key] = uiSchemaItem[key];
@@ -190,9 +190,9 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
-        oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
-        allOf: allOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
-        anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
+        oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'oneOf', path)),
+        allOf: allOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'allOf', path)),
+        anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'anyOf', path)),
       });
     } else {
       result.push({
@@ -208,18 +208,20 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   return result;
 }
 
-export const mapGroupItemToUiSchemaItem = (item: UiSchemaItem, index: number, key: GroupKeys, parentPath: string) => {
+export const mapCombinationItemToUiSchemaItem = (
+  item: UiSchemaItem, index: number, key: CombinationKeys, parentPath: string,
+) => {
   return {
     ...item,
     path: `${parentPath}/${key}/${index}`,
     displayName: item.$ref !== undefined ? 'ref' : 'Inline object',
-    groupItem: true,
+    combinationItem: true,
   };
 };
 
 export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
-export const groupIsNullable = (item: UiSchemaItem): boolean => {
+export const combinationIsNullable = (item: UiSchemaItem): boolean => {
   return !!(
     item?.anyOf?.some(nullableType) ||
     item?.allOf?.some(nullableType) ||
@@ -227,7 +229,7 @@ export const groupIsNullable = (item: UiSchemaItem): boolean => {
   );
 };
 
-export const mapGroupChildren = (children: UiSchemaItem[], toType: GroupKeys): UiSchemaItem[] => {
+export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKeys): UiSchemaItem[] => {
   // example case, going from oneOf to allOf
   // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
   // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0
@@ -260,9 +262,9 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       enum: enums,
       items,
       description,
-      oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'oneOf', path)),
-      allOf: allOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'allOf', path)),
-      anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapGroupItemToUiSchemaItem(child, index, 'anyOf', path)),
+      oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'oneOf', path)),
+      allOf: allOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'allOf', path)),
+      anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'anyOf', path)),
     };
 
     if (currentProperty.$ref) {

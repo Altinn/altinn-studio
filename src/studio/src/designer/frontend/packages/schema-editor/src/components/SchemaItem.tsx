@@ -3,7 +3,7 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addGroupItem, addProperty, deleteGroupItem, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { addCombinationItem, addProperty, deleteCombinationItem, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
 import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
@@ -142,8 +142,8 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(promoteProperty({ path: item.path }));
   };
   const handleDeleteClick = () => {
-    if (item.groupItem) {
-      dispatch(deleteGroupItem({ path: item.path }));
+    if (item.combinationItem) {
+      dispatch(deleteCombinationItem({ path: item.path }));
     } else {
       dispatch(deleteProperty({ path: item.path }));
     }
@@ -154,11 +154,11 @@ function SchemaItem(props: SchemaItemProps) {
       path: itemToDisplay.path,
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
-      allOf: (type === 'group' ? [] : undefined),
+      allOf: (type === 'combination' ? [] : undefined),
     } as UiSchemaItem;
 
     if (itemToDisplay.allOf || itemToDisplay.anyOf || itemToDisplay.oneOf) {
-      dispatch(addGroupItem({
+      dispatch(addCombinationItem({
         ...newItem,
         displayName: (type === 'reference') ? 'ref' : '',
       }));
@@ -210,9 +210,9 @@ function SchemaItem(props: SchemaItemProps) {
     if (itemToDisplay.properties) {
       items.push(renderProperties(itemToDisplay.properties));
     }
-    const groupChildren = item.allOf || item.oneOf || item.anyOf;
-    if (groupChildren) {
-      items.push(renderProperties(groupChildren));
+    const combinationChildren = item.allOf || item.oneOf || item.anyOf;
+    if (combinationChildren) {
+      items.push(renderProperties(combinationChildren));
     }
     return items;
   };
@@ -225,12 +225,12 @@ function SchemaItem(props: SchemaItemProps) {
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
         onAddProperty={(item.type === 'object') ? handleAddProperty : undefined}
         onAddReference={(item.type === 'object' || (item.allOf || item.anyOf || item.oneOf)) ? handleAddProperty : undefined}
-        onAddGroup={(item.type === 'object') ? handleAddProperty : undefined}
+        onAddCombination={(item.type === 'object') ? handleAddProperty : undefined}
         onDelete={handleDeleteClick}
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
         key={`${item.path}-label`}
-        limitedItem={item.groupItem}
+        limitedItem={item.combinationItem}
       />}
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
       key={item.path}

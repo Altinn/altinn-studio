@@ -45,7 +45,7 @@ function InlineObject({ item, language }: IInlineObjectProps) {
           square
           variant='outlined'
         >
-          {getTranslation('group_inline_object_disclaimer', language)}
+          {getTranslation('combination_inline_object_disclaimer', language)}
         </Paper>
       </Grid>
     </Grid>

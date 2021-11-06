@@ -11,7 +11,7 @@ export interface SchemaItemLabelProps {
   limitedItem?: boolean,
   onAddProperty?: (type: PropertyType) => void;
   onAddReference?: (type: PropertyType) => void;
-  onAddGroup?: (type: PropertyType) => void;
+  onAddCombination?: (type: PropertyType) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
@@ -56,8 +56,8 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(null);
     e.stopPropagation();
     switch (type) {
-      case 'group':
-        props?.onAddGroup?.(type);
+      case 'combination':
+        props?.onAddCombination?.(type);
         break;
       case 'reference':
         props?.onAddReference?.(type);
@@ -124,11 +124,11 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             iconClass='fa fa-datamodel-properties'
           />
         }
-        {props.onAddGroup && !props.limitedItem &&
+        {props.onAddCombination && !props.limitedItem &&
           <AltinnMenuItem
-            id='add-group-to-node-button'
-            key='add_group'
-            onClick={(event) => handleAddNode(event, 'group')} text={getTranslation('add_group', props.language)}
+            id='add-combination-to-node-button'
+            key='add_combination'
+            onClick={(event) => handleAddNode(event, 'combination')} text={getTranslation('add_combination', props.language)}
             iconClass='fa fa-group'
           />
         }

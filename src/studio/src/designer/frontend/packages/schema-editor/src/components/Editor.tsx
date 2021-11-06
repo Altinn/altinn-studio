@@ -151,7 +151,7 @@ export const Editor = (props: IEditorProps) => {
       location: 'properties',
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
-      allOf: (type === 'group') ? [] : undefined,
+      allOf: (type === 'combination') ? [] : undefined,
     }));
     setMenuAnchorEl(null);
   };
@@ -293,10 +293,10 @@ export const Editor = (props: IEditorProps) => {
           id='add-reference-button'
         />
         <AltinnMenuItem
-          onClick={() => handleAddProperty('group')}
-          text={getTranslation('group', language)}
+          onClick={() => handleAddProperty('combination')}
+          text={getTranslation('combination', language)}
           iconClass='fa fa-group'
-          id='add-group-button'
+          id='add-combination-button'
         />
       </AltinnMenu>
     </div>

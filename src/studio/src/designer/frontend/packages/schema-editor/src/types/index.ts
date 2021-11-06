@@ -26,9 +26,9 @@ export interface ISetRefAction {
   ref: string,
 }
 
-export type PropertyType = 'group' | 'reference' | 'field';
+export type PropertyType = 'combination' | 'reference' | 'field';
 
-export type GroupKeys = 'allOf' | 'anyOf' | 'oneOf';
+export type CombinationKeys = 'allOf' | 'anyOf' | 'oneOf';
 
 export type Field = {
   key: string;
@@ -51,7 +51,7 @@ export interface UiSchemaItem {
   anyOf?: UiSchemaItem[],
   allOf?: UiSchemaItem[],
   oneOf?: UiSchemaItem[],
-  groupItem?: boolean,
+  combinationItem?: boolean,
 }
 
 export interface ISchema {
