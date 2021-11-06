@@ -8,7 +8,7 @@ import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
-  addEnum, deleteEnum, navigateToType, setGroupType, addGroupItem }
+  addEnum, deleteEnum, navigateToType, setGroupType, addGroupItem, deleteGroupItem }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, groupIsNullable, nullableType } from '../utils';
@@ -409,7 +409,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         selectedItem?.allOf?.find(nullableType) ||
         selectedItem?.anyOf?.find(nullableType);
       if (itemToRemove) {
-        dispatch(deleteProperty({ path: itemToRemove.path }));
+        dispatch(deleteGroupItem({ path: itemToRemove.path }));
       }
     }
   };

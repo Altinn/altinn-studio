@@ -450,7 +450,7 @@ it('dispatches correctly when removing nullable option on group', () => {
   wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
   wrapper.find('input[type="checkbox"]').hostNodes().at(0).simulate('change', { target: { checked: false } });
   expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteProperty',
+    type: 'schemaEditor/deleteGroupItem',
     payload: {
       path: '#/definitions/oneOfTestNullable/oneOf/1',
     },

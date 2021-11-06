@@ -194,6 +194,11 @@ const schemaEditorSlice = createSlice({
     deleteGroupItem(state, action) {
       // removing a "group" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
       const path: string = action.payload.path;
+      if (state.selectedDefinitionNodeId === path) {
+        state.selectedDefinitionNodeId = '';
+      } else if (state.selectedPropertyNodeId === path) {
+        state.selectedPropertyNodeId = '';
+      }
       const [parentPath, propertyName] = splitParentPathAndName(path);
       if (parentPath) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
