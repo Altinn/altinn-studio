@@ -103,6 +103,11 @@ namespace Altinn.Platform.Authorization.Controllers
                 return BadRequest("Not all RequestToDelete has RuleId");
             }
 
+            if (rulesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+            {
+                return BadRequest("Input should not contain any duplicate policies");
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid model");
@@ -150,6 +155,11 @@ namespace Altinn.Platform.Authorization.Controllers
             if (policiesToDelete == null || policiesToDelete.Count < 1)
             {
                 return BadRequest("Missing policiesToDelete in body");
+            }
+
+            if (policiesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+            {
+                return BadRequest("Input should not contain any duplicate policies");
             }
 
             if (!ModelState.IsValid)

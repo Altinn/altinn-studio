@@ -87,6 +87,37 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3 without a valid bearertoken
+        /// Expected: DeleteRules returns status code 401
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeleteRules to perform a valid deletion
+        /// Input:
+        /// List of two one rule in one policy for deletion of the app org1/app3 between for a single offeredby/coveredby combination resulting in a single policyfile beeing updated.
+        /// Expected Result:
+        /// Responce declined as it is not Authorized
+        /// Success Criteria:
+        /// DeleteRules returns status code 401
+        /// </summary>
+        [Fact]
+        public async Task Post_DeleteRules_WithoutAuthorization()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeleteRules/ReadOrg1App3_50001337_20001337.json");
+            StreamContent content = new StreamContent(dataStream);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "ThisIsNotAValidToken");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        }
+
+        /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3 org1/app4 org1/app8
         /// Expected: DeleteRules returns status code 206 and list of rules created match expected
         /// </summary>
@@ -213,6 +244,49 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app3 with difrent rules on same policy declared in two requests
+        /// Expected: DeleteRules returns status code 500 and no list of rules as the same policy was tried to delete from twice
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeleteRules to delete rules giving the dame policy twice
+        /// Input:
+        /// List of two rules for deletion of the app org1/app3 for a single offeredby/coveredby combination resulting in no policy file beeing updated.
+        /// Expected Result:
+        /// No Rules are deleted and no rules are returned
+        /// Success Criteria:
+        /// DeleteRules returns status code 500 and no deletion is performed
+        /// </summary>
+        [Fact]
+        public async Task Post_DeleteRules_DuplicatePolicy_BadRequest()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeleteRules/ReadOrg1App3_50001337_20001337_DuplicatePolicy.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("\"Input should not contain any duplicate policies\"", await response.Content.ReadAsStringAsync());
+            List<Rule> actual = null;
+            try
+            {
+                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+            }
+            catch
+            {
+                // do nothing this is expected
+            }
+
+            Assert.Null(actual);
+        }
+
+        /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app3 org1/app4
         /// Expected: DeletePolicy returns status code 201 and list of rules created match expected
         /// </summary>
@@ -253,6 +327,36 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
             Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
+        }
+
+        /// <summary>
+        /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app3 with invalid Authorization token
+        /// Expected: DeletePolicy returns status code 401
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeletePolicy to perform a valid deletion withot valid bearertoken
+        /// Input:
+        /// List of 2 policy files of the app org1/app3 and org1/app4 between for a single offeredby/coveredby combination resulting Http Unauthorized
+        /// Expected Result:
+        /// Nothing is performed and responce has UnAuthorized responcecode
+        /// Success Criteria:
+        /// DeleteRules returns status code 401
+        /// </summary>
+        [Fact]
+        public async Task Post_DeletePolicies_InvalidBearerToken_Unauthorized()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/ReadOrg1App3App4_50001337_20001337.json");
+            StreamContent content = new StreamContent(dataStream);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "ThisIsNotAValidToken");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
+                        
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);            
         }
 
         /// <summary>
@@ -337,6 +441,49 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Null(actual);
+        }
+
+        /// <summary>
+        /// Test case: Calling the POST operation for DeletePolicy to perform a invalid deletion of org1/app3 with the same policy defined twice
+        /// Expected: DeletePolicy returns status code 500
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeletePolicy to perform a valid deletion
+        /// Input:
+        /// List of four rules for deletion spread accross 2 policy files of the app org1/app8 and error/postgrewritechangefail between for a single offeredby/coveredby combination.
+        /// Expected Result:
+        /// Nothing are deleted and 500 status code is returned
+        /// Success Criteria:
+        /// returns status code 500
+        /// </summary>
+        [Fact]
+        public async Task Post_DeletePolicies_DuplicatePoliciesDefinedInput()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/ReadOrg1App3-DuplicatePolicyInRequest_50001337_20001337_NoUpdates.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            List<Rule> actual = null;
+            try
+            {
+                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+            }
+            catch
+            {
+                // Do nothing expected
+            }
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("\"Input should not contain any duplicate policies\"", await response.Content.ReadAsStringAsync());
             Assert.Null(actual);
         }
 

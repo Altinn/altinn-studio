@@ -129,7 +129,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="app">The altinn app name</param>
         /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
         /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
-        /// <returns></returns>
+        /// <returns>policypath matching input data</returns>
         public static string GetAltinnAppDelegationPolicyPath(string org, string app, string offeredBy, string coveredBy)
         {
             if (string.IsNullOrWhiteSpace(org))
@@ -153,6 +153,20 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return $"{org.AsFileName()}/{app.AsFileName()}/{offeredBy.AsFileName()}/{coveredBy.AsFileName()}/delegationpolicy.xml";
+        }
+
+        /// <summary>
+        /// Builds the delegation policy path based on input policyMatch
+        /// </summary>
+        /// <param name="policyMatch">param to build policypath from</param>
+        /// <returns>policypath matching input data</returns>
+        public static string GetAltinnAppDelegationPolicyPath(PolicyMatch policyMatch)
+        {
+            DelegationHelper.TryGetResourceFromAttributeMatch(policyMatch.Resource, out string org, out string app);
+            string coveredBy = DelegationHelper.GetCoveredByFromMatch(policyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
+
+            return PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyMatch.OfferedByPartyId.ToString(), coveredBy);
+
         }
 
         /// <summary>
