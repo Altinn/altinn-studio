@@ -406,6 +406,14 @@ namespace App.IntegrationTests.Mocks.Services
 
             string instancesPath = GetInstancesPath();
 
+            if (queryParams.TryGetValue("appId", out StringValues appIdQueryVal))
+            {
+                if (appIdQueryVal.Count > 0)
+                {
+                    instancesPath += appIdQueryVal.First().Replace('/', '\\');
+                }
+            }
+
             if (Directory.Exists(instancesPath))
             {
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
