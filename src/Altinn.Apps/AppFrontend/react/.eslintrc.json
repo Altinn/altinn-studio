@@ -36,7 +36,12 @@
   },
   "ignorePatterns": ["node_modules", "coverage", "**/*.snap"],
   "rules": {
-    "no-console": "warn",
+    "no-console": [
+      "warn",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
     "react/jsx-filename-extension": [
       "error",
       {
