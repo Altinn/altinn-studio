@@ -1,5 +1,7 @@
+using System;
+using System.IO;
+using System.Net;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -35,9 +37,19 @@ namespace Altinn.Studio.Designer.Controllers
         public ActionResult<AltinnStudioSettings> Get(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            return Ok(altinnGitRepository.AltinnStudioSettings);
+            AltinnStudioSettings settings;
+            try
+            {
+                var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+                settings = altinnGitRepository.AltinnStudioSettings;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return NotFound(new ProblemDetails() { Title = "Not found", Detail = $"Could not find repository {org}/{repository} for user {developer}", Status = (int)HttpStatusCode.NotFound });
+            }
+
+            return Ok(settings);
         }
 
         /// <summary>
