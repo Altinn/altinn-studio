@@ -34,7 +34,7 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": ["node_modules", "coverage"],
+  "ignorePatterns": ["node_modules", "coverage", "**/*.snap"],
   "rules": {
     "no-console": "warn",
     "react/jsx-filename-extension": [
