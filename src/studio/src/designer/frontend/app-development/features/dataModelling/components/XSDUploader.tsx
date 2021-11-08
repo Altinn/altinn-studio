@@ -8,7 +8,7 @@ import { XSDUploadUrl } from 'utils/urlHelper';
 import axios from 'axios';
 
 interface IXSDUploaderProps {
-  language: unknown;
+  language: any;
   onXSDUploaded: (filename: string) => void;
 }
 
