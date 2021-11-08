@@ -153,13 +153,15 @@ Automated end to end tests are currently being developed.
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
 2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `npm run lint`.
+3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
+4. Execute `npm run lint`.
 
 ### Unit tests
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
 2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `npm run test`.
+3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
+4. Execute `npm run test`.
 
 ## Deployment
 
