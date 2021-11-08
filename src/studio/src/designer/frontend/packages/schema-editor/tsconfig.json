@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -21,24 +17,11 @@
     "outDir": "./dist/",
     "sourceMap": true,
     "rootDir": "../..",
+    "baseUrl": ".",
     "paths": {
-      "app-shared/*": [
-        "../../shared/*"
-      ],
-    },
+      "app-shared/*": ["../../shared/*"]
+    }
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "public",
-    "build",
-    "test",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "setupTests.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js"],
+  "exclude": ["node_modules", "public", "build", "coverage"]
 }

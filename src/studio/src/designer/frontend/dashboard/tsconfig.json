@@ -3,11 +3,7 @@
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
-    "lib": [
-      "es6",
-      "dom",
-      "es2019.Array"
-    ],
+    "lib": ["es6", "dom", "es2019.Array"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -20,26 +16,10 @@
     "noUnusedLocals": true,
     "baseUrl": ".",
     "paths": {
-      "app-shared/*": [
-        "../shared/*"
-      ],
-      "@altinn/schema-editor/*": [
-        "../packages/schema-editor/src/*"
-      ]
+      "app-shared/*": ["../shared/*"],
+      "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"]
     }
   },
-  "include": [
-    "./**/*",
-    "../shared/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "test",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js"],
+  "exclude": ["node_modules", "build", "coverage"]
 }
