@@ -174,7 +174,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance._isMounted = true;
+    instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
@@ -188,7 +188,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
       expect(getSpy).toHaveBeenCalled();
-      expect(instance._isMounted).toBe(true);
+      expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
       expect(instance.state.repoNamePopperMessage).toBe('dashboard.app_already_exist');
     });
@@ -204,7 +204,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance._isMounted = true;
+    instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
@@ -219,7 +219,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
       expect(getSpy).toHaveBeenCalled();
-      expect(instance._isMounted).toBe(true);
+      expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
       expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     });
@@ -235,7 +235,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance._isMounted = true;
+    instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockError = Error('mocked error');
@@ -248,7 +248,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     // workaround to resolve promise, making test run
     await Promise.resolve();
     expect(mockPost).toHaveBeenCalled();
-    expect(instance._isMounted).toBe(true);
+    expect(instance.componentMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
     expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     expect(consoleError).toHaveBeenCalled();
@@ -264,7 +264,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance._isMounted = true;
+    instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
@@ -294,9 +294,9 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance.componentDidMount();
-    expect(instance._isMounted).toBe(true);
+    expect(instance.componentMounted).toBe(true);
     instance.componentWillUnmount();
-    expect(instance._isMounted).toBe(false);
+    expect(instance.componentMounted).toBe(false);
   });
 
   it('+++ app name regex should return false on capital letters', () => {

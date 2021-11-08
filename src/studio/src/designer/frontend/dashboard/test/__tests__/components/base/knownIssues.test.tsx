@@ -28,13 +28,13 @@ describe('>>> components/base/knownIssues.tsx', () => {
     const instance = mountedComponent.instance() as KnownIssuesComponent;
     const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockGetResult));
     instance.componentDidMount();
-    expect(instance._isMounted).toBe(true);
+    expect(instance.componentMounted).toBe(true);
     await Promise.resolve();
     expect(getSpy).toHaveBeenCalled();
     expect(instance.state.knownIssues).not.toBe('default');
   });
 
-  it('+++ should handle updating _isMounted on componentDidMount and componentWillUnmount', () => {
+  it('+++ should handle updating componentMounted on componentDidMount and componentWillUnmount', () => {
     const mountedComponent = mount(
       (
         <KnownIssuesComponent
@@ -46,8 +46,8 @@ describe('>>> components/base/knownIssues.tsx', () => {
 
     const instance = mountedComponent.instance() as KnownIssuesComponent;
     instance.componentDidMount();
-    expect(instance._isMounted).toBe(true);
+    expect(instance.componentMounted).toBe(true);
     instance.componentWillUnmount();
-    expect(instance._isMounted).toBe(false);
+    expect(instance.componentMounted).toBe(false);
   });
 });

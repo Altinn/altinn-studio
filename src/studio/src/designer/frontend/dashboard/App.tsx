@@ -1,11 +1,13 @@
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HashRouter as Router, Route } from 'react-router-dom';
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { AltinnButton } from 'app-shared/components';
+import { post } from 'app-shared/utils/networking';
 import { StandaloneDataModelling } from './features';
 import { CloneService } from './features/cloneService/cloneServices';
 import { KnownIssues } from './features/knownIssues/knownIssues';
@@ -21,7 +23,7 @@ export const App = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: any) => state.dashboard.user);
 
-  useEffect(() => {
+  React.useEffect(() => {
     dispatch(
       DashboardActions.fetchCurrentUser({
         url: `${window.location.origin}/designerapi/User/Current`,
@@ -48,10 +50,17 @@ export const App = () => {
     );
   }, [dispatch]);
 
+  const [showLogOutButton, setShowLogoutButton] = React.useState(false);
+  React.useEffect(()=> {
+    if (!user){
+      setTimeout(()=> setShowLogoutButton(true), 5000);
+    }
+  }, [user]);
+
   return (
     <MuiThemeProvider theme={theme}>
       <Router>
-        <div>
+        {user ? <div>
           <AppBarComponent
             org={user.full_name || user.login}
             app={null}
@@ -90,7 +99,16 @@ export const App = () => {
             exact={true}
             component={StandaloneDataModelling}
           />
-        </div>
+        </div> : <Grid justifyContent='center'>
+          <AltinnSpinner spinnerText='Venter på svar' />
+          {showLogOutButton && <AltinnButton
+            onClickFunction={() => post(`${window.location.origin}/repos/user/logout`).then(() => {
+              window.location.assign(`${window.location.origin}/Home/Logout`);
+            })}
+            btnText={'Logg ut'}
+          />}
+        </Grid>
+        }
       </Router>
     </MuiThemeProvider>
   );
