@@ -114,7 +114,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-
         }
 
         /// <summary>
