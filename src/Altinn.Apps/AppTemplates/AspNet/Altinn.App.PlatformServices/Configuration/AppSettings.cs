@@ -137,7 +137,7 @@ namespace Altinn.App.Services.Configuration
         public string OpenIdWellKnownEndpoint { get; set; }
 
         /// <summary>
-        /// App OIDC provider for application that overides the default OIDC provider in platform
+        /// App OIDC provider for application that overrides the default OIDC provider in platform
         /// </summary>
         public string AppOidcProvider { get; set; }
 
