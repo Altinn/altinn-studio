@@ -13,22 +13,18 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("/designer/api/v1/{org}/{repository}")]
+    [Route("/designer/api/v1/{org}/{repository}/repositorysettings")]
     public class RepositorySettingsController : ControllerBase
     {
-        private readonly AltinnGitRepository _altinnGitRepository;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySettingsController"/> class.
         /// </summary>
-        /// <param name="repositoryFactory">An instance <see cref="IAltinnGitRepositoryFactory"/> that knows how to get repositories.</param>
-        public RepositorySettingsController(IAltinnGitRepositoryFactory repositoryFactory)
+        /// <param name="altinnGitRepositoryFactory">An instance <see cref="IAltinnGitRepositoryFactory"/> that knows how to get repositories.</param>
+        public RepositorySettingsController(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
-            var org = RouteData.Values["org"].ToString();
-            var repository = RouteData.Values["repository"].ToString();
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            _altinnGitRepository = repositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;            
         }
 
         /// <summary>
@@ -36,9 +32,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// .AltinnStudio\settings.json
         /// </summary>
         [HttpGet]
-        public ActionResult<AltinnStudioSettings> Get()
+        public ActionResult<AltinnStudioSettings> Get(string org, string repository)
         {
-            return Ok(_altinnGitRepository.AltinnStudioSettings);
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            return Ok(altinnGitRepository.AltinnStudioSettings);
         }
 
         /// <summary>
