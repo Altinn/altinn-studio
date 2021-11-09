@@ -48,6 +48,7 @@
         "extensions": [".jsx", ".tsx"]
       }
     ],
+    "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": ["off"],
     "react-perf/jsx-no-new-function-as-prop": ["off"]
