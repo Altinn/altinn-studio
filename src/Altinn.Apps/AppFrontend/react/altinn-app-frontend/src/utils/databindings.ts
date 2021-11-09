@@ -44,6 +44,7 @@ export const filterFormData = (data: any, model: any): any => {
   const rootKey = Object.keys(model.properties)[0];
   const modelPath = model.properties[rootKey].$ref.slice(1);
   const pointer = JsonPointer.compile(modelPath);
+  // @ts-ignore typings for JsonPointer are incorrect, this ignore can be removed when PR is merged/released https://github.com/janl/node-jsonpointer/pull/54
   const root: any = pointer.get(model);
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);
