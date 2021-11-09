@@ -24,7 +24,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
 
   const renderSubmitButton = () => {
     return (
-      <div className='col-4 pl-0'>
+      <div className='pl-0 a-btn-sm-fullwidth'>
         {isSubmitting ?
           renderLoader() :
           <button
@@ -32,7 +32,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
             className='a-btn a-btn-success'
             onClick={submitForm}
             id={props.id}
-            style={{ marginBottom: '0' }}
+            style={{ marginBottom: '0', width: '100%' }}
           >
             {props.text}
           </button>
@@ -43,7 +43,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
 
   const renderSaveButton = () => {
     return (
-      <div className='col-2 pl-0'>
+      <div className='col-2 pl-0 a-btn-sm-fullwidth'>
         {isSaving ?
           renderLoader() :
           <button
@@ -51,7 +51,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
             className='a-btn a-btn-success'
             onClick={saveFormData}
             id='saveBtn'
-            style={{ marginBottom: '0' }}
+            style={{ marginBottom: '0', width: '100%' }}
           >
             Lagre
           </button>
