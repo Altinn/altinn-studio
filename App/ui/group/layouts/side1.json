@@ -37,7 +37,7 @@
           "saveButton": true,
           "deleteButton": true,
           "multiPage": true,
-          "openByDefault": true
+          "openByDefault": false
         }
       },
       {

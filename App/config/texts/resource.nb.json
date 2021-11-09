@@ -180,11 +180,7 @@
       "id": "messageTitleHelp",
       "value": "Bruk dette appen for test av app frontend",
       "variables": null
-    },
-    {
-      "id": "newtext",
-      "value": "nextext"
-    },
+    },    
     {
       "id": "summaryTitle",
       "value": "## Oppsummering"
