@@ -1,150 +1,197 @@
-{
+﻿{
   "language": "nb",
-  "resources": [{
-    "id": "ServiceName",
-    "value": "frontend-test"
-  }, {
-    "id": "messageTitle",
-    "value": "## Appen for test av app frontend",
-    "variables": null
-  }, {
-    "id": "messageTitleHelp",
-    "value": "Bruk dette appen for test av app frontend",
-    "variables": null
-  }, {
-    "id": "messageBody",
-    "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe",
-    "variables": null
-  }, {
-    "id": "messageAttachments",
-    "value": "Vedlegg",
-    "variables": null
-  }, {
-    "id": "BegrunnelseAnnet",
-    "value": "Forklar hvorfor du ønsker å ta navnet, og eventuelt hvilken tilknytning du har til navnet:"
-  }, {
-    "id": "BegrunnelseGard1",
-    "value": "Gårdsbruk du vil ta navnet fra"
-  }, {
-    "id": "BegrunnelseGard2",
-    "value": "Kommune gårdsbruket ligger i"
-  }, {
-    "id": "BegrunnelseGard3",
-    "value": "Gårdsnummer"
-  }, {
-    "id": "BegrunnelseGard4",
-    "value": "Bruksnummer"
-  }, {
-    "id": "BegrunnelseGard5",
-    "value": "Forklar din tilknytning til gårdsbruket"
-  }, {
-    "id": "BegrunnelseNyttNavn",
-    "value": "Du ønsker å ta et navn som du tror er nytt i Norge. Forklar hvorfor du ønsker dette navnet:"
-  }, {
-    "id": "BegrunnelseSamboer1",
-    "value": "Etternavn på samboer"
-  }, {
-    "id": "BegrunnelseSamboer2",
-    "value": "Fødselsnummer på samboer"
-  }, {
-    "id": "BegrunnelseSlektskap",
-    "value": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger"
-  }, {
-    "id": "BegrunnelseSteforeldre",
-    "value": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til"
-  }, {
-    "id": "BegrunnelseValgNavn",
-    "value": "Vennligst oppgi begrunnelse for endring av navn"
-  }, {
-    "id": "BekreftNavnTittel",
-    "value": "Bekreftelse av navn"
-  }, {
-    "id": "DineEndringer",
-    "value": "Dine endringer"
-  }, {
-    "id": "EndreNavnFra",
-    "value": "Du har valgt å endre:"
-  }, {
-    "id": "EndreNavnTil",
-    "value": "Til:"
-  }, {
-    "id": "Epost",
-    "value": "E-post"
-  }, {
-    "id": "Fodselsnummer",
-    "value": "Fødselsnummer"
-  }, {
-    "id": "HintEtternavn",
-    "value": "Bindestrek må benyttes dersom du ønsker to etternavn."
-  }, {
-    "id": "HintMellomnavn",
-    "value": "Mellomnavn må være et navn som kan benyttes som etternavn. "
-  }, {
-    "id": "Kontaktinformasjon",
-    "value": "Kontaktinformasjon"
-  }, {
-    "id": "NavarendeNavn",
-    "value": "Nåværende navn"
-  }, {
-    "id": "PersonNyttEtternavn",
-    "value": "Nytt etternavn"
-  }, {
-    "id": "PersonNyttFornavn",
-    "value": "Nytt fornavn"
-  }, {
-    "id": "PersonNyttMellomnavn",
-    "value": "Nytt mellomnavn"
-  }, {
-    "id": "datofeltet",
-    "value": "Når vil du at navnendringen skal skje?"
-  }, {
-    "id": "kontaktinfoBeskrivelse",
-    "value": "Denne kontaktinformasjonen brukes til å kontakte deg hvis det er noen spørsmål rundt informasjonen du har sendt inn."
-  }, {
-    "id": "vedlegg",
-    "value": "Last opp eventuell dokumentasjon for ditt nye navn"
-  }, {
-    "id": "PersonNyttFornavn.helptext",
-    "value": "Tenk deg godt om, det tar 10 år før du kan endre navn igjen"
-  }, {
-    "id": "summaryTitle",
-    "value": "## Oppsummering"
-  }, {
-    "id": "68.OppgavegiverNavndatadef68.Label",
-    "value": "Oppgave giver navn"
-  }, {
-    "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",
-    "value": "Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres"
-  }, {
-    "id": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
-    "value": "1\\. **Endre fra**"
-  }, {
-    "id": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label",
-    "value": "2\\. Endre verdi {0} til ",
-    "variables": [{
-      "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
-      "dataSource": "dataModel.nested-group"
-    }]
-  }, {
-    "id": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label",
-    "value": "Kommentarer"
-  },
-  {
-    "id": "confirm.body",
-    "value": "Vennligst vent, endrer navn til {1}.",
-    "variables": [{
-      "key": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value",
-      "dataSource":"dataModel.ServiceModel-test"
+  "resources": [
+    {
+      "id": "37130.SkattemeldingEndringEtterFristPostdatadef37130.Label",
+      "value": "Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres"
     },
     {
-      "key": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value",
-      "dataSource":"dataModel.ServiceModel-test"
+      "id": "37131.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.Label",
+      "value": "1\\. **Endre fra**"
+    },
+    {
+      "id": "37132.SkattemeldingEndringEtterFristNyttBelopdatadef37132.Label",
+      "value": "2\\. Endre verdi {0} til ",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
+          "dataSource": "dataModel.nested-group"
+        }
+      ]
+    },
+    {
+      "id": "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label",
+      "value": "Kommentarer"
+    },
+    {
+      "id": "68.OppgavegiverNavndatadef68.Label",
+      "value": "Oppgave giver navn"
+    },
+    {
+      "id": "BegrunnelseAnnet",
+      "value": "Forklar hvorfor du ønsker å ta navnet, og eventuelt hvilken tilknytning du har til navnet:"
+    },
+    {
+      "id": "BegrunnelseGard1",
+      "value": "Gårdsbruk du vil ta navnet fra"
+    },
+    {
+      "id": "BegrunnelseGard2",
+      "value": "Kommune gårdsbruket ligger i"
+    },
+    {
+      "id": "BegrunnelseGard3",
+      "value": "Gårdsnummer"
+    },
+    {
+      "id": "BegrunnelseGard4",
+      "value": "Bruksnummer"
+    },
+    {
+      "id": "BegrunnelseGard5",
+      "value": "Forklar din tilknytning til gårdsbruket"
+    },
+    {
+      "id": "BegrunnelseNyttNavn",
+      "value": "Du ønsker å ta et navn som du tror er nytt i Norge. Forklar hvorfor du ønsker dette navnet:"
+    },
+    {
+      "id": "BegrunnelseSamboer1",
+      "value": "Etternavn på samboer"
+    },
+    {
+      "id": "BegrunnelseSamboer2",
+      "value": "Fødselsnummer på samboer"
+    },
+    {
+      "id": "BegrunnelseSlektskap",
+      "value": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger"
+    },
+    {
+      "id": "BegrunnelseSteforeldre",
+      "value": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til"
+    },
+    {
+      "id": "BegrunnelseValgNavn",
+      "value": "Vennligst oppgi begrunnelse for endring av navn"
+    },
+    {
+      "id": "BekreftNavnTittel",
+      "value": "Bekreftelse av navn"
+    },
+    {
+      "id": "DineEndringer",
+      "value": "Dine endringer"
+    },
+    {
+      "id": "EndreNavnFra",
+      "value": "Du har valgt å endre:"
+    },
+    {
+      "id": "EndreNavnTil",
+      "value": "Til:"
+    },
+    {
+      "id": "Epost",
+      "value": "E-post"
+    },
+    {
+      "id": "Fodselsnummer",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "HintEtternavn",
+      "value": "Bindestrek må benyttes dersom du ønsker to etternavn."
+    },
+    {
+      "id": "HintMellomnavn",
+      "value": "Mellomnavn må være et navn som kan benyttes som etternavn. "
+    },
+    {
+      "id": "Kontaktinformasjon",
+      "value": "Kontaktinformasjon"
+    },
+    {
+      "id": "NavarendeNavn",
+      "value": "Nåværende navn"
+    },
+    {
+      "id": "PersonNyttEtternavn",
+      "value": "Nytt etternavn"
+    },
+    {
+      "id": "PersonNyttFornavn",
+      "value": "Nytt fornavn"
+    },
+    {
+      "id": "PersonNyttFornavn.helptext",
+      "value": "Tenk deg godt om, det tar 10 år før du kan endre navn igjen"
+    },
+    {
+      "id": "PersonNyttMellomnavn",
+      "value": "Nytt mellomnavn"
+    },
+    {
+      "id": "ServiceName",
+      "value": "frontend-test"
+    },
+    {
+      "id": "confirm.body",
+      "value": "Vennligst vent, endrer navn til {1}.",
+      "variables": [
+        {
+          "key": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        },
+        {
+          "key": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        }
+      ]
+    },
+    {
+      "id": "datofeltet",
+      "value": "Når vil du at navnendringen skal skje?"
+    },
+    {
+      "id": "error.testValue",
+      "value": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>"
+    },
+    {
+      "id": "kontaktinfoBeskrivelse",
+      "value": "Denne kontaktinformasjonen brukes til å kontakte deg hvis det er noen spørsmål rundt informasjonen du har sendt inn."
+    },
+    {
+      "id": "messageAttachments",
+      "value": "Vedlegg",
+      "variables": null
+    },
+    {
+      "id": "messageBody",
+      "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe",
+      "variables": null
+    },
+    {
+      "id": "messageTitle",
+      "value": "## Appen for test av app frontend",
+      "variables": null
+    },
+    {
+      "id": "messageTitleHelp",
+      "value": "Bruk dette appen for test av app frontend",
+      "variables": null
+    },
+    {
+      "id": "newtext",
+      "value": "nextext"
+    },
+    {
+      "id": "summaryTitle",
+      "value": "## Oppsummering"
+    },
+    {
+      "id": "vedlegg",
+      "value": "Last opp eventuell dokumentasjon for ditt nye navn"
     }
   ]
-  },
-  {
-    "id": "error.testValue",
-    "value": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>"
-  }
-]
 }

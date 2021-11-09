@@ -4,7 +4,8 @@
   "title": {
     "nb": "frontend-test"
   },
-  "dataTypes": [{
+  "dataTypes": [
+    {
       "id": "message",
       "allowedContentTypes": [
         "application/xml"
@@ -72,10 +73,10 @@
     "person": false,
     "subUnit": false
   },
+  "autoDeleteOnProcessEnd": false,
   "onEntry": {
     "show": "select-instance"
   },
-  "autoDeleteOnProcessEnd": false,
   "created": "2021-02-06T15:18:12.2060944Z",
   "createdBy": "jeeva",
   "lastChanged": "2021-02-06T15:18:12.2062288Z",
