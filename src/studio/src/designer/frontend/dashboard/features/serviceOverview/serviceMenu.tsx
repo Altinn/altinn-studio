@@ -6,11 +6,11 @@ import {
   ListItemText,
   MenuItem,
 } from '@material-ui/core';
-import { useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { IRepository } from 'app-shared/types';
 import MakeCopyModal from '../makeCopy/MakeCopyModal';
 import { PopoverOrigin } from '@material-ui/core/Popover';
+import { useAppSelector } from 'app/hooks';
 
 export interface IServiceMenuProps {
   anchorEl: HTMLElement;
@@ -31,9 +31,7 @@ const transformOrigin: PopoverOrigin = {
 
 function ServiceMenu(props: IServiceMenuProps) {
   const { anchorEl, open, onClose, service } = props;
-  const language = useSelector(
-    (state: IDashboardAppState) => state.language.language,
-  );
+  const language = useAppSelector((state) => state.language.language);
   const [copyModalAnchor, setCopyModalAnchor] =
     React.useState<null | HTMLElement>(null);
 

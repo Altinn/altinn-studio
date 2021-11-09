@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import TruncateMarkup from 'react-truncate-markup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from 'app/hooks';
 import { IRepository } from 'app-shared/types';
 import ServiceMenu from './serviceMenu';
 
@@ -78,9 +78,7 @@ const ellipsisMenuStyle = {
 export function ServiceCard(props: IServiceCardProps) {
   const { service } = props;
   const classes = useStyles();
-  const language = useSelector(
-    (state: IDashboardAppState) => state.language.language,
-  );
+  const language = useAppSelector((state) => state.language.language);
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
     null,
   );

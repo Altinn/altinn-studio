@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { DataModelling } from 'app-shared/features';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
+import { useAppDispatch } from 'app/hooks';
 
 interface IStandaloneDataModellingProps {
   language: any;
@@ -13,8 +14,10 @@ const styles = createStyles({
     marginTop: 70,
   },
 });
-function DataModellingContainer(props: IStandaloneDataModellingProps): JSX.Element {
-  const dispatch = useDispatch();
+function DataModellingContainer(
+  props: IStandaloneDataModellingProps,
+): JSX.Element {
+  const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   return (
     <Grid item className={props.classes.containerGrid}>
@@ -32,5 +35,7 @@ const mapStateToProps = (
     language: state.language.language,
   };
 };
-const standaloneDataModelling = connect(mapStateToProps)(DataModellingContainer);
+const standaloneDataModelling = connect(mapStateToProps)(
+  DataModellingContainer,
+);
 export default withStyles(styles)(standaloneDataModelling);
