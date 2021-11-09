@@ -10,7 +10,7 @@ import PartyActions from '../../party/partyActions';
 import { profileApiUrl } from '../../../../utils/urlHelper';
 
 export function* startInitialAppTaskQueueSaga(): SagaIterator {
-  yield call(ApplicationSettingsActions.getApplicationSettings);
+  // yield call(ApplicationSettingsActions.getApplicationSettings);
   yield call(ProfileActions.fetchProfile, profileApiUrl);
   yield call(TextResourcesActions.fetchTextResources);
   yield call(LanguageActions.fetchLanguage);
