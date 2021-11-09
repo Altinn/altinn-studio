@@ -36,7 +36,8 @@
           "mode": "showTable",
           "saveButton": true,
           "deleteButton": true,
-          "multiPage": true
+          "multiPage": true,
+          "openByDefault": true
         }
       },
       {
@@ -59,7 +60,8 @@
             "thousandSeparator": " ",
             "prefix": "NOK ",
             "allowNegative": false
-          }
+          },
+          "align": "right"
         }
       },
       {
@@ -81,7 +83,8 @@
             "thousandSeparator": " ",
             "prefix": "NOK ",
             "allowNegative": false
-          }
+          },
+          "align": "right"
         },
         "triggers": ["validation"]
       },
@@ -103,7 +106,8 @@
               "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value",
               "value": "automation"
             }
-          ]
+          ],
+          "openByDefault": true
         }
       },
       {

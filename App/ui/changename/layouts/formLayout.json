@@ -78,7 +78,7 @@
         "required": true,
         "readOnly": true,
         "grid": {
-          "xs": 6
+          "md": 6
         }
       },
       {
@@ -93,7 +93,7 @@
         "required": true,
         "readOnly": true,
         "grid": {
-          "xs": 6
+          "md": 6
         }
       },
       {
@@ -301,7 +301,7 @@
         "readOnly": false,
         "formatting": { "number": { "format": "+47 ### ## ###" } },
         "grid": {
-          "xs": 6
+          "md": 6
         }
       },
       {
@@ -318,7 +318,7 @@
         "readOnly": false,
         "labelSettings": { "optionalIndicator": false },
         "grid": {
-          "xs": 6
+          "md": 6
         },
         "preselectedOptionIndex": 0
       },
