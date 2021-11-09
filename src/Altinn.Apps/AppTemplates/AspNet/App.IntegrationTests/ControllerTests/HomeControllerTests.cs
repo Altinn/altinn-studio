@@ -77,6 +77,19 @@ namespace App.IntegrationTests.ControllerTests
         }
 
         [Fact]
+        public async Task GetHome_Redirect_WithIssQueryParameters()
+        {
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn?DontChooseReportee=true&");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string redirectUrl = response.RequestMessage.RequestUri.ToString();
+
+            // Verify that 
+            Assert.Contains("iss=idporten", redirectUrl);
+        }
+
+        [Fact]
         public async Task GetHome_Redirect_InvalidQueryParametersIgnored()
         {
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
