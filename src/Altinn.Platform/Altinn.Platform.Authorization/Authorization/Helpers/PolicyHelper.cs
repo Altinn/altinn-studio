@@ -102,24 +102,25 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Creates a Rule represantation based on data used to match the rule in the XacmlPolicyFile and the match in this file
+        /// Creates a Rule represantation based on a search and a xacmlRule found in a XacmlPolicyFile based on the search
         /// </summary>
-        /// <param name="search">The sarch to find the correct rule</param>
-        /// <param name="rule">the matched XacmlRule</param>
+        /// <param name="search">The search used to find the correct rule</param>
+        /// <param name="xacmlRule">XacmlRule found by the search param to enrich the result with Action and Resource</param>
         /// <returns>The created Rule</returns>
-        public static Rule CreateRuleFromPolicyAndRuleMatch(RequestToDelete search, XacmlRule rule)
+        public static Rule CreateRuleFromPolicyAndRuleMatch(RequestToDelete search, XacmlRule xacmlRule)
         {
-            Rule result = new Rule();
+            Rule rule = new Rule
+            {
+                RuleId = xacmlRule.RuleId,
+                CreatedSuccessfully = true,
+                DelegatedByUserId = search.DeletedByUserId,
+                OfferedByPartyId = search.PolicyMatch.OfferedByPartyId,
+                CoveredBy = search.PolicyMatch.CoveredBy,
+                Resource = GetResourceFromXcamlRule(xacmlRule),
+                Action = GetActionValueFromRule(xacmlRule)
+            };
 
-            result.RuleId = rule.RuleId;
-            result.CreatedSuccessfully = true;
-            result.DelegatedByUserId = search.DeletedByUserId;
-            result.OfferedByPartyId = search.PolicyMatch.OfferedByPartyId;
-            result.CoveredBy = search.PolicyMatch.CoveredBy;
-            result.Resource = GetResourceFromXcamlRule(rule);
-            result.Action = GetActionValueFromRule(rule);
-            
-            return result;
+            return rule;
         }
 
         /// <summary>

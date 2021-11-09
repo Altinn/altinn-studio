@@ -84,7 +84,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Endpoint for deleting delegated rules between parties
         /// </summary>
-        /// <response code="201" cref="List{Rule}">Deleted</response>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
         /// <response code="206" cref="List{Rule}">Partial Content</response>
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
@@ -103,47 +103,46 @@ namespace Altinn.Platform.Authorization.Controllers
                 return BadRequest("Not all RequestToDelete has RuleId");
             }
 
-            if (rulesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+            try
+            { 
+                if (rulesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+                {
+                    return BadRequest("Input should not contain any duplicate policies");
+                }
+            }
+            catch
             {
-                return BadRequest("Input should not contain any duplicate policies");
+                return BadRequest("Not all requests to delete contains valid policy paths");
             }
 
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid model");
+                return BadRequest(ModelState);
             }
 
-            try
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
+            int ruleCountToDelete = DelegationHelper.GetRulesCountToDeleteFromRequestToDelete(rulesToDelete);
+
+            if (deletionResults.Count == ruleCountToDelete)
             {
-                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
-                int ruleCountToDelete = DelegationHelper.GetRulesCountToDeleteFromRequestToDelete(rulesToDelete);
-
-                if (deletionResults.Count == ruleCountToDelete)
-                {
-                    _logger.LogInformation("Deletion completed");
-                    return Created("Created", deletionResults);
-                }
-
-                if (deletionResults.Count > 0)
-                {
-                    _logger.LogInformation("Partial deletion completed");
-                    return StatusCode(206, deletionResults);
-                }
-
-                _logger.LogInformation("Deletion could not be completed");
-                return StatusCode(500, $"Unable to complete deletion");
+                _logger.LogInformation("Deletion completed");
+                return StatusCode(200, deletionResults);
             }
-            catch (Exception e)
+
+            if (deletionResults.Count > 0)
             {
-                _logger.LogError($"Unable to delete rules. {e}");
-                return StatusCode(500, $"Unable to delete rules. {e}");
+                _logger.LogInformation("Partial deletion completed");
+                return StatusCode(206, deletionResults);
             }
+
+            _logger.LogInformation("Deletion could not be completed");
+            return StatusCode(500, $"Unable to complete deletion");
         }
 
         /// <summary>
         /// Endpoint for deleting an entire delegated policy between parties
         /// </summary>
-        /// <response code="201" cref="List{Rule}">Deleted</response>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
         /// <response code="206" cref="List{Rule}">Partial Content</response>
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
@@ -157,14 +156,21 @@ namespace Altinn.Platform.Authorization.Controllers
                 return BadRequest("Missing policiesToDelete in body");
             }
 
-            if (policiesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+            try
             {
-                return BadRequest("Input should not contain any duplicate policies");
+                if (policiesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
+                {
+                    return BadRequest("Input should not contain any duplicate policies");
+                }
             }
-
+            catch
+            {
+                return BadRequest("Not all requests to delete contains valid policy paths");
+            }
+            
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid model");
+                return BadRequest(ModelState);
             }
 
             try
@@ -175,7 +181,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 if (countPolicies == policiesToDelete.Count)
                 {
                     _logger.LogInformation("Deletion completed");
-                    return Created("Created", deletionResults);
+                    return StatusCode(200, deletionResults);
                 }
 
                 if (countPolicies > 0)

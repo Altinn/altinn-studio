@@ -80,7 +80,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
 
             // Assert
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
             Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
@@ -322,7 +322,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
 
             // Assert
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
             Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);

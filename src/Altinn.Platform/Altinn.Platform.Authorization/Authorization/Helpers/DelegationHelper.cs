@@ -76,9 +76,12 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId
+        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId from an AttributeMatch list
         /// </summary>
-        /// <returns>The CoveredByUserId and CoveredBy PartyId value</returns>
+        /// <param name="match">the list to fetch coveredBy from</param>
+        /// <param name="coveredByUserId">The value for coveredByUserId or null if not present</param>
+        /// <param name="coveredByPartyId">The value for coveredByPartyId or null if not present</param>
+        /// <returns>The CoveredByUserId or CoveredByPartyId in the input AttributeMatch list as a string</returns>
         public static string GetCoveredByFromMatch(List<AttributeMatch> match, out int? coveredByUserId, out int? coveredByPartyId)
         {
             bool validUser = TryGetCoveredByUserIdFromMatch(match, out int coveredByUserIdTemp);
@@ -101,19 +104,16 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets Org, App as out params from a single Resource
+        /// Gets Org and App as out params from a single Resource
         /// </summary>
-        /// <param name="input">The resource</param>
-        /// <param name="org">the org</param>
-        /// <param name="app">the app</param>
+        /// <param name="input">The resource to fetch org and app from</param>
+        /// <param name="org">the org part of the resource</param>
+        /// <param name="app">the app part of the resource</param>
         /// <returns>A bool indicating whether params where found</returns>
         public static bool TryGetResourceFromAttributeMatch(List<AttributeMatch> input, out string org, out string app)
         {
-            org = null;
-            app = null;
-
-            org = input.FirstOrDefault(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
-            app = input.FirstOrDefault(rm => rm.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
+            org = input.FirstOrDefault(am => am.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
+            app = input.FirstOrDefault(am => am.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
 
             if (!string.IsNullOrWhiteSpace(org) && !string.IsNullOrWhiteSpace(app))
             {
@@ -195,10 +195,10 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Returns the count of unique Policies in a list of Rules
+        /// Returns the count of unique ruleids in a list dele
         /// </summary>
         /// <param name="rulesToDelete">List of rules and policies to check how many individual ruleids exist</param>
-        /// <returns>count of policies</returns>
+        /// <returns>count of rules</returns>
         public static int GetRulesCountToDeleteFromRequestToDelete(List<RequestToDelete> rulesToDelete)
         {
             int result = 0;
