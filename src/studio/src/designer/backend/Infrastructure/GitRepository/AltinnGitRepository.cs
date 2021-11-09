@@ -93,6 +93,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Saves the AltinnStudioSettings to disk.
+        /// </summary>
+        /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
+        public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
+        {
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
+        }
+
+        /// <summary>
         /// Finds all schema files regardless of location in repository.
         /// </summary>        
         public IList<AltinnCoreFile> GetSchemaFiles()

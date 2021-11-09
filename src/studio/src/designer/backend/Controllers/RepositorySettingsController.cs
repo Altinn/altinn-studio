@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -12,9 +13,9 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions to handle repository settings aka Altinn Studio settings.
     /// </summary>
+    ///     //[AutoValidateAntiforgeryToken]
     [ApiController]
     [Authorize]
-    [AutoValidateAntiforgeryToken]
     [Route("/designer/api/v1/{org}/{repository}/repositorysettings")]
     public class RepositorySettingsController : ControllerBase
     {
@@ -53,11 +54,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// PUT api/<RepositorySettingsController>/5 
+        /// Updates the settings on disk with the provided settings.
+        /// This will overwrite the current on-disk settings.
         /// </summary>
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task<ActionResult> Put(string org, string repository, [FromBody] AltinnStudioSettings settings)
         {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            if (ModelState.IsValid)
+            {
+                var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+                await altinnGitRepository.SaveAltinnStudioSettings(settings);
+                return Ok(settings);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
     }
 }
