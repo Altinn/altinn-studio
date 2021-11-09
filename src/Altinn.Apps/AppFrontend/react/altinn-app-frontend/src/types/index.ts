@@ -318,3 +318,7 @@ export enum Triggers {
 export interface ILabelSettings {
   optionalIndicator?: boolean;
 }
+
+export enum DateFlags {
+  Today = 'today'
+}
