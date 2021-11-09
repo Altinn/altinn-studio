@@ -10,7 +10,8 @@
     "gulp-copy-files": "gulp copy-files",
     "gulp-build-ux-editor": "gulp build-ux-editor",
     "gulp-develop-dashboard": "gulp develop-dashboard",
-    "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
+    "gulp-develop-designer-frontend": "gulp develop-designer-frontend",
+    "prepare": "cd ../../../../../ && husky install"
   },
   "devDependencies": {
     "chokidar": "^3.5.2",
@@ -18,6 +19,7 @@
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-run-command": "^0.0.10",
+    "husky": "^7.0.4",
     "lerna": "^4.0.0",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12"
