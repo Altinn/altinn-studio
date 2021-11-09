@@ -172,32 +172,24 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 return BadRequest(ModelState);
             }
+                        
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
+            int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
 
-            try
+            if (countPolicies == policiesToDelete.Count)
             {
-                List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
-                int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
-
-                if (countPolicies == policiesToDelete.Count)
-                {
-                    _logger.LogInformation("Deletion completed");
-                    return StatusCode(200, deletionResults);
-                }
-
-                if (countPolicies > 0)
-                {
-                    _logger.LogInformation("Partial deletion completed");
-                    return StatusCode(206, deletionResults);
-                }
-
-                _logger.LogInformation("Deletion could not be completed");
-                return StatusCode(500, $"Unable to complete deletion");
+                _logger.LogInformation("Deletion completed");
+                return StatusCode(200, deletionResults);
             }
-            catch (Exception e)
+
+            if (countPolicies > 0)
             {
-                _logger.LogError($"Unable to delete rules. {e}");
-                return StatusCode(500, $"Unable to delete rules. {e}");
+                _logger.LogInformation("Partial deletion completed");
+                return StatusCode(206, deletionResults);
             }
+
+            _logger.LogInformation("Deletion could not be completed");
+            return StatusCode(500, $"Unable to complete deletion");            
         }
 
         /// <summary>
