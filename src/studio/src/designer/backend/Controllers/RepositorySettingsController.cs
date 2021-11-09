@@ -13,7 +13,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions to handle repository settings aka Altinn Studio settings.
     /// </summary>
-    ///     //[AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [ApiController]
     [Authorize]
     [Route("/designer/api/v1/{org}/{repository}/repositorysettings")]

@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
-    /// Describes the prefered way of modelling data
+    /// Describes the preferred way of modelling data
     /// </summary>
     public enum DatamodellingPreference
     {

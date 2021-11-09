@@ -85,7 +85,7 @@ namespace Designer.Tests.Controllers
 
             var httpClient = GetTestClient();
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
-            var requestBody = @"{""repoType"": ""Datamodels"", ""datamodellingPreference"": ""JsonSchema""}";
+            var requestBody = @"{""repoType"": ""Datamodels"", ""datamodelling.preference"": ""JsonSchema""}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
