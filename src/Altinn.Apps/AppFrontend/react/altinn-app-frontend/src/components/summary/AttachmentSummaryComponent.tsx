@@ -38,32 +38,34 @@ const useStyles = makeStyles({
 
 export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] =
-    useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
+  const attachments: IAttachment[] = useSelector(
+    (state: IRuntimeState) => state.attachments.attachments[props.componentRef],
+  );
 
   return (
     <>
       <Grid item={true} xs={10}>
         <Typography
           variant='body1'
-          className={`${classes.label}${props.hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+          className={`${classes.label}${
+            props.hasValidationMessages ? ` ${classes.labelWithError}` : ''
+          }`}
           component='span'
         >
           {props.label}
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        <EditButton
-          onClick={props.onChangeClick}
-          editText={props.changeText}
-        />
+        <EditButton onClick={props.onChangeClick} editText={props.changeText} />
       </Grid>
       <Grid item xs={12}>
-        {attachments && attachments.map((attachment) => {
-          return (
-            <Typography variant='body1'>{attachment.name}</Typography>
-          );
-        })}
+        {attachments &&
+          attachments.map((attachment) => {
+            return (
+              // eslint-disable-next-line react/jsx-key
+              <Typography variant='body1'>{attachment.name}</Typography>
+            );
+          })}
       </Grid>
     </>
   );
