@@ -1,18 +1,19 @@
 import { SagaIterator } from 'redux-saga';
-import { call, put, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../../utils/networking';
 import { applicationSettingsApiUrl } from '../../../../../utils/urlHelper';
 import ApplicationSettingsActions from '../../actions';
 import { FETCH_APPLICATION_SETTINGS } from '../../actions/types';
-import { appTaskQueueError } from '../../../queue/queueSlice';
 
 function* getApplicationSettings(): SagaIterator {
   try {
     const applicationSettings = yield call(get, applicationSettingsApiUrl);
+    console.log('applicaitonSettings', applicationSettings);
     yield call(ApplicationSettingsActions.getApplicationSettingsFulfilled, applicationSettings);
   } catch (error) {
-    yield call(ApplicationSettingsActions.getApplicationSettingsRejected, error);
-    yield put(appTaskQueueError({ error }));
+    console.error(error);
+    // yield call(ApplicationSettingsActions.getApplicationSettingsRejected, error);
+    // yield put(appTaskQueueError({ error }));
   }
 }
 
