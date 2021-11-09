@@ -413,7 +413,16 @@ namespace App.IntegrationTests.Mocks.Services
                 if (appIdQueryVal.Count > 0)
                 {
                     instancesPath += "\\" + appIdQueryVal.First().Replace('/', '\\');
-                    fileDepth = 2;
+                    fileDepth -= 2;
+
+                    if (queryParams.TryGetValue("instanceOwner.partyId", out StringValues partyIdQueryVal))
+                    {
+                        if (partyIdQueryVal.Count > 0)
+                        {
+                            instancesPath += "\\" + partyIdQueryVal.First();
+                            fileDepth -= 1;
+                        }
+                    }
                 }
             }
 

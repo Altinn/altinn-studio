@@ -1117,7 +1117,7 @@ namespace App.IntegrationTests
             // Arrange
             string org = "ttd";
             string app = "eformidling-app";
-            int instanceOwnerPartyId = 1337;
+            int instanceOwnerPartyId = 1404;
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
