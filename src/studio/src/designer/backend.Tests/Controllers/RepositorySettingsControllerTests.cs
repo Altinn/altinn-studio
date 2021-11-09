@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
@@ -61,7 +62,6 @@ namespace Designer.Tests.Controllers
         public async Task Get_RepositoryDoesNotExists_ShouldReturnNotFound()
         {
             var org = "ttd";
-            var developer = "testUser";
             var targetRepository = $"thisDoesNotExist-datamodels";
 
             var httpClient = GetTestClient();
@@ -72,6 +72,39 @@ namespace Designer.Tests.Controllers
             HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Put_ValidRepositorySettings_ShouldUpdate()
+        {
+            var org = "ttd";
+            var sourceRepository = "xyz-datamodels";
+            var developer = "testUser";
+            var targetRepository = $"{Guid.NewGuid()}-datamodels";
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            var httpClient = GetTestClient();
+            string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
+            var requestBody = @"{""repoType"": ""Datamodels"", ""datamodellingPreference"": ""JsonSchema""}";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(httpClient, httpRequestMessage);
+
+            try
+            {
+                HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+                var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(DatamodellingPreference.JsonSchema, altinnStudioSettings.DatamodellingPreference);
+                Assert.Equal(AltinnRepositoryType.Datamodels, altinnStudioSettings.RepoType);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
         }
 
         private HttpClient GetTestClient()
