@@ -18,7 +18,11 @@
         "autoCreate": true,
         "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema"
       },
-      "taskId":  "Task_1"
+      "taskId": "Task_1"
     }
-  ]
+  ],
+  "copyInstanceSettings": {
+    "enabled": true,
+    "excludedDataFields": [ "Tilknytning-grp-9315.TilknytningTilNavnet-grp-9316.TilknytningEtternavn2-grp-9351" ]
+  }
 }
