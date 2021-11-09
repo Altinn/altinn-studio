@@ -10,7 +10,6 @@ import FormRulesSagas from '../features/form/rules/rulesSagas';
 import FormValidationSagas from '../features/form/validation/validationSagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';
 import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
-import ApplicationSettingsSagas from '../shared/resources/applicationSettings/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
 import InstanceDataSagas from '../shared/resources/instanceData/instanceDataSagas';
 import LanguageSagas from '../shared/resources/language/languageSagas';
@@ -24,7 +23,6 @@ import QueueSagas from '../shared/resources/queue/queueSagas';
 import OptionSagas from '../shared/resources/options/optionsSagas';
 
 function* root(): SagaIterator {
-  yield fork(ApplicationSettingsSagas);
   yield fork(FormDataSagas);
   yield fork(FormDynamicsSagas);
   yield fork(Attachments);

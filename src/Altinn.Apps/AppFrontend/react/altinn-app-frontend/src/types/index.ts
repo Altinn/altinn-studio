@@ -322,3 +322,7 @@ export interface ILabelSettings {
 export enum DateFlags {
   Today = 'today'
 }
+
+export interface IApplicationSettings {
+  appOidcProvider: string;
+}

@@ -33,7 +33,7 @@ export default function Entrypoint() {
       const { data } = await post(getPartyValidationUrl(selectedParty.partyId));
       setPartyValidation(data);
     } catch (err) {
-      console.error(err);
+      console.error('ERR', err);
       throw new Error('Server did not respond with party validation');
     }
   };
