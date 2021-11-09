@@ -17,6 +17,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Models;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Altinn.App.AppLogic
 {
@@ -148,9 +149,11 @@ namespace Altinn.App.AppLogic
     /// Is called to run data creation (custom prefill) defined by app developer.
     /// </summary>
     /// <param name="instance">The data to perform data creation on</param>
-    public override async Task RunDataCreation(Instance instance, object data)
+    /// <param name="data">The data object being created</param>
+    /// <param name="prefill">External prefill available under instansiation</param>
+    public override async Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill)
     {
-      await _instantiationHandler.DataCreation(instance, data);
+      await _instantiationHandler.DataCreation(instance, data, prefill);
     }
 
     public override Task<AppOptions> GetOptions(string id, AppOptions options)
