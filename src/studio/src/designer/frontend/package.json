@@ -14,7 +14,8 @@
     "build-app-development": "npm run build --prefix app-development/",
     "start-dashboard": "npm start --prefix dashboard/",
     "start-app-development": "npm start --prefix app-development/",
-    "update-packages": "lerna exec --concurrency 1 -- npm update --dev"
+    "update-packages": "lerna exec --concurrency 1 -- npm update --dev",
+    "prepare": "cd ../../../../../ && husky install"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.3.0",
@@ -25,7 +26,9 @@
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.26.1",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^7.0.4",
     "ini": "2.0.0",
-    "lerna": "^4.0.0"
+    "lerna": "^4.0.0",
+    "typescript": "^4.4.4"
   }
 }

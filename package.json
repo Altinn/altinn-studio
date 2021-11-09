@@ -1,0 +1,8 @@
+{
+  "name": "altinn-studio",
+  "private": true,
+  "devDependencies": {
+    "prettier": "^2.4.1",
+    "lint-staged": "^11.2.6"
+  }
+}
