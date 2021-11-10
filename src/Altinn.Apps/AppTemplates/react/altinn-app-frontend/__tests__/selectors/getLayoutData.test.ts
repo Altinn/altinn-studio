@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import { makeGetFocus, makeGetHidden, makeGetLayout, makeGetLayoutElement } from '../../src/selectors/getLayoutData';
 

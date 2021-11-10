@@ -119,8 +119,6 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     };
   }
 
-  public _isMounted = false;
-
   // eslint-disable-next-line react/state-in-constructor
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
@@ -129,18 +127,20 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
   };
 
   public componentDidMount() {
-    this._isMounted = true;
+    this.componentMounted = true;
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
+    this.componentMounted = false;
   }
+
+  public componentMounted = false;
 
   public updateSearchString = (event: any) => {
     this.setState({
       searchString: event.target.value,
     });
-  }
+  };
 
   public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
     const filteredServices = this.props.services

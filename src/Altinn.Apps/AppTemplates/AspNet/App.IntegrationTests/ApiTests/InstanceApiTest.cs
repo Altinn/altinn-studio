@@ -19,16 +19,19 @@ using App.IntegrationTests.Utils;
 using Newtonsoft.Json;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace App.IntegrationTests
 {
     public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly ITestOutputHelper _output;
 
-        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory, ITestOutputHelper output)
         {
             _factory = factory;
+            _output = output;
         }
 
         /// <summary>
@@ -955,6 +958,7 @@ namespace App.IntegrationTests
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
 
+            _output.WriteLine(json);
             List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
 
             SimpleInstance actual = activeInstances.First();
@@ -994,6 +998,7 @@ namespace App.IntegrationTests
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
 
+            _output.WriteLine(json);
             List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
             SimpleInstance actual = activeInstances.First();
 

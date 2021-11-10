@@ -38,7 +38,7 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
+
 export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
   public render() {
     const { classes } = this.props;

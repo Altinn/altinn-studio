@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import { makeGetComponentValidationsSelector, makeGetValidationsSelector } from '../../src/selectors/getValidations';
 

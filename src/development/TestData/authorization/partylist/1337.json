@@ -84,5 +84,28 @@
     "person": null,
     "organisation": null,
     "childParties": null
+  },
+  {
+    "partyId": "500800",
+    "partyTypeName": 2,
+    "OrgNumber": "910457292",
+    "unitType": "AS",
+    "name": "EAS Health Consulting Sortland",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }, {
+    "partyId": "500801",
+    "partyTypeName": 2,
+    "OrgNumber": "910471120",
+    "unitType": "AS",
+    "name": "EAS Health Consulting Stokmarknes",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
   }
 ]

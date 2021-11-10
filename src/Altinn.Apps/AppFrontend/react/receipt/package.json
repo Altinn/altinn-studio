@@ -8,10 +8,8 @@
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "test": "jest",
     "compile-ts": "tsc",
-    "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress",
-    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix"
+    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
@@ -27,12 +25,12 @@
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.8",
-    "@babel/preset-env": "^7.15.8",
-    "@babel/preset-react": "^7.14.5",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "@babel/preset-react": "^7.16.0",
     "@types/jest": "^27.0.2",
-    "@types/react": "^17.0.33",
-    "@types/react-dom": "^17.0.10",
+    "@types/react": "^17.0.34",
+    "@types/react-dom": "^17.0.11",
     "cross-env": "^7.0.3",
     "css-loader": "^5.2.7",
     "enzyme": "^3.11.0",
