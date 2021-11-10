@@ -12,6 +12,7 @@ import FormRuleReducer, { IFormRuleState } from '../features/form/rules/rulesRed
 import ValidationReducer, { IValidationState } from '../features/form/validation/validationSlice';
 import InstantiationReducer, { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
+import ApplicationSettingsReducer, { IApplicationSettingsState } from '../shared/resources/applicationSettings/applicationSettingsSlice';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import InstanceDataReducer, { IInstanceDataState } from '../shared/resources/instanceData/instanceDataReducers';
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
@@ -23,7 +24,7 @@ import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/t
 import IsLoadingReducer, { IIsLoadingState } from '../shared/resources/isLoading/isLoadingSlice';
 import QueueReducer, { IQueueState } from '../shared/resources/queue/queueSlice';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> {
   formLayout: T1;
   formData: T2;
   formDataModel: T3;
@@ -42,7 +43,8 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   process: T16;
   isLoading: T17;
   queue: T18;
-  optionState: T19
+  optionState: T19;
+  applicationSettings: T20
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -64,7 +66,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IProcessState>,
   Reducer<IIsLoadingState>,
   Reducer<IQueueState>,
-  Reducer<IOptionsState>
+  Reducer<IOptionsState>,
+  Reducer<IApplicationSettingsState>
   >,
   ReducersMapObject {
 }
@@ -89,6 +92,7 @@ const reducers: IRuntimeReducers = {
   queue: QueueReducer,
   textResources: TextResourcesReducer,
   optionState: OptionsReducer,
+  applicationSettings: ApplicationSettingsReducer,
 };
 
 export default combineReducers(reducers);

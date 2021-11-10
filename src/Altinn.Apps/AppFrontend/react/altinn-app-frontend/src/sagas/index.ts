@@ -10,6 +10,7 @@ import FormRulesSagas from '../features/form/rules/rulesSagas';
 import FormValidationSagas from '../features/form/validation/validationSagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';
 import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
+import ApplicationSettingsSagas from '../shared/resources/applicationSettings/applicationSettingsSagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
 import InstanceDataSagas from '../shared/resources/instanceData/instanceDataSagas';
 import LanguageSagas from '../shared/resources/language/languageSagas';
@@ -35,6 +36,7 @@ function* root(): SagaIterator {
   yield fork(FormValidationSagas);
   yield fork(PartySagas);
   yield fork(ApplicationMetadataSagas);
+  yield fork(ApplicationSettingsSagas);
   yield fork(InstantiationSagas);
   yield fork(OrgsSagas);
   yield fork(InstanceDataSagas);

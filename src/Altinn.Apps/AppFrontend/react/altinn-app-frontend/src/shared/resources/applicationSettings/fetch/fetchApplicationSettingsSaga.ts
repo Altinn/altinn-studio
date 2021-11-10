@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest, put } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
 import { applicationSettingsApiUrl } from '../../../../utils/urlHelper';
 import { ApplicationSettingsActions as Actions } from '../applicationSettingsSlice';
@@ -7,7 +7,7 @@ import { ApplicationSettingsActions as Actions } from '../applicationSettingsSli
 function* getApplicationSettings(): SagaIterator {
   try {
     const applicationSettings = yield call(get, applicationSettingsApiUrl);
-    yield call(Actions.fetchApplicationSettingsFulfilled, applicationSettings);
+    yield put(Actions.fetchApplicationSettingsFulfilled({ settings: applicationSettings }));
   } catch (error) {
     yield call(Actions.fetchApplicationSettingsRejected, error);
   }
