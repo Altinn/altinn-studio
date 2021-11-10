@@ -130,38 +130,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // need some reasonable defaults.
             if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
             {
-                AltinnStudioSettings newAltinnStudioSettings;
-                if (IsDatamodelsRepo())
-                {
-                    newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
-                }
-                else
-                {
-                    newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
-                }
-
-                await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
-
-                return newAltinnStudioSettings;
+                return await CreateNewAltinnStudioSettings();
             }
             else
             {
-                var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
-                var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
-
-                var needsSaving = false;
-
-                if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
-                {
-                    altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
-                    needsSaving = true;
-                }
-
-                if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
-                {
-                    altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
-                    needsSaving = true;
-                }
+                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
 
                 if (needsSaving)
                 {
@@ -170,6 +143,45 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
                 return altinnStudioSettings;
             }
+        }
+
+        private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
+        {
+            AltinnStudioSettings newAltinnStudioSettings;
+            if (IsDatamodelsRepo())
+            {
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
+            }
+            else
+            {
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
+            }
+
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
+
+            return newAltinnStudioSettings;
+        }
+
+        private async Task<(AltinnStudioSettings, bool)> MigrateExistingAltinnStudioSettings()
+        {
+            var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
+            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+
+            var needsSaving = false;
+
+            if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
+            {
+                altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
+                needsSaving = true;
+            }
+
+            if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
+            {
+                altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
+                needsSaving = true;
+            }
+
+            return (altinnStudioSettings, needsSaving);
         }
 
         // Ideally this class should not know anything about app or datamodel differences.
