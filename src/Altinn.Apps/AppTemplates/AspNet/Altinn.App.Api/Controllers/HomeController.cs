@@ -60,7 +60,6 @@ namespace Altinn.App.Api.Controllers
             {
                 ViewBag.org = org;
                 ViewBag.app = app;
-
                 return PartialView("Index");
             }
 
