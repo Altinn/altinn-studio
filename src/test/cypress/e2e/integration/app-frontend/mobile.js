@@ -8,7 +8,7 @@ import * as texts from '../../fixtures/texts.json';
 const appFrontend = new AppFrontend();
 const mui = new Common();
 
-describe.only('Mobile', () => {
+describe('Mobile', () => {
   beforeEach(() => {
     cy.viewport('samsung-s10');
   });
