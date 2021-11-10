@@ -1,0 +1,28 @@
+{
+  "id": "1337/030b0c24-e296-4083-9687-941a300368af",
+  "instanceOwner": {
+    "partyId": "1337"
+  },
+  "appId": "brg/rrh-innrapportering",
+  "org": "brg",
+  "visibleAfter": "2021-08-26T10:41:04.4826843Z",
+  "process": {
+    "started": "2021-01-22T13:44:39.3042346Z",
+    "startEvent": "StartEvent_1",
+    "ended": "2021-01-22T13:44:48.6804018Z",
+    "endEvent": "EndEvent_1"
+  },
+  "status": {
+    "isArchived": true,
+    "archived": "2021-01-22T13:44:48.6804018Z",
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": [],
+  "dataValues": {},
+  "created": "2021-08-26T10:41:04.4826843Z",
+  "createdBy": "92878",
+  "lastChanged": "2021-08-26T10:41:06.2735715Z",
+  "lastChangedBy": "92878"
+}

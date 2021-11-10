@@ -11,5 +11,6 @@
 }
 
 body {
+  /* altinn-designsystem seems to set another background color. We need to keep it #fff for dashboard */
   background: #fff;
 }

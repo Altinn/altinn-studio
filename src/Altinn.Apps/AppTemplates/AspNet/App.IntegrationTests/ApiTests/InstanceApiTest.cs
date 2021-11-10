@@ -13,22 +13,28 @@ using Altinn.App.Api.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+
+using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
+
 using App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil;
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace App.IntegrationTests
 {
     public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly ITestOutputHelper _output;
 
-        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory, ITestOutputHelper output)
         {
             _factory = factory;
+            _output = output;
         }
 
         /// <summary>
@@ -291,6 +297,180 @@ namespace App.IntegrationTests
             Assert.Equal(prefillValue, calculationResult.Skjemainnhold.reelleRettigheter.registreringspliktig.organisasjonsform);
 
             TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_DifferentInstanceOwnerBadRequest()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1606/030b0c24-e296-4083-9687-941a300368af"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/externalprefil/instances/create")
+            {
+                Content = content,
+            };
+
+            // Act 
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string expectedResponse = "It is not possible to copy instances between instance owners.";
+            string responseString = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(expectedResponse, responseString);
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_ActiveInstanceBadRequest()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1337/a4d5c456-a154-44da-b5da-8d37640635bd"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            // Act 
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            string expectedResponse = "It is not possible to copy an instance that isn't archived.";
+            string responseString = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(expectedResponse, responseString);
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_ExcludeSingleFieldValueType()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1337/030b0c24-e296-4083-9687-941a300368af"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/externalprefil/instances/create")
+            {
+                Content = content,
+            };
+
+            Guid instanceGuid = Guid.NewGuid();
+            try
+            {
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                response.EnsureSuccessStatusCode();
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+                instanceGuid = Guid.Parse(createdInstance.Id.Split("/")[1]);
+                Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+
+                string dataUri = createdInstance.Data[0].SelfLinks.Apps;
+                HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
+                HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+                responseContent = await response2.Content.ReadAsStringAsync();
+                ReelleRettighetshavere_M data = JsonConvert.DeserializeObject<ReelleRettighetshavere_M>(responseContent);
+                Assert.Null(data.Skjemainnhold.reelleRettigheter.rettighetId);
+                Assert.Equal(2, data.Skjemainnhold.reelleRettigheter.reellRettighetshaver.Count);
+            }
+            finally
+            {
+                TestDataUtil.DeleteInstanceAndData("ttd", "externalprefil", 1337, instanceGuid);
+            }
+        }
+
+        [Fact]
+        public async Task Instance_CopyFromSourceInstance_ExcludeSingleFieldReferenceType()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            InstansiationInstance instanceTemplate = new InstansiationInstance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1337",
+                },
+                SourceInstanceId = "1337/d5d5c456-a154-44da-b5da-8d37640635bd"
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/create")
+            {
+                Content = content,
+            };
+
+            Guid instanceGuid = Guid.NewGuid();
+            try
+            {
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                response.EnsureSuccessStatusCode();
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+                instanceGuid = Guid.Parse(createdInstance.Id.Split("/")[1]);
+                Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+
+                string dataUri = createdInstance.Data[0].SelfLinks.Apps;
+                HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
+                HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+                responseContent = await response2.Content.ReadAsStringAsync();
+                Skjema data = JsonConvert.DeserializeObject<Skjema>(responseContent);
+                Assert.Null(data.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningEtternavn2grp9351);
+                Assert.Equal(9316, data.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.gruppeid);
+            }
+            finally
+            {
+                TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, instanceGuid);
+            }
         }
 
         /// <summary>
@@ -937,7 +1117,7 @@ namespace App.IntegrationTests
             // Arrange
             string org = "ttd";
             string app = "eformidling-app";
-            int instanceOwnerPartyId = 1337;
+            int instanceOwnerPartyId = 1404;
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
@@ -955,6 +1135,7 @@ namespace App.IntegrationTests
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
 
+            _output.WriteLine(json);
             List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
 
             SimpleInstance actual = activeInstances.First();
@@ -994,6 +1175,7 @@ namespace App.IntegrationTests
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
 
+            _output.WriteLine(json);
             List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
             SimpleInstance actual = activeInstances.First();
 
