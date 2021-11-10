@@ -76,7 +76,10 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
-        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId from an AttributeMatch list
+        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId from an AttributeMatch list.
+        /// This works under the asumptions that any valid search for å valid policy contains a CoveredBy and this must be in the form
+        /// of a PartyId or a UserId. So any valid search containing a PartyId should not contain a USerId and vice versa.
+        /// If the search does not contain any of those this should be considered as an invalid search.
         /// </summary>
         /// <param name="match">the list to fetch coveredBy from</param>
         /// <param name="coveredByUserId">The value for coveredByUserId or null if not present</param>
