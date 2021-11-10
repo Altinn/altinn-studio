@@ -133,11 +133,14 @@ export function NavigationBarComponent(props: INavigationBar) {
 
   return (
     <Grid container>
-      <Grid item component='nav' xs={10}>
-          <ul className={classNames([classes.menu, showMenu && classes.menuMobile])}>
-            {pageList}
-            {showMenu && (renderSmallScreenMenu())}
-          </ul>
+      <Grid
+        item component='nav'
+        xs={10}
+      >
+        <ul className={classNames([classes.menu, showMenu && classes.menuMobile])}>
+          {pageList}
+          {showMenu && (renderSmallScreenMenu())}
+        </ul>
       </Grid>
     </Grid>
   );
