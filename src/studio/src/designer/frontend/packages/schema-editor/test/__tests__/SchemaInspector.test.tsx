@@ -5,10 +5,11 @@ import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
-import SchemaInspector from '../../src/components/SchemaInspector';
+import SchemaInspector, {isValidName} from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
+import { hasExpectedRequestMetadata } from '@reduxjs/toolkit/dist/matchers';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
@@ -415,3 +416,16 @@ it('dispatches correctly when adding fields', () => {
     },
   });
 });
+
+it('validates name of properties', () => {
+  expect(isValidName('Melding')).toBe(true);
+  expect(isValidName('melding')).toBe(true)
+  expect(isValidName('melding1')).toBe(true)
+  expect(isValidName('melding.1')).toBe(true)
+  expect(isValidName('melding_xyz')).toBe(true)
+  expect(isValidName('melding-xyz')).toBe(true)
+  expect(isValidName('1melding')).toBe(false)
+  expect(isValidName('_melding')).toBe(false)
+  expect(isValidName('.melding')).toBe(false)
+  expect(isValidName('melding%')).toBe(false)
+})
