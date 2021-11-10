@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import { makeGetFormDataSelector } from '../../src/selectors/getFormData';
 

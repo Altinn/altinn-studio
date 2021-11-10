@@ -33,6 +33,10 @@
     "person": false,
     "subUnit": false
   },
+  "copyInstanceSettings": {
+    "enabled": true,
+    "excludedDataFields": [ "Skjemainnhold.reelleRettigheter.rettighetId" ]
+  },
   "autoDeleteOnProcessEnd": false,
   "created": "2021-10-19T13:05:38.7523183Z",
   "createdBy": "TheTechArch",

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ using Altinn.Platform.Register.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Services.Implementation
@@ -56,7 +58,7 @@ namespace Altinn.App.Services.Implementation
             // Prefill from external input. Only available during instansiation
             if (externalPrefill != null && externalPrefill.Count > 0)
             {
-                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel);
+                LoopThroughDictionaryAndAssignValuesToDataModel(SwapKeyValuesForPrefil(externalPrefill), null, dataModel, true);
             }
 
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
@@ -154,7 +156,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Recursivly navigates through the datamodel, initiating objects if needed, and assigns the value to the target field
         /// </summary>
-        private void AssignValueToDataModel(string[] keys, JToken value, object currentObject, int index = 0)
+        private void AssignValueToDataModel(string[] keys, JToken value, object currentObject, int index = 0, bool continueOnError = false)
         {
             string key = keys[index];
             bool isLastKey = (keys.Length - 1) == index;
@@ -165,9 +167,12 @@ namespace Altinn.App.Services.Implementation
 
             if (property == null)
             {
-                string errorMessage = $"Could not prefill the field {string.Join(".", keys)}, property {key} is not defined in the data model";
-                _logger.LogError(errorMessage);
-                throw new Exception(errorMessage);
+                if (!continueOnError)
+                {
+                    string errorMessage = $"Could not prefill the field {string.Join(".", keys)}, property {key} is not defined in the data model";
+                    _logger.LogError(errorMessage);
+                    throw new Exception(errorMessage);
+                }
             }
             else
             {
@@ -197,7 +202,7 @@ namespace Altinn.App.Services.Implementation
                     }
 
                     // recurivly assign values
-                    AssignValueToDataModel(keys, value, property.GetValue(currentObject, null), index + 1);
+                    AssignValueToDataModel(keys, value, property.GetValue(currentObject, null), index + 1, continueOnError);
                 }
             }
         }
@@ -205,7 +210,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Loops through the key-value dictionary and assigns each value to the datamodel target field
         /// </summary>
-        private void LoopThroughDictionaryAndAssignValuesToDataModel(Dictionary<string, string> dictionary, JObject sourceObject, object serviceModel)
+        private void LoopThroughDictionaryAndAssignValuesToDataModel(Dictionary<string, string> dictionary, JObject sourceObject, object serviceModel, bool continueOnError = false)
         {
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {
@@ -228,7 +233,7 @@ namespace Altinn.App.Services.Implementation
                 JToken sourceValue = null;
                 if (sourceObject != null)
                 {
-                  sourceValue = sourceObject.SelectToken(source);
+                    sourceValue = sourceObject.SelectToken(source);
                 }
                 else
                 {
@@ -238,8 +243,13 @@ namespace Altinn.App.Services.Implementation
                 _logger.LogInformation($"Source: {source}, target: {target}");
                 _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
                 string[] keys = target.Split(".");
-                AssignValueToDataModel(keys, sourceValue, serviceModel);
+                AssignValueToDataModel(keys, sourceValue, serviceModel, 0, continueOnError);
             }
+        }
+
+        private Dictionary<string, string> SwapKeyValuesForPrefil(Dictionary<string, string> externalPrefil)
+        {
+            return externalPrefil.ToDictionary(x => x.Value, x => x.Key);
         }
     }
 }

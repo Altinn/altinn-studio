@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -9,7 +9,7 @@ import { render, fireEvent } from '@testing-library/react';
 
 describe('>>> components/base/TextAreaComponent.tsx', () => {
   let mockId: string;
-  // tslint:disable-next-line:prefer-const
+
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockIsValid: boolean;
@@ -80,7 +80,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
       isValid: mockIsValid,
       readOnly: mockReadOnly,
     };
-  
+
     return render(<TextAreaComponent {...defaultProps} {...props}/>);
   }
 

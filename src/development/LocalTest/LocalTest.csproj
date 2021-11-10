@@ -9,7 +9,7 @@
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.3.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.5.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />

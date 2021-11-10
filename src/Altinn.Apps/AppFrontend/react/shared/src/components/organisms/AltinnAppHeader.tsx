@@ -1,4 +1,4 @@
-// tslint:disable: object-literal-key-quotes
+
 import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { IParty } from '../../types';
