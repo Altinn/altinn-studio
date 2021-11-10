@@ -18,7 +18,15 @@ describe('Mobile', () => {
     cy.get(appFrontend.changeOfName.oldFullName).parents().eq(2).should('have.css', 'max-width', '100%');
     cy.completeChangeNameForm('a', 'a');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
-    cy.get(appFrontend.sendinButton).should('be.visible').and('have.css', 'width', '293px').click();
+    cy.get(appFrontend.sendinButton)
+      .should('be.visible')
+      .invoke('outerWidth')
+      .then((width) => {
+        width = Math.round(width);
+        expect(width).to.be.gt(292);
+        expect(width).to.be.lt(296);
+      });
+    cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.get(checkbox).should('be.visible').find('input').check();
