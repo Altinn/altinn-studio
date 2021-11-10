@@ -25,8 +25,8 @@ describe('Mobile', () => {
         width = Math.round(width);
         expect(width).to.be.gt(292);
         expect(width).to.be.lt(296);
-      })
-      .click();
+      });
+    cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.get(checkbox).should('be.visible').find('input').check();
