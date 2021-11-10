@@ -1,6 +1,10 @@
 deployment:
   replicaCount: 1
 
+  autoscaling:
+    replicas:
+      min: 1
+
   image:
     # Set "repository" name of your image for manual Helm install and upgrade.
     repository:
