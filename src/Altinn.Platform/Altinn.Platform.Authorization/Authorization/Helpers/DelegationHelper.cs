@@ -84,7 +84,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="match">the list to fetch coveredBy from</param>
         /// <param name="coveredByUserId">The value for coveredByUserId or null if not present</param>
         /// <param name="coveredByPartyId">The value for coveredByPartyId or null if not present</param>
-        /// <returns>The CoveredByUserId or CoveredByPartyId in the input AttributeMatch list as a string</returns>
+        /// <returns>The CoveredByUserId or CoveredByPartyId in the input AttributeMatch list as a string primarly used to create a policypath for fetching a delegated policy file.</returns>
         public static string GetCoveredByFromMatch(List<AttributeMatch> match, out int? coveredByUserId, out int? coveredByPartyId)
         {
             bool validUser = TryGetCoveredByUserIdFromMatch(match, out int coveredByUserIdTemp);
