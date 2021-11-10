@@ -1,4 +1,3 @@
-using System;
 using System.Web;
 
 using Altinn.App.Services.Configuration;
@@ -47,21 +46,13 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">The application owner short name.</param>
         /// <param name="app">The name of the app</param>
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
-        /// <param name="returnUrl">The user will be sent to this URL (if it contains an approved domain) when user clicks the Exit button in the app.</param>
         [HttpGet]
         [Route("{org}/{app}/")]
         public IActionResult Index(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromQuery] bool dontChooseReportee,
-            [FromQuery] string returnUrl)
+            [FromQuery] bool dontChooseReportee)
         {
-            if (!string.IsNullOrEmpty(returnUrl) && !HasValidDomain(returnUrl))
-            {
-                // Calls this action again without the query parameter 'returnUrl'
-                return RedirectToAction("Index", dontChooseReportee ? new { dontChooseReportee } : null);
-            }
-
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
             HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
@@ -88,19 +79,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return Redirect(redirectUrl);
-        }
-
-        private bool HasValidDomain(string url)
-        {
-            try
-            {
-                var uri = new Uri(url);
-                return _appSettings.Hostname == uri.Host;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
     }
 }
