@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -91,30 +92,8 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/DeleteRules")]
-        public async Task<ActionResult> DeleteRule([FromBody] List<RequestToDelete> rulesToDelete)
+        public async Task<ActionResult> DeleteRule([FromBody] RequestToDeleteRuleList rulesToDelete)
         {
-            if (rulesToDelete == null || rulesToDelete.Count < 1)
-            {
-                return BadRequest("Missing rulesToDelete in body");
-            }
-
-            if (rulesToDelete.Any(r => r.RuleIds == null || r.RuleIds.Count == 0))
-            {
-                return BadRequest("Not all RequestToDelete has RuleId");
-            }
-
-            try
-            { 
-                if (rulesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
-                {
-                    return BadRequest("Input should not contain any duplicate policies");
-                }
-            }
-            catch
-            {
-                return BadRequest("Not all requests to delete contains valid policy paths");
-            }
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -149,25 +128,8 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/DeletePolicy")]
-        public async Task<ActionResult> DeletePolicy([FromBody] List<RequestToDelete> policiesToDelete)
+        public async Task<ActionResult> DeletePolicy([FromBody] RequestToDeletePolicyList policiesToDelete)
         {
-            if (policiesToDelete == null || policiesToDelete.Count < 1)
-            {
-                return BadRequest("Missing policiesToDelete in body");
-            }
-
-            try
-            {
-                if (policiesToDelete.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
-                {
-                    return BadRequest("Input should not contain any duplicate policies");
-                }
-            }
-            catch
-            {
-                return BadRequest("Not all requests to delete contains valid policy paths");
-            }
-            
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -178,7 +140,6 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (countPolicies == policiesToDelete.Count)
             {
-                _logger.LogInformation("Deletion completed");
                 return StatusCode(200, deletionResults);
             }
 
@@ -188,7 +149,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return StatusCode(206, deletionResults);
             }
 
-            _logger.LogInformation("Deletion could not be completed");
+            _logger.LogInformation("Deletion could not be completed all policies failed", policiesToDelete);
             return StatusCode(500, $"Unable to complete deletion");            
         }
 

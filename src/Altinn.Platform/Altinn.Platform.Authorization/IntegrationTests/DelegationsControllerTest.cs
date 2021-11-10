@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,6 +10,7 @@ using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Models;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -269,20 +271,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
+            ValidationProblemDetails actual = (ValidationProblemDetails)JsonConvert.DeserializeObject(responseContent, typeof(ValidationProblemDetails));
+
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("\"Input should not contain any duplicate policies\"", await response.Content.ReadAsStringAsync());
-            List<Rule> actual = null;
-            try
-            {
-                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
-            }
-            catch
-            {
-                // do nothing this is expected
-            }
-
-            Assert.Null(actual);
+            string errorMessage = actual.Errors.Values.FirstOrDefault()[0];
+            Assert.Equal("Input should not contain any duplicate policies", errorMessage);
         }
 
         /// <summary>
@@ -470,20 +464,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            List<Rule> actual = null;
-            try
-            {
-                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
-            }
-            catch
-            {
-                // Do nothing expected
-            }
+            ValidationProblemDetails actual = (ValidationProblemDetails)JsonConvert.DeserializeObject(responseContent, typeof(ValidationProblemDetails));
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal("\"Input should not contain any duplicate policies\"", await response.Content.ReadAsStringAsync());
-            Assert.Null(actual);
+            string errorMessage = actual.Errors.Values.FirstOrDefault()[0];
+            Assert.Equal("Input should not contain any duplicate policies", errorMessage);
         }
 
         /// <summary>
