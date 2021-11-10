@@ -42,6 +42,7 @@ const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
 let jsWatcher = null;
 let cssWatcher = null;
 
+const jslibDest = 'wwwroot/designer/js/lib/';
 const copyGlobs = [
   {
     src: 'node_modules/bootstrap/dist/css/bootstrap*.css',
@@ -53,15 +54,15 @@ const copyGlobs = [
   },
   {
     src: 'node_modules/bootstrap/dist/js/bootstrap*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/json-editor/dist/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/select2/dist/js/select2.full.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/select2/dist/css/select2.css',
@@ -69,43 +70,43 @@ const copyGlobs = [
   },
   {
     src: 'node_modules/jquery/dist/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/requirejs/require.js',
-    dest: 'wwwroot/designer/js/lib/',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/underscore/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/requirejs-text/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/js-beautify/js/lib/beautify*.js',
-    dest: 'wwwroot/designer/js/lib/',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/sightglass/*.js',
-    dest: 'wwwroot/designer/js/lib/',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/rivets/dist/*.js',
-    dest: 'wwwroot/designer/js/lib/',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/jquery-validation-unobtrusive/dist/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/jquery-validation/dist/*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/popper.js/dist/umd/*.*.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
   {
     src: 'node_modules/monaco-editor/min/**/*.*',
@@ -113,12 +114,12 @@ const copyGlobs = [
   },
   {
     src: 'node_modules/bootstrap-list-filter/bootstrap-list-filter.min.js',
-    dest: 'wwwroot/designer/js/lib',
+    dest: jslibDest,
   },
 ];
 
 function copyNodeModulePackages(cb) {
-  copyGlobs.map((copyGlob) =>
+  copyGlobs.forEach((copyGlob) =>
     gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)),
   );
   cb();
