@@ -18,7 +18,6 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly IAntiforgery _antiforgery;
         private readonly PlatformSettings _platformSettings;
-        private readonly AppSettings _appSettings;
         private readonly IWebHostEnvironment _env;
 
         /// <summary>
@@ -27,17 +26,14 @@ namespace Altinn.App.Api.Controllers
         /// <param name="antiforgery">The anti forgery service.</param>
         /// <param name="platformSettings">The platform settings.</param>
         /// <param name="env">The current environment.</param>
-        /// <param name="appSettings">The app settings.</param>
         public HomeController(
           IAntiforgery antiforgery,
           IOptions<PlatformSettings> platformSettings,
-          IWebHostEnvironment env,
-          IOptions<AppSettings> appSettings)
+          IWebHostEnvironment env)
         {
             _antiforgery = antiforgery;
             _platformSettings = platformSettings.Value;
             _env = env;
-            _appSettings = appSettings.Value;
         }
 
         /// <summary>
