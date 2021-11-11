@@ -21,6 +21,8 @@ export default function setup() {
   const dispatch = useDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
+  // @ts-ignore
+  const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp: number = 0;
 
@@ -46,7 +48,7 @@ export default function setup() {
         .catch((err) => {
           // Most likely the user has an expired token, so we redirect to the login-page
           try {
-            window.location.href = getEnvironmentLoginUrl();
+            window.location.href = getEnvironmentLoginUrl(appOidcProvider);
           } catch (error) {
             console.error(err, error);
           }
@@ -61,7 +63,7 @@ export default function setup() {
     return function cleanup() {
       removeEventListeners();
     };
-  }, []);
+  }, [appOidcProvider]);
 
   if (hasApiErrors) {
     return <UnknownError />;

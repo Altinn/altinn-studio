@@ -76,18 +76,23 @@ export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
   return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(redirect)}&reqAuthLevel=${reqAuthLevel}`;
 }
 
-export const getEnvironmentLoginUrl: () => string = () => {
+export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
+  let issParam: string = '';
+  if (oidcprovider != null) {
+    issParam = `&iss=${oidcprovider}`;
+  }
+
   if (domainSplitted.length === 5) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   if (domainSplitted.length === 4) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   // TODO: what if altinn3?
