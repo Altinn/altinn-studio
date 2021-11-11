@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "3.14.1",
+  "version": "3.14.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
     "axios": "^0.24.0",
     "dot-object": "^2.1.4",
     "immutability-helper": "2.7.0",
-    "jsonpointer": "4.1.0",
+    "jsonpointer": "5.0.0",
     "lodash.isequal": "^4.5.0",
     "moment": "^2.29.1",
     "react": "^17.0.2",
