@@ -539,7 +539,7 @@ namespace Altinn.App.Api.Controllers
 
                     await _dataClient.InsertFormData(
                         data,
-                       Guid.Parse(targetInstance.Id.Split("/")[1]),
+                        Guid.Parse(targetInstance.Id.Split("/")[1]),
                         type,
                         org,
                         app,
