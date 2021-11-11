@@ -970,6 +970,5 @@ namespace Altinn.App.Api.Controllers
                     new DataValues { Values = updatedValues });
             }
         }
-
     }
 }
