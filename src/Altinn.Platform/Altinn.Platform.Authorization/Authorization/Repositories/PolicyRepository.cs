@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// <summary>
     /// Repository for handling policy files
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class PolicyRepository : IPolicyRepository
     {
         private readonly ILogger<PolicyRepository> _logger;
@@ -201,7 +203,7 @@ namespace Altinn.Platform.Authorization.Repositories
                     return await blobClient.UploadAsync(fileStream, blobUploadOptions);
                 }
 
-                return await blobClient.UploadAsync(fileStream);
+                return await blobClient.UploadAsync(fileStream, true);
             }
             catch (RequestFailedException ex)
             {

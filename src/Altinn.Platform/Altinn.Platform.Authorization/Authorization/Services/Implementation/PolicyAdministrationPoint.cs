@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -99,6 +100,219 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             return result;
         }
+                
+        private async Task<List<Rule>> ProcessPolicyFile(string policyPath, string org, string app, RequestToDelete deleteRequest)
+        {
+            List<Rule> currentRules = new List<Rule>();
+            string leaseId = await _policyRepository.TryAcquireBlobLease(policyPath);
+            if (leaseId == null)
+            {
+                _logger.LogInformation($"Could not acquire blob lease lock on delegation policy at path: {policyPath}", policyPath);
+                return null;
+            }
+
+            try
+            {
+                bool isAllRulesDeleted = false;
+                string coveredBy = DelegationHelper.GetCoveredByFromMatch(deleteRequest.PolicyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
+
+                DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", deleteRequest.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
+
+                if (string.IsNullOrWhiteSpace(currentChange?.BlobStoragePolicyPath))
+                {
+                    _logger.LogWarning($"No delegation was found for the request App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {deleteRequest.PolicyMatch.OfferedByPartyId}");
+                    return null;
+                }
+
+                XacmlPolicy existingDelegationPolicy = null;
+                if (currentChange.IsDeleted)
+                {
+                    _logger.LogWarning($"The policy is already deleted for App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {deleteRequest.PolicyMatch.OfferedByPartyId}");
+                    return null;
+                }
+
+                existingDelegationPolicy = await _prp.GetPolicyVersionAsync(currentChange.BlobStoragePolicyPath, currentChange.BlobStorageVersionId);
+
+                foreach (string ruleId in deleteRequest.RuleIds)
+                {
+                    XacmlRule xacmlRuleToRemove = existingDelegationPolicy.Rules.FirstOrDefault(r => r.RuleId == ruleId);
+                    if (xacmlRuleToRemove == null)
+                    {
+                        _logger.LogWarning($"The rule with id: {ruleId} does not exist in policy with path: {policyPath}");
+                        return null;
+                    }
+
+                    existingDelegationPolicy.Rules.Remove(xacmlRuleToRemove);
+                    Rule currentRule = PolicyHelper.CreateRuleFromPolicyAndRuleMatch(deleteRequest, xacmlRuleToRemove);
+                    currentRules.Add(currentRule);
+                }
+                    
+                isAllRulesDeleted = existingDelegationPolicy.Rules.Count == 0;
+
+                // if nothing is deleted no update has been done and policy and postgree update can be skipped
+                if (currentRules.Count > 0)
+                {
+                    // Write delegation policy to blob storage
+                    MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
+                    Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
+                    if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
+                    {
+                        _logger.LogError("Writing of delegation policy at path: {0} failed. Is delegation blob storage account alive and well?", policyPath, response.GetRawResponse());
+                        return null;
+                    }
+
+                    // Write delegation change to postgresql
+                    bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", deleteRequest.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId, deleteRequest.DeletedByUserId, policyPath, response.Value.VersionId, isAllRulesDeleted);
+                    if (!postgreSuccess)
+                    {
+                        // Comment:
+                        // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
+                        // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
+                        _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {0}. is authorization postgresql database alive and well?", policyPath);
+                        return null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An exception occured while processing rules to delete in policy: {policyPath}");
+                return null;
+            }
+            finally
+            {
+                _policyRepository.ReleaseBlobLease(policyPath, leaseId);
+            }
+
+            return currentRules;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Rule>> TryDeleteDelegationPolicyRules(List<RequestToDelete> rulesToDelete)
+        {
+            List<Rule> result = new List<Rule>();
+
+            foreach (RequestToDelete deleteRequest in rulesToDelete)
+            {
+                if (!DelegationHelper.TryGetResourceFromAttributeMatch(deleteRequest.PolicyMatch.Resource, out string org, out string app))
+                {
+                    _logger.LogWarning($"No org/app was found for one RuleMatch with ruleIds: {string.Join(", ", deleteRequest.RuleIds)} offeredby: {deleteRequest.PolicyMatch.OfferedByPartyId} coverdby: {deleteRequest.PolicyMatch.CoveredBy.FirstOrDefault(f => f.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute || f.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute).Value}");
+                    continue;
+                }
+
+                string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, deleteRequest.PolicyMatch.OfferedByPartyId.ToString(), deleteRequest.PolicyMatch.CoveredBy.FirstOrDefault(m => m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute || m.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute)?.Value);
+
+                if (!await _policyRepository.PolicyExistsAsync(policyPath))
+                {
+                    _logger.LogWarning($"No blob was found for the expected path: {policyPath} this must be removed without upading the database");
+                    continue;
+                }
+
+                List<Rule> currentRules = await ProcessPolicyFile(policyPath, org, app, deleteRequest);
+
+                if (currentRules != null)
+                {
+                    result.AddRange(currentRules);
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<List<Rule>> DeleteRulesInPolicy(RequestToDelete policyToDelete)
+        {
+            DelegationHelper.TryGetResourceFromAttributeMatch(policyToDelete.PolicyMatch.Resource, out string org, out string app);
+            string coveredBy = DelegationHelper.GetCoveredByFromMatch(policyToDelete.PolicyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
+
+            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyToDelete.PolicyMatch.OfferedByPartyId.ToString(), coveredBy);
+
+            if (!await _policyRepository.PolicyExistsAsync(policyPath))
+            {
+                _logger.LogWarning($"No blob was found for the expected path: {policyPath} this must be removed without upading the database");
+                return null;
+            }
+
+            string leaseId = await _policyRepository.TryAcquireBlobLease(policyPath);
+            if (leaseId == null)
+            {
+                _logger.LogInformation($"Could not acquire blob lease lock on delegation policy at path: {policyPath}");
+                return null;
+            }
+
+            try
+            {
+                DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
+
+                if (string.IsNullOrWhiteSpace(currentChange?.BlobStoragePolicyPath))
+                {
+                    _logger.LogWarning($"No delegation was found for the request App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}");
+                    return null;
+                }
+
+                XacmlPolicy existingDelegationPolicy = null;
+                if (currentChange.IsDeleted)
+                {
+                    _logger.LogWarning($"The policy is already deleted for App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}");
+                    return null;
+                }
+
+                existingDelegationPolicy = await _prp.GetPolicyVersionAsync(currentChange.BlobStoragePolicyPath, currentChange.BlobStorageVersionId);
+                List<Rule> currentPolicyRules = new List<Rule>();
+                foreach (XacmlRule xacmlRule in existingDelegationPolicy.Rules)
+                {
+                    currentPolicyRules.Add(PolicyHelper.CreateRuleFromPolicyAndRuleMatch(policyToDelete, xacmlRule));
+                }
+
+                existingDelegationPolicy.Rules.Clear();
+
+                // Write delegation policy to blob storage
+                MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
+                Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
+                if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
+                {
+                    _logger.LogError("Writing of delegation policy at path: {0} failed. Is delegation blob storage account alive and well?", policyPath, response.GetRawResponse());
+                    return null;
+                }
+
+                // Write delegation change to postgresql
+                bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId, policyToDelete.DeletedByUserId, policyPath, response.Value.VersionId, true);
+                if (!postgreSuccess)
+                {
+                    // Comment:
+                    // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
+                    // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
+                    _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {0}. is authorization postgresql database alive and well?", policyPath);
+                    return null;
+                }
+
+                return currentPolicyRules;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An exception occured while processing rules to delete in policy: {policyPath}");
+                return null;
+            }
+            finally
+            {
+                _policyRepository.ReleaseBlobLease(policyPath, leaseId);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Rule>> TryDeleteDelegationPolicies(List<RequestToDelete> policiesToDelete)
+        {
+            List<Rule> result = new List<Rule>();
+
+            foreach (RequestToDelete policyToDelete in policiesToDelete)
+            {
+                List<Rule> currentRules = await DeleteRulesInPolicy(policyToDelete);
+                if (currentRules != null)
+                {
+                    result.AddRange(currentRules);
+                }
+            }
+
+            return result;
+        }
 
         private async Task<bool> WriteDelegationPolicyInternal(string policyPath, List<Rule> rules)
         {
@@ -169,7 +383,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         // Comment:
                         // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
                         // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
-                        _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {policyPath}.", policyPath);
+                        _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {policyPath}", policyPath);
                         return false;
                     }
 

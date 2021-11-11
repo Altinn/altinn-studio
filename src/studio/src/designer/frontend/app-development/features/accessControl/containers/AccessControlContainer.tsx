@@ -107,7 +107,7 @@ export class AccessControlContainerClass extends React.Component<
     if (state.partyTypesAllowed !== partyTypesAllowed) {
       return {
         partyTypesAllowed,
-        // tslint:disable-next-line: max-line-length
+
       };
     }
     return null;

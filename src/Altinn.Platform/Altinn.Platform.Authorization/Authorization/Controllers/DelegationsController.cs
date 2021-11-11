@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -176,6 +178,77 @@ namespace Altinn.Platform.Authorization.Controllers
                 _logger.LogError($"Unable to delete delegated policy. {e}");
                 return StatusCode(500, $"Unable to delete delegated policy. {e}");
             }
+        }
+
+        /// <summary>
+        /// Endpoint for deleting delegated rules between parties
+        /// </summary>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Route("authorization/api/v1/[controller]/DeleteRules")]
+        public async Task<ActionResult> DeleteRule([FromBody] RequestToDeleteRuleList rulesToDelete)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
+            int ruleCountToDelete = DelegationHelper.GetRulesCountToDeleteFromRequestToDelete(rulesToDelete);
+
+            if (deletionResults.Count == ruleCountToDelete)
+            {
+                _logger.LogInformation("Deletion completed");
+                return StatusCode(200, deletionResults);
+            }
+
+            if (deletionResults.Count > 0)
+            {
+                _logger.LogInformation("Partial deletion completed");
+                return StatusCode(206, deletionResults);
+            }
+
+            _logger.LogInformation("Deletion could not be completed");
+            return StatusCode(500, $"Unable to complete deletion");
+        }
+
+        /// <summary>
+        /// Endpoint for deleting an entire delegated policy between parties
+        /// </summary>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Route("authorization/api/v1/[controller]/DeletePolicy")]
+        public async Task<ActionResult> DeletePolicy([FromBody] RequestToDeletePolicyList policiesToDelete)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+                        
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
+            int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
+
+            if (countPolicies == policiesToDelete.Count)
+            {
+                return StatusCode(200, deletionResults);
+            }
+
+            if (countPolicies > 0)
+            {
+                _logger.LogInformation("Partial deletion completed");
+                return StatusCode(206, deletionResults);
+            }
+
+            _logger.LogInformation("Deletion could not be completed all policies failed", policiesToDelete);
+            return StatusCode(500, $"Unable to complete deletion");            
         }
 
         /// <summary>

@@ -76,6 +76,57 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Gets a int representation of the CoveredByUserId and CoverdByPartyId from an AttributeMatch list.
+        /// This works under the asumptions that any valid search for å valid policy contains a CoveredBy and this must be in the form
+        /// of a PartyId or a UserId. So any valid search containing a PartyId should not contain a USerId and vice versa.
+        /// If the search does not contain any of those this should be considered as an invalid search.
+        /// </summary>
+        /// <param name="match">the list to fetch coveredBy from</param>
+        /// <param name="coveredByUserId">The value for coveredByUserId or null if not present</param>
+        /// <param name="coveredByPartyId">The value for coveredByPartyId or null if not present</param>
+        /// <returns>The CoveredByUserId or CoveredByPartyId in the input AttributeMatch list as a string primarly used to create a policypath for fetching a delegated policy file.</returns>
+        public static string GetCoveredByFromMatch(List<AttributeMatch> match, out int? coveredByUserId, out int? coveredByPartyId)
+        {
+            bool validUser = TryGetCoveredByUserIdFromMatch(match, out int coveredByUserIdTemp);
+            bool validParty = TryGetCoveredByPartyIdFromMatch(match, out int coveredByPartyIdTemp);
+            coveredByPartyId = validParty ? coveredByPartyIdTemp : null;
+            coveredByUserId = validUser ? coveredByUserIdTemp : null;
+
+            if (validUser)
+            {
+                return coveredByUserIdTemp.ToString();
+            }
+            else if (validParty)
+            {
+                return coveredByPartyIdTemp.ToString();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets Org and App as out params from a single Resource
+        /// </summary>
+        /// <param name="input">The resource to fetch org and app from</param>
+        /// <param name="org">the org part of the resource</param>
+        /// <param name="app">the app part of the resource</param>
+        /// <returns>A bool indicating whether params where found</returns>
+        public static bool TryGetResourceFromAttributeMatch(List<AttributeMatch> input, out string org, out string app)
+        {
+            org = input.FirstOrDefault(am => am.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute)?.Value;
+            app = input.FirstOrDefault(am => am.Id == AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute)?.Value;
+
+            if (!string.IsNullOrWhiteSpace(org) && !string.IsNullOrWhiteSpace(app))
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
         /// Gets Org, App, OfferedBy and CoveredBy as out params from a single Rule
         /// </summary>
         /// <returns>A bool indicating whether params where found</returns>
@@ -124,6 +175,42 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the count of unique Policies in a list of Rules
+        /// </summary>
+        /// <param name="rules">List of rules to check how many individual policies exist</param>
+        /// <returns>count of policies</returns>
+        public static int GetPolicyCount(List<Rule> rules)
+        {
+            List<string> policyPaths = new List<string>();
+            foreach (Rule rule in rules)
+            {
+                bool pathOk = DelegationHelper.TryGetDelegationPolicyPathFromRule(rule, out string delegationPolicyPath);
+                if (pathOk && !policyPaths.Contains(delegationPolicyPath))
+                {
+                    policyPaths.Add(delegationPolicyPath);
+                }
+            }
+
+            return policyPaths.Count;
+        }
+
+        /// <summary>
+        /// Returns the count of unique ruleids in a list dele
+        /// </summary>
+        /// <param name="rulesToDelete">List of rules and policies to check how many individual ruleids exist</param>
+        /// <returns>count of rules</returns>
+        public static int GetRulesCountToDeleteFromRequestToDelete(List<RequestToDelete> rulesToDelete)
+        {
+            int result = 0;
+            foreach (RequestToDelete ruleToDelete in rulesToDelete)
+            {
+                result += ruleToDelete.RuleIds.Count;
+            }
+
+            return result;
         }
 
         /// <summary>

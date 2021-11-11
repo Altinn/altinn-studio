@@ -9,10 +9,43 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class DelegationMetadataRepositoryMock : IDelegationMetadataRepository
     {
-        private static List<string> validAppIds = new List<string> { "org1/app1" };
+        public Dictionary<string, List<DelegationChange>> MetadataChanges { get; set; }
+
+        public DelegationMetadataRepositoryMock()
+        {
+            MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+        }
 
         public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted)
         {
+            List<DelegationChange> current;
+            string key = $"{altinnAppId}/{offeredByPartyId}/{coveredByPartyId ?? coveredByUserId}";
+
+            if (MetadataChanges.ContainsKey(key))
+            {
+                current = MetadataChanges[key];
+            }
+            else
+            {
+                current = new List<DelegationChange>();
+                MetadataChanges[key] = current;
+            }
+
+            DelegationChange currentDelegationChange = new DelegationChange
+            {
+                AltinnAppId = altinnAppId,
+                OfferedByPartyId = offeredByPartyId,
+                CoveredByPartyId = coveredByPartyId,
+                CoveredByUserId = coveredByUserId,
+                PerformedByUserId = delegatedByUserId,
+                BlobStoragePolicyPath = blobStoragePolicyPath,
+                BlobStorageVersionId = blobStorageVersionId,
+                IsDeleted = isDeleted,
+                Created = DateTime.Now
+            };
+
+            current.Add(currentDelegationChange);
+
             if (string.IsNullOrEmpty(altinnAppId) || altinnAppId == "error/postgrewritechangefail")
             {
                 return Task.FromResult(false);
@@ -23,17 +56,23 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<DelegationChange> GetCurrentDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)
         {
-            if (altinnAppId == "error/postgregetcurrentfail")
+            DelegationChange result;
+            switch (altinnAppId)
             {
-                throw new Exception("Some exception happened");
+                case "org1/app1":
+                case "org1/app3":
+                case "org2/app3":
+                case "org1/app4":
+                    result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId);
+                    break;
+                case "error/postgregetcurrentfail":
+                    throw new Exception("Some exception happened");            
+                default:
+                    result = null;
+                    break;
             }
 
-            if (validAppIds.Contains(altinnAppId))
-            {
-                return Task.FromResult(TestDataHelper.GetDelegationChange(altinnAppId));
-            }
-
-            return Task.FromResult<DelegationChange>(null);
+            return Task.FromResult<DelegationChange>(result);
         }
 
         public Task<List<DelegationChange>> GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)

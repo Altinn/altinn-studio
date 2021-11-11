@@ -1,4 +1,4 @@
-// tslint:disable: max-line-length
+
 import 'jest';
 import { IData } from '../../src/types';
 import {getInstancePdf, mapInstanceAttachments} from '../../src/utils/attachmentsUtils';
