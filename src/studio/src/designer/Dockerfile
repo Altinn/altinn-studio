@@ -78,7 +78,7 @@ COPY --from=altinn-studio-frontend /dist/editor.worker.js ./wwwroot/designer/js/
 COPY --from=altinn-studio-frontend /dist/ts.worker.js ./wwwroot/designer/js/react/ts.worker.js
 COPY --from=altinn-studio-frontend /dist/app-development.css ./wwwroot/designer/css/react/app-development.css
 COPY --from=altinn-studio-frontend /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
-COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
+COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/react/dashboard.css
 
 ## Copying app template
 ## TODO: find out how to reference files outside docker context

@@ -1,0 +1,26 @@
+[
+  {
+    "delegatedByUserId": 0,
+    "offeredByPartyId": 0,
+    "coveredBy": [
+      {
+        "id": "urn:altinn:userid",
+        "value": "0"
+      }
+    ],
+    "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "error"
+      },
+      {
+        "id": "urn:altinn:app",
+        "value": "postgre"
+      }
+    ],
+    "action": {
+      "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+      "value": "error"
+    }
+  }
+]

@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import * as React from 'react';
 import '@testing-library/jest-dom';

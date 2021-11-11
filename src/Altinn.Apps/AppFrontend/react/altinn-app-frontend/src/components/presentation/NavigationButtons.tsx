@@ -75,7 +75,7 @@ export function NavigationButtons(props: INavigationButtons) {
       container={true}
       justifyContent='space-between'
     >
-      <Grid item={true} xs={10}>
+      <Grid item={true} xs={12}>
         {!disableBack && props.showBackButton &&
           <AltinnButton
             btnText={getTextFromAppOrDefault(backTextKey, textResources, language, null, true)}

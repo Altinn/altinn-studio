@@ -1,0 +1,28 @@
+{
+  "id": "1916cd18-3b8e-46f8-aeaf-4bc3397ddd55",
+  "instanceOwner": {
+    "partyId": "1606"
+  },
+  "appId": "ttd/complete-test",
+  "org": "ttd",
+  "created": "2019-07-31T09:57:23.4729995Z",
+  "lastChanged": "2019-07-31T09:57:23.4729995Z",
+  "dueBefore": "2019-07-05T00:00:00Z",
+  "visibleAfter": "2093-06-05T00:00:00Z",
+  "process": {
+    "started": "2020-03-02T16:41:30.2723648Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2020-03-02T16:41:30.2727355Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
+  }
+}

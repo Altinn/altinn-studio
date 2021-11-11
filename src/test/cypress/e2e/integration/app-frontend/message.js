@@ -39,5 +39,12 @@ describe('Message', () => {
         cy.get(attachments).first().should('contain.text', texts.downloadAttachment);
         cy.get(appFrontend.attachmentIcon).should('be.visible');
       });
+    cy.get(appFrontend.sendinButton)
+      .should('be.visible')
+      .invoke('outerWidth')
+      .then((width) => {
+        width = Math.round(width);
+        expect(width).to.equal(112);
+      });
   });
 });

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Models
@@ -29,6 +30,11 @@ namespace Altinn.App.Api.Models
         /// Gets or sets the prefill values for the instance.        
         /// </summary>
         public Dictionary<string, string> Prefill { get; set; }
+
+        /// <summary>
+        /// Gets or sets the id of the instance to use as a source for the new instance.
+        /// </summary>
+        public string SourceInstanceId { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()
