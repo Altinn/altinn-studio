@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import { MenuItem } from '@material-ui/core';
-import SchemaInspector from '../../src/components/SchemaInspector';
+import SchemaInspector, { isValidName } from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
@@ -414,6 +414,19 @@ it('dispatches correctly when adding fields', () => {
       path: '#/definitions/RA-0678_M',
     },
   });
+});
+
+it('validates name of properties', () => {
+  expect(isValidName('Melding')).toBe(true);
+  expect(isValidName('melding')).toBe(true);
+  expect(isValidName('melding1')).toBe(true);
+  expect(isValidName('melding.1')).toBe(true);
+  expect(isValidName('melding_xyz')).toBe(true);
+  expect(isValidName('melding-xyz')).toBe(true);
+  expect(isValidName('1melding')).toBe(false);
+  expect(isValidName('_melding')).toBe(false);
+  expect(isValidName('.melding')).toBe(false);
+  expect(isValidName('melding%')).toBe(false);
 });
 
 it('dispatches correctly when changing type of combination', () => {

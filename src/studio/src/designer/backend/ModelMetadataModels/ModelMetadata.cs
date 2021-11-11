@@ -36,6 +36,6 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
         /// </summary>
         [JsonProperty(PropertyName = "elements")]
-        public Dictionary<string, ElementMetadata> Elements { get; set; }
+        public Dictionary<string, ElementMetadata> Elements { get; set; } = new Dictionary<string, ElementMetadata>();
     }
 }

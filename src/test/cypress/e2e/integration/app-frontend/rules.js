@@ -13,7 +13,12 @@ describe('Rules', () => {
     cy.get(appFrontend.changeOfName.newLastName)
       .type('fun')
       .then(() => {
-        cy.get(appFrontend.changeOfName.newFullName).focus().should('have.value', 'automation is fun');
+        cy.get(appFrontend.changeOfName.newFullName)
+          .focus()
+          .should('have.value', 'automation is fun')
+          .parents()
+          .eq(2)
+          .should('have.css', 'max-width', '50%');
       });
   });
 });

@@ -99,6 +99,10 @@ export interface ISchemaInspectorProps {
   language: ILanguage;
 }
 
+export const isValidName = (name: string) => {
+  return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
+};
+
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -451,12 +455,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
-    if (!name.match(/^[a-z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/)) {
+    if (!isValidName(name)) {
       setNameError('Invalid character in name');
     } else {
       setNameError('');
     }
   };
+
   const renderItemData = () => (
     <div>
       {!selectedItem?.combinationItem &&

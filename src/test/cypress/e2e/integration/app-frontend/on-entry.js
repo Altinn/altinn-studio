@@ -30,7 +30,10 @@ describe('On Entry', () => {
       .should('have.length', 1)
       .first()
       .then((activeInstance) => {
-        cy.get(activeInstance).find('td').eq(0).should('have.text', '04/06/2021');
+        cy.get(activeInstance)
+          .find('td')
+          .eq(0)
+          .contains(/04\/06\/2021|06.04.2021/g);
         cy.get(activeInstance).find('td').eq(1).should('have.text', 'Ola Nordman');
         cy.get(activeInstance).find('td').eq(2).find('button').click();
         cy.url().should('contain', '512345/58f1af2b-a90f-4828-8bf6-38fa24c51379');
