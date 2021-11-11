@@ -1,4 +1,4 @@
-
+import axios from 'axios';
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -12,6 +12,13 @@ import { getInitialStateMock } from '../../__mocks__/mocks';
 import NavBar from '../../src/components/presentation/NavBar';
 import { AltinnAppTheme, returnUrlToMessagebox } from '../../../shared/src';
 import { mockParty } from '../../__mocks__/initialStateMock';
+import { HttpStatusCodes } from '../../src/utils/networking';
+import 'core-js';
+
+jest.mock('axios');
+function flushPromises() {
+  return new Promise(resolve => setImmediate(resolve));
+}
 
 describe('>>> containers/Presentation.tsx', () => {
   let mockHeader: string;
@@ -67,12 +74,13 @@ describe('>>> containers/Presentation.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should change window.location.href to query parameter returnUrl if it is found', () => {
+  it('+++ should change window.location.href to query parameter returnUrl if valid URL', async () => {
     const returnUrl = 'foo';
+    (axios.get as jest.Mock).mockResolvedValue({ data: returnUrl, status: HttpStatusCodes.Ok });
     Object.defineProperty(window, 'location', {
       value: {
         ...window,
-        search: '?returnUrl=' + returnUrl
+        search: '?returnUrl=' + returnUrl,
       },
       writable: true,
     });
@@ -90,7 +98,38 @@ describe('>>> containers/Presentation.tsx', () => {
     );
     const closeButton = wrapper.find(NavBar).find('.a-modal-close');
     closeButton.simulate('click');
+    await flushPromises();
     expect(window.location.href).toEqual(returnUrl);
+  });
+
+  it('+++ should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
+    const origin = 'http://altinn3local.no';
+    const returnUrl = 'http://altinn.cloud.no';
+    (axios.get as jest.Mock).mockRejectedValue({ data: 'Error', status: HttpStatusCodes.BadRequest });
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window,
+        origin,
+        search: '?returnUrl=' + returnUrl,
+      },
+      writable: true,
+    });
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id='mockFormFiller' />
+          </Presentation>
+        </Provider>
+      </MemoryRouter>,
+    );
+    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
+    closeButton.simulate('click');
+    await flushPromises();
+    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, mockParty.partyId));
   });
 
   it('+++ should change window.location.href to default messagebox url if query parameter returnUrl is not found', () => {

@@ -48,7 +48,7 @@ namespace Altinn.App.Api.Controllers
                 return ValidationProblem();
             }
 
-            return Ok();
+            return Ok(url);
         }
     }
 }
