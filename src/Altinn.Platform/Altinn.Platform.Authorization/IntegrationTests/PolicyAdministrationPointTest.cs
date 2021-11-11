@@ -141,9 +141,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
-                { "org1/app4/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
             };
 
             // Act
@@ -190,7 +190,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app1/50001337/50001336", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app1", offeredByPartyId, performedByUserId, isDeleted: false, coveredByPartyId: coveredBy) } },
+                { "org1/app1/50001337/p50001336", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app1", offeredByPartyId, performedByUserId, isDeleted: false, coveredByPartyId: coveredBy) } },
             };
 
             // Act
@@ -240,8 +240,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -291,8 +291,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -342,8 +342,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -392,8 +392,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
-                { "org1/app4/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
             };
 
             // Act
@@ -446,9 +446,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org1/app4/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } }
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } }
             };
 
             // Act
@@ -499,8 +499,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -551,8 +551,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -603,8 +603,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -655,8 +655,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
-                { "org1/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -765,7 +765,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "No valid App policy found for delegation policy path: unknownorg/unknownapp/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "No valid App policy found for delegation policy path: unknownorg/unknownapp/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
@@ -867,7 +867,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease lock on delegation policy at path: error/blobstoragegetleaselockfail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease lock on delegation policy at path: error/blobstoragegetleaselockfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
@@ -914,7 +914,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/blobstorageleaselockwritefail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/blobstorageleaselockwritefail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
@@ -961,7 +961,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/postgregetcurrentfail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "An exception occured while processing authorization rules for delegation on delegation policy path: error/postgregetcurrentfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
@@ -1008,7 +1008,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: error/postgrewritechangefail/50001337/20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: error/postgrewritechangefail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);

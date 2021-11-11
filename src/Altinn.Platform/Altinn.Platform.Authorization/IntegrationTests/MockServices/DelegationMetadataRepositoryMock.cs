@@ -19,7 +19,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         public Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted)
         {
             List<DelegationChange> current;
-            string key = $"{altinnAppId}/{offeredByPartyId}/{coveredByPartyId ?? coveredByUserId}";
+            string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
+            string key = $"{altinnAppId}/{offeredByPartyId}/{coveredBy}";
 
             if (MetadataChanges.ContainsKey(key))
             {

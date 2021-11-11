@@ -43,7 +43,7 @@ namespace Altinn.Platform.Authorization.Models
         {
             List<ValidationResult> validationResult = new List<ValidationResult>();
 
-            if (this == null || this.Count < 1)
+            if (this.Count < 1)
             {
                 validationResult.Add(new ValidationResult("Missing rulesToDelete in body"));
                 return validationResult;
@@ -87,9 +87,9 @@ namespace Altinn.Platform.Authorization.Models
         {
             List<ValidationResult> validationResult = new List<ValidationResult>();
 
-            if (this == null || this.Count < 1)
+            if (this.Count < 1)
             {
-                validationResult.Add(new ValidationResult("Missing rulesToDelete in body"));
+                validationResult.Add(new ValidationResult("Missing policiesToDelete in body"));
                 return validationResult;
             }
 

@@ -473,6 +473,41 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Calling the POST operation for DeletePolicy to perform a invalid deletion of org1/app3 with the same policy defined twice
+        /// Expected: DeletePolicy returns status code 500
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeletePolicy to perform a valid deletion
+        /// Input:
+        /// List of four rules for deletion spread accross 2 policy files of the app org1/app8 and error/postgrewritechangefail between for a single offeredby/coveredby combination.
+        /// Expected Result:
+        /// Nothing are deleted and 500 status code is returned
+        /// Success Criteria:
+        /// returns status code 500
+        /// </summary>
+        [Fact]
+        public async Task Post_DeletePolicies_EmptyInput()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/EmptyInput.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            ValidationProblemDetails actual = (ValidationProblemDetails)JsonConvert.DeserializeObject(responseContent, typeof(ValidationProblemDetails));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            string errorMessage = actual.Errors.Values.FirstOrDefault()[0];
+            Assert.Equal("A non-empty request body is required.", errorMessage);
+        }
+
+        /// <summary>
         /// Scenario:
         /// Calling the POST operation for AddRules to without AccessToken
         /// Expected Result:

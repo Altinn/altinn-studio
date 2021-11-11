@@ -170,7 +170,7 @@ namespace Altinn.Platform.Authorization.Helpers
             delegationPolicyPath = null;
             if (TryGetDelegationParamsFromRule(rule, out string org, out string app, out int offeredBy, out int? coveredByPartyId, out int? coveredByUserId, out _))
             {
-                delegationPolicyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy.ToString(), coveredByPartyId?.ToString() ?? coveredByUserId?.ToString());
+                delegationPolicyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, offeredBy.ToString(), coveredByUserId, coveredByPartyId);
                 return true;
             }
 
