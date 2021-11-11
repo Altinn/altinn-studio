@@ -1157,7 +1157,7 @@ namespace App.IntegrationTests
             string org = "ttd";
             string app = "presentationfields-app";
 
-            int instanceOwnerPartyId = 1337;
+            int instanceOwnerPartyId = 1401;
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
