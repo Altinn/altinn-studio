@@ -98,18 +98,20 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
-export const isNameInUse = (params: { schema: UiSchemaItem | null, name: string }) => {
-  if (params.schema === null) {
+export const isNameInUse = (params: { parentSchema: UiSchemaItem | null, path: string, name: string }) => {
+  if (params.parentSchema === null) {
     return false;
   }
 
-  if (params.schema.properties) {
-    if (params.schema.properties.some((p) => p.displayName === params.name)) {
+  // Check if the parent node has other children with the same name.
+  if (params.parentSchema.properties) {
+    if (params.parentSchema.properties.some((p) => p.displayName === params.name && p.path !== params.path)) {
       return true;
     } else {
       return false;
     }
   }
+  return false;
 };
 
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
@@ -234,7 +236,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeNodeName = () => {
-    if (isNameInUse({schema: parentItem, name: nodeName})) {
+    if (isNameInUse({parentSchema: parentItem, path: selectedId,  name: nodeName})) {
       setNameError('Name already in use');
       return;
     }
