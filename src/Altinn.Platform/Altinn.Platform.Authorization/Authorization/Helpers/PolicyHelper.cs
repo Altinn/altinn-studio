@@ -188,7 +188,7 @@ namespace Altinn.Platform.Authorization.Helpers
         public static string GetAltinnAppDelegationPolicyPath(PolicyMatch policyMatch)
         {
             DelegationHelper.TryGetResourceFromAttributeMatch(policyMatch.Resource, out string org, out string app);
-            string coveredBy = DelegationHelper.GetCoveredByFromMatch(policyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
+            DelegationHelper.GetCoveredByFromMatch(policyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
 
             return PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
         }
