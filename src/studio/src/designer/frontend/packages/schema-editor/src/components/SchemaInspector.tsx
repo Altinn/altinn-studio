@@ -98,6 +98,20 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
+export const isNameInUse = (params: { schema: UiSchemaItem | null, name: string }) => {
+  if (params.schema === null) {
+    return false;
+  }
+
+  if (params.schema.properties) {
+    if (params.schema.properties.some((p) => p.displayName === params.name)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -183,6 +197,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     };
     dispatch(setRestriction(data));
   };
+
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -199,21 +214,31 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
+
   const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
       path, name: value,
     }));
   };
+
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
+
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
+
   const onDeleteEnumClick = (path: string, value: string) => {
     dispatch(deleteEnum({ path, value }));
   };
+
   const onChangeNodeName = () => {
+    if (isNameInUse({schema: parentItem, name: nodeName})) {
+      setNameError('Name already in use');
+      return;
+    }
+
     if (!nameError && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,

@@ -223,4 +223,34 @@ describe('>>> Editor.tsx', () => {
     expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
+
+  it('fails input validation when changing a node name to an existing name', () => {
+    let wrapper: any = null;
+    act(() => {
+      wrapper = mountComponent();
+    });
+  
+    wrapper.find('#add-button').hostNodes().at(0).simulate('click');
+  
+    // wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
+    // const inputName = wrapper.find('#selectedItemName').hostNodes().at(0);
+  
+    // inputName.simulate('change', { target:  { value: 'parentName'} });
+    // inputName.simulate('blur');
+  
+    // wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
+    // wrapper.update();
+    
+    // wrapper.find('#add-property-button').hostNodes().at(0).simulate('click');  
+    // const property1Input = wrapper.find('.MuiInput-input').hostNodes().at(0);
+    // property1Input.simulate('change', { target: { value: 'propertyName' } });
+    
+    // wrapper.find('#add-property-button').hostNodes().at(0).simulate('click');
+    // const property2Input = wrapper.find('.MuiInput-input').hostNodes().at(1);
+    // property2Input.simulate('change', { target: { value: 'propertyName' } });
+    // property2Input.simulate('blur');
+  
+    // const text = wrapper.find('#selectedItemName-helper-text').text();
+    // expect(text).toBe('Name already in use');
+  });
 });
