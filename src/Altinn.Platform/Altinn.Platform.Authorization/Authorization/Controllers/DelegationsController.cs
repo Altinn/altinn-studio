@@ -104,17 +104,16 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (deletionResults.Count == ruleCountToDelete)
             {
-                _logger.LogInformation("Deletion completed");
                 return StatusCode(200, deletionResults);
             }
 
             if (deletionResults.Count > 0)
             {
-                _logger.LogInformation("Partial deletion completed");
+                _logger.LogInformation($"Partial deletion completed deleted {deletionResults.Count} of {ruleCountToDelete}", rulesToDelete, deletionResults);
                 return StatusCode(206, deletionResults);
             }
 
-            _logger.LogInformation("Deletion could not be completed");
+            _logger.LogInformation("Deletion could not be completed", rulesToDelete);
             return StatusCode(500, $"Unable to complete deletion");
         }
 
@@ -145,7 +144,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (countPolicies > 0)
             {
-                _logger.LogInformation("Partial deletion completed");
+                _logger.LogInformation($"Partial deletion completed deleted {countPolicies} of {policiesToDelete.Count}", policiesToDelete, deletionResults);
                 return StatusCode(206, deletionResults);
             }
 
