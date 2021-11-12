@@ -90,8 +90,8 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
     .find(appFrontend.group.next)
     .should('be.visible')
     .click();
-  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
-  cy.get(appFrontend.group.comments).type(comment).blur();
+  cy.get(appFrontend.group.addNewItem).should('not.exist');
+  cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();
   cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 });

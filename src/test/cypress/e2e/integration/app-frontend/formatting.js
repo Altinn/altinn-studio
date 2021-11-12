@@ -21,7 +21,14 @@ describe('Formatting', () => {
       cy.get(checkbox).should('be.visible').find('input').check();
     });
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).should('be.visible').type('1').should('have.value', 'NOK 1');
-    cy.get(appFrontend.group.newValue).type('-2').should('not.contain.value', '-');
+    cy.get(appFrontend.group.currentValue)
+      .should('be.visible')
+      .type('1')
+      .should('have.value', 'NOK 1')
+      .and('have.css', 'text-align', 'right');
+    cy.get(appFrontend.group.newValue)
+      .type('-2')
+      .should('not.contain.value', '-')
+      .and('have.css', 'text-align', 'right');
   });
 });

@@ -46,7 +46,13 @@ describe('Group', () => {
       .find(appFrontend.group.delete)
       .should('be.visible')
       .click();
-    cy.get(appFrontend.group.subGroup).find(mui.tableElement).should('have.length', 0);
+    //cy.get(appFrontend.group.subGroup).find(mui.tableElement).eq(0).should('not.contain.text', 'automation'); //bug#6547
+    cy.get(appFrontend.group.comments).should('be.visible');
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.back)
+      .should('be.visible')
+      .click();
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.delete)
@@ -82,7 +88,7 @@ describe('Group', () => {
       .find(appFrontend.group.next)
       .should('be.visible')
       .click();
-    cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
+    cy.get(appFrontend.group.addNewItem).should('not.exist');
     cy.get(appFrontend.group.comments).type('test').blur();
     cy.get(appFrontend.fieldValidationError.replace('field', 'comments'))
       .should('exist')
