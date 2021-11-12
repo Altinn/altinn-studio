@@ -23,4 +23,4 @@ Please swap the comments for relevant descriptions -->
 
 ## Additional info
 <!--  Add any other relevant context info about the problem here.
-> For example OS (Windows, MacOS, iOS), browser (Chrome, Firefox, Safari), device (iPhone, laptop), screen-size, etc. -->
+For example OS (Windows, MacOS, iOS), browser (Chrome, Firefox, Safari), device (iPhone, laptop), screen-size, etc. -->
