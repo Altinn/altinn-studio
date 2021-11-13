@@ -19,22 +19,19 @@ export function HeaderComponent(props: IHeaderProps) {
   };
 
   const renderHeader = () => {
+    // Allow 'S', 'M' and 'L' for backwards compatibility
     switch (props.size) {
-      case ('S'): {
+      case 'h4':
+      case 'S':
         return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
-      }
-
-      case ('M'): {
+      case 'h3':
+      case 'M':
         return <h3 id={props.id} style={marginStyling}>{props.text}</h3>;
-      }
-
-      case ('L'): {
+      case 'h2':
+      case 'L':
         return <h2 id={props.id} style={marginStyling}>{props.text}</h2>;
-      }
-
-      default: {
+      default:
         return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
-      }
     }
   };
 

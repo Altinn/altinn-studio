@@ -12,15 +12,22 @@ export interface HeaderSizeSelectProps {
   handleUpdateHeaderSize: (e: any) => void
 }
 
+const sizeCompat:any = {
+  S: 'h4',
+  M: 'h3',
+  L: 'h2',
+};
+
 const HeaderSizeSelect: React.FunctionComponent<HeaderSizeSelectProps> = (props: HeaderSizeSelectProps) => {
   const {
     renderChangeId, handleTitleChange, handleUpdateHeaderSize,
   } = props;
   const sizes = [
-    { value: 'S', label: props.language.ux_editor.modal_header_type_h4 },
-    { value: 'M', label: props.language.ux_editor.modal_header_type_h3 },
-    { value: 'L', label: props.language.ux_editor.modal_header_type_h2 },
+    { value: 'h4', label: props.language.ux_editor.modal_header_type_h4 },
+    { value: 'h3', label: props.language.ux_editor.modal_header_type_h3 },
+    { value: 'h2', label: props.language.ux_editor.modal_header_type_h2 },
   ];
+  const value = sizeCompat[props.component.size] || props.component.size;
   return (
     <Grid
       container={true}
@@ -38,8 +45,8 @@ const HeaderSizeSelect: React.FunctionComponent<HeaderSizeSelectProps> = (props:
         {renderPropertyLabel(props.language.ux_editor.modal_header_type_helper)}
         <Select
           styles={selectStyles}
-          defaultValue={props.component.size ?
-            sizes.find((size) => size.value === props.component.size) :
+          defaultValue={value ?
+            sizes.find((size) => size.value === value) :
             sizes[0]}
           onChange={handleUpdateHeaderSize}
           options={sizes}
