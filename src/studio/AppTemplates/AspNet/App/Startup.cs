@@ -165,6 +165,7 @@ namespace Altinn.App
 
             app.UseDefaultSecurityHeaders();
             app.UseRouting();
+            app.UseStaticFiles('/' + applicationId);
             app.UseAuthentication();
             app.UseAuthorization();
 
