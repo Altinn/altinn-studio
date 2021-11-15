@@ -75,6 +75,12 @@ namespace Altinn.App.Services.Interface
         string GetApplicationXACMLPolicy();
 
         /// <summary>
+        /// Returns the application BPMN process for an application.
+        /// </summary>
+        /// <returns>The application  BPMN process for an application.</returns>
+        string GetApplicationBPMNProcess();
+
+        /// <summary>
         /// Gets the prefill json file
         /// </summary>
         /// <param name="dataModelName">the data model name</param>

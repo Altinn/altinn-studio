@@ -148,7 +148,26 @@ namespace Altinn.App.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                _logger.LogError("Something went wrong when fetching XACML Policy. {0}", ex);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public string GetApplicationBPMNProcess()
+        {
+            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ProcessFolder + _settings.ProcessFileName;
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    return File.ReadAllText(filename, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching BPMNProcess. {0}", ex);
             }
             
             return null;

@@ -85,6 +85,35 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
+        /// Get the application BPMN process file
+        ///
+        /// If org and app does not match, this returns a 409 Conflict response
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>BPMN process file</returns>
+        [HttpGet("{org}/{app}/api/v1/process.bpmn")]
+        public IActionResult GetProcess(string org, string app)
+        {
+            Application application = _appResources.GetApplication();
+            string process = _appResources.GetApplicationBPMNProcess();
+
+            if (application != null && process != null)
+            {
+                string wantedAppId = $"{org}/{app}";
+
+                if (application.Id.Equals(wantedAppId))
+                {
+                    return Content(process, "text/xml", System.Text.Encoding.UTF8);
+                }
+
+                return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
+            }
+
+            return NotFound();
+        }
+
+        /// <summary>
         /// Get the application org and app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app. (ignored)</param>
