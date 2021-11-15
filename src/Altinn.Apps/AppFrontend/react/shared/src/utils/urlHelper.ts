@@ -41,6 +41,11 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
 };
 
+export const returnUrlFromQueryParameter = (): string => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('returnUrl');
+}
+
 export const returnUrlToArchive = (url: string): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
