@@ -71,6 +71,10 @@ export function getCompleteProcessUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
 }
 
+export function getRedirectUrl(returnUrl: string) {
+  return `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
+}
+
 export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
   const redirect: string =
     `https://platform.${getHostname()}` +

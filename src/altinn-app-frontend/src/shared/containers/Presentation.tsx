@@ -10,6 +10,7 @@ import {
   returnUrlToMessagebox,
   getTextResourceByKey,
   getLanguageFromKey,
+  returnUrlFromQueryParameter
 } from 'altinn-shared/utils';
 import {
   IRuntimeState,
@@ -19,6 +20,8 @@ import {
 } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { get } from 'src/utils/networking';
+import { getRedirectUrl } from 'src/utils/urlHelper';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/presentation/Header';
 import NavBar from '../../components/presentation/NavBar';
@@ -86,11 +89,19 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   };
 
   const handleModalCloseButton = () => {
-    const origin = window.location.origin;
-    if (window) {
-      window.location.href = returnUrlToMessagebox(origin, party.partyId);
+    const queryParameterReturnUrl = returnUrlFromQueryParameter();
+    const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party.partyId);
+    if (!queryParameterReturnUrl) {
+      window.location.href = messageBoxUrl;
+      return;
     }
-    return true;
+
+    get(getRedirectUrl(queryParameterReturnUrl))
+      .then((response) => response)
+      .catch(() => messageBoxUrl)
+      .then((returnUrl) => {
+        window.location.href = returnUrl;
+      });
   };
 
   const isProcessStepsArchived = Boolean(
