@@ -7,6 +7,7 @@
     "install-deps-with-lock": "lerna exec --concurrency 1 -- npm i",
     "update-lock-files": "lerna exec --concurrency 1 -- npm i --package-lock-only && npm i --package-lock-only",
     "test": "lerna exec --concurrency 1 -- npm test",
+    "lint": "eslint \"./**/*.ts*\"",
     "install-all": "lerna exec -- npm ci",
     "clean-lock": "lerna exec -- rm ./package-lock.json",
     "clean-node-modules": "lerna exec --concurrency 1 -- rm -rf ./node_modules && rm -rf ./node_modules",
@@ -20,12 +21,15 @@
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
     "eslint": "^8.2.0",
-    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.27.0",
     "eslint-plugin-react-hooks": "^4.3.0",
+    "eslint-plugin-react-perf": "^3.3.0",
     "ini": "2.0.0",
-    "lerna": "^4.0.0"
+    "lerna": "^4.0.0",
+    "typescript": "^4.4.4"
   }
 }
