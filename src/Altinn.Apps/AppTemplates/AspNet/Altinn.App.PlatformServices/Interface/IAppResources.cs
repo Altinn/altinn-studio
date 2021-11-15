@@ -69,6 +69,12 @@ namespace Altinn.App.Services.Interface
         Application GetApplication();
 
         /// <summary>
+        /// Returns the application XACML policy for an application.
+        /// </summary>
+        /// <returns>The application  XACML policy for an application.</returns>
+        string GetApplicationXACMLPolicy();
+
+        /// <summary>
         /// Gets the prefill json file
         /// </summary>
         /// <param name="dataModelName">the data model name</param>
