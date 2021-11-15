@@ -12,49 +12,60 @@ export interface IHeaderProps {
   getTextResource: (key: string) => string;
 }
 
-export function HeaderComponent(props: IHeaderProps) {
-  const marginStyling = {
-    marginTop: '4.8rem',
-    marginBottom: '0',
-  };
+const marginStyling = {
+  marginTop: '4.8rem',
+  marginBottom: '0',
+};
 
+export function HeaderComponent(props: IHeaderProps) {
   const renderHeader = () => {
     switch (props.size) {
-      case ('S'): {
-        return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
+      case 'S': {
+        return (
+          <h4 id={props.id} style={marginStyling}>
+            {props.text}
+          </h4>
+        );
       }
 
-      case ('M'): {
-        return <h3 id={props.id} style={marginStyling}>{props.text}</h3>;
+      case 'M': {
+        return (
+          <h3 id={props.id} style={marginStyling}>
+            {props.text}
+          </h3>
+        );
       }
 
-      case ('L'): {
-        return <h2 id={props.id} style={marginStyling}>{props.text}</h2>;
+      case 'L': {
+        return (
+          <h2 id={props.id} style={marginStyling}>
+            {props.text}
+          </h2>
+        );
       }
 
       default: {
-        return <h4 id={props.id} style={marginStyling}>{props.text}</h4>;
+        return (
+          <h4 id={props.id} style={marginStyling}>
+            {props.text}
+          </h4>
+        );
       }
     }
   };
 
   return (
-    <Grid
-      container={true}
-      direction='row'
-      alignItems='center'
-    >
-      <Grid item={true}>
-        {renderHeader()}
-      </Grid>
-      {props.textResourceBindings?.help &&
-      <Grid item={true} style={marginStyling}>
-        <HelpTextContainer
-          language={props.language}
-          id={props.id}
-          helpText={props.getTextResource(props.textResourceBindings.help)}
-        />
-      </Grid>}
+    <Grid container={true} direction='row' alignItems='center'>
+      <Grid item={true}>{renderHeader()}</Grid>
+      {props.textResourceBindings?.help && (
+        <Grid item={true} style={marginStyling}>
+          <HelpTextContainer
+            language={props.language}
+            id={props.id}
+            helpText={props.getTextResource(props.textResourceBindings.help)}
+          />
+        </Grid>
+      )}
     </Grid>
   );
 }
