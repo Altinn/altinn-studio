@@ -9,9 +9,6 @@ import SchemaInspector, {isValidName} from '../../src/components/SchemaInspector
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
-import { IsoTwoTone } from '@material-ui/icons';
-import { iteratorSymbol } from 'immer/dist/internal';
-import { hasExpectedRequestMetadata } from '@reduxjs/toolkit/dist/matchers';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
