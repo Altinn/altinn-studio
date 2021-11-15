@@ -1,4 +1,12 @@
-import { Card, CardActionArea, CardContent, Grid, IconButton, Typography, makeStyles } from '@material-ui/core';
+import {
+  Card,
+  CardActionArea,
+  CardContent,
+  Grid,
+  IconButton,
+  Typography,
+  makeStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
@@ -32,13 +40,13 @@ const useStyles = makeStyles({
   },
   iconStyling: {
     fontSize: '35px',
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   avatar: {
     maxHeight: '1.5em',
   },
   textToRight: {
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   height: {
     height: '70px',
@@ -63,11 +71,19 @@ const useStyles = makeStyles({
   },
 });
 
+const ellipsisMenuStyle = {
+  width: 'auto',
+};
+
 export function ServiceCard(props: IServiceCardProps) {
   const { service } = props;
   const classes = useStyles();
-  const language = useSelector((state: IDashboardAppState) => state.language.language);
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+  const language = useSelector(
+    (state: IDashboardAppState) => state.language.language,
+  );
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null,
+  );
 
   const openService = () => {
     if (menuAnchorEl !== null) {
@@ -81,11 +97,15 @@ export function ServiceCard(props: IServiceCardProps) {
         window.location.assign(`/designer/${repoPath}`);
       }
     } else {
-      window.location.assign(`/Home/Index#/clone-app/${props.service.owner.login}/${props.service.name}`);
+      window.location.assign(
+        `/Home/Index#/clone-app/${props.service.owner.login}/${props.service.name}`,
+      );
     }
   };
 
-  const handleIconClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleIconClick = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
   };
@@ -99,48 +119,36 @@ export function ServiceCard(props: IServiceCardProps) {
     return moment(new Date(date)).format('DD.MM.YYYY');
   };
 
+  const iconButtonClasses = React.useMemo(() => {
+    return { label: classes.ellipsisButtonLabel };
+  }, [classes]);
+
   return (
     <Card elevation={0} className={classNames(classes.card)}>
       <CardActionArea onClick={openService}>
         <CardContent>
-          <Grid
-            container={true}
-            spacing={1}
-            alignItems='center'
-          >
-            <Grid
-              item={true}
-              xl={11}
-              lg={11}
-              md={11}
-              sm={11}
-              xs={11}
-            >
+          <Grid container={true} spacing={1} alignItems='center'>
+            <Grid item={true} xl={11} lg={11} md={11} sm={11} xs={11}>
               <Typography
                 variant='h3'
-                className={
-                  classNames(
-                    classes.width100,
-                    classes.fontSize_16,
-                    classes.fontWeight_500,
-                  )}
+                className={classNames(
+                  classes.width100,
+                  classes.fontSize_16,
+                  classes.fontWeight_500,
+                )}
                 noWrap={true}
               >
                 {service.name}
               </Typography>
             </Grid>
-            <Grid
-              item={true} xl={1}
-              lg={1} md={1}
-              sm={1} xs={1}
-            >
+            <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
               <IconButton
                 className={classes.ellipsisButton}
                 id='ellipsis-button'
                 onClick={handleIconClick}
-                classes={{ label: classes.ellipsisButtonLabel }}
+                classes={iconButtonClasses}
               >
-                <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
+                <i className='fa fa-ellipsismenu' style={ellipsisMenuStyle} />
               </IconButton>
               <ServiceMenu
                 anchorEl={menuAnchorEl}
@@ -157,43 +165,38 @@ export function ServiceCard(props: IServiceCardProps) {
                 classes.height,
               )}
             >
-              <Typography gutterBottom={true} className={classNames(classes.width100, classes.fontSize_14)}>
+              <Typography
+                gutterBottom={true}
+                className={classNames(classes.width100, classes.fontSize_14)}
+              >
                 <TruncateMarkup lines={2}>
-                  <span>
-                    {service.description}
-                  </span>
+                  <span>{service.description}</span>
                 </TruncateMarkup>
               </Typography>
             </Grid>
           </Grid>
-          <Grid
-            container={true} spacing={0}
-            direction='row'
-          >
-            <Grid
-              item={true} xl={6}
-              lg={6} md={6}
-              sm={6} xs={6}
-            >
+          <Grid container={true} spacing={0} direction='row'>
+            <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
-                className={
-                  classNames(
-                    classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500,
-                  )}
+                className={classNames(
+                  classes.displayInlineBlock,
+                  classes.width100,
+                  classes.fontSize_14,
+                  classes.fontWeight_500,
+                )}
                 noWrap={true}
               >
                 <img
                   src={service.owner.avatar_url}
                   className={classNames(classes.avatar)}
                   alt=''
-                /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
+                />{' '}
+                {service.owner
+                  ? service.owner.full_name || service.owner.login
+                  : ''}
               </Typography>
             </Grid>
-            <Grid
-              item={true} xl={6}
-              lg={6} md={6}
-              sm={6} xs={6}
-            >
+            <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
                 className={classNames(
                   classes.displayInlineBlock,
@@ -204,7 +207,8 @@ export function ServiceCard(props: IServiceCardProps) {
                 )}
                 noWrap={true}
               >
-                {getLanguageFromKey('dashboard.last_changed_service', language)} {formatDate(service.updated_at)}
+                {getLanguageFromKey('dashboard.last_changed_service', language)}{' '}
+                {formatDate(service.updated_at)}
               </Typography>
             </Grid>
           </Grid>
