@@ -1,9 +1,7 @@
 import { IAltinnWindow } from 'src/types';
 
 const altinnWindow = window as Window as IAltinnWindow;
-const {
-  org, app, reportee,
-} = altinnWindow;
+const { org, app, reportee } = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
@@ -12,29 +10,31 @@ export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
-export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
+export const updateCookieUrl: (partyId: string) => string = (
+  partyId: string,
+) => `
   ${appPath}/api/v1/parties/${partyId}
 `;
-export const invalidateCookieUrl:string = `${appPath}/api/authentication/invalidatecookie`;
-export const validPartiesUrl: string =
-  `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
-export const allPartiesUrl: string =
-`${appPath}/api/v1/parties?allowedtoinstantiatefilter=false`;
-export const instantiateUrl: string = `${appPath}/instances`;
-export const currentPartyUrl: string = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
-export const currentPartyIdUrl: string = `${appPath}/api/authorization/parties/current`;
-export const instancesControllerUrl: string = `${appPath}/instances`;
-export const partySelectionUrl: string = `${appPath}/#/partyselection`;
-export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
-export const reactErrorPage: string = `${appPath}/#/error`;
+export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
+export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
+export const allPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=false`;
+export const instantiateUrl = `${appPath}/instances`;
+export const currentPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
+export const currentPartyIdUrl = `${appPath}/api/authorization/parties/current`;
+export const instancesControllerUrl = `${appPath}/instances`;
+export const partySelectionUrl = `${appPath}/#/partyselection`;
+export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
+export const reactErrorPage = `${appPath}/#/error`;
 
 export function textResourcesUrl(language: string) {
   return `${origin}/${org}/${app}/api/v1/texts/${language}`;
 }
 
 export function fileUploadUrl(attachmentType: string) {
-  return `${appPath}/instances/` +
-  `${altinnWindow.instanceId}/data?dataType=${attachmentType}`;
+  return (
+    `${appPath}/instances/` +
+    `${altinnWindow.instanceId}/data?dataType=${attachmentType}`
+  );
 }
 
 export function dataElementUrl(dataGuid: string) {
@@ -46,7 +46,9 @@ export function getProcessStateUrl() {
 }
 
 export function getStartProcessUrl(instanceId?: string) {
-  return `${appPath}/instances/${instanceId || altinnWindow.instanceId}/process/start`;
+  return `${appPath}/instances/${
+    instanceId || altinnWindow.instanceId
+  }/process/start`;
 }
 
 export function getCreateInstancesUrl(partyId: string) {
@@ -70,9 +72,12 @@ export function getCompleteProcessUrl() {
 }
 
 export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
-  const redirect: string = `https://platform.${getHostname()}` +
-  `/authentication/api/v1/authentication?goto=${appPath}`;
-  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(redirect)}&reqAuthLevel=${reqAuthLevel}`;
+  const redirect: string =
+    `https://platform.${getHostname()}` +
+    `/authentication/api/v1/authentication?goto=${appPath}`;
+  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(
+    redirect,
+  )}&reqAuthLevel=${reqAuthLevel}`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {
@@ -80,13 +85,17 @@ export const getEnvironmentLoginUrl: () => string = () => {
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
   if (domainSplitted.length === 5) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`
+    );
   }
 
   if (domainSplitted.length === 4) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`
+    );
   }
 
   // TODO: what if altinn3?

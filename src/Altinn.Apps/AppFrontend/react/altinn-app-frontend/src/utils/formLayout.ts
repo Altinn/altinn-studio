@@ -1,14 +1,22 @@
-/* eslint-disable no-loop-func */
-/* eslint-disable max-len */
 import { ITextResource } from 'altinn-shared/types';
-import { IRepeatingGroups, ILayoutNavigation, ITextResourceBindings } from 'src/types';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
+import {
+  IRepeatingGroups,
+  ILayoutNavigation,
+  ITextResourceBindings,
+} from 'src/types';
+import {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from '../features/form/layout';
 
 /*
-* Returns the layout element with the given id, or undefined if no such element exists
-*/
-export function getLayoutElementById(elementId: string, formLayout: ILayout):
-  ILayoutComponent | ILayoutGroup {
+ * Returns the layout element with the given id, or undefined if no such element exists
+ */
+export function getLayoutElementById(
+  elementId: string,
+  formLayout: ILayout,
+): ILayoutComponent | ILayoutGroup {
   if (!formLayout || !elementId) {
     return undefined;
   }
@@ -16,10 +24,12 @@ export function getLayoutElementById(elementId: string, formLayout: ILayout):
 }
 
 /*
-* Returns the index of the layout element with the given id, or -1 if no such element exists
-*/
-export function getLayoutElementIndexById(elementId: string, formLayout: [ILayoutComponent | ILayoutGroup]):
-  number {
+ * Returns the index of the layout element with the given id, or -1 if no such element exists
+ */
+export function getLayoutElementIndexById(
+  elementId: string,
+  formLayout: [ILayoutComponent | ILayoutGroup],
+): number {
   if (!elementId || !formLayout) {
     return -1;
   }
@@ -30,7 +40,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
   const regex = new RegExp(/\[([0-9]+)\]/);
 
-  const groups = formLayout.filter((layoutElement) => layoutElement.type.toLowerCase() === 'group');
+  const groups = formLayout.filter(
+    (layoutElement) => layoutElement.type.toLowerCase() === 'group',
+  );
 
   const childGroups: string[] = [];
   groups.forEach((group: ILayoutGroup) => {
@@ -48,7 +60,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   });
 
   // filter away groups that should be rendered as child groups
-  const filteredGroups = formLayout.filter((group) => childGroups.indexOf(group.id) === -1);
+  const filteredGroups = formLayout.filter(
+    (group) => childGroups.indexOf(group.id) === -1,
+  );
 
   filteredGroups.forEach((groupElement: ILayoutGroup) => {
     if (groupElement.maxCount > 1) {
@@ -67,18 +81,28 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
           };
           const groupElementChildGroups = [];
           groupElement.children?.forEach((id) => {
-            if (groupElement.edit?.multiPage && childGroups.includes(id.split(':')[1])) {
+            if (
+              groupElement.edit?.multiPage &&
+              childGroups.includes(id.split(':')[1])
+            ) {
               groupElementChildGroups.push(id.split(':')[1]);
             } else if (childGroups.includes(id)) {
               groupElementChildGroups.push(id);
             }
           });
           groupElementChildGroups.forEach((childGroupId: string) => {
-            const childGroup = groups.find((element) => element.id === childGroupId);
+            const childGroup = groups.find(
+              (element) => element.id === childGroupId,
+            );
             [...Array(count + 1)].forEach((_x: any, index: number) => {
               const groupId = `${childGroup.id}-${index}`;
               repeatingGroups[groupId] = {
-                count: getCountForRepeatingGroup(formData, childGroup.dataModelBindings?.group, groupElement.dataModelBindings.group, index),
+                count: getCountForRepeatingGroup(
+                  formData,
+                  childGroup.dataModelBindings?.group,
+                  groupElement.dataModelBindings.group,
+                  index,
+                ),
                 baseGroupId: childGroup.id,
                 editIndex: -1,
               };
@@ -97,9 +121,17 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   return repeatingGroups;
 }
 
-function getCountForRepeatingGroup(formData: any, groupBinding: string, parentGroupBinding: string, parentIndex: number): number {
+function getCountForRepeatingGroup(
+  formData: any,
+  groupBinding: string,
+  parentGroupBinding: string,
+  parentIndex: number,
+): number {
   const regex = new RegExp(/\[([0-9]+)](?!.*\[([0-9]+)])/);
-  const indexedGroupBinding = groupBinding.replace(parentGroupBinding, `${parentGroupBinding}[${parentIndex}]`);
+  const indexedGroupBinding = groupBinding.replace(
+    parentGroupBinding,
+    `${parentGroupBinding}[${parentIndex}]`,
+  );
   const groupFormData = Object.keys(formData).filter((key) => {
     return key.startsWith(indexedGroupBinding);
   });
@@ -113,7 +145,12 @@ function getCountForRepeatingGroup(formData: any, groupBinding: string, parentGr
   return -1;
 }
 
-export function getNextView(navOptions: ILayoutNavigation, layoutOrder: string[], currentView: string, goBack?: boolean) {
+export function getNextView(
+  navOptions: ILayoutNavigation,
+  layoutOrder: string[],
+  currentView: string,
+  goBack?: boolean,
+) {
   let result;
   if (navOptions) {
     if (goBack && navOptions.previous) {
@@ -134,12 +171,18 @@ export function getNextView(navOptions: ILayoutNavigation, layoutOrder: string[]
   return result;
 }
 
-export function removeRepeatingGroupFromUIConfig(repeatingGroups: IRepeatingGroups, repeatingGroupId: string, index: number, shiftData?: boolean): IRepeatingGroups {
+export function removeRepeatingGroupFromUIConfig(
+  repeatingGroups: IRepeatingGroups,
+  repeatingGroupId: string,
+  index: number,
+  shiftData?: boolean,
+): IRepeatingGroups {
   const newRepGroups = { ...repeatingGroups };
   delete newRepGroups[`${repeatingGroupId}-${index}`];
   if (shiftData) {
-    const groupKeys = Object.keys(repeatingGroups)
-      .filter((key: string) => key.startsWith(repeatingGroupId));
+    const groupKeys = Object.keys(repeatingGroups).filter((key: string) =>
+      key.startsWith(repeatingGroupId),
+    );
 
     groupKeys.forEach((shiftFrom: string, keyIndex: number) => {
       if (keyIndex > index) {
@@ -161,28 +204,39 @@ export function createRepeatingGroupComponents(
 ) {
   const componentArray = [];
   for (let i = 0; i <= repeatingGroupIndex; i++) {
-    const childComponents = renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
-      const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(JSON.stringify(component));
-      const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
-      const groupDataModelBinding = container.dataModelBindings.group;
-      Object.keys(dataModelBindings).forEach((key) => {
-        // eslint-disable-next-line no-param-reassign
-        dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
-      });
-      const deepCopyId = `${componentDeepCopy.id}-${i}`;
-      setVariableTextKeysForRepeatingGroupComponent(
-        textResources, componentDeepCopy.textResourceBindings, i,
-      );
-      const hidden: boolean = !!hiddenFields?.find((field) => field === `${deepCopyId}[${i}]`);
-      return {
-        ...componentDeepCopy,
-        textResourceBindings: componentDeepCopy.textResourceBindings,
-        dataModelBindings,
-        id: deepCopyId,
-        baseComponentId: componentDeepCopy.id,
-        hidden,
-      };
-    });
+    const childComponents = renderComponents.map(
+      (component: ILayoutComponent | ILayoutGroup) => {
+        const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(
+          JSON.stringify(component),
+        );
+        const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
+        const groupDataModelBinding = container.dataModelBindings.group;
+        Object.keys(dataModelBindings).forEach((key) => {
+          // eslint-disable-next-line no-param-reassign
+          dataModelBindings[key] = dataModelBindings[key].replace(
+            groupDataModelBinding,
+            `${groupDataModelBinding}[${i}]`,
+          );
+        });
+        const deepCopyId = `${componentDeepCopy.id}-${i}`;
+        setVariableTextKeysForRepeatingGroupComponent(
+          textResources,
+          componentDeepCopy.textResourceBindings,
+          i,
+        );
+        const hidden = !!hiddenFields?.find(
+          (field) => field === `${deepCopyId}[${i}]`,
+        );
+        return {
+          ...componentDeepCopy,
+          textResourceBindings: componentDeepCopy.textResourceBindings,
+          dataModelBindings,
+          id: deepCopyId,
+          baseComponentId: componentDeepCopy.id,
+          hidden,
+        };
+      },
+    );
     componentArray.push(childComponents);
   }
   return componentArray;
@@ -194,14 +248,19 @@ export function setVariableTextKeysForRepeatingGroupComponent(
   index: number,
 ) {
   if (textResources && textResourceBindings) {
-    const bindingsWithVariablesForRepeatingGroups = Object.keys(textResourceBindings).filter((key) => {
+    const bindingsWithVariablesForRepeatingGroups = Object.keys(
+      textResourceBindings,
+    ).filter((key) => {
       const textKey = textResourceBindings[key];
       const textResource = textResources.find((text) => text.id === textKey);
-      return textResource && textResource.variables && textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1);
+      return (
+        textResource &&
+        textResource.variables &&
+        textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1)
+      );
     });
 
     bindingsWithVariablesForRepeatingGroups.forEach((key) => {
-      // eslint-disable-next-line no-param-reassign
       textResourceBindings[key] = `${textResourceBindings[key]}-${index}`;
     });
   }
