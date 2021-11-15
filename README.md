@@ -69,27 +69,24 @@ docker-compose down
 ##### Setting up local platform services for test
 
 1. Navigate to the `development` folder in the altinn-studio repo
-
    ```bash
    cd src/development
    ```
 
 2. Start the loadbalancer container that routes between the local platform services and the app
-
    ```bash
    docker-compose up -d --build
    ```
 
-3. Set path to app folder in local platform services:
+3. Set path to app folder in local platform services. There are two ways to do this:
 
-   - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
-
-   ```bash
-   cd LocalTest
-   code appSettings.json
-   ```
-
-   - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
+   1. Edit the appsettings.json file:
+      - Open `appSettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
+      - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
+   2. Define a value using [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret). User secrets is a set of developer specific settings that will overwrite values from the `appSettings.json` file when the application is started in developer "mode".
+      ```bash
+      dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
+      ```
 
 4. Start the local platform services (make sure you are in the LocalTest folder)
 

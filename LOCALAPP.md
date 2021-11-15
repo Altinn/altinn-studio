@@ -91,28 +91,33 @@ Currently we have not been able to provide a 100% common setup between Windows a
      ```shell
      sudo nginx -s reload
      ```
-3. Set path to app folder in local platform services:
-   - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
-     ```shell
-     cd LocalTest
-     code appSettings.json
-     ```
-   - Change the setting `AppRepositoryBasePath` to the parent folder where you have your application repos (`C:/repos/` as an example) as  to your app on the disk.
+3. Set path to app folder in local platform services. There are two ways to do this:
+
+   1. Edit the appsettings.json file:
+      - Open `appSettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
+      - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
+   2. Define a value using [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret). User secrets is a set of developer specific settings that will overwrite values from the `appSettings.json` file when the application is started in developer "mode".
+      ```bash
+      dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
+      ```
+
+4. Set path to local test data folder in local platform services:
+      - Open `appSettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
    - Change the setting `LocalTestingStaticTestDataPath` to the full path of the altinn-studio repository.
      For example:  
      ```json
      "C:/repos/altinn-studio/src/development/TestData/"
      ```
    - Save the file.
-4. Start the local platform services (make sure you are in the LocalTest folder)
+5. Start the local platform services (make sure you are in the LocalTest folder)
    ```shell
    dotnet run
    ```
-5. Navigate to the app folder (specified in the step above)
+6. Navigate to the app folder (specified in the step above)
    ```shell
    cd \.\<path to app on disk>
    ```
-6. Start the app locally
+7. Start the app locally
    ```shell
    dotnet run -p App.csproj
    ```
