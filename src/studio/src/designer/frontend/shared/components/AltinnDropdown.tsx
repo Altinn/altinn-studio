@@ -1,26 +1,28 @@
-import { createTheme, createStyles, FormControl, MenuItem, TextField, Typography } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import {
+  createTheme,
+  FormControl,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnDropdownComponentProvidedProps {
   id: string;
-  classes: any;
   handleChange: any;
-  dropdownItems: string[];
+  dropdownItems: string[] | DropdownOption[];
   selectedValue: string;
   inputHeader?: string;
   inputDescription?: string;
   disabled: boolean;
 }
 
-export interface IAltinnDropdownComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
-const styles = createStyles({
+const useStyles = makeStyles({
   inputHeader: {
     fontSize: '24px',
     fontWeight: 400,
@@ -47,53 +49,87 @@ const styles = createStyles({
   },
 });
 
-// eslint-disable-next-line max-len
-export class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps, IAltinnDropdownComponentState> {
-  public render() {
-    const { classes } = this.props;
-    return (
-      <React.Fragment>
-        {this.props.inputHeader &&
-          <Typography className={classes.inputHeader} variant='h2'>
-            {this.props.inputHeader}
-          </Typography>
-        }
-        {this.props.inputDescription &&
-          <Typography
-            className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}>
-            {this.props.inputDescription}
-          </Typography>
-        }
-        <FormControl
-          classes={{
-            root: classNames(
-              classes.inputField,
-              { [classes.inputField_disabled]: this.props.disabled },
-              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader })
-          }}
-          fullWidth={true}
-          id={this.props.id}
-        >
-          <TextField
-            select={!this.props.disabled}
-            value={this.props.selectedValue}
-            onChange={this.props.handleChange}
-            disabled={this.props.disabled}
-            InputProps={{
-              disableUnderline: true,
-              classes: { root: classNames(classes.inputFieldText) },
-            }}
-          >
-            {this.props.dropdownItems.map((option: string) => (
-              <MenuItem key={option} value={option} className={classes.test}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
-        </FormControl>
-      </React.Fragment>
-    );
-  }
-}
+type DropdownOption = {
+  value: string;
+  label: string;
+};
 
-export default withStyles(styles)(AltinnDropdown);
+export const AltinnDropdown = ({
+  inputHeader,
+  inputDescription,
+  disabled,
+  id,
+  selectedValue,
+  handleChange,
+  dropdownItems,
+}: IAltinnDropdownComponentProvidedProps) => {
+  const classes = useStyles();
+
+  const formControlClasses = React.useMemo(() => {
+    return {
+      root: classNames(
+        classes.inputField,
+        { [classes.inputField_disabled]: disabled },
+        {
+          [classes.marginTop_10]: inputDescription || inputHeader,
+        },
+      ),
+    };
+  }, [classes, disabled, inputDescription, inputHeader]);
+
+  const inputPropsClasses = React.useMemo(() => {
+    return {
+      disableUnderline: true,
+      classes: { root: classNames(classes.inputFieldText) },
+    };
+  }, [classes]);
+
+  return (
+    <React.Fragment>
+      {inputHeader && (
+        <Typography className={classes.inputHeader} variant='h2'>
+          {inputHeader}
+        </Typography>
+      )}
+      {inputDescription && (
+        <Typography
+          className={classNames(classes.descriptionInput, {
+            [classes.marginTop_10]: inputHeader,
+          })}
+        >
+          {inputDescription}
+        </Typography>
+      )}
+      <FormControl classes={formControlClasses} fullWidth={true} id={id}>
+        <TextField
+          select={!disabled}
+          value={selectedValue}
+          onChange={handleChange}
+          disabled={disabled}
+          InputProps={inputPropsClasses}
+        >
+          {dropdownItems.map((option: string | DropdownOption) => {
+            let lbl = '';
+            let val = '';
+
+            if (typeof option === 'object') {
+              lbl = option.label;
+              val = option.value;
+            } else {
+              lbl = option;
+              val = option;
+            }
+
+            return (
+              <MenuItem key={val} value={val}>
+                {lbl}
+              </MenuItem>
+            );
+          })}
+        </TextField>
+      </FormControl>
+    </React.Fragment>
+  );
+};
+
+export default AltinnDropdown;

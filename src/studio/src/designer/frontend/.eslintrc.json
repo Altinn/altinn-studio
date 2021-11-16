@@ -57,7 +57,8 @@
     {
       "files": ["*.test.tsx"],
       "rules": {
-        "react-perf/jsx-no-new-array-as-prop": "off"
+        "react-perf/jsx-no-new-array-as-prop": "off",
+        "@typescript-eslint/no-empty-function": "off"
       }
     }
   ]
