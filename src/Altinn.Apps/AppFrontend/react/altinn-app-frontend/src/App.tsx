@@ -21,6 +21,7 @@ export default function setup() {
   const dispatch = useDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
+  // @ts-ignore since appliacationSetting is not available in rootstate
   const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp: number = 0;
