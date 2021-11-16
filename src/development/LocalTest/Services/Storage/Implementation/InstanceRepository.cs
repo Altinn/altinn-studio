@@ -80,7 +80,7 @@ namespace LocalTest.Services.Storage.Implementation
             return null;
         }
 
-        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             List<string> validQueryParams = new List<string>
             {
@@ -182,11 +182,11 @@ namespace LocalTest.Services.Storage.Implementation
 
             instances.ForEach(async i => await PostProcess(i));
 
-            return new InstanceQueryResponse
+            return Task.FromResult(new InstanceQueryResponse
             {
                 Instances = instances,
                 Count = instances.Count,
-            };
+            });
         }
 
         public async Task<Instance> Update(Instance instance)

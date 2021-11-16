@@ -23,6 +23,8 @@ using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Events.Implementation;
+using LocalTest.Services.LocalApp.Implementation;
+using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
@@ -36,6 +38,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using LocalTest.Services.Localtest.Interface;
@@ -47,12 +50,15 @@ namespace LocalTest
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         public IConfiguration Configuration { get; }
+
+        private readonly IWebHostEnvironment _env;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -131,12 +137,22 @@ namespace LocalTest
                 // Adding custom model binders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
+            
+            // Access app details over http on docker, and from filesystem everywhere else
+            if (_env.IsEnvironment("docker"))
+            {
+                services.AddTransient<ILocalApp, LocalAppHttp>();
+            }
+            else
+            {
+                services.AddTransient<ILocalApp, LocalAppFile>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsEnvironment("docker"))
             {
                 app.UseDeveloperExceptionPage();
 
@@ -149,7 +165,8 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
+            
+            // app.UseHttpsRedirection(); // we run on HTTP
             app.UseStaticFiles();
 
             app.UseRouting();

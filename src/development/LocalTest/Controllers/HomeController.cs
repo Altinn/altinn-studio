@@ -21,12 +21,13 @@ using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.Localtest.Interface;
+using LocalTest.Services.LocalApp.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text;
 using Newtonsoft.Json;
-using LocalTest.Services.Localtest.Interface;
 
 namespace LocalTest.Controllers
 {
@@ -38,6 +39,7 @@ namespace LocalTest.Controllers
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
         private readonly ILocalTestAppSelection _appSelectionService;
+        private readonly ILocalApp _localApp;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
@@ -45,7 +47,8 @@ namespace LocalTest.Controllers
             IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
-            ILocalTestAppSelection appSelectionService)
+            ILocalTestAppSelection appSelectionService,
+            ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
@@ -53,6 +56,7 @@ namespace LocalTest.Controllers
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
             _appSelectionService = appSelectionService;
+            _localApp = localApp;
         }
 
         [AllowAnonymous]
@@ -60,7 +64,7 @@ namespace LocalTest.Controllers
         {
             StartAppModel model = new StartAppModel();
             model.TestApps = await GetAppsList();
-            Application app = await _applicationRepository.FindOne("", "");
+            // Application app = await _applicationRepository.FindOne("", "");
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
@@ -75,11 +79,11 @@ namespace LocalTest.Controllers
                 model.InvalidTestDataPath = true;
             }
 
-            if (app != null)
-            {
-                model.Org = app.Org;
-                model.App = app.Id.Split("/")[1];
-            }
+            // if (app != null)
+            // {
+            //     model.Org = app.Org;
+            //     model.App = app.Id.Split("/")[1];
+            // }
 
             return View(model);
         }
@@ -120,7 +124,7 @@ namespace LocalTest.Controllers
             string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
             CreateJwtCookieAndAppendToResponse(token);
 
-            Application app = GetAppItem(startAppModel.AppPathSelection + "/config");
+            Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
@@ -229,38 +233,9 @@ namespace LocalTest.Controllers
 
         private async Task<IEnumerable<SelectListItem>> GetAppsList()
         {
-            List<SelectListItem> apps = new List<SelectListItem>();
-
-            string path = this._localPlatformSettings.AppRepositoryBasePath;
-
-            if (!Directory.Exists(path))
-            {
-                return apps;
-            }
-
-            string configPath = path + "config";
-            if (Directory.Exists(configPath))
-            {
-                Application app = GetAppItem(configPath);
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, path));
-                }
-            }
-
-            string[] directories =  Directory.GetDirectories(path);
-
-            foreach(string directory in directories)
-            {
-
-                Application app = GetAppItem(directory + "/App/config");
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, directory + "/App/"));
-                }
-            }
-
-            return apps;
+            List<SelectListItem> ret = new List<SelectListItem>();
+            var applications = await _localApp.GetApplications();
+            return applications.Select((kv)=> GetSelectItem(kv.Value, kv.Key)).ToList();
         }
 
         private SelectListItem GetSelectItem(Application app, string path)
