@@ -108,3 +108,18 @@ export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
   var params = header.buildHearderWithRuntime(altinnToken, 'app');
   return http.get(endpoint, params);
 }
+
+/**
+ * Api call for simplified app instantiation with prefill or copy from an archived instances
+ * @param {*} altinnToken token to authenticate the api request
+ * @param {*} appOwner name of the app owner
+ * @param {*} appName name of the app
+ * @param {*} instanceInfo request body with instanceOwner, prefill/sourceInstanceId/dueBefore
+ * @returns response of the http post request
+ */
+export function postSimplifiedInstantiation(altinnToken, appOwner, appName, instanceInfo) {
+  var endpoint = `${config.appApiBaseUrl(appOwner, appName)}/instances/create`;
+  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'app');
+  var body = JSON.stringify(instanceInfo);
+  return http.post(endpoint, body, params);
+}
