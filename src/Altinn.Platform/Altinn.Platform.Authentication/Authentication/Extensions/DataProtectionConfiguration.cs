@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 using Altinn.Platform.Authentication.Configuration;
@@ -15,6 +16,7 @@ namespace Altinn.Platform.Authentication.Extensions
     /// <summary>
     /// Configuration for DataProtection
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class DataProtectionConfiguration
     {
         private static string _blobName = "keys.xml";

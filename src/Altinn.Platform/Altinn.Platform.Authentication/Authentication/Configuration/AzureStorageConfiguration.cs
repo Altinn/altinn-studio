@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Altinn.Platform.Authentication.Configuration
 {
     /// <summary>
     /// Settings for Azure storage
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class AzureStorageConfiguration
     {
         /// <summary>
