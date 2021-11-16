@@ -1,6 +1,7 @@
 import 'jest';
 import { getEnvironmentLoginUrl } from '../../src/utils/urlHelper';
 
+describe('Frontend urlHelper.ts', () => {
   test('getEnvironmentLoginUrl() should return correct containing oidc provider', () => {
     const oldWindowLocation = window.location;
     delete window.location;
@@ -13,4 +14,5 @@ import { getEnvironmentLoginUrl } from '../../src/utils/urlHelper';
     const oidcProvider = 'idporten';
     expect(getEnvironmentLoginUrl(oidcProvider)).toContain('altinn.no/ui/authentication/LogOut');
   });
-});
+});  
+
