@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authentication.Extensions
             if (isDevelopment)
             {
                 services.AddDataProtection()
-                   .PersistKeysToFileSystem(GetKeysDirectory());
+                   .PersistKeysToFileSystem(FileSystemXmlRepository.DefaultKeyStorageDirectory);
             }
             else
             {
@@ -42,22 +42,6 @@ namespace Altinn.Platform.Authentication.Extensions
                 services.AddDataProtection()
                     .PersistKeysToAzureBlobStorage(client);
             }
-        }
-
-        /// <summary>
-        /// Return a directory based on the running operating system. It is possible to override the directory based on the ALTINN_KEYS_DIRECTORY environment variable.
-        /// </summary>
-        /// <returns></returns>
-        private static DirectoryInfo GetKeysDirectory()
-        {
-            string environmentVariable = System.Environment.GetEnvironmentVariable("ALTINN_KEYS_DIRECTORY");
-            if (!string.IsNullOrWhiteSpace(environmentVariable))
-            {
-                return new DirectoryInfo(environmentVariable);
-            }
-
-            // Return a key directory based on the current operating system
-            return FileSystemXmlRepository.DefaultKeyStorageDirectory;
         }
     }
 }
