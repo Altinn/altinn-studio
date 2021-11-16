@@ -6,7 +6,7 @@ import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
 import AppBarComponent from '../../../shared/navigation/main-header/appBar';
 
-import { App } from '../../App';
+import { App } from 'app/App';
 
 describe('Dashboard > App', () => {
   let store: any;
@@ -20,12 +20,13 @@ describe('Dashboard > App', () => {
     },
   };
 
-  const mountComponent = () => mount(
-    <Provider store={store}>
-      <App />
-    </Provider>,
-    { context: { store } },
-  );
+  const mountComponent = () =>
+    mount(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+      { context: { store } },
+    );
 
   beforeEach(() => {
     store = configureStore()(initialState);

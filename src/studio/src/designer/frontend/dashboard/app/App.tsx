@@ -2,17 +2,20 @@ import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { HashRouter as Router, Route } from 'react-router-dom';
+
 import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
-import { StandaloneDataModelling } from '../features';
-import { CloneService } from '../features/cloneService/cloneServices';
-import { KnownIssues } from '../features/knownIssues/knownIssues';
-import { ServicesOverview } from '../features/serviceOverview/servicesOverview';
+
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
+import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
+import { CloneService } from 'features/cloneService/cloneServices';
+import { KnownIssues } from 'features/knownIssues/knownIssues';
+import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
+import { CreateService } from 'features/createService/CreateService';
 import { useAppSelector, useAppDispatch } from 'app/hooks';
 
 import './App.css';
