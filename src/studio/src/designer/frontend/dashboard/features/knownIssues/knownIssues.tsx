@@ -1,6 +1,9 @@
-/* eslint-disable no-underscore-dangle */
 import { Typography } from '@material-ui/core';
-import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import {
+  createTheme,
+  createStyles,
+  withStyles,
+} from '@material-ui/core/styles';
 import * as React from 'react';
 import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
@@ -16,7 +19,8 @@ export interface IKnownIssuesComponentProvidedProps {
   classes: any;
 }
 
-export interface IKnownIssuesComponentProps extends IKnownIssuesComponentProvidedProps {
+export interface IKnownIssuesComponentProps
+  extends IKnownIssuesComponentProvidedProps {
   language: any;
 }
 
@@ -40,7 +44,7 @@ const styles = createStyles({
     marginTop: 24,
     marginLeft: 66,
     fontSize: 16,
-    overflowWrap: 'break-word' as 'break-word',
+    overflowWrap: 'break-word',
     [theme.breakpoints.down('md')]: {
       marginLeft: '50px',
       marginRight: '50px',
@@ -52,41 +56,45 @@ const styles = createStyles({
   },
 });
 
-export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentProps, IKnownIssuesComponentState> {
-  public _isMounted = false;
-
-  // eslint-disable-next-line react/state-in-constructor
+export class KnownIssuesComponent extends React.Component<
+  IKnownIssuesComponentProps,
+  IKnownIssuesComponentState
+> {
   public state: IKnownIssuesComponentState = {
     knownIssues: null,
   };
 
   public componentDidMount() {
-    this._isMounted = true;
-    get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
-      .then((res) => {
-        if (this._isMounted) {
-          marked.setOptions({
-            headerIds: false,
-          });
-          const unsafeHTML = marked(res);
-          const safeHTML = DOMPurify.sanitize(unsafeHTML,
-            {
-              ALLOWED_TAGS: ['ul', 'li', 'a', 'p', 'h2'],
-              ALLOWED_ATTR: ['href', 'target'],
-            });
-          const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
-          const knownIssues = ReactHtmlParser(doc.getElementsByTagName('body')[0].innerHTML);
+    this.componentMounted = true;
+    get(
+      'https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md',
+    ).then((res) => {
+      if (this.componentMounted) {
+        marked.setOptions({
+          headerIds: false,
+        });
+        const unsafeHTML = marked(res);
+        const safeHTML = DOMPurify.sanitize(unsafeHTML, {
+          ALLOWED_TAGS: ['ul', 'li', 'a', 'p', 'h2'],
+          ALLOWED_ATTR: ['href', 'target'],
+        });
+        const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
+        const knownIssues = ReactHtmlParser(
+          doc.getElementsByTagName('body')[0].innerHTML,
+        );
 
-          this.setState({
-            knownIssues,
-          });
-        }
-      });
+        this.setState({
+          knownIssues,
+        });
+      }
+    });
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
+    this.componentMounted = false;
   }
+
+  public componentMounted = false;
 
   public render() {
     const { classes } = this.props;
@@ -95,25 +103,39 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
         <AltinnBreadcrumb
           className={classes.breadCrumb}
           firstLink={`${window.location.origin}/`}
-          firstLinkTxt={getLanguageFromKey('dashboard.main_header', this.props.language)}
-          secondLinkTxt={getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
+          firstLinkTxt={getLanguageFromKey(
+            'dashboard.main_header',
+            this.props.language,
+          )}
+          secondLinkTxt={getLanguageFromKey(
+            'dashboard.known_issues_header',
+            this.props.language,
+          )}
         />
         <div className={classes.mainStyle}>
           <Typography
-            component='h1' variant='h1'
-            gutterBottom={true} className={classes.serviceHeader}
+            component='h1'
+            variant='h1'
+            gutterBottom={true}
+            className={classes.serviceHeader}
           >
-            {getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
+            {getLanguageFromKey(
+              'dashboard.known_issues_header',
+              this.props.language,
+            )}
           </Typography>
-          {this.state.knownIssues ?
+          {this.state.knownIssues ? (
             <div className={classes.knownIssues}>{this.state.knownIssues}</div>
-            :
+          ) : (
             <div>
               <AltinnSpinner
-                spinnerText={getLanguageFromKey('dashboard.known_issues_loading_text', this.props.language)}
+                spinnerText={getLanguageFromKey(
+                  'dashboard.known_issues_loading_text',
+                  this.props.language,
+                )}
               />
             </div>
-          }
+          )}
         </div>
       </>
     );
@@ -130,4 +152,6 @@ const mapStateToProps = (
   };
 };
 
-export const KnownIssues = withStyles(styles)(connect(mapStateToProps)(KnownIssuesComponent));
+export const KnownIssues = withStyles(styles)(
+  connect(mapStateToProps)(KnownIssuesComponent),
+);

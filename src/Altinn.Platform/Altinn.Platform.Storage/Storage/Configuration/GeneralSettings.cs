@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Altinn.Platform.Storage.Configuration
 {
@@ -28,6 +29,11 @@ namespace Altinn.Platform.Storage.Configuration
         public Uri BridgeApiAuthorizationEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets the scopes for Instance Read.
+        /// </summary>
+        public List<string> InstanceReadScope { get; set; }
+
+        /// <summary>
         /// Gets or sets the cache lifetime for text resources.
         /// </summary>
         public int TextResourceCacheLifeTimeInSeconds { get; set; }
@@ -36,5 +42,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// Gets or sets the cache lifetime for application title dictionary.
         /// </summary>
         public int AppTitleCacheLifeTimeInSeconds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cache lifetime for application metadata document.
+        /// </summary>
+        public int AppMetadataCacheLifeTimeInSeconds { get; set; }
     }
 }

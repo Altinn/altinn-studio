@@ -122,8 +122,6 @@ namespace LocalTest.Controllers
 
             Application app = GetAppItem(startAppModel.AppPathSelection + "/config");
 
-            _appSelectionService.SetAppPath(startAppModel.AppPathSelection);
-
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
 
@@ -168,6 +166,7 @@ namespace LocalTest.Controllers
             string issuer = "altinn3local.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
             if (!string.IsNullOrEmpty(orgNumber))
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));

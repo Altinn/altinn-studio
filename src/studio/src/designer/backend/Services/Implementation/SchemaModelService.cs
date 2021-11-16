@@ -112,21 +112,34 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
         {
-            var uri = GetSchemaUri(org, repository, schemaName);
-            JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
-
-            var jsonSchema = jsonTemplate.GetJsonString();
-
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+
+            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            {
+                var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
+                var relativeFilePath = Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json");
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+                return (relativeFilePath, jsonSchema);
+            }
+            else
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+                var modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+                var uri = GetSchemaUri(org, repository, schemaName, modelFolder);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
                 var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaName);
 
                 return (relativePath, jsonSchema);
             }
-
-            return (Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json"), jsonSchema);
         }
 
         /// <inheritdoc/>
@@ -150,18 +163,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a resolvable uri to the location of the schema.
+        /// Gets the <see cref="Uri"/> to the schema within the repository.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="schemaName">The logical name of the schema ie. filename without extention.</param>
-        /// <returns></returns>
-        public Uri GetSchemaUri(string org, string repository, string schemaName)
+        /// <param name="relativePath">The relative path (from repository root) to where the schema should be stored.</param>
+        /// <returns>Returns a resolvable uri to the location of the schema.</returns>
+        public Uri GetSchemaUri(string org, string repository, string schemaName, string relativePath = "")
         {
             var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
             baseUrl = baseUrl.TrimEnd("/".ToCharArray());
 
-            var schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{schemaName}.schema.json");
+            Uri schemaUri;
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{schemaName}.schema.json");
+            }
+            else
+            {
+                relativePath = relativePath.TrimEnd('/');
+                relativePath = relativePath.TrimStart('/');
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{relativePath}/{schemaName}.schema.json");
+            }
 
             return schemaUri;
         }

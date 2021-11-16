@@ -139,7 +139,16 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
         /// <inheritdoc />
-        public abstract Task RunDataCreation(Instance instance, object data);
+        public virtual Task RunDataCreation(Instance instance, object data)
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public virtual Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill)
+        {
+            throw new NotImplementedException("RunDataCreation with external prefill not implemented in app");
+        }
 
         /// <inheritdoc />
         public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
@@ -174,7 +183,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task OnStartProcessTask(string taskId, Instance instance)
+        public async Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill)
         {
             _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
@@ -189,8 +198,17 @@ namespace Altinn.App.Services.Implementation
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
 
                     // runs prefill from repo configuration if config exists
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data);
-                    await RunDataCreation(instance, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data, prefill);
+                    try
+                    {
+                        await RunDataCreation(instance, data, prefill);
+                    }
+                    catch (NotImplementedException)
+                    {
+                        // Trigger application business logic the old way. DEPRICATED
+                        await RunDataCreation(instance, data);
+                    }
+                    
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
                     DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data, type);
@@ -376,6 +394,14 @@ namespace Altinn.App.Services.Implementation
             {
                 layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
+
+            // Ensure layoutsettings are initialized in FormatPdf
+            layoutSettings ??= new();
+            layoutSettings.Pages ??= new();
+            layoutSettings.Pages.Order ??= new();
+            layoutSettings.Pages.ExcludeFromPdf ??= new();
+            layoutSettings.Components ??= new();
+            layoutSettings.Components.ExcludeFromPdf ??= new();
 
             object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 

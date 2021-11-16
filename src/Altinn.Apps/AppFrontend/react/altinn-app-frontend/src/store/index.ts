@@ -1,8 +1,10 @@
-import { applyMiddleware,
+import {
+  applyMiddleware,
   compose,
   createStore,
   Middleware,
-  Store } from 'redux';
+  Store,
+} from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import reducers from '../reducers';
@@ -16,7 +18,7 @@ function configureStore(initialState?: any): Store<any> {
   let enhancer: any;
 
   if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line global-require
+    /* eslint-disable @typescript-eslint/no-var-requires*/
     const { logger } = require('redux-logger');
     middlewares.push(logger);
     enhancer = composeWithDevTools(applyMiddleware(...middlewares));

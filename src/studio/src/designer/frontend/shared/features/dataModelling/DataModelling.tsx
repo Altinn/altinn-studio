@@ -3,10 +3,9 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { SchemaEditor } from '@altinn/schema-editor/index';
 import { ILanguage } from '@altinn/schema-editor/types';
 import { getLanguageFromKey } from '../../utils/language';
-import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
+import { deleteDataModel, fetchDataModel, createDataModel, saveDataModel } from './sagas';
 import { Create, Delete, SchemaSelect } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
-import { sharedUrls } from '../../utils/urlHelper';
 import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { AltinnSpinner } from '../../components';
@@ -16,10 +15,11 @@ import { IMetadataOption } from './functions/types';
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
   preferredOptionLabel?: { label: string, clear: () => void };
+  createPathOption?: boolean;
 }
 
 function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const { language } = props;
+  const { language, createPathOption } = props;
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
@@ -55,20 +55,20 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
   }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
 
   const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().getDataModellingUrl(
-      selectedOption?.value?.repositoryRelativeUrl || `/App/models/${selectedOption.label}.schema.json`,
-    );
-    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedOption }));
+    dispatch(saveDataModel({ schema, metadata: selectedOption }));
   };
 
   const onDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption }));
-    onSchemaSelected(null);
+    setSelectedOption(null);
   };
 
-  const createAction = (modelName: string) => {
-    dispatch(createNewDataModel({ modelName }));
-    setSelectedOption({ label: modelName });
+  const createAction = (model: {
+    name: string,
+    relativeDirectory?: string,
+  }) => {
+    dispatch(createDataModel(model));
+    setSelectedOption({ label: model.name });
   };
 
   const getModelNames = () => {
@@ -88,6 +88,7 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
         language={language}
         createAction={createAction}
         dataModelNames={getModelNames()}
+        createPathOption={createPathOption}
       />
       <SchemaSelect
         selectedOption={selectedOption}
@@ -105,4 +106,5 @@ function DataModelling(props: IDataModellingContainerProps): JSX.Element {
 export default DataModelling;
 DataModelling.defaultProps = {
   preferredOptionLabel: undefined,
+  createPathOption: false,
 };

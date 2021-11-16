@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -52,7 +53,8 @@ namespace Altinn.App.AppLogic
         /// </remarks>
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
-        public async Task DataCreation(Instance instance, object data)
+        /// <param name="prefill">External prefill available under instansiation if supplied</param>
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
             await Task.CompletedTask;
         }

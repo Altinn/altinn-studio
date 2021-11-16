@@ -1,13 +1,13 @@
 # Altinn 3
 
-**Altinn Studio** is the next generation Altinn application development solution.  
+**Altinn Studio** is the next generation Altinn application development solution.
 Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), this is a complete application development and hosting platform.
 
 Altinn Studio is available at <https://altinn.studio>.
 
 Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get started.
 
-![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg "Altinn 3 - Concept")
+![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
 
 ## Build status
 
@@ -56,10 +56,10 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 
 #### Develop or run Apps
 
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).  
+First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).
 _If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
 
-It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.  
+It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
 
 ```bash
@@ -81,6 +81,7 @@ docker-compose down
    ```
 
 3. Set path to app folder in local platform services:
+
    - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
 
    ```bash
@@ -103,10 +104,15 @@ docker-compose down
    ```
 
    - If you need to debug (or run locally) the app front-end:
+
      - Open the file `views/Home/Index.cshtml` in your app repo and change the lines (don't commit these changes)
 
      ```html
-     <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css">
+     <link
+       rel="stylesheet"
+       type="text/css"
+       href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css"
+     />
      ...
      <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
      ```
@@ -114,13 +120,17 @@ docker-compose down
      to
 
      ```html
-      <link rel="stylesheet" type="text/css" href="http://localhost:8080/altinn-app-frontend.css">
-      ....
-      <script src="http://localhost:8080/altinn-app-frontend.js"></script>
+     <link
+       rel="stylesheet"
+       type="text/css"
+       href="http://localhost:8080/altinn-app-frontend.css"
+     />
+     ....
+     <script src="http://localhost:8080/altinn-app-frontend.js"></script>
      ```
 
      - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
-  
+
      ```bash
      npm install # only needed first time, or when dependencies are updated
      npm run install-deps # only needed first time, or when dependencies are updated
@@ -130,9 +140,9 @@ docker-compose down
 
 6. Start the app locally
 
-  ```bash
-  dotnet run -p App.csproj
-  ```
+```bash
+dotnet run -p App.csproj
+```
 
 The app and local platform services are now running locally.
 If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
@@ -177,16 +187,9 @@ The script wil also listen to changes in the receipt react app, rebuild and copy
 
 [Integration tests](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress) for local studio.
 
-### Coding style tests
+### Frontent lint and unit tests
 
-Coding style tests are available for the React front end application, using _tslint_.
-
-Navigate to the React front end application and run linting.
-
-```bash
-cd src/react-apps/applications/ux-editor
-npm run lint
-```
+See readme in [studio](/src/studio/README.md#running-the-tests) and [Altinn.Apps AppFrontend](/src/Altinn.Apps/AppFrontend/react/README.md#running-the-tests) projects for details on how to run these tests.
 
 ## Deployment
 

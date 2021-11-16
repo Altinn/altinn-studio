@@ -250,20 +250,17 @@ namespace Designer.Tests.Services
             }
         }
 
-        [Fact]
-        public void GetSchemaUri_ValidNameProvided_ShouldReturnUri()
+        [Theory]
+        [InlineData("ttd", "apprepo", "test", "", "http://altinn3.no/repos")]
+        [InlineData("ttd", "apprepo", "test", "/path/to/folder/", "http://altinn3.no/repos")]
+        public void GetSchemaUri_ValidNameProvided_ShouldReturnUri(string org, string repository, string schemaName, string relativePath, string repositoryBaseUrl)
         {
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
             var schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
 
-            var org = "ttd";
-            var repository = "apprepo";
-            var schemaName = "test";
-            var repositoryBaseUrl = "http://altinn3.no/repos";
+            var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName, relativePath);
 
-            var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName);
-
-            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}/{schemaName}.schema.json");            
+            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}{(string.IsNullOrEmpty(relativePath) ? "/" : relativePath)}{schemaName}.schema.json");            
         }
     }
 }

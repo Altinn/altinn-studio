@@ -1,5 +1,5 @@
 declare module '@material-ui/core/styles/createTheme' {
-  // tslint:disable-next-line:interface-name
+
   interface Theme {
     accessibility: {
       focusVisible: {
