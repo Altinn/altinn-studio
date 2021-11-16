@@ -6,7 +6,7 @@ export function httpPost(url, body, params) {
   var res;
   for (var retries = 3; retries > 0; retries--) {
     res = http.post(url, body, params);
-    if (res.status != 0 && res.status != 201 && res.status < 500) {
+    if (res.status != 0 && res.status != 408 && res.status < 500) {
       return res;
     }
   }
