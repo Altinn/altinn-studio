@@ -1,4 +1,11 @@
+using System;
 using System.IO;
+
+using Altinn.Platform.Authentication.Configuration;
+
+using Azure.Storage;
+using Azure.Storage.Blobs;
+
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,15 +17,31 @@ namespace Altinn.Platform.Authentication.Extensions
     /// </summary>
     public static class DataProtectionConfiguration
     {
+        private static string _blobName = "keys.xml";
+
         /// <summary>
         /// Configure data protection on the services collection.
         /// </summary>
         /// <param name="services">The service collections</param>
-        public static void ConfigureDataProtection(this IServiceCollection services)
+        /// <param name="isDevelopment">A boolean indicating if the environment is development</param>
+        /// <param name="config">Configuration for Azure Storage</param>
+        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, AzureStorageConfiguration config)
         {
-            services
-                .AddDataProtection()
-                .PersistKeysToFileSystem(GetKeysDirectory());
+            if (isDevelopment)
+            {
+                services.AddDataProtection()
+                   .PersistKeysToFileSystem(GetKeysDirectory());
+            }
+            else
+            {
+                StorageSharedKeyCredential metadataCredentials = new StorageSharedKeyCredential(config.MetadataAccountName, config.MetadataAccountKey);
+                Uri uri = new Uri($"{config.MetadataBlobEndpoint}/{config.MetadataContainer}");
+                BlobContainerClient container = new BlobContainerClient(uri, metadataCredentials);
+                BlobClient client = container.GetBlobClient(_blobName);
+
+                services.AddDataProtection()
+                    .PersistKeysToAzureBlobStorage(client);
+            }
         }
 
         /// <summary>
