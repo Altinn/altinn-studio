@@ -26,9 +26,9 @@ export interface ISetRefAction {
   ref: string,
 }
 
-export type PropertyType = 'combination' | 'reference' | 'field';
+export type ObjectKind = 'combination' | 'reference' | 'field';
 
-export type CombinationKeys = 'allOf' | 'anyOf' | 'oneOf';
+export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
 
 export type Field = {
   key: string;
@@ -49,7 +49,7 @@ export interface UiSchemaItem {
   items?: { type?: string, $ref?: string };
   enum?: string[];
   combination?: UiSchemaItem[];
-  combinationKind?: CombinationKeys;
+  combinationKind?: CombinationKind;
   combinationItem?: boolean,
 }
 

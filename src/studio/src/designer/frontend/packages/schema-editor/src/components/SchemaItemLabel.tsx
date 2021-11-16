@@ -2,16 +2,16 @@ import * as React from 'react';
 import { IconButton, Divider, makeStyles } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { getTranslation } from '../utils';
-import { ILanguage, PropertyType } from '../types';
+import { ILanguage, ObjectKind } from '../types';
 
 export interface SchemaItemLabelProps {
   icon: string;
   label: string;
   language: ILanguage;
   limitedItem?: boolean,
-  onAddProperty?: (type: PropertyType) => void;
-  onAddReference?: (type: PropertyType) => void;
-  onAddCombination?: (type: PropertyType) => void;
+  onAddProperty?: (type: ObjectKind) => void;
+  onAddReference?: (type: ObjectKind) => void;
+  onAddCombination?: (type: ObjectKind) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
@@ -52,7 +52,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(e.currentTarget);
     e.stopPropagation();
   };
-  const handleAddNode = (e: React.SyntheticEvent, type: PropertyType) => {
+  const handleAddNode = (e: React.SyntheticEvent, type: ObjectKind) => {
     setContextAnchor(null);
     e.stopPropagation();
     switch (type) {
@@ -118,9 +118,9 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         }
         {props.onAddProperty && !props.limitedItem &&
           <AltinnMenuItem
-            id='add-property-to-node-button'
-            key='add_property'
-            onClick={(event) => handleAddNode(event, 'field')} text={getTranslation('add_property', props.language)}
+            id='add-field-to-node-button'
+            key='add_field'
+            onClick={(event) => handleAddNode(event, 'field')} text={getTranslation('add_field', props.language)}
             iconClass='fa fa-datamodel-properties'
           />
         }

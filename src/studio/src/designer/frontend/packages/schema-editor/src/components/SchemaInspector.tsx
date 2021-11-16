@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { Field, ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
@@ -111,7 +111,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [title, setItemTitle] = React.useState<string>('');
   const [objectType, setObjectType] = React.useState<string>('');
   const [arrayType, setArrayType] = React.useState<string>('');
-  const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'combination'>('type');
+  const [objectKind, setObjectKind] = React.useState<ObjectKind>('field');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === 'properties') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
@@ -166,11 +166,11 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       } else if (selectedItem.combination) {
         setObjectKind('combination');
       } else {
-        setObjectKind('type');
+        setObjectKind('field');
       }
     } else {
       setIsRequired(false);
-      setObjectKind('type');
+      setObjectKind('field');
       setTabIndex('0');
     }
   }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
@@ -387,7 +387,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (type === undefined) {
       items = undefined;
     } else {
-      items = objectKind === 'type' ? { type } : { $ref: type };
+      items = objectKind === 'field' ? { type } : { $ref: type };
     }
     dispatch(setItems({
       path: selectedItem?.path, items,
@@ -473,7 +473,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           />
         </>
       }
-      {selectedItem && objectKind === 'type' &&
+      {selectedItem && objectKind === 'field' &&
         <>
           <p className={classes.header}>{getTranslation('type', props.language)}</p>
           <StyledSelect
@@ -491,7 +491,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           </StyledSelect>
         </>}
       {renderReferenceSelection()}
-      {(objectKind === 'reference' || objectKind === 'type') &&
+      {(objectKind === 'reference' || objectKind === 'field') &&
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}

@@ -5,7 +5,7 @@ import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { ILanguage, ISchema, ISchemaState, PropertyType, UiSchemaItem } from '../types';
+import { ILanguage, ISchema, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
@@ -145,7 +145,7 @@ export const Editor = (props: IEditorProps) => {
     setMenuAnchorEl(null);
   };
 
-  const handleAddProperty = (type: PropertyType) => {
+  const handleAddProperty = (type: ObjectKind) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',

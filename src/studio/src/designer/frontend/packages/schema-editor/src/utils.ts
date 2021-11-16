@@ -1,4 +1,4 @@
-import { CombinationKeys, ILanguage, UiSchemaItem } from './types';
+import { CombinationKind, ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
@@ -207,7 +207,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
 }
 
 export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any }, parentPath: string) => {
-  let combinationKind: CombinationKeys;
+  let combinationKind: CombinationKind;
   if (item.anyOf) {
     combinationKind = 'anyOf';
   } else if (item.allOf) {
@@ -229,7 +229,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
 };
 
 export const mapCombinationItemTypeToUiSchemaItem = (
-  item: UiSchemaItem, index: number, key: CombinationKeys, parentPath: string,
+  item: UiSchemaItem, index: number, key: CombinationKind, parentPath: string,
 ) => {
   return {
     ...item,
@@ -245,7 +245,7 @@ export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
   return !!(item?.combination?.some(nullableType));
 };
 
-export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKeys): UiSchemaItem[] => {
+export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKind): UiSchemaItem[] => {
   // example case, going from oneOf to allOf
   // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
   // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0

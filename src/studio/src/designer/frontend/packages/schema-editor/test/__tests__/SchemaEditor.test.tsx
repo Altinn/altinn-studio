@@ -118,7 +118,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#add-property-to-node-button').hostNodes().simulate('click');
+    wrapper.find('#add-field-to-node-button').hostNodes().simulate('click');
     expect(mockStore.dispatch).toBeCalledWith({
       type: 'schemaEditor/addProperty',
       payload: {
@@ -178,7 +178,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
 
@@ -199,7 +199,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
 
@@ -220,7 +220,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.find('#add-property-to-node-button')).toHaveLength(0)
+    expect(wrapper.find('#add-field-to-node-button')).toHaveLength(0)
     expect(wrapper.find('#add-reference-to-node-button')).toHaveLength(0)
   });
 
@@ -279,7 +279,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.find('#add-property-to-node-button').hostNodes()).toHaveLength(0);
+    expect(wrapper.find('#add-field-to-node-button').hostNodes()).toHaveLength(0);
     expect(wrapper.find('#add-reference-to-node-button').hostNodes()).toHaveLength(1);
     expect(wrapper.find('#add-combination-to-node-button').hostNodes()).toHaveLength(0);
   });

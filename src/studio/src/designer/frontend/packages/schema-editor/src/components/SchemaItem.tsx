@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
 import { addCombinationItem, addProperty, deleteCombinationItem, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
+import { ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
 
@@ -149,7 +149,7 @@ function SchemaItem(props: SchemaItemProps) {
     }
   };
 
-  const handleAddProperty = (type: PropertyType) => {
+  const handleAddProperty = (type: ObjectKind) => {
     const newItem = {
       path: itemToDisplay.path,
       type: (type === 'field' ? 'object' : undefined),
