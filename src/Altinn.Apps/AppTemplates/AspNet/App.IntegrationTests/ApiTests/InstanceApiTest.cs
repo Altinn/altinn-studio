@@ -407,7 +407,10 @@ namespace App.IntegrationTests
                 response.EnsureSuccessStatusCode();
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
                 instanceGuid = Guid.Parse(createdInstance.Id.Split("/")[1]);
+                createdInstance.DataValues.TryGetValue("harIkkeReelleRettighetshavere", out string actualDataValue);
+
                 Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+                Assert.Equal("false", actualDataValue, ignoreCase: true);
 
                 string dataUri = createdInstance.Data[0].SelfLinks.Apps;
                 HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
@@ -1157,7 +1160,7 @@ namespace App.IntegrationTests
             string org = "ttd";
             string app = "presentationfields-app";
 
-            int instanceOwnerPartyId = 1337;
+            int instanceOwnerPartyId = 1401;
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 

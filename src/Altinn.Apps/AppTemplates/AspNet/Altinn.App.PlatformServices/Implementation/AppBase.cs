@@ -395,6 +395,14 @@ namespace Altinn.App.Services.Implementation
                 layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
             }
 
+            // Ensure layoutsettings are initialized in FormatPdf
+            layoutSettings ??= new();
+            layoutSettings.Pages ??= new();
+            layoutSettings.Pages.Order ??= new();
+            layoutSettings.Pages.ExcludeFromPdf ??= new();
+            layoutSettings.Components ??= new();
+            layoutSettings.Components.ExcludeFromPdf ??= new();
+
             object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
             layoutSettings = await FormatPdf(layoutSettings, data);
