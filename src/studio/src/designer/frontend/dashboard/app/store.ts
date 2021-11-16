@@ -1,21 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { dataModellingReducer } from 'app-shared/features/dataModelling/sagas';
-import { dataModelsMetadataReducer } from 'app-shared/features/dataModelling/sagas/metadata';
-import dashboardReducer from '../resources/fetchDashboardResources/dashboardSlice';
-import languageReducer from '../resources/fetchLanguage/languageSlice';
-
+import { rootReducer } from './rootReducer';
 import { sagaMiddleware } from './rootSaga';
 
 const middlewares = [sagaMiddleware];
 
 export const store = configureStore({
-  reducer: {
-    dashboard: dashboardReducer,
-    language: languageReducer,
-    dataModelling: dataModellingReducer,
-    dataModelsMetadataState: dataModelsMetadataReducer,
-  },
+  reducer: rootReducer,
   devTools: process.env.NODE_ENV !== 'production',
   middleware: (getDefaultMiddleware: () => any[]) =>
     getDefaultMiddleware().concat(middlewares),
