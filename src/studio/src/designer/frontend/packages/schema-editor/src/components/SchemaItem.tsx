@@ -154,10 +154,11 @@ function SchemaItem(props: SchemaItemProps) {
       path: itemToDisplay.path,
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
-      allOf: (type === 'combination' ? [] : undefined),
+      combination: (type === 'combination' ? [] : undefined),
+      combinationKind: (type === 'combination' ? 'allOf' : undefined),
     } as UiSchemaItem;
 
-    if (itemToDisplay.allOf || itemToDisplay.anyOf || itemToDisplay.oneOf) {
+    if (itemToDisplay.combination) {
       dispatch(addCombinationItem({
         ...newItem,
         displayName: (type === 'reference') ? 'ref' : '',
@@ -179,7 +180,7 @@ function SchemaItem(props: SchemaItemProps) {
       return 'fa-datamodel-ref';
     }
 
-    if (item.anyOf || item.allOf || item.oneOf) {
+    if (item.combination) {
       return 'fa-group';
     }
 
@@ -210,9 +211,8 @@ function SchemaItem(props: SchemaItemProps) {
     if (itemToDisplay.properties) {
       items.push(renderProperties(itemToDisplay.properties));
     }
-    const combinationChildren = item.allOf || item.oneOf || item.anyOf;
-    if (combinationChildren) {
-      items.push(renderProperties(combinationChildren));
+    if (item.combination) {
+      items.push(renderProperties(item.combination));
     }
     return items;
   };
@@ -224,7 +224,7 @@ function SchemaItem(props: SchemaItemProps) {
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
         onAddProperty={(item.type === 'object') ? handleAddProperty : undefined}
-        onAddReference={(item.type === 'object' || (item.allOf || item.anyOf || item.oneOf)) ? handleAddProperty : undefined}
+        onAddReference={(item.type === 'object' || (item.combination)) ? handleAddProperty : undefined}
         onAddCombination={(item.type === 'object') ? handleAddProperty : undefined}
         onDelete={handleDeleteClick}
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}

@@ -10,9 +10,8 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
       if (item.properties instanceof Array && depth > 0) {
         flat(item.properties, depth - 1, stack);
       }
-      const combinationItems = item.allOf || item.oneOf || item.anyOf;
-      if (combinationItems instanceof Array && depth > 0) {
-        flat(combinationItems, depth - 1, stack);
+      if (item.combination instanceof Array && depth > 0) {
+        flat(item.combination, depth - 1, stack);
       }
     }
   }
@@ -126,13 +125,12 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         item = uiSchemaItem.value;
         break;
       }
-      case 'allOf':
-      case 'anyOf':
-      case 'oneOf': {
+      case 'combination': {
         if (uiSchemaItem[key]?.length) {
-          item[key] = [];
-          uiSchemaItem[key]?.forEach((property: UiSchemaItem, index: number) => {
-            item[key][index] = createJsonSchemaItem(property);
+          const combinationKind = uiSchemaItem.combinationKind;
+          item[combinationKind] = [];
+          uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
+            item[combinationKind].push(createJsonSchemaItem(property));
           });
         }
         break;
@@ -140,6 +138,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'path':
       case 'displayName':
       case 'combinationItem':
+      case 'combinationKind':
         break;
       default:
         item[key] = uiSchemaItem[key];
@@ -150,7 +149,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
 }
 
 export function buildUISchema(schema: any, rootPath: string, includeDisplayName: boolean = true): UiSchemaItem[] {
-  const result : UiSchemaItem[] = [];
+  const result: UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -179,6 +178,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else if (typeof item === 'object' && item !== null) {
       const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
       } = item;
       result.push({
@@ -190,9 +190,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
-        oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'oneOf', path)),
-        allOf: allOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'allOf', path)),
-        anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'anyOf', path)),
+        ...mapJsonSchemaCombinationToUiSchemaItem(item, path),
       });
     } else {
       result.push({
@@ -208,7 +206,29 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   return result;
 }
 
-export const mapCombinationItemToUiSchemaItem = (
+export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any }, parentPath: string) => {
+  let combinationKind: CombinationKeys;
+  if (item.anyOf) {
+    combinationKind = 'anyOf';
+  } else if (item.allOf) {
+    combinationKind = 'allOf';
+  } else if (item.oneOf) {
+    combinationKind = 'oneOf';
+  } else {
+    return null;
+  }
+  const combination = item[combinationKind]?.map(
+    (child: UiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
+      child, index, combinationKind, parentPath,
+    ),
+  );
+  return {
+    combination,
+    combinationKind,
+  };
+};
+
+export const mapCombinationItemTypeToUiSchemaItem = (
   item: UiSchemaItem, index: number, key: CombinationKeys, parentPath: string,
 ) => {
   return {
@@ -221,12 +241,8 @@ export const mapCombinationItemToUiSchemaItem = (
 
 export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
-export const combinationIsNullable = (item: UiSchemaItem): boolean => {
-  return !!(
-    item?.anyOf?.some(nullableType) ||
-    item?.allOf?.some(nullableType) ||
-    item?.oneOf?.some(nullableType)
-  );
+export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
+  return !!(item?.combination?.some(nullableType));
 };
 
 export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKeys): UiSchemaItem[] => {
@@ -244,13 +260,14 @@ export const mapCombinationChildren = (children: UiSchemaItem[], toType: Combina
   });
 };
 
-export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
+export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [key: string]: any } },
   name: string, displayName?: string): UiSchemaItem => {
   const rootProperties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
     const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
     const path = `${name}/properties/${key}`;
@@ -262,9 +279,7 @@ export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key
       enum: enums,
       items,
       description,
-      oneOf: oneOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'oneOf', path)),
-      allOf: allOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'allOf', path)),
-      anyOf: anyOf?.map((child: UiSchemaItem, index: number) => mapCombinationItemToUiSchemaItem(child, index, 'anyOf', path)),
+      ...(mapJsonSchemaCombinationToUiSchemaItem(currentProperty, path)),
     };
 
     if (currentProperty.$ref) {

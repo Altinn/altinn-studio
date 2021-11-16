@@ -113,7 +113,6 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [arrayType, setArrayType] = React.useState<string>('');
   const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'combination'>('type');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
-  const [combinationKind, setCombinationKind] = React.useState<'allOf' | 'anyOf' | 'oneOf' | undefined>(undefined);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === 'properties') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
@@ -164,15 +163,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined || selectedItem.items?.$ref !== undefined) {
         setObjectKind('reference');
-      } else if (selectedItem.allOf || selectedItem.anyOf || selectedItem.oneOf) {
+      } else if (selectedItem.combination) {
         setObjectKind('combination');
-        if (selectedItem.allOf) {
-          setCombinationKind('allOf');
-        } else if (selectedItem.anyOf) {
-          setCombinationKind('anyOf');
-        } else if (selectedItem.oneOf) {
-          setCombinationKind('oneOf');
-        }
       } else {
         setObjectKind('type');
       }
@@ -408,10 +400,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
         path: selectedItem?.path, type: 'null', displayName: 'Inline object',
       }));
     } else {
-      const itemToRemove =
-        selectedItem?.oneOf?.find(nullableType) ||
-        selectedItem?.allOf?.find(nullableType) ||
-        selectedItem?.anyOf?.find(nullableType);
+      const itemToRemove = selectedItem?.combination?.find(nullableType);
       if (itemToRemove) {
         dispatch(deleteCombinationItem({ path: itemToRemove.path }));
       }
@@ -519,7 +508,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           <p className={classes.header}>{getTranslation('type', props.language)}</p>
           <StyledSelect
             fullWidth={true}
-            value={combinationKind}
+            value={selectedItem?.combinationKind}
             id={`${getDomFriendlyID(selectedItem?.path || '')}-change-combination`}
             onChange={onChangeCombinationType}
           >
@@ -529,13 +518,13 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
           </StyledSelect>
         </>
       }
-      {(itemToDisplay?.oneOf || itemToDisplay?.allOf || itemToDisplay?.anyOf) &&
+      {objectKind === 'combination' &&
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
           control={<Checkbox
             color='primary'
-            checked={combinationIsNullable(itemToDisplay)}
+            checked={combinationIsNullable(selectedItem)}
             onChange={onChangeNullable}
             name='checkedNullable'
           />}

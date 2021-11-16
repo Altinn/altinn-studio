@@ -383,9 +383,7 @@ describe('SchemaEditorSlice', () => {
 
     // verify initial state => type is allOf
     let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
-    expect(item?.anyOf).toEqual(undefined);
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
 
     const payload = {
       path: '#/definitions/allOfTest',
@@ -395,9 +393,7 @@ describe('SchemaEditorSlice', () => {
     // change to oneOf => verify changed state
     let nextState = reducer(state, setCombinationType(payload));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/oneOf/0' }]);
-    expect(item?.allOf).toEqual(undefined);
-    expect(item?.anyOf).toEqual(undefined);
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/oneOf/0' }]);
 
     // change to anyOf => verify changed state
     nextState = reducer(state, setCombinationType({
@@ -405,9 +401,7 @@ describe('SchemaEditorSlice', () => {
       type: 'anyOf',
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual(undefined);
-    expect(item?.anyOf).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' }]);
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' }]);
 
     // change back to allOf => verify state
     nextState = reducer(nextState, setCombinationType({
@@ -415,45 +409,43 @@ describe('SchemaEditorSlice', () => {
       type: 'allOf'
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.oneOf).toEqual(undefined);
-    expect(item?.allOf).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
-    expect(item?.anyOf).toEqual(undefined);
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
   });
 
   it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
     let item = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
-    expect(item?.anyOf?.length).toBe(4);
+    expect(item?.combination?.length).toBe(4);
     let nextState = reducer(state, deleteCombinationItem({ path: '#/definitions/anyOfTestSeveralItems/anyOf/1' }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
-    expect(item?.anyOf?.length).toBe(3);
-    expect(item?.anyOf?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');
-    expect(item?.anyOf?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
-    expect(item?.anyOf?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
+    expect(item?.combination?.length).toBe(3);
+    expect(item?.combination?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');
+    expect(item?.combination?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
+    expect(item?.combination?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
   });
 
   it('handles adding child items to a combination', () => {
     // anyOf
     const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
-    expect(anyOfItem?.anyOf?.length).toBe(4);
+    expect(anyOfItem?.combination?.length).toBe(4);
     let nextState = reducer(state, addCombinationItem({ path: '#/definitions/anyOfTestSeveralItems', type: 'string' }));
     const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
-    expect(updatedAnyOfItem?.anyOf?.length).toBe(5);
-    expect(updatedAnyOfItem?.anyOf?.[4].type).toBe('string');
+    expect(updatedAnyOfItem?.combination?.length).toBe(5);
+    expect(updatedAnyOfItem?.combination?.[4].type).toBe('string');
 
     // allOf
     const allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(allOfItem?.allOf?.length).toBe(1);
+    expect(allOfItem?.combination?.length).toBe(1);
     nextState = reducer(state, addCombinationItem({ path: '#/definitions/allOfTest', type: 'string' }));
     const updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(updatedAllOfItem?.allOf?.length).toBe(2);
-    expect(updatedAllOfItem?.allOf?.[1].type).toBe('string');
+    expect(updatedAllOfItem?.combination?.length).toBe(2);
+    expect(updatedAllOfItem?.combination?.[1].type).toBe('string');
 
     // oneOf
     const oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
-    expect(oneOfItem?.oneOf?.length).toBe(2);
+    expect(oneOfItem?.combination?.length).toBe(2);
     nextState = reducer(state, addCombinationItem({ path: '#/definitions/oneOfTestNullable', type: 'string' }));
     const updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
-    expect(updatedOneOfItem?.oneOf?.length).toBe(3);
-    expect(updatedOneOfItem?.oneOf?.[2].type).toBe('string');
+    expect(updatedOneOfItem?.combination?.length).toBe(3);
+    expect(updatedOneOfItem?.combination?.[2].type).toBe('string');
   });
 });

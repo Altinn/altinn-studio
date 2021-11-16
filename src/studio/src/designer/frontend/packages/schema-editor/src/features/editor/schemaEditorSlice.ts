@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapCombinationChildren } from '../../utils';
-import { CombinationKeys, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -203,9 +203,7 @@ const schemaEditorSlice = createSlice({
       if (parentPath) {
         const removeFromItem = getUiSchemaItem(state.uiSchema, parentPath);
         if (removeFromItem && propertyName) {
-          const splitPath = path.split('/');
-          const combinationKey = splitPath[splitPath.lastIndexOf(propertyName) - 1] as CombinationKeys;
-          const children = removeFromItem[combinationKey];
+          const children = removeFromItem.combination;
           const index = parseInt(propertyName, 10);
           if (children) {
             children.splice(index, 1);
@@ -316,45 +314,18 @@ const schemaEditorSlice = createSlice({
       } = action.payload;
 
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-
-      let currentType: CombinationKeys;
-      if (schemaItem.allOf) {
-        currentType = 'allOf';
-      } else if (schemaItem.anyOf) {
-        currentType = 'anyOf';
-      } else {
-        currentType = 'oneOf';
-      }
-
-      const mappedChildren = mapCombinationChildren(schemaItem[currentType] || [], type);
-      schemaItem[type as CombinationKeys] = mappedChildren;
-      schemaItem[currentType] = undefined;
+      schemaItem.type = type;
+      schemaItem.combination = mapCombinationChildren(schemaItem.combination || [], type);
     },
     addCombinationItem(state, action) {
       const { path, ...rest } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      let combinationKey: CombinationKeys;
-      let combinationArray: UiSchemaItem[];
-      if (addToItem.allOf) {
-        combinationArray = addToItem.allOf;
-        combinationKey = 'allOf';
-      } else if (addToItem.anyOf) {
-        combinationArray = addToItem.anyOf;
-        combinationKey = 'anyOf';
-      } else if (addToItem.oneOf) {
-        combinationArray = addToItem.oneOf;
-        combinationKey = 'oneOf';
-      } else {
-        throw new Error('adding to invalid combination');
-      }
       const item: UiSchemaItem = {
-        path: `${path}/${combinationKey}/${combinationArray?.length}`,
+        path: `${path}/${addToItem.combinationKind}/${addToItem.combination?.length}`,
         combinationItem: true,
         ...rest,
       };
-      if (combinationArray) {
-        combinationArray.push(item);
-      }
+      addToItem.combination?.push(item);
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;

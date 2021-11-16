@@ -43,7 +43,7 @@ export const StyledSelect = (props: ITypeSelectProps) => {
       id={id}
       disabled={props.readOnly}
       label={props.label}
-      value={value}
+      value={value || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}

@@ -241,7 +241,7 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        allOf: []
+        combination: []
       },
     });
   });
@@ -262,7 +262,8 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        allOf: [],
+        combination: [],
+        combinationKind: 'allOf'
       },
     });
   });

@@ -17,19 +17,22 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/properties/allOfTest',
     displayName: 'allOfTest',
-    allOf: [{ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combination: [{ path: '#/properties/allOfTest/allOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combinationKind: 'allOf',
     restrictions: [],
   },
   {
     path: '#/properties/oneOfTest',
     displayName: 'oneOfTest',
-    oneOf: [{ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combination: [{ path: '#/properties/oneOfTest/oneOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combinationKind: 'oneOf',
     restrictions: [],
   },
   {
     path: '#/properties/anyOfTest',
     displayName: 'anyOfTest',
-    anyOf: [{ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combination: [{ path: '#/properties/anyOfTest/anyOf/0', $ref: '#/$defs/refTest', displayName: 'ref', combinationItem: true } as UiSchemaItem],
+    combinationKind: 'anyOf',
     restrictions: [],
   },
   {

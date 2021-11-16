@@ -48,9 +48,8 @@ export interface UiSchemaItem {
   description?: string;
   items?: { type?: string, $ref?: string };
   enum?: string[];
-  anyOf?: UiSchemaItem[],
-  allOf?: UiSchemaItem[],
-  oneOf?: UiSchemaItem[],
+  combination?: UiSchemaItem[];
+  combinationKind?: CombinationKeys;
   combinationItem?: boolean,
 }
 

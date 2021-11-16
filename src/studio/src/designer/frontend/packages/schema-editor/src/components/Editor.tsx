@@ -151,7 +151,7 @@ export const Editor = (props: IEditorProps) => {
       location: 'properties',
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
-      allOf: (type === 'combination') ? [] : undefined,
+      combination: (type === 'combination') ? [] : undefined,
     }));
     setMenuAnchorEl(null);
   };
