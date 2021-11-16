@@ -101,7 +101,7 @@ export const App = () => {
             />
           </div>
         ) : (
-          <Grid justifyContent='center'>
+          <Grid>
             <AltinnSpinner spinnerText='Venter på svar' />
             {showLogOutButton && (
               <AltinnButton
