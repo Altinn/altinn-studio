@@ -81,7 +81,7 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
   let issParam: string = '';
-  if (oidcprovider != null) {
+  if (!oidcprovider) {
     issParam = `&iss=${oidcprovider}`;
   }
 
