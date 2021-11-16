@@ -105,11 +105,14 @@ export default function (data) {
   deleteSblInstance(runtimeToken, partyId, instanceId, 'true');
 
   //Get an archived instance for copying
+  let d = new Date();
+  d.setDate(d.getDate() - 3);
   filters = {
     'instanceOwner.partyId': partyId,
     'status.isArchived': true,
     'status.isHardDeleted': true,
     appId: `${appOwner}/${appName}`,
+    created: `gte:${d.toISOString()}`,
   };
   res = platformInstances.getAllinstancesWithFilters(runtimeToken, filters);
 
