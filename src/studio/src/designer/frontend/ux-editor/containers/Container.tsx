@@ -777,6 +777,4 @@ const makeMapStateToProps = () => {
   };
 };
 
-// https://github.com/microsoft/TypeScript/issues/41615
-// @ts-ignore
 export const Container = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(ContainerComponent));
