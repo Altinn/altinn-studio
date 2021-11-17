@@ -38,7 +38,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string responseContent = await response.Content.ReadAsStringAsync();
           
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("xacml:Policy", responseContent);
+            Assert.Contains("ttd/model-validation", responseContent);
         }
         /// <summary>
         /// Scenario: get applicationmmetadata with erronious org/app
@@ -80,7 +80,7 @@ namespace App.IntegrationTestsRef.ApiTests
             string responseContent = await response.Content.ReadAsStringAsync();
           
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("xacml:Policy", responseContent);
+            Assert.Contains("ttd/model-validation", responseContent);
         }
         /// <summary>
         /// Scenario:XACML Polic for app
