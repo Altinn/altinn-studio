@@ -21,6 +21,7 @@ export const App = () => {
   const dispatch = useDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore since appliacationSetting is not available in rootstate
   const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
