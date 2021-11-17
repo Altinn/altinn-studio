@@ -34,7 +34,7 @@ Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get start
 
 ## Developing apps?
 
-If you just want to [run apps locally](LOCALAPP.md).
+If you just want to quickly perform tests of your app on your development machine you can follow the instructions on how to [run apps locally](LOCALAPP.md).
 
 ## Getting Started
 
