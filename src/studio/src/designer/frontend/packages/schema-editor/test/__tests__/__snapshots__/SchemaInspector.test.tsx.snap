@@ -21,13 +21,13 @@ exports[`Should match snapshot (enums): enums 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               properties
             </span>
@@ -37,27 +37,27 @@ exports[`Should match snapshot (enums): enums 1`] = `
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               fields
             </span>
@@ -257,13 +257,13 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               properties
             </span>
@@ -273,27 +273,27 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               fields
             </span>
@@ -493,13 +493,13 @@ exports[`Should match snapshot 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               properties
             </span>
@@ -509,27 +509,27 @@ exports[`Should match snapshot 1`] = `
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root Component-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper Component-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-11"
             >
               fields
             </span>
