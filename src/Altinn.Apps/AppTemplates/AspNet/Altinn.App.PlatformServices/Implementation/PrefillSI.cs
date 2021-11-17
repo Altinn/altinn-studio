@@ -11,6 +11,7 @@ using Altinn.Platform.Register.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Services.Implementation
@@ -232,7 +233,7 @@ namespace Altinn.App.Services.Implementation
                 JToken sourceValue = null;
                 if (sourceObject != null)
                 {
-                  sourceValue = sourceObject.SelectToken(source);
+                    sourceValue = sourceObject.SelectToken(source);
                 }
                 else
                 {
@@ -246,7 +247,7 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private Dictionary<string, string> SwapKeyValuesForPrefil(Dictionary<string, string > externalPrefil)
+        private Dictionary<string, string> SwapKeyValuesForPrefil(Dictionary<string, string> externalPrefil)
         {
             return externalPrefil.ToDictionary(x => x.Value, x => x.Key);
         }

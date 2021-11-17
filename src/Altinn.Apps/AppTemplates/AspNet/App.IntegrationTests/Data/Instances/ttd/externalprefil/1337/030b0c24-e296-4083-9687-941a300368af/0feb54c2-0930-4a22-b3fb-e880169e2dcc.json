@@ -1,0 +1,15 @@
+{
+  "id": "0feb54c2-0930-4a22-b3fb-e880169e2dcc",
+  "instanceGuid": "030b0c24-e296-4083-9687-941a300368af",
+  "dataType": "Brønnøysundregistrene_ReelleRettighetshavere_M_2021-04-13_6900_46449_SERES",
+  "contentType": "application/xml",
+  "blobStoragePath": "brg/rrh-innrapportering/030b0c24-e296-4083-9687-941a300368af/data/0feb54c2-0930-4a22-b3fb-e880169e2dcc",
+  "size": 1045,
+  "locked": false,
+  "refs": [],
+  "isRead": true,
+  "created": "2021-08-26T10:41:06.2735715Z",
+  "createdBy": "92878",
+  "lastChanged": "2021-08-26T10:41:06.2735715Z",
+  "lastChangedBy": "92878"
+}
