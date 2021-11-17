@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { makeStyles, Tab, withStyles } from '@material-ui/core';
+import { makeStyles, Tab } from '@material-ui/core';
 import { ILanguage } from '../types';
 import { getTranslation } from '../utils';
 
