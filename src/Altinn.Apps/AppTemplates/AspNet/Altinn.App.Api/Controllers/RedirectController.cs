@@ -19,15 +19,15 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class RedirectController : ControllerBase
     {
-        private readonly AppSettings _appSettings;
+        private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedirectController"/> class.
         /// </summary>
-        /// <param name="appSettings">The app settings.</param>
-        public RedirectController(IOptions<AppSettings> appSettings)
+        /// <param name="settings">The general settings.</param>
+        public RedirectController(IOptions<GeneralSettings> settings)
         {
-            _appSettings = appSettings.Value;
+            _settings = settings.Value;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Altinn.App.Api.Controllers
         {
             Uri uri = new Uri(url);
 
-            if (_appSettings.Hostname != uri.Host)
+            if (_settings.HostName != uri.Host)
             {
                 string errorMessage = $"Invalid domain from query parameter {nameof(url)}.";
                 ModelState.AddModelError(nameof(url), errorMessage);
