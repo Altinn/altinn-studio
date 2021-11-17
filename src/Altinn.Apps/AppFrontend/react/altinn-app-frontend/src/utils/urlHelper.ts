@@ -81,7 +81,7 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
   let issParam: string = '';
-  if (!oidcprovider) {
+  if (oidcprovider != null && oidcprovider != '') {
     issParam = `&iss=${oidcprovider}`;
   }
 
@@ -96,7 +96,7 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   }
 
   // TODO: what if altinn3?
-  throw new Error('Unknown domain');
+  // throw new Error('Unknown domain');
 };
 
 export const getHostname: () => string = () => {
