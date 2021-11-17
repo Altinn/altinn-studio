@@ -33,14 +33,11 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
             // Return a single element as only one app can run on port 5005
-            var appId = await GetAppId();
-            if (appId != null)
+
+            var app = await GetApplicationMetadata("dummyOrg/dummyApp");
+            if (app != null)
             {
-                var app = await GetApplicationMetadata(appId);
-                if (app != null)
-                {
-                    ret.Add(appId, app);
-                }
+                ret.Add(appId, app);
             }
             
             return ret;
