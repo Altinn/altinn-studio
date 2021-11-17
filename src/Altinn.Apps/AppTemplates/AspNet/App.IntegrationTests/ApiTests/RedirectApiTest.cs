@@ -35,9 +35,9 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             string token = PrincipalUtil.GetToken(1337);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "dayplanner");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/api/v1/redirect?url={url}");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/ttd/dayplanner/api/v1/redirect?url={url}");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
