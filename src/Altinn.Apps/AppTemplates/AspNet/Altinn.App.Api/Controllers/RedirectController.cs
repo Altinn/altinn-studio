@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+
 using Altinn.App.Api.Filters;
 using Altinn.App.Services.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -41,7 +44,7 @@ namespace Altinn.App.Api.Controllers
         {
             Uri uri = new Uri(url);
 
-            if (_settings.HostName != uri.Host)
+            if (!IsValidRedirectUri(uri.Host))
             {
                 string errorMessage = $"Invalid domain from query parameter {nameof(url)}.";
                 ModelState.AddModelError(nameof(url), errorMessage);
@@ -49,6 +52,17 @@ namespace Altinn.App.Api.Controllers
             }
 
             return Ok(url);
+        }
+
+        private bool IsValidRedirectUri(string urlHost)
+        {
+            string validHost = _settings.HostName;
+            int segments = _settings.HostName.Split('.').Length;
+
+            List<string> goToList = Enumerable.Reverse(new List<string>(urlHost.Split('.'))).Take(segments).Reverse().ToList();
+            string redirectHost = string.Join(".", goToList);
+
+            return validHost.Equals(redirectHost);
         }
     }
 }
