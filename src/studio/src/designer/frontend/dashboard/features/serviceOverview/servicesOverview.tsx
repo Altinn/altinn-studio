@@ -8,8 +8,8 @@ import { connect } from 'react-redux';
 import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { IRepository } from 'app-shared/types';
-import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
+import { Link } from 'react-router-dom';
 
 export interface IServicesOverviewComponentProvidedProps {
   classes: any;
@@ -189,7 +189,13 @@ export class ServicesOverviewComponent extends React.Component<
                 [classes.textToRight]: isWidthUp('md', this.props.width),
               })}
             >
-              <CreateNewService />
+              {/* TODO: fix styling */}
+              <Link to='/new'>
+                {getLanguageFromKey(
+                  'dashboard.new_service',
+                  this.props.language,
+                )}
+              </Link>
             </Grid>
           )}
         </Grid>

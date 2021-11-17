@@ -94,6 +94,7 @@ export const App = () => {
               component={CloneService}
             />
             <Route path='/known-issues' exact={true} component={KnownIssues} />
+            <Route path='/new' exact={true} component={CreateService} />
             <Route
               path='/datamodelling/:org/:repoName'
               exact={true}
