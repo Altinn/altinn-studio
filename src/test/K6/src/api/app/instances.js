@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import * as config from '../../config.js';
 import * as header from '../../buildrequestheaders.js';
+import { httpPost } from '../../wrapper.js';
 
 //Api call to App Api:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
@@ -92,7 +93,7 @@ export function postInstanceWithMultipartData(altinnStudioRuntimeCookie, partyId
     `Content-Disposition: form-data; name=\"default\"\r\n\r\n${formDataXml}\r\n\r\n` +
     `--abcdefg--`;
 
-  return http.post(endpoint, requestBody, params);
+  return httpPost(endpoint, requestBody, params);
 }
 
 /**
