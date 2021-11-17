@@ -63,7 +63,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>XACML policy file</returns>
-        [HttpGet("{org}/{app}/api/v1/policy.xml")]
+        [HttpGet("{org}/{app}/api/v1/meta/authorizationpolicy")]
         public IActionResult GetPolicy(string org, string app)
         {
             Application application = _appResources.GetApplication();
@@ -92,7 +92,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>BPMN process file</returns>
-        [HttpGet("{org}/{app}/api/v1/process.bpmn")]
+        [HttpGet("{org}/{app}/api/v1/meta/process")]
         public IActionResult GetProcess(string org, string app)
         {
             Application application = _appResources.GetApplication();
@@ -108,25 +108,6 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
-            }
-
-            return NotFound();
-        }
-
-        /// <summary>
-        /// Get the application org and app
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app. (ignored)</param>
-        /// <param name="app">Application identifier which is unique within an organisation. (ignored)</param>
-        /// <returns>The org and app configured in applicationmetadata.json</returns>
-        [HttpGet("{org}/{app}/api/v1/AppID")]
-        public IActionResult GetAppID(string org, string app)
-        {
-            Application application = _appResources.GetApplication();
-
-            if (application != null)
-            {
-                return Ok(application.Id);
             }
 
             return NotFound();
