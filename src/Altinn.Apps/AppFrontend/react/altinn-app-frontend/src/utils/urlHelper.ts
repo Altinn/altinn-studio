@@ -89,23 +89,23 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
-  let issParam: string = '';
+  let issParam = '';
   if (oidcprovider != null && oidcprovider != '') {
     issParam = `&iss=${oidcprovider}`;
   }
 
   if (domainSplitted.length === 5) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   if (domainSplitted.length === 4) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   // TODO: what if altinn3?
-  // throw new Error('Unknown domain');
+  throw new Error('Unknown domain');
 };
 
 export const getHostname: () => string = () => {
