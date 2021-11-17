@@ -12,6 +12,8 @@ import { post } from 'app-shared/utils/networking';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
 
+import { validateRepoName } from 'common/utils';
+
 const useStyles = makeStyles({
   button: {
     fontSize: '16px',
@@ -25,12 +27,6 @@ const useStyles = makeStyles({
     marginTop: 100,
   },
 });
-
-export const appNameRegex = /^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$/;
-
-const validateRepoName = (repoName: string) => {
-  return appNameRegex.test(repoName);
-};
 
 enum PageState {
   Idle = 'Idle',

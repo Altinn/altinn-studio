@@ -19,7 +19,8 @@
       "app-shared/*": ["../shared/*"],
       "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
       "app/*": ["./app/*"],
-      "features/*": ["./features/*"]
+      "features/*": ["./features/*"],
+      "common/*": ["./common/*"]
     }
   },
   "include": ["./**/*", "../shared/**/*"],

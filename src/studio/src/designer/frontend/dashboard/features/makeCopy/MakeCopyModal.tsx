@@ -10,9 +10,9 @@ import {
 import { post } from 'app-shared/utils/networking';
 import * as React from 'react';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { appNameRegex } from '../createService/createNewService';
 import { PopoverOrigin } from '@material-ui/core/Popover';
 import { useAppSelector, useAppDispatch } from 'app/hooks';
+import { validateRepoName } from 'common/utils';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -104,7 +104,7 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       return false;
     }
 
-    if (!appNameRegex.test(repoName)) {
+    if (!validateRepoName(repoName)) {
       setErrorMessage(
         getLanguageFromKey(
           'dashboard.service_name_has_illegal_characters',

@@ -19,6 +19,7 @@ module.exports = {
       'app-shared': path.resolve(__dirname, '../shared/'),
       app: path.resolve(__dirname, './app/'),
       features: path.resolve(__dirname, './features/'),
+      common: path.resolve(__dirname, './common/'),
       '@altinn/schema-editor': path.resolve(
         __dirname,
         '../packages/schema-editor/src/',
