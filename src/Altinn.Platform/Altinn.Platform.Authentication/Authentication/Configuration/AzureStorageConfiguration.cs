@@ -11,21 +11,21 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// The storage account name for Metadata
         /// </summary>
-        public string MetadataAccountName { get; set; }
+        public string KeysAccountName { get; set; }
 
         /// <summary>
         /// The storage account key for Metadata
         /// </summary>
-        public string MetadataAccountKey { get; set; }
+        public string KeysAccountKey { get; set; }
 
         /// <summary>
         /// The name of the storage container in the Metadata storage account
         /// </summary>
-        public string MetadataContainer { get; set; }
+        public string KeysContainer { get; set; }
 
         /// <summary>
         /// The url for the blob end point for Metadata
         /// </summary>
-        public string MetadataBlobEndpoint { get; set; }
+        public string KeysBlobEndpoint { get; set; }
     }
 }

@@ -36,9 +36,9 @@ namespace Altinn.Platform.Authentication.Extensions
             }
             else
             {
-                StorageSharedKeyCredential metadataCredentials = new StorageSharedKeyCredential(config.MetadataAccountName, config.MetadataAccountKey);
-                Uri uri = new Uri($"{config.MetadataBlobEndpoint}/{config.MetadataContainer}");
-                BlobContainerClient container = new BlobContainerClient(uri, metadataCredentials);
+                StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(config.KeysAccountName, config.KeysAccountKey);
+                Uri uri = new Uri($"{config.KeysBlobEndpoint}/{config.KeysContainer}");
+                BlobContainerClient container = new BlobContainerClient(uri, keysCredentials);
                 BlobClient client = container.GetBlobClient(_blobName);
 
                 services.AddDataProtection()
