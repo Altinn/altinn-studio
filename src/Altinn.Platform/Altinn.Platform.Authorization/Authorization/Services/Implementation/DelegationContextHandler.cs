@@ -58,18 +58,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <returns>The user id of the subject</returns>
         public int GetSubjectUserId(XacmlContextRequest request)
         {
-            int subjectUserId = 0;
             XacmlContextAttributes subjectContextAttributes = request.GetSubjectAttributes();
-
-            foreach (XacmlAttribute xacmlAttribute in subjectContextAttributes.Attributes)
-            {
-                if (xacmlAttribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.UserAttribute))
-                {
-                    subjectUserId = Convert.ToInt32(xacmlAttribute.AttributeValues.First().Value);
-                }
-            }
-
-            return subjectUserId;
+            XacmlAttribute subjectAttribute = subjectContextAttributes.Attributes.FirstOrDefault(a => a.AttributeId.OriginalString.Equals(XacmlRequestAttribute.UserAttribute));
+            return Convert.ToInt32(subjectAttribute?.AttributeValues.FirstOrDefault()?.Value);
         }
 
         /// <summary>

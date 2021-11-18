@@ -264,10 +264,9 @@ namespace Altinn.Platform.Authorization.Controllers
             List<string> appIds = new List<string> { $"{resourceAttributes.OrgValue}/{resourceAttributes.AppValue}" };
             List<int> offeredByPartyIds = new List<int> { reporteePartyId };
             List<int> coveredByUserIds = new List<int> { subjectUserId };
-            List<int> coveredByPartyIds = new List<int>();
 
             // 1. Direct user delegations
-            List<DelegationChange> delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, new List<int>(), coveredByUserIds);
+            List<DelegationChange> delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByUserIds: coveredByUserIds);
             if (delegations.Any())
             {
                 delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations);
@@ -285,7 +284,7 @@ namespace Altinn.Platform.Authorization.Controllers
             if (mainunitPartyIds.Any())
             {
                 offeredByPartyIds.AddRange(mainunitPartyIds);
-                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, mainunitPartyIds, new List<int>(), coveredByUserIds);
+                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, mainunitPartyIds, coveredByUserIds: coveredByUserIds);
 
                 if (delegations.Any())
                 {
@@ -302,7 +301,7 @@ namespace Altinn.Platform.Authorization.Controllers
             List<int> keyroleParties = await _partiesWrapper.GetKeyRoleParties(subjectUserId);
             if (keyroleParties.Any())
             {
-                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, keyroleParties, new List<int>());
+                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds: keyroleParties);
 
                 if (delegations.Any())
                 {
