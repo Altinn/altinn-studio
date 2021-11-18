@@ -41,9 +41,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            var appId = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
-            string policyPath = await _localApp.GetXACMLPolicy(appId);
-            return ParsePolicyContent(policyPath);
+            var app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
+            var org = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.OrgAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
+            string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
+            return ParsePolicyContent(policyString);
         }
 
         /// <inheritdoc/>

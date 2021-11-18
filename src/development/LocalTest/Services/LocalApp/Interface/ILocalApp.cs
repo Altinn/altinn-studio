@@ -13,7 +13,5 @@ namespace LocalTest.Services.LocalApp.Interface
         Task<Application?> GetApplicationMetadata(string appId);
 
         Task<Dictionary<string, Application>> GetApplications();
-        
-        Task<string?> GetAppId();
     }
 }

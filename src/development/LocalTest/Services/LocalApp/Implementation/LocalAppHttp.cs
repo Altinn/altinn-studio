@@ -21,11 +21,11 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<string?> GetXACMLPolicy(string appId)
         {
-            return await _httpClient.GetStringAsync($"{appId}/api/v1/policy.xml");
+            return await _httpClient.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
         }
         public async Task<Application?> GetApplicationMetadata(string appId)
         {
-            var content = await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata");
+            var content = await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             return JsonConvert.DeserializeObject<Application>(content);
         }
         
@@ -37,15 +37,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             var app = await GetApplicationMetadata("dummyOrg/dummyApp");
             if (app != null)
             {
-                ret.Add(appId, app);
+                ret.Add(app.Id, app);
             }
             
             return ret;
-        }
-        public async Task<string?> GetAppId()
-        {
-            var appId = "dummyOrg/dummyApp";
-            return await _httpClient.GetStringAsync($"{appId}/api/v1/AppId");
         }
     }
 }

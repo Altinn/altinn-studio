@@ -28,12 +28,12 @@ namespace LocalTest.Services.LocalApp.Implementation
 
         public async Task<string?> GetXACMLPolicy(string appId)
         {
-            return await File.ReadAllTextAsync(GetAppPath(appId) + $"config/authorization/policy.xml");
+            return await File.ReadAllTextAsync(Path.Join(GetAppPath(appId), $"App/config/authorization/policy.xml"));
         }
 
         public async Task<Application?> GetApplicationMetadata(string appId)
         {
-            var filename = GetAppPath(appId) + $"config/applicationmetadata.json";
+            var filename = Path.Join(GetAppPath(appId), $"App/config/applicationmetadata.json");
             if (File.Exists(filename))
             {
                 var content = await File.ReadAllTextAsync(filename, Encoding.UTF8);
@@ -56,7 +56,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             // Check if there is a directory called config that indicates the path points to a single app
-            string configPath = path + "config";
+            string configPath = Path.Join(path, "config");
             if (Directory.Exists(configPath))
             {
                 Application? app = await GetApplicationMetadata("");
@@ -81,13 +81,9 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             return ret;
         }
-        public Task<string?> GetAppId()
-        {
-            return Task.FromResult<string?>(null);
-        }
         private string GetAppPath(string appId)
         {
-            return $"{_localPlatformSettings.AppRepositoryBasePath.TrimEnd('/').TrimEnd('\\')}/{appId}/App/";
+            return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());
         }
     }
 }

@@ -139,7 +139,7 @@ namespace LocalTest
             });
             
             // Access app details over http on docker, and from filesystem everywhere else
-            if (_env.IsEnvironment("docker"))
+            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
                 services.AddTransient<ILocalApp, LocalAppHttp>();
             }
