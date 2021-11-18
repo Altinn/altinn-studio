@@ -12,6 +12,8 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc />
         public Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
         {
+
+            processChange.Process.Tasks.Fir
             return Task.FromResult(processChange);
         }
 
