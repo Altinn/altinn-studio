@@ -84,7 +84,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
             services.ConfigureOidcProviders(Configuration.GetSection("OidcProviders"));
-            services.ConfigureDataProtection(_env.IsDevelopment(), Configuration.GetSection("AzureStorageConfiguration"));
+            services.ConfigureDataProtection(_env.IsDevelopment(), Configuration.GetSection("AzureStorageConfiguration").Get<AzureStorageConfiguration>());
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

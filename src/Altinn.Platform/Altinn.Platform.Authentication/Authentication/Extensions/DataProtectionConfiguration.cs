@@ -26,8 +26,8 @@ namespace Altinn.Platform.Authentication.Extensions
         /// </summary>
         /// <param name="services">The service collections</param>
         /// <param name="isDevelopment">A boolean indicating if the environment is development</param>
-        /// <param name="storageConfig">Configuration for Azure Storage</param>
-        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, IConfigurationSection storageConfig)
+        /// <param name="config">Configuration for Azure Storage</param>
+        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, AzureStorageConfiguration config)
         {
             if (isDevelopment)
             {
@@ -36,7 +36,6 @@ namespace Altinn.Platform.Authentication.Extensions
             }
             else
             {
-                AzureStorageConfiguration config = storageConfig.Get<AzureStorageConfiguration>();
                 StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(config.KeysAccountName, config.KeysAccountKey);
                 Uri uri = new Uri($"{config.KeysBlobEndpoint}/{config.KeysContainer}");
                 BlobContainerClient container = new BlobContainerClient(uri, keysCredentials);
