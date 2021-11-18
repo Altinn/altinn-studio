@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, MenuItem, TextField } from '@material-ui/core';
+import { AppBar, Checkbox, FormControlLabel, Grid, IconButton, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Field, ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
+import { Restriction, ILanguage, ISchemaState, ObjectKind, FieldType, UiSchemaItem } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
@@ -12,11 +12,12 @@ import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
 import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, combinationIsNullable, nullableType } from '../utils';
-import { StyledSelect } from './StyledSelect';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
 import InlineObject from './InlineObject';
+import { CombinationSelect } from './CombinationSelect';
+import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles(
   createStyles({
@@ -109,8 +110,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [nodeName, setNodeName] = React.useState<string>('');
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
-  const [objectType, setObjectType] = React.useState<string>('');
-  const [arrayType, setArrayType] = React.useState<string>('');
+  const [fieldType, setFieldType] = React.useState<FieldType | undefined>(undefined);
+  const [arrayType, setArrayType] = React.useState<FieldType | string | undefined>(undefined);
   const [objectKind, setObjectKind] = React.useState<ObjectKind>('field');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
@@ -154,7 +155,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
-    setObjectType(selectedItem?.type ?? '');
+    setFieldType(selectedItem?.type);
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
       if ((tabIndex === '2' && itemToDisplay?.type !== 'object')) {
@@ -336,7 +337,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onRestrictionReturn = (e: any) => {
     onAddRestrictionClick(e);
   };
-  const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
+  const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Restriction) => {
     if (field.key && field.key.startsWith('@')) {
       return null;
     }
@@ -374,14 +375,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setTabIndex(newValue);
   };
 
-  const onChangeType = (type: string) => {
+  const onChangeType = (type: FieldType) => {
     dispatch(setType({
       path: selectedItem?.path, value: type,
     }));
-    setObjectType(type);
+    setFieldType(type);
   };
 
-  const onChangeArrayType = (type: string | undefined) => {
+  const onChangeArrayType = (type: string | FieldType | undefined) => {
     setArrayType(type ?? '');
     let items;
     if (type === undefined) {
@@ -426,9 +427,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       onChangeType('array');
     } else {
       if (objectKind === 'reference') {
-        onChangeRef(selectedItem.path, arrayType);
+        onChangeRef(selectedItem.path, arrayType || '');
       } else {
-        onChangeType(arrayType);
+        onChangeType(arrayType as FieldType);
       }
       onChangeArrayType(undefined);
     }
@@ -476,19 +477,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       {selectedItem && objectKind === 'field' &&
         <>
           <p className={classes.header}>{getTranslation('type', props.language)}</p>
-          <StyledSelect
-            label={getTranslation('type', props.language)}
-            fullWidth={true}
-            value={(selectedItem.type === 'array') ? arrayType : objectType}
+          <TypeSelect
+            value={(selectedItem.type === 'array') ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
             onChange={(selectedItem.type === 'array') ? onChangeArrayType : onChangeType}
-          >
-            <MenuItem value='string'>{getTranslation('string', props.language)}</MenuItem>
-            <MenuItem value='integer'>{getTranslation('integer', props.language)}</MenuItem>
-            <MenuItem value='number'>{getTranslation('number', props.language)}</MenuItem>
-            <MenuItem value='boolean'>{getTranslation('boolean', props.language)}</MenuItem>
-            <MenuItem value='object'>{getTranslation('object', props.language)}</MenuItem>
-          </StyledSelect>
+            language={props.language}
+          />
         </>}
       {renderReferenceSelection()}
       {(objectKind === 'reference' || objectKind === 'field') &&
@@ -506,16 +500,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       {objectKind === 'combination' &&
         <>
           <p className={classes.header}>{getTranslation('type', props.language)}</p>
-          <StyledSelect
-            fullWidth={true}
+          <CombinationSelect
             value={selectedItem?.combinationKind}
             id={`${getDomFriendlyID(selectedItem?.path || '')}-change-combination`}
             onChange={onChangeCombinationType}
-          >
-            <MenuItem value='allOf'>{getTranslation('all_of', props.language)}</MenuItem>
-            <MenuItem value='anyOf'>{getTranslation('any_of', props.language)}</MenuItem>
-            <MenuItem value='oneOf'>{getTranslation('one_of', props.language)}</MenuItem>
-          </StyledSelect>
+            language={props.language}
+          />
         </>
       }
       {objectKind === 'combination' &&
@@ -643,7 +633,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               onClick={onAddRestrictionClick}
             ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
             </IconButton>
-            { objectType !== 'object' &&
+            { fieldType !== 'object' &&
               <>
                 <Grid item xs={12}>
                   <hr className={classes.divider} />

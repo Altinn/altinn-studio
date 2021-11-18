@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { makeStyles, Select } from '@material-ui/core';
 
-export interface ITypeSelectProps {
+export interface IStyledSelectProps {
   id: string;
   value?: string;
   onChange: (value: string) => void;
@@ -28,10 +28,10 @@ const useStyles = makeStyles({
   },
 });
 
-export const StyledSelect = (props: ITypeSelectProps) => {
+export function StyledSelect(props: IStyledSelectProps) {
   const classes = useStyles();
   const {
-    id, value, onChange,
+    id, label, value, onChange,
   } = props;
 
   const onValueChange = (event: any) => {
@@ -42,7 +42,7 @@ export const StyledSelect = (props: ITypeSelectProps) => {
     <Select
       id={id}
       disabled={props.readOnly}
-      label={props.label}
+      label={label}
       value={value || ''}
       onChange={onValueChange}
       className={classes.root}

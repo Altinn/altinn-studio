@@ -19,27 +19,29 @@ export interface ISetValueAction {
 }
 export interface ISetTypeAction {
   path: string;
-  value: string;
+  value: FieldType;
 }
 export interface ISetRefAction {
   path: string,
   ref: string,
 }
 
+export type FieldType = 'string' | 'integer' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+
 export type ObjectKind = 'combination' | 'reference' | 'field';
 
 export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
 
-export type Field = {
+export type Restriction = {
   key: string;
   value: any;
 }
 
 export interface UiSchemaItem {
   path: string;
-  type?: string;
+  type?: FieldType;
   $ref?: string;
-  restrictions?: Field[];
+  restrictions?: Restriction[];
   properties?: UiSchemaItem[];
   value?: any;
   displayName: string;
