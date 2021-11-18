@@ -41,7 +41,7 @@ export function ImageComponent(props: IImageProps) {
   const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg);
 
-  let imgSrc = props.image.src[language] || props.image.src[Object.keys(props.image.src)[0]];
+  let imgSrc = props.image.src[language] || props.image.src.nb;
   if (imgSrc.startsWith('wwwroot')) {
     imgSrc = imgSrc.replace('wwwroot', `/${(window as Window as IAltinnWindow).org}/${(window as Window as IAltinnWindow).app}`);
   }
