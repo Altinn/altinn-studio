@@ -82,6 +82,15 @@ describe('SchemaEditorSlice', () => {
     });
   });
 
+  it('renames combination and children when renaming a combination', () => {
+    const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(anyOfItem?.combination?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
+
+    const nextState = reducer(state, setPropertyName({ path: '#/definitions/anyOfTestSeveralItems', name: 'tullballeee', }));
+    const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/tullballeee');
+    expect(updatedAnyOfItem?.combination?.[1].path).toBe('#/definitions/tullballeee/anyOf/1');
+  });
+
   it('handles setRef', () => {
     const payload = {
       ref: '#/definitions/Adresse',

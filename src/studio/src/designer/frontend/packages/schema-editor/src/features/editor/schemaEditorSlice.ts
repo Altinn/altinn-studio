@@ -110,7 +110,13 @@ const schemaEditorSlice = createSlice({
         addToItem.properties = [item];
       }
       if (!keepSelection) {
-        state.selectedPropertyNodeId = item.path;
+        if (state.selectedEditorTab === 'definitions') {
+          // triggered from definitions view
+          state.selectedDefinitionNodeId = item.path;
+        } else {
+          // triggered from properties view
+          state.selectedPropertyNodeId = item.path;
+        }
         state.focusNameField = item.path;
       }
     },
@@ -341,7 +347,7 @@ const schemaEditorSlice = createSlice({
 
       // make sure property name is unique
       const [parentPath] = splitParentPathAndName(path);
-      if (parentPath != null) {
+      if (parentPath) {
         const parent = getUiSchemaItem(state.uiSchema, parentPath);
         if (parent.properties) {
           if (parent.properties.findIndex((p) => p.displayName === name) !== -1) {
@@ -361,8 +367,21 @@ const schemaEditorSlice = createSlice({
           item.properties.forEach((p) => updateChildPaths(p, item.path));
         }
 
+        // if item has combinations, we must update child paths as well
+        if (item.combination) {
+          item.combination.forEach((c) => {
+            c.path = c.path.replace(path, item.path);
+          });
+        }
+
         if (navigate) {
-          state.selectedPropertyNodeId = item.path;
+          if (state.selectedEditorTab === 'definitions') {
+            // triggered from definitions view
+            state.selectedDefinitionNodeId = item.path;
+          } else {
+            // triggered from properties view
+            state.selectedPropertyNodeId = item.path;
+          }
         }
       }
     },
