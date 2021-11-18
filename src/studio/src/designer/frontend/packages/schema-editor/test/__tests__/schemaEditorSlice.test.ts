@@ -4,7 +4,7 @@ import reducer, {
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
   setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setCombinationType, addCombinationItem, deleteCombinationItem,
 } from '../../src/features/editor/schemaEditorSlice';
-import { ISchemaState, UiSchemaItem } from '../../src/types';
+import { CombinationKind, ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
 
@@ -384,16 +384,18 @@ describe('SchemaEditorSlice', () => {
     // verify initial state => type is allOf
     let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
+    expect(item?.combinationKind).toEqual('allOf');
 
     const payload = {
       path: '#/definitions/allOfTest',
-      type: 'oneOf',
+      type: 'oneOf' as CombinationKind,
     };
 
     // change to oneOf => verify changed state
     let nextState = reducer(state, setCombinationType(payload));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/oneOf/0' }]);
+    expect(item?.combinationKind).toEqual('oneOf');
 
     // change to anyOf => verify changed state
     nextState = reducer(state, setCombinationType({
@@ -402,6 +404,7 @@ describe('SchemaEditorSlice', () => {
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' }]);
+    expect(item?.combinationKind).toEqual('anyOf');
 
     // change back to allOf => verify state
     nextState = reducer(nextState, setCombinationType({
@@ -410,6 +413,7 @@ describe('SchemaEditorSlice', () => {
     }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
+    expect(item?.combinationKind).toEqual('allOf');
   });
 
   it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
@@ -427,7 +431,7 @@ describe('SchemaEditorSlice', () => {
     // anyOf
     const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(anyOfItem?.combination?.length).toBe(4);
-    let nextState = reducer(state, addCombinationItem({ path: '#/definitions/anyOfTestSeveralItems', type: 'string' }));
+    let nextState = reducer(state, addCombinationItem({ path: '#/definitions/anyOfTestSeveralItems', type: 'string', displayName: '' }));
     const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(updatedAnyOfItem?.combination?.length).toBe(5);
     expect(updatedAnyOfItem?.combination?.[4].type).toBe('string');
@@ -435,7 +439,7 @@ describe('SchemaEditorSlice', () => {
     // allOf
     const allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(allOfItem?.combination?.length).toBe(1);
-    nextState = reducer(state, addCombinationItem({ path: '#/definitions/allOfTest', type: 'string' }));
+    nextState = reducer(state, addCombinationItem({ path: '#/definitions/allOfTest', type: 'string', displayName: '' }));
     const updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
     expect(updatedAllOfItem?.combination?.length).toBe(2);
     expect(updatedAllOfItem?.combination?.[1].type).toBe('string');
@@ -443,7 +447,7 @@ describe('SchemaEditorSlice', () => {
     // oneOf
     const oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
     expect(oneOfItem?.combination?.length).toBe(2);
-    nextState = reducer(state, addCombinationItem({ path: '#/definitions/oneOfTestNullable', type: 'string' }));
+    nextState = reducer(state, addCombinationItem({ path: '#/definitions/oneOfTestNullable', type: 'string', displayName: '' }));
     const updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
     expect(updatedOneOfItem?.combination?.length).toBe(3);
     expect(updatedOneOfItem?.combination?.[2].type).toBe('string');

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Restriction, ILanguage, ISchemaState, ObjectKind, FieldType, UiSchemaItem } from '../types';
+import { Restriction, ILanguage, ISchemaState, ObjectKind, FieldType, UiSchemaItem, CombinationKind } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
@@ -233,10 +233,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path: itemToDisplay?.path, value, oldValue,
     }));
   };
-  const onChangeCombinationType = (value: string) => {
-    dispatch(setCombinationType({
-      path: itemToDisplay?.path, type: value,
-    }));
+  const onChangeCombinationType = (value: CombinationKind) => {
+    if (selectedItem?.path) {
+      dispatch(setCombinationType({
+        path: selectedItem.path, type: value,
+      }));
+    }
   };
 
   const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
@@ -396,9 +398,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeNullable = (_x: any, nullable: boolean) => {
-    if (nullable) {
+    if (nullable && selectedItem) {
       dispatch(addCombinationItem({
-        path: selectedItem?.path, type: 'null', displayName: 'Inline object',
+        path: selectedItem.path, type: 'null', displayName: 'Inline object',
       }));
     } else {
       const itemToRemove = selectedItem?.combination?.find(nullableType);

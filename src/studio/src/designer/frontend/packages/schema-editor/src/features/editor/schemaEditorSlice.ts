@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { buildJsonSchema, buildUISchema, splitParentPathAndName, getUiSchemaItem, getUniqueNumber, mapCombinationChildren } from '../../utils';
-import { ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
+import { CombinationKind, ISchema, ISchemaState, ISetRefAction, ISetTypeAction, ISetValueAction, UiSchemaItem } from '../../types';
 
 export const initialState: ISchemaState = {
   schema: { properties: {}, definitions: {} },
@@ -191,7 +191,7 @@ const schemaEditorSlice = createSlice({
         state.uiSchema.splice(rootIndex, 1);
       }
     },
-    deleteCombinationItem(state, action) {
+    deleteCombinationItem(state, action: PayloadAction<{ path: string}>) {
       // removing a "combination" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
       const path: string = action.payload.path;
       if (state.selectedDefinitionNodeId === path) {
@@ -307,17 +307,17 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setCombinationType(state, action) {
+    setCombinationType(state, action: PayloadAction<{ type: CombinationKind, path: string}>) {
       const {
         type,
         path,
       } = action.payload;
 
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
-      schemaItem.type = type;
+      schemaItem.combinationKind = type;
       schemaItem.combination = mapCombinationChildren(schemaItem.combination || [], type);
     },
-    addCombinationItem(state, action) {
+    addCombinationItem(state, action: PayloadAction<UiSchemaItem>) {
       const { path, ...rest } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
