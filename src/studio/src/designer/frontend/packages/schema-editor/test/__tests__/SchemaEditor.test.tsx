@@ -88,7 +88,9 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        type: 'object',
+        props: {
+          type: 'object',
+        }
       },
     });
   });
@@ -102,7 +104,9 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        $ref: '',
+        props: {
+          $ref: '',
+        }
       },
     });
   });
@@ -241,7 +245,9 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        combination: []
+        props: {
+          combination: []
+        }
       },
     });
   });

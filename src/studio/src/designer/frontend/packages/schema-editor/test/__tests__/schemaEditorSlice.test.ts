@@ -221,7 +221,9 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       name: 'superman',
       location: 'definitions',
-      type: 'object',
+      props: {
+        type: 'object',
+      } as Partial<UiSchemaItem>
     };
     let nextState = reducer(state, addRootItem(payload));
     expect(nextState.uiSchema).toContainEqual({

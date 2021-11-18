@@ -62,9 +62,9 @@ const schemaEditorSlice = createSlice({
         addToItem.enum.push(value);
       }
     },
-    addRootItem(state, action) {
+    addRootItem(state, action: PayloadAction<{ location: string, name: string, props: Partial<UiSchemaItem> }>) {
       const {
-        location, name, ...rest
+        location, name, props
       } = action.payload;
       // make sure name is unique.
       let displayName = name;
@@ -74,7 +74,7 @@ const schemaEditorSlice = createSlice({
       const path = `#/${location}/${displayName}`;
       state.uiSchema.push(
         {
-          ...rest,
+          ...props,
           path,
           displayName,
         },

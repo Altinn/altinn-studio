@@ -151,9 +151,11 @@ export const Editor = (props: IEditorProps) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',
-      type: (type === 'field' ? 'object' : undefined),
-      $ref: (type === 'reference' ? '' : undefined),
-      combination: (type === 'combination') ? [] : undefined,
+      props: {
+        type: (type === 'field' ? 'object' : undefined),
+        $ref: (type === 'reference' ? '' : undefined),
+        combination: (type === 'combination') ? [] : undefined,
+      }
     }));
     setMenuAnchorEl(null);
   };
@@ -163,7 +165,9 @@ export const Editor = (props: IEditorProps) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'definitions',
-      type: 'object',
+      props: {
+        type: 'object',
+      }
     }));
   };
 
