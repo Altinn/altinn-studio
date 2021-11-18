@@ -43,6 +43,5 @@ namespace App.IntegrationTestsRef.ApiTests
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
-
     }
 }
