@@ -40,6 +40,7 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("ttd/model-validation", responseContent);
         }
+
         /// <summary>
         /// Scenario: get applicationmmetadata with erronious org/app
         /// </summary>
@@ -61,6 +62,7 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             Assert.Contains("ttd/model-validation", responseContent);
         }
+
         /// <summary>
         /// Scenario: Get applicationmetadata with org/app check suppression
         /// </summary>
@@ -82,6 +84,7 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("ttd/model-validation", responseContent);
         }
+
         /// <summary>
         /// Scenario:XACML Polic for app
         /// </summary>
