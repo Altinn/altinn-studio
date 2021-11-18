@@ -1,6 +1,10 @@
 deployment:
   replicaCount: 1
 
+  resources:
+    requests:
+      cpu: 100m
+      
   autoscaling:
     replicas:
       min: 1
