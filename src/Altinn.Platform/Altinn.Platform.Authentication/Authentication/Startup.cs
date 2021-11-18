@@ -39,9 +39,34 @@ namespace Altinn.Platform.Authentication
         public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
         /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultKeysAccountName = "AzureStorageConfiguration--KeysAccountName";
+
+        /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultKeysAccountKey = "AzureStorageConfiguration--KeysAccountKey";
+
+        /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultKeysContainer = "AzureStorageConfiguration--KeysContainer";
+
+        /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultKeysBlobEndpoint = "AzureStorageConfiguration--KeysBlobEndpoint";
+
+        /// <summary>
         /// The application insights key.
         /// </summary>
         internal static string ApplicationInsightsKey { get; set; }
+
+        /// <summary>
+        /// The storage configuration.
+        /// </summary>
+        internal static AzureStorageConfiguration StorageConfig { get; set; }
 
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<Startup> _logger;
@@ -84,7 +109,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
             services.ConfigureOidcProviders(Configuration.GetSection("OidcProviders"));
-            services.ConfigureDataProtection(_env.IsDevelopment(), Configuration.GetValue<AzureStorageConfiguration>("AzureStorageConfiguration"));
+            services.ConfigureDataProtection(_env.IsDevelopment(), StorageConfig);
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

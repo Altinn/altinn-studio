@@ -1,14 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -160,10 +155,28 @@ namespace Altinn.Platform.Authentication
                         .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
+
+                    Startup.StorageConfig = new();
+
+                    SecretBundle accountKeySecretBundle = keyVaultClient
+                      .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultKeysAccountKey).Result;
+                    Startup.StorageConfig.KeysAccountKey = accountKeySecretBundle.Value;
+
+                    SecretBundle accountNameSecretBundle = keyVaultClient
+                     .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultKeysAccountName).Result;
+                    Startup.StorageConfig.KeysAccountName = accountNameSecretBundle.Value;
+
+                    SecretBundle containerSecretBundle = keyVaultClient
+                     .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultKeysContainer).Result;
+                    Startup.StorageConfig.KeysContainer = containerSecretBundle.Value;
+
+                    SecretBundle endpointSecretBundle = keyVaultClient
+                     .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultKeysBlobEndpoint).Result;
+                    Startup.StorageConfig.KeysBlobEndpoint = endpointSecretBundle.Value;
                 }
                 catch (Exception vaultException)
                 {
-                    _logger.LogError($"Unable to read application insights key {vaultException}");
+                    _logger.LogError($"Unable to read secrets for key vault {vaultException}");
                 }
             }
         }
