@@ -40,7 +40,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult ValidateUrl([BindRequired, FromQuery, Url] string url)
+        public ActionResult<string> ValidateUrl([BindRequired, FromQuery, Url] string url)
         {
             Uri uri = new Uri(url);
 
