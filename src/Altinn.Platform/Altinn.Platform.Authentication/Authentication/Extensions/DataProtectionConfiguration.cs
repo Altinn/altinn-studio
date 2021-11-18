@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 
 using Altinn.Platform.Authentication.Configuration;
 
@@ -9,6 +8,7 @@ using Azure.Storage.Blobs;
 
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Platform.Authentication.Extensions
@@ -20,6 +20,7 @@ namespace Altinn.Platform.Authentication.Extensions
     public static class DataProtectionConfiguration
     {
         private static string _blobName = "keys.xml";
+        private static AzureStorageConfiguration _config;
 
         /// <summary>
         /// Configure data protection on the services collection.
@@ -27,8 +28,10 @@ namespace Altinn.Platform.Authentication.Extensions
         /// <param name="services">The service collections</param>
         /// <param name="isDevelopment">A boolean indicating if the environment is development</param>
         /// <param name="config">Configuration for Azure Storage</param>
-        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, AzureStorageConfiguration config)
+        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, IConfigurationSection config)
         {
+            _config = config.Get<AzureStorageConfiguration>();
+
             if (isDevelopment)
             {
                 services.AddDataProtection()
@@ -36,8 +39,8 @@ namespace Altinn.Platform.Authentication.Extensions
             }
             else
             {
-                StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(config.KeysAccountName, config.KeysAccountKey);
-                Uri uri = new Uri($"{config.KeysBlobEndpoint}/{config.KeysContainer}");
+                StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(_config.KeysAccountName, _config.KeysAccountKey);
+                Uri uri = new Uri($"{_config.KeysBlobEndpoint}/{_config.KeysContainer}");
                 BlobContainerClient container = new BlobContainerClient(uri, keysCredentials);
                 BlobClient client = container.GetBlobClient(_blobName);
 
