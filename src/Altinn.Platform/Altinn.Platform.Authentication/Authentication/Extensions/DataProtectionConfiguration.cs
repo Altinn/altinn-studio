@@ -20,18 +20,15 @@ namespace Altinn.Platform.Authentication.Extensions
     public static class DataProtectionConfiguration
     {
         private static string _blobName = "keys.xml";
-        private static AzureStorageConfiguration _config;
 
         /// <summary>
         /// Configure data protection on the services collection.
         /// </summary>
         /// <param name="services">The service collections</param>
         /// <param name="isDevelopment">A boolean indicating if the environment is development</param>
-        /// <param name="config">Configuration for Azure Storage</param>
-        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, IConfigurationSection config)
+        /// <param name="storageConfig">Configuration for Azure Storage</param>
+        public static void ConfigureDataProtection(this IServiceCollection services, bool isDevelopment, IConfigurationSection storageConfig)
         {
-            _config = config.Get<AzureStorageConfiguration>();
-
             if (isDevelopment)
             {
                 services.AddDataProtection()
@@ -39,8 +36,9 @@ namespace Altinn.Platform.Authentication.Extensions
             }
             else
             {
-                StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(_config.KeysAccountName, _config.KeysAccountKey);
-                Uri uri = new Uri($"{_config.KeysBlobEndpoint}/{_config.KeysContainer}");
+                AzureStorageConfiguration config = storageConfig.Get<AzureStorageConfiguration>();
+                StorageSharedKeyCredential keysCredentials = new StorageSharedKeyCredential(config.KeysAccountName, config.KeysAccountKey);
+                Uri uri = new Uri($"{config.KeysBlobEndpoint}/{config.KeysContainer}");
                 BlobContainerClient container = new BlobContainerClient(uri, keysCredentials);
                 BlobClient client = container.GetBlobClient(_blobName);
 
