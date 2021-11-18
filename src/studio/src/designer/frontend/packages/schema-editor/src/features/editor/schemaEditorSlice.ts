@@ -89,15 +89,15 @@ const schemaEditorSlice = createSlice({
     clearNameFocus(state) {
       state.focusNameField = undefined;
     },
-    addProperty(state, action) {
+    addProperty(state, action: PayloadAction<{ path: string, keepSelection?: boolean, props?: Partial<UiSchemaItem> }>) {
       const {
-        path, keepSelection, ...rest
+        path, keepSelection, props
       } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
+        ...props,
         path: `${path}/properties/name`,
         displayName: 'name',
-        ...rest,
       };
       if (addToItem.properties) {
         if (addToItem.properties.findIndex((p) => p.path === item.path) !== -1) {
@@ -197,7 +197,7 @@ const schemaEditorSlice = createSlice({
         state.uiSchema.splice(rootIndex, 1);
       }
     },
-    deleteCombinationItem(state, action: PayloadAction<{ path: string}>) {
+    deleteCombinationItem(state, action: PayloadAction<{ path: string }>) {
       // removing a "combination" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
       const path: string = action.payload.path;
       if (state.selectedDefinitionNodeId === path) {
@@ -223,7 +223,7 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setRestriction(state, action: PayloadAction<{path: string, value: string, key: string}>) {
+    setRestriction(state, action: PayloadAction<{ path: string, value: string, key: string }>) {
       const {
         path, value, key,
       } = action.payload;
@@ -239,14 +239,14 @@ const schemaEditorSlice = createSlice({
         schemaItem.restrictions.push({ key, value });
       }
     },
-    setItems(state, action: PayloadAction<{ path: string, items?: { type?: string, $ref?: string }}>) {
+    setItems(state, action: PayloadAction<{ path: string, items?: { type?: string, $ref?: string } }>) {
       const {
         path, items,
       } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.items = items;
     },
-    setRef(state, action: PayloadAction<{ path: string, ref: string}>) {
+    setRef(state, action: PayloadAction<{ path: string, ref: string }>) {
       const {
         path, ref,
       } = action.payload;
@@ -256,7 +256,7 @@ const schemaEditorSlice = createSlice({
         schemaItem.type = undefined;
       }
     },
-    setRestrictionKey(state, action: PayloadAction<{ path: string, oldKey: string, newKey: string}>) {
+    setRestrictionKey(state, action: PayloadAction<{ path: string, oldKey: string, newKey: string }>) {
       const {
         path, oldKey, newKey,
       } = action.payload;
@@ -275,7 +275,7 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setType(state, action: PayloadAction<{ path: string, type: FieldType}>) {
+    setType(state, action: PayloadAction<{ path: string, type: FieldType }>) {
       const { path, type } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.$ref = undefined;
@@ -284,12 +284,12 @@ const schemaEditorSlice = createSlice({
       }
       schemaItem.type = type;
     },
-    setTitle(state, action: PayloadAction<{ path: string, title: string}>) {
+    setTitle(state, action: PayloadAction<{ path: string, title: string }>) {
       const { path, title } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.title = title;
     },
-    setDescription(state, action: PayloadAction<{ path: string, description: string}>) {
+    setDescription(state, action: PayloadAction<{ path: string, description: string }>) {
       const { path, description } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.description = description;
@@ -312,7 +312,7 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setCombinationType(state, action: PayloadAction<{ type: CombinationKind, path: string}>) {
+    setCombinationType(state, action: PayloadAction<{ type: CombinationKind, path: string }>) {
       const {
         type,
         path,
@@ -322,13 +322,14 @@ const schemaEditorSlice = createSlice({
       schemaItem.combinationKind = type;
       schemaItem.combination = mapCombinationChildren(schemaItem.combination || [], type);
     },
-    addCombinationItem(state, action: PayloadAction<UiSchemaItem>) {
-      const { path, ...rest } = action.payload;
+    addCombinationItem(state, action: PayloadAction<{ path: string, props: Partial<UiSchemaItem> }>) {
+      const { path, props } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
+        ...props,
+        displayName: (props.$ref !== undefined) ? 'ref' : '',
         path: `${path}/${addToItem.combinationKind}/${addToItem.combination?.length}`,
         combinationItem: true,
-        ...rest,
       };
       addToItem.combination?.push(item);
     },
@@ -336,7 +337,7 @@ const schemaEditorSlice = createSlice({
       const { schema } = action.payload;
       state.schema = schema;
     },
-    setPropertyName(state, action: PayloadAction<{ path: string, name: string, navigate?: string}>) {
+    setPropertyName(state, action: PayloadAction<{ path: string, name: string, navigate?: string }>) {
       const {
         path, navigate,
       } = action.payload;
@@ -385,11 +386,11 @@ const schemaEditorSlice = createSlice({
         }
       }
     },
-    setSchemaName(state, action: PayloadAction<{ name: string}>) {
+    setSchemaName(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
       state.name = name;
     },
-    setSelectedId(state, action: PayloadAction<{ id: string, focusName?: string}>) {
+    setSelectedId(state, action: PayloadAction<{ id: string, focusName?: string }>) {
       const {
         id, focusName,
       } = action.payload;
@@ -402,10 +403,10 @@ const schemaEditorSlice = createSlice({
         state.selectedPropertyNodeId = id;
       }
     },
-    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string}>) {
+    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string }>) {
       state.saveSchemaUrl = action.payload.saveUrl;
     },
-    setUiSchema(state, action: PayloadAction<{ name: string}>) {
+    setUiSchema(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
       let uiSchema: any[] = [];
 
@@ -443,11 +444,11 @@ const schemaEditorSlice = createSlice({
         onSaveSchema(updatedSchema);
       }
     },
-    setSelectedTab(state, action: PayloadAction<{ selectedTab: 'definitions' | 'properties'}>) {
+    setSelectedTab(state, action: PayloadAction<{ selectedTab: 'definitions' | 'properties' }>) {
       const { selectedTab } = action.payload;
       state.selectedEditorTab = selectedTab;
     },
-    navigateToType(state, action: PayloadAction<{ id: string}>) {
+    navigateToType(state, action: PayloadAction<{ id: string }>) {
       const { id } = action.payload;
       state.selectedEditorTab = 'definitions';
       state.selectedDefinitionNodeId = id;

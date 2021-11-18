@@ -452,8 +452,10 @@ it('dispatches correctly when setting combination to nullable', () => {
     type: 'schemaEditor/addCombinationItem',
     payload: {
       path: '#/definitions/allOfTest',
-      type: 'null',
-      displayName: 'Inline object',
+      props: {
+        type: 'null',
+        displayName: 'Inline object',
+      }
     },
   });
 });

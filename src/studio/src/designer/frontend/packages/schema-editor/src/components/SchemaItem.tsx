@@ -150,8 +150,8 @@ function SchemaItem(props: SchemaItemProps) {
   };
 
   const handleAddProperty = (type: ObjectKind) => {
-    const newItem = {
-      path: itemToDisplay.path,
+    const path = itemToDisplay.path;
+    const props = {
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
       combination: (type === 'combination' ? [] : undefined),
@@ -160,11 +160,14 @@ function SchemaItem(props: SchemaItemProps) {
 
     if (itemToDisplay.combination) {
       dispatch(addCombinationItem({
-        ...newItem,
-        displayName: (type === 'reference') ? 'ref' : '',
+        path,
+        props,
       }));
     } else {
-      dispatch(addProperty(newItem));
+      dispatch(addProperty({
+        path,
+        props,
+      }));
     }
   };
 

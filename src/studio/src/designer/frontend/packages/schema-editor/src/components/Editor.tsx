@@ -155,6 +155,7 @@ export const Editor = (props: IEditorProps) => {
         type: (type === 'field' ? 'object' : undefined),
         $ref: (type === 'reference' ? '' : undefined),
         combination: (type === 'combination') ? [] : undefined,
+        combinationKind: (type === 'combination') ? 'allOf' : undefined,
       }
     }));
     setMenuAnchorEl(null);

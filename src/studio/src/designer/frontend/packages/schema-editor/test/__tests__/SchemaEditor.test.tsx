@@ -127,7 +127,9 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        type: 'object',
+        props: {
+          type: 'object',
+        }
       },
     });
   });
@@ -148,7 +150,9 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        $ref: '',
+        props: {
+          $ref: '',
+        }
       },
     });
   });
@@ -246,7 +250,8 @@ describe('>>> Editor.tsx', () => {
         name: 'name',
         location: 'properties',
         props: {
-          combination: []
+          combination: [],
+          combinationKind: 'allOf'
         }
       },
     });
@@ -268,8 +273,10 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        combination: [],
-        combinationKind: 'allOf'
+        props: {
+          combination: [],
+          combinationKind: 'allOf'
+        }
       },
     });
   });

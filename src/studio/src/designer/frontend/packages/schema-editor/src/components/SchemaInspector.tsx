@@ -408,7 +408,8 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onChangeNullable = (_x: any, nullable: boolean) => {
     if (nullable && selectedItem) {
       dispatch(addCombinationItem({
-        path: selectedItem.path, type: 'null', displayName: 'Inline object',
+        path: selectedItem.path,
+        props: { type: 'null', displayName: 'Inline object' },
       }));
     } else {
       const itemToRemove = selectedItem?.combination?.find(nullableType);
