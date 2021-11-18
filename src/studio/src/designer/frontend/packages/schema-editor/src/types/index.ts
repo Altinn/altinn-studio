@@ -12,19 +12,6 @@ export interface ISchemaState {
 export interface ILanguage {
   [key: string]: string | ILanguage;
 }
-export interface ISetValueAction {
-  path: string,
-  value: any,
-  key?: string,
-}
-export interface ISetTypeAction {
-  path: string;
-  value: FieldType;
-}
-export interface ISetRefAction {
-  path: string,
-  ref: string,
-}
 
 export type FieldType = 'string' | 'integer' | 'number' | 'boolean' | 'object' | 'array' | 'null';
 

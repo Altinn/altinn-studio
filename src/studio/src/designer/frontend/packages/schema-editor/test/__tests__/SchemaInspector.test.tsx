@@ -207,7 +207,7 @@ it('supports switching a type into an array and back', () => {
     type: 'schemaEditor/setType',
     payload: {
       path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      value: 'array',
+      type: 'array',
     },
   });
   expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -227,7 +227,7 @@ it('supports switching a type into an array and back', () => {
     type: 'schemaEditor/setType',
     payload: {
       path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      value: 'string',
+      type: 'string',
     },
   });
   expect(mockStore.dispatch).toHaveBeenCalledWith({
@@ -254,7 +254,7 @@ it('supports switching a reference into an array and back', () => {
     type: 'schemaEditor/setType',
     payload: {
       path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      value: 'array',
+      type: 'array',
     },
   });
   expect(mockStore.dispatch).toHaveBeenCalledWith({

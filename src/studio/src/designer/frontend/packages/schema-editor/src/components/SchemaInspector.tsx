@@ -182,7 +182,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setNodeName(selectedItem?.displayName ?? '');
   }, [selectedItem]);
 
-  const onChangeValue = (path: string, value: any, key?: string) => {
+  const onChangeValue = (path: string, value: any, key: string) => {
     const data = {
       path,
       // eslint-disable-next-line no-restricted-globals
@@ -222,16 +222,18 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
   const onChangeNodeName = () => {
-    if (!nameError && selectedItem?.displayName !== nodeName) {
+    if (!nameError && selectedItem && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
-        path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
+        path: selectedItem.path, name: nodeName, navigate: selectedItem.path,
       }));
     }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
-    dispatch(addEnum({
-      path: itemToDisplay?.path, value, oldValue,
-    }));
+    if (itemToDisplay) {
+      dispatch(addEnum({
+        path: itemToDisplay.path, value, oldValue,
+      }));
+    }
   };
   const onChangeCombinationType = (value: CombinationKind) => {
     if (selectedItem?.path) {
@@ -254,21 +256,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    const path = itemToDisplay?.path;
-    dispatch(addRestriction({
-      path,
-      key: '',
-      value: '',
-    }));
+    if (itemToDisplay) {
+      dispatch(addRestriction({
+        path: itemToDisplay.path,
+        key: '',
+        value: '',
+      }));
+    }
   };
 
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = itemToDisplay?.path;
-    dispatch(addEnum({
-      path,
-      value: 'value',
-    }));
+    if (itemToDisplay) {
+      dispatch(addEnum({
+        path: itemToDisplay.path,
+        value: 'value',
+      }));
+    }
   };
 
   const onGoToDefButtonClick = () => {
@@ -378,23 +382,27 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeType = (type: FieldType) => {
-    dispatch(setType({
-      path: selectedItem?.path, value: type,
-    }));
-    setFieldType(type);
+    if (selectedItem) {
+      dispatch(setType({
+        path: selectedItem.path, type,
+      }));
+      setFieldType(type);
+    }
   };
 
   const onChangeArrayType = (type: string | FieldType | undefined) => {
-    setArrayType(type ?? '');
-    let items;
-    if (type === undefined) {
-      items = undefined;
-    } else {
-      items = objectKind === 'field' ? { type } : { $ref: type };
+    if (selectedItem) {
+      setArrayType(type ?? '');
+      let items;
+      if (type === undefined) {
+        items = undefined;
+      } else {
+        items = objectKind === 'field' ? { type } : { $ref: type };
+      }
+      dispatch(setItems({
+        path: selectedItem.path, items,
+      }));
     }
-    dispatch(setItems({
-      path: selectedItem?.path, items,
-    }));
   };
 
   const onChangeNullable = (_x: any, nullable: boolean) => {
@@ -438,10 +446,12 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
-    dispatch(setRequired({
-      path: selectedId, key: selectedItem?.displayName, required: checked,
-    }));
-    setIsRequired(checked);
+    if(selectedItem) {
+      dispatch(setRequired({
+        path: selectedId, key: selectedItem.displayName, required: checked,
+      }));
+      setIsRequired(checked);
+    }
   };
 
   const onNameChange = (e: any) => {

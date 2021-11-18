@@ -4,7 +4,7 @@ import reducer, {
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
   setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setCombinationType, addCombinationItem, deleteCombinationItem,
 } from '../../src/features/editor/schemaEditorSlice';
-import { CombinationKind, ISchemaState, UiSchemaItem } from '../../src/types';
+import { CombinationKind, FieldType, ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
 
@@ -13,7 +13,7 @@ describe('SchemaEditorSlice', () => {
   beforeEach(() => {
     // setup state
     const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
-    state = reducer(state1, setUiSchema({ rootElementPath: '#/definitions/RA-0678_M' }));
+    state = reducer(state1, setUiSchema({ name: '#/definitions/RA-0678_M' }));
     resetUniqueNumber();
   });
 
@@ -123,7 +123,7 @@ describe('SchemaEditorSlice', () => {
   });
 
   it('handles setSelectedTab', () => {
-    const payload = {
+    const payload: { selectedTab: 'definitions' | 'properties' } = {
       selectedTab: 'definitions',
     };
     const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
@@ -300,7 +300,7 @@ describe('SchemaEditorSlice', () => {
   it('handles setType', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
-      value: 'string',
+      type: 'string' as FieldType,
     };
     const nextState = reducer(state, setType(payload));
 

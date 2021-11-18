@@ -169,9 +169,11 @@ function SchemaItem(props: SchemaItemProps) {
   };
 
   const handleGoToType = () => {
-    dispatch(navigateToType({
-      id: item?.$ref,
-    }));
+    if (item.$ref) {
+      dispatch(navigateToType({
+        id: item.$ref,
+      }));
+    }
   };
 
   const getIconStr = () => {

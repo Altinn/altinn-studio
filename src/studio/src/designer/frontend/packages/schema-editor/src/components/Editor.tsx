@@ -122,11 +122,13 @@ export const Editor = (props: IEditorProps) => {
   };
 
   React.useEffect(() => {
-    dispatch(setSchemaName({ name }));
+    if (name) {
+      dispatch(setSchemaName({ name }));
+    }
   }, [dispatch, name]);
 
   React.useEffect(() => {
-    if (jsonSchema) {
+    if (jsonSchema && name) {
       dispatch(setUiSchema({ name }));
     }
   }, [dispatch, jsonSchema, name]);
@@ -165,15 +167,15 @@ export const Editor = (props: IEditorProps) => {
     }));
   };
 
-  const handlePropertiesNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
+  const handlePropertiesNodeExpanded = (_x: React.ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
-  const handleDefinitionsNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
+  const handleDefinitionsNodeExpanded = (_x: React.ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
-  const handleTabChanged = (_x: React.ChangeEvent<{}>, value: string) => {
+  const handleTabChanged = (_x: React.ChangeEvent<unknown>, value: 'definitions' | 'properties') => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
 
