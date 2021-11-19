@@ -18,8 +18,8 @@ export default class AppFrontend {
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     this.helpText = {
-      open: '.reg-help-filled',
-      close: '.reg-help-outline',
+      open: '.reg-help-outline',
+      close: '.reg-help-filled',
       alert: 'div[role="alert"]',
     };
 
