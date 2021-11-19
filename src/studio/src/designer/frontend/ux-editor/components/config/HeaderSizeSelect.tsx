@@ -1,7 +1,7 @@
 import Select from 'react-select';
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
-import { renderPropertyLabel, renderSelectTextFromResources } from '../../utils/render';
+import { renderPropertyLabel, renderSelectTextFromResources, selectStyles } from '../../utils/render';
 
 export interface HeaderSizeSelectProps {
   renderChangeId: () => JSX.Element,
@@ -11,17 +11,6 @@ export interface HeaderSizeSelectProps {
   handleTitleChange: (e: any) => void,
   handleUpdateHeaderSize: (e: any) => void
 }
-
-const selectStyles = {
-  control: (base: any) => ({
-    ...base,
-    borderRadius: '0 !important',
-  }),
-  option: (provided: any) => ({
-    ...provided,
-    whiteSpace: 'pre-wrap',
-  }),
-};
 
 const HeaderSizeSelect: React.FunctionComponent<HeaderSizeSelectProps> = (props: HeaderSizeSelectProps) => {
   const {

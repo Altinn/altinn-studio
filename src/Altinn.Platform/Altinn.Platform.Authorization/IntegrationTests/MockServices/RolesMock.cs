@@ -19,7 +19,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             if (File.Exists(rolesPath))
             {
                 string content = File.ReadAllText(rolesPath);
-                roles = (List<Role>)JsonSerializer.Deserialize(content, typeof(List<Role>), new JsonSerializerOptions { PropertyNameCaseInsensitive = true});               
+                roles = (List<Role>)JsonSerializer.Deserialize(content, typeof(List<Role>), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });               
             }
 
             return Task.FromResult(roles);

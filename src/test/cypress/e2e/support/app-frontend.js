@@ -10,6 +10,7 @@ const mui = new Common();
  * Start app instance of frontend-test and navigate to change name layout in task_2
  */
 Cypress.Commands.add('navigateToChangeName', () => {
+  cy.intercept('**/active', []).as('noActiveInstances');
   cy.startAppInstance(Cypress.env('multiData2Stage'));
   cy.get(appFrontend.closeButton).should('be.visible');
   cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
@@ -89,8 +90,8 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
     .find(appFrontend.group.next)
     .should('be.visible')
     .click();
-  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
-  cy.get(appFrontend.group.comments).type(comment).blur();
+  cy.get(appFrontend.group.addNewItem).should('not.exist');
+  cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();
   cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 });

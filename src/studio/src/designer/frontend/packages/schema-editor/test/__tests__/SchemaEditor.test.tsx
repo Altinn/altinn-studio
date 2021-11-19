@@ -88,7 +88,7 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        type: '',
+        type: 'object',
       },
     });
   });
@@ -123,7 +123,7 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        type: '',
+        type: 'object',
       },
     });
   });
@@ -159,5 +159,68 @@ describe('>>> Editor.tsx', () => {
         path: '#/properties/melding',
       },
     });
+  });
+
+  it('+++ should not show add property or add reference buttons on a reference node', () => {
+    const mockProperties = {
+      mockItem: { $ref: '#/definitions/mockDefinition' },
+    };
+    const mockDefinitions = {
+      mockDefinition: { type: 'object' },
+    };
+    const customState = {
+      schema: { properties: mockProperties, definitions: mockDefinitions },
+      uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+  });
+
+  it('+++ should not show add property or add reference buttons on a reference node that has not yet set reference', () => {
+    const mockProperties = {
+      mockItem: { $ref: '' },
+    };
+    const mockDefinitions = {
+      mockDefinition: { type: 'object' },
+    };
+    const customState = {
+      schema: { properties: mockProperties, definitions: mockDefinitions },
+      uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+  });
+
+  it('+++ should not show add property or add reference buttons on a field that is not type object', () => {
+    const mockProperties = {
+      mockItem: { $ref: '#/definitions/mockDefinition' },
+    };
+    const mockDefinitions = {
+      mockDefinition: { type: 'integer' },
+    };
+    const customState = {
+      schema: { properties: mockProperties, definitions: mockDefinitions },
+      uiSchema: buildUISchema(mockProperties, '#/properties').concat(buildUISchema(mockDefinitions, '#/definitions')),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
 });

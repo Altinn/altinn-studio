@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="1533" spesifikasjonsnummer="11172" blankettnummer="RF-1453" tittel="Endring av navn" gruppeid="9308">
+  <Tilknytning-grp-9315 gruppeid="9315">
+    <TilknytningTilNavnet-grp-9316 gruppeid="9316">
+      <TilknytningMellomnavn2-grp-9353 gruppeid="9353">
+        <PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931 orid="34931">01039012345</PersonMellomnavnAndreTilknyttetGardNavn-datadef-34931>
+        <PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930 orid="34930">Oslo</PersonMellomnavnAndreTilknyttetPersonsEtternavn-datadef-34930>
+        <PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928 orid="34928">Grev Wedels Plass</PersonMellomnavnAndreTilknytningBeskrivelse-datadef-34928>
+      </TilknytningMellomnavn2-grp-9353>
+      <TilknytningEtternavn2-grp-9351>
+        <PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908>This value should be deleted</PersonEtternavnAndreTilknytningBeskrivelse-datadef-34908>
+      </TilknytningEtternavn2-grp-9351>
+    </TilknytningTilNavnet-grp-9316>
+  </Tilknytning-grp-9315>
+</Skjema>

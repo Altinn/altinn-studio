@@ -47,6 +47,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
             _logger.LogInformation($"//// Created instance for app {org}/{app}. writing to path: {instancePath}");
+            Directory.CreateDirectory(Path.GetDirectoryName(instancePath));
             File.WriteAllText(instancePath, instance.ToString());
 
             return Task.FromResult(instance);
@@ -405,13 +406,33 @@ namespace App.IntegrationTests.Mocks.Services
 
             string instancesPath = GetInstancesPath();
 
+            int fileDepth = 4;
+
+            if (queryParams.TryGetValue("appId", out StringValues appIdQueryVal))
+            {
+                if (appIdQueryVal.Count > 0)
+                {
+                    instancesPath += "\\" + appIdQueryVal.First().Replace('/', '\\');
+                    fileDepth -= 2;
+
+                    if (queryParams.TryGetValue("instanceOwner.partyId", out StringValues partyIdQueryVal))
+                    {
+                        if (partyIdQueryVal.Count > 0)
+                        {
+                            instancesPath += "\\" + partyIdQueryVal.First();
+                            fileDepth -= 1;
+                        }
+                    }
+                }
+            }
+
             if (Directory.Exists(instancesPath))
             {
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
                 int instancePathLenght = instancesPath.Split("\\").Length;
 
                 // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
-                List<string> instanceFiles = files.Where(f => f.Split("\\").Length == (instancePathLenght + 4)).ToList();
+                List<string> instanceFiles = files.Where(f => f.Split("\\").Length == (instancePathLenght + fileDepth)).ToList();
 
                 foreach (var file in instanceFiles)
                 {

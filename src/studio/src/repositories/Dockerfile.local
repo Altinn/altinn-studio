@@ -1,5 +1,5 @@
 # base image
-FROM gitea/gitea:1.14.3
+FROM gitea/gitea:1.15.6
 
 # copy configuration file
 COPY ./gitea-data/gitea/conf/app.ini data/gitea/conf/app.ini

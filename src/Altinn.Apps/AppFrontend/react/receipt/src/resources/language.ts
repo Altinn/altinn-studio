@@ -1,4 +1,3 @@
-/* tslint:disable:max-line-length */
 export const nb = () => (
   {
     receipt_platform: {

@@ -3,11 +3,16 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
+
 using DataModeling.Tests.Assertions;
+
 using Json.More;
 using Json.Schema;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -57,12 +62,14 @@ namespace DataModeling.Tests
         [InlineData("Model/XmlSchema/Seres/SeresComplexContentExtension.xsd", "Model/JsonSchema/Seres/SeresComplexContentExtension.json", "Test to verify conversion from XSD to JSON Schema - feature: complex content extension")]
         [InlineData("Model/XmlSchema/Seres/SeresWithSpecifiedAndAnyAttributes.xsd", "Model/JsonSchema/Seres/SeresWithSpecifiedAndAnyAttributes.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresWithSpecifiedAndAnyAttributes")]
         [InlineData("Model/XmlSchema/Seres/SeresNillable.xsd", "Model/JsonSchema/Seres/SeresNillable.json", "Test to verify conversion from XSD to JSON Schema - feature: Nillable ellements")]
+        [InlineData("Model/XmlSchema/Seres/SeresSimpleTypeRestrictions.xsd", "Model/JsonSchema/Seres/SeresSimpleTypeRestrictions.json", "Test to verify conversion from XSD to JSON Schema - feature: SeresSimpleTypeRestrictions")]
         public async Task XmlSchema_to_JsonSchema_Converter(string schemaPath, string expectedPath, string testCase)
         {
             _testOutputHelper.WriteLine(testCase);
 
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
+            JsonSchemaFormats.RegisterFormats();
             var converter = new XmlSchemaToJsonSchemaConverter();
 
             var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);

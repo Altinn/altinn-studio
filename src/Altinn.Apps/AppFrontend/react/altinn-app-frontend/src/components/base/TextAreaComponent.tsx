@@ -10,7 +10,9 @@ export interface ITextAreaComponentProps {
 }
 
 export function TextAreaComponent(props: ITextAreaComponentProps) {
-  const [value, setValue] = React.useState(props.formData ? props.formData : '');
+  const [value, setValue] = React.useState(
+    props.formData ? props.formData : '',
+  );
 
   React.useEffect(() => {
     setValue(props.formData);
@@ -25,15 +27,20 @@ export function TextAreaComponent(props: ITextAreaComponentProps) {
   };
 
   return (
-    <div className='a-form-group-items input-group p-0' >
+    <div className='a-form-group-items input-group p-0'>
       <textarea
         id={props.id}
         onBlur={onDataChangeSubmit}
         onChange={onDataChanged}
         readOnly={props.readOnly}
+        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
-        className={(props.isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error')
-          + (props.readOnly ? ' disabled' : '')}
+        className={
+          (props.isValid
+            ? 'form-control a-textarea '
+            : 'form-control a-textarea validation-error') +
+          (props.readOnly ? ' disabled' : '')
+        }
         value={value}
         data-testid={props.id}
         aria-describedby={`description-${props.id}`}

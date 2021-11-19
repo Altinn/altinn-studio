@@ -400,7 +400,15 @@ namespace Altinn.App.Api.Controllers
             await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType, appModel);
 
             // send events to trigger application business logic
-            await _altinnApp.RunDataCreation(instance, appModel);
+            try
+            {
+                await _altinnApp.RunDataCreation(instance, appModel, null);
+            }
+            catch (NotImplementedException)
+            {
+                // Trigger application business logic the old way. DEPRICATED
+                await _altinnApp.RunDataCreation(instance, appModel);
+            }
 
             await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
             await UpdateDataValuesOnInstance(instance, dataType, appModel);

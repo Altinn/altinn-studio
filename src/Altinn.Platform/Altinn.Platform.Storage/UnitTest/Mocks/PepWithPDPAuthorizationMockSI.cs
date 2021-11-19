@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             return xacmlContextResponse;
         }
 
-        private string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
+        private static string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             string instanceId = string.Empty;
             foreach (XacmlJsonCategory category in xacmlJsonRequest.Request.Resource)
@@ -226,7 +226,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
@@ -234,7 +234,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             }
         }
 
-        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        private static XacmlAttribute GetAttribute(string attributeId, string attributeValue)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
             if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
@@ -278,7 +278,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -344,7 +344,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             return Task.FromResult(roles);
         }
 
-        private string GetRolesPath(int userId, int resourcePartyId)
+        private static string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
@@ -403,7 +403,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             return policy;
         }
 
-        private string GetAltinnAppsPolicyPath(string org, string app)
+        private static string GetAltinnAppsPolicyPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\" + org + @"\" + app + @"\config\authorization\");

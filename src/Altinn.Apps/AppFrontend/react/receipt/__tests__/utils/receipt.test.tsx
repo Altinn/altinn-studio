@@ -54,13 +54,13 @@ describe('>>> utils/receipt.test.tsx', () => {
     };
   });
   it('+++ should return instance metadata object with correct values for person', () => {
-    // tslint:disable-next-line: max-line-length
+
     const result = getInstanceMetaDataObject(mockInstance, mockPartyPerson, mockLanguage, mockOrganisations, mockApplication);
     expect(result).toEqual(expectedResult);
   });
 
   it('+++ should return instance metadata object with correct values for org', () => {
-    // tslint:disable-next-line: max-line-length
+
     const result = getInstanceMetaDataObject(mockInstance, mockPartyOrg, mockLanguage, mockOrganisations, mockApplication);
     const expectedOrgResult = expectedResult;
     expectedOrgResult.Avsender = '12345-FIRMA AS';

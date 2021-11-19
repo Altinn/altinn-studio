@@ -14,6 +14,7 @@ export enum ComponentTypes {
   Header = 'Header',
   Paragraph = 'Paragraph',
   Input = 'Input',
+  Image = 'Image',
   Datepicker = 'Datepicker',
   Dropdown = 'Dropdown',
   Checkboxes = 'Checkboxes',
@@ -31,6 +32,7 @@ export const componentIcons: IComponentIcon = {
   Header: 'fa fa-title',
   Paragraph: 'fa fa-paragraph',
   Input: 'fa fa-short-answer',
+  Image: 'fa fa-bilde',
   Datepicker: 'fa fa-date',
   Dropdown: 'fa fa-drop-down',
   Checkboxes: 'fa fa-checkbox',
@@ -115,6 +117,17 @@ export const schemaComponents: IComponent[] = [
   {
     name: ComponentTypes.Button,
     Icon: componentIcons.Button,
+  },
+  {
+    name: ComponentTypes.Image,
+    Icon: componentIcons.Image,
+    customProperties: {
+      image: {
+        src: {},
+        width: '100%',
+        align: 'center',
+      },
+    },
   },
 ];
 

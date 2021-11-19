@@ -1,21 +1,12 @@
-/* eslint-disable consistent-return */
-/* eslint-disable array-callback-return */
-/* eslint-disable no-underscore-dangle */
 import { Grid } from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
-// import * as DOMPurify from 'dompurify';
-// import * as marked from 'marked';
 import * as React from 'react';
-// import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
-// import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
-// import AltinnLink from 'app-shared/components/AltinnLink';
 import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-// import { get } from 'app-shared/utils/networking';
 import { IRepository } from 'app-shared/types';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
@@ -24,7 +15,8 @@ export interface IServicesOverviewComponentProvidedProps {
   classes: any;
   width: any;
 }
-export interface IServicesOverviewComponentProps extends IServicesOverviewComponentProvidedProps {
+export interface IServicesOverviewComponentProps
+  extends IServicesOverviewComponentProvidedProps {
   language: any;
   services: any[];
   allDistinctOwners: string[];
@@ -35,7 +27,6 @@ export interface IServicesOverviewComponentProps extends IServicesOverviewCompon
 export interface IServicesOverviewComponentState {
   selectedOwners: string[];
   searchString: string;
-  // majorIssues: JSX.Element[];
 }
 
 const styles = createStyles({
@@ -55,13 +46,13 @@ const styles = createStyles({
     marginTop: '20px',
   },
   textToRight: {
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   alignToCenter: {
-    textAlign: 'center' as 'center',
+    textAlign: 'center',
   },
   elementToRigth: {
-    float: 'right' as 'right',
+    float: 'right',
   },
   textSyle: {
     fontSize: '18px',
@@ -80,10 +71,12 @@ const styles = createStyles({
   },
 });
 
-const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
+const getListOfDistinctServiceOwners = (
+  services: any,
+  currentUser?: string,
+) => {
   const allDistinctServiceOwners: string[] = [];
   if (services) {
-    // eslint-disable-next-line array-callback-return
     services.map((service: any) => {
       const keyToLookFor = service.owner.full_name || service.owner.login;
       if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
@@ -101,55 +94,62 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
-export const getListOfServicesExcludingDatamodels = (services: IRepository[]) => {
+export const getListOfServicesExcludingDatamodels = (
+  services: IRepository[],
+) => {
   // TODO: remove this filter when modeling tool is stable
-  return services?.filter((service: IRepository) => !service.name.endsWith('-datamodels'));
+  return services?.filter(
+    (service: IRepository) => !service.name.endsWith('-datamodels'),
+  );
 };
 
 const getCurrentUsersName = (user: any) => {
   return user ? user.full_name || user.login : '';
 };
 
-// eslint-disable-next-line max-len
-export class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
-  // eslint-disable-next-line max-len
-  public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps) {
+export class ServicesOverviewComponent extends React.Component<
+  IServicesOverviewComponentProps,
+  IServicesOverviewComponentState
+> {
+  public static getDerivedStateFromProps(
+    _props: IServicesOverviewComponentProps,
+  ) {
     return {
       selectedOwners: _props.selectedOwners,
     };
   }
 
-  public _isMounted = false;
-
-  // eslint-disable-next-line react/state-in-constructor
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
     searchString: '',
-    // majorIssues: null,
   };
 
   public componentDidMount() {
-    this._isMounted = true;
+    this.componentMounted = true;
   }
 
   public componentWillUnmount() {
-    this._isMounted = false;
+    this.componentMounted = false;
   }
+
+  public componentMounted = false;
 
   public updateSearchString = (event: any) => {
     this.setState({
       searchString: event.target.value,
     });
-  }
+  };
 
   public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
-    const filteredServices = this.props.services
-      .filter((service: any) => {
-        const keyToLookFor = service.owner.full_name || service.owner.login;
-        if (service.permissions.push === hasWriteRights && this.state.selectedOwners.indexOf(keyToLookFor) !== -1) {
-          return service;
-        }
-      });
+    const filteredServices = this.props.services.filter((service: any) => {
+      const keyToLookFor = service.owner.full_name || service.owner.login;
+      if (
+        service.permissions.push === hasWriteRights &&
+        this.state.selectedOwners.indexOf(keyToLookFor) !== -1
+      ) {
+        return service;
+      }
+    });
 
     if (!this.state.searchString) {
       return filteredServices;
@@ -158,32 +158,26 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     return filteredServices.filter((service: any) => {
       const searchFor = this.state.searchString.toLowerCase();
       if (service.name.toLowerCase().indexOf(searchFor) > -1) return service;
-      if (service.owner.login.toLowerCase().indexOf(searchFor) > -1) return service;
-      if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1) return service;
-      if (service.description.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.owner.login.toLowerCase().indexOf(searchFor) > -1)
+        return service;
+      if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1)
+        return service;
+      if (service.description.toLowerCase().indexOf(searchFor) > -1)
+        return service;
     });
   }
 
   public render() {
-    const {
-      classes, services, currentUserName,
-    } = this.props;
+    const { classes, services, currentUserName } = this.props;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
-          <Grid
-            item={true} xl={8}
-            lg={8} md={8}
-            sm={12} xs={12}
-          >
-            <Typography
-              component='h1' variant='h1'
-              gutterBottom={true}
-            >
+          <Grid item={true} xl={8} lg={8} md={8} sm={12} xs={12}>
+            <Typography component='h1' variant='h1' gutterBottom={true}>
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
-          {currentUserName &&
+          {currentUserName && (
             <Grid
               item={true}
               xl={4}
@@ -191,16 +185,19 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
               md={4}
               sm={12}
               xs={12}
-              className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
+              className={classNames({
+                [classes.textToRight]: isWidthUp('md', this.props.width),
+              })}
             >
               <CreateNewService />
             </Grid>
-          }
+          )}
         </Grid>
-        {services &&
+        {services && (
           <>
             <Grid
-              container={true} direction='row'
+              container={true}
+              direction='row'
               className={classes.mar_top_13}
             >
               <Grid
@@ -216,26 +213,48 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
               >
                 <AltinnSearchInput
                   id='service-search'
-                  ariaLabel={getLanguageFromKey('dashboard.search_service', this.props.language)}
-                  placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
+                  ariaLabel={getLanguageFromKey(
+                    'dashboard.search_service',
+                    this.props.language,
+                  )}
+                  placeholder={getLanguageFromKey(
+                    'dashboard.search_service',
+                    this.props.language,
+                  )}
                   onChangeFunction={this.updateSearchString}
                 />
               </Grid>
             </Grid>
             <ServicesCategory
-              header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}
-              noServicesMessage={getLanguageFromKey('dashboard.no_category_service_write', this.props.language)}
+              header={getLanguageFromKey(
+                'dashboard.category_service_write',
+                this.props.language,
+              )}
+              noServicesMessage={getLanguageFromKey(
+                'dashboard.no_category_service_write',
+                this.props.language,
+              )}
               className={classNames(classes.mar_top_13)}
-              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(true)}
+              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(
+                true,
+              )}
             />
             <ServicesCategory
-              header={getLanguageFromKey('dashboard.category_service_read', this.props.language)}
-              noServicesMessage={getLanguageFromKey('dashboard.no_category_service_read', this.props.language)}
+              header={getLanguageFromKey(
+                'dashboard.category_service_read',
+                this.props.language,
+              )}
+              noServicesMessage={getLanguageFromKey(
+                'dashboard.no_category_service_read',
+                this.props.language,
+              )}
               className={classNames(classes.mar_top_50)}
-              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(false)}
+              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(
+                false,
+              )}
             />
           </>
-        }
+        )}
       </div>
     );
   }
@@ -250,11 +269,15 @@ const mapStateToProps = (
     width: props.width,
     language: state.language.language,
     services: getListOfServicesExcludingDatamodels(state.dashboard.services),
-    // eslint-disable-next-line max-len
-    allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
+    allDistinctOwners: getListOfDistinctServiceOwners(
+      state.dashboard.services,
+      getCurrentUsersName(state.dashboard.user),
+    ),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
     currentUserName: getCurrentUsersName(state.dashboard.user),
   };
 };
 
-export const ServicesOverview = withWidth()(withStyles(styles)(connect(mapStateToProps)(ServicesOverviewComponent)));
+export const ServicesOverview = withWidth()(
+  withStyles(styles)(connect(mapStateToProps)(ServicesOverviewComponent)),
+);
