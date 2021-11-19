@@ -40,6 +40,6 @@ function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElemen
       </ListItemText>
     </MenuItem>
   );
-};
+}
 
 export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(AltinnMenuItem);
