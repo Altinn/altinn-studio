@@ -38,6 +38,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -138,6 +139,8 @@ namespace LocalTest
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
             
+            services.AddDirectoryBrowser();
+
             // Access app details over http on docker, and from filesystem everywhere else
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
@@ -150,7 +153,10 @@ namespace LocalTest
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             if (env.IsDevelopment() || env.IsEnvironment("docker"))
             {
@@ -167,6 +173,20 @@ namespace LocalTest
             }
             
             // app.UseHttpsRedirection(); // we run on HTTP
+            // using Microsoft.Extensions.FileProviders;
+            // using System.IO;
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage",
+                ServeUnknownFileTypes = true,
+            });
+
+            app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage"
+            });
             app.UseStaticFiles();
 
             app.UseRouting();
