@@ -95,11 +95,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void RepositoryType_SettingsExists_ShouldUseThat()
+        public async Task RepositoryType_SettingsExists_ShouldUseThat()
         {            
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
-            Assert.Equal(AltinnRepositoryType.Datamodels, altinnGitRepository.GetRepositoryType().Result);
+            Assert.Equal(AltinnRepositoryType.Datamodels, await altinnGitRepository.GetRepositoryType());
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.GetRepositoryType().Result);
+                Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
                 Assert.True(altinnGitRepository.FileExistsByRelativePath(@".altinnstudio\settings.json"));
             }
             finally
@@ -125,11 +125,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void ModelPreference_SettingsExists_ShouldUseThat()
+        public async Task ModelPreference_SettingsExists_ShouldUseThat()
         {
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
-            Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.GetDatamodellingPreference().Result);
+            Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.GetDatamodellingPreference().Result);
+                Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
             }
             finally
             {
