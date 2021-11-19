@@ -99,7 +99,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {            
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
-            Assert.Equal(AltinnRepositoryType.Datamodels, altinnGitRepository.RepositoryType);
+            Assert.Equal(AltinnRepositoryType.Datamodels, altinnGitRepository.GetRepositoryType().Result);
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
+                Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.GetRepositoryType().Result);
                 Assert.True(altinnGitRepository.FileExistsByRelativePath(@".altinnstudio\settings.json"));
             }
             finally
@@ -129,7 +129,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
-            Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.DatamodellingPreference);
+            Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.GetDatamodellingPreference().Result);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.DatamodellingPreference);
+                Assert.Equal(DatamodellingPreference.JsonSchema, altinnGitRepository.GetDatamodellingPreference().Result);
             }
             finally
             {

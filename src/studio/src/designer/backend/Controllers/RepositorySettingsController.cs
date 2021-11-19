@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// .AltinnStudio\settings.json
         /// </summary>
         [HttpGet]
-        public ActionResult<AltinnStudioSettings> Get(string org, string repository)
+        public async Task<ActionResult<AltinnStudioSettings>> Get(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-                settings = altinnGitRepository.AltinnStudioSettings;
+                settings = await altinnGitRepository.GetAltinnStudioSettings();
             }
             catch (DirectoryNotFoundException)
             {

@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertNotNullOrEmpty(org, nameof(org));
             Guard.AssertNotNullOrEmpty(repository, nameof(repository));
-            Guard.AssertNotNullOrEmpty(developer, nameof(developer));            
+            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
 
             Org = org;
             Repository = repository;
@@ -63,33 +63,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        internal AltinnStudioSettings AltinnStudioSettings
+        public async Task<AltinnRepositoryType> GetRepositoryType()
         {
-            get
-            {
-                if (_altinnStudioSettings == null)
-                {
-                    _altinnStudioSettings = GetAltinnStudioSettings().Result;
-                }
-
-                return _altinnStudioSettings;
-            }
+            var settings = await GetAltinnStudioSettings();
+            return settings.RepoType;
         }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public AltinnRepositoryType RepositoryType
+        public async Task<DatamodellingPreference> GetDatamodellingPreference()
         {
-            get => AltinnStudioSettings.RepoType;
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public DatamodellingPreference DatamodellingPreference
-        {
-            get => AltinnStudioSettings.DatamodellingPreference;            
+            var settings = await GetAltinnStudioSettings();
+            return settings.DatamodellingPreference;
         }
 
         /// <summary>
@@ -124,13 +110,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
-        private async Task<AltinnStudioSettings> GetAltinnStudioSettings()
+        /// <summary>
+        /// Gets the settings for this repository. This is the same as what can be found in .altinnstudio\settings.json
+        /// </summary>
+        public async Task<AltinnStudioSettings> GetAltinnStudioSettings()
         {
+            if (_altinnStudioSettings != null)
+            {
+                return _altinnStudioSettings;
+            }
+
             // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
             // need some reasonable defaults.
             if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
             {
-                return await CreateNewAltinnStudioSettings();
+                _altinnStudioSettings = await CreateNewAltinnStudioSettings();
             }
             else
             {
@@ -141,8 +135,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                     await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
                 }
 
-                return altinnStudioSettings;
+                _altinnStudioSettings = altinnStudioSettings;
             }
+
+            return _altinnStudioSettings;
         }
 
         private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
