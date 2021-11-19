@@ -440,6 +440,26 @@ describe('SchemaEditorSlice', () => {
     expect(item?.combination?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
   });
 
+  it('resets selectedDefinitionNodeId when deleting a combination child that is currently selected', () => {
+    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const mockState: ISchemaState = {
+      ...state,
+      selectedDefinitionNodeId: path,
+    };
+    const nextState = reducer(mockState, deleteCombinationItem({ path }));
+    expect(nextState.selectedDefinitionNodeId).toBe('');
+  });
+
+  it('resets selectedPropertiesNodeId when deleting a combination child that is currently selected', () => {
+    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const mockState: ISchemaState = {
+      ...state,
+      selectedPropertyNodeId: path,
+    };
+    const nextState = reducer(mockState, deleteCombinationItem({ path }));
+    expect(nextState.selectedDefinitionNodeId).toBe('');
+  });
+
   it('handles adding child items to a combination', () => {
     // anyOf
     const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
