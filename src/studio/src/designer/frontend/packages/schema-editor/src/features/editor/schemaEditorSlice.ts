@@ -182,9 +182,9 @@ const schemaEditorSlice = createSlice({
           if (removeFromItem.properties) {
             // removing a object (foo.bar)
             const removeIndex = removeFromItem
-              .properties?.findIndex((property) => property.displayName === propertyName) ?? -1;
+              .properties.findIndex((property) => property.displayName === propertyName) ?? -1;
             if (removeIndex >= 0) {
-              removeFromItem.properties?.splice(removeIndex, 1);
+              removeFromItem.properties.splice(removeIndex, 1);
             }
           }
         }
