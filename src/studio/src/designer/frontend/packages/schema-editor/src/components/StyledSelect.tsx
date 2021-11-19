@@ -52,4 +52,4 @@ export function StyledSelect(props: IStyledSelectProps) {
       {props.children}
     </Select>
   );
-};
+}

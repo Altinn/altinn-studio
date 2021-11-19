@@ -19,7 +19,7 @@ export function TypeSelect(props: IFieldTypeSelect) {
       fullWidth={true}
       value={value}
       id={id}
-      onChange={(value) => onChange(value as FieldType)}
+      onChange={(type) => onChange(type as FieldType)}
     >
       <MenuItem value='string'>{getTranslation('string', language)}</MenuItem>
       <MenuItem value='integer'>{getTranslation('integer', language)}</MenuItem>

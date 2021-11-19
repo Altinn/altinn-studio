@@ -19,9 +19,9 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const AltinnMenuItem = React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>((props, ref) => {
+function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
   const classes = useStyles();
-  const {text, iconClass, onClick, disabled, id } = props;
+  const { text, iconClass, onClick, disabled, id } = props;
   return (
     <MenuItem
       onClick={onClick}
@@ -40,6 +40,6 @@ const AltinnMenuItem = React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>((pr
       </ListItemText>
     </MenuItem>
   );
-});
+};
 
-export default AltinnMenuItem;
+export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(AltinnMenuItem);

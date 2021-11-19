@@ -11,7 +11,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const AltinnMenu = React.forwardRef<unknown, MenuProps>((props, ref) => {
+function AltinnMenu(props: MenuProps, ref: React.Ref<unknown>) {
   const classes = useStyles();
   return (
     <Menu
@@ -33,6 +33,6 @@ const AltinnMenu = React.forwardRef<unknown, MenuProps>((props, ref) => {
       {...props}
     />
   );
-});
+}
 
-export default AltinnMenu;
+export default React.forwardRef<unknown, MenuProps>(AltinnMenu);

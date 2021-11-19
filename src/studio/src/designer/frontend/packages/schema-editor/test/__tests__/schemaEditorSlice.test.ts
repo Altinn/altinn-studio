@@ -432,7 +432,7 @@ describe('SchemaEditorSlice', () => {
   it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
     let item = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(item?.combination?.length).toBe(4);
-    let nextState = reducer(state, deleteCombinationItem({ path: '#/definitions/anyOfTestSeveralItems/anyOf/1' }));
+    const nextState = reducer(state, deleteCombinationItem({ path: '#/definitions/anyOfTestSeveralItems/anyOf/1' }));
     item = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
     expect(item?.combination?.length).toBe(3);
     expect(item?.combination?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');

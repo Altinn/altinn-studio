@@ -151,7 +151,7 @@ function SchemaItem(props: SchemaItemProps) {
 
   const handleAddProperty = (type: ObjectKind) => {
     const path = itemToDisplay.path;
-    const props = {
+    const propertyProps = {
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
       combination: (type === 'combination' ? [] : undefined),
@@ -161,12 +161,12 @@ function SchemaItem(props: SchemaItemProps) {
     if (itemToDisplay.combination) {
       dispatch(addCombinationItem({
         path,
-        props,
+        props: propertyProps,
       }));
     } else {
       dispatch(addProperty({
         path,
-        props,
+        props: propertyProps,
       }));
     }
   };

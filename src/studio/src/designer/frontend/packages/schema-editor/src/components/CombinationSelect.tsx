@@ -19,7 +19,7 @@ export function CombinationSelect(props: ICombinationSelectProps) {
       value={value}
       id={id}
       label={getTranslation('type', language)}
-      onChange={(value) => onChange(value as CombinationKind)}
+      onChange={(combination) => onChange(combination as CombinationKind)}
     >
       <MenuItem value='allOf'>{getTranslation('all_of', language)}</MenuItem>
       <MenuItem value='anyOf'>{getTranslation('any_of', language)}</MenuItem>
