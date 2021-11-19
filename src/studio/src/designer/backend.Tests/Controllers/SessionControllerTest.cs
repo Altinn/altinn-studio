@@ -116,10 +116,11 @@ namespace Designer.Tests.Controllers
                     conf.AddJsonFile("appsettings.json");
                 });
 
-                var configuration = new ConfigurationBuilder()
+                new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json")
                     .Build();
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
             return client;
         }
     }
