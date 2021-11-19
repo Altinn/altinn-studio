@@ -98,19 +98,13 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
-export const isNameInUse = (params: { parentSchema: UiSchemaItem | null, path: string, name: string }) => {
-  if (params.parentSchema === null) {
-    return false;
-  }
-
+type NameInUseProps = { parentSchema: UiSchemaItem | null, path: string, name: string };
+export const isNameInUse = ({ parentSchema, path, name}: NameInUseProps) => {
   // Check if the parent node has other children with the same name.
-  if (params.parentSchema.properties) {
-    if (params.parentSchema.properties.some((p) => p.displayName === params.name && p.path !== params.path)) {
-      return true;
-    } else {
-      return false;
-    }
+  if (parentSchema?.properties?.some((p) => p.displayName === name && p.path !== path)) {
+    return true;
   }
+  
   return false;
 };
 
