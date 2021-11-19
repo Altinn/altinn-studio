@@ -5,7 +5,7 @@ import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
-import SchemaInspector, {isValidName} from '../../src/components/SchemaInspector';
+import SchemaInspector, {isValidName, isNameInUse} from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
@@ -415,6 +415,29 @@ it('dispatches correctly when adding fields', () => {
       path: '#/definitions/RA-0678_M',
     },
   });
+});
+
+it('should not be possible to have two properties with the same name', () => {
+  const parentSchema: UiSchemaItem = {
+    path: '#/definitions/name',
+    type: 'object',
+    properties: [{
+      path: '#/definitions/name/properties/child1',
+      type: 'string',
+      displayName: 'child1',
+    },
+    {
+      path: '#/definitions/name/properties/child2',
+      type: 'string',
+      displayName: 'child2',
+    } 
+    ],
+    displayName: 'name',
+  }
+
+  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'name'})).toBe(false);
+  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'child2'})).toBe(true);
+  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'child3'})).toBe(false);
 });
 
 it('validates that the name only contains legal characters', () => {
