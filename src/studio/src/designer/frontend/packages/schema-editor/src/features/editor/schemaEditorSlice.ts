@@ -327,7 +327,7 @@ const schemaEditorSlice = createSlice({
       const addToItem = getUiSchemaItem(state.uiSchema, path);
       const item: UiSchemaItem = {
         ...props,
-        displayName: (props.$ref !== undefined) ? 'ref' : '',
+        displayName: (props.$ref !== undefined) ? 'ref' : 'Inline object',
         path: `${path}/${addToItem.combinationKind}/${addToItem.combination?.length}`,
         combinationItem: true,
       };
