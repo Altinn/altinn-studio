@@ -1879,8 +1879,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private string GetModelName(string org, string app)
         {
             PlatformStorageModels.Application application = GetApplication(org, app);
-
             string dataTypeId = string.Empty;
+
+            if (application == null)
+            {
+                return dataTypeId;
+            }
+
             foreach (PlatformStorageModels.DataType data in application.DataTypes)
             {
                 if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
