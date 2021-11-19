@@ -15,10 +15,10 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 ### Prerequisites
 
 1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
-2. [Node.js](https://nodejs.org) (Version 14.*)
+2. [Node.js](https://nodejs.org) (Version 14.\*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
-    - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
+   - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
 6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values as an local administrator:
 
@@ -35,17 +35,17 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 
    On MacOS: Change docker-compose.yml (both)
 
-    ```yaml
-    volumes:
-      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
+   ```yaml
+   volumes:
+     - 'C:/AltinnCore/Repos:/AltinnCore/Repos'
+   ```
 
-    to:
+   to:
 
-    ```yaml
-    volumes:
-      - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
+   ```yaml
+   volumes:
+     - '/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos'
+   ```
 
 8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
@@ -100,19 +100,19 @@ npm run gulp-install-deps
 
 On MacOS you need two extra steps:
 
-  1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
+1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
 
-      ```json
-      "ServiceRepositorySettings": {
-        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
-      }
-      ```
+   ```json
+   "ServiceRepositorySettings": {
+     "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
+   }
+   ```
 
-  2. Change location where the application stores the DataProtectionKeys
+2. Change location where the application stores the DataProtectionKeys
 
-      ```bash
-      export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
-      ```
+   ```bash
+   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
+   ```
 
 Build and run the code.
 
@@ -141,7 +141,7 @@ If you need to rebuild other react apps, for instance `dashboard` or `app-develo
 npm run build
 ```
 
-Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example  `src/studio/src/designer/frontend/dashboard`.
+Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
 
@@ -149,16 +149,19 @@ Some of the react projects also have various other predefined npm tasks, which c
 
 Automated end to end tests are currently being developed.
 
-### Coding style tests
+### Lint checks
 
-Coding style tests are available for the React front end application, using _tslint_.
+1. Navigate to the folder `src/studio/src/designer/frontend`.
+2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
+4. Execute `npm run lint`.
 
-Navigate to the React front end applications and run linting.
+### Unit tests
 
-```bash
-cd src/studio/src/designer/frontend
-npm run lint
-```
+1. Navigate to the folder `src/studio/src/designer/frontend`.
+2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
+4. Execute `npm run test`.
 
 ## Deployment
 

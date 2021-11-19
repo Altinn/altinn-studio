@@ -152,11 +152,6 @@ namespace Altinn.App.Services.Configuration
         public string AppOidcProvider { get; set; }
 
         /// <summary>
-        /// Hostname
-        /// </summary>
-        public string Hostname { get; set; }
-
-        /// <summary>
         /// Name of the cookie for runtime
         /// </summary>
         public string RuntimeCookieName { get; set; }
