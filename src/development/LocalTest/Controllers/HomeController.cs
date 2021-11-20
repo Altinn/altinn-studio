@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Security.Claims;
 
@@ -63,27 +64,29 @@ namespace LocalTest.Controllers
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
-            model.TestApps = await GetAppsList();
-            // Application app = await _applicationRepository.FindOne("", "");
+            try
+            {
+                model.TestApps = await GetAppsList();
+            }
+            catch(HttpRequestException e)
+            {
+                model.HttpException = e;
+            }
+
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
+            model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
 
-            if (!model.TestApps.Any())
+            if (!model.TestApps?.Any() ?? true)
             {
                 model.InvalidAppPath = true;
             }
 
-            if (!model.TestUsers.Any())
+            if (!model.TestUsers?.Any() ?? true)
             {
                 model.InvalidTestDataPath = true;
             }
-
-            // if (app != null)
-            // {
-            //     model.Org = app.Org;
-            //     model.App = app.Id.Split("/")[1];
-            // }
 
             return View(model);
         }

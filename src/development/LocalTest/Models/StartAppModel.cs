@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace LocalTest.Models
@@ -42,6 +43,16 @@ namespace LocalTest.Models
         /// 
         /// </summary>
         public bool InvalidTestDataPath { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string LocalAppUrl { get; set; }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public HttpRequestException HttpException { get; set; }
 
         /// <summary>
         /// 

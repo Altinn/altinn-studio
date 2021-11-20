@@ -19,8 +19,8 @@ COPY --from=build /app_output .
 # Copy vaious data
 COPY ./TestData /TestData
 
-# setup the user and group
-RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
-USER dotnet
+# setup the user and group (not important for LocalTest and this removes write access to /AltinnPlatformLocal)
+# RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
+# USER dotnet
 
 ENTRYPOINT ["dotnet", "LocalTest.dll"]

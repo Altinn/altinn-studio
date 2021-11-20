@@ -35,30 +35,12 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
             // Return a single element as only one app can run on port 5005
-            try
+            var app = await GetApplicationMetadata("dummyOrg/dummyApp");
+            if (app != null)
             {
-                var app = await GetApplicationMetadata("dummyOrg/dummyApp");
-                if (app != null)
-                {
-                    ret.Add(app.Id, app);
-                }
+                ret.Add(app.Id, app);
             }
-            catch(HttpRequestException e)
-            {
-                if(e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    ret.Add("", new Application{ Id = "Please update your app to use the latest Altinn.App.* packages"});
-                }
-                // else if (e.InnerException == )
-                // {
-
-                // }
-                else
-                {
-                    throw;
-                }
-            }
-            
+           
             return ret;
         }
     }
