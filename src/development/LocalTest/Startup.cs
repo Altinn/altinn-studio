@@ -51,15 +51,12 @@ namespace LocalTest
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _env = env;
         }
 
         public IConfiguration Configuration { get; }
-
-        private readonly IWebHostEnvironment _env;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -141,7 +138,7 @@ namespace LocalTest
             
             services.AddDirectoryBrowser();
 
-            // Access app details over http on docker, and from filesystem everywhere else
+            // Access local app details depending on LocalAppMode ("file" or "http")
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
                 services.AddTransient<ILocalApp, LocalAppHttp>();

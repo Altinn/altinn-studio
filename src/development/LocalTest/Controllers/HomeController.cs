@@ -236,7 +236,6 @@ namespace LocalTest.Controllers
 
         private async Task<IEnumerable<SelectListItem>> GetAppsList()
         {
-            List<SelectListItem> ret = new List<SelectListItem>();
             var applications = await _localApp.GetApplications();
             return applications.Select((kv)=> GetSelectItem(kv.Value, kv.Key)).ToList();
         }
