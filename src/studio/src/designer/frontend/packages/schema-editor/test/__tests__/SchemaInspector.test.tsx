@@ -454,7 +454,6 @@ it('dispatches correctly when setting combination to nullable', () => {
       path: '#/definitions/allOfTest',
       props: {
         type: 'null',
-        displayName: 'Inline object',
       }
     },
   });

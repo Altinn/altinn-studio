@@ -28,8 +28,8 @@ const useStyles = makeStyles(
       '& .MuiAutocomplete-input': {
         width: 150,
       },
-      '& .MuiTabPanel-root': {
-
+      '& .MuiTabPanel-root > div > div:first-child p': {
+        marginTop: 0,
       },
     },
     header: {
@@ -409,7 +409,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     if (nullable && selectedItem) {
       dispatch(addCombinationItem({
         path: selectedItem.path,
-        props: { type: 'null', displayName: 'Inline object' },
+        props: { type: 'null' },
       }));
     } else {
       const itemToRemove = selectedItem?.combination?.find(nullableType);
