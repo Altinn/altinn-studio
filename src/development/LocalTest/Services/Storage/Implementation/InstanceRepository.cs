@@ -21,16 +21,13 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly IDataRepository _dataRepository;
 
         public InstanceRepository(
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            ILocalTestAppSelection localTestAppSelectionService,
             IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
             _dataRepository = dataRepository;
         }
 

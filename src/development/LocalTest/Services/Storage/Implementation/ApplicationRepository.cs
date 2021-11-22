@@ -16,16 +16,11 @@ namespace LocalTest.Services.Storage.Implementation
 {
     public class ApplicationRepository : IApplicationRepository
     {
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly ILocalApp _localApp;
         private readonly ILogger _logger;
 
-        public ApplicationRepository(
-            ILocalTestAppSelection localTestAppSelectionService,
-            ILocalApp localApp,
-            ILogger<ApplicationRepository> logger)
+        public ApplicationRepository( ILocalApp localApp, ILogger<ApplicationRepository> logger)
         {
-            _localTestAppSelectionService = localTestAppSelectionService;
             _localApp = localApp;
             _logger = logger;
         }

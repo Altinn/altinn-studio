@@ -21,7 +21,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly ILocalApp _localApp;
 
         /// <summary>
@@ -30,11 +29,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            ILocalTestAppSelection localTestAppSelectionService,
             ILocalApp localApp)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
             _localApp = localApp;
         }
 

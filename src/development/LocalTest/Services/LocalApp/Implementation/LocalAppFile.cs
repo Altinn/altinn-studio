@@ -19,11 +19,9 @@ namespace LocalTest.Services.LocalApp.Implementation
     public class LocalAppFile : ILocalApp
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
-        public LocalAppFile(IOptions<LocalPlatformSettings> localPlatformSettings, ILocalTestAppSelection localTestAppSelectionService)
+        public LocalAppFile(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
         }
 
         public async Task<string?> GetXACMLPolicy(string appId)
