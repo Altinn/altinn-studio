@@ -1,5 +1,5 @@
 # base image
-FROM node:14.18.1-alpine3.14 AS generate-dashboard
+FROM node:16.13.0-alpine3.14 AS generate-dashboard
 
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/yarn.lock .

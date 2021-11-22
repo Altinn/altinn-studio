@@ -1,5 +1,5 @@
 # base image
-FROM node:14.18.1-alpine3.14 AS generate-app-development
+FROM node:16.13.0-alpine3.14 AS generate-app-development
 
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/yarn.lock .
