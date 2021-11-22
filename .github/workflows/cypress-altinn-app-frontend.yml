@@ -1,6 +1,6 @@
 name: Cypress altinn-app-frontend Test
 
-on: 
+on:
   push:
     branches: [ master ]
     paths:
@@ -11,48 +11,47 @@ on:
     paths:
       - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/**'
       - 'src/Altinn.Apps/AppFrontend/react/shared/**'
-  
+
   workflow_dispatch:
 
 jobs:
 
   altinn-app-frontend-test:
     if: github.repository_owner == 'Altinn'
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:        
+      matrix:
         machines: [1, 2]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
+
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
-          
+          node-version: '16'
+
       - name: Install altinn-app-frontend dependencies
         run: |
-          npm ci
-          npm run install-deps
-        working-directory: src/Altinn.Apps/AppFrontend/react   
-        
+          yarn install --immutable
+        working-directory: src/Altinn.Apps/AppFrontend/react
+
       - name: Install cypress and test dependencies
         run: npm install
-        working-directory: src/test/cypress     
-          
+        working-directory: src/test/cypress
+
       - name: Create test files
-        run: |          
+        run: |
           truncate -s 1K test.png
-          truncate -s 1K test.pdf          
-          
+          truncate -s 1K test.pdf
+
         working-directory: src/test/cypress/e2e/fixtures
-          
+
       - name: Cypress verify
         run: npm run cy:verify
         working-directory: src/test/cypress
-        
+
       - name: Run tests
         run: |
           export CYPRESS_PROJECT_ID=y2jhp6
