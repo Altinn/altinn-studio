@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+
 using Xunit;
 
 namespace Altinn.Platform.Register.UnitTest
@@ -37,13 +39,12 @@ namespace Altinn.Platform.Register.UnitTest
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
+            //ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

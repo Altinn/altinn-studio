@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
@@ -89,8 +90,9 @@ namespace Altinn.Platform.Register
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.WriteIndented = true;
-                options.JsonSerializerOptions.IgnoreNullValues = true;
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
+
             services.AddMemoryCache();
             services.AddHealthChecks().AddCheck<HealthCheck>("register_health_check");
 
@@ -166,47 +168,6 @@ namespace Altinn.Platform.Register
             {
                 _logger.LogWarning("Exception when attempting to include the XML comments file(s): " + e.Message);
             }
-        }
-
-        /// <summary>
-        /// Default configuration for the register component
-        /// </summary>
-        /// <param name="app">the application builder</param>
-        /// <param name="env">the hosting environment</param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            _logger.LogInformation("Startup // Configure");
-
-            if (env.IsDevelopment() || env.IsStaging())
-            {
-                _logger.LogInformation("IsDevelopment || IsStaging");
-
-                app.UseDeveloperExceptionPage();
-
-                // Enable higher level of detail in exceptions related to JWT validation
-                IdentityModelEventSource.ShowPII = true;
-            }
-            else
-            {
-                app.UseExceptionHandler("/register/api/v1/error");
-            }
-
-            app.UseSwagger(o => o.RouteTemplate = "register/swagger/{documentName}/swagger.json");
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/register/swagger/v1/swagger.json", "Altinn Platform Register API");
-                c.RoutePrefix = "register/swagger";
-            });
-
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapHealthChecks("/health");
-            });
         }
     }
 }
