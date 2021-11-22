@@ -3,14 +3,13 @@ FROM node:14.18.1-alpine3.14 AS generate-app-development
 
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/yarn.lock .
-RUN yarn --immutable
 
 # Copy and install dependencies
 COPY ./src/designer/frontend/shared/package.json /shared/
 COPY ./src/designer/frontend/app-development/package.json /app-development/
 COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
 
-RUN yarn run install-deps
+RUN yarn --immutable
 
 # Copy and build shared + app-development + ux-editor
 WORKDIR /

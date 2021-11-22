@@ -1,9 +1,8 @@
 # studio frontend
-FROM node:14.18.1-alpine3.14 AS generate-studio-frontend
+FROM node:16.13.0-alpine3.14 AS generate-studio-frontend
 
 COPY ./src/designer/frontend/package.json .
 COPY ./src/designer/frontend/yarn.lock .
-RUN yarn --immutable
 
 # Copy and install dependencies
 COPY ./src/designer/frontend/shared/package.json /shared/
@@ -12,7 +11,7 @@ COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/package.json /packages/schema-editor/
 
-RUN yarn run install-deps
+RUN yarn --immutable
 
 # Copy shared, app-development, ux-editor and dashboard
 WORKDIR /
@@ -42,7 +41,7 @@ COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:14.18.1-alpine3.14 AS generate-designer-js
+FROM node:16.13.0-alpine3.14 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
 RUN yarn --immutable
