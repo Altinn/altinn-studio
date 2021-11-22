@@ -10,7 +10,7 @@ COPY Altinn.Apps/AppFrontend/react/shared/ /shared/
 COPY Altinn.Apps/AppFrontend/react/receipt/ /receipt/
 
 # Install
-RUN yarn
+RUN yarn install --immutable
 
 # Build runtime
 RUN npm run build:receipt; exit 0
