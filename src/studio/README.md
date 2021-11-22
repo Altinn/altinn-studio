@@ -95,7 +95,6 @@ Navigate to the designer backend folder. The first time running, or after any pa
 ```bash
 cd src/studio/src/designer/backend
 yarn --immutable
-yarn run gulp-install-deps
 ```
 
 On MacOS you need two extra steps:
@@ -153,15 +152,13 @@ Automated end to end tests are currently being developed.
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
 2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
-4. Execute `yarn run lint`.
+3. Execute `yarn run lint`.
 
 ### Unit tests
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
 2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
-4. Execute `yarn run test`.
+3. Execute `yarn run test`.
 
 ## Deployment
 
@@ -171,7 +168,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 - [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
-- [npm](https://www.npmjs.com/) - Package management
+- [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 
