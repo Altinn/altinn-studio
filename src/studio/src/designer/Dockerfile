@@ -42,6 +42,7 @@ COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
 FROM node:16.13.0-alpine3.14 AS generate-designer-js
+WORKDIR /app
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
 RUN yarn --immutable
@@ -52,7 +53,7 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0.403-alpine3.14 AS build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
 COPY src/designer/DataModeling ./DataModeling/
-COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
+COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
