@@ -198,7 +198,7 @@ Automated build/deploy process is being developed.
 
 - [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
-- [npm](https://www.npmjs.com/) - Package management
+- [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 

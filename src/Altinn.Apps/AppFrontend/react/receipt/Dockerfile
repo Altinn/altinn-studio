@@ -1,5 +1,5 @@
 # base image
-FROM node:14.18.1-alpine3.14 AS generate-receipt-app
+FROM node:16.13.0-alpine3.14 AS generate-receipt-app
 
 # Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
 COPY Altinn.Apps/AppFrontend/react/package.json .
@@ -13,7 +13,6 @@ COPY Altinn.Apps/AppFrontend/react/receipt/ /receipt/
 RUN yarn
 
 # Build runtime
-# TODO: update this command with yarn usage
-RUN npm run build --prefix /receipt; exit 0
+RUN npm run build:receipt; exit 0
 
 CMD ["echo", "done"]
