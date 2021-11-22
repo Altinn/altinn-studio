@@ -28,7 +28,7 @@ namespace LocalTest.Configuration
         public string LocalAppUrl { get; set; }
 
         /// <summary>
-        /// which access mode to use ("file", "http")
+        /// The app access mode. Available modes are "file" and "http"
         /// <summary>
         public string LocalAppMode { get; set; }
 
