@@ -7,7 +7,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 The Schema editor is set up to be a package, and is currently not set up to run in development mode locally.
 To run the Schema editor while developing, use the styleguide that has been set up for the components.
 
-### npx styleguidist server
+### yarn dlx styleguidist server
 
 Will start the styleguide in dev mode.
 
