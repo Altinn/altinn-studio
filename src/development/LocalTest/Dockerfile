@@ -16,7 +16,7 @@ EXPOSE 5101
 WORKDIR /app
 COPY --from=build /app_output .
 
-# Copy vaious data
+# Copy various data
 COPY ./TestData /TestData
 
 # setup the user and group (not important for LocalTest and this removes write access to /AltinnPlatformLocal)
