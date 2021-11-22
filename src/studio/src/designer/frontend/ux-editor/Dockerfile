@@ -7,8 +7,8 @@ WORKDIR /usr/src/app
 
 # install and cache app dependencies
 COPY package.json /usr/src/app/package.json
-COPY package-lock.json /usr/src/app/package-lock.json
-RUN npm ci
+COPY yarn.lock /usr/src/app/yarn.lock
+RUN yarn --immutable
 
 # start app
-CMD ["npm", "start"]
+CMD ["yarn", "start"]
