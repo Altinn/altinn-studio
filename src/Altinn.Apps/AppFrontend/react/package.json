@@ -2,8 +2,6 @@
   "name": "app-frontend",
   "private": true,
   "scripts": {
-    "build:app-frontend": "yarn workspace altinn-app-frontend run build",
-    "build:receipt": "yarn workspace receipt-react-app run build",
     "lint": "eslint \"./**/src/**/*.ts*\"",
     "test": "yarn workspaces foreach run test"
   },
