@@ -40,7 +40,7 @@ namespace LocalTest.Services.Storage.Implementation
             var application = await _localApp.GetApplicationMetadata(appId);
             if (application == null)
             {
-                throw new Exception($"applicationmetadata for '{appId} not found'");
+                throw new Exception($"applicationmetadata for '{appId}' not found.");
             }
             
             return application;
