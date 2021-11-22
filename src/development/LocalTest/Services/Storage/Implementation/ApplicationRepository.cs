@@ -42,13 +42,13 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Application> FindOne(string appId, string org)
         {
-            var ret = await _localApp.GetApplicationMetadata(appId);
-            if (ret == null)
+            var application = await _localApp.GetApplicationMetadata(appId);
+            if (application == null)
             {
                 throw new Exception($"applicationmetadata for '{appId} not found'");
             }
             
-            return ret;
+            return application;
         }
 
         public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)

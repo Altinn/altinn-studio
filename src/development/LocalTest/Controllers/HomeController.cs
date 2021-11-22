@@ -36,7 +36,6 @@ namespace LocalTest.Controllers
     {
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
         private readonly ILocalTestAppSelection _appSelectionService;
@@ -45,7 +44,6 @@ namespace LocalTest.Controllers
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
             ILocalTestAppSelection appSelectionService,
@@ -53,7 +51,6 @@ namespace LocalTest.Controllers
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
-            _applicationRepository = applicationRepository;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
             _appSelectionService = appSelectionService;
