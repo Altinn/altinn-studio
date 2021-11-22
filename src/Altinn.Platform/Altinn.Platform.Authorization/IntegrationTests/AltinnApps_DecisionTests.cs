@@ -214,7 +214,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
-        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_UserDelegation()
+        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_UserDelegation_Permit()
         {
             string testCase = "AltinnAppsOrg1App1_UserDelegation";
             HttpClient client = GetTestClient();
@@ -229,7 +229,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
-        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_UserDelegation_MainUnit()
+        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_UserDelegation_MainUnit_Permit()
         {
             string testCase = "AltinnAppsOrg1App1_UserDelegation_MainUnit";
             HttpClient client = GetTestClient();
@@ -244,7 +244,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
-        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_KeyRoleUnitDelegation()
+        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_KeyRoleUnitDelegation_Permit()
         {
             string testCase = "AltinnAppsOrg1App1_KeyRoleUnitDelegation";
             HttpClient client = GetTestClient();
@@ -259,9 +259,24 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
-        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_KeyRoleUnitDelegation_MainUnit()
+        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_KeyRoleUnitDelegation_MainUnit_Permit()
         {
             string testCase = "AltinnAppsOrg1App1_KeyRoleUnitDelegation_MainUnit";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
+            XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);
+
+            // Act
+            XacmlJsonResponse contextResponse = await TestSetupUtil.GetXacmlJsonProfileContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
+        public async Task PDP_Decision_DelegationPolicy_AltinnAppsOrg1App1_UserDelegation_Deleted_NotApplicable()
+        {
+            string testCase = "AltinnAppsOrg1App1_UserDelegation_Deleted";
             HttpClient client = GetTestClient();
             HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
             XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);

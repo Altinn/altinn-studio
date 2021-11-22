@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +17,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// <summary>
     /// Wrapper for the parties api
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class PartiesWrapper : IParties
     {
         private readonly PartyClient _partyClient;

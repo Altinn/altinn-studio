@@ -320,7 +320,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
             });
 
-            foreach (DelegationChange delegation in delegations)
+            foreach (DelegationChange delegation in delegations.Where(d => !d.IsDeleted))
             {
                 XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegation.BlobStoragePolicyPath, delegation.BlobStorageVersionId);
 

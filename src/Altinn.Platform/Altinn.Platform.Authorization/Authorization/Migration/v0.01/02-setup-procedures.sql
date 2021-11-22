@@ -24,8 +24,7 @@ FROM delegation.delegationchanges
 		SELECT MAX(delegationChangeId) AS maxChange
 	 	FROM delegation.delegationchanges
 		WHERE
-		  isdeleted = False
-		  AND (_altinnappids IS NULL OR altinnAppId = ANY (_altinnAppIds))
+		  (_altinnappids IS NULL OR altinnAppId = ANY (_altinnAppIds))
 		  AND (_offeredbypartyids IS NULL OR offeredByPartyId = ANY (_offeredByPartyIds))
 		  AND (_coveredbypartyids IS NULL OR (coveredByPartyId IS NULL OR coveredByPartyId = ANY (_coveredByPartyIds)))
 		  AND (_coveredbyuserids IS NULL OR (coveredByUserId IS NULL OR coveredByUserId = ANY (_coveredByUserIds)))
