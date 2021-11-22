@@ -69,11 +69,13 @@ docker-compose down
 ##### Setting up local platform services for test
 
 1. Navigate to the `development` folder in the altinn-studio repo
+
    ```bash
    cd src/development
    ```
 
 2. Start the loadbalancer container that routes between the local platform services and the app
+
    ```bash
    docker-compose up -d --build
    ```
@@ -129,10 +131,10 @@ docker-compose down
      - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
 
      ```bash
-     npm install # only needed first time, or when dependencies are updated
-     npm run install-deps # only needed first time, or when dependencies are updated
+     yarn --immutable # only needed first time, or when dependencies are updated
+     yarn run install-deps # only needed first time, or when dependencies are updated
      cd altinn-app-frontend
-     npm start
+     yarn start
      ```
 
 6. Start the app locally
@@ -151,10 +153,10 @@ Log in with a test user, using your app name and org name. This will redirect yo
 If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/react-apps/applications/dashboard` and then run the following build script
 
 ```bash
-npm run build
+yarn run build
 ```
 
-Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/react-apps/applications/dashboard/package.json`
+Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/react-apps/applications/dashboard/package.json`
 
 #### Platform Receipt
 
@@ -163,10 +165,10 @@ The platform receipt component can run locally, both in docker and manually.
 ##### Manual
 
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
-- run `npm install`
-- run `npm run gulp` (if running for the first time, otherwise this can be skipped)
-- run `npm run gulp-install-deps`
-- run `npm run gulp-develop`
+- run `yarn --immutable`
+- run `yarn run gulp` (if running for the first time, otherwise this can be skipped)
+- run `yarn run gulp-install-deps`
+- run `yarn run gulp-develop`
 
 This will build and run receipt back end, and build and copy the receipt frontend to the `wwwroot` folder.
 The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`

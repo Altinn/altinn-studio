@@ -260,11 +260,11 @@ gulp.task(
     deleteServDevJs,
     deleteDashboardJs,
     cleanNodeModulePackages,
-    run('npm run clean', {
+    run('yarn run clean', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
     }),
-    run('npm run clean', {
+    run('yarn run clean', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
     }),
@@ -277,7 +277,7 @@ gulp.task(
     copyNodeModulePackages,
     setupWatchers,
     run('dotnet run'),
-    run('npm run webpack-watch', {
+    run('yarn run webpack-watch', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
     }),
@@ -289,7 +289,7 @@ gulp.task(
   gulp.parallel(
     copyNodeModulePackages,
     setupWatchers,
-    run('npm run webpack-watch', {
+    run('yarn run webpack-watch', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
     }),
@@ -302,7 +302,7 @@ gulp.task(
     copyNodeModulePackages,
     setupWatchers,
     run('dotnet run'),
-    run('npm run webpack-watch', {
+    run('yarn run webpack-watch', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
     }),
@@ -312,7 +312,7 @@ gulp.task(
 gulp.task(
   'build-ux-editor',
   gulp.series(
-    run('npm run build', {
+    run('yarn run build', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/ux-editor',
     }),
@@ -323,7 +323,7 @@ gulp.task(
 gulp.task(
   'install-react-app-dependencies',
   gulp.series(
-    run('lerna bootstrap --hoist --ci', {
+    run('yarn --immutable', {
       ...defaultGulpRunOptions,
       cwd: '../Frontend',
     }),
@@ -333,11 +333,11 @@ gulp.task(
 gulp.task(
   'default',
   gulp.series([
-    run('npm run build', {
+    run('yarn run build', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
     }),
-    run('npm run build', {
+    run('yarn run build', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
     }),
