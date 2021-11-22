@@ -45,8 +45,8 @@ FROM node:16.13.0-alpine3.14 AS generate-designer-js
 WORKDIR /app
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
-RUN yarn --immutable
 COPY src/designer/backend .
+RUN yarn --immutable
 RUN yarn run gulp build
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0.403-alpine3.14 AS build
