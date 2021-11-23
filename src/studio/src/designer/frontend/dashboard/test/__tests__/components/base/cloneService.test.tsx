@@ -69,7 +69,7 @@ describe('>>> components/base/cloneService.tsx', () => {
         },
       },
     };
-    mockDate = moment.utc(new Date('2019-01-10T11:22:42Z')).local();
+    mockDate = moment(new Date('2019-01-10T11:22:42Z')).local();
 
     const mockWindow = { ...window.location };
     delete mockWindow.assign;
