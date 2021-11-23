@@ -2,7 +2,6 @@
   "name": "altinn-studio-frontend",
   "private": true,
   "scripts": {
-    "install-deps": "yarn --immutable",
     "test": "yarn workspaces foreach run test",
     "lint": "eslint \"./**/*.ts*\"",
     "build-dashboard": "yarn workspace dashboard run build",
