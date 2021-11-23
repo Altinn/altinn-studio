@@ -805,7 +805,7 @@ namespace Altinn.App.Api.Controllers
             return party;
         }
 
-        private void SetInstanceOwnerProps(InstanceOwner instanceOwner, Party party)
+        private static void SetInstanceOwnerProps(InstanceOwner instanceOwner, Party party)
         {
             if (!string.IsNullOrEmpty(party.SSN))
             {
