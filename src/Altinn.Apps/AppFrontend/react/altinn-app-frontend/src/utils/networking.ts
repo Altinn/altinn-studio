@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export enum HttpStatusCodes {
+  Ok = 200,
+  BadRequest = 400,
   Forbidden = 403,
 }
 

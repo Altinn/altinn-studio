@@ -31,26 +31,24 @@ export interface ILayoutComponent extends ILayoutEntry {
   grid?: IGrid;
 }
 
-export type GroupTypes =
-  'Group' |
-  'group';
+export type GroupTypes = 'Group' | 'group';
 
 export type ComponentTypes =
-  'AddressComponent' |
-  'AttachmentList' |
-  'Button' |
-  'Checkboxes' |
-  'Datepicker' |
-  'Dropdown' |
-  'FileUpload' |
-  'Header' |
-  'Input' |
-  'NavigationButtons' |
-  'Paragraph' |
-  'Image' |
-  'RadioButtons' |
-  'Summary' |
-  'TextArea';
+  | 'AddressComponent'
+  | 'AttachmentList'
+  | 'Button'
+  | 'Checkboxes'
+  | 'Datepicker'
+  | 'Dropdown'
+  | 'FileUpload'
+  | 'Header'
+  | 'Input'
+  | 'NavigationButtons'
+  | 'Paragraph'
+  | 'Image'
+  | 'RadioButtons'
+  | 'Summary'
+  | 'TextArea';
 
 export interface IDataModelBindings {
   [id: string]: string;
@@ -67,7 +65,7 @@ export interface ISelectionComponentProps extends ILayoutComponent {
   optionsId?: string;
 }
 
-export interface IDatepickerProps extends ILayoutComponent { }
+export type IDatepickerProps = ILayoutComponent;
 
 export interface IFileuploadProps extends ILayoutComponent {
   maxNumberOfAttachments: number;
@@ -114,14 +112,14 @@ export interface INavigationButtonProps extends ILayoutComponent {
   previous?: string;
 }
 
-export interface IParagraphProps extends ILayoutComponent { }
+export type IParagraphProps = ILayoutComponent;
 
 export interface IRadioButtonsProps extends ILayoutComponent {
   options: IOption[];
   preselectedOptionIndex: number;
 }
 
-export interface ITextAreaProps extends ILayoutComponent { }
+export type ITextAreaProps = ILayoutComponent;
 
 export interface IAdressComponent extends ILayoutComponent {
   addressTextResourceBinding: string;

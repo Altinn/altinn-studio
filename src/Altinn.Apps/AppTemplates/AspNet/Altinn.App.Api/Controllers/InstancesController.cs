@@ -320,7 +320,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Simplified Instanciation with support for fieldprefill 
+        /// Simplified Instanciation with support for fieldprefill
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -403,7 +403,12 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            Instance instanceTemplate = new Instance() { InstanceOwner = instansiationInstance.InstanceOwner };
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = instansiationInstance.InstanceOwner,
+                VisibleAfter = instansiationInstance.VisibleAfter,
+                DueBefore = instansiationInstance.DueBefore
+            };
 
             // Run custom app logic to validate instantiation
             InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
@@ -540,6 +545,9 @@ namespace Altinn.App.Api.Controllers
                         app,
                         instanceOwnerPartyId,
                         dt.Id);
+
+                    await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
+                    await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
                 }
             }
         }
@@ -667,7 +675,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            Dictionary<string, StringValues> queryParams = new()
+            Dictionary<string, StringValues> queryParams = new ()
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
@@ -927,6 +935,40 @@ namespace Altinn.App.Api.Controllers
             }
 
             return StatusCode((int)HttpStatusCode.Forbidden);
+        }
+
+        private async Task UpdatePresentationTextsOnInstance(List<DataField> presentationFields, Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                presentationFields,
+                instance.PresentationTexts,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceClient.UpdatePresentationTexts(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new PresentationTexts { Texts = updatedValues });
+            }
+        }
+
+        private async Task UpdateDataValuesOnInstance(List<DataField> dataFields, Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                dataFields,
+                instance.DataValues,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceClient.UpdateDataValues(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new DataValues { Values = updatedValues });
+            }
         }
     }
 }

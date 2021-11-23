@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Extensions;
@@ -9,7 +10,9 @@ using Altinn.Platform.Authentication.Health;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -81,7 +84,7 @@ namespace Altinn.Platform.Authentication
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
             services.ConfigureOidcProviders(Configuration.GetSection("OidcProviders"));
-            services.ConfigureDataProtection();
+            services.ConfigureDataProtection(_env.IsDevelopment(), Configuration.GetSection("AzureStorageConfiguration").Get<AzureStorageConfiguration>());
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

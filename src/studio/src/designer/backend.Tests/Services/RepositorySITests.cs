@@ -133,7 +133,7 @@ namespace Designer.Tests.Services
 
             PrepareRemoteTestData(org, sourceRepository);
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+            await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
 
             RepositorySI sut = GetServiceForTest(developer);
 
@@ -142,10 +142,10 @@ namespace Designer.Tests.Services
 
             // Assert
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
-            int actualCloneCount = Directory.GetDirectories(developerClonePath).Where(d => d.Contains("apps-test-2021")).Count();
+            int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains("apps-test-2021"));
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
+            await TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
 
             Assert.Equal(2, actualCloneCount);
         }

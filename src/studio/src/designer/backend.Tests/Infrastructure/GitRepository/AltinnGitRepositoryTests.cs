@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -94,19 +95,62 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Fact]
-        public void RepositoryType_SettingsExists_ShouldUseThat()
+        public async Task RepositoryType_SettingsExists_ShouldUseThat()
         {            
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
-            Assert.Equal(AltinnRepositoryType.Datamodels, altinnGitRepository.RepositoryType);
+            Assert.Equal(AltinnRepositoryType.Datamodels, await altinnGitRepository.GetRepositoryType());
         }
 
         [Fact]
-        public void RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
+        public async Task RepositoryType_SettingsDontExists_ShouldUseAppAsDefault()
         {
-            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
 
-            Assert.Equal(AltinnRepositoryType.App, altinnGitRepository.RepositoryType);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            try
+            {
+                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
+                Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
+                Assert.True(altinnGitRepository.FileExistsByRelativePath(@".altinnstudio\settings.json"));
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task ModelPreference_SettingsExists_ShouldUseThat()
+        {
+            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
+
+            Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
+        }
+
+        [Fact]
+        public async Task ModelPreference_SettingsFileExistsButNotDatamodellingPreference_ShouldUseCorrectDefault()
+        {
+            var org = "ttd";
+            var sourceRepository = "xyz-datamodels";
+            var developer = "testUser";
+            var targetRepository = $"{Guid.NewGuid()}-datamodels";
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+            try
+            {
+                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
+                Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
         }
 
         private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)
