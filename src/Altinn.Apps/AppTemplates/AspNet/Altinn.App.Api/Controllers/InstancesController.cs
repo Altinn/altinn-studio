@@ -676,7 +676,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            Dictionary<string, StringValues> queryParams = new ()
+            Dictionary<string, StringValues> queryParams = new()
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },
@@ -759,24 +759,7 @@ namespace Altinn.App.Api.Controllers
                 try
                 {
                     party = await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
-                    if (!string.IsNullOrEmpty(party.SSN))
-                    {
-                        instanceOwner.PersonNumber = party.SSN;
-                        instanceOwner.OrganisationNumber = null;
-                        instanceOwner.Username = null;
-                    }
-                    else if (!string.IsNullOrEmpty(party.OrgNumber))
-                    {
-                        instanceOwner.PersonNumber = null;
-                        instanceOwner.OrganisationNumber = party.OrgNumber;
-                        instanceOwner.Username = null;
-                    }
-                    else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
-                    {
-                        instanceOwner.PersonNumber = null;
-                        instanceOwner.OrganisationNumber = null;
-                        instanceOwner.Username = party.Name;
-                    }
+                    SetInstanceOwnerProps(instanceOwner, party);
                 }
                 catch (ServiceException)
                 {
@@ -820,6 +803,28 @@ namespace Altinn.App.Api.Controllers
             }
 
             return party;
+        }
+
+        private void SetInstanceOwnerProps(InstanceOwner instanceOwner, Party party)
+        {
+            if (!string.IsNullOrEmpty(party.SSN))
+            {
+                instanceOwner.PersonNumber = party.SSN;
+                instanceOwner.OrganisationNumber = null;
+                instanceOwner.Username = null;
+            }
+            else if (!string.IsNullOrEmpty(party.OrgNumber))
+            {
+                instanceOwner.PersonNumber = null;
+                instanceOwner.OrganisationNumber = party.OrgNumber;
+                instanceOwner.Username = null;
+            }
+            else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
+            {
+                instanceOwner.PersonNumber = null;
+                instanceOwner.OrganisationNumber = null;
+                instanceOwner.Username = party.Name;
+            }
         }
 
         private async Task StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
