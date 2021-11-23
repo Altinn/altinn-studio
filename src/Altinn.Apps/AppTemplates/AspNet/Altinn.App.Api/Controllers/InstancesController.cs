@@ -27,6 +27,7 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -762,11 +763,19 @@ namespace Altinn.App.Api.Controllers
                     {
                         instanceOwner.PersonNumber = party.SSN;
                         instanceOwner.OrganisationNumber = null;
+                        instanceOwner.Username = null;
                     }
                     else if (!string.IsNullOrEmpty(party.OrgNumber))
                     {
                         instanceOwner.PersonNumber = null;
                         instanceOwner.OrganisationNumber = party.OrgNumber;
+                        instanceOwner.Username = null;
+                    }
+                    else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
+                    {
+                        instanceOwner.PersonNumber = null;
+                        instanceOwner.OrganisationNumber = null;
+                        instanceOwner.Username = party.Name;
                     }
                 }
                 catch (ServiceException)
