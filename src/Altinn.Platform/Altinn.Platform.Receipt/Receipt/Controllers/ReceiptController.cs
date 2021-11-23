@@ -20,6 +20,7 @@ namespace Altinn.Platform.Receipt
     /// <summary>
     /// Contains all actions for receipt
     /// </summary>
+    [Authorize]
     [ApiController]
     public class ReceiptController : Controller
     {
