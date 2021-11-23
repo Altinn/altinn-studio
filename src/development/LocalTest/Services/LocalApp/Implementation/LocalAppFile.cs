@@ -49,7 +49,6 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             if (!Directory.Exists(path))
             {
-                // No directory found.
                 return ret;
             }
 
