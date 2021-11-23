@@ -7,7 +7,7 @@ We have recently changed from `npm` to `yarn`. Because of that change, there is 
 1. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
 2. This step needs to be executed in an environment that has access to the `rm` command. On Windows, that is typically in `git bash`. Execute `yarn run rm-node-modules`
 
-This will remove any `node_modules` under each workspace (altinn-app-frontend, receipt, shared). The `node_modules` in this project root (`react`) will not be removed. If you get a message like
+This will remove any `node_modules` under each workspace (dashboard, app-development, shared, ux-editor, packages/schema-editor). The `node_modules` in this project root (`frontend`) will not be removed. If you get a message like
 
 ```
 rm: cannot remove './node_modules/': No such file or directory
@@ -21,12 +21,10 @@ For other commands executed with `npm` (f.ex `npm run test`), you should now use
 
 ### Lint checks
 
-1. Navigate to the folder `src/Altinn.Apps/AppFrontend/react`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run lint`.
+1. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+2. Execute `yarn run lint`.
 
 ### Unit tests
 
-1. Navigate to the folder `src/Altinn.Apps/AppFrontend/react`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `yarn run test`.
+1. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+2. Execute `yarn run test`.
