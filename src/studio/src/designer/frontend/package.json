@@ -4,6 +4,7 @@
   "scripts": {
     "test": "yarn workspaces foreach run test",
     "lint": "eslint \"./**/*.ts*\"",
+    "rm-node-modules": "yarn workspaces foreach --exclude altinn-studio-frontend exec rm -r ./node_modules/",
     "build-dashboard": "yarn workspace dashboard run build",
     "build-app-development": "yarn workspace app-development run build",
     "start-dashboard": "yarn workspace dashboard start",
