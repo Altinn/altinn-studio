@@ -325,7 +325,7 @@ gulp.task(
   gulp.series(
     run('yarn --immutable', {
       ...defaultGulpRunOptions,
-      cwd: '../Frontend',
+      cwd: '../frontend',
     }),
   ),
 );
