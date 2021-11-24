@@ -22,11 +22,11 @@
     "delete:reports": "rm reports/* || true",
     "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
     "start:app": "cd %npm_package_config_appPath% && dotnet run",
-    "start:frontend": "cd %npm_package_config_frontendPath% && npm ci && npm run install-deps && cd altinn-app-frontend && npm start",
-    "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && npm start",
+    "start:frontend": "cd %npm_package_config_frontendPath% && yarn --immutable && cd altinn-app-frontend && yarn start",
+    "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && yarn start",
     "before:appfrontend": "run-p start:localtest start:app start:frontend",
     "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
-    "test:appfrontend": "npm run delete:reports && cypress run --env component=appfrontend,environment=%npm_config_env% -b chrome -s 'e2e/integration/app-frontend/*.js'",
+    "test:appfrontend": "yarn run delete:reports && cypress run --env component=appfrontend,environment=%npm_config_env% -b chrome -s 'e2e/integration/app-frontend/*.js'",
     "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
   },
   "devDependencies": {
@@ -39,9 +39,9 @@
     "eslint-plugin-cypress": "^2.12.1",
     "faker": "^5.5.3",
     "fs-extra": "^10.0.0",
-    "npm-run-all": "^4.1.5",
     "path": "^0.12.7",
     "prettier": "^2.4.1",
     "start-server-and-test": "^1.14.0"
-  }
+  },
+  "packageManager": "yarn@3.1.0"
 }
