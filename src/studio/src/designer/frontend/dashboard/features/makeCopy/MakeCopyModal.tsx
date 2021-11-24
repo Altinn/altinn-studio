@@ -9,10 +9,10 @@ import {
 } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { appNameRegex } from '../createService/createNewService';
 import { PopoverOrigin } from '@material-ui/core/Popover';
+import { useAppSelector, useAppDispatch } from 'common/hooks';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -42,13 +42,11 @@ const inputHeaderStyling = {
 
 function MakeCopyModal(props: IMakeCopyModalProps) {
   const { anchorEl, handleClose, service } = props;
-  const language = useSelector(
-    (state: IDashboardAppState) => state.language.language,
-  );
+  const language = useAppSelector((state) => state.language.language);
   const [repoName, setRepoName] = React.useState<string>('');
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleClone = async () => {
     if (validAppName()) {
