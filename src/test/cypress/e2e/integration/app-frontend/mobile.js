@@ -23,8 +23,8 @@ describe('Mobile', () => {
       .invoke('outerWidth')
       .then((width) => {
         width = Math.round(width);
-        expect(width).to.be.gt(292);
-        expect(width).to.be.lt(296);
+        expect(width).to.be.gt(268);
+        expect(width).to.be.lt(272);
       });
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
