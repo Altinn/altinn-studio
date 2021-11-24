@@ -31,7 +31,7 @@ steps:
 
    export useCaseUserPwd=$(userPassword)
 
-   yarn run usecase
+   testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 15000 --selector-timeout 15000 -u -e -q successThreshold=1 --reporter junit > testresult.xml
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'
   displayName: 'Studio Tests'
