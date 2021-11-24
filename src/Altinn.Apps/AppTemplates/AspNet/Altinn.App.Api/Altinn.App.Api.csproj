@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.20.0-alpha</Version>
+    <Version>4.20.0</Version>
     <AssemblyVersion>4.20.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.5.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.0" />
   </ItemGroup>
 
   <ItemGroup>

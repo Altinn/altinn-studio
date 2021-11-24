@@ -21,7 +21,7 @@ steps:
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/src/test/Testcafe'
     Contents: |
-      testresult.xml      
+      testresult.xml
   condition: succeededOrFailed()
 
 - bash: |
@@ -31,9 +31,9 @@ steps:
 
    export useCaseUserPwd=$(userPassword)
 
-   npm run usecase
-  
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'   
+   testcafe 'chrome:headless' ./usecase/usecase.js --assertion-timeout 15000 --selector-timeout 15000 -u -e -q successThreshold=1 --reporter junit > testresult.xml
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'
   displayName: 'Studio Tests'
 
 - task: PublishTestResults@2

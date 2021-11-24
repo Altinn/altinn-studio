@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "3.15.1",
+  "version": "3.16.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,8 @@
     "compile-ts": "tsc",
     "clean": "rimraf dist compiled",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
-    "styleguidist:run": "npx styleguidist server",
-    "styleguidist:build": "npx styleguidist build"
+    "styleguidist:run": "yarn dlx styleguidist server",
+    "styleguidist:build": "yarn dlx styleguidist build"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
