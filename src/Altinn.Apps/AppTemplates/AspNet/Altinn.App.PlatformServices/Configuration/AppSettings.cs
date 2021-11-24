@@ -62,6 +62,11 @@ namespace Altinn.App.Services.Configuration
         public string ProcessFolder { get; set; } = "process/";
 
         /// <summary>
+        /// The authorization folder
+        /// </summary>
+        public string AuthorizationFolder { get; set; } = "authorization/";
+
+        /// <summary>
         /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
         /// </summary>
         public string BaseResourceFolderContainer { get; set; }
@@ -102,6 +107,11 @@ namespace Altinn.App.Services.Configuration
         public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
 
         /// <summary>
+        /// Gets the location for the XACML Policy file
+        /// <summary>
+        public string ApplicationXACMLPolicyFileName { get; } = "policy.xml";
+
+        /// <summary>
         /// Gets or sets the filename for process file
         /// </summary>
         public string ProcessFileName { get; set; } = "process.bpmn";
@@ -137,9 +147,9 @@ namespace Altinn.App.Services.Configuration
         public string OpenIdWellKnownEndpoint { get; set; }
 
         /// <summary>
-        /// Hostname
+        /// App OIDC provider for application that overrides the default OIDC provider in platform
         /// </summary>
-        public string Hostname { get; set; }
+        public string AppOidcProvider { get; set; }
 
         /// <summary>
         /// Name of the cookie for runtime

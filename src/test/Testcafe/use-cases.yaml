@@ -21,7 +21,7 @@ steps:
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/src/test/Testcafe'
     Contents: |
-      testresult.xml      
+      testresult.xml
   condition: succeededOrFailed()
 
 - bash: |
@@ -31,9 +31,9 @@ steps:
 
    export useCaseUserPwd=$(userPassword)
 
-   npm run usecase
-  
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'   
+   yarn run usecase
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/Testcafe'
   displayName: 'Studio Tests'
 
 - task: PublishTestResults@2

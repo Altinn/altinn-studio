@@ -17,12 +17,12 @@ const theme = createTheme(AltinnAppTheme);
 // 1 minute = 60.000ms
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
-export default function setup() {
+export const App = () => {
   const dispatch = useDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
 
-  let lastRefreshTokenTimestamp: number = 0;
+  let lastRefreshTokenTimestamp = 0;
 
   function setUpEventListeners() {
     window.addEventListener('mousemove', refreshJwtToken);
@@ -40,17 +40,16 @@ export default function setup() {
 
   function refreshJwtToken() {
     const timeNow = Date.now();
-    if ((timeNow - lastRefreshTokenTimestamp) > TEN_MINUTE_IN_MILLISECONDS) {
+    if (timeNow - lastRefreshTokenTimestamp > TEN_MINUTE_IN_MILLISECONDS) {
       lastRefreshTokenTimestamp = timeNow;
-      get(refreshJwtTokenUrl)
-        .catch((err) => {
-          // Most likely the user has an expired token, so we redirect to the login-page
-          try {
-            window.location.href = getEnvironmentLoginUrl();
-          } catch (error) {
-            console.error(err, error);
-          }
-        });
+      get(refreshJwtTokenUrl).catch((err) => {
+        // Most likely the user has an expired token, so we redirect to the login-page
+        try {
+          window.location.href = getEnvironmentLoginUrl();
+        } catch (error) {
+          console.error(err, error);
+        }
+      });
     }
   }
 
@@ -70,11 +69,7 @@ export default function setup() {
   return (
     <MuiThemeProvider theme={theme}>
       <Switch>
-        <Route
-          path='/'
-          exact={true}
-          component={Entrypoint}
-        />
+        <Route path='/' exact={true} component={Entrypoint} />
         <Route
           path='/partyselection/:errorCode?'
           exact={true}
@@ -88,4 +83,4 @@ export default function setup() {
       </Switch>
     </MuiThemeProvider>
   );
-}
+};

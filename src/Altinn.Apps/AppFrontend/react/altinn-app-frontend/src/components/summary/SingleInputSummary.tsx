@@ -47,7 +47,7 @@ function SingleInputSummary({
 
   React.useEffect(() => {
     if (formData && typeof formData === 'object') {
-      let displayString: string = '';
+      let displayString = '';
       Object.keys(formData).forEach((key, index) => {
         displayString += `${index > 0 ? ' ' : ''}${formData[key]}`;
       });
@@ -61,18 +61,18 @@ function SingleInputSummary({
       <Grid item={true} xs={10}>
         <Typography
           variant='body1'
-          className={`${classes.label}${hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+          className={`${classes.label}${
+            hasValidationMessages ? ` ${classes.labelWithError}` : ''
+          }`}
           component='span'
         >
           {label}
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        {!readOnlyComponent &&
-        <EditButton
-          onClick={onChangeClick}
-          editText={changeText}
-        />}
+        {!readOnlyComponent && (
+          <EditButton onClick={onChangeClick} editText={changeText} />
+        )}
       </Grid>
       <Grid item xs={12}>
         <Typography variant='body1'>{displayData}</Typography>

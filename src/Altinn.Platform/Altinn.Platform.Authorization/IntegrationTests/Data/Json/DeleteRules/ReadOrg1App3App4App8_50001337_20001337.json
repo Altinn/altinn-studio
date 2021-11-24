@@ -1,0 +1,78 @@
+[
+  {
+    "ruleIds": [
+      "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app3"
+      }
+    ],
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
+    }
+  },
+  {
+    "ruleIds": [
+      "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9",
+	  "urn:altinn:ruleid:7d015074-e91a-464a-a5f6-e4d4f58c3511"	  
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app4"
+      }
+    ],
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
+    }
+  },
+  {
+    "ruleIds": [
+      "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app8"
+      }
+    ],
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
+    }
+  }
+]

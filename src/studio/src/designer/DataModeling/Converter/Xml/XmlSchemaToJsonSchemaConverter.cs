@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Schema;
 
 using Altinn.Studio.DataModeling.Json;
+using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 
@@ -1184,8 +1185,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case "anyAtomicType":
                     case "anySimpleType":
                     case "string":
-                    case "gYearMonth":
-                    case "gYear":
                     case "gMonthDay":
                     case "gDay":
                     case "gMonth":
@@ -1208,6 +1207,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         format = null;
                         return true;
 
+                    case "gYearMonth":
+                        type = SchemaValueType.String;
+                        format = CustomFormats.YearMonth;
+                        return true;
+                    case "gYear":
+                        type = SchemaValueType.String;
+                        format = CustomFormats.Year;
+                        return true;
                     case "dateTime":
                         type = SchemaValueType.String;
                         format = Formats.DateTime;
