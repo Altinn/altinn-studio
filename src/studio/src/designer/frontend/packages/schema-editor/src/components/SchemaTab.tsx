@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tab, withStyles } from '@material-ui/core';
+import { makeStyles, Tab } from '@material-ui/core';
 import { ILanguage } from '../types';
 import { getTranslation } from '../utils';
 
@@ -10,14 +10,14 @@ export interface ISchemaTabProps {
   hide?: boolean;
 }
 
-export const SchemaTab = withStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 70,
     '&:hover': {
       color: '#40a9ff',
       opacity: 1,
     },
-    '&$selected': {
+    '&:selected': {
       color: '#1890ff',
       fontWeight: theme.typography.fontWeightMedium,
     },
@@ -25,17 +25,24 @@ export const SchemaTab = withStyles((theme) => ({
       color: '#40a9ff',
     },
   },
-  selected: {},
-}))((props: ISchemaTabProps) => {
+  wrapper: {
+    textTransform: 'none',
+    fontSize: 16,
+    fontWeight: 500
+  },
+}));
+
+export const SchemaTab = ((props: ISchemaTabProps) => {
   const {
     label, value, hide, language, ...other
   } = props;
+  const classes = useStyles();
   return <Tab
     label={getTranslation(label, language)}
+    classes={classes}
     id={`inspector-tab-${value}`}
     value={value}
     hidden={hide}
-    // eslint-disable-next-line react/jsx-props-no-spreading
     {...other}
   />;
 });
