@@ -8,11 +8,12 @@ import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from './resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
-import Header from 'app-shared/navigation/main-header/Header';
+import Header, { IHeaderContext, HeaderContext } from 'app-shared/navigation/main-header/Header';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
 import { CloneService } from 'features/cloneService/cloneServices';
 import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
+import { useGetOrganizationsQuery } from 'services/organizationApi';
 
 import './App.css';
 
@@ -21,6 +22,19 @@ const theme = createTheme(altinnTheme);
 export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
+  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
+  const { data, isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
+
+  const setSelectedContext = (selectedContext: string | number) => {
+    dispatch(DashboardActions.setSelectedContext({ selectedContext }));
+  }
+
+  const headerContextValue: IHeaderContext = {
+    selectableOrgs: data,
+    selectedContext,
+    setSelectedContext,
+    user,
+  };
 
   React.useEffect(() => {
     dispatch(
@@ -53,9 +67,11 @@ export const App = () => {
   return (
     <MuiThemeProvider theme={theme}>
       <Router>
-        {user ? (
+        {user && !isLoadingOrganizations ? (
           <div>
-            <Header user={user} context='Testdepartementet'/>
+            <HeaderContext.Provider value={headerContextValue}>
+              <Header/>
+            </HeaderContext.Provider>
             <Route
               path='/'
               exact={true}

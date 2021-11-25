@@ -13,11 +13,13 @@ export type User = {
 export interface IDashboardState {
   services: IRepository[];
   user?: User;
+  selectedContext: string | number;
 }
 
 const initialState: IDashboardState = {
   services: [],
   user: null,
+  selectedContext: 'all'
 };
 
 export interface IFetchDashboardInfoAction {
@@ -30,6 +32,10 @@ export interface IFetchDashboardInfoActionFulfilled {
 
 export interface IFetchDashboardInfoActionRejected {
   error: Error;
+}
+
+export interface ISetSelectedContext {
+  selectedContext: string | number;
 }
 
 const moduleName = 'dashboard';
@@ -51,6 +57,13 @@ const dashboardSlice = createSlice({
     ) => {
       const { info } = action.payload;
       state.services = info;
+    },
+    setSelectedContext: (
+      state,
+      action: PayloadAction<ISetSelectedContext>,
+    ) => {
+      const { selectedContext } = action.payload;
+      state.selectedContext = selectedContext;
     },
   },
 });

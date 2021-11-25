@@ -1,14 +1,10 @@
 import { Grid, Typography, Avatar, makeStyles, MenuItem, IconButton, Divider } from '@material-ui/core';
 import { AltinnMenu } from 'app-shared/components';
-import { IUser } from 'app-shared/types';
+import { IGiteaOrganisation } from 'app-shared/types';
 import { post } from 'app-shared/utils/networking';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
 import * as React from 'react';
-
-export interface HeaderMenuProps {
-  user: IUser;
-  org: string;
-}
+import { HeaderContext } from './Header';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -20,9 +16,15 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export function HeaderMenu({ user, org }: HeaderMenuProps) {
+const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
+  const org = orgs?.find((org) => org.id === id);
+  return org?.full_name || org?.username;
+}
+
+export function HeaderMenu() {
   const classes = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
+  const { user, selectedContext, selectableOrgs, setSelectedContext } = React.useContext(HeaderContext);
 
   const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -43,12 +45,16 @@ export function HeaderMenu({ user, org }: HeaderMenuProps) {
     return true;
   }
 
+  const handleSetSelectedContext = (context: string | number) => {
+    setSelectedContext(context);
+  }
+
   return (
     <>
       <Grid container spacing={2} alignItems='center'>
         <Grid item>
           <Typography className={classes.typography}>
-            {user.full_name || user.login} <br />for {org}
+            {user.full_name || user.login} {(selectedContext !== 'all' && selectedContext !== 'self') && <><br /> for {getOrgNameById(selectedContext as number, selectableOrgs)}</>}
           </Typography>
         </Grid>
         <Grid item>
@@ -62,6 +68,19 @@ export function HeaderMenu({ user, org }: HeaderMenuProps) {
         open={Boolean(menuAnchorEl)}
         onClose={closeMenu}
       >
+        <MenuItem selected={selectedContext === 'all'} onClick={() => handleSetSelectedContext('all')}>
+          Alle
+        </MenuItem>
+        {selectableOrgs?.map((org) => {
+          return (
+            <MenuItem  selected={selectedContext === org.id} key={org.id} onClick={() => handleSetSelectedContext(org.id)}>
+              {org.full_name || org.username}
+            </MenuItem>
+          );
+        })}
+        <MenuItem selected={selectedContext === 'self'} onClick={() => handleSetSelectedContext('self')}>
+          {user.full_name || user.login}
+        </MenuItem>
         <Divider />
         <MenuItem key='placeholder' style={{ display: 'none' }} />
         <MenuItem>
@@ -82,5 +101,3 @@ export function HeaderMenu({ user, org }: HeaderMenuProps) {
     </>
   );
 }
-
-export default HeaderMenu;
