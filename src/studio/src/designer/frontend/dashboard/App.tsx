@@ -12,7 +12,6 @@ import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
 import { CloneService } from 'features/cloneService/cloneServices';
-import { KnownIssues } from 'features/knownIssues/knownIssues';
 import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
 
 import './App.css';
@@ -90,7 +89,6 @@ export const App = () => {
               exact={true}
               component={CloneService}
             />
-            <Route path='/known-issues' exact={true} component={KnownIssues} />
             <Route
               path='/datamodelling/:org/:repoName'
               exact={true}
