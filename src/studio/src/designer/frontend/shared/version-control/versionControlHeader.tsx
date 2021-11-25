@@ -94,7 +94,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getRepoPermissions = async () => {
     const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
+    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
@@ -115,7 +115,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getStatus(callbackFunc?: any) {
     const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
+    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
     get(url).then((result: any) => {
       if (this.componentIsMounted) {
         this.setState({
@@ -147,7 +147,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     if (!this.state.moreThanAnHourSinceLastPush) {
       const { org, app } = window as Window as IAltinnWindow;
       // eslint-disable-next-line max-len
-      const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
+      const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/latestcommit`;
       get(url).then((result: any) => {
         if (this.componentIsMounted && result) {
           const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
@@ -184,7 +184,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
 
     const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
+    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
 
     get(url).then((result: any) => {
       if (this.componentIsMounted) {
@@ -306,7 +306,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
 
     const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/Push?org=${org}&repository=${app}`;
+    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
 
     post(url).then((result: any) => {
       if (this.componentIsMounted) {
@@ -359,8 +359,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     };
     const bodyData = JSON.stringify({ message: commitMessage, org, repository: app });
 
-    const url = `${window.location.origin}/designerapi/Repository/Commit`;
-    const pullUrl = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
+    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/commit`;
+    const pullUrl = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
     post(url, bodyData, options).then(() => {
       get(pullUrl).then((result: any) => {
         if (this.componentIsMounted) {
