@@ -11,6 +11,9 @@ import AltinnModal from 'app-shared/components/molecules/AltinnModal';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 
+import { endpoints as organizationsEndpoints } from 'services/organizationApi';
+import { RootState } from '../../store';
+
 export interface ICreateNewServiceProvidedProps {
   classes: any;
 }
@@ -18,6 +21,7 @@ export interface ICreateNewServiceProvidedProps {
 export interface ICreateNewServiceProps extends ICreateNewServiceProvidedProps {
   language: any;
   selectableUser: any;
+  getOrganizations: () => void;
 }
 
 export interface ICreateNewServiceState {
@@ -69,6 +73,7 @@ export class CreateNewServiceComponent extends React.Component<
   };
 
   public componentDidMount() {
+    this.props.getOrganizations();
     this.componentMounted = true;
   }
 
@@ -322,29 +327,37 @@ export class CreateNewServiceComponent extends React.Component<
 }
 
 const combineCurrentUserAndOrg = (organisations: any, user: any) => {
-  const allUsers = organisations.map(({ username, full_name }: any) => ({
-    name: username,
-    full_name,
-  }));
+  const allUsers =
+    organisations?.map(({ username, full_name }: any) => ({
+      name: username,
+      full_name,
+    })) || [];
   const currentUserName = { name: user.login, full_name: user.full_name };
   allUsers.push(currentUserName);
   return allUsers;
 };
 
 const mapStateToProps = (
-  state: IDashboardAppState,
+  state: RootState,
   props: ICreateNewServiceProvidedProps,
-): ICreateNewServiceProps => {
+) => {
+  const organizations =
+    organizationsEndpoints.getOrganizations.select()(state).data;
+  const selectableUser = combineCurrentUserAndOrg(
+    organizations,
+    state.dashboard.user,
+  );
+
   return {
     classes: props.classes,
     language: state.language.language,
-    selectableUser: combineCurrentUserAndOrg(
-      state.dashboard.organisations,
-      state.dashboard.user,
-    ),
+    selectableUser,
   };
 };
 
+const mapDispatch = {
+  getOrganizations: organizationsEndpoints.getOrganizations.initiate,
+};
 export const CreateNewService = withStyles(styles)(
-  connect(mapStateToProps)(CreateNewServiceComponent),
+  connect(mapStateToProps, mapDispatch)(CreateNewServiceComponent),
 );
