@@ -10,18 +10,14 @@ export type User = {
   login: string;
 };
 
-export type Organisations = Array<string>;
-
 export interface IDashboardState {
   services: IRepository[];
   user?: User;
-  organisations: Organisations;
 }
 
 const initialState: IDashboardState = {
   services: [],
   user: null,
-  organisations: [],
 };
 
 export interface IFetchDashboardInfoAction {
@@ -48,13 +44,7 @@ const dashboardSlice = createSlice({
       const { info } = action.payload;
       state.user = info;
     },
-    fetchOrganisationsFulfilled: (
-      state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
-    ) => {
-      const { info } = action.payload;
-      state.organisations = info;
-    },
+
     fetchServicesFulfilled: (
       state,
       action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
@@ -71,12 +61,6 @@ const actions = {
   ),
   fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(
     `${moduleName}/fetchCurrentUserRejected`,
-  ),
-  fetchOrganisations: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchOrganisations`,
-  ),
-  fetchOrganisationsRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchOrganisationsRejected`,
   ),
   fetchServices: createAction<IFetchDashboardInfoAction>(
     `${moduleName}/fetchServices`,

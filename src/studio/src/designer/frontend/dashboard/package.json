@@ -98,6 +98,7 @@
       "^app/(.*)": "<rootDir>/app/$1",
       "^features/(.*)": "<rootDir>/features/$1",
       "^common/(.*)": "<rootDir>/common/$1",
+      "^services/(.*)": "<rootDir>/services/$1",
       "^@altinn/schema-editor/(.*)": "<rootDir>/../packages/schema-editor/src/$1"
     },
     "testRegex": "(/test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
