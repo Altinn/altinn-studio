@@ -20,7 +20,8 @@
       "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
       "app/*": ["./app/*"],
       "features/*": ["./features/*"],
-      "common/*": ["./common/*"]
+      "common/*": ["./common/*"],
+      "services/*": ["./services/*"]
     }
   },
   "include": ["./**/*", "../shared/**/*"],
