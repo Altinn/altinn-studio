@@ -65,6 +65,17 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// List an organization's repos
+        /// </summary>
+        /// <returns>List of repos</returns>
+        [HttpGet]
+        [Route("/designer/api/v1/orgs/{org}/repos")]
+        public Task<IList<RepositoryModel>> OrgRepos(string org)
+        {
+            return _giteaApi.GetOrgRepos(org);
+        }
+
+        /// <summary>
         /// Returns a list over repositories
         /// </summary>
         /// <param name="repositorySearch">The search params</param>

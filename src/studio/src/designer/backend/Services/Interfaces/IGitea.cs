@@ -23,6 +23,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
+        /// List an organization's repos
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org);
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

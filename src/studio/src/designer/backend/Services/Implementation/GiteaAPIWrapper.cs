@@ -148,6 +148,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
+        {
+            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{org}/repos?limit=50");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
+            }
+
+            return repos;
+        }
+
+        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             User user = await GetCurrentUser();
