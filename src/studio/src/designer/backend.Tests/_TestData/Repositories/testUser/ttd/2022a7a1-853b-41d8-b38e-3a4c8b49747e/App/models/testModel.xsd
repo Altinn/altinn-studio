@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="root" type="/definitions/rootType" />
+  <xsd:simpleType name="rootType">
+    <xsd:restriction />
+  </xsd:simpleType>
+</xsd:schema>

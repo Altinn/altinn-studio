@@ -1,0 +1,49 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://altinn.studio/repos/ttd/datamodellering/app/models/skjemanavn.schema.json",
+	"type": "object",
+	"properties": {
+		"melding": {
+			"type": "object",
+			"properties": {
+				"Innrapportoer": {
+					"$ref": "#/definitions/InnraportoerType"
+				},
+				"InnraporterteData": {
+					"type": "object",
+					"properties": {
+						"geekType": {
+							"type": "string",
+							"enum": ["frontend", "backend", "other"]
+						},
+						"AltinnErfaringAAr": {
+							"type": "integer"
+						}
+					},
+					"required": ["geekType", "AltinnErfaringAAr"]
+				}
+			}
+		}
+	},
+	"required": ["melding"],
+	"definitions": {
+		"InnraportoerType": {			
+			"$id": "file:///C:/dev/altinn-localrepos/hvem-er-hvem/App/models/innraportoer.schema.json#",
+			"type": "object",
+			"properties": {
+				"navn": {
+					"type": "string"
+				},
+				"foedselsdato": {
+					"type": "string",
+					"format": "date"
+				},
+				"epost": {
+					"type": "string",
+					"format": "email"
+				}
+			},
+			"required": ["navn", "foedselsdato", "epost"]
+		}
+	}
+}

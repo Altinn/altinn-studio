@@ -1,0 +1,53 @@
+﻿{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "Epost",
+      "value": "Epost"
+    },
+    {
+      "id": "Erfaring",
+      "value": "Erfaring (antall år)"
+    },
+    {
+      "id": "Erfaring_Beskrivelse",
+      "value": "Hvor mange års erfaring har du med Altinn?"
+    },
+    {
+      "id": "Fødselsdato",
+      "value": "Fødselsdato"
+    },
+    {
+      "id": "Fødselsdato_Beskrivelse",
+      "value": "Velg din fødselsdato (ta det med ro, vi skal ikke fortelle det til noen)."
+    },
+    {
+      "id": "Navn",
+      "value": "Navn"
+    },
+    {
+      "id": "NerdeType",
+      "value": "Type nerd"
+    },
+    {
+      "id": "NerdeType_Beskrivelse",
+      "value": "Hva slags type nerd er du? Jo flere jo bedre..."
+    },
+    {
+      "id": "NerdeType_Valg_Backend",
+      "value": "Backend"
+    },
+    {
+      "id": "NerdeType_Valg_Frontend",
+      "value": "Frontend"
+    },
+    {
+      "id": "NerdeType_Valg_Other",
+      "value": "Annen type nerd"
+    },
+    {
+      "id": "ServiceName",
+      "value": "Hvem er hvem?"
+    }
+  ]
+}
