@@ -162,5 +162,15 @@ namespace Designer.Tests.Mocks
             Branch branch = new Branch { Name = branchName };
             return await Task.FromResult(branch);
         }
+
+        public Task<IList<Repository>> GetOrgRepos(string org)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IList<Repository>> GetStarred()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

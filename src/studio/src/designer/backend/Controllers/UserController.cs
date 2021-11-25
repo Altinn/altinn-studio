@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -13,6 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// API controller for User functionality
     /// </summary>
     [Authorize]
+    [Route("designer/api/v1/user")]
     public class UserController : ControllerBase
     {
         private readonly IGitea _giteaApi;
@@ -37,7 +39,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The user object</returns>
         [HttpGet]
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.User> Current()
+        [Route("current")]
+        public async Task<RepositoryClient.Model.User> Current()
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -47,6 +50,18 @@ namespace Altinn.Studio.Designer.Controllers
             });
 
             return await _giteaApi.GetCurrentUser();
+        }
+
+        /// <summary>
+        /// Gets all starred repositories for the logged in user.
+        /// </summary>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        [HttpGet]
+        [Route("starred")]
+        public async Task<IList<Designer.RepositoryClient.Model.Repository>> GetStarredRepos()
+        {
+            return await _giteaApi.GetStarred();
+
         }
     }
 }
