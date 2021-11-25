@@ -1,7 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export enum TagTypes {
-  Repositories = 'Repositories',
+  UserRepositories = 'UserRepositories',
+  OrgRepositories = 'OrgRepositories',
+  UserStarredRepositories = 'UserStarredRepositories',
   Organizations = 'Organizations',
 }
 
