@@ -23,6 +23,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
+        /// List the repos that the authenticated user has starred
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetStarred();
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
