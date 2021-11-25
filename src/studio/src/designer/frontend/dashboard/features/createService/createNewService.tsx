@@ -189,7 +189,7 @@ export class CreateNewServiceComponent extends React.Component<
           user.full_name === this.state.selectedOrgOrUser ||
           user.name === this.state.selectedOrgOrUser,
       );
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}`;
+      const url = `${altinnWindow.location.origin}/designer/api/v1/repos/${selectedOrgOrUser.name}&repository=${this.state.repoName}`;
       post(url)
         .then((result: any) => {
           if (result.repositoryCreatedStatus === 409) {

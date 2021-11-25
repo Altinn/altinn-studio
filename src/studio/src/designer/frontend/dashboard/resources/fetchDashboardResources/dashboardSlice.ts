@@ -2,15 +2,25 @@
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IRepository } from 'app-shared/types';
 
+export type User = {
+  avatar_url: string;
+  email: string;
+  full_name: string;
+  id: number;
+  login: string;
+};
+
+export type Organisations = Array<string>;
+
 export interface IDashboardState {
   services: IRepository[];
-  user: any;
-  organisations: any;
+  user?: User;
+  organisations: Organisations;
 }
 
 const initialState: IDashboardState = {
   services: [],
-  user: {},
+  user: null,
   organisations: [],
 };
 
@@ -31,15 +41,24 @@ const dashboardSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchCurrentUserFulfilled: (state, action: PayloadAction<IFetchDashboardInfoActionFulfilled>) => {
+    fetchCurrentUserFulfilled: (
+      state,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+    ) => {
       const { info } = action.payload;
       state.user = info;
     },
-    fetchOrganisationsFulfilled: (state, action: PayloadAction<IFetchDashboardInfoActionFulfilled>) => {
+    fetchOrganisationsFulfilled: (
+      state,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+    ) => {
       const { info } = action.payload;
       state.organisations = info;
     },
-    fetchServicesFulfilled: (state, action: PayloadAction<IFetchDashboardInfoActionFulfilled>) => {
+    fetchServicesFulfilled: (
+      state,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+    ) => {
       const { info } = action.payload;
       state.services = info;
     },
@@ -47,12 +66,24 @@ const dashboardSlice = createSlice({
 });
 
 const actions = {
-  fetchCurrentUser: createAction<IFetchDashboardInfoAction>(`${moduleName}/fetchCurrentUser`),
-  fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(`${moduleName}/fetchCurrentUserRejected`),
-  fetchOrganisations: createAction<IFetchDashboardInfoAction>(`${moduleName}/fetchOrganisations`),
-  fetchOrganisationsRejected: createAction<IFetchDashboardInfoActionRejected>(`${moduleName}/fetchOrganisationsRejected`),
-  fetchServices: createAction<IFetchDashboardInfoAction>(`${moduleName}/fetchServices`),
-  fetchServicesRejected: createAction<IFetchDashboardInfoActionRejected>(`${moduleName}/fetchServicesRejected`),
+  fetchCurrentUser: createAction<IFetchDashboardInfoAction>(
+    `${moduleName}/fetchCurrentUser`,
+  ),
+  fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(
+    `${moduleName}/fetchCurrentUserRejected`,
+  ),
+  fetchOrganisations: createAction<IFetchDashboardInfoAction>(
+    `${moduleName}/fetchOrganisations`,
+  ),
+  fetchOrganisationsRejected: createAction<IFetchDashboardInfoActionRejected>(
+    `${moduleName}/fetchOrganisationsRejected`,
+  ),
+  fetchServices: createAction<IFetchDashboardInfoAction>(
+    `${moduleName}/fetchServices`,
+  ),
+  fetchServicesRejected: createAction<IFetchDashboardInfoActionRejected>(
+    `${moduleName}/fetchServicesRejected`,
+  ),
 };
 
 export const DashboardActions = {

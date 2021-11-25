@@ -50,11 +50,11 @@ describe('Dashboard > App', () => {
       type: 'language/fetchLanguage',
     });
     expect(store.dispatch).toHaveBeenNthCalledWith(3, {
-      payload: { url: 'http://localhost/designerapi/Repository/UserRepos' },
+      payload: { url: 'http://localhost/designer/api/v1/user/repos' },
       type: 'dashboard/fetchServices',
     });
     expect(store.dispatch).toHaveBeenNthCalledWith(4, {
-      payload: { url: 'http://localhost/designerapi/Repository/Organizations' },
+      payload: { url: 'http://localhost/designer/api/v1/orgs' },
       type: 'dashboard/fetchOrganisations',
     });
   });
