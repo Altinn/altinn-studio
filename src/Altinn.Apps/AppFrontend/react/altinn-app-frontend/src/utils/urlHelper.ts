@@ -42,11 +42,6 @@ export function fileTagUrl(dataGuid: string) {
   `${altinnWindow.instanceId}/data/${dataGuid}/tags`;
 }
 
-export function dataElementsUrl() {
-  return `${origin}/storage/api/v1/instances/` +
-  `${altinnWindow.instanceId}/dataelements`;
-}
-
 export function dataElementUrl(dataGuid: string) {
   return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
 }
