@@ -3,7 +3,6 @@ import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { HashRouter as Router, Route } from 'react-router-dom';
-import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
@@ -14,6 +13,7 @@ import { KnownIssues } from './features/knownIssues/knownIssues';
 import { ServicesOverview } from './features/serviceOverview/servicesOverview';
 import { DashboardActions } from './resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
+import Header from 'app-shared/navigation/main-header/Header';
 
 import './App.css';
 
@@ -61,13 +61,7 @@ export const App = () => {
     <MuiThemeProvider theme={theme}>
       <Router>
         {user ? <div>
-          <AppBarComponent
-            org={user.full_name || user.login}
-            app={null}
-            user={user.login}
-            logoutButton={true}
-            showSubMenu={false}
-          />
+          <Header user={user} context='Testdepartementet'/>
           <Route
             path='/'
             exact={true}
