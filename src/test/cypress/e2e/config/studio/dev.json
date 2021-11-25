@@ -12,5 +12,6 @@
     "rulesApp": "AutoTest/rulesservice"
   },
   "defaultCommandTimeout": 20000,
-  "requestTimeout": 20000
+  "requestTimeout": 20000,
+  "chromeWebSecurity": false
 }

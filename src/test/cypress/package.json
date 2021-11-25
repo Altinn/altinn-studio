@@ -15,6 +15,8 @@
     "eslint:fix": "eslint \"e2e/**\" --fix",
     "cy:open": "cypress open --env component=%npm_config_component%,environment=%npm_config_env%",
     "cy:verify": "cypress verify",
+    "cy:version": "cypress -v",
+    "cy:run": "cypress run",
     "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js'",
     "test:studio": "cypress run --env component=studio,environment=%npm_config_env% -b chrome -s 'e2e/integration/studio/*.js'",

@@ -2,9 +2,10 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "http://altinn3.no",
   "env": {
-    "userName": "testuser",
-    "userPwd": "Studio@123",
-    "testEmail": "test1@test.com"   
+    "autoTestUser": "testuser",
+    "autoTestUserPwd": "Studio@123",
+    "noDeployUser": "automatedtest@email.com",
+    "testEmail": "test1@test.com"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

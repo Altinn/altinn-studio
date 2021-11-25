@@ -1,0 +1,45 @@
+pool:
+  name: altinn-vmss-testagent
+
+name: $(environment)_Studio_Usecases_$(Date:ddMMyyyy)_$(Date:HHmm)
+
+trigger: none
+
+pr: none
+
+#schedules:
+#- cron: "10,25,40,55 * * * *"
+#  displayName: Bruksmønster
+#  branches:
+#    include:
+#    - master
+#  always: true
+
+steps:
+- task: DeleteFiles@1
+  displayName: 'Delete test results'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/src/test/cypress/reports'
+    Contents: |
+      *.xml
+  condition: succeededOrFailed()
+
+- bash: |
+   yarn --immutable
+
+   yarn run cy:version   
+
+   yarn run cy:run -s 'e2e/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword),component=studio
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/cypress'
+  displayName: 'Studio Tests'
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFiles: '*.xml'
+    searchFolder: '$(Build.SourcesDirectory)/src/test/cypress/reports'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+    testRunTitle: '$(environment)_studio_use_cases'
+  condition: succeededOrFailed()

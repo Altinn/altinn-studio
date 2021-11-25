@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+/// <reference types="../../support" />
 
 import * as dashboard from '../../pageobjects/dashboard';
 import Common from '../../pageobjects/common';
@@ -12,7 +13,7 @@ context('Dashboard', () => {
   });
 
   it('Create an app and exit creation', () => {
-    cy.studiologin(Cypress.env('userName'), Cypress.env('userPwd'));
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.newApp).should('be.visible');
     cy.get(dashboard.newApp).click();
     cy.get(dashboard.appOwners).click();
@@ -22,8 +23,9 @@ context('Dashboard', () => {
   });
 
   it('Login and dashboard lists app', () => {
-    cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
-    cy.studiologin(Cypress.env('userName'), Cypress.env('userPwd'));
-    cy.get('h2').parent('div').siblings(common.gridContainer).children(common.gridItem).should('have.length', 10);
+    if(Cypress.env('environment') == 'local')
+      cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    cy.get('h2').parent('div').siblings(common.gridContainer).children(common.gridItem).should('have.length.greaterThan', 1);
   });
 });
