@@ -41,12 +41,6 @@ export const App = () => {
         url: `${window.location.origin}/designer/api/v1/user/repos`,
       }),
     );
-
-    dispatch(
-      DashboardActions.fetchOrganisations({
-        url: `${window.location.origin}/designer/api/v1/orgs`,
-      }),
-    );
   }, [dispatch]);
 
   const [showLogOutButton, setShowLogoutButton] = React.useState(false);
