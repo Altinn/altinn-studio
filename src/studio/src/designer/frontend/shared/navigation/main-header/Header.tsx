@@ -11,6 +11,8 @@ const useStyles = makeStyles((theme) => ({
   },
   toolbar: {
     height: 96,
+    paddingLeft: 48,
+    paddingRight: 48
   },
 }));
 
