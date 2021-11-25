@@ -38,13 +38,13 @@ export const App = () => {
 
     dispatch(
       DashboardActions.fetchServices({
-        url: `${window.location.origin}/designerapi/Repository/UserRepos`,
+        url: `${window.location.origin}/designer/api/v1/user/repos`,
       }),
     );
 
     dispatch(
       DashboardActions.fetchOrganisations({
-        url: `${window.location.origin}/designerapi/Repository/Organizations`,
+        url: `${window.location.origin}/designer/api/v1/orgs`,
       }),
     );
   }, [dispatch]);

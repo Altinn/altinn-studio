@@ -27,6 +27,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/api/v1/repos")]
     public class RepositoryController : ControllerBase
     {
         private readonly IGitea _giteaApi;
@@ -57,6 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>List of repos</returns>
         [HttpGet]
+        [Route("/designer/api/v1/user/repos")]
         public Task<IList<RepositoryModel>> UserRepos()
         {
             return _giteaApi.GetUserRepos();
@@ -68,6 +70,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySearch">The search params</param>
         /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
+        [Route("search")]
         public async Task<List<RepositoryModel>> Search(RepositorySearch repositorySearch)
         {
             SearchResults repositories = await _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page);
@@ -81,6 +84,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
+        [Route("{org}/{repository}")]
         public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
             RepositoryModel returnRepository = await _giteaApi.GetRepository(org, repository);
@@ -92,6 +96,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
         [HttpGet]
+        [Route("/designer/api/v1/orgs")]
         public async Task<List<Organization>> Organizations()
         {
             List<Organization> orglist = await _giteaApi.GetUserOrganizations();
@@ -105,6 +110,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
         [HttpGet]
+        [Route("{org}/{repository}/status")]
         public RepoStatus RepoStatus(string org, string repository)
         {
             _sourceControl.FetchRemoteChanges(org, repository);
@@ -118,6 +124,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">Name of the repository</param>
         /// <returns>Repo status</returns>
         [HttpGet]
+        [Route("{org}/{repository}/pull")]
         public RepoStatus Pull(string org, string repository)
         {
             RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
@@ -139,6 +146,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">the name of the local repository to reset</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
         [HttpGet]
+        [Route("{org}/{repository}/reset")]
         public ActionResult<HttpResponseMessage> ResetLocalRepository(string org, string repository)
         {
             try
@@ -157,6 +165,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
+        [Route("{org}/{repository}/commitandpush")]
         public void CommitAndPushRepo([FromBody] CommitInfo commitInfo)
         {
             _sourceControl.PushChangesForRepository(commitInfo);
@@ -168,6 +177,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="commitInfo">Info about the commit</param>
         /// <returns>http response message as ok if commit is successfull</returns>
         [HttpPost]
+        [Route("{org}/{repository}/commit")]
         public ActionResult<HttpResponseMessage> Commit([FromBody] CommitInfo commitInfo)
         {
             try
@@ -187,6 +197,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         [HttpPost]
+        [Route("{org}/{repository}/push")]
         public async Task<ActionResult<HttpResponseMessage>> Push(string org, string repository)
         {
             bool pushSuccess = await _sourceControl.Push(org, repository);
@@ -207,6 +218,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repo name</param>
         /// <returns>List of commits</returns>
         [HttpGet]
+        [Route("{org}/{repository}/log")]
         public List<Commit> Log(string org, string repository)
         {
             return _sourceControl.Log(org, repository);
@@ -219,6 +231,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repo name</param>
         /// <returns>The initial commit</returns>
         [HttpGet]
+        [Route("{org}/{repository}/initialcommit")]
         public Commit GetInitialCommit(string org, string repository)
         {
             return _sourceControl.GetInitialCommit(org, repository);
@@ -231,6 +244,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repo name</param>
         /// <returns>List of commits</returns>
         [HttpGet]
+        [Route("{org}/{repository}/latestcommit")]
         public Commit GetLatestCommitFromCurrentUser(string org, string repository)
         {
             return _sourceControl.GetLatestCommitForCurrentUser(org, repository);
@@ -243,9 +257,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository</param>
         /// <returns>List of repos</returns>
         [HttpGet]
+        [Route("{org}/{repository}/branches")]
         public async Task<List<Branch>> Branches(string org, string repository)
             => await _giteaApi.GetBranches(org, repository);
-
+ 
         /// <summary>
         /// Returns information about a given branch
         /// </summary>
@@ -254,8 +269,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         [HttpGet]
-        public async Task<Branch> Branch(string org, string repository, string branch)
+        [Route("{org}/{repository}/branches/branch")]
+        public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
+
+            // TODO: Fix so we don't need /branch
 
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
@@ -264,6 +282,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The name of repository</param>
         /// <returns>Http response message as ok if reset operation is successful</returns>
         [HttpGet]
+        [Route("{org}/{repository}/discard")]
         public ActionResult<HttpResponseMessage> DiscardLocalChanges(string org, string repository)
         {
             try
@@ -292,6 +311,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileName">the name of the file</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
+        [Route("{org}/{repository}/discart/{fileName}")]
         public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string org, string repository, string fileName)
         {
             try
@@ -320,6 +340,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileName">the entire file path with filen name</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
+        [Route("{org}/{repository}/stage/{fileName}")]
         public ActionResult<HttpResponseMessage> StageChange(string org, string repository, string fileName)
         {
             try
@@ -350,7 +371,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, string repository)
+        [Route("{org}")]
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, [FromQuery] string repository)
         {
             try
             {
@@ -382,7 +404,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<RepositoryModel>> CopyApp(string org, string sourceRepository, string targetRepository)
+        [Route("copyapp")]
+        public async Task<ActionResult<RepositoryModel>> CopyApp([FromQuery] string org, [FromQuery] string sourceRepository, [FromQuery] string targetRepository)
         {
             try
             {
@@ -437,6 +460,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The name of repository</param>
         /// <returns>The result of the cloning</returns>
         [HttpGet]
+        [Route("{org}/{repository}/clone")]
         public string CloneRemoteRepository(string org, string repository)
         {
             return _sourceControl.CloneRemoteRepository(org, repository);
@@ -449,6 +473,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The name of the repository</param>
         /// <returns>Http response message as ok if abort merge operation is successful</returns>
         [HttpGet]
+        [Route("{org}/{repository}/abortmerge")]
         public ActionResult<HttpResponseMessage> AbortMerge(string org, string repository)
         {
             try
@@ -474,7 +499,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Gets the repository content
         /// </summary>
         [HttpGet]
-        [Route("/designer/api/v1/repositories/{org}/{repository}/contents")]
+        [Route("{org}/{repository}/contents")]
         public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
         {
             List<FileSystemObject> contents = _repository.GetContents(org, repository, path);
@@ -493,7 +518,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// or if the whole repo should be included
         /// </summary>
         [HttpGet]
-        [Route("/designer/api/v1/repositories/{org}/{repository}/contents.zip")]
+        [Route("{org}/{repository}/contents.zip")]
         public ActionResult ContentsZip(string org, string repository, [FromQuery] bool full)
         {
             string appRoot = null;

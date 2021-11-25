@@ -53,11 +53,11 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       setIsLoading(true);
       try {
         const [org, app] = service.full_name.split('/');
-        const url = `${window.location.origin}/designerapi/Repository/CopyApp?org=${org}&sourceRepository=${app}&targetRepository=${repoName}`;
+        const url = `${window.location.origin}/designer/api/v1/repos/copyapp?org=${org}&sourceRepository=${app}&targetRepository=${repoName}`;
         await post(url);
         dispatch(
           DashboardActions.fetchServices({
-            url: `${window.location.origin}/designerapi/Repository/UserRepos`,
+            url: `${window.location.origin}/designer/api/v1/user/repos`,
           }),
         );
         window.location.href = `${window.location.origin}/designer/${org}/${repoName}#/about?copiedApp=true`;
