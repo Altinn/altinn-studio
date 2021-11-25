@@ -166,6 +166,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<bool> PutStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
         {
             IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();

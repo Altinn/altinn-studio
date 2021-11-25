@@ -55,13 +55,35 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Gets all starred repositories for the logged in user.
         /// </summary>
-        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        /// <returns>An array of repositores that the user has starred</returns>
         [HttpGet]
         [Route("starred")]
         public async Task<IList<Designer.RepositoryClient.Model.Repository>> GetStarredRepos()
         {
             return await _giteaApi.GetStarred();
 
+        }
+
+        /// <summary>
+        /// Adds the repository to the users list of starred repositories.
+        /// </summary>
+        [HttpPut]
+        [Route("starred/{org}/{repository}")]
+        public async Task<IActionResult> PutStarred(string org, string repository)
+        {
+            var success = await _giteaApi.PutStarred(org, repository);
+            return success ? NoContent() : StatusCode(418);
+        }
+
+        /// <summary>
+        /// Removes the star marking on the specified repository.
+        /// </summary>
+        [HttpDelete]
+        [Route("starred/{org}/{repository}")]
+        public async Task<IActionResult> DeleteStarred(string org, string repository)
+        {
+            var success = await _giteaApi.DeleteStarred(org, repository);
+            return success ? NoContent() : StatusCode(418);
         }
     }
 }
