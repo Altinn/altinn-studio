@@ -25,7 +25,7 @@ export const App = () => {
   React.useEffect(() => {
     dispatch(
       DashboardActions.fetchCurrentUser({
-        url: `${window.location.origin}/designerapi/User/Current`,
+        url: `${window.location.origin}/designer/api/v1/user/current`,
       }),
     );
 

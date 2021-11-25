@@ -39,7 +39,7 @@ describe('Dashboard > App', () => {
 
     expect(store.dispatch).toHaveBeenCalledTimes(4);
     expect(store.dispatch).toHaveBeenNthCalledWith(1, {
-      payload: { url: 'http://localhost/designerapi/User/Current' },
+      payload: { url: 'http://localhost/designer/api/v1/user/current' },
       type: 'dashboard/fetchCurrentUser',
     });
     expect(store.dispatch).toHaveBeenNthCalledWith(2, {
