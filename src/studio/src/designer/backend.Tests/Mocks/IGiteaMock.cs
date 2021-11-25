@@ -167,5 +167,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<IList<Repository>> GetStarred()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
