@@ -453,6 +453,32 @@ export function validateFormComponentsForLayout(
           validations[component.id] = componentValidations;
         }
       }
+      if (component.type === 'FileUploadWithTag') {
+        const isValid = attachmentsValid(attachments, component);
+        const missingTagAttachments = attachmentsThatAreMissingTags(attachments, component);
+        if (!isValid || missingTagAttachments.length > 0) {
+          validations[component.id] = {};
+          const componentValidations: IComponentValidations = {
+            [fieldKey]: {
+              errors: [],
+              warnings: [],
+            },
+          };
+          if (!isValid) {
+            componentValidations[fieldKey].errors.push(
+              `${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language)} ${component.minNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language)}`,
+            );
+          }
+          if (missingTagAttachments.length > 0) {
+            missingTagAttachments.forEach((missingId) => {
+              componentValidations[fieldKey].errors.push( // Add attachment id to start of message and seperate using ASCII Universal Seperator.
+                `${missingId + String.fromCharCode(31) + getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
+              );
+            });
+          }
+          validations[component.id] = componentValidations;
+        }
+      }
       if (component.type === 'Datepicker') {
         let componentValidations: IComponentValidations = {};
         const date = getFormDataForComponent(
@@ -487,6 +513,12 @@ function attachmentsValid(attachments: any, component: any): boolean {
       attachments[component.id] &&
       attachments[component.id].length >= component.minNumberOfAttachments)
   );
+}
+
+function attachmentsThatAreMissingTags(attachments: any, component: any): string[] {
+  return attachments[component.id]
+    .filter((attachment) => attachment.tags === undefined || attachment.tags.length === 0)
+    .map((attachment) => attachment.id);
 }
 
 /*
@@ -934,8 +966,8 @@ export function findLayoutIdFromValidationIssue(
 ) {
   return Object.keys(layouts).find((id) => {
     const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
-      // Special handling for FileUpload component
-      if (c.type === 'FileUpload') {
+      // Special handling for FileUpload components
+      if (c.type === 'FileUpload' || c.type === 'FileUploadWithTag') {
         return c.id === validationIssue.field;
       }
       return (

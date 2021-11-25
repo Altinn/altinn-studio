@@ -17,8 +17,10 @@ export function mapAttachmentListToAttachments(data: IData[], defaultElementId: 
       {
         uploaded: true,
         deleting: false,
+        updating: false,
         name: element.filename,
         size: element.size,
+        tags: element.tags,
         id: element.id,
       },
     );

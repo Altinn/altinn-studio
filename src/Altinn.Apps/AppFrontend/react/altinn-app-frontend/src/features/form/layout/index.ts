@@ -34,21 +34,22 @@ export interface ILayoutComponent extends ILayoutEntry {
 export type GroupTypes = 'Group' | 'group';
 
 export type ComponentTypes =
-  | 'AddressComponent'
-  | 'AttachmentList'
-  | 'Button'
-  | 'Checkboxes'
-  | 'Datepicker'
-  | 'Dropdown'
-  | 'FileUpload'
-  | 'Header'
-  | 'Input'
-  | 'NavigationButtons'
-  | 'Paragraph'
-  | 'Image'
-  | 'RadioButtons'
-  | 'Summary'
-  | 'TextArea';
+  'AddressComponent' |
+  'AttachmentList' |
+  'Button' |
+  'Checkboxes' |
+  'Datepicker' |
+  'Dropdown' |
+  'FileUpload' |
+  'FileUploadWithTag' |
+  'Header' |
+  'Input' |
+  'NavigationButtons' |
+  'Paragraph' |
+  'Image' |
+  'RadioButtons' |
+  'Summary' |
+  'TextArea';
 
 export interface IDataModelBindings {
   [id: string]: string;

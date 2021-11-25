@@ -265,6 +265,7 @@ export function selectComponentTexts(
 export function getFileUploadComponentValidations(
   validationError: string,
   language: any,
+  attachmentId: string = undefined
 ): IComponentValidations {
   const componentValidations: any = {
     simpleBinding: {
@@ -279,6 +280,16 @@ export function getFileUploadComponentValidations(
         language,
       ),
     );
+  } else if (validationError === 'update') {
+    if (attachmentId === undefined || attachmentId === '') {
+      componentValidations.simpleBinding.errors.push(
+        getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
+      );
+    } else {
+      componentValidations.simpleBinding.errors.push( // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
+        attachmentId + String.fromCharCode(31) + getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
+      );
+    }
   } else if (validationError === 'delete') {
     componentValidations.simpleBinding.errors.push(
       getLanguageFromKey(

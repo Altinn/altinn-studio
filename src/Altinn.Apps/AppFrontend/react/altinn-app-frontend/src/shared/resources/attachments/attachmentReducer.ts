@@ -5,6 +5,7 @@ import * as AttachmentActionsTypes from './attachmentActionTypes';
 import * as deleteActions from './delete/deleteAttachmentActions';
 import * as mapActions from './map/mapAttachmentsActions';
 import * as uploadActions from './upload/uploadAttachmentActions';
+import * as updateActions from './update/updateAttachmentActions';
 
 export interface IAttachmentState {
   attachments: IAttachments;
@@ -44,6 +45,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
               size: file.size,
               uploaded: false,
               id: tmpAttachmentId,
+              tags: [],
               deleting: false,
             }],
           },
@@ -77,6 +79,65 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         attachments: {
           [attachmentType]: {
             [index]: { $set: attachment },
+          },
+        },
+      });
+    }
+
+    case (AttachmentActionsTypes.UPDATE_ATTACHMENT): {
+      const {
+        attachment,
+        attachmentType,
+      } = action as updateActions.IUpdateAttachmentAction;
+      if (!state.attachments[attachmentType]) {
+        // eslint-disable-next-line no-param-reassign
+        state = update<IAttachmentState>(state, {
+          attachments: {
+            [attachmentType]: { $set: [] },
+          },
+        });
+      }
+      const newAttachment = { ...attachment, updating: true };
+      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      return update<IAttachmentState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: newAttachment },
+          },
+        },
+      });
+    }
+
+    case (AttachmentActionsTypes.UPDATE_ATTACHMENT_REJECTED): {
+      const {
+        attachment,
+        attachmentType,
+        tag,
+      } = action as updateActions.IUpdateAttachmentActionRejected;
+      const newAttachment = {
+        ...attachment, tag, updating: false,
+      };
+      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      return update<IAttachmentState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: newAttachment },
+          },
+        },
+      });
+    }
+
+    case (AttachmentActionsTypes.UPDATE_ATTACHMENT_FULFILLED): {
+      const {
+        attachment,
+        attachmentType,
+      } = action as updateActions.IUpdateAttachmentActionFulfilled;
+      const newAttachment = { ...attachment, updating: false };
+      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      return update<IAttachmentState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: newAttachment },
           },
         },
       });

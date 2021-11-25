@@ -25,6 +25,7 @@ export interface IAttachment {
   iconClass: string;
   url: string;
   dataType: string;
+  tags?: string[]
 }
 
 export interface IData {
@@ -39,6 +40,7 @@ export interface IData {
   locked: boolean;
   refs: string[];
   isRead?: boolean;
+  tags?: string[];
   created: Date;
   createdBy: string;
   lastChanged: Date;

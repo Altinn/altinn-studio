@@ -27,6 +27,7 @@ export type FormComponentType =
   | IFormComponent
   | IFormDropdownComponent
   | IFormFileUploaderComponent
+  | IFormFileUploaderWithTagComponent
   | IFormHeaderComponent
   | IFormInputComponent
   | IFormRadioButtonComponent
@@ -122,6 +123,24 @@ export interface IFormFileUploaderComponent extends IFormComponent {
   maxNumberOfAttachments: number;
   minNumberOfAttachments: number;
   validFileEndings?: string;
+}
+
+export interface IFormFileUploaderWithTagComponent extends IFormFileUploaderComponent {
+  options: IOption[];
+  optionsId: string;
+}
+
+export interface IFormFileUploaderWithTag {
+  chosenOptions: IOptionsChosen;
+  editIndex: number;
+}
+
+export interface IOptionsChosen {
+  [id: string]: string;
+}
+
+export interface IFileUploadersWithTag {
+  [id: string]: IFormFileUploaderWithTag;
 }
 
 export interface IFormHeaderComponent extends IFormComponent {
@@ -264,6 +283,7 @@ export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
+  fileUploadersWithTag?: IFileUploadersWithTag
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
   pageTriggers?: Triggers[];

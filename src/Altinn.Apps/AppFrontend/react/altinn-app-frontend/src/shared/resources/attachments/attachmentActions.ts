@@ -5,6 +5,7 @@ import { store } from '../../../store';
 import * as deleteActions from './delete/deleteAttachmentActions';
 import * as mapActions from './map/mapAttachmentsActions';
 import * as uploadActions from './upload/uploadAttachmentActions';
+import * as updateActions from './update/updateAttachmentActions';
 
 export interface IAttachmentActions extends ActionCreatorsMapObject {
   uploadAttachment: (
@@ -24,6 +25,21 @@ export interface IAttachmentActions extends ActionCreatorsMapObject {
     attachmentType: string,
     componentId: string,
   ) => uploadActions.IUploadAttachmentActionRejected;
+  updateAttachment: (
+    attachment: IAttachment,
+    attachmentType: string,
+    tag: string,
+    componentId: string,
+  ) => updateActions.IUpdateAttachmentAction;
+  updateAttachmentFulfilled: (
+    attachment: IAttachment,
+    attachmentType: string,
+  ) => updateActions.IUpdateAttachmentActionFulfilled;
+  updateAttachmentRejected: (
+    attachment: IAttachment,
+    attachmentType: string,
+    tag: string,
+  ) => updateActions.IUpdateAttachmentActionRejected;
   deleteAttachment: (
     attachment: IAttachment,
     attachmentType: string,
@@ -48,6 +64,9 @@ const actions: IAttachmentActions = {
   uploadAttachment: uploadActions.uploadAttachment,
   uploadAttachmentFulfilled: uploadActions.uploadAttachmentFulfilled,
   uploadAttachmentRejected: uploadActions.uploadAttachmentRejected,
+  updateAttachment: updateActions.updateAttachment,
+  updateAttachmentFulfilled: updateActions.updateAttachmentFulfilled,
+  updateAttachmentRejected: updateActions.updateAttachmentRejected,
   deleteAttachment: deleteActions.deleteAttachment,
   deleteAttachmentFulfilled: deleteActions.deleteAttachmentFulfilled,
   deleteAttachmentRejected: deleteActions.deleteAttachmentRejected,

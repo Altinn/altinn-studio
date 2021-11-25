@@ -54,6 +54,7 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       focus: null,
       hiddenFields: [],
       repeatingGroups: null,
+      fileUploadersWithTag: null,
       currentView: 'FormLayout',
       navigationConfig: {},
       layoutOrder: [],

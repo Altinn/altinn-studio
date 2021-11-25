@@ -1,13 +1,17 @@
 import { ITextResource } from 'altinn-shared/types';
+import { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
 import {
   IRepeatingGroups,
   ILayoutNavigation,
   ITextResourceBindings,
+  IFileUploadersWithTag,
+  IOptionsChosen,
+  IFormFileUploaderWithTagComponent
 } from 'src/types';
 import {
   ILayout,
   ILayoutComponent,
-  ILayoutGroup,
+  ILayoutGroup
 } from '../features/form/layout';
 
 /*
@@ -119,6 +123,36 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
     }
   });
   return repeatingGroups;
+}
+
+export function getFileUploadersWithTag(
+  formLayout: ILayout,
+  attachmentState: IAttachmentState
+) {
+  const fileUploaders: IFileUploadersWithTag = {};
+  const uploaders = formLayout.filter((layoutElement) => layoutElement.type.toLowerCase() === 'fileuploadwithtag');
+  uploaders.forEach((component: ILayoutComponent) => {
+    const uploader = component as unknown as IFormFileUploaderWithTagComponent;
+    const attachments = attachmentState.attachments[uploader.id];
+    if (
+      attachments !== undefined
+    ) {
+      const chosenOptions: IOptionsChosen = {};
+      for (let index = 0; index < attachments.length; index++) {
+        chosenOptions[index] = attachmentState.attachments[uploader.id][index].tags[0];
+      }
+      fileUploaders[uploader.id] = {
+        editIndex: -1,
+        chosenOptions,
+      };
+    } else {
+      fileUploaders[uploader.id] = {
+        editIndex: -1,
+        chosenOptions: {} as IOptionsChosen,
+      };
+    }
+  });
+  return fileUploaders;
 }
 
 function getCountForRepeatingGroup(

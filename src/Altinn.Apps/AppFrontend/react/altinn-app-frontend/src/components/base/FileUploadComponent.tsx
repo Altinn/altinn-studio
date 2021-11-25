@@ -139,7 +139,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
             size: file.size,
             uploaded: false,
             id: tmpId,
+            tags: undefined,
             deleting: false,
+            updating: false,
           });
           AttachmentDispatcher.uploadAttachment(
             file,

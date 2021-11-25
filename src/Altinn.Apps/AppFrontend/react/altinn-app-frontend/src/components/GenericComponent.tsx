@@ -177,7 +177,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     if (
       props.type === 'AddressComponent' ||
       props.type === 'Datepicker' ||
-      props.type === 'FileUpload'
+      props.type === 'FileUpload' ||
+      props.type === 'FileUploadWithTag'
     ) {
       return componentValidations;
     }

@@ -19,6 +19,7 @@ const initialState: ILayoutState = {
     hiddenFields: [],
     autoSave: null,
     repeatingGroups: {},
+    fileUploadersWithTag: {},
     currentView: 'FormLayout',
     navigationConfig: {},
     layoutOrder: null,
@@ -117,6 +118,32 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    updateFileUploadersWithTagFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploadersWithTagFulfilled>) => {
+      const { uploaders } = action.payload;
+      state.uiConfig.fileUploadersWithTag = uploaders;
+    },
+    updateFileUploaderWithTagRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
+    updateFileUploaderWithTagEditIndexFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>) => {
+      const { uploader, index } = action.payload;
+      state.uiConfig.fileUploadersWithTag[uploader].editIndex = index;
+    },
+    updateFileUploaderWithTagEditIndexRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
+    updateFileUploaderWithTagChosenOptionsFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>) => {
+      const {
+        uploader, id, option,
+      } = action.payload;
+      state.uiConfig.fileUploadersWithTag[uploader].chosenOptions[id] = option.value;
+    },
+    updateFileUploaderWithTagChosenOptionsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+      const { error } = action.payload;
+      state.error = error;
+    },
     calculatePageOrderAndMoveToNextPageFulfilled: (state, action: PayloadAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>) => {
       const { order } = action.payload;
       state.uiConfig.layoutOrder = order;
@@ -137,7 +164,10 @@ const actions = {
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
   updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
   updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),
+  updateFileUploaderWithTagEditIndex: createAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>(`${moduleName}/updateFileUploaderWithTagEditIndex`),
+  updateFileUploaderWithTagChosenOptions: createAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>(`${moduleName}/updateFileUploaderWithTagChosenOptions`),
   initRepeatingGroups: createAction(`${moduleName}/initRepeatingGroups`),
+  initFileUploaderWithTag: createAction(`${moduleName}/initFileUploaderWithTag`),
 };
 
 export const FormLayoutActions = {
