@@ -103,7 +103,7 @@ export const RepoList = ({
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
-      headerName: '',
+      renderHeader: () => null,
       hideSortIcons: true,
       type: 'actions',
       width: 50,
@@ -163,6 +163,7 @@ export const RepoList = ({
       {
         field: 'links',
         flex: 1,
+        renderHeader: () => null,
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
