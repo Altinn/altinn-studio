@@ -19,13 +19,16 @@ context('Dashboard', () => {
     cy.get(dashboard.appOwners).click();
     cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
     cy.get(dashboard.appName).type('dashboard');
-    cy.get(dashboard.closeButton).click();
+    cy.get(dashboard.closeButton).click({ force: true });
   });
 
   it('Login and dashboard lists app', () => {
-    if(Cypress.env('environment') == 'local')
-      cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
+    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get('h2').parent('div').siblings(common.gridContainer).children(common.gridItem).should('have.length.greaterThan', 1);
+    cy.get('h2')
+      .parent('div')
+      .siblings(common.gridContainer)
+      .children(common.gridItem)
+      .should('have.length.greaterThan', 1);
   });
 });

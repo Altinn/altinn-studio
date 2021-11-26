@@ -39,7 +39,7 @@ Cypress.Commands.add('deletecomponents', () => {
         cy.get($component).each(($el) => {
           cy.wrap($el).click();
         });
-        cy.get(designer.deleteComponent).parents('button').click();
+        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true});
       }
     });
 });
