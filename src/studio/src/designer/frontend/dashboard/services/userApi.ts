@@ -5,14 +5,6 @@ export type Organizations = Array<string>;
 
 export const userApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({
-    getUserRepos: builder.query<IRepository[], void>({
-      query: () => `user/repos`,
-      providesTags: [
-        {
-          type: TagTypes.UserRepositories,
-        },
-      ],
-    }),
     getUserStarredRepos: builder.query<IRepository[], void>({
       query: () => `user/starred`,
       providesTags: [
@@ -24,5 +16,4 @@ export const userApi = designerApi.injectEndpoints({
   }),
 });
 
-export const { endpoints, useGetUserReposQuery, useGetUserStarredReposQuery } =
-  userApi;
+export const { endpoints, useGetUserStarredReposQuery } = userApi;
