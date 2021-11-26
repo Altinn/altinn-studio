@@ -371,7 +371,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     }
                 }
 
-                if(searchResults.TotalCount > 0 && searchResults.TotalPages == 0)
+                if (searchResults.TotalCount > 0 && searchResults.TotalPages == 0)
                 {
                     searchResults.TotalPages = 1;
                 }

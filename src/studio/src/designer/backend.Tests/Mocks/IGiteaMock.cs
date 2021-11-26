@@ -181,5 +181,10 @@ namespace Designer.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<SearchResults> SearchRepo(SearchOptions searchOption)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
