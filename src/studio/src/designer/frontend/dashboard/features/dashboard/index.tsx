@@ -5,10 +5,12 @@ import { OrgReposList } from './OrgReposList';
 
 export const Dashboard = () => {
   return (
-    <div style={{ marginTop: '100px' }}>
+    <div style={{ marginTop: '50px' }}>
       <FavoriteReposList />
 
-      <OrgReposList />
+      <div style={{ marginTop: '50px' }}>
+        <OrgReposList />
+      </div>
     </div>
   );
 };
