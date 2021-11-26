@@ -14,3 +14,9 @@ body {
   /* altinn-designsystem seems to set another background color. We need to keep it #fff for dashboard */
   background: #fff;
 }
+
+/* fix styles for data table footer */
+p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
