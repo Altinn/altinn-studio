@@ -8,7 +8,7 @@ trigger: none
 pr: none
 
 variables:  
-  cyCacheDir: "~/.cache/Cypress"
+  cyCacheDir: "/home/AzDevOps/.cache/Cypress"
   cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
 
 #schedules:
