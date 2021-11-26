@@ -1,6 +1,6 @@
-@import '~altinn-designsystem/dist/css/style.dist.tjenester3.min';
+/* @import '~altinn-designsystem/dist/css/style.dist.tjenester3.min'; */
 
-.fa,
+/* .fa,
 .fa-stack {
   font-size: 2.25em;
   -webkit-font-smoothing: subpixel-antialiased;
@@ -8,7 +8,7 @@
   width: 1em;
   text-align: center;
   vertical-align: middle;
-}
+} */
 
 body {
   /* altinn-designsystem seems to set another background color. We need to keep it #fff for dashboard */
