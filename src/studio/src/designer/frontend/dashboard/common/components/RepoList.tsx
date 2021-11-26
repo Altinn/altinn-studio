@@ -10,7 +10,7 @@ import {
   GridColDef,
 } from '@mui/x-data-grid';
 
-// import { CloneDialog } from './CloneDialog';
+import { MakeCopyModal } from 'common/components/MakeCopyModal';
 
 import { IRepository } from 'app-shared/types';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
@@ -38,48 +38,48 @@ type RepoListType = {
 };
 
 export const RepoList = ({ repos, isLoading }: RepoListType) => {
-  const [showDuplicateDialog, setShowDuplicateDialog] = React.useState(false);
+  const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
     { field: 'commodity', sort: 'asc' },
   ]);
+
+  const copyModalAnchorRef = React.useRef(null);
 
   const handleSortChange = (newSortModel: GridSortModel) => {
     setSortModel(newSortModel);
   };
 
-  console.log(repos);
-
-  const columns: GridColDef[] = [
-    {
-      field: 'name',
-      headerName: 'Applikasjon',
-      width: 150,
-    },
-    {
-      field: 'owner.created_by',
-      headerName: 'Opprettet av',
-      // sortable: false,
-      width: 160,
-      valueGetter: (params: GridValueGetterParams) => {
-        const owner = params.getValue(params.id, 'owner') as User;
-        return owner.full_name || owner.login;
+  const cols = React.useMemo(() => {
+    const columns: GridColDef[] = [
+      {
+        field: 'name',
+        headerName: 'Applikasjon',
+        width: 150,
       },
-    },
-    {
-      field: 'updated_at',
-      headerName: 'Sist endret',
-      width: 150,
-      editable: true,
-      type: 'date',
-      valueFormatter: (params: GridValueFormatterParams) => {
-        const date = params.value as string;
-        return new Date(date).toLocaleDateString();
+      {
+        field: 'owner.created_by',
+        headerName: 'Opprettet av',
+        // sortable: false,
+        width: 160,
+        valueGetter: (params: GridValueGetterParams) => {
+          const owner = params.getValue(params.id, 'owner') as User;
+          return owner.full_name || owner.login;
+        },
       },
-    },
-  ];
+      {
+        field: 'updated_at',
+        headerName: 'Sist endret',
+        width: 150,
+        editable: true,
+        type: 'date',
+        valueFormatter: (params: GridValueFormatterParams) => {
+          const date = params.value as string;
+          return new Date(date).toLocaleDateString();
+        },
+      },
+    ];
 
-  const actionsCol: GridActionsColDef[] = React.useMemo(() => {
-    return [
+    const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
         headerName: '',
@@ -93,7 +93,7 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
           });
 
           const handleDuplicateClick = () => {
-            setShowDuplicateDialog(true);
+            setCopyCurrentRepoName(params.row.full_name);
           };
 
           const handleOpenInNewClick = () => {
@@ -101,7 +101,11 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
           };
 
           return [
-            <a key={params.row.id} href={params.row.html_url}>
+            <a
+              key={params.row.id}
+              href={params.row.html_url}
+              ref={copyModalAnchorRef}
+            >
               Repository
             </a>,
             <a key={params.row.id} href={editUrl}>
@@ -125,13 +129,13 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
         },
       },
     ];
+
+    return [...columns, ...actionsCol];
   }, []);
 
-  const cols = [...columns, ...actionsCol];
-
-  // const handleCloseCloneDialog = () => {
-  //   setShowDuplicateDialog(false);
-  // };
+  const handleCloseCopyModal = () => {
+    setCopyCurrentRepoName(null);
+  };
 
   return (
     <div style={{ height: 600, width: '100%' }}>
@@ -147,7 +151,13 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
         disableColumnMenu={true}
         isRowSelectable={() => false}
       />
-      {showDuplicateDialog && <div />}
+      {copyCurrentRepoName && (
+        <MakeCopyModal
+          anchorEl={copyModalAnchorRef.current}
+          handleClose={handleCloseCopyModal}
+          serviceFullName={copyCurrentRepoName}
+        />
+      )}
     </div>
   );
 };

@@ -15,9 +15,6 @@ export const Dashboard = () => {
   const { data: orgRepos, isLoading: isLoadingOrgRepos } =
     useGetOrganizationReposQuery('hakonb-org2');
 
-  console.log('orgRepos', orgRepos);
-  console.log('userStarredRepos', userStarredRepos);
-
   return (
     <div style={{ marginTop: '100px' }}>
       <h1>Fav repos</h1>
