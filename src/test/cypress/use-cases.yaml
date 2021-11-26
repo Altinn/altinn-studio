@@ -44,8 +44,6 @@ steps:
 
    yarn run cy:version
 
-   yarn run cy:verify
-
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'
 
