@@ -100,12 +100,12 @@ export function Resources() {
   return (
     <Grid style={{
       backgroundColor: '#F5F5F5',
-      marginTop: 84,
+      marginTop: 60,
     }}
       container
     >
       <Grid item xs={12}>
-        <h2 style={{ marginBottom: 12 }}>Ressurser</h2>
+        <h2 style={{ marginBottom: 12, fontSize: '1.13rem' }}>Ressurser</h2>
       </Grid>
       <Grid item xs={12}>
         <Divider style={{ marginBottom: 12 }} />
