@@ -1,6 +1,5 @@
-import { IGiteaOrganisation } from 'app-shared/types';
+import { IGiteaOrganisation, IRepository } from 'app-shared/types';
 import { designerApi, TagTypes } from './designerApi';
-import { IRepository } from 'app-shared/types';
 
 export type Organizations = Array<IGiteaOrganisation>;
 
