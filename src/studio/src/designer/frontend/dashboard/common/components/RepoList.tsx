@@ -14,6 +14,8 @@ import { MakeCopyModal } from 'common/components/MakeCopyModal';
 
 import { IRepository } from 'app-shared/types';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
+import { IconButton } from '@mui/material';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'services/userApi';
 
 type GetRepoUrl = {
   repoIsClonedLocally: boolean;
@@ -39,6 +41,9 @@ type RepoListType = {
 
 export const RepoList = ({ repos, isLoading }: RepoListType) => {
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
+  const [ setStarredRepo ] = useSetStarredRepoMutation();
+  const [ unsetStarredRepo ] = useUnsetStarredRepoMutation();
+
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
     { field: 'commodity', sort: 'asc' },
   ]);
@@ -50,6 +55,30 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
   };
 
   const cols = React.useMemo(() => {
+    const favouriteActionCol: GridActionsColDef = {
+      field: '',
+      headerName: '',
+      hideSortIcons: true,
+      type: 'actions',
+      width: 50,
+      getActions: (params: GridRowParams) => {
+        const repo = params.row as IRepository;
+
+        const handleToggleFav = () => {
+          if (repo.user_has_starred) {
+           unsetStarredRepo(repo);
+          } else {
+            setStarredRepo(repo);
+          }
+        }
+        return [
+          <IconButton key={params.row.id} onClick={handleToggleFav}>
+            <i style={{ fontSize: 26 }} className={repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'} />
+          </IconButton>
+        ]
+      }
+    };
+
     const columns: GridColDef[] = [
       {
         field: 'name',
@@ -152,7 +181,7 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
       },
     ];
 
-    return [...columns, ...actionsCol];
+    return [favouriteActionCol, ...columns, ...actionsCol];
   }, []);
 
   const handleCloseCopyModal = () => {

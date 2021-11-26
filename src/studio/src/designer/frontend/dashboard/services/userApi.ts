@@ -21,8 +21,45 @@ export const userApi = designerApi.injectEndpoints({
         },
       ],
     }),
-  }),
+    setStarredRepo: builder.mutation<void, IRepository>({
+      query: (repo => ({
+        url: `user/starred/${repo.owner.login}/${repo.name}`,
+        method: 'PUT'
+      })),
+      async onQueryStarted(repo, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          userApi.util.updateQueryData('getUserStarredRepos', undefined, (draft) => {
+            draft.push(repo);
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      }
+    }),
+    unsetStarredRepo: builder.mutation<void, IRepository>({
+      query: (repo => ({
+        url: `user/starred/${repo.owner.login}/${repo.name}`,
+        method: 'DELETE'
+      })),
+      async onQueryStarted(repo, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          userApi.util.updateQueryData('getUserStarredRepos', undefined, (draft) => {
+            draft.splice(draft.findIndex((r) => r.id === repo.id), 1);
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      }
+    })
+  }
+  ),
 });
 
-export const { endpoints, useGetUserReposQuery, useGetUserStarredReposQuery } =
+export const { endpoints, useGetUserReposQuery, useGetUserStarredReposQuery, useSetStarredRepoMutation, useUnsetStarredRepoMutation } =
   userApi;
