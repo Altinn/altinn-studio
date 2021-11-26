@@ -9,6 +9,8 @@ import {
   GridValueFormatterParams,
   GridColDef,
 } from '@mui/x-data-grid';
+import { makeStyles } from '@material-ui/core';
+import cn from 'classnames';
 
 import { MakeCopyModal } from 'common/components/MakeCopyModal';
 
@@ -45,7 +47,7 @@ const pageSize = 8;
 
 const getTableHeight = (rows: IRepository[]) => {
   if (!rows || rows.length === 0) {
-    return baseHeight;
+    return baseHeight + rowHeight;
   }
 
   const visibleRows = rows.length > pageSize ? pageSize : rows.length;
@@ -57,7 +59,38 @@ const getTableHeight = (rows: IRepository[]) => {
 
 const defaultArray: IRepository[] = [];
 
+const useStyles = makeStyles({
+  repoLink: {
+    color: '#579b2e',
+
+    '&:hover': {
+      color: '#579b2e',
+    },
+  },
+  editLink: {
+    color: '#165db8',
+
+    '&:hover': {
+      color: '#165db8',
+    },
+  },
+  actionLink: {
+    marginRight: '1rem',
+    display: 'flex',
+    alignItems: 'center',
+
+    '&:hover': {
+      'text-decoration': 'none',
+    },
+
+    '&:hover span': {
+      'text-decoration': 'underline',
+    },
+  },
+});
+
 export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
+  const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [ setStarredRepo ] = useSetStarredRepoMutation();
   const [ unsetStarredRepo ] = useUnsetStarredRepoMutation();
@@ -150,14 +183,9 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
             <a
               key={params.row.id}
               href={params.row.html_url}
-              style={{
-                color: '#579b2e',
-                marginRight: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-              }}
+              className={cn(classes.actionLink, classes.repoLink)}
             >
-              Repository{' '}
+              <span>Repository</span>{' '}
               <i
                 className='fa fa-gitea'
                 style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
@@ -166,28 +194,23 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
             <a
               key={params.row.id}
               href={editUrl}
-              style={{
-                color: '#165db8',
-                marginRight: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-              }}
+              className={cn(classes.actionLink, classes.editLink)}
             >
-              Rediger app{' '}
+              <span>Rediger app</span>{' '}
               <i
                 className='fa fa-edit'
                 style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
               />
             </a>,
             <GridActionsCellItem
-              icon={<i className='fa fa-copy' />}
+              icon={<i className='fa fa-copy' style={{ fontSize: '2rem' }} />}
               key={params.row.id}
               onClick={handleDuplicateClick}
               showInMenu={true}
               label='Lag kopi'
             />,
             <GridActionsCellItem
-              icon={<i className='fa fa-newtab' />}
+              icon={<i className='fa fa-newtab' style={{ fontSize: '2rem' }} />}
               key={params.row.id}
               onClick={handleOpenInNewClick}
               showInMenu={true}

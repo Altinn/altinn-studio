@@ -324,12 +324,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (!string.IsNullOrEmpty(searchOption.SortBy))
             {
-                giteaSearchUriString += $"&sort={searchOption.SortBy}";
+                if (new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
+                {
+                    giteaSearchUriString += $"&sort={searchOption.SortBy}";
+                }
             }
 
             if (!string.IsNullOrEmpty(searchOption.Order))
             {
-                giteaSearchUriString += $"&order={searchOption.Order}";
+                if (new[] { "asc", "desc" }.Contains(searchOption.Order, StringComparer.OrdinalIgnoreCase))
+                {
+                    giteaSearchUriString += $"&order={searchOption.Order}";
+                }
             }
 
             if (searchOption.Page != 0)
@@ -363,8 +369,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         searchResults.TotalPages = searchOption.Page;
                     }
-                    
-                } 
+                }
+
+                if (searchResults.TotalCount > 0 && searchResults.TotalPages == 0)
+                {
+                    searchResults.TotalPages = 1;
+                }
             }
             else
             {
