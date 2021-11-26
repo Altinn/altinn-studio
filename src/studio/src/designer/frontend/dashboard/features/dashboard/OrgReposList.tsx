@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { GridSortModel } from '@mui/x-data-grid';
 
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
@@ -68,6 +69,10 @@ export const OrgReposList = () => {
   const { data: orgs } = useGetOrganizationsQuery();
   const [page, setPage] = React.useState(0);
 
+  const [sortModel, setSortModel] = React.useState<GridSortModel>([
+    { field: 'alpha', sort: 'asc' },
+  ]);
+
   const { data: starred, isLoading: isLoadingStarred } =
     useGetUserStarredReposQuery();
 
@@ -76,10 +81,16 @@ export const OrgReposList = () => {
   const { data, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,
     page: page + 1,
+    sortby: sortModel?.[0]?.field,
+    order: sortModel?.[0]?.sort,
   });
 
   const handlePageChange = (page: number) => {
     setPage(page);
+  };
+
+  const handleSortModelChange = (newSortModel: GridSortModel) => {
+    setSortModel(newSortModel);
   };
 
   return (
@@ -91,6 +102,8 @@ export const OrgReposList = () => {
         isServerSort={true}
         rowCount={data?.totalCount}
         onPageChange={handlePageChange}
+        onSortModelChange={handleSortModelChange}
+        sortModel={sortModel}
       />
     </div>
   );

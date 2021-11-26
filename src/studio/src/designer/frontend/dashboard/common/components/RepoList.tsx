@@ -46,6 +46,8 @@ type RepoListType = {
   pageSize?: number;
   rowCount?: number;
   onPageChange?: (page: number) => void;
+  onSortModelChange?: (newSortModel: GridSortModel) => void;
+  sortModel?: GridSortModel;
 };
 
 const defaultPageSize = 8;
@@ -89,20 +91,14 @@ export const RepoList = ({
   isServerSort = false,
   rowCount,
   onPageChange,
+  onSortModelChange,
+  sortModel,
 }: RepoListType) => {
   const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = React.useRef(null);
-
-  const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: 'name', sort: 'asc' },
-  ]);
-
-  const handleSortChange = (newSortModel: GridSortModel) => {
-    setSortModel(newSortModel);
-  };
 
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -143,7 +139,7 @@ export const RepoList = ({
       {
         field: 'owner.created_by',
         headerName: 'Opprettet av',
-        // sortable: false,
+        sortable: false,
         width: 160,
         valueGetter: (params: GridValueGetterParams) => {
           const owner = params.row.owner as User;
@@ -250,9 +246,10 @@ export const RepoList = ({
           rowsPerPageOptions={[pageSize]}
           disableColumnMenu={true}
           isRowSelectable={() => false}
-          sortingMode='server'
           sortModel={sortModel}
-          onSortModelChange={handleSortChange}
+          paginationMode='server'
+          sortingMode='server'
+          onSortModelChange={onSortModelChange}
           rowCount={rowCount}
           onPageChange={onPageChange}
         />
