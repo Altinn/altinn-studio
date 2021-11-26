@@ -46,12 +46,12 @@ export function Header() {
           alignItems='center'
           justifyContent='space-between'
         >
-          <Grid item xs={6} justifyContent='flex-start'>
+          <Grid item xs={6}>
             <a href='/'>
               <img src={altinnWhiteImgLogoHeaderUrl} alt='Altinn logo' />
             </a>
           </Grid>
-          <Grid item justifyContent='flex-end'>
+          <Grid item>
             <HeaderMenu />
           </Grid>
         </Grid>
