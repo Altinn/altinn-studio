@@ -89,6 +89,19 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns a list over repositories
+        /// </summary>
+        /// <param name="searchOptions">The search params</param>
+        /// <returns>List of repositories that user has access to.</returns>
+        [HttpGet]
+        [Route("searchrepo")]
+        public async Task<List<RepositoryModel>> SearchRepo(SearchOptions searchOptions)
+        {
+            SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
+            return repositories.Data;
+        }
+
+        /// <summary>
         /// Returns a given app repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
