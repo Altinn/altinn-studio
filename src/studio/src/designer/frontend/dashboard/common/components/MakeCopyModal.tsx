@@ -2,7 +2,6 @@ import { Typography } from '@material-ui/core';
 import { AltinnSpinner } from 'app-shared/components';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { IRepository } from 'app-shared/types';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
@@ -10,14 +9,14 @@ import {
 import { post } from 'app-shared/utils/networking';
 import * as React from 'react';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { appNameRegex } from '../createService/createNewService';
+import { appNameRegex } from '../../features/createService/createNewService';
 import { PopoverOrigin } from '@material-ui/core/Popover';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
   handleClose: (event?: React.MouseEvent<HTMLElement>) => void;
-  service: IRepository;
+  serviceFullName: string;
 }
 
 const transformAnchorOrigin: PopoverOrigin = {
@@ -40,8 +39,11 @@ const inputHeaderStyling = {
   fontSize: '18px',
 };
 
-function MakeCopyModal(props: IMakeCopyModalProps) {
-  const { anchorEl, handleClose, service } = props;
+export const MakeCopyModal = ({
+  anchorEl,
+  handleClose,
+  serviceFullName,
+}: IMakeCopyModalProps) => {
   const language = useAppSelector((state) => state.language.language);
   const [repoName, setRepoName] = React.useState<string>('');
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
@@ -52,7 +54,8 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
     if (validAppName()) {
       setIsLoading(true);
       try {
-        const [org, app] = service.full_name.split('/');
+        const [org, app] = serviceFullName.split('/');
+
         const url = `${window.location.origin}/designer/api/v1/repos/copyapp?org=${org}&sourceRepository=${app}&targetRepository=${repoName}`;
         await post(url);
         dispatch(
@@ -166,6 +169,6 @@ function MakeCopyModal(props: IMakeCopyModalProps) {
       )}
     </AltinnPopoverSimple>
   );
-}
+};
 
 export default MakeCopyModal;

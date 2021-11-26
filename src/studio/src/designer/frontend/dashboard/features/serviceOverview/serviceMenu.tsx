@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { IRepository } from 'app-shared/types';
-import MakeCopyModal from '../makeCopy/MakeCopyModal';
+import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import { PopoverOrigin } from '@material-ui/core/Popover';
 import { useAppSelector } from 'common/hooks';
 
@@ -87,7 +87,7 @@ function ServiceMenu(props: IServiceMenuProps) {
       <MakeCopyModal
         anchorEl={copyModalAnchor}
         handleClose={handleCloseCopyModal}
-        service={service}
+        serviceFullName={service.full_name}
       />
     </>
   );

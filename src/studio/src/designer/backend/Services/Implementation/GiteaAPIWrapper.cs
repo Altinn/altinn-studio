@@ -147,6 +147,56 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return repos;
         }
 
+        /// <summary>
+        /// Gets all repositores that the user has starred.
+        /// </summary>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public async Task<IList<RepositoryClient.Model.Repository>> GetStarred()
+        {
+            var starredRepos = new List<RepositoryClient.Model.Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync("user/starred");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
+                starredRepos.AddRange(repos);
+            }
+
+            return starredRepos;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> PutStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         /// <inheritdoc/>
         public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
         {

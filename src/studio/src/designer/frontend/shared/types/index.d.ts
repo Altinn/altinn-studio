@@ -181,3 +181,13 @@ export interface IUser {
   login: string;
   full_name: string;
 }
+
+export interface IGiteaOrganisation {
+  avatar_url: string;
+  description?: string;
+  id: number;
+  location?: string;
+  username: string;
+  website?: string;
+  full_name?: string;
+}

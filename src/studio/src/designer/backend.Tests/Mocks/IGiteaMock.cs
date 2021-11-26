@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
@@ -164,6 +163,21 @@ namespace Designer.Tests.Mocks
         }
 
         public Task<IList<Repository>> GetOrgRepos(string org)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IList<Repository>> GetStarred()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> PutStarred(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteStarred(string org, string repository)
         {
             throw new NotImplementedException();
         }
