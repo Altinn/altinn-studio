@@ -43,7 +43,7 @@ const pageSize = 8;
 
 const getTableHeight = (rows: IRepository[]) => {
   if (!rows || rows.length === 0) {
-    return baseHeight;
+    return baseHeight + rowHeight;
   }
 
   const visibleRows = rows.length > pageSize ? pageSize : rows.length;
@@ -151,14 +151,14 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
               />
             </a>,
             <GridActionsCellItem
-              icon={<i className='fa fa-copy' />}
+              icon={<i className='fa fa-copy' style={{ fontSize: '2rem' }} />}
               key={params.row.id}
               onClick={handleDuplicateClick}
               showInMenu={true}
               label='Lag kopi'
             />,
             <GridActionsCellItem
-              icon={<i className='fa fa-newtab' />}
+              icon={<i className='fa fa-newtab' style={{ fontSize: '2rem' }} />}
               key={params.row.id}
               onClick={handleOpenInNewClick}
               showInMenu={true}
