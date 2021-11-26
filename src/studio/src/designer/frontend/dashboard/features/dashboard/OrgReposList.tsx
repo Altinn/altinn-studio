@@ -95,7 +95,7 @@ export const OrgReposList = () => {
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.6rem' }}>
+      <h1 style={{ fontSize: '1.13rem' }}>
         {getReposLabel({ selectedContext, orgs })}
       </h1>
       <RepoList
