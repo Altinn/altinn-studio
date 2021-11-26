@@ -48,12 +48,15 @@ const getReposLabel = ({ selectedContext, orgs }: GetReposLabel) => {
   } applikasjoner`;
 };
 
-const setUserHasStarreOnRepos = (orgs: IRepository[], starred: IRepository[]): IRepository[] => {
+const setUserHasStarreOnRepos = (
+  orgs: IRepository[],
+  starred: IRepository[],
+): IRepository[] => {
   return orgs?.map((org) => {
     return {
       ...org,
-      user_has_starred: (starred?.find((o) => o.id === org.id) ? true : false),
-    }
+      user_has_starred: starred?.find((o) => o.id === org.id) ? true : false,
+    };
   });
 };
 
@@ -63,19 +66,32 @@ export const OrgReposList = () => {
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs } = useGetOrganizationsQuery();
+  const [page, setPage] = React.useState(0);
 
-  const { data: starred, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
+  const { data: starred, isLoading: isLoadingStarred } =
+    useGetUserStarredReposQuery();
 
   const uid = getUidFilter({ selectedContext, userId });
 
   const { data, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,
+    page: page + 1,
   });
+
+  const handlePageChange = (page: number) => {
+    setPage(page);
+  };
 
   return (
     <div>
       <h1>{getReposLabel({ selectedContext, orgs })}</h1>
-      <RepoList repos={setUserHasStarreOnRepos(data?.data, starred)} isLoading={isLoadingOrgRepos || isLoadingStarred} />
+      <RepoList
+        repos={setUserHasStarreOnRepos(data?.data, starred)}
+        isLoading={isLoadingOrgRepos || isLoadingStarred}
+        isServerSort={true}
+        rowCount={data?.totalCount}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 };

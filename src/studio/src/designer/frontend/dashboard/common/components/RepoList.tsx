@@ -42,7 +42,10 @@ const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
 type RepoListType = {
   repos: IRepository[];
   isLoading: boolean;
+  isServerSort?: boolean;
   pageSize?: number;
+  rowCount?: number;
+  onPageChange?: (page: number) => void;
 };
 
 const defaultPageSize = 8;
@@ -83,6 +86,9 @@ export const RepoList = ({
   repos = defaultArray,
   isLoading,
   pageSize = defaultPageSize,
+  isServerSort = false,
+  rowCount,
+  onPageChange,
 }: RepoListType) => {
   const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
@@ -90,13 +96,13 @@ export const RepoList = ({
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = React.useRef(null);
 
-  // const [sortModel, setSortModel] = React.useState<GridSortModel>([
-  //   { field: 'commodity', sort: 'asc' },
-  // ]);
+  const [sortModel, setSortModel] = React.useState<GridSortModel>([
+    { field: 'name', sort: 'asc' },
+  ]);
 
-  // const handleSortChange = (newSortModel: GridSortModel) => {
-  //   setSortModel(newSortModel);
-  // };
+  const handleSortChange = (newSortModel: GridSortModel) => {
+    setSortModel(newSortModel);
+  };
 
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -232,25 +238,37 @@ export const RepoList = ({
     setCopyCurrentRepoName(null);
   };
 
-  // const serverSortModeProps = {
-
-  // }
-
   return (
     <div style={{ width: '100%' }} ref={copyModalAnchorRef}>
-      <DataGrid
-        autoHeight={true}
-        loading={isLoading}
-        rows={repos}
-        columns={cols}
-        pageSize={pageSize}
-        rowsPerPageOptions={[pageSize]}
-        // sortingMode='client'
-        // sortModel={sortModel}
-        // onSortModelChange={handleSortChange}
-        disableColumnMenu={true}
-        isRowSelectable={() => false}
-      />
+      {isServerSort ? (
+        <DataGrid
+          autoHeight={true}
+          loading={isLoading}
+          rows={repos}
+          columns={cols}
+          pageSize={pageSize}
+          rowsPerPageOptions={[pageSize]}
+          disableColumnMenu={true}
+          isRowSelectable={() => false}
+          sortingMode='server'
+          sortModel={sortModel}
+          onSortModelChange={handleSortChange}
+          rowCount={rowCount}
+          onPageChange={onPageChange}
+        />
+      ) : (
+        <DataGrid
+          autoHeight={true}
+          loading={isLoading}
+          rows={repos}
+          columns={cols}
+          pageSize={pageSize}
+          rowsPerPageOptions={[pageSize]}
+          disableColumnMenu={true}
+          isRowSelectable={() => false}
+        />
+      )}
+
       {copyCurrentRepoName && (
         <MakeCopyModal
           anchorEl={copyModalAnchorRef.current}
