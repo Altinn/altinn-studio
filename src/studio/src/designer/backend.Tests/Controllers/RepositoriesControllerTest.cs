@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers
         public async Task Contents_ContentsReturned_OK()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/repositories/ttd/apps-test/contents";
+            string uri = $"{_versionPrefix}/repos/ttd/apps-test/contents";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
@@ -72,7 +72,7 @@ namespace Designer.Tests.Controllers
         public async Task Contents_ContentsIsNull_BadRequest()
         {
             // Arrange
-            string uri = $"{_versionPrefix}/repositories/acn-sbuad/apps-test/contents?path=App";
+            string uri = $"{_versionPrefix}/repos/acn-sbuad/apps-test/contents?path=App";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
@@ -96,7 +96,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_RepoHasCreatedStatus_DeleteRepositoryIsNotCalled()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
@@ -120,7 +120,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_TargetRepoAlreadyExists_ConflictIsReturned()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
+            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
 
             HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
@@ -138,7 +138,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_GiteaTimeout_DeleteRepositoryIsCalled()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
@@ -165,7 +165,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_ExceptionIsThrownByService_InternalServerError()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
+            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
@@ -192,7 +192,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_InvalidTargetRepoName_BadRequest()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CopyApp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
+            string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
 
             HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
@@ -210,7 +210,7 @@ namespace Designer.Tests.Controllers
         public async Task CopyApp_InvalidSourceRepoName_BadRequest()
         {
             // Arrange
-            string uri = "/designerapi/Repository/CopyApp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
+            string uri = "/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
 
             HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
@@ -230,7 +230,7 @@ namespace Designer.Tests.Controllers
         public async Task CreateApp_InvalidRepoName_BadRequest()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CreateApp?org=ttd&repository=2021-application";
+            string uri = $"/designer/api/v1/repos/ttd&repository=2021-application";
 
             HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);

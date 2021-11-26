@@ -35,6 +35,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<IList<RepositoryClient.Model.Repository>> GetStarred();
 
         /// <summary>
+        /// Adds a star to the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository to star</param>
+        /// <param name="repository">The repository to star</param>
+        Task<bool> PutStarred(string org, string repository);
+
+        /// <summary>
+        /// Deletes the star marking from the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository</param>
+        /// <param name="repository">The repository to remove the star from</param>
+        Task<bool> DeleteStarred(string org, string repository);
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
