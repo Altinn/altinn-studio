@@ -53,7 +53,9 @@ const getTableHeight = (rows: IRepository[]) => {
   return height;
 };
 
-export const RepoList = ({ repos, isLoading }: RepoListType) => {
+const defaultArray: IRepository[] = [];
+
+export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
     { field: 'commodity', sort: 'asc' },
