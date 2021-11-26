@@ -26,7 +26,7 @@ type GetRepoUrl = {
 
 const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
   if (!repoIsClonedLocally) {
-    return `/clone-app/${repoFullName}`;
+    return `/Home/Index#/clone-app/${repoFullName}`;
   }
 
   if (repoFullName.endsWith('-datamodels')) {
@@ -41,21 +41,7 @@ type RepoListType = {
   isLoading: boolean;
 };
 
-const baseHeight = 115;
-const rowHeight = 52;
 const pageSize = 8;
-
-const getTableHeight = (rows: IRepository[]) => {
-  if (!rows || rows.length === 0) {
-    return baseHeight + rowHeight;
-  }
-
-  const visibleRows = rows.length > pageSize ? pageSize : rows.length;
-
-  const height = baseHeight + rowHeight * visibleRows;
-
-  return height;
-};
 
 const defaultArray: IRepository[] = [];
 
@@ -222,18 +208,16 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, []);
+  }, [classes.actionLink, classes.editLink, classes.repoLink]);
 
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
   };
 
   return (
-    <div
-      style={{ height: getTableHeight(repos), width: '100%' }}
-      ref={copyModalAnchorRef}
-    >
+    <div style={{ width: '100%' }} ref={copyModalAnchorRef}>
       <DataGrid
+        autoHeight={true}
         loading={isLoading}
         rows={repos}
         columns={cols}
