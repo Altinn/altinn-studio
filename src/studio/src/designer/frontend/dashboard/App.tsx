@@ -28,6 +28,7 @@ import { Dashboard } from 'features/dashboard';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
 
 import './App.css';
+import { Footer } from 'common/components/Footer';
 
 export const App = () => {
   const dispatch = useAppDispatch();
@@ -92,11 +93,11 @@ export const App = () => {
                   exact={true}
                   render={() => (
                     <Grid
-                      container={true}
+                      container
                       justifyContent='center'
                       direction='row'
                     >
-                      <Grid item={true} xs={10}>
+                      <Grid item xs={10}>
                         <ServicesOverview />
                       </Grid>
                     </Grid>
@@ -109,6 +110,9 @@ export const App = () => {
                     <Grid container={true} justifyContent='center'>
                       <Grid item={true} xs={10}>
                         <Dashboard />
+                      </Grid>
+                      <Grid item xs={12}>
+                          <Footer />
                       </Grid>
                     </Grid>
                   )}
