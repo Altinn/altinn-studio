@@ -1,36 +1,26 @@
 import * as React from 'react';
 
-import { RepoList } from 'common/components/RepoList';
-import { useGetOrganizationReposQuery } from 'services/organizationApi';
-import {
-  useGetUserReposQuery,
-  useGetUserStarredReposQuery,
-} from 'services/userApi';
+import { FavoriteReposList } from './FavoriteReposList';
+import { UserReposList } from './UserReposList';
+import { OrgReposList } from './OrgReposList';
+
+import { useAppSelector } from 'common/hooks';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 export const Dashboard = () => {
-  const { data: userRepos, isLoading: isLoadingUserRepos } =
-    useGetUserReposQuery();
-  const { data: userStarredRepos, isLoading: isLoadingUserStarredRepos } =
-    useGetUserStarredReposQuery();
-  const { data: orgRepos, isLoading: isLoadingOrgRepos } =
-    useGetOrganizationReposQuery('hakonb-org2');
-
-  console.log('orgRepos', orgRepos);
-  console.log('userStarredRepos', userStarredRepos);
+  const selectedContext = useAppSelector(
+    (state) => state.dashboard.selectedContext,
+  );
 
   return (
     <div style={{ marginTop: '100px' }}>
-      <h1>Fav repos</h1>
-      <RepoList
-        repos={userStarredRepos}
-        isLoading={isLoadingUserStarredRepos}
-      />
+      <FavoriteReposList />
 
-      <h1>User repos</h1>
-      <RepoList repos={userRepos} isLoading={isLoadingUserRepos} />
-
-      <h1>Org repos</h1>
-      <RepoList repos={orgRepos} isLoading={isLoadingOrgRepos} />
+      {selectedContext === SelectedContextType.Self ? (
+        <UserReposList />
+      ) : (
+        <OrgReposList />
+      )}
     </div>
   );
 };
