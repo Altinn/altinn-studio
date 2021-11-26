@@ -350,12 +350,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (response.Headers.TryGetValues("Link", out IEnumerable<string> linkValues))
                 {
                     LinkHeader linkHeader = LinkHeader.LinksFromHeader(linkValues.First());
-                    Uri linkUri = new Uri(linkHeader.LastLink);
-                    string page = HttpUtility.ParseQueryString(linkUri.Query).Get("page");
-                    if(int.TryParse(page, out int lastPage))
+                    if (!string.IsNullOrEmpty(linkHeader.LastLink))
                     {
-                        searchResults.TotalPages = lastPage;
+                        Uri linkUri = new Uri(linkHeader.LastLink);
+                        string page = HttpUtility.ParseQueryString(linkUri.Query).Get("page");
+                        if (int.TryParse(page, out int lastPage))
+                        {
+                            searchResults.TotalPages = lastPage;
+                        }
                     }
+                    else
+                    {
+                        searchResults.TotalPages = searchOption.Page;
+                    }
+                    
                 } 
             }
             else

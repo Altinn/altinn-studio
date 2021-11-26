@@ -95,10 +95,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
         [Route("searchrepo")]
-        public async Task<List<RepositoryModel>> SearchRepo(SearchOptions searchOptions)
+        public async Task<SearchResults> SearchRepo(SearchOptions searchOptions)
         {
             SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
-            return repositories.Data;
+            return repositories;
         }
 
         /// <summary>
