@@ -37,6 +37,22 @@ type RepoListType = {
   isLoading: boolean;
 };
 
+const baseHeight = 115;
+const rowHeight = 52;
+const pageSize = 8;
+
+const getTableHeight = (rows: IRepository[]) => {
+  if (!rows || rows.length === 0) {
+    return 1;
+  }
+
+  const visibleRows = rows.length > pageSize ? pageSize : rows.length;
+
+  const height = baseHeight + rowHeight * visibleRows;
+
+  return height;
+};
+
 export const RepoList = ({ repos, isLoading }: RepoListType) => {
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
@@ -160,12 +176,15 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
   };
 
   return (
-    <div style={{ height: 600, width: '100%' }} ref={copyModalAnchorRef}>
+    <div
+      style={{ height: getTableHeight(repos), width: '100%' }}
+      ref={copyModalAnchorRef}
+    >
       <DataGrid
         loading={isLoading}
         rows={repos}
         columns={cols}
-        pageSize={8}
+        pageSize={pageSize}
         rowsPerPageOptions={[5]}
         sortingMode='server'
         sortModel={sortModel}
