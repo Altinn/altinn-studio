@@ -101,21 +101,47 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
           };
 
           return [
-            <a key={params.row.id} href={params.row.html_url}>
-              Repository
+            <a
+              key={params.row.id}
+              href={params.row.html_url}
+              style={{
+                color: '#579b2e',
+                marginRight: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              Repository{' '}
+              <i
+                className='fa fa-gitea'
+                style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
+              />
             </a>,
-            <a key={params.row.id} href={editUrl}>
-              Rediger app
+            <a
+              key={params.row.id}
+              href={editUrl}
+              style={{
+                color: '#165db8',
+                marginRight: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              Rediger app{' '}
+              <i
+                className='fa fa-edit'
+                style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
+              />
             </a>,
             <GridActionsCellItem
-              icon={<i className='fa fa-ellipsismenu' />}
+              icon={<i className='fa fa-copy' />}
               key={params.row.id}
               onClick={handleDuplicateClick}
               showInMenu={true}
               label='Lag kopi'
             />,
             <GridActionsCellItem
-              icon={<i className='fa fa-ellipsismenu' />}
+              icon={<i className='fa fa-newtab' />}
               key={params.row.id}
               onClick={handleOpenInNewClick}
               showInMenu={true}
