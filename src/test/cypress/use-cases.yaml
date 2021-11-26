@@ -8,7 +8,7 @@ trigger: none
 pr: none
 
 variables:  
-  cyCacheDir: "~/.cache/Cypress"
+  cyCacheDir: "/home/AzDevOps/.cache/Cypress"
   cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
 
 #schedules:
@@ -28,23 +28,23 @@ steps:
       *.xml
   condition: succeededOrFailed()
 
-#- task: Cache@2
-#  inputs:
-#    key: '$(cyCacheDir)/yarn.lock'
-#    path: $(cyCacheDir)
-#    cacheHitVar: CYPRESS_CACHE_RESTORED
-#  displayName: "Cache Cypress binary"
+- task: Cache@2
+  inputs:
+    key: '$(cyCacheDir)/yarn.lock'
+    path: $(cyCacheDir)
+    cacheHitVar: CYPRESS_CACHE_RESTORED
+  displayName: "Cache Cypress binary"
 
 - bash: |
-   yarn --frozen-lockfile
+   yarn --immutable
 
    npx cypress cache path
 
    npx cypress cache list
 
-   yarn run cy:version   
+   yarn run cy:version
 
-   yarn cache dir   
+   yarn run cy:verify
 
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'
