@@ -95,7 +95,9 @@ export const OrgReposList = () => {
 
   return (
     <div>
-      <h1>{getReposLabel({ selectedContext, orgs })}</h1>
+      <h1 style={{ fontSize: '1.6rem' }}>
+        {getReposLabel({ selectedContext, orgs })}
+      </h1>
       <RepoList
         repos={setUserHasStarreOnRepos(data?.data, starred)}
         isLoading={isLoadingOrgRepos || isLoadingStarred}

@@ -9,7 +9,7 @@ export const FavoriteReposList = () => {
 
   return (
     <div>
-      <h1>Favoritter</h1>
+      <h1 style={{ fontSize: '1.6rem' }}>Favoritter</h1>
       <RepoList
         repos={userStarredRepos}
         isLoading={isLoadingUserStarredRepos}
