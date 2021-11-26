@@ -39,7 +39,25 @@ type RepoListType = {
   isLoading: boolean;
 };
 
-export const RepoList = ({ repos, isLoading }: RepoListType) => {
+const baseHeight = 115;
+const rowHeight = 52;
+const pageSize = 8;
+
+const getTableHeight = (rows: IRepository[]) => {
+  if (!rows || rows.length === 0) {
+    return baseHeight;
+  }
+
+  const visibleRows = rows.length > pageSize ? pageSize : rows.length;
+
+  const height = baseHeight + rowHeight * visibleRows;
+
+  return height;
+};
+
+const defaultArray: IRepository[] = [];
+
+export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [ setStarredRepo ] = useSetStarredRepoMutation();
   const [ unsetStarredRepo ] = useUnsetStarredRepoMutation();
@@ -91,7 +109,7 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
         // sortable: false,
         width: 160,
         valueGetter: (params: GridValueGetterParams) => {
-          const owner = params.getValue(params.id, 'owner') as User;
+          const owner = params.row.owner as User;
           return owner.full_name || owner.login;
         },
       },
@@ -111,7 +129,6 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        headerName: '',
         flex: 1,
         type: 'actions',
         align: 'right',
@@ -189,13 +206,16 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
   };
 
   return (
-    <div style={{ height: 600, width: '100%' }} ref={copyModalAnchorRef}>
+    <div
+      style={{ height: getTableHeight(repos), width: '100%' }}
+      ref={copyModalAnchorRef}
+    >
       <DataGrid
         loading={isLoading}
         rows={repos}
         columns={cols}
-        pageSize={8}
-        rowsPerPageOptions={[5]}
+        pageSize={pageSize}
+        rowsPerPageOptions={[pageSize]}
         sortingMode='server'
         sortModel={sortModel}
         onSortModelChange={handleSortChange}

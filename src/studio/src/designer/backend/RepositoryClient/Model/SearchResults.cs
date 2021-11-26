@@ -43,6 +43,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         public bool? Ok { get; set; }
 
         /// <summary>
+        /// Gets or Sets TotalCount
+        /// </summary>
+        [JsonProperty("totalCount")]
+        public int TotalCount { get; set; }
+
+        /// <summary>
+        /// Gets or Sets TotalPages
+        /// </summary>
+        [JsonProperty("totalPages")]
+        public int TotalPages { get; set; }
+
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>

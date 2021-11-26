@@ -2,7 +2,12 @@ import { AppBar, Grid, makeStyles, Toolbar } from '@material-ui/core';
 import { IGiteaOrganisation, IUser } from 'app-shared/types';
 import { altinnWhiteImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import * as React from 'react';
-import { HeaderMenu }  from './HeaderMenu';
+import { HeaderMenu } from './HeaderMenu';
+
+export enum SelectedContextType {
+  All = 'all',
+  Self = 'self',
+}
 
 export interface IHeaderContext {
   selectedContext: string | number;
@@ -26,17 +31,14 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     height: 96,
     paddingLeft: 48,
-    paddingRight: 48
+    paddingRight: 48,
   },
 }));
 
 export function Header() {
   const classes = useStyles();
   return (
-    <AppBar
-      className={classes.appBar}
-      position='static'
-    >
+    <AppBar className={classes.appBar} position='static'>
       <Toolbar className={classes.toolbar}>
         <Grid
           container
@@ -44,12 +46,12 @@ export function Header() {
           alignItems='center'
           justifyContent='space-between'
         >
-          <Grid item xs={6} justifyContent='flex-start'>
+          <Grid item xs={6}>
             <a href='/'>
               <img src={altinnWhiteImgLogoHeaderUrl} alt='Altinn logo' />
             </a>
           </Grid>
-          <Grid item justifyContent='flex-end'>
+          <Grid item>
             <HeaderMenu />
           </Grid>
         </Grid>

@@ -66,6 +66,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
 
         /// <summary>
+        /// Search the repository for the given searchOptions
+        /// </summary>
+        /// <param name="searchOption">the search options</param>
+        Task<SearchResults> SearchRepo(SearchOptions searchOption);
+
+        /// <summary>
         /// Fetch the repository information of a given org and repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

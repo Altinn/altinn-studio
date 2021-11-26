@@ -78,14 +78,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Returns a list over repositories
         /// </summary>
-        /// <param name="repositorySearch">The search params</param>
+        /// <param name="searchOptions">The search params</param>
         /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
         [Route("search")]
-        public async Task<List<RepositoryModel>> Search(RepositorySearch repositorySearch)
+        public async Task<SearchResults> Search(SearchOptions searchOptions)
         {
-            SearchResults repositories = await _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page);
-            return repositories.Data;
+            SearchResults repositories = await _giteaApi.SearchRepo(searchOptions);
+            return repositories;
         }
 
         /// <summary>
@@ -400,7 +400,15 @@ namespace Altinn.Studio.Designer.Controllers
                 ServiceName = repository,
             };
 
-            return await _repository.CreateService(org, config);
+            var repositoryResult = await _repository.CreateService(org, config);
+            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                return Created(repositoryResult.CloneUrl, repositoryResult);
+            }
+            else
+            {
+                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+            }
         }
 
         /// <summary>

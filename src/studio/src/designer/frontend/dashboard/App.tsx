@@ -9,9 +9,15 @@ import { HashRouter as Router, Route } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
-import { DashboardActions, SelectedContextType } from './resources/fetchDashboardResources/dashboardSlice';
+import {
+  DashboardActions,
+  SelectedContext,
+} from './resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
-import Header, { IHeaderContext, HeaderContext } from 'app-shared/navigation/main-header/Header';
+import Header, {
+  IHeaderContext,
+  HeaderContext,
+} from 'app-shared/navigation/main-header/Header';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
 import { CloneService } from 'features/cloneService/cloneServices';
@@ -26,12 +32,15 @@ import './App.css';
 export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
-  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const { data, isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
+  const selectedContext = useAppSelector(
+    (state) => state.dashboard.selectedContext,
+  );
+  const { data, isLoading: isLoadingOrganizations } =
+    useGetOrganizationsQuery();
 
-  const setSelectedContext = (selectedContext: SelectedContextType) => {
+  const setSelectedContext = (selectedContext: SelectedContext) => {
     dispatch(DashboardActions.setSelectedContext({ selectedContext }));
-  }
+  };
 
   const headerContextValue: IHeaderContext = {
     selectableOrgs: data,
@@ -73,7 +82,7 @@ export const App = () => {
       <ThemeProviderV4 theme={themeV4}>
         <ThemeProviderV5 theme={themeV5}>
           <Router>
-            {user && !isLoadingOrganizations? (
+            {user && !isLoadingOrganizations ? (
               <div>
                 <HeaderContext.Provider value={headerContextValue}>
                   <Header />

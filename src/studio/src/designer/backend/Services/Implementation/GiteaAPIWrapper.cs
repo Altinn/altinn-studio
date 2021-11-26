@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -298,6 +298,80 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<SearchResults> SearchRepo(SearchOptions searchOption)
+        {
+            SearchResults searchResults = null;
+
+            if(searchOption.Limit < 1)
+            {
+                searchOption.Limit = _settings.RepoSearchPageCount;
+            }
+
+            string giteaSearchUriString = $"repos/search?limit={searchOption.Limit}";
+
+            if (!string.IsNullOrEmpty(searchOption.Keyword))
+            {
+                giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            if (searchOption.UId != 0)
+            {
+                giteaSearchUriString += $"&uid={searchOption.UId}";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.SortBy))
+            {
+                giteaSearchUriString += $"&sort={searchOption.SortBy}";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.Order))
+            {
+                giteaSearchUriString += $"&order={searchOption.Order}";
+            }
+
+            if (searchOption.Page != 0)
+            {
+                giteaSearchUriString += $"&page={searchOption.Page}";
+            }
+
+            HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await response.Content.ReadAsStringAsync();
+                searchResults = await response.Content.ReadAsAsync<SearchResults>();
+                if (response.Headers.TryGetValues("X-Total-Count", out IEnumerable<string> countValues))
+                {
+                    searchResults.TotalCount = Convert.ToInt32(countValues.First());
+                }
+
+                if (response.Headers.TryGetValues("Link", out IEnumerable<string> linkValues))
+                {
+                    LinkHeader linkHeader = LinkHeader.LinksFromHeader(linkValues.First());
+                    if (!string.IsNullOrEmpty(linkHeader.LastLink))
+                    {
+                        Uri linkUri = new Uri(linkHeader.LastLink);
+                        string page = HttpUtility.ParseQueryString(linkUri.Query).Get("page");
+                        if (int.TryParse(page, out int lastPage))
+                        {
+                            searchResults.TotalPages = lastPage;
+                        }
+                    }
+                    else
+                    {
+                        searchResults.TotalPages = searchOption.Page;
+                    }
+                    
+                } 
+            }
+            else
+            {
+                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+            }
+
+            return searchResults;
         }
 
         /// <inheritdoc/>
