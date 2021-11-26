@@ -413,7 +413,15 @@ namespace Altinn.Studio.Designer.Controllers
                 ServiceName = repository,
             };
 
-            return await _repository.CreateService(org, config);
+            var repositoryResult = await _repository.CreateService(org, config);
+            if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
+            {
+                return Created(repositoryResult.CloneUrl, repositoryResult);
+            }
+            else
+            {
+                return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
+            }
         }
 
         /// <summary>
