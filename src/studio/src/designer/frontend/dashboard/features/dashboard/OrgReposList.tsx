@@ -2,6 +2,10 @@ import * as React from 'react';
 
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
+import {
+  useGetOrganizationsQuery,
+  Organizations,
+} from 'services/organizationApi';
 import { useAppSelector } from 'common/hooks';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
@@ -23,11 +27,31 @@ const getUidFilter = ({ selectedContext, userId }: GetUidFilter) => {
   return selectedContext;
 };
 
+type GetReposLabel = {
+  selectedContext: SelectedContext;
+  orgs: Organizations;
+};
+
+const getReposLabel = ({ selectedContext, orgs }: GetReposLabel) => {
+  if (selectedContext === SelectedContextType.All) {
+    return 'Alle applikasjoner';
+  }
+
+  if (selectedContext === SelectedContextType.Self) {
+    return 'Mine applikasjoner';
+  }
+
+  return `${
+    orgs.find((org) => org.id === selectedContext).full_name
+  } applikasjoner`;
+};
+
 export const OrgReposList = () => {
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
+  const { data: orgs } = useGetOrganizationsQuery();
 
   const uid = getUidFilter({ selectedContext, userId });
 
@@ -37,7 +61,7 @@ export const OrgReposList = () => {
 
   return (
     <div>
-      <h1>Org repos</h1>
+      <h1>{getReposLabel({ selectedContext, orgs })}</h1>
       <RepoList repos={data?.data} isLoading={isLoadingOrgRepos} />
     </div>
   );
