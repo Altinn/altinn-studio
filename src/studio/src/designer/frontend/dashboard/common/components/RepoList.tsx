@@ -100,7 +100,6 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        headerName: '',
         flex: 1,
         type: 'actions',
         align: 'right',
