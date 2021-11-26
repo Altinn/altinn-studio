@@ -83,6 +83,7 @@ export const OrgReposList = () => {
     page: page + 1,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
+    limit: 5,
   });
 
   const handlePageChange = (page: number) => {
@@ -106,6 +107,7 @@ export const OrgReposList = () => {
         onPageChange={handlePageChange}
         onSortModelChange={handleSortModelChange}
         sortModel={sortModel}
+        pageSize={5}
       />
     </div>
   );
