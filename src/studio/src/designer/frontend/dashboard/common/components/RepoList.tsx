@@ -17,7 +17,10 @@ import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import { IRepository } from 'app-shared/types';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { IconButton } from '@mui/material';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'services/userApi';
+import {
+  useSetStarredRepoMutation,
+  useUnsetStarredRepoMutation,
+} from 'services/userApi';
 
 type GetRepoUrl = {
   repoIsClonedLocally: boolean;
@@ -26,7 +29,7 @@ type GetRepoUrl = {
 
 const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
   if (!repoIsClonedLocally) {
-    return `/clone-app/${repoFullName}`;
+    return `/Home/Index#/clone-app/${repoFullName}`;
   }
 
   if (repoFullName.endsWith('-datamodels')) {
@@ -39,23 +42,15 @@ const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
 type RepoListType = {
   repos: IRepository[];
   isLoading: boolean;
+  isServerSort?: boolean;
+  pageSize?: number;
+  rowCount?: number;
+  onPageChange?: (page: number) => void;
+  onSortModelChange?: (newSortModel: GridSortModel) => void;
+  sortModel?: GridSortModel;
 };
 
-const baseHeight = 115;
-const rowHeight = 52;
-const pageSize = 8;
-
-const getTableHeight = (rows: IRepository[]) => {
-  if (!rows || rows.length === 0) {
-    return baseHeight + rowHeight;
-  }
-
-  const visibleRows = rows.length > pageSize ? pageSize : rows.length;
-
-  const height = baseHeight + rowHeight * visibleRows;
-
-  return height;
-};
+const defaultPageSize = 8;
 
 const defaultArray: IRepository[] = [];
 
@@ -89,26 +84,26 @@ const useStyles = makeStyles({
   },
 });
 
-export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
+export const RepoList = ({
+  repos = defaultArray,
+  isLoading,
+  pageSize = defaultPageSize,
+  isServerSort = false,
+  rowCount,
+  onPageChange,
+  onSortModelChange,
+  sortModel,
+}: RepoListType) => {
   const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
-  const [ setStarredRepo ] = useSetStarredRepoMutation();
-  const [ unsetStarredRepo ] = useUnsetStarredRepoMutation();
-
-  const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: 'commodity', sort: 'asc' },
-  ]);
-
+  const [setStarredRepo] = useSetStarredRepoMutation();
+  const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = React.useRef(null);
-
-  const handleSortChange = (newSortModel: GridSortModel) => {
-    setSortModel(newSortModel);
-  };
 
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
-      headerName: '',
+      renderHeader: () => null,
       hideSortIcons: true,
       type: 'actions',
       width: 50,
@@ -117,17 +112,22 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
 
         const handleToggleFav = () => {
           if (repo.user_has_starred) {
-           unsetStarredRepo(repo);
+            unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
           }
-        }
+        };
         return [
           <IconButton key={params.row.id} onClick={handleToggleFav}>
-            <i style={{ fontSize: 26 }} className={repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'} />
-          </IconButton>
-        ]
-      }
+            <i
+              style={{ fontSize: 26 }}
+              className={
+                repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'
+              }
+            />
+          </IconButton>,
+        ];
+      },
     };
 
     const columns: GridColDef[] = [
@@ -139,7 +139,7 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
       {
         field: 'owner.created_by',
         headerName: 'Opprettet av',
-        // sortable: false,
+        sortable: false,
         width: 160,
         valueGetter: (params: GridValueGetterParams) => {
           const owner = params.row.owner as User;
@@ -163,6 +163,7 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
       {
         field: 'links',
         flex: 1,
+        renderHeader: () => null,
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
@@ -222,29 +223,50 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, []);
+  }, [
+    classes.actionLink,
+    classes.editLink,
+    classes.repoLink,
+    setStarredRepo,
+    unsetStarredRepo,
+  ]);
 
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
   };
 
   return (
-    <div
-      style={{ height: getTableHeight(repos), width: '100%' }}
-      ref={copyModalAnchorRef}
-    >
-      <DataGrid
-        loading={isLoading}
-        rows={repos}
-        columns={cols}
-        pageSize={pageSize}
-        rowsPerPageOptions={[pageSize]}
-        sortingMode='server'
-        sortModel={sortModel}
-        onSortModelChange={handleSortChange}
-        disableColumnMenu={true}
-        isRowSelectable={() => false}
-      />
+    <div style={{ width: '100%' }} ref={copyModalAnchorRef}>
+      {isServerSort ? (
+        <DataGrid
+          autoHeight={true}
+          loading={isLoading}
+          rows={repos}
+          columns={cols}
+          pageSize={pageSize}
+          rowsPerPageOptions={[pageSize]}
+          disableColumnMenu={true}
+          isRowSelectable={() => false}
+          sortModel={sortModel}
+          paginationMode='server'
+          sortingMode='server'
+          onSortModelChange={onSortModelChange}
+          rowCount={rowCount}
+          onPageChange={onPageChange}
+        />
+      ) : (
+        <DataGrid
+          autoHeight={true}
+          loading={isLoading}
+          rows={repos}
+          columns={cols}
+          pageSize={pageSize}
+          rowsPerPageOptions={[pageSize]}
+          disableColumnMenu={true}
+          isRowSelectable={() => false}
+        />
+      )}
+
       {copyCurrentRepoName && (
         <MakeCopyModal
           anchorEl={copyModalAnchorRef.current}

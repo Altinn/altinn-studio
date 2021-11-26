@@ -31,11 +31,19 @@ export const repoApi = designerApi.injectEndpoints({
       query: ({
         uid,
         keyword,
-        sortby = 'created',
+        sortby = 'alpha',
         order = 'asc',
         page = 1,
         limit = 8,
       }) => {
+        if (sortby === 'name') {
+          sortby = 'alpha';
+        }
+
+        if (sortby === 'updated_at') {
+          sortby = 'created';
+        }
+
         return {
           url: `repos/search`,
           params: {
