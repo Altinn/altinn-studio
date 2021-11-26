@@ -8,7 +8,7 @@ trigger: none
 pr: none
 
 variables:  
-  cyCacheDir: "/home/AzDevOps/.cache/Cypress"
+  cyCacheDir: "~/.cache/Cypress"
   cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
 
 #schedules:
@@ -30,7 +30,7 @@ steps:
 
 - task: Cache@2
   inputs:
-    key: '$(cyCacheDir)/yarn.lock'
+    key: '$(cypressTestDir)/yarn.lock'
     path: $(cyCacheDir)
     cacheHitVar: CYPRESS_CACHE_RESTORED
   displayName: "Cache Cypress binary"
