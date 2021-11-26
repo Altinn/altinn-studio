@@ -22,7 +22,6 @@ import { Dashboard } from 'features/dashboard';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
 
 import './App.css';
-import { Resources } from 'features/dashboard/Resources';
 
 export const App = () => {
   const dispatch = useAppDispatch();
@@ -101,9 +100,6 @@ export const App = () => {
                     <Grid container={true} justifyContent='center'>
                       <Grid item={true} xs={10}>
                         <Dashboard />
-                      </Grid>
-                      <Grid item={true} xs={12}>
-                        <Resources />
                       </Grid>
                     </Grid>
                   )}
