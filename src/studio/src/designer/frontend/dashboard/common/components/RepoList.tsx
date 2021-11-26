@@ -17,7 +17,10 @@ import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import { IRepository } from 'app-shared/types';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { IconButton } from '@mui/material';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'services/userApi';
+import {
+  useSetStarredRepoMutation,
+  useUnsetStarredRepoMutation,
+} from 'services/userApi';
 
 type GetRepoUrl = {
   repoIsClonedLocally: boolean;
@@ -78,8 +81,8 @@ const useStyles = makeStyles({
 export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
   const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
-  const [ setStarredRepo ] = useSetStarredRepoMutation();
-  const [ unsetStarredRepo ] = useUnsetStarredRepoMutation();
+  const [setStarredRepo] = useSetStarredRepoMutation();
+  const [unsetStarredRepo] = useUnsetStarredRepoMutation();
 
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
     { field: 'commodity', sort: 'asc' },
@@ -103,17 +106,22 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
 
         const handleToggleFav = () => {
           if (repo.user_has_starred) {
-           unsetStarredRepo(repo);
+            unsetStarredRepo(repo);
           } else {
             setStarredRepo(repo);
           }
-        }
+        };
         return [
           <IconButton key={params.row.id} onClick={handleToggleFav}>
-            <i style={{ fontSize: 26 }} className={repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'} />
-          </IconButton>
-        ]
-      }
+            <i
+              style={{ fontSize: 26 }}
+              className={
+                repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'
+              }
+            />
+          </IconButton>,
+        ];
+      },
     };
 
     const columns: GridColDef[] = [
@@ -208,7 +216,13 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [classes.actionLink, classes.editLink, classes.repoLink]);
+  }, [
+    classes.actionLink,
+    classes.editLink,
+    classes.repoLink,
+    setStarredRepo,
+    unsetStarredRepo,
+  ]);
 
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
