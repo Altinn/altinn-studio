@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IRepository } from 'app-shared/types';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 export type User = {
   avatar_url: string;
@@ -10,26 +11,26 @@ export type User = {
   login: string;
 };
 
-export type SelectedContextType = 'all' | 'self' | number;
+export type SelectedContext = SelectedContextType | number;
 
 export interface IDashboardState {
   services: IRepository[];
   user?: User;
   /* all, self or org-id*/
-  selectedContext: SelectedContextType;
+  selectedContext: SelectedContext;
 }
 
 const initialState: IDashboardState = {
   services: [],
   user: null,
-  selectedContext: 'all'
+  selectedContext: SelectedContextType.All,
 };
 
 export interface IFetchDashboardInfoAction {
   url: string;
 }
 
-  export interface IFetchDashboardInfoActionFulfilled {
+export interface IFetchDashboardInfoActionFulfilled {
   info: any;
 }
 
@@ -38,7 +39,7 @@ export interface IFetchDashboardInfoActionRejected {
 }
 
 export interface ISetSelectedContext {
-  selectedContext: SelectedContextType;
+  selectedContext: SelectedContext;
 }
 
 const moduleName = 'dashboard';
@@ -61,10 +62,7 @@ const dashboardSlice = createSlice({
       const { info } = action.payload;
       state.services = info;
     },
-    setSelectedContext: (
-      state,
-      action: PayloadAction<ISetSelectedContext>,
-    ) => {
+    setSelectedContext: (state, action: PayloadAction<ISetSelectedContext>) => {
       const { selectedContext } = action.payload;
       state.selectedContext = selectedContext;
     },
