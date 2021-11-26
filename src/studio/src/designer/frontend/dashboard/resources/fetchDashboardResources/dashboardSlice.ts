@@ -10,10 +10,13 @@ export type User = {
   login: string;
 };
 
+export type SelectedContextType = 'all' | 'self' | number;
+
 export interface IDashboardState {
   services: IRepository[];
   user?: User;
-  selectedContext: string | number;
+  /* all, self or org-id*/
+  selectedContext: SelectedContextType;
 }
 
 const initialState: IDashboardState = {
@@ -26,7 +29,7 @@ export interface IFetchDashboardInfoAction {
   url: string;
 }
 
-export interface IFetchDashboardInfoActionFulfilled {
+  export interface IFetchDashboardInfoActionFulfilled {
   info: any;
 }
 
@@ -35,7 +38,7 @@ export interface IFetchDashboardInfoActionRejected {
 }
 
 export interface ISetSelectedContext {
-  selectedContext: string | number;
+  selectedContext: SelectedContextType;
 }
 
 const moduleName = 'dashboard';

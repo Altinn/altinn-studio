@@ -9,7 +9,7 @@ import { HashRouter as Router, Route } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
-import { DashboardActions } from './resources/fetchDashboardResources/dashboardSlice';
+import { DashboardActions, SelectedContextType } from './resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
 import Header, { IHeaderContext, HeaderContext } from 'app-shared/navigation/main-header/Header';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
@@ -22,6 +22,7 @@ import { Dashboard } from 'features/dashboard';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
 
 import './App.css';
+import { Resources } from 'features/dashboard/Resources';
 
 export const App = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +30,7 @@ export const App = () => {
   const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
   const { data, isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
 
-  const setSelectedContext = (selectedContext: string | number) => {
+  const setSelectedContext = (selectedContext: SelectedContextType) => {
     dispatch(DashboardActions.setSelectedContext({ selectedContext }));
   }
 
@@ -100,6 +101,9 @@ export const App = () => {
                     <Grid container={true} justifyContent='center'>
                       <Grid item={true} xs={10}>
                         <Dashboard />
+                      </Grid>
+                      <Grid item={true} xs={12}>
+                        <Resources />
                       </Grid>
                     </Grid>
                   )}
