@@ -43,7 +43,7 @@ const pageSize = 8;
 
 const getTableHeight = (rows: IRepository[]) => {
   if (!rows || rows.length === 0) {
-    return 1;
+    return baseHeight;
   }
 
   const visibleRows = rows.length > pageSize ? pageSize : rows.length;
@@ -80,7 +80,7 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
         // sortable: false,
         width: 160,
         valueGetter: (params: GridValueGetterParams) => {
-          const owner = params.getValue(params.id, 'owner') as User;
+          const owner = params.row.owner as User;
           return owner.full_name || owner.login;
         },
       },
@@ -187,7 +187,7 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
         rows={repos}
         columns={cols}
         pageSize={pageSize}
-        rowsPerPageOptions={[5]}
+        rowsPerPageOptions={[pageSize]}
         sortingMode='server'
         sortModel={sortModel}
         onSortModelChange={handleSortChange}
