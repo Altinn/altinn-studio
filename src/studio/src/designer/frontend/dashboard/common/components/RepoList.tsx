@@ -101,11 +101,7 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
           };
 
           return [
-            <a
-              key={params.row.id}
-              href={params.row.html_url}
-              ref={copyModalAnchorRef}
-            >
+            <a key={params.row.id} href={params.row.html_url}>
               Repository
             </a>,
             <a key={params.row.id} href={editUrl}>
@@ -138,7 +134,7 @@ export const RepoList = ({ repos, isLoading }: RepoListType) => {
   };
 
   return (
-    <div style={{ height: 600, width: '100%' }}>
+    <div style={{ height: 600, width: '100%' }} ref={copyModalAnchorRef}>
       <DataGrid
         loading={isLoading}
         rows={repos}
