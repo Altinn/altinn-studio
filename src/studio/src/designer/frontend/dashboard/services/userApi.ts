@@ -12,6 +12,14 @@ export const userApi = designerApi.injectEndpoints({
           type: TagTypes.UserStarredRepositories,
         },
       ],
+      transformResponse: ((response: IRepository[]) => {
+        return response.map((repo) => {
+          return {
+            ...repo,
+            user_has_starred: true,
+          }
+        });
+      }),
     }),
     setStarredRepo: builder.mutation<void, IRepository>({
       query: (repo => ({
@@ -21,7 +29,10 @@ export const userApi = designerApi.injectEndpoints({
       async onQueryStarted(repo, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
           userApi.util.updateQueryData('getUserStarredRepos', undefined, (draft) => {
-            draft.push(repo);
+            draft.push({
+              ...repo,
+              user_has_starred: true,
+            });
           })
         );
         try {

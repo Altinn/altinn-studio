@@ -9,6 +9,8 @@ import {
 import { useAppSelector } from 'common/hooks';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
+import { useGetUserStarredReposQuery } from 'services/userApi';
+import { IRepository } from 'app-shared/types';
 
 type GetUidFilter = {
   userId: number;
@@ -46,12 +48,23 @@ const getReposLabel = ({ selectedContext, orgs }: GetReposLabel) => {
   } applikasjoner`;
 };
 
+const setUserHasStarreOnRepos = (orgs: IRepository[], starred: IRepository[]): IRepository[] => {
+  return orgs?.map((org) => {
+    return {
+      ...org,
+      user_has_starred: (starred?.find((o) => o.id === org.id) ? true : false),
+    }
+  });
+};
+
 export const OrgReposList = () => {
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs } = useGetOrganizationsQuery();
+
+  const { data: starred, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
 
   const uid = getUidFilter({ selectedContext, userId });
 
@@ -62,7 +75,7 @@ export const OrgReposList = () => {
   return (
     <div>
       <h1>{getReposLabel({ selectedContext, orgs })}</h1>
-      <RepoList repos={data?.data} isLoading={isLoadingOrgRepos} />
+      <RepoList repos={setUserHasStarreOnRepos(data?.data, starred)} isLoading={isLoadingOrgRepos || isLoadingStarred} />
     </div>
   );
 };
