@@ -13,13 +13,13 @@ export function ResourceItem({ link, label, description, icon }: ResourceItemPro
     <Grid container direction='row' alignItems='center' justifyContent='center' alignContent='left'
       style={{ maxWidth: 500 }}
     >
-      <Grid xs={2} item>
+      <Grid xs={3} item>
         {icon}
       </Grid>
-      <Grid xs={10} item container direction='column' spacing={0} alignContent='center'>
+      <Grid xs={9} item container direction='column' spacing={0} alignContent='center'>
         <Grid item>
-          <a href={link}><p>{label} </p> </a>
-          <p>{description}</p>
+          <a href={link}><p style={{ fontWeight: 500, color: 'black', marginBottom: 0 }}>{label} </p> </a>
+          <p style={{ marginTop: 0 }}>{description}</p>
         </Grid>
       </Grid>
     </Grid>

@@ -103,6 +103,7 @@ export function Resources() {
       marginTop: 60,
     }}
       container
+      spacing={2}
     >
       <Grid item xs={12}>
         <h2 style={{ marginBottom: 12, fontSize: '1.13rem' }}>Ressurser</h2>
