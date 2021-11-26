@@ -42,9 +42,10 @@ const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
 type RepoListType = {
   repos: IRepository[];
   isLoading: boolean;
+  pageSize?: number;
 };
 
-const pageSize = 8;
+const defaultPageSize = 8;
 
 const defaultArray: IRepository[] = [];
 
@@ -78,21 +79,24 @@ const useStyles = makeStyles({
   },
 });
 
-export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
+export const RepoList = ({
+  repos = defaultArray,
+  isLoading,
+  pageSize = defaultPageSize,
+}: RepoListType) => {
   const classes = useStyles();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
-
-  const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: 'commodity', sort: 'asc' },
-  ]);
-
   const copyModalAnchorRef = React.useRef(null);
 
-  const handleSortChange = (newSortModel: GridSortModel) => {
-    setSortModel(newSortModel);
-  };
+  // const [sortModel, setSortModel] = React.useState<GridSortModel>([
+  //   { field: 'commodity', sort: 'asc' },
+  // ]);
+
+  // const handleSortChange = (newSortModel: GridSortModel) => {
+  //   setSortModel(newSortModel);
+  // };
 
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -228,6 +232,10 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
     setCopyCurrentRepoName(null);
   };
 
+  // const serverSortModeProps = {
+
+  // }
+
   return (
     <div style={{ width: '100%' }} ref={copyModalAnchorRef}>
       <DataGrid
@@ -237,9 +245,9 @@ export const RepoList = ({ repos = defaultArray, isLoading }: RepoListType) => {
         columns={cols}
         pageSize={pageSize}
         rowsPerPageOptions={[pageSize]}
-        sortingMode='server'
-        sortModel={sortModel}
-        onSortModelChange={handleSortChange}
+        // sortingMode='client'
+        // sortModel={sortModel}
+        // onSortModelChange={handleSortChange}
         disableColumnMenu={true}
         isRowSelectable={() => false}
       />

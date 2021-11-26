@@ -13,6 +13,7 @@ export const FavoriteReposList = () => {
       <RepoList
         repos={userStarredRepos}
         isLoading={isLoadingUserStarredRepos}
+        pageSize={5}
       />
     </div>
   );
