@@ -72,7 +72,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
 
                 string rulesJson = JsonSerializer.Serialize(rules);
-                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
+                _logger.LogError($"Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
                 return StatusCode(400, $"Delegation could not be completed");
             }
             catch (Exception e)
@@ -115,7 +115,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return StatusCode(206, deletionResults);
             }
 
-            _logger.LogInformation("Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesToDeleteSerialized}", rulesToDeleteSerialized);
+            _logger.LogInformation($"Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesToDeleteSerialized}", rulesToDeleteSerialized);
             return StatusCode(400, $"Unable to complete deletion");
         }
 
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return StatusCode(206, deletionResults);
             }
 
-            _logger.LogInformation("Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesToDeleteSerialized}", policiesToDeleteSerialized);
+            _logger.LogInformation($"Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{policiesToDeleteSerialized}", policiesToDeleteSerialized);
             return StatusCode(400, $"Unable to complete deletion");            
         }
 
