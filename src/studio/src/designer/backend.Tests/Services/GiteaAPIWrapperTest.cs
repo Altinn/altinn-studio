@@ -142,8 +142,10 @@ namespace Designer.Tests.Services
                 Content = new StringContent(JsonSerializer.Serialize(searchResult), Encoding.UTF8, "application/json"),
             };
             httpResponseMessage.Headers.Add("X-Total-Count", $"{searchResult.Data.Count}");
-            httpResponseMessage.Headers.Add("Link", "<https://dev.altinn.studio/repos/api/v1/repos/search?limit=10&page=2&uid=658>; rel=\"next\",<https://dev.altinn.studio/repos/api/v1/repos/search?limit=10&page=27&uid=658>; rel=\"last\"");
-            
+            string link = "<https://dev.altinn.studio/repos/api/v1/repos/search?limit=10&order=desc&page=2&sort=created&uid=658>; rel=\"next\"," +
+            "<https://dev.altinn.studio/repos/api/v1/repos/search?limit=10&order=desc&page=27&sort=created&uid=658>; rel=\"last\"";
+            httpResponseMessage.Headers.Add("Link", link);
+
             handlerMock
                .Protected()
                .Setup<Task<HttpResponseMessage>>(
@@ -177,7 +179,7 @@ namespace Designer.Tests.Services
             {
                 StatusCode = HttpStatusCode.BadRequest
             };
-            
+
             handlerMock
                .Protected()
                .Setup<Task<HttpResponseMessage>>(
@@ -251,8 +253,7 @@ namespace Designer.Tests.Services
         private static SearchOptions GetSearchOptions()
         {
             SearchOptions searchOption = new SearchOptions();
-            searchOption.Keyword = "apps";
-            searchOption.UId = 2;
+            searchOption.UId = 658;
             searchOption.SortBy = "created";
             searchOption.Order = "desc";
             return searchOption;
