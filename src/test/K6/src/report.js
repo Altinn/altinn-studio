@@ -12,6 +12,21 @@ function escapeHTML(str) {
   });
 }
 
+function checksToTestcase(checks) {
+  var testcases = [];
+  if (checks.length > 0) {
+    checks.forEach((check) => {
+      if (check.passes >= 1 && check.fails === 0) {
+        testcases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
+      } else {
+        failures++;
+        testcases.push(`<testcase name="${escapeHTML(check.name)}"><failure message="failed"/></testcase>`);
+      }
+    });
+  }
+  return testcases;
+}
+
 /**
  * Generate a junit xml string from the summary of a k6 run considering each checks as a test case
  * @param {*} data
@@ -21,18 +36,17 @@ function escapeHTML(str) {
 export function generateJUnitXML(data, suiteName) {
   var failures = 0;
   var cases = [];
-  var time = data.metrics.iteration_duration.values.max ? data.metrics.iteration_duration.values.max : 0;
-  if (data.root_group.hasOwnProperty('checks') && data.root_group.checks.length > 0) {
-    var checks = data.root_group.checks;
-    checks.forEach((check) => {
-      if (check.passes >= 1 && check.fails === 0) {
-        cases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
-      } else {
-        failures++;
-        cases.push(`<testcase name="${escapeHTML(check.name)}"><failure message="failed"/></testcase>`);
-      }
+  var time = data.state.testRunDurationMs ? data.state.testRunDurationMs : 0;
+
+  if (data.root_group.hasOwnProperty('groups') && data.root_group.groups.length > 0) {
+    var groups = data.root_group.groups;
+    groups.forEach((group) => {
+      if (group.hasOwnProperty('checks')) cases.push(...checksToTestcase(group.checks));
     });
   }
+
+  if (data.root_group.hasOwnProperty('checks')) cases.push(...checksToTestcase(data.root_group.checks));
+
   return (
     `<?xml version="1.0" encoding="UTF-8" ?>\n<testsuites tests="${cases.length}" ` +
     `failures="${failures}\" time="${time}">\n` +
