@@ -174,6 +174,8 @@ export interface IRepository {
   updated_at: string;
   html_url: string;
   clone_url: string;
+  id: number;
+  user_has_starred: boolean;
 }
 
 export interface IUser {

@@ -99,7 +99,7 @@ export class CloneServiceComponent extends React.Component<
     this.componentMounted = true;
     const { location } = window as Window;
     const { org, serviceName } = this.props.match.params as any;
-    const url = `${location.origin}/designer/api/v1/repos/${org}/${serviceName}/branches/branch&branch=master`;
+    const url = `${location.origin}/designer/api/v1/repos/${org}/${serviceName}/branches/branch?branch=master`;
     get(url).then((result: any) => {
       if (result && this.componentMounted) {
         this.setState({
