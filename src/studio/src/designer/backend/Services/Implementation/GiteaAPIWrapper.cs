@@ -397,7 +397,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
+                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
