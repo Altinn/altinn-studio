@@ -11,13 +11,13 @@ variables:
   cyCacheDir: "/home/AzDevOps/.cache/Cypress"
   cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
 
-#schedules:
-#- cron: "10,25,40,55 * * * *"
-#  displayName: Bruksmønster
-#  branches:
-#    include:
-#    - master
-#  always: true
+schedules:
+- cron: "10,25,40,55 * * * *"
+  displayName: Bruksmønster
+  branches:
+    include:
+    - master
+  always: true
 
 steps:
 - task: DeleteFiles@1
@@ -28,17 +28,8 @@ steps:
       *.xml
   condition: succeededOrFailed()
 
-#- task: Cache@2
-#  inputs:
-#    key: '$(cypressTestDir)/yarn.lock'
-#    path: $(cyCacheDir)
-#    cacheHitVar: CYPRESS_CACHE_RESTORED
-#  displayName: "Cache Cypress binary"
-
 - bash: |
    yarn --immutable
-
-   npx cypress cache path
 
    npx cypress cache list
 
