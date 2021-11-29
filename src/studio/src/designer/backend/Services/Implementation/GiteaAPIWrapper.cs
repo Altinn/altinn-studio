@@ -305,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             SearchResults searchResults = null;
 
-            if(searchOption.Limit < 1)
+            if (searchOption.Limit < 1)
             {
                 searchOption.Limit = _settings.RepoSearchPageCount;
             }
@@ -346,7 +346,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                string result = await response.Content.ReadAsStringAsync();
                 searchResults = await response.Content.ReadAsAsync<SearchResults>();
                 if (response.Headers.TryGetValues("X-Total-Count", out IEnumerable<string> countValues))
                 {
