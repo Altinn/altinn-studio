@@ -15,7 +15,7 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 ### Prerequisites
 
 1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
-2. [Node.js](https://nodejs.org) (Version 14.\*)
+2. [Node.js](https://nodejs.org) (Version 16.\*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
    - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
@@ -94,8 +94,7 @@ Navigate to the designer backend folder. The first time running, or after any pa
 
 ```bash
 cd src/studio/src/designer/backend
-npm ci
-npm run gulp-install-deps
+yarn --immutable
 ```
 
 On MacOS you need two extra steps:
@@ -118,16 +117,16 @@ Build and run the code.
 
 ```bash
 dotnet build
-npm run gulp # first time only
-npm run gulp-develop
+yarn run gulp # first time only
+yarn run gulp-develop
 ```
 
 If you are not going to edit the designer react app (frontend) you can use
 
 ```bash
 cd src/studio/src/designer/backend
-npm ci
-npm run gulp # first time only
+yarn --immutable
+yarn run gulp # first time only
 dotnet run
 ```
 
@@ -138,10 +137,10 @@ Which will build the Designer .net backend and the designer react app, but not l
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```bash
-npm run build
+yarn run build
 ```
 
-Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
+Some of the react projects also have various other predefined scripts, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
 
@@ -152,16 +151,14 @@ Automated end to end tests are currently being developed.
 ### Lint checks
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
-2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
-4. Execute `npm run lint`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run lint`.
 
 ### Unit tests
 
 1. Navigate to the folder `src/studio/src/designer/frontend`.
-2. Execute `npm ci`. This step is only nescessary if you have not already done it, or if you change branches.
-3. Execute `npm run install-deps`. This step is only nescessary if you have not already done it, or if you change branches.
-4. Execute `npm run test`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run test`.
 
 ## Deployment
 
@@ -171,7 +168,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 - [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
-- [npm](https://www.npmjs.com/) - Package management
+- [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 

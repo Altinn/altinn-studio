@@ -8,11 +8,10 @@
     "gulp-develop": "gulp develop",
     "gulp-install-deps": "gulp install-react-app-dependencies"
   },
-  "dependencies": {},
   "devDependencies": {
+    "chokidar": "3.5.1",
     "gulp": "4.0.2",
-    "gulp-run-command": "0.0.10",
-    "lerna": "4.0.0",
-    "chokidar": "3.5.1"
-  }
+    "gulp-run-command": "0.0.10"
+  },
+  "packageManager": "yarn@3.1.0"
 }

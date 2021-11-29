@@ -1,27 +1,31 @@
-import { createSelector } from 'reselect';
+import { createSelector, ParametricSelector } from 'reselect';
 import { IRuntimeState } from '../types';
 
-const layoutFocusSelector = (state: IRuntimeState, props: any) => {
-  return state.formLayout.uiConfig.focus && state.formLayout.uiConfig.focus === props.id;
-};
+const selectFocusedLayout = (state: IRuntimeState) =>
+  state.formLayout.uiConfig.focus;
 
-const layoutHiddenSelector = (state: IRuntimeState, props: any) => {
-  return state.formLayout.uiConfig.hiddenFields.findIndex((id) => id === props.id) > -1;
-};
+const selectHiddenFields = (state: IRuntimeState) =>
+  state.formLayout.uiConfig.hiddenFields;
 
-const getFocus = () => {
-  return createSelector(
-    [layoutFocusSelector],
-    (focus: boolean) => focus,
+const selectId = (state, props) => props.id;
+
+export const makeGetFocus = (): ParametricSelector<
+  IRuntimeState,
+  {
+    id: string;
+  },
+  boolean
+> =>
+  createSelector([selectFocusedLayout, selectId], (focus, id) => focus === id);
+
+export const makeGetHidden = (): ParametricSelector<
+  IRuntimeState,
+  {
+    id: string;
+  },
+  boolean
+> =>
+  createSelector(
+    [selectHiddenFields, selectId],
+    (fields, id) => fields.findIndex((itemId) => itemId === id) > -1,
   );
-};
-
-const getHidden = () => {
-  return createSelector(
-    [layoutHiddenSelector],
-    (hidden: boolean) => hidden,
-  );
-};
-
-export const makeGetFocus = getFocus;
-export const makeGetHidden = getHidden;

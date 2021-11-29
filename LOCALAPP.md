@@ -1,10 +1,10 @@
 ## Local testing of apps
 
-It is possible to test and debug applications created in Altinn Studio on local development machine.
+These are some of the required steps, tips and tricks when it comes to running an app on a machine. The primary goal is to be able to iterate over changes and verifying them without needing to deploy the app to the test environment.
 
-Currently we have not been able to provide a 100% common setup between Windows and Linux.
-
-
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Changing test data](#changing-test-data)
 
 ### Prerequisites
 
@@ -29,7 +29,8 @@ Currently we have not been able to provide a 100% common setup between Windows a
    ```shell
    cd src/development
    ```
-2. Setting up loadbalancer
+2. Setting up loadbalancer   
+     This is unfortunately different based on type of operating system you have on your machine.
    - **Windows:**  
      Start the loadbalancer container that routes between the local platform services and the app
      ```shell
@@ -91,28 +92,34 @@ Currently we have not been able to provide a 100% common setup between Windows a
      ```shell
      sudo nginx -s reload
      ```
-3. Set path to app folder in local platform services:
-   - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
-     ```shell
-     cd LocalTest
-     code appSettings.json
-     ```
-   - Change the setting `AppRepositoryBasePath` to the parent folder where you have your application repos (`C:/repos/` as an example) as  to your app on the disk.
-   - Change the setting `LocalTestingStaticTestDataPath` to the full path of the altinn-studio repository.
-     For example:  
-     ```json
-     "C:/repos/altinn-studio/src/development/TestData/"
-     ```
-   - Save the file.
-4. Start the local platform services (make sure you are in the LocalTest folder)
+3. Configuration of LocalTest   
+    The LocalTest application acts as an emulator of the Altinn 3 platform services. It provides things like authentication, authorization and storage. Everything your apps will need to run locally.   
+
+    Settings:    
+    - `LocalTestingStorageBasePath` - The folder to which LocalTest will store instances and data being created during testing.
+    - `AppRepositoryBasePath` - The folder where LocalTest will look for apps and their files.
+    - `LocalTestingStaticTestDataPath` - Test user data like profile, register and roles. (`<path to altinn-studio repo>/src/development/TestData/`)
+
+    The recommended way of changing settings for LocalTest is through [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret). User secrets is a set of developer specific settings that will overwrite values from the `appsettings.json` file when the application is started in developer "mode". The alternative is to edit the `appsettings.json` file directly. Just be careful not to commit developer specific changes back to the repository.
+   1. Define a user secret with the following command:  (make sure you are in the LocalTest folder)
+      ```bash
+      dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
+      ```
+      Run the command for each setting you want to change.
+   2. Alternatively edit the appsettings.json file directly:
+      - Open `appsettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
+      - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. 
+      - Change other settings as needed.
+      - Save the file.
+5. Start the local platform services (make sure you are in the LocalTest folder)
    ```shell
    dotnet run
    ```
-5. Navigate to the app folder (specified in the step above)
+6. Navigate to the app folder (specified in the step above)
    ```shell
    cd \.\<path to app on disk>
    ```
-6. Start the app locally
+7. Start the app locally
    ```shell
    dotnet run -p App.csproj
    ```
@@ -121,7 +128,7 @@ The app and local platform services are now running locally. The app can be acce
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
-### Configuration of test data
+### Changing test data
 
 In some cases your application might differ from the default setup and require custom changes to the test data available. 
 This section contains the most common changes.
