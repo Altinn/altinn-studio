@@ -28,12 +28,12 @@ steps:
       *.xml
   condition: succeededOrFailed()
 
-- task: Cache@2
-  inputs:
-    key: '$(cypressTestDir)/yarn.lock'
-    path: $(cyCacheDir)
-    cacheHitVar: CYPRESS_CACHE_RESTORED
-  displayName: "Cache Cypress binary"
+#- task: Cache@2
+#  inputs:
+#    key: '$(cypressTestDir)/yarn.lock'
+#    path: $(cyCacheDir)
+#    cacheHitVar: CYPRESS_CACHE_RESTORED
+#  displayName: "Cache Cypress binary"
 
 - bash: |
    yarn --immutable
@@ -43,6 +43,8 @@ steps:
    npx cypress cache list
 
    yarn run cy:version
+
+   yarn run cy:verify
 
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'
