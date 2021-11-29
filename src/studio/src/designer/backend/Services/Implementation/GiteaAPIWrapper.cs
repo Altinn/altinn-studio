@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Configuration;
@@ -458,16 +459,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> CreateBranch(string org, string repository, string branchName)
         {
-            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-
-            HttpRequestMessage m = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
-            m.Content = new StringContent(content, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.SendAsync(m);
+            HttpResponseMessage response = await PostBranch(org, repository, branchName);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                return await response.Content.ReadAsAsync<Branch>();
+                var branch = await response.Content.ReadAsAsync<Branch>();
+                return branch;
+            }
+
+            // In quite a few cases we have experienced that we get a 404 back
+            // when doing a POST to this endpoint, hence we do a simple retry
+            // with a specified wait time.
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                HttpResponseMessage retryResponse = await PostBranch(org, repository, branchName, 250);
+                Branch branch = await retryResponse.Content.ReadAsAsync<Branch>();
+                return branch;
             }
             else
             {
@@ -475,6 +482,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return null;
+        }
+
+        private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName, int waitMsBeforeCall = 0)
+        {
+            if (waitMsBeforeCall > 0)
+            {
+                Thread.Sleep(waitMsBeforeCall);
+            }
+
+            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            message.Content = new StringContent(content, Encoding.UTF8, "application/json");
+
+            return await _httpClient.SendAsync(message);
         }
 
         /// <inheritdoc />
