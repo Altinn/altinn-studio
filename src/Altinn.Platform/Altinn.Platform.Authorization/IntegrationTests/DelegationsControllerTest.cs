@@ -230,7 +230,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             string responseContent = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             List<Rule> actual = null;
             try
             {
@@ -433,7 +433,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             }
 
             // Assert
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Null(actual);
         }
 
