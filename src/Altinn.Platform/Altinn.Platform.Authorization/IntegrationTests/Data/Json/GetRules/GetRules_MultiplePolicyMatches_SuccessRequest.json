@@ -38,8 +38,8 @@
       ],
       "coveredBy": [
         {
-          "id": "urn:altinn:userid",
-          "value": "20001339"
+          "id": "urn:altinn:partyid",
+          "value": "50001339"
         }
       ]
     }

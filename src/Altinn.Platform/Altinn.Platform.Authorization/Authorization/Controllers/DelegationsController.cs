@@ -95,7 +95,6 @@ namespace Altinn.Platform.Authorization.Controllers
         [Route("authorization/api/v1/[controller]/GetRules")]
         public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleQuery ruleQuery, [FromQuery] bool onlyDirectDelegations = false)
         {
-            var ruleMatches = ruleQuery.PolicyMatches;
             List<int> coveredByPartyIds = new List<int>();
             List<int> coveredByUserIds = new List<int>();
             List<int> offeredByPartyIds = new List<int>();
