@@ -14,6 +14,7 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
+import { InstantitiationButton } from './base/InstantiationButton';
 
 export interface IComponent {
   name: string;
@@ -37,9 +38,9 @@ export enum ComponentTypes {
   FileUpload,
   Button,
   Group,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
+  InstantiationButton,
   AttachmentList,
 }
 
@@ -132,6 +133,11 @@ export const schemaComponents: IComponent[] = [
     name: 'NavigationButtons',
     Tag: NavigationButtonsComponent,
     Type: ComponentTypes.NavigationButtons,
+  },
+  {
+    name: 'InstantiationButton',
+    Tag: InstantitiationButton,
+    Type: ComponentTypes.InstantiationButton,
   },
   {
     name: 'AttachmentList',

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
 import { createTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -20,7 +19,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow } from '../../../types';
 import { get } from '../../../utils/networking';
 import { getValidationUrl } from '../../../utils/urlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
@@ -30,6 +29,7 @@ import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import moment from 'moment';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export type IConfirmProps = RouteChildrenProps;
 
@@ -84,35 +84,23 @@ export const returnConfirmSummaryObject = (data: ISummaryData) => {
 
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  const applicationMetadata: IApplicationMetadata = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
-  );
-  const instance: IInstance = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const parties: IParty[] = useSelector(
-    (state: IRuntimeState) => state.party.parties,
-  );
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
+  const applicationMetadata: IApplicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
+  const instance = useAppSelector(state => state.instanceData.instance);
+  const language = useAppSelector(state => state.language.language);
+  const parties = useAppSelector(state => state.party.parties);
+  const validations = useAppSelector(state => state.formValidations.validations);
 
   const routeParams: any = props.match.params;
 
   const { instanceId } = window as Window as IAltinnWindow;
-  const textResources = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
+  const textResources = useAppSelector(state => state.textResources.resources);
 
   const isLoading = (): boolean =>
     !attachments ||

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useSelector, shallowEqual, useDispatch } from 'react-redux';
+import { shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import {
   ILabelSettings,
@@ -9,7 +9,6 @@ import {
 } from 'src/types';
 
 import { Grid, makeStyles } from '@material-ui/core';
-import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
@@ -35,6 +34,7 @@ import {
 } from '../utils/formComponentUtils';
 import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IGenericComponentProps {
   id: string;
@@ -60,7 +60,7 @@ const useStyles = makeStyles({
 
 export function GenericComponent(props: IGenericComponentProps) {
   const { id, ...passThroughProps } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const classes = useStyles(props);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
@@ -68,39 +68,31 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [hasValidationMessages, setHasValidationMessages] =
     React.useState(false);
 
-  const formData: IFormData = useSelector(
+  const formData: IFormData = useAppSelector(
     (state: IRuntimeState) =>
       getFormDataForComponent(state.formData.formData, props.dataModelBindings),
     shallowEqual,
   );
-  const currentView: string = useSelector(
+  const currentView: string = useAppSelector(
     (state: IRuntimeState) => state.formLayout.uiConfig.currentView,
   );
-  const isValid: boolean = useSelector((state: IRuntimeState) =>
+  const isValid: boolean = useAppSelector((state: IRuntimeState) =>
     isComponentValid(
       state.formValidations.validations[currentView]?.[props.id],
     ),
   );
-  const language: ILanguageState = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const texts: any = useSelector((state: IRuntimeState) =>
+  const language = useAppSelector(state => state.language.language);
+  const textResources: ITextResource[] = useAppSelector(state => state.textResources.resources);
+  const texts: any = useAppSelector(state =>
     selectComponentTexts(
       state.textResources.resources,
       props.textResourceBindings,
     ),
   );
-  const hidden: boolean = useSelector(
-    (state: IRuntimeState) => props.hidden || GetHiddenSelector(state, props),
-  );
-  const shouldFocus: boolean = useSelector((state: IRuntimeState) =>
-    GetFocusSelector(state, props),
-  );
-  const componentValidations: IComponentValidations = useSelector(
-    (state: IRuntimeState) =>
+  const hidden = useAppSelector(state => props.hidden || GetHiddenSelector(state, props));
+  const shouldFocus: boolean = useAppSelector(state => GetFocusSelector(state, props));
+  const componentValidations: IComponentValidations = useAppSelector(
+    state =>
       state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
   );
@@ -283,6 +275,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Checkboxes',
     'RadioButtons',
     'AttachmentList',
+    'InstantiationButton'
   ];
 
   return (

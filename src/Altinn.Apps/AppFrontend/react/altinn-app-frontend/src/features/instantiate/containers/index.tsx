@@ -1,7 +1,6 @@
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import { AxiosError } from 'axios';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
@@ -9,13 +8,14 @@ import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import Presentation from 'src/shared/containers/Presentation';
-import { IAltinnWindow, IRuntimeState, ProcessTaskType } from '../../../types';
+import { IAltinnWindow, ProcessTaskType } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import InstantiationActions from '../instantiation/actions';
 import MissingRolesError from './MissingRolesError';
 import UnknownError from './UnknownError';
 import InstantiateValidationError from './InstantiateValidationError';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = () => createStyles({
   modal: {
@@ -38,9 +38,9 @@ function InstantiateContainer() {
   const { org, app } = window as Window as IAltinnWindow;
 
   const [instantiating, setInstantiating] = React.useState(false);
-  const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
-  const titleText: any = useSelector((state: IRuntimeState) => {
+  const instantiation = useAppSelector(state => state.instantiation);
+  const selectedParty = useAppSelector(state => state.party.selectedParty);
+  const titleText: any = useAppSelector(state => {
     const text = getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
     return text === titleKey ? '' : text;
   });

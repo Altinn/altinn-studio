@@ -1,6 +1,5 @@
-import { SagaIterator, Task } from 'redux-saga';
+import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import { sagaMiddleware } from '../store';
 
 import FormDataSagas from '../features/form/data/formDataSagas';
 import FormDataModelSagas from '../features/form/datamodel/datamodelSagas';
@@ -21,6 +20,7 @@ import TextResourcesSagas from '../shared/resources/textResources/textResourcesS
 import IsLoadingSagas from '../shared/resources/isLoading/isLoadingSagas';
 import QueueSagas from '../shared/resources/queue/queueSagas';
 import OptionSagas from '../shared/resources/options/optionsSagas';
+import { sagaMiddleware } from 'src/store';
 
 function* root(): SagaIterator {
   yield fork(FormDataSagas);
@@ -44,4 +44,4 @@ function* root(): SagaIterator {
   yield fork(OptionSagas);
 }
 
-export const initSagas: () => Task = () => sagaMiddleware.run(root);
+export const initSagas = ()  => sagaMiddleware.run(root);

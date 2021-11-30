@@ -18,9 +18,6 @@ function configureStore(initialState?: any): Store<any> {
   let enhancer: any;
 
   if (process.env.NODE_ENV === 'development') {
-    /* eslint-disable @typescript-eslint/no-var-requires*/
-    const { logger } = require('redux-logger');
-    middlewares.push(logger);
     enhancer = composeWithDevTools(applyMiddleware(...middlewares));
   } else {
     enhancer = compose(applyMiddleware(...middlewares));
@@ -34,3 +31,6 @@ function configureStore(initialState?: any): Store<any> {
 
   return createdStore;
 }
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
