@@ -1,9 +1,10 @@
 /* eslint-disable max-len */
 import { object } from 'dot-object';
 import { ILayout, ILayoutGroup } from 'src/features/form/layout';
-import { IRepeatingGroup } from 'src/types';
+import { IMapping, IRepeatingGroup } from 'src/types';
 import { getParentGroup } from './validation';
 import JsonPointer from 'jsonpointer';
+import { IFormData } from 'src/features/form/data/formDataReducer';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON
@@ -161,4 +162,16 @@ function deleteGroupData(
         formData[newKey] = prevData[key];
       }
     });
+}
+
+export function mapFormData(formData: IFormData, mapping: IMapping) {
+  const mappedFormData = {};
+  if (!formData || !mapping) {
+    return mappedFormData;
+  }
+  Object.keys(mapping).forEach((source: string) => {
+    const target: string = mapping[source];
+    mappedFormData[target] = formData[source];
+  });
+  return mappedFormData;
 }

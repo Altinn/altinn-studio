@@ -1,6 +1,8 @@
 import 'jest';
-import { flattenObject, getKeyWithoutIndex, removeGroupData } from '../../src/utils/databindings';
+import { flattenObject, getKeyWithoutIndex, mapFormData, removeGroupData } from '../../src/utils/databindings';
 import { ILayout, ILayoutComponent } from '../../src/features/form/layout';
+import { IMapping } from '../../src/components/base/InstantiationButton';
+import { IFormData } from '../../src/features/form/data/formDataReducer';
 
 describe('>>> utils/databindings.ts', () => {
   let testObj: any;
@@ -220,5 +222,49 @@ describe('>>> utils/databindings.ts', () => {
     const expected = 'somegroup.someprop.someothergroup.someotherprop';
     const result = getKeyWithoutIndex(withIndex);
     expect(result).toEqual(expected);
+  });
+
+  describe('mapFormData', () => {
+    it('should map form data according to the defined mapping', () => {
+      const mapping: IMapping = {
+        'some.nested.field': 'nestedValueField',
+        'nested.group[0].field': 'nestedGroupField',
+        'field.does.not.exist': 'undefinedField'
+      };
+      const formData: IFormData = {
+        'some.nested.field': 'nested value',
+        'nested.group[0].field': 'nested group value',
+      };
+      const expectedResult: object = {
+        nestedValueField: 'nested value',
+        nestedGroupField: 'nested group value',
+        undefinedField: undefined
+      };
+      const result = mapFormData(formData, mapping);
+      expect(result).toEqual(expectedResult);
+    });
+
+    it.each([
+      {},
+      undefined,
+      null,
+    ])('should return an empty object if form data is %p', (formData) => {
+      const mapping: IMapping = {
+        someSource: 'someTarget'
+      };
+      expect(mapFormData(formData, mapping)).toEqual({});
+    });
+
+    it.each([
+      {},
+      undefined,
+      null,
+    ])('should return an empty object if mapping is %p', (mapping) => {
+      const formData: IFormData = {
+        someField: 'someValue',
+        someOtherField: 'someOtherValue'
+      };
+      expect(mapFormData(formData, mapping)).toEqual({});
+    });
   });
 });
