@@ -29,9 +29,9 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
+   yarn run cy:cachelist
+   
    yarn --immutable
-
-   npx cypress cache list
 
    yarn run cy:version
 

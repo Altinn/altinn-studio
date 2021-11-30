@@ -16,6 +16,7 @@
     "cy:open": "cypress open --env component=%npm_config_component%,environment=%npm_config_env%",
     "cy:verify": "cypress verify",
     "cy:version": "cypress -v",
+    "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
     "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js'",
