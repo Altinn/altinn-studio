@@ -25,12 +25,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class RepositoriesControllerTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class RepositoryControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
 
-        public RepositoriesControllerTest(WebApplicationFactory<Startup> factory)
+        public RepositoryControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -246,7 +246,7 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient(IRepository repositoryService)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoriesControllerTest).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
 
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
