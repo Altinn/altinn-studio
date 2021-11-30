@@ -244,6 +244,29 @@ namespace Designer.Tests.Controllers
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
         }
 
+        [Fact]
+        public async Task CreateApp_ValidRepoName_Created()
+        {
+            // Arrange
+            string uri = $"/designerapi/Repository/CreateApp?org=ttd&repository=test";
+
+            Mock<IRepository> repositoryService = new Mock<IRepository>();
+            repositoryService
+                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
+                .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
+
+            HttpClient client = GetTestClient(repositoryService.Object);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
+
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        }
+
         private HttpClient GetTestClient(IRepository repositoryService)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
