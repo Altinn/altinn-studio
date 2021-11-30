@@ -21,16 +21,19 @@ namespace Altinn.Platform.Authorization.Controllers
     public class DelegationsController : ControllerBase
     {
         private readonly IPolicyAdministrationPoint _pap;
+        private readonly IPolicyInformationPoint _pip;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationsController"/> class.
         /// </summary>
         /// <param name="policyAdministrationPoint">The policy administration point</param>
+        /// <param name="policyInformationPoint">The policy information point</param>
         /// <param name="logger">the logger.</param>
-        public DelegationsController(IPolicyAdministrationPoint policyAdministrationPoint, ILogger<DelegationsController> logger)
+        public DelegationsController(IPolicyAdministrationPoint policyAdministrationPoint, IPolicyInformationPoint policyInformationPoint, ILogger<DelegationsController> logger)
         {
             _pap = policyAdministrationPoint;
+            _pip = policyInformationPoint;
             _logger = logger;
         }
 
@@ -79,6 +82,67 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 _logger.LogError(e, "Delegation could not be completed. Unexpected exception.");
                 return StatusCode(500, $"Delegation could not be completed due to an unexpected exception.");
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for retrieving delegated rules between parties
+        /// </summary>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Route("authorization/api/v1/[controller]/GetRules")]
+        public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleQuery ruleQuery, [FromQuery] bool onlyDirectDelegations = false)
+        {
+            var ruleMatches = ruleQuery.PolicyMatches;
+            List<int> coveredByPartyIds = new List<int>();
+            List<int> coveredByUserIds = new List<int>();
+            List<int> offeredByPartyIds = new List<int>();
+            List<string> orgApps = new List<string>();
+
+            foreach (PolicyMatch policyMatch in ruleQuery.PolicyMatches)
+            {
+                string org = policyMatch.Resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
+                string app = policyMatch.Resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
+                if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(app))
+                {
+                    orgApps.Add($"{org}/{app}");
+                }
+
+                if (DelegationHelper.TryGetCoveredByPartyIdFromMatch(policyMatch.CoveredBy, out int partyId))
+                {
+                    coveredByPartyIds.Add(partyId);
+                }
+                else if (DelegationHelper.TryGetCoveredByUserIdFromMatch(policyMatch.CoveredBy, out int userId))
+                {
+                    coveredByUserIds.Add(userId);
+                }
+
+                if (ruleQuery.KeyRolePartyIds.Any(id => id != 0))
+                {
+                    coveredByPartyIds.AddRange(ruleQuery.KeyRolePartyIds);
+                }
+
+                if (ruleQuery.ParentPartyId != 0)
+                {
+                    offeredByPartyIds.Add(ruleQuery.ParentPartyId);
+                }
+
+                if (policyMatch.OfferedByPartyId != 0)
+                {
+                    offeredByPartyIds.Add(policyMatch.OfferedByPartyId);
+                }
+            }
+
+            try
+            {
+                return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to get rules. {e}");
+                return StatusCode(500, $"Unable to get rules. {e}");
             }
         }
 
