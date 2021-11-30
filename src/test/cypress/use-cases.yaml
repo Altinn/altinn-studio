@@ -29,9 +29,9 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
-   yarn run cy:cachelist
-   
    yarn --immutable
+
+   yarn run cy:cachelist
 
    yarn run cy:version
 
