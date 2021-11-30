@@ -35,9 +35,9 @@ Are there any requirements related to backup? -->
 ## Definition of done
 <!-- This chekclist is to verify that this issue meets [DoD](https://digdir-digitalisering.atlassian.net/wiki/spaces/T3KP/pages/5049246/Definition+of+Done) (Only for project members) before closing. -->
 
-- [ ] Documentation is updated (if relevant)
-  - [ ] Technical documentation (docs.altinn.studio)
-  - [ ] User documentation (altinn.github.io/docs)
+- [ ] Documentation (docs.altinn.studio) is updated (if relevant)
+  - [ ] Technical documentation
+  - [ ] User documentation
 - [ ] QA
 - [ ] Manual test is complete (if relevant)
 - [ ] Automated test is implemented (if relevant)
