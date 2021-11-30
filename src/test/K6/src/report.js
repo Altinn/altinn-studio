@@ -12,19 +12,19 @@ function escapeHTML(str) {
   });
 }
 
-function checksToTestcase(checks) {
-  var testcases = [];
+function checksToTestcase(checks, failures) {
+  var testCases = [];
   if (checks.length > 0) {
     checks.forEach((check) => {
       if (check.passes >= 1 && check.fails === 0) {
-        testcases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
+        testCases.push(`<testcase name="${escapeHTML(check.name)}"/>`);
       } else {
         failures++;
-        testcases.push(`<testcase name="${escapeHTML(check.name)}"><failure message="failed"/></testcase>`);
+        testCases.push(`<testcase name="${escapeHTML(check.name)}"><failure message="failed"/></testcase>`);
       }
     });
   }
-  return testcases;
+  return [testCases, failures];
 }
 
 /**
@@ -35,24 +35,28 @@ function checksToTestcase(checks) {
  */
 export function generateJUnitXML(data, suiteName) {
   var failures = 0;
-  var cases = [];
+  var allTests = [],
+    testSubset = [];
   var time = data.state.testRunDurationMs ? data.state.testRunDurationMs : 0;
 
   if (data.root_group.hasOwnProperty('groups') && data.root_group.groups.length > 0) {
     var groups = data.root_group.groups;
     groups.forEach((group) => {
-      if (group.hasOwnProperty('checks')) cases.push(...checksToTestcase(group.checks));
+      var testSubset = [];
+      if (group.hasOwnProperty('checks')) [testSubset, failures] = checksToTestcase(group.checks, failures);
+      allTests.push(...testSubset);
     });
   }
 
-  if (data.root_group.hasOwnProperty('checks')) cases.push(...checksToTestcase(data.root_group.checks));
+  if (data.root_group.hasOwnProperty('checks')) [testSubset, failures] = checksToTestcase(data.root_group.checks, failures);
+  allTests.push(...testSubset);
 
   return (
-    `<?xml version="1.0" encoding="UTF-8" ?>\n<testsuites tests="${cases.length}" ` +
+    `<?xml version="1.0" encoding="UTF-8" ?>\n<testsuites tests="${allTests.length}" ` +
     `failures="${failures}\" time="${time}">\n` +
-    `<testsuite name="${escapeHTML(suiteName)}" tests="${cases.length}" failures="${failures}" ` +
+    `<testsuite name="${escapeHTML(suiteName)}" tests="${allTests.length}" failures="${failures}" ` +
     `time="${time}" timestamp="${new Date().toISOString()}">\n` +
-    `${cases.join('\n')}\n</testsuite>\n</testsuites>`
+    `${allTests.join('\n')}\n</testsuite>\n</testsuites>`
   );
 }
 
