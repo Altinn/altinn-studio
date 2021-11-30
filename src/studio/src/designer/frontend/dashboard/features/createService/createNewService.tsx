@@ -10,6 +10,7 @@ import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import AltinnModal from 'app-shared/components/molecules/AltinnModal';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
+import { AxiosError } from 'axios';
 
 export interface ICreateNewServiceProvidedProps {
   classes: any;
@@ -192,46 +193,36 @@ export class CreateNewServiceComponent extends React.Component<
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}`;
       post(url)
         .then((result: any) => {
-          if (result.repositoryCreatedStatus === 409) {
-            this.setState({
-              isLoading: false,
-            });
-            this.showRepoNamePopper(
-              getLanguageFromKey(
-                'dashboard.app_already_exist',
-                this.props.language,
-              ),
-            );
-          } else if (result.repositoryCreatedStatus === 201) {
             window.location.assign(
               `${altinnWindow.location.origin}/designer/${result.full_name}#/about`,
             );
+          })
+        .catch((error: AxiosError) => {
+          if (error.response.status === 409) {
+            this.setState({
+              isLoading: false,
+            });
+            this.showRepoNamePopper(
+              getLanguageFromKey(
+                'dashboard.error_when_creating_app',
+                this.props.language,
+              ),
+            );
           } else {
-            this.setState({
-              isLoading: false,
-            });
-            this.showRepoNamePopper(
-              getLanguageFromKey(
-                'dashboard.error_when_creating_app',
-                this.props.language,
-              ),
-            );
-          }
-        })
-        .catch((error: Error) => {
-          console.error('Unsucessful creating new app', error.message);
-          if (this.componentMounted) {
-            this.setState({
-              isLoading: false,
-            });
-            this.showRepoNamePopper(
-              getLanguageFromKey(
-                'dashboard.error_when_creating_app',
-                this.props.language,
-              ),
-            );
-          }
-        });
+            if (this.componentMounted) {
+              this.setState({
+                isLoading: false,
+              });
+              this.showRepoNamePopper(
+                getLanguageFromKey(
+                  'dashboard.error_when_creating_app',
+                  this.props.language,
+                ),
+              );
+            }
+          }          
+        }
+      );
     }
   };
 
