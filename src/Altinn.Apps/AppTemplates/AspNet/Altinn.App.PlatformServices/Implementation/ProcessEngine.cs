@@ -60,7 +60,8 @@ namespace Altinn.App.PlatformServices.Implementation
                 return processChange;
             }
 
-            string nextElement = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError nextElementError);
+            // Find next valid element. Later this will be dynamic
+            processChange.RequestedProcessElementId = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError nextElementError);
             if (nextElementError != null)
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();

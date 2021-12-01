@@ -68,7 +68,6 @@ namespace Altinn.App.PlatformServices.Implementation
                 processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
 
                 await RegisterEventWithEventsComponent(processChange.Instance);
-
             }
 
             return processChange;
