@@ -74,5 +74,15 @@ namespace Altinn.App.PlatformServices.Models
         /// ProcessStateChange
         /// </summary>
         public ProcessStateChange ProcessStateChange { get; set; }
+
+        /// <summary>
+        /// The current process element to be processed
+        /// </summary>
+        public string ElementToBeProcessed { get; set; }
+
+        /// <summary>
+        /// Process prefill
+        /// </summary>
+        public Dictionary<string, string> Prefill { get; set; }
     }
 }

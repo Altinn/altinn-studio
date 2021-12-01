@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Models;
 
 namespace Altinn.App.PlatformServices.Process
@@ -10,11 +11,11 @@ namespace Altinn.App.PlatformServices.Process
         /// <summary>
         /// hallooo asdf
         /// </summary>
-        public abstract void HandleTaskComplete(ProcessChangeContext processChange);
+        public abstract Task HandleTaskComplete(ProcessChangeContext processChange);
 
         /// <summary>
         /// Handle task start
         /// </summary>
-        public abstract void HandleTaskStart(ProcessChangeContext processChange);
+        public abstract Task HandleTaskStart(ProcessChangeContext processChange);
     }
 }

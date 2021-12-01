@@ -15,11 +15,11 @@ namespace Altinn.App.PlatformServices.Process
         /// <summary>
         /// This operations triggers process logic needed to start the current task. The logic depend on the different types of task
         /// </summary>
-        void HandleTaskStart(ProcessChangeContext prosessChangeContext);
+        Task HandleTaskStart(ProcessChangeContext prosessChangeContext);
 
         /// <summary>
         /// This operatin triggers process logic need to complete a given task. The Logic depend on the different types of task.
         /// </summary>
-        void HandleTaskComplete(ProcessChangeContext processChangeContext);
+        Task HandleTaskComplete(ProcessChangeContext processChangeContext);
     }
 }

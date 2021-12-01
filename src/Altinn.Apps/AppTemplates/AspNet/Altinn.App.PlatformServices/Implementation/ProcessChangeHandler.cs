@@ -67,9 +67,9 @@ namespace Altinn.App.PlatformServices.Implementation
                 NewProcessState = nextChange.NewProcessState,
                 Events = new List<InstanceEvent> { startEvent, goToNextEvent }
             };
-
-            processChange.Instance = await UpdateProcessAndDispatchEvents(processChange.Instance, processStateChange);
             processChange.ProcessStateChange = processStateChange;
+            processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+           
             return processChange;
         }
 
@@ -81,18 +81,18 @@ namespace Altinn.App.PlatformServices.Implementation
 
         private ITask GetProcessTask()
         {
-            ITask task = new DataTask(_altinnApp, _processService, _instanceClient);
+            ITask task = new DataTask(_altinnApp);
             return task;
         }
 
-        private async Task<Instance> UpdateProcessAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
+        private async Task<Instance> UpdateProcessAndDispatchEvents(ProcessChangeContext processChangeContext)
         {
-            await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
+            await NotifyAppAboutEvents(processChangeContext);
 
             // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
-            Instance updatedInstance = await _instanceClient.UpdateProcess(instance);
+            Instance updatedInstance = await _instanceClient.UpdateProcess(processChangeContext.Instance);
 
-            await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
+            await _processService.DispatchProcessEventsToStorage(updatedInstance, processChangeContext.ProcessStateChange.Events);
 
             // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
             updatedInstance = await _instanceClient.GetInstance(updatedInstance);
@@ -103,33 +103,27 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Perform calls to the custom App logic.
         /// </summary>
-        /// <param name="altinnApp">The application core logic.</param>
-        /// <param name="instance">The currently loaded instance.</param>
-        /// <param name="events">The events to trigger.</param>
-        /// <param name="prefill">Prefill values.</param>
-        /// <returns>A Task to enable async await.</returns>
-        internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events, Dictionary<string, string> prefill = null)
+        internal async Task NotifyAppAboutEvents(ProcessChangeContext processChangeContext)
         {
-            foreach (InstanceEvent processEvent in events)
+            foreach (InstanceEvent processEvent in processChangeContext.ProcessStateChange.Events)
             {
                 if (Enum.TryParse<InstanceEventType>(processEvent.EventType, true, out InstanceEventType eventType))
                 {
                     switch (eventType)
                     {
                         case InstanceEventType.process_StartEvent:
-
                             break;
-
                         case InstanceEventType.process_StartTask:
-                            await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance, prefill);
+                            ITask task = GetProcessTask();
+                            await task.HandleTaskStart(processChangeContext);
                             break;
 
                         case InstanceEventType.process_EndTask:
-                            await altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                            await _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, processChangeContext.Instance);
                             break;
 
                         case InstanceEventType.process_EndEvent:
-                            await altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);
+                            await _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, processChangeContext.Instance);
                             break;
                     }
                 }
