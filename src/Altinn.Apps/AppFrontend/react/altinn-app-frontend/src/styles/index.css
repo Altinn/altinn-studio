@@ -31,6 +31,17 @@ p {
   font-family: 'Altinn-DIN';
 }
 
+h2 {
+  font-size: 22px;
+  font-weight: normal;
+}
+
+@media only screen and (min-width: 576px) {
+  h2 {
+      font-size: 28px;
+  }
+}
+
 option {
   overflow: 'hidden';
   text-overflow: 'ellipsis';
@@ -76,6 +87,7 @@ option {
 
 .a-form-group .form-control {
   border: 2px solid #008FD6;
+  max-width: 684px;
 }
 
 .a-form-group .input-group .input-group-prepend {
