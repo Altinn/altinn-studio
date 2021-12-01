@@ -2,7 +2,7 @@
 <xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
 	<xacml:Description>Delegation policy containing all delegated rights/actions from 50001337 to 20001337, for resources on the app; error/postgrewritechangefail</xacml:Description>
 	<xacml:Target/>
-	<xacml:Rule RuleId="urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" Effect="Permit">
+	<xacml:Rule RuleId="ade3b138-7fa4-4c83-9306-8ec4a72c2daa" Effect="Permit">
 		<xacml:Description>Delegation of a right/action from 50001337 to 20001337, for a resource on the app; error/postgrewritechangefail, by user; 20001336</xacml:Description>
 		<xacml:Target>
 			<xacml:AnyOf>

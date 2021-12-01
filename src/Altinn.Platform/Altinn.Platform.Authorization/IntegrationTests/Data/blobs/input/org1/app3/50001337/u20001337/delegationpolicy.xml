@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
-	<xacml:Description>Delegation policy containing all delegated rights/actions from 50001337 to 20001336, for resources on the app; org1/app1</xacml:Description>
+	<xacml:Description>Delegation policy containing all delegated rights/actions from 50001337 to 20001337, for resources on the app; org1/app3</xacml:Description>
 	<xacml:Target/>
-	<xacml:Rule RuleId="urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94" Effect="Permit">
-		<xacml:Description>Delegation of a right/action from 50001337 to 20001336, for a resource on the app; org1/app1, by user; 20001337</xacml:Description>
+	<xacml:Rule RuleId="0d0c8570-64fb-49f9-9f7d-45c057fddf94" Effect="Permit">
+		<xacml:Description>Delegation of a right/action from 50001337 to 20001337, for a resource on the app; org1/app3, by user; 20001336</xacml:Description>
 		<xacml:Target>
 			<xacml:AnyOf>
 				<xacml:AllOf>
@@ -35,8 +35,8 @@
 			</xacml:AnyOf>
 		</xacml:Target>
 	</xacml:Rule>
-	<xacml:Rule RuleId="urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" Effect="Permit">
-		<xacml:Description>Delegation of a right/action from 50001337 to 20001336, for a resource on the app; org1/app1, by user; 20001337</xacml:Description>
+	<xacml:Rule RuleId="6f11dd0b-5e5d-4bd1-85f0-9796300dfded" Effect="Permit">
+		<xacml:Description>Delegation of a right/action from 50001337 to 20001337, for a resource on the app; org1/app3, by user; 20001336</xacml:Description>
 		<xacml:Target>
 			<xacml:AnyOf>
 				<xacml:AllOf>

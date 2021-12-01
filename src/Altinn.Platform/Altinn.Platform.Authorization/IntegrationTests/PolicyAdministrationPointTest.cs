@@ -126,9 +126,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)                
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)                
             };
 
             List<Rule> expected = new List<Rule>
@@ -179,7 +179,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app1", new List<string> { "urn:altinn:ruleid:57b3ee85-f932-42c6-9ab0-941eb6c96eb0",  "urn:altinn:ruleid:78e5cced-3bcb-42b6-9089-63c834f89e73" }, coveredByPartyId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app1", new List<string> { "57b3ee85-f932-42c6-9ab0-941eb6c96eb0",  "78e5cced-3bcb-42b6-9089-63c834f89e73" }, coveredByPartyId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -226,9 +226,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgrewritechangefail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgrewritechangefail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -277,9 +277,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgregetcurrentfail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgregetcurrentfail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -328,9 +328,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstorageleaselockwritefail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstorageleaselockwritefail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -379,9 +379,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app8", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app8", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
