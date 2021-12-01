@@ -31,15 +31,16 @@ const styles = createStyles({
     width: '100%',
     marginLeft: 'auto',
     marginRight: 'auto',
-    padding: 24,
+    padding: 12,
     '@media (min-width:576px)': {
-      maxWidth: 540,
+      maxWidth: 'none',
+      padding: 24,
     },
     '@media (min-width:760px)': {
-      maxWidth: 720,
+      maxWidth: 'none',
     },
     '@media (min-width:992px)': {
-      maxWidth: 960,
+      maxWidth: 'none',
     },
     '@media (min-width:1200px)': {
       maxWidth: 1056,

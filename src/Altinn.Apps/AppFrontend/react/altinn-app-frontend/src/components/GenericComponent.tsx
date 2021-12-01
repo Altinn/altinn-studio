@@ -9,6 +9,7 @@ import {
 } from 'src/types';
 
 import { Grid, makeStyles } from '@material-ui/core';
+import classNames from 'classnames';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
@@ -16,6 +17,7 @@ import { IFormData } from '../features/form/data/formDataReducer';
 import {
   IDataModelBindings,
   IGrid,
+  IGridStyling,
   ITextResourceBindings,
 } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
@@ -50,13 +52,36 @@ export interface IGenericComponentProps {
   hidden?: boolean;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     '@media print': {
       display: 'flex !important',
     },
   },
-});
+  xs: {
+    'border-bottom': '1px dashed #949494',
+  },
+  sm: {
+    [theme.breakpoints.up('sm')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  md: {
+    [theme.breakpoints.up('md')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  lg: {
+    [theme.breakpoints.up('lg')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  xl: {
+    [theme.breakpoints.up('xl')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+}));
 
 export function GenericComponent(props: IGenericComponentProps) {
   const { id, ...passThroughProps } = props;
@@ -295,11 +320,20 @@ export function GenericComponent(props: IGenericComponentProps) {
       lg={props.grid?.lg || false}
       xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
-      className={`form-group a-form-group ${classes.container}`}
+      className={
+        classNames('form-group', 'a-form-group', classes.container, gridToHiddenProps(props.grid?.labelGrid, classes))
+      }
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) && (
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={props.grid?.labelGrid?.xs || 12}
+          sm={props.grid?.labelGrid?.sm || false}
+          md={props.grid?.labelGrid?.md || false}
+          lg={props.grid?.labelGrid?.lg || false}
+          xl={props.grid?.labelGrid?.xl || false}
+        >
           <RenderLabelScoped
             props={props}
             passThroughProps={passThroughProps}
@@ -350,6 +384,17 @@ const RenderLabelScoped = (props: IRenderLabelProps) => {
       {...props.passThroughProps}
     />
   );
+};
+
+const gridToHiddenProps = (labelGrid: IGridStyling, classes: ReturnType<typeof useStyles>) => {
+  if (!labelGrid) return undefined;
+  return {
+    [classes.xs]: labelGrid.xs > 0 && labelGrid.xs < 12,
+    [classes.sm]: labelGrid.sm > 0 && labelGrid.sm < 12,
+    [classes.md]: labelGrid.md > 0 && labelGrid.md < 12,
+    [classes.lg]: labelGrid.lg > 0 && labelGrid.lg < 12,
+    [classes.xl]: labelGrid.xl > 0 && labelGrid.xl < 12,
+  };
 };
 
 export default GenericComponent;

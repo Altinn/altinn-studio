@@ -86,19 +86,24 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         {
             List<DelegationChange> result = new List<DelegationChange>();
 
-            if (altinnAppIds.Contains("org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001337)))
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001337)))
             {
                 result.Add(TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByUserId: 20001337));
             }
 
-            if (altinnAppIds.Contains("org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001338)))
+            if (altinnAppIds.Any(appId => appId == "skd/taxreport") && offeredByPartyIds.Contains(1000) && (coveredByUserIds != null && coveredByUserIds.Contains(20001337)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("skd/taxreport", 1000, coveredByUserId: 20001337));
+            }
+
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001338)))
             {
                 DelegationChange delegation = TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByUserId: 20001338);
                 delegation.IsDeleted = true;
                 result.Add(delegation);
             }
 
-            if (altinnAppIds.Contains("org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
             {
                 result.Add(TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByPartyId: 50001336));
             }
