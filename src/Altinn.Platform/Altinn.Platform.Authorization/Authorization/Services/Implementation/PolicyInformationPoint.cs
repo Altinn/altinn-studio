@@ -27,10 +27,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PolicyInformationPoint : IPolicyInformationPoint
     {
         private readonly IPolicyRetrievalPoint _prp;
-        private readonly IPolicyRepository _policyRepository;
         private readonly IDelegationMetadataRepository _delegationRepository;
-        private readonly IMemoryCache _memoryCache;
-        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
@@ -43,17 +40,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public PolicyInformationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _prp = policyRetrievalPoint;
-            _policyRepository = policyRepository;
             _delegationRepository = delegationRepository;
-            _memoryCache = memoryCache;
-            _generalSettings = settings.Value;
         }
 
         /// <inheritdoc/>
         public async Task<List<Rule>> GetRulesAsync(List<string> orgApp, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
         {
             List<Rule> rules = new List<Rule>();
-            List<XacmlPolicy> policies = new List<XacmlPolicy>();
             List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(orgApp, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange delegationChange in delegationChanges)
             {
@@ -79,48 +72,56 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         CoveredBy = new List<AttributeMatch>(),
                         Resource = new List<AttributeMatch>()
                     };
-
-                    foreach (XacmlAnyOf anyOf in xacmlRule.Target.AnyOf)
-                    {
-                        foreach (XacmlAllOf allOf in anyOf.AllOf)
-                        {
-                            foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                            {
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
-                                {
-                                    rule.Action = new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    };
-                                }
-
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
-                                {
-                                    rule.CoveredBy.Add(new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    });
-                                }
-
-                                if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                                {
-                                    rule.Resource.Add(new AttributeMatch
-                                    {
-                                        Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
-                                        Value = xacmlMatch.AttributeValue.Value
-                                    });
-                                }
-                            }
-                        }
-                    }
-
+                    AddAttributeMatchesToRule(xacmlRule, rule);
                     rules.Add(rule);
                 }
             }
 
             return rules;
+        }
+
+        private static void AddAttributeMatchesToRule(XacmlRule xacmlRule, Rule rule)
+        {
+            foreach (XacmlAnyOf anyOf in xacmlRule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        AddAttributeMatchToRule(xacmlMatch, rule);
+                    }
+                }
+            }
+        }
+
+        private static void AddAttributeMatchToRule(XacmlMatch xacmlMatch, Rule rule)
+        {
+            if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+            {
+                rule.Action = new AttributeMatch
+                {
+                    Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                    Value = xacmlMatch.AttributeValue.Value
+                };
+            }
+
+            if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
+            {
+                rule.CoveredBy.Add(new AttributeMatch
+                {
+                    Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                    Value = xacmlMatch.AttributeValue.Value
+                });
+            }
+
+            if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+            {
+                rule.Resource.Add(new AttributeMatch
+                {
+                    Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString,
+                    Value = xacmlMatch.AttributeValue.Value
+                });
+            }
         }
     }
 }

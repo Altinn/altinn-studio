@@ -877,7 +877,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
         }
 
-        private List<Rule> GetExpectedRulesForUser()
+        private static List<Rule> GetExpectedRulesForUser()
         {
             List<Rule> list = new List<Rule>();
             list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport"));
@@ -885,7 +885,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             return list;
         }
 
-        private List<Rule> GetExpectedRulesForParty()
+        private static List<Rule> GetExpectedRulesForParty()
         {
             List<Rule> list = new List<Rule>();
             list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
