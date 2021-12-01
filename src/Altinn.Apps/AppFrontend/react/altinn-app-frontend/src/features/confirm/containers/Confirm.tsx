@@ -9,14 +9,13 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
+import { IAttachment, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import {
   mapInstanceAttachments,
   getTextResourceByKey,
 } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow } from '../../../types';

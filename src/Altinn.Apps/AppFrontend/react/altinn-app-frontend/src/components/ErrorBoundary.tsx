@@ -3,13 +3,12 @@ import UnknownError from 'src/features/instantiate/containers/UnknownError';
 
 interface IErrorBoundary {
   hasError: boolean;
-  error: Error;
 }
 
 class ErrorBoundary extends React.Component<any, IErrorBoundary> {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: undefined };
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error) {
