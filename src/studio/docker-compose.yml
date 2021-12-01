@@ -79,6 +79,7 @@ services:
       - GITEA__server__SSH_DOMAIN=altinn3.no
       - GITEA__server__DOMAIN=altinn3.no
       - GITEA__server__ROOT_URL=http://altinn3.no/repos
+      - GITEA__server__COOKIE_SECURE=false
       - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
       - GITEA__database__DB_TYPE=sqlite3
       - GITEA__database__PATH=/var/lib/gitea/db/gitea.db
@@ -92,6 +93,8 @@ services:
       - GITEA__mailer__ENABLED=false
       - GITEA__mailer__HOST=none
       - GITEA__mailer__SKIP_VERIFY=false
+      - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
+      - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
     ports:
       - "3000:3000"
       - "222:22"
