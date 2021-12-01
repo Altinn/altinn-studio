@@ -204,7 +204,7 @@ export class CreateNewServiceComponent extends React.Component<
             });
             this.showRepoNamePopper(
               getLanguageFromKey(
-                'dashboard.error_when_creating_app',
+                'dashboard.app_already_exist',
                 this.props.language,
               ),
             );
