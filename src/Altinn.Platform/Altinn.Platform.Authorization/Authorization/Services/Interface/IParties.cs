@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Register.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface
@@ -15,6 +16,20 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <param name="userId">The user id</param>
         /// <returns>list of parties that the logged in user can represent</returns>
         Task<List<Party>> GetParties(int userId);
+
+        /// <summary>
+        /// Method that fetches a list of PartyIds the given user id has key role access to (where the user inherit delegations to their organization)
+        /// </summary>
+        /// <param name="userId">The user id</param>
+        /// <returns>list of PartyIds where the logged in user have key role access</returns>
+        Task<List<int>> GetKeyRoleParties(int userId);
+
+        /// <summary>
+        /// Method that fetches a list of main units for the input list of sub unit partyIds. If any of the input partyIds are not a sub unit the response model will have null values for main unit properties.
+        /// </summary>
+        /// <param name="subunitPartyIds">The list of PartyIds to check and retrieve any main units for</param>
+        /// <returns>list of main units</returns>
+        Task<List<MainUnit>> GetMainUnits(MainUnitQuery subunitPartyIds);
 
         /// <summary>
         /// Verifies that the selected party is contained in the user's party list

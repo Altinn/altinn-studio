@@ -58,4 +58,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Data\blobs\input\skd\taxreport\1000\u20001337\delegationpolicy.xml" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationRequest.xml" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationResponse.xml" />
+  </ItemGroup>
+
 </Project>
