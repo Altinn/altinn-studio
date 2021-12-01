@@ -1,8 +1,8 @@
 import 'jest';
 import { flattenObject, getKeyWithoutIndex, mapFormData, removeGroupData } from '../../src/utils/databindings';
 import { ILayout, ILayoutComponent } from '../../src/features/form/layout';
-import { IMapping } from '../../src/components/base/InstantiationButton';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
+import { IMapping } from '../../src/types';
 
 describe('>>> utils/databindings.ts', () => {
   let testObj: any;
