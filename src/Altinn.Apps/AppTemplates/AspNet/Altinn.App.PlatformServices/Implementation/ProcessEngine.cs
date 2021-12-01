@@ -1,21 +1,27 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 
 namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
-    /// The process engine is responsible for handeling the BMPN process. It will call processChange handler that is responsible
-    /// for the business logic happening for any process change. 
+    /// The process engine is responsible for all BMPN related functionality
+    ///
+    /// It will call processChange handler that is responsible
+    /// for the business logic happening for any process change.
     /// </summary>
     public class ProcessEngine : IProcessEngine
     {
         private IProcessChangeHandler _processChangeHandler;
 
         private readonly IProcess _processService;
+
+        private readonly ProcessHelper processHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessEngine"/> class.
@@ -26,6 +32,8 @@ namespace Altinn.App.PlatformServices.Implementation
         {
             _processService = processService;
             _processChangeHandler = processChangeHandler;
+            using Stream bpmnStream = _processService.GetProcessDefinition();
+            processHelper = new ProcessHelper(bpmnStream);
         }
 
         /// <summary>
@@ -43,12 +51,37 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Start application process and goes to first valid Task
         /// </summary>
-        public Task<ProcessChangeContext> StartProcess(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> StartProcess(ProcessChangeContext processChange)
         {
-            ProcessStateChange change = _processService.ProcessStartAndGotoNextTask(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
-            processChange.NewProcessState = change.NewProcessState;
-            processChange.Events = change.Events;
-            return _processChangeHandler.HandleStart(processChange);
+            if (processChange.Instance.Process != null)
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = "Process is already started. Use next.", Type = "Conflict" });
+                return processChange;
+            }
+
+            string validStartElement = processHelper.GetValidStartEventOrError(processChange.RequestedProcessElementId, out ProcessError startEventError);
+            if (startEventError != null)
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = "No matching startevent", Type = "Conflict" });
+                return processChange;
+            }
+
+            processChange.ProcessFlowElements.Add(validStartElement);
+
+            // find next task
+            string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
+            if (nextElementError != null)
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Unable to goto next element due to { nextElementError.Code}-{ nextElementError.Text}", Type = "Conflict" });
+                return processChange;
+            }
+
+            processChange.ProcessFlowElements.Add(nextValidElement);
+
+            return await _processChangeHandler.HandleStart(processChange);
         }
 
         /// <summary>

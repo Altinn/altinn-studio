@@ -49,6 +49,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IPDP _pdp;
         private readonly IEvents _eventsService;
         private readonly AppSettings _appSettings;
+        private readonly IProcessEngine _processEngine;
 
         private readonly ProcessHelper processHelper;
 
@@ -63,7 +64,8 @@ namespace Altinn.App.Api.Controllers
             IValidation validationService,
             IPDP pdp,
             IEvents eventsService,
-            IOptions<AppSettings> appSettings)
+            IOptions<AppSettings> appSettings,
+            IProcessEngine processEngine)
         {
             _logger = logger;
             _instanceClient = instanceClient;
@@ -73,7 +75,7 @@ namespace Altinn.App.Api.Controllers
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
-
+            _processEngine = processEngine;
             using Stream bpmnStream = _processService.GetProcessDefinition();
             processHelper = new ProcessHelper(bpmnStream);
         }
@@ -157,6 +159,56 @@ namespace Altinn.App.Api.Controllers
                 Instance updatedInstance = await UpdateProcessAndDispatchEvents(instance, processStateChange);
 
                 return Ok(updatedInstance.Process);
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, $"Unable to start the process for instance {instance.Id} of {instance.AppId}");
+            }
+            catch (Exception startException)
+            {
+                _logger.LogError($"Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
+                return ExceptionResponse(startException, $"Unable to start the process for instance {instance.Id} of {instance.AppId}");
+            }
+        }
+
+        /// <summary>
+        /// Starts the process of an instance.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
+        /// <returns>The process state</returns>
+        [HttpPost("startv2")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Authorize(Policy = "InstanceInstantiate")]
+        public async Task<ActionResult<ProcessState>> StartProcessV2(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string startEvent = null)
+        {
+            Instance instance = null;
+
+            try
+            {
+                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+                ProcessChangeContext changeContext = new ProcessChangeContext();
+                changeContext.RequestedProcessElementId = startEvent;
+                changeContext.Instance = instance;
+                changeContext.User = User;
+                changeContext = await _processEngine.StartProcess(changeContext);
+                if (changeContext.FailedProcessChange)
+                {
+                    return Conflict(changeContext.ProcessMessages[0].Message);
+                }
+
+                return Ok(changeContext.Instance.Process);
             }
             catch (PlatformHttpException e)
             {
@@ -361,6 +413,106 @@ namespace Altinn.App.Api.Controllers
             }
 
             return canEndTask;
+        }
+
+        /// <summary>
+        /// Change the instance's process state to next process element in accordance with process definition.
+        /// </summary>
+        /// <returns>new process state</returns>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
+        /// but must be specified if more than one element can be reached from the current process ellement.</param>
+        [HttpPut("nextv2")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ProcessState>> NextElementV2(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string elementId = null)
+        {
+            try
+            {
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+                if (instance.Process == null)
+                {
+                    return Conflict($"Process is not started. Use start!");
+                }
+
+                if (instance.Process.Ended.HasValue)
+                {
+                    return Conflict($"Process is ended.");
+                }
+
+                if (!string.IsNullOrEmpty(elementId))
+                {
+                    ElementInfo elemInfo = processHelper.Process.GetElementInfo(elementId);
+                    if (elemInfo == null)
+                    {
+                        return BadRequest($"Requested element id {elementId} is not found in process definition");
+                    }
+                }
+
+                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+
+                if (altinnTaskType == null)
+                {
+                    return Conflict($"Instance does not have current altinn task type information!");
+                }
+
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
+                if (!authorized)
+                {
+                    return Forbid();
+                }
+
+                string currentElementId = instance.Process.CurrentTask?.ElementId;
+
+                if (currentElementId == null)
+                {
+                    return Conflict($"Instance does not have current task information!");
+                }
+
+                if (currentElementId.Equals(elementId))
+                {
+                    return Conflict($"Requested process element {elementId} is same as instance's current task. Cannot change process.");
+                }
+
+                string nextElement = processHelper.GetValidNextElementOrError(currentElementId, elementId, out ProcessError nextElementError);
+                if (nextElementError != null)
+                {
+                    return Conflict(nextElementError.Text);
+                }
+
+                if (await CanTaskBeEnded(instance, currentElementId))
+                {
+                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
+                    if (nextResult != null)
+                    {
+                        Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
+
+                        await RegisterEventWithEventsComponent(changedInstance);
+
+                        return Ok(changedInstance.Process);
+                    }
+                }
+
+                return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, "Process next failed.");
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, "Process next failed.");
+            }
         }
 
         /// <summary>

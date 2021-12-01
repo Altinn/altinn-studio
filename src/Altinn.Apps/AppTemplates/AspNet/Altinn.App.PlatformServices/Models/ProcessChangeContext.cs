@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -25,6 +26,11 @@ namespace Altinn.App.PlatformServices.Models
         public string RequestedProcessElementId { get; set; }
 
         /// <summary>
+        /// The process flow
+        /// </summary>
+        public List<string> ProcessFlowElements { get; set; } = new List<string>();
+
+        /// <summary>
         /// Information messages
         /// </summary>
         public List<ProcessChangeInfo> ProcessMessages { get; set; }
@@ -32,7 +38,7 @@ namespace Altinn.App.PlatformServices.Models
         /// <summary>
         /// The BPMN process
         /// </summary>
-        public Process Process { get; set; }
+        public BpmnReader Process { get; set; }
 
         /// <summary>
         /// The performer triggering the ProcessChange
@@ -53,5 +59,20 @@ namespace Altinn.App.PlatformServices.Models
         /// Instances events created relate to process change
         /// </summary>
         public List<InstanceEvent> Events { get; set; }
+
+        /// <summary>
+        /// Did process change fail?
+        /// </summary>
+        public bool FailedProcessChange { get; set; }
+
+        /// <summary>
+        /// The identity performing the process change
+        /// </summary>
+        public ClaimsPrincipal User { get; set; }
+
+        /// <summary>
+        /// ProcessStateChange
+        /// </summary>
+        public ProcessStateChange ProcessStateChange { get; set; }
     }
 }
