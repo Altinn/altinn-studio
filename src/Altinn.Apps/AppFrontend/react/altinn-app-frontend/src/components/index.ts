@@ -14,7 +14,7 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
-import { InstantiationButton } from './base/InstantiationButton';
+import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
 
 export interface IComponent {
   name: string;
@@ -136,7 +136,7 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'InstantiationButton',
-    Tag: InstantiationButton,
+    Tag: InstantiationButtonComponent,
     Type: ComponentTypes.InstantiationButton,
   },
   {

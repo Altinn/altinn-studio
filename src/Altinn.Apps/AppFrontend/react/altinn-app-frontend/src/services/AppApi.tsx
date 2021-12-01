@@ -35,7 +35,7 @@ const axiosBaseQuery =
 
 export enum TagTypes {
   Instances = 'Instances',
-};
+}
 
 export const appApi = createApi({
   reducerPath: 'appApi',

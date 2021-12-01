@@ -30,7 +30,7 @@ const altinnLoaderStyle = {
 };
 
 
-export function InstantiationButton(props: IInstantiationButtonProps) {
+export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
   const [instantiateWithPrefill, {isSuccess, data, isLoading, isError}] = useInstantiateWithPrefillMutation();
   const formData = useAppSelector(state => state.formData.formData);
   const party = useAppSelector(state => state.party.selectedParty);
@@ -94,4 +94,4 @@ export function InstantiationButton(props: IInstantiationButtonProps) {
   );
 }
 
-export default InstantiationButton;
+export default InstantiationButtonComponent;
