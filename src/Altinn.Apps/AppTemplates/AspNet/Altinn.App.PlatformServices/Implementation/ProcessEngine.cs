@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
@@ -6,6 +7,8 @@ using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.PlatformServices.Implementation
 {
@@ -39,13 +42,40 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Move process to next element in process
         /// </summary>
-        public Task<ProcessChangeContext> Next(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> Next(ProcessChangeContext processChange)
         {
-            ProcessStateChange change = _processService.ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.Performer);
-            processChange.OldProcessState = change.OldProcessState;
-            processChange.NewProcessState = change.NewProcessState;
-            processChange.Events = change.Events;
-            return _processChangeHandler.HandleNext(processChange);
+            string currentElementId = processChange.Instance.Process.CurrentTask?.ElementId;
+
+            if (currentElementId == null)
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Instance does not have current task information!", Type = "Conflict" });
+                return processChange;
+            }
+
+            if (currentElementId.Equals(processChange.RequestedProcessElementId))
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Requested process element {processChange.RequestedProcessElementId} is same as instance's current task. Cannot change process.", Type = "Conflict" });
+                return processChange;
+            }
+
+            string nextElement = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError nextElementError);
+            if (nextElementError != null)
+            {
+                processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = nextElementError.Text, Type = "Conflict" });
+                return processChange;
+            }
+
+            if (await _processChangeHandler.CanTaskBeEnded(processChange))
+            {
+               return await _processChangeHandler.HandleNext(processChange);
+            }
+
+            processChange.FailedProcessChange = true;
+            processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!", Type = "conflict" });
+            return processChange;
         }
 
         /// <summary>

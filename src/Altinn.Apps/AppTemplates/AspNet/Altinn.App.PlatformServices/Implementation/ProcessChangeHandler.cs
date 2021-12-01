@@ -9,11 +9,14 @@ using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.PlatformServices.Process;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.PlatformServices.Implementation
@@ -28,11 +31,22 @@ namespace Altinn.App.PlatformServices.Implementation
         private readonly IProcess _processService;
         private readonly ProcessHelper _processHelper;
         private readonly ILogger<ProcessChangeHandler> _logger;
+        private readonly IValidation _validationService;
+
+        private readonly IEvents _eventsService;
+        private readonly AppSettings _appSettings;
 
         /// <summary>
         /// Altinn App specific process change handler
         /// </summary>
-        public ProcessChangeHandler(IAltinnApp altinnApp, ILogger<ProcessChangeHandler> logger, IProcess processService, IInstance instanceClient)
+        public ProcessChangeHandler(
+            IAltinnApp altinnApp,
+            ILogger<ProcessChangeHandler> logger,
+            IProcess processService,
+            IInstance instanceClient,
+            IValidation validationService,
+            IEvents eventsService,
+            IOptions<AppSettings> appSettings)
         {
             _altinnApp = altinnApp;
             _logger = logger;
@@ -40,15 +54,24 @@ namespace Altinn.App.PlatformServices.Implementation
             _instanceClient = instanceClient;
             using Stream bpmnStream = _processService.GetProcessDefinition();
             _processHelper = new ProcessHelper(bpmnStream);
+            _validationService = validationService;
+            _eventsService = eventsService;
+            _appSettings = appSettings.Value;
         }
 
         /// <inheritdoc />
-        public Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
         {
-            ITask currentTask = GetProcessTask(string.Empty);
-            currentTask.HandleTaskComplete(processChange);
-            
-            return Task.FromResult(processChange);
+            processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
+            if (processChange.ProcessStateChange != null)
+            {
+                processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+
+                await RegisterEventWithEventsComponent(processChange.Instance);
+
+            }
+
+            return processChange;
         }
 
         /// <inheritdoc />
@@ -77,6 +100,27 @@ namespace Altinn.App.PlatformServices.Implementation
         public Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange)
         {
             return Task.FromResult(processChange);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CanTaskBeEnded(ProcessChangeContext processChange)
+        {
+            List<ValidationIssue> validationIssues = new List<ValidationIssue>();
+
+            bool canEndTask;
+
+            if (processChange.Instance.Process?.CurrentTask?.Validated == null || !processChange.Instance.Process.CurrentTask.Validated.CanCompleteTask)
+            {
+                validationIssues = await _validationService.ValidateAndUpdateProcess(processChange.Instance, processChange.Instance.Process.CurrentTask?.ElementId);
+
+                canEndTask = await _altinnApp.CanEndProcessTask(processChange.Instance.Process.CurrentTask?.ElementId, processChange.Instance, validationIssues);
+            }
+            else
+            {
+                canEndTask = await _altinnApp.CanEndProcessTask(processChange.Instance.Process.CurrentTask?.ElementId, processChange.Instance, validationIssues);
+            }
+
+            return canEndTask;
         }
 
         private ITask GetProcessTask(string altinnTaskType)
@@ -348,6 +392,28 @@ namespace Altinn.App.PlatformServices.Implementation
             instance.Process = currentState;
 
             return events;
+        }
+
+        private async Task RegisterEventWithEventsComponent(Instance instance)
+        {
+            if (_appSettings.RegisterEventsWithEventsComponent)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(instance.Process.CurrentTask?.ElementId))
+                    {
+                        await _eventsService.AddEvent($"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
+                    }
+                    else if (instance.Process.EndEvent != null)
+                    {
+                        await _eventsService.AddEvent("app.instance.process.completed", instance);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
+                }
+            }
         }
     }
 }

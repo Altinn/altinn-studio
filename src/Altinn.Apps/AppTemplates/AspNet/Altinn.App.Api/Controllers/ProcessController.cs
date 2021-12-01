@@ -472,38 +472,17 @@ namespace Altinn.App.Api.Controllers
                     return Forbid();
                 }
 
-                string currentElementId = instance.Process.CurrentTask?.ElementId;
-
-                if (currentElementId == null)
+                ProcessChangeContext changeContext = new ProcessChangeContext();
+                changeContext.RequestedProcessElementId = elementId;
+                changeContext.Instance = instance;
+                changeContext.User = User;
+                changeContext = await _processEngine.Next(changeContext);
+                if (changeContext.FailedProcessChange)
                 {
-                    return Conflict($"Instance does not have current task information!");
+                    return Conflict(changeContext.ProcessMessages[0].Message);
                 }
 
-                if (currentElementId.Equals(elementId))
-                {
-                    return Conflict($"Requested process element {elementId} is same as instance's current task. Cannot change process.");
-                }
-
-                string nextElement = processHelper.GetValidNextElementOrError(currentElementId, elementId, out ProcessError nextElementError);
-                if (nextElementError != null)
-                {
-                    return Conflict(nextElementError.Text);
-                }
-
-                if (await CanTaskBeEnded(instance, currentElementId))
-                {
-                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
-                    if (nextResult != null)
-                    {
-                        Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
-
-                        await RegisterEventWithEventsComponent(changedInstance);
-
-                        return Ok(changedInstance.Process);
-                    }
-                }
-
-                return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
+                return Ok(changeContext.Instance.Process);
             }
             catch (PlatformHttpException e)
             {

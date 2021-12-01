@@ -23,5 +23,11 @@ namespace Altinn.App.PlatformServices.Interface
         /// Handle start task
         /// </summary>
         Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange);
+
+        /// <summary>
+        /// Check if current task can be completed
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> CanTaskBeEnded(ProcessChangeContext processChange);
     }
 }
