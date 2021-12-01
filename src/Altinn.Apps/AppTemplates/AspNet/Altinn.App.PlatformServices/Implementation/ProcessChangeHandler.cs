@@ -45,7 +45,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc />
         public Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
         {
-            ITask currentTask = GetProcessTask();
+            ITask currentTask = GetProcessTask(string.Empty);
             currentTask.HandleTaskComplete(processChange);
             
             return Task.FromResult(processChange);
@@ -79,15 +79,24 @@ namespace Altinn.App.PlatformServices.Implementation
             return Task.FromResult(processChange);
         }
 
-        private ITask GetProcessTask()
+        private ITask GetProcessTask(string altinnTaskType)
         {
             ITask task = new DataTask(_altinnApp);
+            if (altinnTaskType.Equals("confirmation"))
+            {
+                task = new ConfirmationTask(_altinnApp);
+            }
+            else if (altinnTaskType.Equals("feedback"))
+            {
+                task = new FeedbackTask(_altinnApp);
+            }
+
             return task;
         }
 
         private async Task<Instance> UpdateProcessAndDispatchEvents(ProcessChangeContext processChangeContext)
         {
-            await NotifyAppAboutEvents(processChangeContext);
+            await HandleProcessChanges(processChangeContext);
 
             // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
             Instance updatedInstance = await _instanceClient.UpdateProcess(processChangeContext.Instance);
@@ -101,9 +110,9 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <summary>
-        /// Perform calls to the custom App logic.
+        /// Will for each process change trigger relevant Process Elements to perform the relevant operations.
         /// </summary>
-        internal async Task NotifyAppAboutEvents(ProcessChangeContext processChangeContext)
+        internal async Task HandleProcessChanges(ProcessChangeContext processChangeContext)
         {
             foreach (InstanceEvent processEvent in processChangeContext.ProcessStateChange.Events)
             {
@@ -114,15 +123,18 @@ namespace Altinn.App.PlatformServices.Implementation
                         case InstanceEventType.process_StartEvent:
                             break;
                         case InstanceEventType.process_StartTask:
-                            ITask task = GetProcessTask();
+                            processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.CurrentTask?.ElementId;
+                            ITask task = GetProcessTask(processEvent.ProcessInfo?.CurrentTask?.AltinnTaskType);
                             await task.HandleTaskStart(processChangeContext);
                             break;
 
                         case InstanceEventType.process_EndTask:
+                            processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.CurrentTask?.ElementId;
                             await _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, processChangeContext.Instance);
                             break;
 
                         case InstanceEventType.process_EndEvent:
+                            processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.EndEvent;
                             await _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, processChangeContext.Instance);
                             break;
                     }
