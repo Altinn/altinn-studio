@@ -75,7 +75,7 @@ services:
       - "gitea-avatars-data:/var/lib/gitea/avatars"
       - "gitea-attachments-data:/var/lib/gitea/attachments"
     environment:
-      - GITEA__RUN_MODE=prod
+      - GITEA____RUN_MODE=prod
       - GITEA__server__SSH_DOMAIN=altinn3.no
       - GITEA__server__DOMAIN=altinn3.no
       - GITEA__server__ROOT_URL=http://altinn3.no/repos
