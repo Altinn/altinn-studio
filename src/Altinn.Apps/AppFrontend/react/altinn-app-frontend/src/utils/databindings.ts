@@ -166,9 +166,14 @@ function deleteGroupData(
 
 export function mapFormData(formData: IFormData, mapping: IMapping) {
   const mappedFormData = {};
-  if (!formData || !mapping) {
+  if (!formData) {
     return mappedFormData;
   }
+
+  if (!mapping) {
+    return formData;
+  }
+
   Object.keys(mapping).forEach((source: string) => {
     const target: string = mapping[source];
     mappedFormData[target] = formData[source];
