@@ -10,7 +10,11 @@ const middlewares = [sagaMiddleware, appApi.middleware];
 export const store = configureStore({
   reducer: reducers,
   devTools: process.env.NODE_ENV !== 'production',
-  middleware: middlewares,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    // TODO: enable once we have cleaned up our store
+    serializableCheck: false,
+    immutableCheck: false,
+  }).concat(middlewares),
 });
 
 setupListeners(store.dispatch);
