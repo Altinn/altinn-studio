@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
 import * as React from 'react';
+import { AxiosError } from 'axios';
 
 import { useAppSelector } from 'app/hooks';
 
@@ -98,31 +99,25 @@ export const CreateService = () => {
       const url = `${window.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser}&repository=${repoName}`;
       post(url)
         .then((result: any) => {
-          if (result.repositoryCreatedStatus === 409) {
+          window.location.assign(
+            `${window.location.origin}/designer/${result.full_name}#/about`,
+          );
+        })
+        .catch((error: AxiosError) => {
+          if (error.response.status === 409) {
             setPageState(PageState.Idle);
 
             setRepoErrorMessage(
               getLanguageFromKey('dashboard.app_already_exist', language),
             );
-          } else if (result.repositoryCreatedStatus === 201) {
-            window.location.assign(
-              `${window.location.origin}/designer/${result.full_name}#/about`,
-            );
           } else {
+            console.error('Unsucessful creating new app', error);
             setPageState(PageState.Idle);
 
             setRepoErrorMessage(
               getLanguageFromKey('dashboard.error_when_creating_app', language),
             );
           }
-        })
-        .catch((error: Error) => {
-          console.error('Unsucessful creating new app', error.message);
-          setPageState(PageState.Idle);
-
-          setRepoErrorMessage(
-            getLanguageFromKey('dashboard.error_when_creating_app', language),
-          );
         });
     }
   };
