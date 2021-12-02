@@ -22,7 +22,9 @@ using Newtonsoft.Json;
 namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
-    /// Handler that implements needed logic related to different process changes. Identifies the correct types of tasks
+    /// Handler that implements needed logic related to different process changes. Identifies the correct types of tasks and trigger the different task and event
+    ///
+    /// While ProcessEngine.cs only understand standard BPMN process this handler fully understand the Altinn App context
     /// </summary>
     public class ProcessChangeHandler : IProcessChangeHandler
     {
@@ -124,6 +126,11 @@ namespace Altinn.App.PlatformServices.Implementation
 
         private ITask GetProcessTask(string altinnTaskType)
         {
+            if (string.IsNullOrEmpty(altinnTaskType))
+            {
+                return null;
+            }
+
             ITask task = new DataTask(_altinnApp);
             if (altinnTaskType.Equals("confirmation"))
             {
@@ -137,6 +144,9 @@ namespace Altinn.App.PlatformServices.Implementation
             return task;
         }
 
+        /// <summary>
+        /// This 
+        /// </summary>
         private async Task<Instance> UpdateProcessAndDispatchEvents(ProcessChangeContext processChangeContext)
         {
             await HandleProcessChanges(processChangeContext);
@@ -153,7 +163,9 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <summary>
-        /// Will for each process change trigger relevant Process Elements to perform the relevant operations.
+        /// Will for each process change trigger relevant Process Elements to perform the relevant change actions.
+        ///
+        /// Each implementation 
         /// </summary>
         internal async Task HandleProcessChanges(ProcessChangeContext processChangeContext)
         {
@@ -161,21 +173,18 @@ namespace Altinn.App.PlatformServices.Implementation
             {
                 if (Enum.TryParse<InstanceEventType>(processEvent.EventType, true, out InstanceEventType eventType))
                 {
+                    processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.CurrentTask?.ElementId;
+                    ITask task = GetProcessTask(processEvent.ProcessInfo?.CurrentTask?.AltinnTaskType);
                     switch (eventType)
                     {
                         case InstanceEventType.process_StartEvent:
                             break;
                         case InstanceEventType.process_StartTask:
-                            processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.CurrentTask?.ElementId;
-                            ITask task = GetProcessTask(processEvent.ProcessInfo?.CurrentTask?.AltinnTaskType);
                             await task.HandleTaskStart(processChangeContext);
                             break;
-
                         case InstanceEventType.process_EndTask:
-                            processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.CurrentTask?.ElementId;
-                            await _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, processChangeContext.Instance);
+                            await task.HandleTaskComplete(processChangeContext);
                             break;
-
                         case InstanceEventType.process_EndEvent:
                             processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.EndEvent;
                             await _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, processChangeContext.Instance);

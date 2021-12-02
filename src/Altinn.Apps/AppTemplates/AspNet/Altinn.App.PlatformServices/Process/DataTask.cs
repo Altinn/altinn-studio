@@ -30,9 +30,9 @@ namespace Altinn.App.PlatformServices.Process
         }
 
         /// <inheritdoc/>
-        public override Task HandleTaskComplete(ProcessChangeContext processChange)
+        public override async Task HandleTaskComplete(ProcessChangeContext processChange)
         {
-            throw new NotImplementedException();
+            await _altinnApp.OnEndProcessTask(processChange.ElementToBeProcessed, processChange.Instance);
         }
 
         /// <inheritdoc/>
