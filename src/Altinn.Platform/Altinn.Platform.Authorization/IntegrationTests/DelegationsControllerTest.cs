@@ -685,7 +685,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             rule2.RuleId = "6f11dd0b-5e5d-4bd1-85f0-9796300dfded";
             rule2.Type = RuleType.DirectlyDelegated;
 
-            List<Rule> expected = new List<Rule> {rule1, rule2};
+            List<Rule> expected = new List<Rule> { rule1, rule2 };
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
@@ -698,7 +698,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
             Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
             AssertionUtil.AssertEqual(expected, actual, true);
-
         }
 
         /// <summary>
