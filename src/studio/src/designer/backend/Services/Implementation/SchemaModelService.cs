@@ -114,6 +114,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
+            // In case of null being passed in we default it to an empty string as the default value
+            // on the parameter does not apply if null is actually passed in.
+            relativeDirectory ??= string.Empty;
+
             if (altinnGitRepository.GetRepositoryType().Result == Enums.AltinnRepositoryType.Datamodels)
             {
                 var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);

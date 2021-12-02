@@ -5,7 +5,7 @@
  *    Delete all the apps of an org
  *    Delete the org
  *    Delete the user
- * command: npm run after:all
+ * command: yarn run after:all
  */
 context('After all tests', () => {
   it('Delete all apps', () => {

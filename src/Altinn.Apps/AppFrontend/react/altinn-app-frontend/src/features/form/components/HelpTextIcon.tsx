@@ -8,9 +8,10 @@ const theme = createTheme(AltinnAppTheme);
 const useStyle = makeStyles({
   helpTextIcon: {
     fontSize: '3rem',
-    color: theme.altinnPalette.primary.blue,
+    color: theme.altinnPalette.primary.blueDarker,
     '&:hover': {
-      color: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.blueDark,
+      cursor: 'pointer',
     },
   },
 });
@@ -39,7 +40,7 @@ export default function HelpTextIcon(props: IHelpTextIconProps) {
         aria-hidden={false}
       >
         <i
-          className={`${classes.helpTextIcon} ${props.openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+          className={`${classes.helpTextIcon} ${props.openPopover ? 'reg reg-help-filled' : 'reg reg-help-outline'}`}
         />
       </span>
     );

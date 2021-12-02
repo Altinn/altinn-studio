@@ -161,7 +161,7 @@ publish/
 project.lock.json
 
 # yarn lock file
-yarn.lock
+package-lock.json
 
 # Windows Azure Build Output
 csx/

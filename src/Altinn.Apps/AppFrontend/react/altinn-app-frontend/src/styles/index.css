@@ -31,6 +31,17 @@ p {
   font-family: 'Altinn-DIN';
 }
 
+h2 {
+  font-size: 22px;
+  font-weight: normal;
+}
+
+@media only screen and (min-width: 576px) {
+  h2 {
+      font-size: 28px;
+  }
+}
+
 option {
   overflow: 'hidden';
   text-overflow: 'ellipsis';
@@ -180,6 +191,67 @@ select.disabled {
   background-size: 8px 10px, cover !important;
 }
 
+
+/* Container */
+.container {
+  max-width: none;
+}
+
+@media only screen and (min-width: 576px) {
+  .container {
+      max-width: none;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .container {
+    max-width: none;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .container {
+    max-width: 1056px;
+  }
+}
+
+
+/* Modal header */
+
+.a-modal-navbar {
+  margin-top: 12px;
+}
+@media only screen and (min-width: 977px) {
+  .a-modal-navbar {
+    margin-top: 36px;
+  }
+}
+
+/* Modal body */
+
+.a-modal-body {
+  padding: 24px;
+}
+
+@media only screen and (min-width: 768px) {
+  .a-modal-body {
+      padding: 36px 84px;
+  }
+}
+
+@media only screen and (min-width: 992px) {
+  .a-modal-body {
+      padding: 36px 96px;
+  }
+}
+
+.modal-content {
+  margin-bottom: 60px;
+}
+
+#errorReport .modal-content {
+  margin-bottom: 24px;
+}
 
 /* Button */
 .a-btn-sm-fullwidth {

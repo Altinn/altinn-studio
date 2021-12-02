@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.Models;
@@ -73,12 +74,41 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                     break;
             }
 
-            return Task.FromResult<DelegationChange>(result);
+            return Task.FromResult(result);
         }
 
         public Task<List<DelegationChange>> GetAllDelegationChanges(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId)
         {
             return Task.FromResult(new List<DelegationChange>());
+        }
+
+        public Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
+        {
+            List<DelegationChange> result = new List<DelegationChange>();
+
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001337)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByUserId: 20001337));
+            }
+
+            if (altinnAppIds.Any(appId => appId == "skd/taxreport") && offeredByPartyIds.Contains(1000) && (coveredByUserIds != null && coveredByUserIds.Contains(20001337)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("skd/taxreport", 1000, coveredByUserId: 20001337));
+            }
+
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001338)))
+            {
+                DelegationChange delegation = TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByUserId: 20001338);
+                delegation.IsDeleted = true;
+                result.Add(delegation);
+            }
+
+            if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByPartyId: 50001336));
+            }
+
+            return Task.FromResult(result);
         }
     }
 }

@@ -50,15 +50,6 @@
     ],
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
-    "import/no-unresolved": ["off"],
-    "react-perf/jsx-no-new-function-as-prop": ["off"]
-  },
-  "overrides": [
-    {
-      "files": ["*.test.tsx"],
-      "rules": {
-        "react-perf/jsx-no-new-array-as-prop": "off"
-      }
-    }
-  ]
+    "import/no-unresolved": ["off"]
+  }
 }
