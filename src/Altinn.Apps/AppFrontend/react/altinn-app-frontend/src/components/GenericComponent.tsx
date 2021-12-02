@@ -12,7 +12,6 @@ import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
-import { IFormData } from '../features/form/data/formDataReducer';
 import {
   IDataModelBindings,
   IGrid,
@@ -22,7 +21,6 @@ import {
 import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
-import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
 import { renderValidationMessagesForComponent } from '../utils/render';
@@ -93,15 +91,15 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [hasValidationMessages, setHasValidationMessages] =
     React.useState(false);
 
-  const formData: IFormData = useAppSelector(
-    (state: IRuntimeState) =>
+  const formData = useAppSelector(
+    state =>
       getFormDataForComponent(state.formData.formData, props.dataModelBindings),
     shallowEqual,
   );
   const currentView: string = useAppSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.currentView,
+    state => state.formLayout.uiConfig.currentView,
   );
-  const isValid: boolean = useAppSelector((state: IRuntimeState) =>
+  const isValid = useAppSelector(state =>
     isComponentValid(
       state.formValidations.validations[currentView]?.[props.id],
     ),
@@ -115,8 +113,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     ),
   );
   const hidden = useAppSelector(state => props.hidden || GetHiddenSelector(state, props));
-  const shouldFocus: boolean = useAppSelector(state => GetFocusSelector(state, props));
-  const componentValidations: IComponentValidations = useAppSelector(
+  const shouldFocus = useAppSelector(state => GetFocusSelector(state, props));
+  const componentValidations = useAppSelector(
     state =>
       state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
