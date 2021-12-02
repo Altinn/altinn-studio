@@ -3239,7 +3239,6 @@ __metadata:
     react-styleguidist: ^11.1.7
     react-test-renderer: ^17.0.2
     redux: ^4.1.2
-    redux-devtools-extension: ^2.13.9
     redux-mock-store: ^1.5.4
     redux-saga: ^1.1.3
     redux-saga-test-plan: 4.0.3
@@ -12944,15 +12943,6 @@ __metadata:
     indent-string: ^4.0.0
     strip-indent: ^3.0.0
   checksum: fa1ef20404a2d399235e83cc80bd55a956642e37dd197b4b612ba7327bf87fa32745aeb4a1634b2bab25467164ab4ed9c15be2c307923dd08b0fe7c52431ae6b
-  languageName: node
-  linkType: hard
-
-"redux-devtools-extension@npm:^2.13.9":
-  version: 2.13.9
-  resolution: "redux-devtools-extension@npm:2.13.9"
-  peerDependencies:
-    redux: ^3.1.0 || ^4.0.0
-  checksum: 603d48fd6acf3922ef373b251ab3fdbb990035e90284191047b29d25b06ea18122bc4ef01e0704ccae495acb27ab5e47b560937e98213605dd88299470025db9
   languageName: node
   linkType: hard
 
