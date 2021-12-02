@@ -263,7 +263,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     if (xacmlRuleToRemove == null)
                     {
                         _logger.LogWarning($"The rule with id: {ruleId} does not exist in policy with path: {policyPath}");
-                        return null;
+                        continue;
                     }
 
                     existingDelegationPolicy.Rules.Remove(xacmlRuleToRemove);
