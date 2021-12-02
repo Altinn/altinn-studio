@@ -112,7 +112,7 @@ namespace Altinn.Platform.Authorization.Controllers
             if (deletionResultsCount > 0)
             {
                 string deletionResultsSerialized = JsonSerializer.Serialize(deletionResults);
-                _logger.LogInformation("Partial deletion completed deleted {deletionResultsCount} of {ruleCountToDelete}.\n{rulesToDeleteSerialized}, {deletionResultsSerialized}", deletionResultsCount, ruleCountToDelete, rulesToDeleteSerialized, deletionResultsSerialized);
+                _logger.LogInformation("Partial deletion completed deleted {deletionResultsCount} of {ruleCountToDelete}.\n{rulesToDeleteSerialized}\n{deletionResultsSerialized}", deletionResultsCount, ruleCountToDelete, rulesToDeleteSerialized, deletionResultsSerialized);
                 return StatusCode(206, deletionResults);
             }
 
