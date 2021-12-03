@@ -125,7 +125,7 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient(IDeploymentService deploymentService, IPipelineService pipelineService)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoriesControllerTest).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
 
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>

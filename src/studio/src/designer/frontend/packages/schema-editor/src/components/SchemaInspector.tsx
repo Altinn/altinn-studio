@@ -4,18 +4,20 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Field, ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { Restriction, ILanguage, ISchemaState, ObjectKind, FieldType, UiSchemaItem, CombinationKind } from '../types';
 import { InputField } from './InputField';
 import { setRestriction, setRestrictionKey, deleteField, setPropertyName, setRef, addRestriction, deleteProperty,
   setTitle, setDescription, setType, setRequired, addProperty, setItems,
-  addEnum, deleteEnum, navigateToType }
+  addEnum, deleteEnum, navigateToType, setCombinationType, addCombinationItem, deleteCombinationItem }
   from '../features/editor/schemaEditorSlice';
 import { RefSelect } from './RefSelect';
-import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem } from '../utils';
-import { TypeSelect } from './TypeSelect';
+import { getDomFriendlyID, splitParentPathAndName, getTranslation, getUiSchemaItem, combinationIsNullable, nullableType } from '../utils';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
+import InlineObject from './InlineObject';
+import { CombinationSelect } from './CombinationSelect';
+import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles(
   createStyles({
@@ -26,8 +28,8 @@ const useStyles = makeStyles(
       '& .MuiAutocomplete-input': {
         width: 150,
       },
-      '& .MuiTabPanel-root': {
-
+      '& .MuiTabPanel-root > div > div:first-child p': {
+        marginTop: 0,
       },
     },
     header: {
@@ -87,6 +89,10 @@ const useStyles = makeStyles(
     gridContainer: {
       maxWidth: 500,
     },
+    noItem: {
+      fontWeight: 500,
+      margin: 18,
+    },
   }),
 );
 
@@ -114,9 +120,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const [nodeName, setNodeName] = React.useState<string>('');
   const [description, setItemDescription] = React.useState<string>('');
   const [title, setItemTitle] = React.useState<string>('');
-  const [objectType, setObjectType] = React.useState<string>('');
-  const [arrayType, setArrayType] = React.useState<string>('');
-  const [objectKind, setObjectKind] = React.useState<'type' | 'reference' | 'group'>('type');
+  const [fieldType, setFieldType] = React.useState<FieldType | undefined>(undefined);
+  const [arrayType, setArrayType] = React.useState<FieldType | string | undefined>(undefined);
+  const [objectKind, setObjectKind] = React.useState<ObjectKind>('field');
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) => ((state.selectedEditorTab === 'properties') ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId));
@@ -148,7 +154,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
       const [parentPath] = splitParentPathAndName(selectedId);
-      if (parentPath != null) {
+      if (parentPath) {
         return getUiSchemaItem(state.uiSchema, parentPath);
       }
     }
@@ -159,7 +165,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
     setItemDescription(selectedItem?.description ?? '');
-    setObjectType(selectedItem?.type ?? '');
+    setFieldType(selectedItem?.type);
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
       if ((tabIndex === '2' && itemToDisplay?.type !== 'object')) {
@@ -168,12 +174,14 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       setIsRequired(parentItem?.required?.includes(selectedItem?.displayName) ?? false);
       if (selectedItem.$ref !== undefined || selectedItem.items?.$ref !== undefined) {
         setObjectKind('reference');
+      } else if (selectedItem.combination) {
+        setObjectKind('combination');
       } else {
-        setObjectKind('type');
+        setObjectKind('field');
       }
     } else {
       setIsRequired(false);
-      setObjectKind('type');
+      setObjectKind('field');
       setTabIndex('0');
     }
   }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
@@ -184,7 +192,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setNodeName(selectedItem?.displayName ?? '');
   }, [selectedItem]);
 
-  const onChangeValue = (path: string, value: any, key?: string) => {
+  const onChangeValue = (path: string, value: any, key: string) => {
     const data = {
       path,
       // eslint-disable-next-line no-restricted-globals
@@ -237,14 +245,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
     if (!nameError && selectedItem?.displayName !== nodeName) {
       dispatch(setPropertyName({
-        path: selectedItem?.path, name: nodeName, navigate: selectedItem?.path,
+        path: selectedItem.path, name: nodeName, navigate: selectedItem.path,
       }));
     }
   };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
-    dispatch(addEnum({
-      path: itemToDisplay?.path, value, oldValue,
-    }));
+    if (itemToDisplay) {
+      dispatch(addEnum({
+        path: itemToDisplay.path, value, oldValue,
+      }));
+    }
+  };
+  const onChangeCombinationType = (value: CombinationKind) => {
+    if (selectedItem?.path) {
+      dispatch(setCombinationType({
+        path: selectedItem.path, type: value,
+      }));
+    }
   };
 
   const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
@@ -260,21 +277,23 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    const path = itemToDisplay?.path;
-    dispatch(addRestriction({
-      path,
-      key: '',
-      value: '',
-    }));
+    if (itemToDisplay) {
+      dispatch(addRestriction({
+        path: itemToDisplay.path,
+        key: '',
+        value: '',
+      }));
+    }
   };
 
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const path = itemToDisplay?.path;
-    dispatch(addEnum({
-      path,
-      value: 'value',
-    }));
+    if (itemToDisplay) {
+      dispatch(addEnum({
+        path: itemToDisplay.path,
+        value: 'value',
+      }));
+    }
   };
 
   const onGoToDefButtonClick = () => {
@@ -293,7 +312,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       return (
         <div>
           <p className={classes.header}>{getTranslation('reference_to', props.language)}</p>
-          { selectedItem.type === 'array' ?
+          {selectedItem.type === 'array' ?
             <RefSelect
               id={selectedItem.path}
               value={arrayType ?? ''}
@@ -325,7 +344,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       id='add-property-button'
       aria-label='Add reference'
       onClick={onAddPropertyClicked}
-    ><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}
+    ><i className='fa fa-plus' />{getTranslation('add_property', props.language)}
     </IconButton>
   );
 
@@ -345,7 +364,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const onRestrictionReturn = (e: any) => {
     onAddRestrictionClick(e);
   };
-  const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Field) => {
+  const renderItemRestrictions = (item: UiSchemaItem) => item.restrictions?.map((field: Restriction) => {
     if (field.key && field.key.startsWith('@')) {
       return null;
     }
@@ -383,24 +402,42 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     setTabIndex(newValue);
   };
 
-  const onChangeType = (id: string, type: string) => {
-    dispatch(setType({
-      path: id, value: type,
-    }));
-    setObjectType(type);
+  const onChangeType = (type: FieldType) => {
+    if (selectedItem) {
+      dispatch(setType({
+        path: selectedItem.path, type,
+      }));
+      setFieldType(type);
+    }
   };
 
-  const onChangeArrayType = (id: string, type: string | undefined) => {
-    setArrayType(type ?? '');
-    let items;
-    if (type === undefined) {
-      items = undefined;
-    } else {
-      items = objectKind === 'type' ? { type } : { $ref: type };
+  const onChangeArrayType = (type: string | FieldType | undefined) => {
+    if (selectedItem) {
+      setArrayType(type ?? '');
+      let items;
+      if (type === undefined) {
+        items = undefined;
+      } else {
+        items = objectKind === 'field' ? { type } : { $ref: type };
+      }
+      dispatch(setItems({
+        path: selectedItem.path, items,
+      }));
     }
-    dispatch(setItems({
-      path: id, items,
-    }));
+  };
+
+  const onChangeNullable = (_x: any, nullable: boolean) => {
+    if (nullable && selectedItem) {
+      dispatch(addCombinationItem({
+        path: selectedItem.path,
+        props: { type: 'null' },
+      }));
+    } else {
+      const itemToRemove = selectedItem?.combination?.find(nullableType);
+      if (itemToRemove) {
+        dispatch(deleteCombinationItem({ path: itemToRemove.path }));
+      }
+    }
   };
 
   const onChangeTitle = () => {
@@ -418,23 +455,25 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
     if (checked) {
       const type = objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
-      onChangeArrayType(selectedItem.path, type);
-      onChangeType(selectedItem.path, 'array');
+      onChangeArrayType(type);
+      onChangeType('array');
     } else {
       if (objectKind === 'reference') {
-        onChangeRef(selectedItem.path, arrayType);
+        onChangeRef(selectedItem.path, arrayType || '');
       } else {
-        onChangeType(selectedItem.path, arrayType);
+        onChangeType(arrayType as FieldType);
       }
-      onChangeArrayType(selectedItem.path, undefined);
+      onChangeArrayType(undefined);
     }
   };
 
   const handleRequiredChanged = (e: any, checked: boolean) => {
-    dispatch(setRequired({
-      path: selectedId, key: selectedItem?.displayName, required: checked,
-    }));
-    setIsRequired(checked);
+    if(selectedItem) {
+      dispatch(setRequired({
+        path: selectedId, key: selectedItem.displayName, required: checked,
+      }));
+      setIsRequired(checked);
+    }
   };
 
   const onNameChange = (e: any) => {
@@ -449,55 +488,73 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
 
   const renderItemData = () => (
     <div>
-      <p className={classes.name}>{getTranslation('name', props.language)}</p>
-      <TextField
-        id='selectedItemName'
-        className={classes.field}
-        inputRef={nameFieldRef}
-        placeholder='Name'
-        fullWidth={true}
-        value={nodeName}
-        error={!!nameError}
-        helperText={nameError}
-        onChange={onNameChange}
-        onBlur={onChangeNodeName}
-        InputProps={{
-          disableUnderline: true,
-        }}
-      />
-      {selectedItem && objectKind === 'type' &&
-      <>
-        <p className={classes.header}>{getTranslation('type', props.language)}</p>
-        { selectedItem.type === 'array' ?
-          <TypeSelect
-            label={getTranslation('type', props.language)}
-            language={props.language}
+      {!selectedItem?.combinationItem &&
+        <>
+          <p className={classes.name}>{getTranslation('name', props.language)}</p>
+          <TextField
+            id='selectedItemName'
+            className={classes.field}
+            inputRef={nameFieldRef}
+            placeholder='Name'
             fullWidth={true}
-            value={arrayType}
-            id={selectedItem.path}
-            onChange={onChangeArrayType}
-          /> :
+            value={nodeName}
+            error={!!nameError}
+            helperText={nameError}
+            onChange={onNameChange}
+            onBlur={onChangeNodeName}
+            InputProps={{
+              disableUnderline: true,
+            }}
+          />
+        </>
+      }
+      {selectedItem && objectKind === 'field' &&
+        <>
+          <p className={classes.header}>{getTranslation('type', props.language)}</p>
           <TypeSelect
-            label={getTranslation('type', props.language)}
+            value={(selectedItem.type === 'array') ? arrayType : fieldType}
+            id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
+            onChange={(selectedItem.type === 'array') ? onChangeArrayType : onChangeType}
             language={props.language}
-            fullWidth={true}
-            value={objectType}
-            id={selectedItem.path}
-            onChange={(onChangeType)}
-          /> }
-      </>}
-      { renderReferenceSelection() }
-      <FormControlLabel
-        id='multiple-answers-checkbox'
-        className={classes.header}
-        control={<Checkbox
-          color='primary'
-          checked={selectedItem?.type === 'array'}
-          onChange={handleIsArrayChanged}
-          name='checkedMultipleAnswers'
+          />
+        </>}
+      {renderReferenceSelection()}
+      {(objectKind === 'reference' || objectKind === 'field') &&
+        <FormControlLabel
+          id='multiple-answers-checkbox'
+          className={classes.header}
+          control={<Checkbox
+            color='primary'
+            checked={selectedItem?.type === 'array'}
+            onChange={handleIsArrayChanged}
+            name='checkedMultipleAnswers'
+          />}
+          label={getTranslation('multiple_answers', props.language)}
         />}
-        label={getTranslation('multiple_answers', props.language)}
-      />
+      {objectKind === 'combination' &&
+        <>
+          <p className={classes.header}>{getTranslation('type', props.language)}</p>
+          <CombinationSelect
+            value={selectedItem?.combinationKind}
+            id={`${getDomFriendlyID(selectedItem?.path || '')}-change-combination`}
+            onChange={onChangeCombinationType}
+            language={props.language}
+          />
+        </>
+      }
+      {objectKind === 'combination' &&
+        <FormControlLabel
+          id='multiple-answers-checkbox'
+          className={classes.header}
+          control={<Checkbox
+            color='primary'
+            checked={combinationIsNullable(selectedItem)}
+            onChange={onChangeNullable}
+            name='checkedNullable'
+          />}
+          label={getTranslation('nullable', props.language)}
+        />
+      }
       <hr className={classes.divider} />
       <p className={classes.header}>{getTranslation('descriptive_fields', props.language)}</p>
       <p className={classes.header}>{getTranslation('title', props.language)}</p>
@@ -533,7 +590,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   if (!selectedId) {
     return (
       <div>
-        <p className='no-item-selected'>{getTranslation('no_item_selected', props.language)}</p>
+        <p className={classes.noItem} id='no-item-paragraph'>{getTranslation('no_item_selected', props.language)}</p>
         <hr className={classes.divider} />
       </div>);
   }
@@ -560,18 +617,22 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               label='restrictions'
               language={props.language}
               value='1'
+              hide={objectKind === 'combination' || selectedItem?.combinationItem}
             />
             <SchemaTab
               label='fields'
               language={props.language}
               value='2'
-              hide={itemToDisplay?.type !== 'object'}
+              hide={selectedItem?.type !== 'object' || selectedItem.combinationItem}
             />
           </TabList>
 
         </AppBar>
         <TabPanel value='0'>
-          { renderItemData() }
+          { (selectedItem?.combinationItem && selectedItem.$ref === undefined) ?
+            <InlineObject item={selectedItem} language={props.language}/> :
+            renderItemData()
+          }
         </TabPanel>
         <TabPanel value='1'>
           <Grid
@@ -606,7 +667,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
               onClick={onAddRestrictionClick}
             ><i className='fa fa-plus'/>{getTranslation('add_restriction', props.language)}
             </IconButton>
-            { objectType !== 'object' &&
+            { fieldType !== 'object' &&
               <>
                 <Grid item xs={12}>
                   <hr className={classes.divider} />
@@ -628,7 +689,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
             spacing={3}
             className={classes.gridContainer}
           >
-            { itemToDisplay && renderItemProperties(itemToDisplay) }
+            {itemToDisplay && renderItemProperties(itemToDisplay)}
           </Grid>
           { !readOnly && renderAddPropertyButton() }
         </TabPanel>

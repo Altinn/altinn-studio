@@ -1,21 +1,15 @@
 # base image
-FROM node:14.18.1-alpine3.14 AS generate-app-development
+FROM node:16.13.1-alpine3.14 AS generate-app-development
 
-# Copy and install Lerna
-COPY ./src/designer/frontend/lerna.json .
 COPY ./src/designer/frontend/package.json .
-COPY ./src/designer/frontend/package-lock.json .
-RUN npm ci
+COPY ./src/designer/frontend/yarn.lock .
 
-# Copy and install npm dependencies
+# Copy and install dependencies
 COPY ./src/designer/frontend/shared/package.json /shared/
-COPY ./src/designer/frontend/shared/package-lock.json /shared/
 COPY ./src/designer/frontend/app-development/package.json /app-development/
-COPY ./src/designer/frontend/app-development/package-lock.json /app-development/
 COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
-COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
 
-RUN npm run install-deps
+RUN yarn --immutable
 
 # Copy and build shared + app-development + ux-editor
 WORKDIR /
@@ -23,7 +17,7 @@ COPY ./src/designer/frontend/shared/ ./shared/
 COPY ./src/designer/frontend/app-development/ ./app-development/
 COPY ./src/designer/frontend/ux-editor ./ux-editor/
 WORKDIR /
-RUN npm run build --prefix /app-development
+RUN yarn workspace app-development run build
 
 # Create Service-Development base image
 FROM alpine
