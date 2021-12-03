@@ -18,9 +18,9 @@
   "devDependencies": {
     "axe-testcafe": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^8.2.0",
+    "eslint": "^8.3.0",
     "eslint-plugin-testcafe": "^0.2.1",
-    "prettier": "^2.4.1",
+    "prettier": "^2.5.0",
     "process": "^0.11.10",
     "testcafe": "^1.17.1",
     "testcafe-browser-provider-puppeteer": "^1.5.2"

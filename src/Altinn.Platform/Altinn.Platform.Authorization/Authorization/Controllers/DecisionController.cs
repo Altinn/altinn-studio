@@ -220,7 +220,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 try
                 {
-                    XacmlContextResponse delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest);
+                    XacmlContextResponse delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, policy);
                     XacmlContextResult delegationResult = delegationContextResponse.Results.First();
                     if (delegationResult.Decision.Equals(XacmlContextDecision.Permit))
                     {
@@ -236,7 +236,7 @@ namespace Altinn.Platform.Authorization.Controllers
             return rolesContextResponse;
         }
 
-        private async Task<XacmlContextResponse> AuthorizeBasedOnDelegations(XacmlContextRequest decisionRequest)
+        private async Task<XacmlContextResponse> AuthorizeBasedOnDelegations(XacmlContextRequest decisionRequest, XacmlPolicy appPolicy)
         {
             XacmlContextResponse delegationContextResponse = new XacmlContextResponse(new XacmlContextResult(XacmlContextDecision.NotApplicable)
             {
@@ -269,7 +269,7 @@ namespace Altinn.Platform.Authorization.Controllers
             List<DelegationChange> delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByUserIds: coveredByUserIds);
             if (delegations.Any())
             {
-                delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations);
+                delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations, appPolicy);
 
                 if (delegationContextResponse.Results.Any(r => r.Decision == XacmlContextDecision.Permit))
                 {
@@ -288,7 +288,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
                 if (delegations.Any())
                 {
-                    delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations);
+                    delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations, appPolicy);
 
                     if (delegationContextResponse.Results.Any(r => r.Decision == XacmlContextDecision.Permit))
                     {
@@ -306,14 +306,14 @@ namespace Altinn.Platform.Authorization.Controllers
                 if (delegations.Any())
                 {
                     _delegationContextHandler.Enrich(decisionRequest, keyroleParties);
-                    delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations);
+                    delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations, appPolicy);
                 }
             }
 
             return delegationContextResponse;
         }
 
-        private async Task<XacmlContextResponse> AuthorizeBasedOnDelegations(XacmlContextRequest decisionRequest, List<DelegationChange> delegations)
+        private async Task<XacmlContextResponse> AuthorizeBasedOnDelegations(XacmlContextRequest decisionRequest, List<DelegationChange> delegations, XacmlPolicy appPolicy)
         {
             XacmlContextResponse delegationContextResponse = new XacmlContextResponse(new XacmlContextResult(XacmlContextDecision.NotApplicable)
             {
@@ -322,9 +322,13 @@ namespace Altinn.Platform.Authorization.Controllers
 
             foreach (DelegationChange delegation in delegations.Where(d => !d.IsDeleted))
             {
-                XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegation.BlobStoragePolicyPath, delegation.BlobStorageVersionId);
+                XacmlPolicy delegationPolicy = await _prp.GetPolicyVersionAsync(delegation.BlobStoragePolicyPath, delegation.BlobStorageVersionId);
+                foreach (XacmlObligationExpression obligationExpression in appPolicy.ObligationExpressions)
+                {
+                    delegationPolicy.ObligationExpressions.Add(obligationExpression);
+                }
 
-                delegationContextResponse = _pdp.Authorize(decisionRequest, policy);
+                delegationContextResponse = _pdp.Authorize(decisionRequest, delegationPolicy);
 
                 string response = JsonConvert.SerializeObject(delegationContextResponse);
                 _logger.LogInformation("// DecisionController // Authorize // Delegations // XACML ContextResponse\n{response}", response);
