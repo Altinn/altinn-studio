@@ -12,6 +12,7 @@ import { post } from 'app-shared/utils/networking';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
+import { RepoTypeSelector, DataModellingFormat } from './RepoTypeSelector';
 
 import { validateRepoName } from 'common/utils';
 
@@ -26,6 +27,10 @@ const useStyles = makeStyles({
   },
   marginTop: {
     marginTop: 100,
+  },
+  cancelWrapper: {
+    display: 'inline-flex',
+    marginLeft: 24,
   },
 });
 
@@ -88,6 +93,9 @@ export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
   const classes = useStyles();
 
+  const [selectedFormat, setSelectedFormat] = React.useState(
+    DataModellingFormat.JSON,
+  );
   const [selectedOrgOrUser, setSelectedOrgOrUser] = React.useState('');
   const [orgErrorMessage, setOrgErrorMessage] = React.useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);
@@ -142,6 +150,10 @@ export const CreateService = () => {
     }
   };
 
+  const handleCancel = () => {
+    window.history.back();
+  };
+
   return (
     <div className={classes.marginTop}>
       <Grid
@@ -158,6 +170,7 @@ export const CreateService = () => {
               selectedOrgOrUser={selectedOrgOrUser}
             />
           </div>
+
           <div className={classes.marginBottom_24}>
             <RepoNameInput
               onRepoNameChanged={handleRepoNameChanged}
@@ -165,6 +178,14 @@ export const CreateService = () => {
               errorMessage={repoErrorMessage}
             />
           </div>
+
+          <div className={classes.marginBottom_24}>
+            <RepoTypeSelector
+              selectedFormat={selectedFormat}
+              onFormatChange={setSelectedFormat}
+            />
+          </div>
+
           {pageState === PageState.Creating ? (
             <AltinnSpinner
               spinnerText={getLanguageFromKey(
@@ -173,14 +194,23 @@ export const CreateService = () => {
               )}
             />
           ) : (
-            <AltinnButton
-              btnText={getLanguageFromKey(
-                'dashboard.create_service_btn',
-                language,
-              )}
-              className={classes.button}
-              onClickFunction={handleCreateService}
-            />
+            <>
+              <AltinnButton
+                btnText={getLanguageFromKey(
+                  'dashboard.create_service_btn',
+                  language,
+                )}
+                className={classes.button}
+                onClickFunction={handleCreateService}
+              />
+              <div className={classes.cancelWrapper}>
+                <AltinnButton
+                  btnText={getLanguageFromKey('general.cancel', language)}
+                  secondaryButton={true}
+                  onClickFunction={handleCancel}
+                />
+              </div>
+            </>
           )}
         </Grid>
       </Grid>

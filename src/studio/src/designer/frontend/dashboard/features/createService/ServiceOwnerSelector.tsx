@@ -85,10 +85,6 @@ export const ServiceOwnerSelector = ({
       <AltinnDropdown
         id='service-owner'
         inputHeader={getLanguageFromKey('general.service_owner', language)}
-        inputDescription={getLanguageFromKey(
-          'dashboard.service_owner_description',
-          language,
-        )}
         handleChange={handleChange}
         dropdownItems={selectableOrgsOrUser}
         selectedValue={selectedOrgOrUser}
