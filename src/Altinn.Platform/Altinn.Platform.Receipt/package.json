@@ -9,7 +9,7 @@
     "gulp-install-deps": "gulp install-react-app-dependencies"
   },
   "devDependencies": {
-    "chokidar": "3.5.1",
+    "chokidar": "3.5.2",
     "gulp": "4.0.2",
     "gulp-run-command": "0.0.10"
   },
