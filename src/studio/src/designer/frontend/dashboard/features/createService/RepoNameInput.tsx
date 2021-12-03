@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+import { makeStyles } from '@material-ui/core';
+import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -15,11 +17,18 @@ type RepoNameInputProps = {
   onRepoNameChanged: (newValue: string) => void;
 };
 
+const useStyles = makeStyles({
+  strong: {
+    'font-weight': '500',
+  },
+});
+
 export const RepoNameInput = ({
   repoName,
   onRepoNameChanged,
   errorMessage,
 }: RepoNameInputProps) => {
+  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const serviceNameRef = React.useRef(null);
 
@@ -35,14 +44,26 @@ export const RepoNameInput = ({
       <AltinnInputField
         id='service-saved-name'
         inputHeader={getLanguageFromKey('general.service_name', language)}
-        inputDescription={getLanguageFromKey(
-          'dashboard.service_saved_name_description',
-          language,
-        )}
         inputValue={repoName}
         onChangeFunction={handleChange}
         fullWidth={true}
       />
+      <div style={{ margin: '12px 0 0 0' }}>
+        <AltinnInformationPaper>
+          <>
+            {getLanguageFromKey(
+              'dashboard.service_saved_name_description',
+              language,
+            )}{' '}
+            <strong className={classes.strong}>
+              {getLanguageFromKey(
+                'dashboard.service_saved_name_description_cannot_be_changed',
+                language,
+              )}
+            </strong>
+          </>
+        </AltinnInformationPaper>
+      </div>
       {errorMessage && (
         <AltinnPopper
           anchorEl={serviceNameRef.current}

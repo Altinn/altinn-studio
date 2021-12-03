@@ -150,7 +150,7 @@ export const CreateService = () => {
         direction='row'
         className='block-with-text'
       >
-        <Grid item={true} xs={10}>
+        <Grid item={true} xs={6}>
           <div className={classes.marginBottom_24}>
             <ServiceOwnerSelector
               onServiceOwnerChanged={handleServiceOwnerChanged}
