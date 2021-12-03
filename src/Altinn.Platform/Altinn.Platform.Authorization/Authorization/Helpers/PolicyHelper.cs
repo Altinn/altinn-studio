@@ -253,11 +253,6 @@ namespace Altinn.Platform.Authorization.Helpers
                 }
             }
 
-            foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
-            {
-                delegationPolicy.ObligationExpressions.Add(obligation);
-            }
-
             return delegationPolicy;
         }
 
