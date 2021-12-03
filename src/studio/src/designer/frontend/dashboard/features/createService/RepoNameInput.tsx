@@ -41,6 +41,7 @@ export const RepoNameInput = ({
         )}
         inputValue={repoName}
         onChangeFunction={handleChange}
+        fullWidth={true}
       />
       {errorMessage && (
         <AltinnPopper

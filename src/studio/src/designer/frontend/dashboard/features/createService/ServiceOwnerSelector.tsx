@@ -93,6 +93,7 @@ export const ServiceOwnerSelector = ({
         dropdownItems={selectableOrgsOrUser}
         selectedValue={selectedOrgOrUser}
         disabled={selectableOrgsOrUser.length === 1}
+        fullWidth={true}
       />
       {errorMessage && (
         <AltinnPopper

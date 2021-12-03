@@ -4,8 +4,8 @@ import {
   MenuItem,
   TextField,
   Typography,
+  makeStyles,
 } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -18,6 +18,7 @@ export interface IAltinnDropdownComponentProvidedProps {
   inputHeader?: string;
   inputDescription?: string;
   disabled: boolean;
+  fullWidth?: boolean;
 }
 
 const theme = createTheme(altinnTheme);
@@ -34,18 +35,21 @@ const useStyles = makeStyles({
     fontSize: '16px',
   },
   inputField: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
     background: 'none',
     width: '386px',
   },
   inputField_disabled: {
     background: theme.altinnPalette.primary.greyLight,
-    border: '1px solid ' + theme.altinnPalette.primary.grey,
+    border: `1px solid ${theme.altinnPalette.primary.grey}`,
   },
   inputFieldText: {
     fontSize: '16px',
-    color: theme.altinnPalette.primary.black + '!Important',
+    color: `${theme.altinnPalette.primary.black} !Important`,
     padding: '6px',
+  },
+  fullWidth: {
+    width: '100% !important',
   },
 });
 
@@ -62,20 +66,19 @@ export const AltinnDropdown = ({
   selectedValue,
   handleChange,
   dropdownItems,
+  fullWidth = false,
 }: IAltinnDropdownComponentProvidedProps) => {
   const classes = useStyles();
 
   const formControlClasses = React.useMemo(() => {
     return {
-      root: classNames(
-        classes.inputField,
-        { [classes.inputField_disabled]: disabled },
-        {
-          [classes.marginTop_10]: inputDescription || inputHeader,
-        },
-      ),
+      root: classNames(classes.inputField, {
+        [classes.inputField_disabled]: disabled,
+        [classes.marginTop_10]: inputDescription || inputHeader,
+        [classes.fullWidth]: fullWidth,
+      }),
     };
-  }, [classes, disabled, inputDescription, inputHeader]);
+  }, [classes, disabled, inputDescription, inputHeader, fullWidth]);
 
   const inputPropsClasses = React.useMemo(() => {
     return {
