@@ -56,30 +56,22 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 return BadRequest("Invalid model");
             }
+            
+            List<Rule> delegationResults = await _pap.TryWriteDelegationPolicyRules(rules);
 
-            try
+            if (delegationResults.All(r => r.CreatedSuccessfully))
             {
-                List<Rule> delegationResults = await _pap.TryWriteDelegationPolicyRules(rules);
-
-                if (delegationResults.All(r => r.CreatedSuccessfully))
-                {
-                    return Created("Created", delegationResults);
-                }
-
-                if (delegationResults.Any(r => r.CreatedSuccessfully))
-                {
-                    return StatusCode(206, delegationResults);
-                }
-
-                string rulesJson = JsonSerializer.Serialize(rules);
-                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
-                return StatusCode(400, $"Delegation could not be completed");
+                return Created("Created", delegationResults);
             }
-            catch (Exception e)
+
+            if (delegationResults.Any(r => r.CreatedSuccessfully))
             {
-                _logger.LogError(e, "Delegation could not be completed. Unexpected exception.");
-                return StatusCode(500, $"Delegation could not be completed due to an unexpected exception.");
+                return StatusCode(206, delegationResults);
             }
+
+            string rulesJson = JsonSerializer.Serialize(rules);
+            _logger.LogInformation("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
+            return StatusCode(400, $"Delegation could not be completed");
         }
 
         /// <summary>
