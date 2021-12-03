@@ -346,7 +346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bluebird@npm:3.7.2, bluebird@npm:^3.7.2":
+"bluebird@npm:3.7.2":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
   checksum: 869417503c722e7dc54ca46715f70e15f4d9c602a423a02c825570862d12935be59ed9c7ba34a9b31f186c017c23cac6b54e35446f8353059c101da73eac22ef
@@ -573,23 +573,23 @@ __metadata:
   resolution: "cypress-studio@workspace:."
   dependencies:
     axe-core: ^4.3.5
-    cypress: ^9.0.0
+    cypress: ^9.1.0
     cypress-axe: ^0.13.0
     cypress-file-upload: ^5.0.8
     cypress-plugin-tab: ^1.0.5
-    eslint: ^8.2.0
+    eslint: ^8.3.0
     eslint-plugin-cypress: ^2.12.1
     faker: ^5.5.3
     fs-extra: ^10.0.0
     path: ^0.12.7
-    prettier: ^2.4.1
+    prettier: ^2.5.0
     start-server-and-test: ^1.14.0
   languageName: unknown
   linkType: soft
 
-"cypress@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "cypress@npm:9.0.0"
+"cypress@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "cypress@npm:9.1.0"
   dependencies:
     "@cypress/request": ^2.88.7
     "@cypress/xvfb": ^1.2.4
@@ -598,7 +598,7 @@ __metadata:
     "@types/sizzle": ^2.3.2
     arch: ^2.2.0
     blob-util: ^2.0.2
-    bluebird: ^3.7.2
+    bluebird: 3.7.2
     cachedir: ^2.3.0
     chalk: ^4.1.0
     check-more-types: ^2.24.0
@@ -634,7 +634,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: ae481f26f6a51370bad6571b7edd525559c0b4e36fb9c33ac26c822610bd2f0b419614f12c1d87aff59c46afb3c2f06f7e167f924023da65fe2a3987927255c8
+  checksum: 37f2cd704d9e67c4b525e2e8a723f82b0e0eb573cd276fa6460d86ce665cf2a53fd490a4a0ca79394694ba0d91306a03194479089b57457fdc6b9cb9e9747b54
   languageName: node
   linkType: hard
 
@@ -800,7 +800,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.2.0":
+"eslint@npm:^8.3.0":
   version: 8.3.0
   resolution: "eslint@npm:8.3.0"
   dependencies:
@@ -1813,12 +1813,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "prettier@npm:2.4.1"
+"prettier@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "prettier@npm:2.5.0"
   bin:
     prettier: bin-prettier.js
-  checksum: cc6830588b401b0d742862fe9c46bc9118204fb307c3abe0e49e95b35ed23629573807ffdf9cdd65289c252a0bb51fc0171437f6626ee36378dea80f0ee80b91
+  checksum: aad1b35b73e7c14596d389d90977a83dad0db689ba5802a0ef319c357b7867f55b885db197972aa6a56c30f53088c9f8e0d7f7930ae074c275a4e9cbe091d21d
   languageName: node
   linkType: hard
 
