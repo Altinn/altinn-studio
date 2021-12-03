@@ -34,6 +34,56 @@ enum PageState {
   Creating = 'Creating',
 }
 
+type ValidateInputs = {
+  selectedOrgOrUser: string;
+  setOrgErrorMessage: (value: string) => void;
+  setRepoErrorMessage: (value: string) => void;
+  repoName: string;
+  language: any;
+};
+
+const validateInputs = ({
+  selectedOrgOrUser,
+  setOrgErrorMessage,
+  setRepoErrorMessage,
+  repoName,
+  language,
+}: ValidateInputs) => {
+  let isValid = true;
+
+  if (!selectedOrgOrUser) {
+    setOrgErrorMessage(
+      getLanguageFromKey('dashboard.field_cannot_be_empty', language),
+    );
+    isValid = false;
+  }
+
+  if (!repoName) {
+    setRepoErrorMessage(
+      getLanguageFromKey('dashboard.field_cannot_be_empty', language),
+    );
+    isValid = false;
+  }
+
+  if (repoName && !validateRepoName(repoName)) {
+    setRepoErrorMessage(
+      getLanguageFromKey(
+        'dashboard.service_name_has_illegal_characters',
+        language,
+      ),
+    );
+    isValid = false;
+  }
+
+  if (repoName.length > 30) {
+    setRepoErrorMessage(
+      getLanguageFromKey('dashboard.service_name_is_too_long', language),
+    );
+    isValid = false;
+  }
+  return isValid;
+};
+
 export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
   const classes = useStyles();
@@ -54,46 +104,16 @@ export const CreateService = () => {
     setRepoErrorMessage(null);
   }, []);
 
-  const validateService = () => {
-    let serviceIsValid = true;
-
-    if (!selectedOrgOrUser) {
-      setOrgErrorMessage(
-        getLanguageFromKey('dashboard.field_cannot_be_empty', language),
-      );
-      serviceIsValid = false;
-    }
-
-    if (!repoName) {
-      setRepoErrorMessage(
-        getLanguageFromKey('dashboard.field_cannot_be_empty', language),
-      );
-      serviceIsValid = false;
-    }
-
-    if (repoName && !validateRepoName(repoName)) {
-      setRepoErrorMessage(
-        getLanguageFromKey(
-          'dashboard.service_name_has_illegal_characters',
-          language,
-        ),
-      );
-      serviceIsValid = false;
-    }
-
-    if (repoName.length > 30) {
-      setRepoErrorMessage(
-        getLanguageFromKey('dashboard.service_name_is_too_long', language),
-      );
-      serviceIsValid = false;
-    }
-    return serviceIsValid;
-  };
-
   const handleCreateService = () => {
-    const serviceIsValid = validateService();
+    const isValid = validateInputs({
+      selectedOrgOrUser,
+      repoName,
+      language,
+      setRepoErrorMessage,
+      setOrgErrorMessage,
+    });
 
-    if (serviceIsValid) {
+    if (isValid) {
       setPageState(PageState.Creating);
 
       const url = `${window.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser}&repository=${repoName}`;
