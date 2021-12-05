@@ -1,10 +1,8 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import { IRuntimeState } from 'src/types';
-import { IAttachment } from 'src/shared/resources/attachments';
 import { EditButton } from './EditButton';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentSummaryComponent {
   componentRef: string;
@@ -38,9 +36,7 @@ const useStyles = makeStyles({
 
 export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] = useSelector(
-    (state: IRuntimeState) => state.attachments.attachments[props.componentRef],
-  );
+  const attachments = useAppSelector(state => state.attachments.attachments[props.componentRef]);
 
   return (
     <>
@@ -62,8 +58,7 @@ export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
         {attachments &&
           attachments.map((attachment) => {
             return (
-              // eslint-disable-next-line react/jsx-key
-              <Typography variant='body1'>{attachment.name}</Typography>
+              <Typography key={attachment.id} variant='body1'>{attachment.name}</Typography>
             );
           })}
       </Grid>
