@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { AltinnLoader } from 'altinn-shared/components';
-import { IAltinnWindow, IRuntimeState } from '../../types';
+import { IAltinnWindow } from '../../types';
 import FormDataActions from '../../features/form/data/formDataActions';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IButtonProvidedProps {
   id: string;
@@ -36,19 +36,11 @@ const rowStyle = {
 };
 
 export function ButtonComponent(props: IButtonProvidedProps) {
-  const dispatch = useDispatch();
-  const autoSave = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.autoSave,
-  );
-  const isSubmitting = useSelector(
-    (state: IRuntimeState) => state.formData.isSubmitting,
-  );
-  const isSaving = useSelector(
-    (state: IRuntimeState) => state.formData.isSaving,
-  );
-  const ignoreWarnings = useSelector(
-    (state: IRuntimeState) => state.formData.ignoreWarnings,
-  );
+  const dispatch = useAppDispatch();
+  const autoSave = useAppSelector(state => state.formLayout.uiConfig.autoSave);
+  const isSubmitting = useAppSelector(state => state.formData.isSubmitting);
+  const isSaving = useAppSelector(state => state.formData.isSaving);
+  const ignoreWarnings = useAppSelector(state => state.formData.ignoreWarnings);
 
   const renderSubmitButton = () => {
     return (

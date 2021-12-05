@@ -1,11 +1,10 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import '../../styles/shared.css';
 import classNames from 'classnames';
 import { makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IDropdownProps {
   formData: string;
@@ -39,9 +38,7 @@ const optionStyle = {
 
 function DropdownComponent(props: IDropdownProps) {
   const classes = useStyles();
-  const options = useSelector(
-    (state: IRuntimeState) => state.optionState.options[props.optionsId],
-  );
+  const options = useAppSelector(state => state.optionState.options[props.optionsId]);
 
   React.useEffect(() => {
     returnState();

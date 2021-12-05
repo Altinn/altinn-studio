@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
-import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
+import { get, put } from 'altinn-shared/utils';
 import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
@@ -23,7 +23,7 @@ import { runSingleFieldValidation, updateValidations } from '../../validation/va
 import FormDataActions from '../formDataActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
-import { getCurrentDataTypeForApplication, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
