@@ -8,11 +8,10 @@ import {
   Divider,
 } from '@material-ui/core';
 import { AltinnMenu } from 'app-shared/components';
-import { IGiteaOrganisation } from 'app-shared/types';
 import { post } from 'app-shared/utils/networking';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
 import * as React from 'react';
-import { HeaderContext, SelectedContextType } from './Header';
+import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -23,11 +22,6 @@ const useStyles = makeStyles(() => ({
     textAlign: 'right',
   },
 }));
-
-const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
-  const org = orgs?.find((org) => org.id === id);
-  return org?.full_name || org?.username;
-};
 
 export function HeaderMenu() {
   const classes = useStyles();
