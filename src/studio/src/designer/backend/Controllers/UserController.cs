@@ -58,10 +58,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>An array of repositores that the user has starred</returns>
         [HttpGet]
         [Route("starred")]
-        public async Task<IList<Designer.RepositoryClient.Model.Repository>> GetStarredRepos()
+        public async Task<IList<RepositoryClient.Model.Repository>> GetStarredRepos()
         {
             return await _giteaApi.GetStarred();
-
         }
 
         /// <summary>

@@ -167,9 +167,9 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<IList<Repository>> GetStarred()
+        public async Task<IList<Repository>> GetStarred()
         {
-            throw new NotImplementedException();
+            return await Task.FromResult(new List<Repository> { new Repository() { Name = "repoName" } });
         }
 
         public Task<bool> PutStarred(string org, string repository)
