@@ -85,32 +85,19 @@ export class HandleMergeConflictDiscardChanges extends
       });
 
       const discardUrl = `${window.location.origin}/` +
-        `/designer/api/v1/user/repos/discard?org=${org}&repository=${app}`;
+        `/designer/api/v1/repos/${org}/${app}/discard`;
       const discardRes = await get(discardUrl);
 
-      if (discardRes.isSuccessStatusCode === true) {
-        this.setState({
-          networkingRes: discardRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            shouldShowDoneIcon: true,
-          },
-        });
+      this.setState({
+        networkingRes: discardRes,
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: false,
+          shouldShowDoneIcon: true,
+        },
+      });
 
-        window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
-      } else {
-        this.setState({
-          networkingRes: discardRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            shouldShowDoneIcon: false,
-          },
-        });
-
-        console.error('Discard merge error', discardRes);
-      }
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
     } catch (err) {
       this.setState({
         errorObj: err,

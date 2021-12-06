@@ -308,24 +308,19 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
 
-    post(url).then((result: any) => {
+    post(url).then(() => {
       if (this.componentIsMounted) {
-        if (result.isSuccessStatusCode) {
-          this.setState({
-            changesInMaster: false,
-            changesInLocalRepo: false,
-            moreThanAnHourSinceLastPush: true,
-            modalState: {
-              header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
-              descriptionText:
-                [getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language)],
-              shouldShowDoneIcon: true,
-            },
-          });
-        } else {
-          // will be handled by error handling in catch
-          throw new Error('Push failed');
-        }
+        this.setState({
+          changesInMaster: false,
+          changesInLocalRepo: false,
+          moreThanAnHourSinceLastPush: true,
+          modalState: {
+            header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
+            descriptionText:
+              [getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language)],
+            shouldShowDoneIcon: true,
+          },
+        });
       }
     })
       .catch(() => {
