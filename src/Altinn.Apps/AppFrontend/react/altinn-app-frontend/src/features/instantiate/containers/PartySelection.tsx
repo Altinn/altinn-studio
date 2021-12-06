@@ -7,22 +7,20 @@ import {
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { AltinnCheckBox } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import PartyActions from '../../../shared/resources/party/partyActions';
-import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 import InstantiationContainer from './InstantiationContainer';
 import NoValidPartiesError from './NoValidPartiesError';
 import InstantiationActions from '../instantiation/actions/index';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = createStyles({
   partySelectionTitle: {
@@ -85,18 +83,10 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const { classes, match } = props;
 
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const parties: IParty[] = useSelector(
-    (state: IRuntimeState) => state.party.parties,
-  );
-  const appMetadata: IApplicationMetadata = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
-  );
-  const selectedParty: IParty = useSelector(
-    (state: IRuntimeState) => state.party.selectedParty,
-  );
+  const language = useAppSelector(state => state.language.language);
+  const parties = useAppSelector(state => state.party.parties);
+  const appMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
+  const selectedParty = useAppSelector(state => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);

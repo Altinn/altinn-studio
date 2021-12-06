@@ -5,8 +5,8 @@ import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/
 import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
-import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
-import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
+import { get, post } from 'altinn-shared/utils';
+import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
 import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
