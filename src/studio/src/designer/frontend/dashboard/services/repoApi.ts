@@ -1,11 +1,3 @@
-// http://altinn3.no/designer/api/v1/repos/search?
-// keyword=apps&
-// uid=2&
-// sortby=created&
-// order=asc&
-// page=1&
-// limit=1
-
 import { designerApi, TagTypes } from './designerApi';
 import { IRepository } from 'app-shared/types';
 
@@ -25,6 +17,21 @@ type QueryResult = {
   totalPages: number;
 };
 
+export const adjustQueryParams = (params: Filters) => {
+  switch (params.sortby) {
+    case 'name':
+      params.sortby = 'alpha';
+      break;
+    case 'updated_at':
+      params.sortby = 'created';
+      break;
+  }
+
+  params.page = params.page + 1;
+
+  return params;
+};
+
 export const repoApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({
     getSearch: builder.query<QueryResult, Filters>({
@@ -34,25 +41,26 @@ export const repoApi = designerApi.injectEndpoints({
         sortby = 'alpha',
         order = 'asc',
         page = 1,
-        limit = 8,
+        limit = 10,
       }) => {
-        if (sortby === 'name') {
-          sortby = 'alpha';
-        }
-
-        if (sortby === 'updated_at') {
-          sortby = 'created';
-        }
+        const params = adjustQueryParams({
+          uid,
+          keyword,
+          sortby,
+          order,
+          page,
+          limit,
+        });
 
         return {
           url: `repos/search`,
           params: {
-            uid,
-            keyword,
-            page,
-            limit,
-            sortby,
-            order,
+            uid: params.uid,
+            keyword: params.keyword,
+            page: params.page,
+            limit: params.limit,
+            sortby: params.sortby,
+            order: params.order,
           },
         };
       },

@@ -158,16 +158,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>True if the reset was successful, otherwise false.</returns>
         [HttpGet]
         [Route("{org}/{repository}/reset")]
-        public ActionResult<HttpResponseMessage> ResetLocalRepository(string org, string repository)
+        public ActionResult ResetLocalRepository(string org, string repository)
         {
             try
             {
                 _repository.ResetLocalRepository(org, repository);
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -189,16 +189,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>http response message as ok if commit is successfull</returns>
         [HttpPost]
         [Route("{org}/{repository}/commit")]
-        public ActionResult<HttpResponseMessage> Commit([FromBody] CommitInfo commitInfo)
+        public ActionResult Commit([FromBody] CommitInfo commitInfo)
         {
             try
             {
                 _sourceControl.Commit(commitInfo);
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -209,16 +209,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repo name</param>
         [HttpPost]
         [Route("{org}/{repository}/push")]
-        public async Task<ActionResult<HttpResponseMessage>> Push(string org, string repository)
+        public async Task<ActionResult> Push(string org, string repository)
         {
             bool pushSuccess = await _sourceControl.Push(org, repository);
             if (pushSuccess)
             {
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             else
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -294,23 +294,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Http response message as ok if reset operation is successful</returns>
         [HttpGet]
         [Route("{org}/{repository}/discard")]
-        public ActionResult<HttpResponseMessage> DiscardLocalChanges(string org, string repository)
+        public ActionResult DiscardLocalChanges(string org, string repository)
         {
             try
             {
                 if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    return ValidationProblem("One or all of the input parameters are null");
                 }
 
                 _sourceControl.ResetCommit(org, repository);
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -322,24 +320,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileName">the name of the file</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
-        [Route("{org}/{repository}/discart/{fileName}")]
-        public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string org, string repository, string fileName)
+        [Route("{org}/{repository}/discard/{fileName}")]
+        public ActionResult DiscardLocalChangesForSpecificFile(string org, string repository, string fileName)
         {
             try
             {
                 if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    return ValidationProblem("One or all of the input parameters are null");
                 }
 
                 _sourceControl.CheckoutLatestCommitForSpecificFile(org, repository, fileName);
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -352,23 +348,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
         [Route("{org}/{repository}/stage/{fileName}")]
-        public ActionResult<HttpResponseMessage> StageChange(string org, string repository, string fileName)
+        public ActionResult StageChange(string org, string repository, string fileName)
         {
             try
             {
                 if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    return ValidationProblem("One or all of the input parameters are null");
                 }
 
                 _sourceControl.StageChange(org, repository, fileName);
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -493,24 +487,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Http response message as ok if abort merge operation is successful</returns>
         [HttpGet]
         [Route("{org}/{repository}/abortmerge")]
-        public ActionResult<HttpResponseMessage> AbortMerge(string org, string repository)
+        public ActionResult AbortMerge(string org, string repository)
         {
             try
             {
                 if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    return ValidationProblem("One or all of the input parameters are null");
                 }
 
                 _sourceControl.AbortMerge(org, repository);
 
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return Ok();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 

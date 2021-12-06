@@ -21,6 +21,14 @@ const useStyles = makeStyles(() => ({
   typography: {
     textAlign: 'right',
   },
+  iconButton: {
+    '&:hover': {
+      backgroundColor: '#193d61',
+    },
+    '&:focus': {
+      backgroundColor: '#193d61',
+    },
+  }
 }));
 
 export function HeaderMenu() {
@@ -50,6 +58,7 @@ export function HeaderMenu() {
 
   const handleSetSelectedContext = (context: string | number) => {
     setSelectedContext(context);
+    setMenuAnchorEl(null);
   };
 
   return (
@@ -68,8 +77,8 @@ export function HeaderMenu() {
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton onClick={openMenu}>
-            <Avatar src={user.avatar_url} className={classes.avatar} />
+          <IconButton className={classes.iconButton} onClick={openMenu}>
+            <Avatar src={user.avatar_url} className={classes.avatar} alt='Altinn profile menu'/>
           </IconButton>
         </Grid>
       </Grid>
