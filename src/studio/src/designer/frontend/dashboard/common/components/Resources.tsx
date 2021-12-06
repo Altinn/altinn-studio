@@ -114,7 +114,7 @@ export function Resources() {
       </Grid>
       {resources.map((resource) => {
         return (
-          <Grid key={resource.label} item xl={2} lg={3} md={4} sm={12} xs={12} >
+          <Grid key={resource.label} item xl={2} lg={3} md={4} sm={6} xs={12} >
             <ResourceItem
               label={resource.label}
               description={resource.description}
