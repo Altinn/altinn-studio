@@ -18,12 +18,13 @@ type QueryResult = {
 };
 
 export const adjustQueryParams = (params: Filters) => {
-  if (params.sortby === 'name') {
-    params.sortby = 'alpha';
-  }
-
-  if (params.sortby === 'updated_at') {
-    params.sortby = 'created';
+  switch (params.sortby) {
+    case 'name':
+      params.sortby = 'alpha';
+      break;
+    case 'updated_at':
+      params.sortby = 'created';
+      break;
   }
 
   params.page = params.page + 1;
