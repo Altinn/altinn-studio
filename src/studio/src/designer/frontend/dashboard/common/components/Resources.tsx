@@ -18,7 +18,7 @@ const resources: Resource[] = [
     label: 'docs.altinn.studio',
     description:
       'Dokumentasjonen til Altinn Studio.Her vil du få hjelp til å utvikle dine egne applikasjoner',
-    url: 'http://docs.altinn.studio',
+    url: 'https://docs.altinn.studio',
     icon: (
       <svg
         width='60'
