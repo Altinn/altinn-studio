@@ -33,6 +33,7 @@
     "react-redux": "^7.2.6",
     "react-router-dom": "^5.3.0",
     "react-truncate-markup": "^5.1.0",
+    "react-use": "^17.3.1",
     "redux": "^4.1.2",
     "redux-devtools-extension": "^2.13.9",
     "redux-logger": "^3.0.6",
