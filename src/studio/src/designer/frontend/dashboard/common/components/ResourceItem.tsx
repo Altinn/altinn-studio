@@ -10,13 +10,11 @@ export interface ResourceItemProps {
 
 export function ResourceItem({ link, label, description, icon }: ResourceItemProps) {
   return (
-    <Grid container direction='row' alignItems='center' justifyContent='center' alignContent='left'
-      style={{ maxWidth: 500 }}
-    >
-      <Grid xs={3} item>
+    <Grid container direction='row' alignItems='flex-start' justifyContent='center' alignContent='left' style={{ maxWidth: 500}}>
+      <Grid xs={2} md={3} item>
         {icon}
       </Grid>
-      <Grid xs={9} item container direction='column' spacing={0} alignContent='center'>
+      <Grid xs={10} md={9} item container direction='column' spacing={0} alignContent='center'>
         <Grid item>
           <a href={link}><p style={{ fontWeight: 500, color: 'black', marginBottom: 0 }}>{label} </p> </a>
           <p style={{ marginTop: 0 }}>{description}</p>
