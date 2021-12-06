@@ -1,5 +1,8 @@
 import * as React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
+import { Typography } from '@material-ui/core';
+
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
@@ -33,20 +36,21 @@ const getUidFilter = ({ selectedContext, userId }: GetUidFilter) => {
 type GetReposLabel = {
   selectedContext: SelectedContext;
   orgs: Organizations;
+  language: any;
 };
 
-const getReposLabel = ({ selectedContext, orgs }: GetReposLabel) => {
+const getReposLabel = ({ selectedContext, orgs, language }: GetReposLabel) => {
   if (selectedContext === SelectedContextType.All) {
-    return 'Alle applikasjoner';
+    return getLanguageFromKey('dashboard.all_apps', language);
   }
 
   if (selectedContext === SelectedContextType.Self) {
-    return 'Mine applikasjoner';
+    return getLanguageFromKey('dashboard.my_apps', language);
   }
 
   return `${
     orgs.find((org) => org.id === selectedContext).full_name
-  } applikasjoner`;
+  } ${getLanguageFromKey('dashboard.apps', language)}`;
 };
 
 const setUserHasStarreOnRepos = (
@@ -62,6 +66,7 @@ const setUserHasStarreOnRepos = (
 };
 
 export const OrgReposList = () => {
+  const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
@@ -96,9 +101,9 @@ export const OrgReposList = () => {
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.13rem' }}>
-        {getReposLabel({ selectedContext, orgs })}
-      </h1>
+      <Typography variant='h2'>
+        {getReposLabel({ selectedContext, orgs, language })}
+      </Typography>
       <RepoList
         repos={setUserHasStarreOnRepos(data?.data, starred)}
         isLoading={isLoadingOrgRepos || isLoadingStarred}

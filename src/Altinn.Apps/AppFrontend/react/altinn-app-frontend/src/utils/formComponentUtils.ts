@@ -200,7 +200,8 @@ export const getFormDataForComponentInRepeatingGroup = (
     component.type === 'Group' ||
     component.type === 'Header' ||
     component.type === 'Paragraph' ||
-    component.type === 'Image'
+    component.type === 'Image' ||
+    component.type === 'InstantiationButton'
   ) {
     return '';
   }

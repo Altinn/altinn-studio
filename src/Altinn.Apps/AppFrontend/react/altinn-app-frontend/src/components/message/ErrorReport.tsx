@@ -3,30 +3,22 @@
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { ITextResource, IValidations, IRuntimeState } from 'src/types';
-import { useSelector } from 'react-redux';
+import { IValidations } from 'src/types';
 import { getTextFromAppOrDefault } from '../../utils/textResource';
 import { getUnmappedErrors } from '../../utils/validation';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IErrorProps {
   language: any;
 }
 
 const ErrorReport = (props: IErrorProps) => {
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
+  const validations = useAppSelector(state => state.formValidations.validations,);
   const unmappedErrors = getUnmappedErrors(validations);
-  const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const formHasErrors: boolean = useSelector((state: IRuntimeState) =>
-    getFormHasErrors(state.formValidations.validations),
-  );
-  const hasSubmitted = useSelector(
-    (state: IRuntimeState) => state.formData.hasSubmitted,
-  );
+  const hasUnmappedErrors = unmappedErrors.length > 0;
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const formHasErrors = useAppSelector(state => getFormHasErrors(state.formValidations.validations));
+  const hasSubmitted = useAppSelector(state => state.formData.hasSubmitted);
   const errorRef = useRef(null);
 
   useEffect(() => {

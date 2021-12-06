@@ -1,6 +1,5 @@
 import React from 'react';
 import { Grid } from '@material-ui/core';
-import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -8,19 +7,13 @@ import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import { ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import {
-  IRuntimeState,
-  ITextResource,
-  IRepeatingGroups,
-  IValidations,
-  Triggers,
-} from '../../../types';
-import { IFormData } from '../data/formDataReducer';
+import { Triggers } from '../../../types';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IGroupProps {
   id: string;
@@ -38,51 +31,29 @@ export function GroupContainer({
   container,
   components,
 }: IGroupProps): JSX.Element {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(
     JSON.stringify(components),
   );
 
-  const editIndex: number = useSelector(
-    (state: IRuntimeState) =>
-      state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
-  );
+  const editIndex = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
-  const currentView: string = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.currentView,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const repeatingGroups: IRepeatingGroups = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups,
-  );
-  const hiddenFields: string[] = useSelector((state: IRuntimeState) =>
+  const validations = useAppSelector(state => state.formValidations.validations);
+  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
+  const language = useAppSelector(state => state.language.language);
+  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
+  const hiddenFields = useAppSelector(state =>
     getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components),
   );
   const GetHiddenSelector = makeGetHidden();
-  const hidden: boolean = useSelector((state: IRuntimeState) =>
-    GetHiddenSelector(state, { id }),
-  );
-  const formData: IFormData = useSelector(
-    (state: IRuntimeState) => state.formData.formData,
-  );
-  const layout: ILayout = useSelector(
-    (state: IRuntimeState) =>
-      state.formLayout.layouts[state.formLayout.uiConfig.currentView],
-  );
-  const options = useSelector(
-    (state: IRuntimeState) => state.optionState.options,
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
+  const hidden = useAppSelector(state => GetHiddenSelector(state, { id }));
+  const formData = useAppSelector(state => state.formData.formData);
+  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
+  const options = useAppSelector(state => state.optionState.options);
+  const textResources = useAppSelector(state => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
       return repeatingGroups[containerId].count;

@@ -50,5 +50,13 @@
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": ["off"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/no-empty-function": "off"
+      }
+    }
+  ]
 }

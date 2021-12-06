@@ -1,7 +1,7 @@
-import { AppBar, Grid, makeStyles, Toolbar } from '@material-ui/core';
+import { AppBar, Grid, makeStyles, Toolbar, Typography } from '@material-ui/core';
 import { IGiteaOrganisation, IUser } from 'app-shared/types';
-import { altinnWhiteImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import * as React from 'react';
+import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 
 export enum SelectedContextType {
@@ -33,10 +33,24 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 48,
     paddingRight: 48,
   },
+  typography: {
+    fontSize: '1.75rem',
+  },
+  divider: {
+    fontSize: '2rem',
+    marginLeft: 10,
+    marginRight: 10,
+  }
 }));
+
+export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
+  const org = orgs?.find((org) => org.id === id);
+  return org?.full_name || org?.username;
+};
 
 export function Header() {
   const classes = useStyles();
+  const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
   return (
     <AppBar className={classes.appBar} position='static'>
       <Toolbar className={classes.toolbar}>
@@ -46,10 +60,20 @@ export function Header() {
           alignItems='center'
           justifyContent='space-between'
         >
-          <Grid item xs={6}>
-            <a href='/'>
-              <img src={altinnWhiteImgLogoHeaderUrl} alt='Altinn logo' />
-            </a>
+          <Grid item container xs={6} alignItems='center'>
+            <Grid item>
+              <a href='/'>
+                <AltinnStudioLogo />
+              </a>
+            </Grid>
+            {selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self &&
+              <Grid>
+                <Typography className={classes.typography}>
+                  <span className={classes.divider}>/</span>
+                  {getOrgNameById(selectedContext as number, selectableOrgs)}
+                </Typography>
+              </Grid>
+            }
           </Grid>
           <Grid item>
             <HeaderMenu />

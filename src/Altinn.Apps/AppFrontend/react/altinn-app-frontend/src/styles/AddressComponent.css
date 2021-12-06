@@ -4,6 +4,10 @@
   width: 100%;
 }
 
+.address-component .form-control {
+  margin-bottom: 18px;
+}
+
 .address-component input {
   max-width: 100%;
 }

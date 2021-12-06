@@ -1,15 +1,17 @@
-
-
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as networking from 'app-shared/utils/networking';
-import { appNameRegex, CreateNewServiceComponent } from '../../../../features/createService/createNewService';
+import {
+  appNameRegex,
+  CreateNewServiceComponent,
+} from '../../../../features/createService/createNewService';
 
 describe('>>> components/base/createNewService.tsx', () => {
   let mockSelectableUser: any;
   let mockClasses: any;
   let mockLanguage: any;
+  const getOrganizations = () => {};
 
   beforeEach(() => {
     mockSelectableUser = [
@@ -27,15 +29,6 @@ describe('>>> components/base/createNewService.tsx', () => {
       assign: jest.fn(),
       ...mockWindow,
     };
-
-  });
-
-  let consoleError: any;
-
-  beforeAll(() => {
-    consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
-      return {};
-    });
   });
 
   it('+++ should handle update modal state on open and close', () => {
@@ -44,6 +37,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -65,6 +59,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -83,13 +78,18 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance.validateService();
-    expect(instance.state.serviceOwnerPopperMessage).toBe('dashboard.field_cannot_be_empty');
-    expect(instance.state.repoNamePopperMessage).toBe('dashboard.field_cannot_be_empty');
+    expect(instance.state.serviceOwnerPopperMessage).toBe(
+      'dashboard.field_cannot_be_empty',
+    );
+    expect(instance.state.repoNamePopperMessage).toBe(
+      'dashboard.field_cannot_be_empty',
+    );
   });
 
   it('+++ should handle validating reponame and serviceowner with appropriate popper messages', () => {
@@ -98,6 +98,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -105,8 +106,12 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = '1234ThisIsAnInValidServiceName';
     instance.validateService();
 
-    expect(instance.state.serviceOwnerPopperMessage).toBe('dashboard.field_cannot_be_empty');
-    expect(instance.state.repoNamePopperMessage).toBe('dashboard.service_name_has_illegal_characters');
+    expect(instance.state.serviceOwnerPopperMessage).toBe(
+      'dashboard.field_cannot_be_empty',
+    );
+    expect(instance.state.repoNamePopperMessage).toBe(
+      'dashboard.service_name_has_illegal_characters',
+    );
   });
 
   it('+++ should validate service names', () => {
@@ -115,6 +120,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -142,7 +148,8 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.validateService()).toBe(false);
 
     // Assert a very long name
-    instance.state.repoName = 'SpicyJalapenoBaconIpsumDolorAmetCillumShankVelitAdipisicingFugiatDuisShortRibsShortLoinPariaturCapicolaVenison';
+    instance.state.repoName =
+      'SpicyJalapenoBaconIpsumDolorAmetCillumShankVelitAdipisicingFugiatDuisShortRibsShortLoinPariaturCapicolaVenison';
     expect(instance.validateService()).toBe(false);
   });
 
@@ -152,11 +159,14 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance.handleUpdateDropdown({ target: { value: mockSelectableUser[0].name } });
+    instance.handleUpdateDropdown({
+      target: { value: mockSelectableUser[0].name },
+    });
     expect(instance.state.selectedOrgOrUser).toBe(mockSelectableUser[0].name);
 
     const mockRepoName = 'service-name';
@@ -170,6 +180,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -178,7 +189,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 409,
+      response: {
+        status: 409,
+      },
     };
     const getStub = jest.fn();
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
@@ -186,11 +199,13 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
-    return Promise.resolve().then(() => {
+    return Promise.resolve().catch(() => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.app_already_exist');
+      expect(instance.state.repoNamePopperMessage).toBe(
+        'dashboard.app_already_exist',
+      );
     });
   });
 
@@ -200,6 +215,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -208,7 +224,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 418,
+      response: {
+        status: 418,
+      },
     };
 
     const getStub = jest.fn();
@@ -217,11 +235,13 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
-    return Promise.resolve().then(() => {
+    return Promise.resolve().catch(() => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
+      expect(instance.state.repoNamePopperMessage).toBe(
+        'dashboard.error_when_creating_app',
+      );
     });
   });
 
@@ -231,6 +251,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -238,7 +259,11 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
-    const mockError = Error('mocked error');
+    const mockError = {
+      response: {
+        status: 418,
+      },
+    };
     const getStub = jest.fn();
     const mockPost = jest.spyOn(networking, 'post').mockImplementation(getStub);
     getStub.mockReturnValue(Promise.reject(mockError));
@@ -250,8 +275,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(mockPost).toHaveBeenCalled();
     expect(instance.componentMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
-    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
-    expect(consoleError).toHaveBeenCalled();
+    expect(instance.state.repoNamePopperMessage).toBe(
+      'dashboard.error_when_creating_app',
+    );
   });
 
   it('+++ should handle successfully creating new service', () => {
@@ -260,6 +286,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 
@@ -268,7 +295,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 201,
+      repositoryCreatedStatus: 'Created',
       full_name: 'FirstOrg/service-name',
     };
     const getStub = jest.fn();
@@ -279,7 +306,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
       expect(getSpy).toHaveBeenCalled();
-      expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockResult.full_name}#/about`);
+      expect(window.location.assign).toHaveBeenCalledWith(
+        `${window.location.origin}/designer/${mockResult.full_name}#/about`,
+      );
     });
   });
 
@@ -289,6 +318,7 @@ describe('>>> components/base/createNewService.tsx', () => {
         language={mockLanguage}
         selectableUser={mockSelectableUser}
         classes={mockClasses}
+        getOrganizations={getOrganizations}
       />,
     );
 

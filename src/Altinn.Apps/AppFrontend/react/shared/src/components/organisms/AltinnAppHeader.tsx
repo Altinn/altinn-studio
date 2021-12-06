@@ -33,14 +33,14 @@ const styles = createStyles({
     marginRight: 'auto',
     padding: 12,
     '@media (min-width:576px)': {
-      maxWidth: 'auto',
+      maxWidth: 'none',
       padding: 24,
     },
     '@media (min-width:760px)': {
-      maxWidth: 'auto',
+      maxWidth: 'none',
     },
     '@media (min-width:992px)': {
-      maxWidth: 'auto',
+      maxWidth: 'none',
     },
     '@media (min-width:1200px)': {
       maxWidth: 1056,
