@@ -248,7 +248,7 @@ namespace Designer.Tests.Controllers
         public async Task CreateApp_ValidRepoName_Created()
         {
             // Arrange
-            string uri = $"/designerapi/Repository/CreateApp?org=ttd&repository=test";
+            string uri = $"/designer/api/v1/repos/CreateApp?org=ttd&repository=test";
 
             Mock<IRepository> repositoryService = new Mock<IRepository>();
             repositoryService
