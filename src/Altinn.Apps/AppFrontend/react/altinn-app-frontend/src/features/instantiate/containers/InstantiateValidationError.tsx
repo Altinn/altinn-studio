@@ -1,13 +1,12 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IRuntimeState } from '../../../types';
 import InstantiationErrorPage from './InstantiationErrorPage';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
+import { useAppSelector } from 'src/common/hooks';
 
 function InstantiateValidationError(props: {message: string}) {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const language = useAppSelector(state => state.language.language);
+  const textResources = useAppSelector(state => state.textResources.resources);
   if (!language) {
     return null;
   }

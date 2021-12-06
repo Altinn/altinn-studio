@@ -13,7 +13,7 @@ export interface IHeaderProps {
 }
 
 const marginStyling = {
-  marginTop: '1rem',
+  marginTop: '0',
   marginBottom: '0',
 };
 

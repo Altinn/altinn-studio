@@ -9,7 +9,7 @@ import * as designer from '../pageobjects/designer';
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
   cy.get(loginPage.loginButton).click();
   cy.get(loginPage.userName).type(userName);
-  cy.get(loginPage.userPwd).type(userPwd);
+  cy.get(loginPage.userPwd).type(userPwd, { log: false });
   cy.get(loginPage.submit).click();
 });
 
@@ -39,7 +39,40 @@ Cypress.Commands.add('deletecomponents', () => {
         cy.get($component).each(($el) => {
           cy.wrap($el).click();
         });
-        cy.get(designer.deleteComponent).parents('button').click();
+        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true});
       }
     });
+});
+
+/**
+ * Delete local changes of an app for a logged in user
+ */
+Cypress.Commands.add('deleteLocalChanges', (appId) => {
+  cy.getCookie('AltinnStudioDesigner').should('exist');
+  cy.intercept('**/RepoStatus*').as('repoStatus');
+  cy.visit(`designer/${Cypress.env('deployApp')}#/about`);
+  // eslint-disable-next-line cypress/no-unnecessary-waiting
+  cy.wait(5000);
+  cy.wait('@repoStatus');
+  cy.get(designer.aboutApp.repoName).should('be.visible');
+  cy.get(designer.sideMenu)
+    .find(designer.deleteChanges.reset)
+    .should(($button) => {
+      expect(Cypress.dom.isDetached($button), 'button should not be detached').to.eq(false);
+    })
+    .should('be.visible')
+    .click();
+  cy.get(designer.deleteChanges.name)
+    .should('be.visible')
+    .type(`${appId.split('/')[1]}`)
+    .blur();
+  cy.get(designer.deleteChanges.confirm).should('be.visible').click();
+  cy.get(designer.deleteChanges.name).should('not.exist');
+});
+
+/**
+ * Get body of an iframe document
+ */
+Cypress.Commands.add('getIframeBody', () => {
+  return cy.get('iframe').its('0.contentDocument.body').should('not.be.empty').then(cy.wrap);
 });
