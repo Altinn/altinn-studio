@@ -1,11 +1,10 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import '../../styles/shared.css';
 import classNames from 'classnames';
 import { makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IDropdownProps {
   formData: string;
@@ -33,9 +32,13 @@ const useStyles = makeStyles({
   },
 });
 
+const optionStyle = {
+  display: 'none',
+};
+
 function DropdownComponent(props: IDropdownProps) {
   const classes = useStyles();
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = useAppSelector(state => state.optionState.options[props.optionsId]);
 
   React.useEffect(() => {
     returnState();
@@ -65,17 +68,16 @@ function DropdownComponent(props: IDropdownProps) {
       id={props.id}
       value={props.formData}
       disabled={props.readOnly}
-      className={classNames(classes.select, 'custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
+      className={classNames(classes.select, 'custom-select a-custom-select', {
+        'validation-error': !props.isValid,
+        'disabled !important': props.readOnly,
+      })}
       onChange={handleOnChange}
       onBlur={handleOnBlur}
     >
-      <option style={{ display: 'none' }}/>
+      <option style={optionStyle} />
       {options?.map((option, index) => (
-        <option
-          // eslint-disable-next-line react/no-array-index-key
-          key={index}
-          value={option.value}
-        >
+        <option key={index} value={option.value}>
           {props.getTextResourceAsString(option.label)}
         </option>
       ))}

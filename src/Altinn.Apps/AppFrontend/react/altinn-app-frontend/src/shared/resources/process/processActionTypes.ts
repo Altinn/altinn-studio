@@ -1,15 +1,15 @@
-const moduleName: string = 'PROCESS';
+const moduleName = 'PROCESS';
 
-export const GET_PROCESS_STATE: string = `${moduleName}.GET_PROCESS_STATE`;
-export const GET_PROCESS_STATE_FULFILLED: string = `${moduleName}.GET_PROCESS_STATE_FULFILLED`;
-export const GET_PROCESS_STATE_REJECTED: string = `${moduleName}.GET_PROCESS_STATE_REJECTED`;
+export const GET_PROCESS_STATE = `${moduleName}.GET_PROCESS_STATE`;
+export const GET_PROCESS_STATE_FULFILLED = `${moduleName}.GET_PROCESS_STATE_FULFILLED`;
+export const GET_PROCESS_STATE_REJECTED = `${moduleName}.GET_PROCESS_STATE_REJECTED`;
 
-export const START_PROCESS: string = `${moduleName}.START_PROCESS`;
-export const START_PROCESS_FULFILLED: string = `${moduleName}.START_PROCESS_FULFILLED`;
-export const START_PROCESS_REJECTED: string = `${moduleName}.START_PROCESS_REJECTED`;
+export const START_PROCESS = `${moduleName}.START_PROCESS`;
+export const START_PROCESS_FULFILLED = `${moduleName}.START_PROCESS_FULFILLED`;
+export const START_PROCESS_REJECTED = `${moduleName}.START_PROCESS_REJECTED`;
 
-export const COMPLETE_PROCESS: string = `${moduleName}.COMPLETE_PROCESS`;
-export const COMPLETE_PROCESS_FULFILLED: string = `${moduleName}.COMPLETE_PROCESS_FULFILLED`;
-export const COMPLETE_PROCESS_REJECTED: string = `${moduleName}.COMPLETE_PROCESS_REJECTED`;
+export const COMPLETE_PROCESS = `${moduleName}.COMPLETE_PROCESS`;
+export const COMPLETE_PROCESS_FULFILLED = `${moduleName}.COMPLETE_PROCESS_FULFILLED`;
+export const COMPLETE_PROCESS_REJECTED = `${moduleName}.COMPLETE_PROCESS_REJECTED`;
 
-export const CHECK_PROCESS_UPDATED: string = `${moduleName}.CHECK_PROCESS_UPDATED`;
+export const CHECK_PROCESS_UPDATED = `${moduleName}.CHECK_PROCESS_UPDATED`;

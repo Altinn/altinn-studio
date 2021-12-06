@@ -193,8 +193,8 @@ namespace Altinn.App
 
         private string GetApplicationId()
         {
-            string appMetadataString = File.ReadAllText("config/applicationmetadata.json");
-            JObject appMetadataJObject = JObject.Parse(appMetadataString);
+            string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
+            JObject appMetadataJObject = JObject.Parse(appMetaDataString);
             return appMetadataJObject.SelectToken("id").Value<string>();
         }
     }

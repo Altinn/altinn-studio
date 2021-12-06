@@ -1,10 +1,8 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import { IRuntimeState } from 'src/types';
-import { IAttachment } from 'src/shared/resources/attachments';
 import { EditButton } from './EditButton';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentSummaryComponent {
   componentRef: string;
@@ -38,32 +36,31 @@ const useStyles = makeStyles({
 
 export function AttachmentSummaryComponent(props: IAttachmentSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] =
-    useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
+  const attachments = useAppSelector(state => state.attachments.attachments[props.componentRef]);
 
   return (
     <>
       <Grid item={true} xs={10}>
         <Typography
           variant='body1'
-          className={`${classes.label}${props.hasValidationMessages ? ` ${classes.labelWithError}` : ''}`}
+          className={`${classes.label}${
+            props.hasValidationMessages ? ` ${classes.labelWithError}` : ''
+          }`}
           component='span'
         >
           {props.label}
         </Typography>
       </Grid>
       <Grid item xs={2}>
-        <EditButton
-          onClick={props.onChangeClick}
-          editText={props.changeText}
-        />
+        <EditButton onClick={props.onChangeClick} editText={props.changeText} />
       </Grid>
       <Grid item xs={12}>
-        {attachments && attachments.map((attachment) => {
-          return (
-            <Typography variant='body1'>{attachment.name}</Typography>
-          );
-        })}
+        {attachments &&
+          attachments.map((attachment) => {
+            return (
+              <Typography key={attachment.id} variant='body1'>{attachment.name}</Typography>
+            );
+          })}
       </Grid>
     </>
   );

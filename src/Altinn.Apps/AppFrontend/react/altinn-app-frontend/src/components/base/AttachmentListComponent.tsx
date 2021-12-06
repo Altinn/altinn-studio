@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { AltinnAttachment } from 'altinn-shared/components';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
-import { IAttachment } from 'altinn-shared/types';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { Grid, Typography } from '@material-ui/core';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentListProps {
   id: string;
@@ -13,10 +11,8 @@ export interface IAttachmentListProps {
 }
 
 export function AttachmentListComponent(props: IAttachmentListProps) {
-  const currentTaskId = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance.process.currentTask.elementId,
-  );
-  const dataForTask = useSelector((state: IRuntimeState) => {
+  const currentTaskId = useAppSelector(state => state.instanceData.instance.process.currentTask.elementId);
+  const dataForTask = useAppSelector(state => {
     const dataTypes = state.applicationMetadata.applicationMetadata.dataTypes.filter((type) => {
       return type.taskId === state.instanceData.instance.process.currentTask.elementId;
     });
@@ -27,7 +23,7 @@ export function AttachmentListComponent(props: IAttachmentListProps) {
       return dataTypes.findIndex((type) => dataElement.dataType === type.id) > -1;
     });
   });
-  const attachments: IAttachment[] = useSelector((state: IRuntimeState) => {
+  const attachments = useAppSelector(state => {
     const appLogicDataTypes = state.applicationMetadata.applicationMetadata.dataTypes.filter((dataType) => {
       return dataType.appLogic && dataType.taskId === currentTaskId;
     });

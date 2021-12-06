@@ -1,26 +1,26 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable implicit-arrow-linebreak */
-import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import {
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteComponentProps, withRouter } from 'react-router';
 import { AltinnCheckBox } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import PartyActions from '../../../shared/resources/party/partyActions';
-import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 import InstantiationContainer from './InstantiationContainer';
 import NoValidPartiesError from './NoValidPartiesError';
 import InstantiationActions from '../instantiation/actions/index';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = createStyles({
   partySelectionTitle: {
@@ -75,18 +75,18 @@ interface IRedirectParams {
   errorCode: HttpStatusCodes;
 }
 
-export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteComponentProps {
-}
+export interface IPartySelectionProps
+  extends WithStyles<typeof styles>,
+    RouteComponentProps {}
 
 const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const { classes, match } = props;
 
-  const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
-  const appMetadata: IApplicationMetadata =
-    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
-  const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
+  const language = useAppSelector(state => state.language.language);
+  const parties = useAppSelector(state => state.party.parties);
+  const appMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
+  const selectedParty = useAppSelector(state => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
@@ -109,41 +109,39 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     }
 
     if (parties.length === 0) {
-      return (
-        <NoValidPartiesError />
-      );
+      return <NoValidPartiesError />;
     }
 
-    let numberOfPartiesRendered: number = 0;
+    let numberOfPartiesRendered = 0;
 
     return (
       <>
         {parties.map((party: IParty, index: number) =>
-          (party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
-            numberOfPartiesShown > numberOfPartiesRendered ?
-              (() => {
-                numberOfPartiesRendered += 1;
-                if (party.isDeleted && !showDeleted) {
-                  return null;
-                }
-                return (
-                  <AltinnParty
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={index}
-                    party={party}
-                    onSelectParty={onSelectParty}
-                    showSubUnits={showSubUnits}
-                  />
-                );
-              })()
+          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1
+            ? numberOfPartiesShown > numberOfPartiesRendered
+              ? (() => {
+                  numberOfPartiesRendered += 1;
+                  if (party.isDeleted && !showDeleted) {
+                    return null;
+                  }
+                  return (
+                    <AltinnParty
+                      key={index}
+                      party={party}
+                      onSelectParty={onSelectParty}
+                      showSubUnits={showSubUnits}
+                    />
+                  );
+                })()
               : null
-            : null))}
-        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ?
+            : null,
+        )}
+        {numberOfPartiesRendered === numberOfPartiesShown &&
+        numberOfPartiesRendered < parties.length ? (
           <Grid container={true} direction='row'>
             {renderShowMoreButton()}
           </Grid>
-          : null
-        }
+        ) : null}
       </>
     );
   }
@@ -160,18 +158,24 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       return null;
     }
     const params = match.params as IRedirectParams;
-    // eslint-disable-next-line no-extra-boolean-cast
-    if (!!params.errorCode) {
+    if (params.errorCode) {
       try {
         const errorCode: number = parseInt(params.errorCode.toString(), 10);
         switch (errorCode) {
           // Keeping the switch statement because we might extends the enums to handle more errors
           case HttpStatusCodes.Forbidden: {
             return (
-              <Typography className={classes.partySelectionError} id='party-selection-error'>
+              <Typography
+                className={classes.partySelectionError}
+                id='party-selection-error'
+              >
                 {`
-                  ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
-                  ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
+                  ${
+                    language.party_selection.invalid_selection_first_part
+                  } ${getRepresentedPartyName()}.
+                  ${
+                    language.party_selection.invalid_selection_second_part
+                  } ${templatePartyTypesString()}.
                   ${language.party_selection.invalid_selection_third_part}
                 `}
               </Typography>
@@ -203,7 +207,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     const { partyTypesAllowed } = appMetadata;
     const partyTypes: string[] = [];
 
-    let returnString: string = '';
+    let returnString = '';
 
     if (partyTypesAllowed.person) {
       partyTypes.push(language.party_selection.unit_type_private_person);
@@ -225,7 +229,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     for (let i = 0; i < partyTypes.length; i++) {
       if (i === 0) {
         returnString += partyTypes[i];
-      } else if (i === (partyTypes.length - 1)) {
+      } else if (i === partyTypes.length - 1) {
         returnString += ` ${language.party_selection.binding_word} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
@@ -248,7 +252,6 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       return null;
     }
     return (
-      // eslint-disable-next-line react/button-has-type
       <button
         className={classes.loadMoreButton}
         onClick={increaseNumberOfShownParties}
@@ -256,10 +259,9 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         <Grid container={true} direction='row'>
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
-            {!language.party_selection ?
-              'party_selection.load_more' :
-              language.party_selection.load_more
-            }
+            {!language.party_selection
+              ? 'party_selection.load_more'
+              : language.party_selection.load_more}
           </Typography>
         </Grid>
       </button>
@@ -283,16 +285,16 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       <Grid
         container={true}
         direction='row'
+        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         style={{
           display: 'flex',
           flexDirection: 'row',
         }}
       >
         <Typography className={classes.partySelectionTitle}>
-          {!language.party_selection ?
-            'party_selection.header' :
-            language.party_selection.header
-          }
+          {!language.party_selection
+            ? 'party_selection.header'
+            : language.party_selection.header}
         </Typography>
         {templateErrorMessage()}
       </Grid>
@@ -301,25 +303,15 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         direction='column'
         className={classes.partySearchFieldContainer}
       >
-        <AltinnPartySearch
-          onSearchUpdated={onFilterStringChange}
-        />
+        <AltinnPartySearch onSearchUpdated={onFilterStringChange} />
       </Grid>
-      <Grid
-        container={true}
-        direction='column'
-      >
-        <Grid
-          container={true}
-          justifyContent='space-between'
-          direction='row'
-        >
+      <Grid container={true} direction='column'>
+        <Grid container={true} justifyContent='space-between' direction='row'>
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
-              {!language.party_selection ?
-                'party_selection.subheader' :
-                language.party_selection.subheader
-              }
+              {!language.party_selection
+                ? 'party_selection.subheader'
+                : language.party_selection.subheader}
             </Typography>
           </Grid>
 
@@ -331,39 +323,27 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                     checked={showDeleted}
                     onChangeFunction={toggleShowDeleted}
                   />
-                  <Typography
-                    className={classes.checkboxLabes}
-                  >
-                    {
-                      !language.party_selection ?
-                        'party_selection.show_deleted' :
-                        language.party_selection.show_deleted
-                    }
+                  <Typography className={classes.checkboxLabes}>
+                    {!language.party_selection
+                      ? 'party_selection.show_deleted'
+                      : language.party_selection.show_deleted}
                   </Typography>
                 </Grid>
               </Grid>
-              <Grid
-                item={true}
-                className={classes.partySelectionCheckbox}
-              >
+              <Grid item={true} className={classes.partySelectionCheckbox}>
                 <Grid container={true} direction='row'>
                   <AltinnCheckBox
                     checked={showSubUnits}
                     onChangeFunction={toggleShowSubUnits}
                   />
-                  <Typography
-                    className={classes.checkboxLabes}
-                  >
-                    {
-                      !language.party_selection ?
-                        'party_selection.show_sub_unit' :
-                        language.party_selection.show_sub_unit
-                    }
+                  <Typography className={classes.checkboxLabes}>
+                    {!language.party_selection
+                      ? 'party_selection.show_sub_unit'
+                      : language.party_selection.show_sub_unit}
                   </Typography>
                 </Grid>
               </Grid>
             </Grid>
-
           </Grid>
         </Grid>
         {renderParties()}

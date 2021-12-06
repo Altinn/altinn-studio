@@ -1,12 +1,16 @@
-/* eslint-disable react/jsx-no-bind */
-/* eslint-disable react/no-array-index-key */
-import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
+import {
+  createStyles,
+  Grid,
+  Paper,
+  Typography,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { AltinnCollapsableList } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
-import { IRuntimeState } from '../../types';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = createStyles({
   partyPaper: {
@@ -115,14 +119,16 @@ export interface IAltinnPartyProps extends WithStyles<typeof styles> {
 }
 
 function AltinnParty(props: IAltinnPartyProps) {
-  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
-  const {
-    classes, party, onSelectParty,
-  } = props;
+  const [subUnitsExpanded, setSubUnitsExpanded] =
+    React.useState<boolean>(false);
+  const { classes, party, onSelectParty } = props;
   const isOrg: boolean = party.orgNumber != null;
-  const language = useSelector((state: IRuntimeState) => state.language.language);
+  const language = useAppSelector(state => state.language.language);
 
-  function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  function onClickParty(
+    selectedParty: IParty,
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  ) {
     event.stopPropagation();
     onSelectParty(selectedParty);
   }
@@ -162,25 +168,28 @@ function AltinnParty(props: IAltinnPartyProps) {
               direction='row'
               className={classes.subUnitListHeaderWrapper}
             >
-              <div
-                className={classes.subUnitListHeaderIcon}
-              >
+              <div className={classes.subUnitListHeaderIcon}>
                 <i
                   className='ai ai-expand-circle'
+                  // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
                   style={{
                     WebkitTransition: '-webkit-transform 0.5s',
                     transition: 'transform 0.5s',
-                    transform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                    WebkitTransform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transform: subUnitsExpanded
+                      ? 'rotate(90deg)'
+                      : 'rotate(0deg)',
+                    WebkitTransform: subUnitsExpanded
+                      ? 'rotate(90deg)'
+                      : 'rotate(0deg)',
                   }}
                 />
               </div>
               <Typography className={classes.subUnitListHeaderText}>
                 {party.childParties.length}
-                &nbsp;{language.party_selection.unit_type_subunit_plural ?
-                  language.party_selection.unit_type_subunit_plural :
-                  'language.party_selection.unit_type_subunit_plural'
-                }
+                &nbsp;
+                {language.party_selection.unit_type_subunit_plural
+                  ? language.party_selection.unit_type_subunit_plural
+                  : 'language.party_selection.unit_type_subunit_plural'}
               </Typography>
             </Grid>
           </Grid>
@@ -203,17 +212,18 @@ function AltinnParty(props: IAltinnPartyProps) {
               tabIndex={subUnitsExpanded ? 0 : undefined}
             >
               <Grid
-                container={true} direction='row'
+                container={true}
+                direction='row'
                 className={classes.subUnitTextWrapper}
               >
                 <Typography className={`${classes.partyName}`}>
                   {childParty.name}
                 </Typography>
                 <Typography className={classes.partyInfo}>
-                  &nbsp;{!language.party_selection ?
-                    'party_selection.unit_org_number' :
-                    language.party_selection.unit_org_number
-                  }
+                  &nbsp;
+                  {!language.party_selection
+                    ? 'party_selection.unit_org_number'
+                    : language.party_selection.unit_org_number}
                   &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>
@@ -226,33 +236,60 @@ function AltinnParty(props: IAltinnPartyProps) {
 
   return (
     <Paper
-      className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
+      className={
+        party.onlyHierarchyElementWithNoAccess
+          ? classes.partyPaperDisabled
+          : classes.partyPaper
+      }
     >
       <Grid
         id={`party-${party.partyId}`}
         container={true}
         direction='row'
-        className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
-        onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
-        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+        className={
+          party.onlyHierarchyElementWithNoAccess
+            ? classes.partyWrapperDisabled
+            : classes.partyWrapper
+        }
+        onClick={
+          !party.onlyHierarchyElementWithNoAccess
+            ? onClickParty.bind(null, party)
+            : undefined
+        }
+        onKeyPress={
+          !party.onlyHierarchyElementWithNoAccess
+            ? onKeyPress.bind(null, party)
+            : undefined
+        }
         tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
       >
-        <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
+        <i
+          className={
+            classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')
+          }
+        />
         <Typography className={classes.partyName}>
-          {party.name + (party.isDeleted ? ` (${!language.party_selection ? 'party_selection.unit_deleted' : language.party_selection.unit_deleted}) ` : '')}
+          {party.name +
+            (party.isDeleted
+              ? ` (${
+                  !language.party_selection
+                    ? 'party_selection.unit_deleted'
+                    : language.party_selection.unit_deleted
+                }) `
+              : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
-          {
-            isOrg ?
-              `${!language.party_selection ?
-                'party_selection.unit_org_number' :
-                language.party_selection.unit_org_number
-              } ${party.orgNumber}` :
-              `${!language.party_selection ?
-                'party_selection.unit_personal_number' :
-                language.party_selection.unit_personal_number
-              } ${party.ssn}`
-          }
+          {isOrg
+            ? `${
+                !language.party_selection
+                  ? 'party_selection.unit_org_number'
+                  : language.party_selection.unit_org_number
+              } ${party.orgNumber}`
+            : `${
+                !language.party_selection
+                  ? 'party_selection.unit_personal_number'
+                  : language.party_selection.unit_personal_number
+              } ${party.ssn}`}
         </Typography>
       </Grid>
       {renderSubunits()}

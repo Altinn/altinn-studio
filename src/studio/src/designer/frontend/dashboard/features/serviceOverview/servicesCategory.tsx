@@ -13,9 +13,6 @@ export interface ICategoryComponentProvidedProps {
   className: string;
 }
 
-export interface ICategoryComponentState {
-}
-
 const styles = {
   mar_top_1em: {
     marginTop: '1em',
@@ -34,31 +31,40 @@ const styles = {
   },
 };
 
-class CategoryComponent extends React.Component<ICategoryComponentProvidedProps, ICategoryComponentState> {
+class CategoryComponent extends React.Component<ICategoryComponentProvidedProps> {
   public renderServices() {
     const { classes, categoryRepos } = this.props;
     if (categoryRepos.length < 1) {
       return (
         <Grid container={true} direction='row'>
-          <Typography className={classNames(classes.width100, classes.mar_top_1em, classes.fontSize_16)} align='left'>
-            {this.props.noServicesMessage} <a href='/repos/explore/repos/'>repos</a>.
+          <Typography
+            className={classNames(
+              classes.width100,
+              classes.mar_top_1em,
+              classes.fontSize_16,
+            )}
+            align='left'
+          >
+            {this.props.noServicesMessage}{' '}
+            <a href='/repos/explore/repos/'>repos</a>.
           </Typography>
         </Grid>
       );
     }
     return (
-      <Grid container={true} spacing={3} >
+      <Grid container={true} spacing={3}>
         {categoryRepos.map((service: any, index: number) => (
           <Grid
-            // eslint-disable-next-line react/no-array-index-key
-            item={true} key={index}
-            xl={3} lg={4}
-            md={6} sm={12}
-            xs={12} className={classNames(classes.width100)}
+            item={true}
+            key={index}
+            xl={3}
+            lg={4}
+            md={6}
+            sm={12}
+            xs={12}
+            className={classNames(classes.width100)}
           >
-            <ServiceCard
-              service={service}
-            />
+            <ServiceCard service={service} />
           </Grid>
         ))}
       </Grid>
@@ -69,10 +75,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
     return (
       <div className={classNames(this.props.className)}>
         <Grid container={true} direction='row'>
-          <Typography
-            component='h2' variant='h2'
-            gutterBottom={true}
-          >
+          <Typography component='h2' variant='h2' gutterBottom={true}>
             {this.props.header}
           </Typography>
         </Grid>

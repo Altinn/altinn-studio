@@ -69,7 +69,7 @@ describe('>>> components/base/cloneService.tsx', () => {
         },
       },
     };
-    mockDate = moment.utc(new Date('2019-01-10T11:22:42Z')).local();
+    mockDate = moment(new Date('2019-01-10T11:22:42Z')).local();
 
     const mockWindow = { ...window.location };
     delete mockWindow.assign;
@@ -81,7 +81,7 @@ describe('>>> components/base/cloneService.tsx', () => {
   });
 
   it('+++ should return first service in list', () => {
-
+    jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const mountedComponent = mount(
       <CloneServiceComponent
         language={mockLanguage}
@@ -101,6 +101,7 @@ describe('>>> components/base/cloneService.tsx', () => {
   });
 
   it('+++ should return not return any service', () => {
+    jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     mockMatch = {
       params: {
         org: 'OrgNotInList',
@@ -129,7 +130,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     expect(service).toEqual(null);
   });
 
-  it('+++ should set last changed by on componentDidMount', () => {
+  it('+++ should set last changed by on componentDidMount', async () => {
     mockMatch = {
       params: {
         org: 'OrgNotInList',
@@ -139,6 +140,7 @@ describe('>>> components/base/cloneService.tsx', () => {
       path: '',
       url: '',
     };
+    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
 
     const mountedComponent = mount(
       <CloneServiceComponent
@@ -153,17 +155,16 @@ describe('>>> components/base/cloneService.tsx', () => {
 
     const instance = mountedComponent.instance() as CloneServiceComponent;
     const componentDidMountSpy = jest.spyOn(instance, 'componentDidMount');
-    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     instance.componentDidMount();
-    return Promise.resolve().then(() => {
-      expect(instance.componentMounted).toBe(true);
-      expect(componentDidMountSpy).toHaveBeenCalled();
-      expect(getSpy).toHaveBeenCalled();
-      expect(instance.state.lastChangedBy).toBe(mockResult.commit.author.name);
-    });
+    await Promise.resolve();
+    expect(instance.componentMounted).toBe(true);
+    expect(componentDidMountSpy).toHaveBeenCalled();
+    expect(getSpy).toHaveBeenCalled();
+    expect(instance.state.lastChangedBy).toBe(mockResult.commit.author.name);
   });
 
-  it('+++ should clone service and redirect user to created service', () => {
+  it('+++ should clone service and redirect user to created service', async () => {
+    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const mountedComponent = mount(
       <CloneServiceComponent
         language={mockLanguage}
@@ -176,28 +177,25 @@ describe('>>> components/base/cloneService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CloneServiceComponent;
-    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const cloneAndEditServiceSpy = jest.spyOn(instance, 'cloneAndEditService');
     const getCurrentRepositoryInfoSpy = jest.spyOn(instance, 'getCurrentRepositoryInfo');
     instance.componentDidMount();
-    // Resolving get in componentDidMount
-    return Promise.resolve().then(() => {
-      expect(getSpy).toHaveBeenCalled();
-      expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
-      mountedComponent.find('button#editService').simulate('click');
-      const secondGetSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(''));
-      expect(cloneAndEditServiceSpy).toHaveBeenCalled();
-      expect(instance.state.isLoading).toBe(true);
-      // Resolving get in cloneAndEditService
-      return Promise.resolve().then(() => {
-        expect(secondGetSpy).toHaveBeenCalled();
-        // eslint-disable-next-line max-len
-        expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
-      });
-    });
+    await Promise.resolve();
+    expect(getSpy).toHaveBeenCalled();
+    expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
+    const secondGetSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(''));
+    mountedComponent.find('button#editService').simulate('click');
+    expect(cloneAndEditServiceSpy).toHaveBeenCalled();
+    expect(instance.state.isLoading).toBe(true);
+    await Promise.resolve();
+    expect(secondGetSpy).toHaveBeenCalled();
+    expect(window.location.assign)
+      .toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
+    await Promise.resolve();
   });
 
-  it('+++ should redirect user to already cloned service', () => {
+  it('+++ should redirect user to already cloned service', async () => {
+    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     mockServices[0].is_cloned_to_local = true;
     const mountedComponent = mount(
       <CloneServiceComponent
@@ -211,23 +209,24 @@ describe('>>> components/base/cloneService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CloneServiceComponent;
-    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const cloneAndEditServiceSpy = jest.spyOn(instance, 'cloneAndEditService');
     const getCurrentRepositoryInfoSpy = jest.spyOn(instance, 'getCurrentRepositoryInfo');
     instance.componentDidMount();
-    // Resolving get in componentDidMount
-    return Promise.resolve().then(() => {
-      expect(getSpy).toHaveBeenCalled();
-      expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
-      mountedComponent.find('button#editService').simulate('click');
-      expect(cloneAndEditServiceSpy).toHaveBeenCalled();
-      expect(instance.state.isLoading).toBe(true);
-      // eslint-disable-next-line max-len
-      expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
-    });
+    await Promise.resolve();
+    expect(getSpy).toHaveBeenCalled();
+    expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
+    const secondGetSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(''));
+    mountedComponent.find('button#editService').simulate('click');
+    expect(cloneAndEditServiceSpy).toHaveBeenCalled();
+    expect(instance.state.isLoading).toBe(true);
+    await Promise.resolve();
+    expect(secondGetSpy).toHaveBeenCalled();
+    expect(window.location.assign)
+      .toHaveBeenCalledWith(`${window.location.origin}/designer/${mockServices[0].full_name}`);
   });
 
-  it('+++ should redirect user to service code', () => {
+  it('+++ should redirect user to service code', async () => {
+    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const mountedComponent = mount(
       <CloneServiceComponent
         language={mockLanguage}
@@ -240,19 +239,16 @@ describe('>>> components/base/cloneService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CloneServiceComponent;
-    const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const redirectToCodeSpy = jest.spyOn(instance, 'redirectToCode');
     const getCurrentRepositoryInfoSpy = jest.spyOn(instance, 'getCurrentRepositoryInfo');
     instance.componentDidMount();
-    // Resolving get in componentDidMount
-    return Promise.resolve().then(() => {
-      expect(getSpy).toHaveBeenCalled();
-      expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
-      mountedComponent.find('button#seeSourceCode').simulate('click');
-      expect(redirectToCodeSpy).toHaveBeenCalled();
-      // eslint-disable-next-line max-len
-      expect(window.location.assign).toHaveBeenCalledWith(`/repos/${mockServices[0].full_name}`);
-    });
+    await Promise.resolve();
+    expect(getSpy).toHaveBeenCalled();
+    expect(getCurrentRepositoryInfoSpy).toHaveBeenCalled();
+    mountedComponent.find('button#seeSourceCode').simulate('click');
+    expect(redirectToCodeSpy).toHaveBeenCalled();
+    expect(window.location.assign)
+      .toHaveBeenCalledWith(`/repos/${mockServices[0].full_name}`);
   });
 
   it('+++ should set component to unmounted on componentWillUnmount ', () => {
@@ -277,7 +273,6 @@ describe('>>> components/base/cloneService.tsx', () => {
     expect(formatNameAndDate('', mockServices[0].created_at)).toBe(mockDate.format('DD.MM.YYYY HH:mm'));
     expect(formatNameAndDate('', mockServices[0].created_at) === `${mockDate}`).toBe(false);
     expect(formatNameAndDate('Kari', mockServices[0].created_at)).toBe(`Kari ${mockDate.format('DD.MM.YYYY HH:mm')}`);
-    // eslint-disable-next-line max-len
     expect(formatNameAndDate('Kari', mockServices[0].created_at) === `Kari ${mockDate}`).toBe(false);
   });
 });
