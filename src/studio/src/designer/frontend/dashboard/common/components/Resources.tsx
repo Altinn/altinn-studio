@@ -244,7 +244,8 @@ export function Resources() {
     <Grid
       style={{
         backgroundColor: '#F5F5F5',
-        marginTop: 60,
+        marginTop: 55,
+        paddingBottom: 55,
       }}
       container
       spacing={2}

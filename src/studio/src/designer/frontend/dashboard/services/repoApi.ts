@@ -1,11 +1,3 @@
-// http://altinn3.no/designer/api/v1/repos/search?
-// keyword=apps&
-// uid=2&
-// sortby=created&
-// order=asc&
-// page=1&
-// limit=1
-
 import { designerApi, TagTypes } from './designerApi';
 import { IRepository } from 'app-shared/types';
 
