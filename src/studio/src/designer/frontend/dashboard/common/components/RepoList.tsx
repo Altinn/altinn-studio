@@ -120,7 +120,7 @@ export const RepoList = ({
         return [
           <IconButton key={params.row.id} onClick={handleToggleFav}>
             <i
-              style={{ fontSize: 26 }}
+              style={{ fontSize: 26, color: '#000000' }}
               className={
                 repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'
               }

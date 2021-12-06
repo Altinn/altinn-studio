@@ -4,7 +4,6 @@ import {
   ThemeProvider as ThemeProviderV4,
   StylesProvider,
 } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
 import { HashRouter as Router, Route } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
@@ -19,6 +18,8 @@ import Header, {
   HeaderContext,
 } from 'app-shared/navigation/main-header/Header';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { CenterContainer } from 'common/components/CenterContainer';
+import { Footer } from 'common/components/Footer';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
 import { CloneService } from 'features/cloneService/cloneServices';
 import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
@@ -28,7 +29,6 @@ import { Dashboard } from 'features/dashboard';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
 
 import './App.css';
-import { Footer } from 'common/components/Footer';
 
 export const App = () => {
   const dispatch = useAppDispatch();
@@ -84,7 +84,13 @@ export const App = () => {
         <ThemeProviderV5 theme={themeV5}>
           <Router>
             {user && !isLoadingOrganizations ? (
-              <div>
+              <div
+                style={{
+                  height: '100vh',
+                  display: 'grid',
+                  gridTemplateRows: 'auto 1fr',
+                }}
+              >
                 <HeaderContext.Provider value={headerContextValue}>
                   <Header />
                 </HeaderContext.Provider>
@@ -92,25 +98,21 @@ export const App = () => {
                   path='/'
                   exact={true}
                   render={() => (
-                    <Grid container justifyContent='center' direction='row'>
-                      <Grid item xs={10}>
-                        <ServicesOverview />
-                      </Grid>
-                    </Grid>
+                    <CenterContainer>
+                      <ServicesOverview />
+                    </CenterContainer>
                   )}
                 />
                 <Route
                   path='/dashboard'
                   exact={true}
                   render={() => (
-                    <Grid container={true} justifyContent='center'>
-                      <Grid item={true} xs={10}>
+                    <>
+                      <CenterContainer>
                         <Dashboard />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Footer />
-                      </Grid>
-                    </Grid>
+                      </CenterContainer>
+                      <Footer />
+                    </>
                   )}
                 />
                 <Route
@@ -125,7 +127,7 @@ export const App = () => {
                 />
               </div>
             ) : (
-              <Grid>
+              <CenterContainer>
                 <AltinnSpinner spinnerText='Venter på svar' />
                 {showLogOutButton && (
                   <AltinnButton
@@ -141,7 +143,7 @@ export const App = () => {
                     btnText={'Logg ut'}
                   />
                 )}
-              </Grid>
+              </CenterContainer>
             )}
           </Router>
         </ThemeProviderV5>

@@ -1,5 +1,8 @@
 import * as React from 'react';
 import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import { IconButton } from '@mui/material';
+import { useDebounce } from 'react-use';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { CreateNewService } from '../createService/createNewService';
@@ -13,9 +16,28 @@ import { SearchResult } from './Search';
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
   const [searchText, setSearchText] = React.useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = React.useState('');
+
+  useDebounce(
+    () => {
+      setDebouncedSearchText(searchText);
+    },
+    500,
+    [searchText],
+  );
 
   const handleChangeSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.code === 'Escape') {
+      setSearchText('');
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchText('');
   };
 
   return (
@@ -34,6 +56,25 @@ export const Dashboard = () => {
             variant='outlined'
             value={searchText}
             onChange={handleChangeSearch}
+            onKeyDown={handleKeyDown}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  {searchText && (
+                    <IconButton
+                      aria-label={getLanguageFromKey(
+                        'dashboard.clear_search',
+                        language,
+                      )}
+                      onClick={handleClearSearch}
+                      edge='end'
+                    >
+                      <i className={'fa fa-exit'} />
+                    </IconButton>
+                  )}
+                </InputAdornment>
+              ),
+            }}
           />
         </div>
 
@@ -42,8 +83,8 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {searchText ? (
-        <SearchResult searchValue={searchText} />
+      {debouncedSearchText ? (
+        <SearchResult searchValue={debouncedSearchText} />
       ) : (
         <>
           <FavoriteReposList />

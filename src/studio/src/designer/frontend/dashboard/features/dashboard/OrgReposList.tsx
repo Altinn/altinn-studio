@@ -30,7 +30,7 @@ export const OrgReposList = () => {
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,
-    page: page + 1,
+    page: page,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
     limit: 5,

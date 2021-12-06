@@ -24,7 +24,7 @@ export const SearchResult = ({ searchValue }: { searchValue: string }) => {
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     keyword: searchValue,
-    page: page + 1,
+    page: page,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
   });

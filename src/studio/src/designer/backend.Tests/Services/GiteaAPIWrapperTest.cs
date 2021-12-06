@@ -202,6 +202,105 @@ namespace Designer.Tests.Services
             Assert.Null(result);
         }
 
+        [Fact]
+        public async Task Get_StarredRepos_Ok()
+        {
+            IList<Repository> repositories = GetRepositories();
+            
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(repositories), Encoding.UTF8, "application/json"),
+            };
+
+            handlerMock
+              .Protected()
+              .Setup<Task<HttpResponseMessage>>(
+                 "SendAsync",
+                 ItExpr.IsAny<HttpRequestMessage>(),
+                 ItExpr.IsAny<CancellationToken>())
+              .ReturnsAsync(httpResponseMessage)
+              .Verifiable();
+
+            // use real http client with mocked handler here
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://altinn3.no/designer/api/v1/user/starred")
+            };
+
+            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+
+            IList<Repository> result = await giteaApi.GetStarred();
+            Assert.Equal(10, repositories.Count);
+        }
+
+        [Theory]
+        [InlineData(true, HttpStatusCode.NoContent)]
+        [InlineData(false, HttpStatusCode.InternalServerError)]
+        public async Task Put_StarredRepos(bool expectedResult, HttpStatusCode httpStatusCode)
+        {
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage()
+            {
+                StatusCode = httpStatusCode,
+            };
+
+            handlerMock
+              .Protected()
+              .Setup<Task<HttpResponseMessage>>(
+                 "SendAsync",
+                 ItExpr.IsAny<HttpRequestMessage>(),
+                 ItExpr.IsAny<CancellationToken>())
+              .ReturnsAsync(httpResponseMessage)
+              .Verifiable();
+
+            // use real http client with mocked handler here
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://altinn3.no/designer/api/v1/user/starred")
+            };
+
+            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+
+            bool result = await giteaApi.PutStarred("org", "repository");
+
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Theory]
+        [InlineData(true, HttpStatusCode.NoContent)]
+        [InlineData(false, HttpStatusCode.InternalServerError)]
+        public async Task Delete_StarredRepos(bool expectedResult, HttpStatusCode httpStatusCode)
+        {
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage()
+            {
+                StatusCode = httpStatusCode,
+            };
+
+            handlerMock
+              .Protected()
+              .Setup<Task<HttpResponseMessage>>(
+                 "SendAsync",
+                 ItExpr.IsAny<HttpRequestMessage>(),
+                 ItExpr.IsAny<CancellationToken>())
+              .ReturnsAsync(httpResponseMessage)
+              .Verifiable();
+
+            // use real http client with mocked handler here
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://altinn3.no/designer/api/v1/user/starred")
+            };
+
+            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+
+            bool result = await giteaApi.DeleteStarred("org", "repository");
+
+            Assert.Equal(expectedResult, result);
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new List<Claim>();
