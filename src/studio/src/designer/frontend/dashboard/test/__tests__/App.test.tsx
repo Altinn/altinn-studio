@@ -4,33 +4,41 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
-import AppBarComponent from '../../../shared/navigation/main-header/appBar';
+import { Route } from 'react-router-dom';
+import { Header } from 'app-shared/navigation/main-header/Header';
 
 import { App } from '../../App';
 
 describe('Dashboard > App', () => {
   let store: any;
-  const dispatchMock = () => Promise.resolve({});
-  const initialState = {
-    dashboard: {
-      user: {
-        full_name: 'John Smith',
-        login: 'johnsmith',
+
+  const mountComponent = (extraInitialState = {}) => {
+    const dispatchMock = () => Promise.resolve({});
+    const initialState = {
+      dashboard: {
+        user: {
+          full_name: 'John Smith',
+          login: 'johnsmith',
+        },
       },
-    },
-  };
+      designerApi: {},
+    };
 
-  const mountComponent = () => mount(
-    <Provider store={store}>
-      <App />
-    </Provider>,
-    { context: { store } },
-  );
+    const mergedState = {
+      ...initialState,
+      ...extraInitialState,
+    };
 
-  beforeEach(() => {
-    store = configureStore()(initialState);
+    store = configureStore()(mergedState);
     store.dispatch = jest.fn(dispatchMock);
-  });
+
+    return mount(
+      <Provider store={store}>
+        <App />
+      </Provider>,
+      { context: { store } },
+    );
+  };
 
   it('should call dispatch on mount to setup initial data', () => {
     act(() => {
@@ -38,55 +46,59 @@ describe('Dashboard > App', () => {
     });
 
     expect(store.dispatch).toHaveBeenCalledTimes(4);
-    expect(store.dispatch).toHaveBeenNthCalledWith(1, {
+    expect(store.dispatch).toHaveBeenNthCalledWith(2, {
       payload: { url: 'http://localhost/designer/api/v1/user/current' },
       type: 'dashboard/fetchCurrentUser',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(2, {
+    expect(store.dispatch).toHaveBeenNthCalledWith(3, {
       payload: {
         languageCode: 'nb',
         url: 'http://localhost/designerapi/Language/GetLanguageAsJSON',
       },
       type: 'language/fetchLanguage',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(3, {
+    expect(store.dispatch).toHaveBeenNthCalledWith(4, {
       payload: { url: 'http://localhost/designer/api/v1/user/repos' },
       type: 'dashboard/fetchServices',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(4, {
-      payload: { url: 'http://localhost/designer/api/v1/orgs' },
-      type: 'dashboard/fetchOrganisations',
-    });
   });
 
-  it('should set AppBarComponent org to user.full_name if set', () => {
+  it('should show waiting while user and orgs are not loaded', () => {
     let component: any;
     act(() => {
       component = mountComponent();
     });
 
-    const appBarProps = component.find(AppBarComponent).props();
-
-    expect(appBarProps.org).toBe('John Smith');
+    expect(component.find(Header).exists()).toBe(false);
+    expect(component.text()).toEqual('Venter på svar');
   });
 
-  it('should set AppBarComponent org to user.login when user.full_name is not set', () => {
-    const storeState = {
-      dashboard: {
-        user: {
-          login: 'johnsmith',
+  it('should show header and routes when user and orgs are loaded', () => {
+    const designerApi = {
+      queries: {
+        'getOrganizations(undefined)': {
+          status: 'fulfilled',
+          data: [
+            {
+              avatar_url: 'avatar',
+              description: '',
+              full_name: 'Test Org',
+              id: 1,
+              location: '',
+              username: 'test-user',
+              website: '',
+            },
+          ],
         },
       },
     };
 
-    store = configureStore()(storeState);
     let component: any;
     act(() => {
-      component = mountComponent();
+      component = mountComponent({ designerApi });
     });
 
-    const appBarProps = component.find(AppBarComponent).props();
-
-    expect(appBarProps.org).toBe('johnsmith');
+    expect(component.find(Header).exists()).toBe(true);
+    expect(component.find(Route).length).toBe(4);
   });
 });

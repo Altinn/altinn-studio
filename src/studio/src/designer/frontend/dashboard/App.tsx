@@ -92,11 +92,7 @@ export const App = () => {
                   path='/'
                   exact={true}
                   render={() => (
-                    <Grid
-                      container
-                      justifyContent='center'
-                      direction='row'
-                    >
+                    <Grid container justifyContent='center' direction='row'>
                       <Grid item xs={10}>
                         <ServicesOverview />
                       </Grid>
@@ -112,7 +108,7 @@ export const App = () => {
                         <Dashboard />
                       </Grid>
                       <Grid item xs={12}>
-                          <Footer />
+                        <Footer />
                       </Grid>
                     </Grid>
                   )}
