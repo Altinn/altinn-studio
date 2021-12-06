@@ -6,7 +6,7 @@ namespace Altinn.App.Common.Process.Elements
     /// <summary>
     /// Class representing the task of a process
     /// </summary>
-    public class ProcessTask
+    public class ExclusiveGateway
     {
         /// <summary>
         /// Gets or sets the ID of a task
@@ -21,6 +21,12 @@ namespace Altinn.App.Common.Process.Elements
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of a task
+        /// </summary>
+        [XmlAttribute("default")]
+        public string Default { get; set; }
+
+        /// <summary>
         /// Gets or sets the incoming id of a task
         /// </summary>
         [XmlElement("incoming")]
@@ -31,11 +37,5 @@ namespace Altinn.App.Common.Process.Elements
         /// </summary>
         [XmlElement("outgoing")]
         public List<string> Outgoing { get; set; }
-
-        /// <summary>
-        /// Gets or sets the outgoing id of a task
-        /// </summary>
-        [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
-        public string TaskType { get; set; }
     }
 }

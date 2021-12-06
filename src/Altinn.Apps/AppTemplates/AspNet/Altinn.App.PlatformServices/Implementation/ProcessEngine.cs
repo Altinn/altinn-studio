@@ -75,6 +75,7 @@ namespace Altinn.App.PlatformServices.Implementation
             }
 
             processChange.FailedProcessChange = true;
+            processChange.ProcessMessages = new List<ProcessChangeInfo>();
             processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!", Type = "conflict" });
             return processChange;
         }

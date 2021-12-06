@@ -605,6 +605,112 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
+        /// Attemts to end the process by running next until an end event is reached.
+        /// Notice that process must have been started.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <returns>current process status</returns>
+        [HttpPut("completeProcessv2")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ProcessState>> CompleteProcessv2(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            Instance instance;
+
+            try
+            {
+                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, "Could not complete process.");
+            }
+
+            if (instance.Process == null)
+            {
+                return Conflict($"Process is not started. Use start!");
+            }
+            else
+            {
+                if (instance.Process.Ended.HasValue)
+                {
+                    return Conflict($"Process is ended. It cannot be restarted.");
+                }
+            }
+
+            string currentTaskId = instance.Process.CurrentTask?.ElementId ?? instance.Process.StartEvent;
+
+            if (currentTaskId == null)
+            {
+                return Conflict($"Instance does not have valid currentTask");
+            }
+
+            // do next until end event is reached or task cannot be completed.
+            int counter = 0;
+            do
+            {
+                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
+                if (!authorized)
+                {
+                    return Forbid();
+                }
+
+                if (!await CanTaskBeEnded(instance, currentTaskId))
+                {
+                    return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
+                }
+
+                List<string> nextElements = processHelper.Process.NextElements(currentTaskId);
+
+                if (nextElements.Count > 1)
+                {
+                    return Conflict($"Cannot complete process. Multiple outgoing sequence flows detected from task {currentTaskId}. Please select manually among {nextElements}");
+                }
+
+                string nextElement = nextElements.First();
+
+                try
+                {
+                    ProcessChangeContext processChange = new ProcessChangeContext();
+                    processChange.Instance = instance;
+                    processChange.User = User;
+                    processChange.RequestedProcessElementId = nextElement;
+                    processChange = await _processEngine.Next(processChange);
+
+                    if (processChange.FailedProcessChange)
+                    {
+                        return Conflict(processChange.ProcessMessages[0].Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return ExceptionResponse(ex, "Complete process failed.");
+                }
+
+                counter++;
+            }
+            while (instance.Process.EndEvent == null || counter > MaxIterationsAllowed);
+
+            if (counter > MaxIterationsAllowed)
+            {
+                _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
+                return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
+            }
+
+            return Ok(instance.Process);
+        }
+
+        /// <summary>
         /// Get the process history for an instance.
         /// </summary>
         /// <returns>Returns a list of the process events.</returns>
