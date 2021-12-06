@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Grid, GridJustification, makeStyles } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { IAltinnWindow, IRuntimeState } from '../../types';
+import { IAltinnWindow } from '../../types';
 import { useAppSelector } from 'src/common/hooks';
 
 export interface IImageProps {
