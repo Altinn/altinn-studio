@@ -1,6 +1,10 @@
-import { Divider, Grid } from '@mui/material';
 import * as React from 'react';
+import { Divider, Grid } from '@mui/material';
+import { Typography } from '@material-ui/core';
+
 import { ResourceItem } from './ResourceItem';
+import { useAppSelector } from 'common/hooks';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 interface Resource {
   label: string;
@@ -234,6 +238,8 @@ const resources: Resource[] = [
 ];
 
 export function Resources() {
+  const language = useAppSelector((state) => state.language.language);
+
   return (
     <Grid
       style={{
@@ -244,7 +250,9 @@ export function Resources() {
       spacing={2}
     >
       <Grid item xs={12}>
-        <h2 style={{ marginBottom: 12, fontSize: '1.13rem' }}>Ressurser</h2>
+        <Typography variant='h2'>
+          {getLanguageFromKey('dashboard.resources', language)}
+        </Typography>
       </Grid>
       <Grid item xs={12}>
         <Divider style={{ marginBottom: 12 }} />

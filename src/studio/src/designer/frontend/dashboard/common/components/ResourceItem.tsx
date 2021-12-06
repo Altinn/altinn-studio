@@ -1,5 +1,5 @@
-import { Grid } from "@mui/material";
-import React = require("react");
+import { Grid } from '@mui/material';
+import React = require('react');
 
 export interface ResourceItemProps {
   link: string;
@@ -8,20 +8,41 @@ export interface ResourceItemProps {
   icon: React.ReactNode;
 }
 
-export function ResourceItem({ link, label, description, icon }: ResourceItemProps) {
+export function ResourceItem({
+  link,
+  label,
+  description,
+  icon,
+}: ResourceItemProps) {
   return (
-    <Grid container direction='row' alignItems='center' justifyContent='center' alignContent='left'
+    <Grid
+      container
+      direction='row'
+      alignItems='center'
+      justifyContent='center'
+      alignContent='left'
       style={{ maxWidth: 500 }}
     >
       <Grid xs={3} item>
         {icon}
       </Grid>
-      <Grid xs={9} item container direction='column' spacing={0} alignContent='center'>
+      <Grid
+        xs={9}
+        item
+        container
+        direction='column'
+        spacing={0}
+        alignContent='center'
+      >
         <Grid item>
-          <a href={link}><p style={{ fontWeight: 500, color: 'black', marginBottom: 0 }}>{label} </p> </a>
+          <a href={link}>
+            <p style={{ fontWeight: 500, color: 'black', marginBottom: 0 }}>
+              {label}{' '}
+            </p>{' '}
+          </a>
           <p style={{ marginTop: 0 }}>{description}</p>
         </Grid>
       </Grid>
     </Grid>
-  )
+  );
 }

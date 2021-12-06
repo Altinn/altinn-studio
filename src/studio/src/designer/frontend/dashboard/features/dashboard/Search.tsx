@@ -1,11 +1,15 @@
 import * as React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
+import { Typography } from '@material-ui/core';
 
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { IRepository } from 'app-shared/types';
+
+import { useAppSelector } from 'common/hooks';
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
 
 import { useGetUserStarredReposQuery } from 'services/userApi';
-import { IRepository } from 'app-shared/types';
 
 const setUserHasStarreOnRepos = (
   orgs: IRepository[],
@@ -20,6 +24,7 @@ const setUserHasStarreOnRepos = (
 };
 
 export const SearchResult = ({ searchValue }: { searchValue: string }) => {
+  const language = useAppSelector((state) => state.language.language);
   const [page, setPage] = React.useState(0);
 
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
@@ -46,7 +51,9 @@ export const SearchResult = ({ searchValue }: { searchValue: string }) => {
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.13rem' }}>Søkeresultat</h1>
+      <Typography variant='h2'>
+        {getLanguageFromKey('dashboard.search_result', language)}
+      </Typography>
       <RepoList
         repos={setUserHasStarreOnRepos(data?.data, starred)}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
