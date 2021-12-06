@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { Grid, GridJustification, makeStyles } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { IRuntimeState } from '../../types';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IImageProps {
   id: string;
@@ -34,8 +33,7 @@ const useStyles = makeStyles({
 
 export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
-  const language: string =
-    useSelector((state: IRuntimeState) => state.profile.profile.profileSettingPreference.language);
+  const language = useAppSelector(state => state.profile.profile.profileSettingPreference.language);
   const width = props.image.width || '100%';
   const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg) || 'image';

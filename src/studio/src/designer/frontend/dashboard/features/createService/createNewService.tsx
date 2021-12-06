@@ -11,7 +11,6 @@ import AltinnModal from 'app-shared/components/molecules/AltinnModal';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { AxiosError } from 'axios';
-
 import { endpoints as organizationsEndpoints } from 'services/organizationApi';
 import { RootState } from '../../store';
 
@@ -225,8 +224,9 @@ export class CreateNewServiceComponent extends React.Component<
                 ),
               );
             }
-          }
-        });
+          }          
+        }
+      );
     }
   };
 

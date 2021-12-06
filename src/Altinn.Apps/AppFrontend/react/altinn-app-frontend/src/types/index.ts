@@ -328,3 +328,8 @@ export interface ILabelSettings {
 export enum DateFlags {
   Today = 'today',
 }
+
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
+}

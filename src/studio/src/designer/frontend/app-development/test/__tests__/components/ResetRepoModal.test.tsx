@@ -6,7 +6,9 @@ import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import '@testing-library/jest-dom/extend-expect';
-import ResetRepoModal, { IResetRepoModalProps } from '../../../features/administration/components/ResetRepoModal';
+import ResetRepoModal, {
+  IResetRepoModalProps,
+} from '../../../features/administration/components/ResetRepoModal';
 
 describe('<ResetRepoModal /> spec', () => {
   let mockLanguage: any;
@@ -29,9 +31,11 @@ describe('<ResetRepoModal /> spec', () => {
         reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
       },
     };
-    mockAnchorEl = document.getElementsByTagName('body');
+    mockAnchorEl = document.querySelector('body');
   });
-  const RenderResetRepoModal = (props: Partial<IResetRepoModalProps>): JSX.Element => {
+  const RenderResetRepoModal = (
+    props: Partial<IResetRepoModalProps>,
+  ): JSX.Element => {
     const defaultProps = {
       anchorEl: mockAnchorEl,
       handleClickResetRepo: mockFunc,

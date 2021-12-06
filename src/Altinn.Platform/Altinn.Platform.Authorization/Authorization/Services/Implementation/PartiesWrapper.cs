@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.Logging;
@@ -14,22 +17,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// <summary>
     /// Wrapper for the parties api
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class PartiesWrapper : IParties
     {
         private readonly PartyClient _partyClient;
-        private readonly SBLClient _sblClient;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesWrapper"/> class
         /// </summary>
         /// <param name="partyClient">the client handler for parties api in Bridge</param>
-        /// <param name="sblClient">the client handler for SBL apis</param>
         /// <param name="logger">The logger</param>
-        public PartiesWrapper(PartyClient partyClient, SBLClient sblClient, ILogger<PartiesWrapper> logger)
+        public PartiesWrapper(PartyClient partyClient, ILogger<PartiesWrapper> logger)
         {
             _partyClient = partyClient;
-            _sblClient = sblClient;
             _logger = logger;
         }
 
@@ -38,15 +39,85 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             List<Party> partiesList = null;
 
-            string endpointUrl = $"parties?userid={userId}";
-            HttpResponseMessage response = await _partyClient.Client.GetAsync(endpointUrl);
-            string partiesDataList = await response.Content.ReadAsStringAsync();
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            try
             {
-                partiesList = JsonConvert.DeserializeObject<List<Party>>(partiesDataList);
+                string endpointUrl = $"parties?userid={userId}";
+                HttpResponseMessage response = await _partyClient.Client.GetAsync(endpointUrl);
+                string partiesDataList = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<List<Party>>(partiesDataList);
+                }
+
+                _logger.LogError("SBL-Bridge // PartiesWrapper // parties // Failed // Unexpected HttpStatusCode: {response.StatusCode}\n {jsonResponse}", response.StatusCode, partiesDataList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SBL-Bridge // PartiesWrapper // parties // Failed // Unexpected Exception");
+                throw;
             }
 
             return partiesList;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<int>> GetKeyRoleParties(int userId)
+        {
+            List<int> keyroleParties = null;
+
+            try
+            {
+                string endpointUrl = $"partieswithkeyroleaccess?userid={userId}";
+                HttpResponseMessage response = await _partyClient.Client.GetAsync(endpointUrl);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<List<int>>(responseBody);
+                }
+
+                _logger.LogError("SBL-Bridge // PartiesWrapper // partieswithkeyroleaccess // Failed // Unexpected HttpStatusCode: {response.StatusCode}\n {responseBody}", response.StatusCode, responseBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SBL-Bridge // PartiesWrapper // partieswithkeyroleaccess // Failed // Unexpected Exception");
+                throw;
+            }
+
+            return keyroleParties;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<MainUnit>> GetMainUnits(MainUnitQuery subunitPartyIds)
+        {
+            List<MainUnit> mainUnits = null;
+
+            try
+            {
+                HttpRequestMessage request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri($"{_partyClient.Client.BaseAddress}partyparents"),
+                    Content = new StringContent(JsonConvert.SerializeObject(subunitPartyIds), Encoding.UTF8, "application/json")
+                };
+
+                HttpResponseMessage response = await _partyClient.Client.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<List<MainUnit>>(responseBody);
+                }
+
+                _logger.LogError("SBL-Bridge // PartiesWrapper // partyparents // Failed // Unexpected HttpStatusCode: {response.StatusCode}\n {responseBody}", response.StatusCode, responseBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SBL-Bridge // PartiesWrapper // partyparents // Failed // Unexpected Exception");
+                throw;
+            }
+
+            return mainUnits;
         }
 
         /// <inheritdoc />

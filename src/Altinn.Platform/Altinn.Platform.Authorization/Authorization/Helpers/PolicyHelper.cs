@@ -253,11 +253,6 @@ namespace Altinn.Platform.Authorization.Helpers
                 }
             }
 
-            foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
-            {
-                delegationPolicy.ObligationExpressions.Add(obligation);
-            }
-
             return delegationPolicy;
         }
 
@@ -276,13 +271,12 @@ namespace Altinn.Platform.Authorization.Helpers
             rule.RuleId = Guid.NewGuid().ToString();
             
             string coveredBy = coveredByPartyId.HasValue ? coveredByPartyId.Value.ToString() : coveredByUserId.Value.ToString();
-            XacmlRule delegationRule = new XacmlRule($"{AltinnXacmlConstants.Prefixes.RuleId}{rule.RuleId}", XacmlEffectType.Permit)
+            XacmlRule delegationRule = new XacmlRule(rule.RuleId, XacmlEffectType.Permit)
             {
-                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}"
+                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}",
+                Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy)
             };
 
-            delegationRule.Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy);
-            
             return delegationRule;
         }
 

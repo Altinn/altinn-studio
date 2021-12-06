@@ -1,16 +1,16 @@
 import { createSelector, ParametricSelector } from 'reselect';
-import { IRuntimeState } from '../types';
+import { RootState } from 'src/store';
 
-const selectFocusedLayout = (state: IRuntimeState) =>
+const selectFocusedLayout = (state: RootState) =>
   state.formLayout.uiConfig.focus;
 
-const selectHiddenFields = (state: IRuntimeState) =>
+const selectHiddenFields = (state: RootState) =>
   state.formLayout.uiConfig.hiddenFields;
 
 const selectId = (state, props) => props.id;
 
 export const makeGetFocus = (): ParametricSelector<
-  IRuntimeState,
+  RootState,
   {
     id: string;
   },
@@ -19,7 +19,7 @@ export const makeGetFocus = (): ParametricSelector<
   createSelector([selectFocusedLayout, selectId], (focus, id) => focus === id);
 
 export const makeGetHidden = (): ParametricSelector<
-  IRuntimeState,
+  RootState,
   {
     id: string;
   },

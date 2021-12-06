@@ -1,18 +1,12 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function NoValidPartiesError() {
-  const language = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const appMetadata: IApplicationMetadata = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
-  );
+  const language = useAppSelector(state => state.language.language);
+  const appMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
 
   if (!language) {
     return null;
