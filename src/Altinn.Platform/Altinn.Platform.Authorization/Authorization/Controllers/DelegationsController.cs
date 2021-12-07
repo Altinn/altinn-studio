@@ -134,15 +134,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
             }
 
-            try
-            {
-                return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Unable to get rules. {e}");
-                return StatusCode(500, $"Unable to get rules. {e}");
-            }
+            return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
         }
 
         /// <summary>
@@ -198,7 +190,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 return BadRequest(ModelState);
             }
-                        
+
             List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
             int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
 
@@ -208,7 +200,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             string policiesToDeleteSerialized = JsonSerializer.Serialize(policiesToDelete);
-            if (countPolicies > 0)  
+            if (countPolicies > 0)
             {
                 string deletionResultsSerialized = JsonSerializer.Serialize(deletionResults);
                 _logger.LogInformation($"Partial deletion completed deleted {countPolicies} of {policiesToDelete.Count}", policiesToDeleteSerialized, deletionResultsSerialized);
@@ -216,7 +208,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             _logger.LogInformation($"Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{policiesToDeleteSerialized}", policiesToDeleteSerialized);
-            return StatusCode(400, $"Unable to complete deletion");            
+            return StatusCode(400, $"Unable to complete deletion");
         }
 
         /// <summary>
@@ -230,4 +222,4 @@ namespace Altinn.Platform.Authorization.Controllers
             return "Hello world!";
         }
     }
-}   
+}
