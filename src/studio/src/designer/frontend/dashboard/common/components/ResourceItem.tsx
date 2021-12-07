@@ -1,5 +1,5 @@
+import * as React from 'react';
 import { Grid } from '@mui/material';
-import React = require('react');
 
 export interface ResourceItemProps {
   link: string;
@@ -15,14 +15,29 @@ export function ResourceItem({
   icon,
 }: ResourceItemProps) {
   return (
-    <Grid container direction='row' alignItems='flex-start' justifyContent='flex-start' alignContent='left'>
+    <Grid
+      container
+      direction='row'
+      alignItems='flex-start'
+      justifyContent='flex-start'
+      alignContent='left'
+    >
       <Grid xs={2} sm={3} md={3} item>
         {icon}
       </Grid>
-      <Grid xs={10} sm={9} md={9} item container direction='column' spacing={0} alignContent='center'>
+      <Grid
+        xs={10}
+        sm={9}
+        md={9}
+        item
+        container
+        direction='column'
+        spacing={0}
+        alignContent='center'
+      >
         <Grid item>
           <a href={link}>
-            <p style={{ fontWeight: 500, color: 'black', margin: 0}}>
+            <p style={{ fontWeight: 500, color: 'black', margin: 0 }}>
               {label}{' '}
             </p>{' '}
           </a>
