@@ -33,6 +33,7 @@ import './App.css';
 export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
+  const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
@@ -92,7 +93,7 @@ export const App = () => {
                 }}
               >
                 <HeaderContext.Provider value={headerContextValue}>
-                  <Header />
+                  <Header language={language} />
                 </HeaderContext.Provider>
                 <Route
                   path='/'

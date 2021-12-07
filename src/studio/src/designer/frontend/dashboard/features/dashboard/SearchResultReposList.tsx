@@ -11,7 +11,11 @@ import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
 import { useAugmentReposWithStarred } from './hooks';
 
-export const SearchResult = ({ searchValue }: { searchValue: string }) => {
+export const SearchResultReposList = ({
+  searchValue,
+}: {
+  searchValue: string;
+}) => {
   const language = useAppSelector((state) => state.language.language);
   const [page, setPage] = React.useState(0);
 

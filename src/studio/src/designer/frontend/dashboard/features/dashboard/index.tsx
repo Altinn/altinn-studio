@@ -1,7 +1,7 @@
 import * as React from 'react';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import { IconButton } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import { useDebounce } from 'react-use';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -11,7 +11,7 @@ import { useAppSelector } from 'common/hooks';
 
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
-import { SearchResult } from './Search';
+import { SearchResultReposList } from './SearchResultReposList';
 
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -69,7 +69,10 @@ export const Dashboard = () => {
                       onClick={handleClearSearch}
                       edge='end'
                     >
-                      <i className={'fa fa-exit'} />
+                      <i
+                        className={'fa fa-exit'}
+                        style={{ fontSize: 26, width: 26 }}
+                      />
                     </IconButton>
                   )}
                 </InputAdornment>
@@ -84,7 +87,7 @@ export const Dashboard = () => {
       </div>
 
       {debouncedSearchText ? (
-        <SearchResult searchValue={debouncedSearchText} />
+        <SearchResultReposList searchValue={debouncedSearchText} />
       ) : (
         <>
           <FavoriteReposList />

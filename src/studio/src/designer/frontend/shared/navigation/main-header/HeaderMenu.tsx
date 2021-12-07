@@ -12,6 +12,7 @@ import { post } from 'app-shared/utils/networking';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
 import * as React from 'react';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
+import { getLanguageFromKey } from '../../utils/language';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -28,10 +29,14 @@ const useStyles = makeStyles(() => ({
     '&:focus': {
       backgroundColor: '#193d61',
     },
-  }
+  },
 }));
 
-export function HeaderMenu() {
+type HeaderMenuProps = {
+  language: any;
+};
+
+export function HeaderMenu({ language }: HeaderMenuProps) {
   const classes = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
   const { user, selectedContext, selectableOrgs, setSelectedContext } =
@@ -70,7 +75,7 @@ export function HeaderMenu() {
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <>
-                  <br /> for{' '}
+                  <br /> {getLanguageFromKey('shared.header_for', language)}{' '}
                   {getOrgNameById(selectedContext as number, selectableOrgs)}
                 </>
               )}
@@ -78,7 +83,11 @@ export function HeaderMenu() {
         </Grid>
         <Grid item>
           <IconButton className={classes.iconButton} onClick={openMenu}>
-            <Avatar src={user.avatar_url} className={classes.avatar} alt='Altinn profile menu'/>
+            <Avatar
+              src={user.avatar_url}
+              className={classes.avatar}
+              alt={getLanguageFromKey('shared.header_button_alt', language)}
+            />
           </IconButton>
         </Grid>
       </Grid>
@@ -91,7 +100,7 @@ export function HeaderMenu() {
           selected={selectedContext === SelectedContextType.All}
           onClick={() => handleSetSelectedContext(SelectedContextType.All)}
         >
-          Alle
+          {getLanguageFromKey('shared.header_all', language)}
         </MenuItem>
         {selectableOrgs?.map((org) => {
           return (
@@ -118,10 +127,12 @@ export function HeaderMenu() {
             target='_blank'
             rel='noopener noreferrer'
           >
-            Gå til Gitea
+            {getLanguageFromKey('shared.header_go_to_gitea', language)}
           </a>
         </MenuItem>
-        <MenuItem onClick={handleLogout}>Logg ut</MenuItem>
+        <MenuItem onClick={handleLogout}>
+          {getLanguageFromKey('shared.header_logout', language)}
+        </MenuItem>
       </AltinnMenu>
     </>
   );
