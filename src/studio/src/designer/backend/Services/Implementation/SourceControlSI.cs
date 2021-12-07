@@ -388,35 +388,33 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             Designer.Models.Commit commit = null;
 
-            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+            if (repo.Commits.Count() > 0 && repo.Commits.Last() != null)
             {
-                if (repo.Commits.Last() != null)
-                {
-                    LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
-                    commit = new Designer.Models.Commit();
-                    commit.Message = firstCommit.Message;
-                    commit.MessageShort = firstCommit.MessageShort;
-                    commit.Encoding = firstCommit.Encoding;
-                    commit.Sha = firstCommit.Sha;
+                LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
+                commit = new Designer.Models.Commit();
+                commit.Message = firstCommit.Message;
+                commit.MessageShort = firstCommit.MessageShort;
+                commit.Encoding = firstCommit.Encoding;
+                commit.Sha = firstCommit.Sha;
 
-                    commit.Author = new Designer.Models.Signature();
-                    commit.Author.Email = firstCommit.Author.Email;
-                    commit.Author.Name = firstCommit.Author.Name;
-                    commit.Author.When = firstCommit.Author.When;
+                commit.Author = new Designer.Models.Signature();
+                commit.Author.Email = firstCommit.Author.Email;
+                commit.Author.Name = firstCommit.Author.Name;
+                commit.Author.When = firstCommit.Author.When;
 
-                    commit.Comitter = new Designer.Models.Signature();
-                    commit.Comitter.Name = firstCommit.Committer.Name;
-                    commit.Comitter.Email = firstCommit.Committer.Email;
-                    commit.Comitter.When = firstCommit.Committer.When;
-                }
-                else
-                {
-                    _logger.LogError($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
-                    return null;
-                }
-
-                return commit;
+                commit.Comitter = new Designer.Models.Signature();
+                commit.Comitter.Name = firstCommit.Committer.Name;
+                commit.Comitter.Email = firstCommit.Committer.Email;
+                commit.Comitter.When = firstCommit.Committer.When;
             }
+            else
+            {
+                _logger.LogWarning($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
+                return null;
+            }
+
+            return commit;
         }
 
         /// <summary>
