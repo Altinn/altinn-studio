@@ -12,7 +12,7 @@ namespace Altinn.Platform.Authorization.Services.Interface
     public interface IPolicyInformationPoint
     {
         /// <summary>
-        /// Gets rules
+        /// Returns a list of rules that match the lists of org/apps, offeredby ids, and coveredby ids
         /// </summary>
         /// <param name="orgApp">the org/apps</param>
         /// <param name="offeredByPartyIds">the list of offeredby party ids</param>
