@@ -1,9 +1,9 @@
-import { getRepoUrl } from 'common/utils/repoListUtils';
+import { getRepoEditUrl } from 'common/utils/repoListUtils';
 
 describe('repoListUtils', () => {
-  describe('getRepoUrl', () => {
+  describe('getRepoEditUrl', () => {
     it('should return url to datamodelling when repo name ends with "-datamodels"', () => {
-      const result = getRepoUrl({
+      const result = getRepoEditUrl({
         repoFullName: 'this-repo-has-datamodels',
       });
 
@@ -12,7 +12,7 @@ describe('repoListUtils', () => {
     });
 
     it('should not return url to datamodelling when repo name does not end with "-datamodels"', () => {
-      const result = getRepoUrl({
+      const result = getRepoEditUrl({
         repoFullName: 'this-repo-has-datamodels-not',
       });
 
