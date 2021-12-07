@@ -23,7 +23,6 @@ import { useAppSelector, useAppDispatch } from 'common/hooks';
 import { CenterContainer } from 'common/components/CenterContainer';
 import { Footer } from 'common/components/Footer';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
-import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
 import { Dashboard } from 'features/dashboard';
 
@@ -98,15 +97,6 @@ export const App = () => {
                 </HeaderContext.Provider>
                 <Route
                   path='/'
-                  exact={true}
-                  render={() => (
-                    <CenterContainer>
-                      <ServicesOverview />
-                    </CenterContainer>
-                  )}
-                />
-                <Route
-                  path='/dashboard'
                   exact={true}
                   render={() => (
                     <>
