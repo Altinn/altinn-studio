@@ -7,7 +7,7 @@ using Altinn.Platform.Authorization.Models;
 namespace Altinn.Platform.Authorization.Services.Interface
 {
     /// <summary>
-    /// Defines the interface for the Policy Information Point
+    /// Defines the required methods for an implementation of a policy information point.
     /// </summary>
     public interface IPolicyInformationPoint
     {
