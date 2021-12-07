@@ -91,12 +91,19 @@ const useStyles = makeStyles({
   dropdownIcon: {
     fontSize: '2rem',
   },
+  favoriteIcon: {
+    fontSize: 26,
+    color: '#000000',
+  },
 });
 
 const gridStyleOverride = {
   border: 'none',
   '.MuiDataGrid-iconSeparator': {
     visibility: 'hidden',
+  },
+  '.MuiDataGrid-cell--withRenderer:focus-within': {
+    outline: 'none',
   },
 };
 
@@ -134,13 +141,14 @@ export const RepoList = ({
             setStarredRepo(repo);
           }
         };
+
         return [
           <IconButton key={params.row.id} onClick={handleToggleFav}>
             <i
-              style={{ fontSize: 26, color: '#000000' }}
-              className={
-                repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'
-              }
+              className={cn(classes.favoriteIcon, {
+                'fa fa-fav-filled': repo.user_has_starred,
+                'fa fa-fav-outline': !repo.user_has_starred,
+              })}
             />
           </IconButton>,
         ];
@@ -242,6 +250,7 @@ export const RepoList = ({
     classes.repoLink,
     classes.dropdownIcon,
     classes.linkIcon,
+    classes.favoriteIcon,
     language,
     setStarredRepo,
     unsetStarredRepo,
