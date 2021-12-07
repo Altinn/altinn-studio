@@ -389,7 +389,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Designer.Models.Commit commit = null;
 
             using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
-            if (repo.Commits.Count() > 0 && repo.Commits.Last() != null)
+            if (repo.Commits.Any() && repo.Commits.Last() != null)
             {
                 LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
                 commit = new Designer.Models.Commit();
@@ -410,8 +410,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogWarning($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
-                return null;
+                _logger.LogWarning($" // SourceControlSI // GetInitialCommit // Did not find any commits in repo {localServiceRepoFolder}");
             }
 
             return commit;
