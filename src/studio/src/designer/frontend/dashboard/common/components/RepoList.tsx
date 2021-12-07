@@ -178,8 +178,7 @@ export const RepoList = ({
         align: 'right',
         getActions: (params: GridRowParams) => {
           const editUrl = getRepoUrl({
-            repoIsClonedLocally: params.row.is_cloned_to_local,
-            repoFullName: params.row.full_name,
+            repoFullName: params.row.full_name as string,
           });
 
           const handleDuplicateClick = () => {
