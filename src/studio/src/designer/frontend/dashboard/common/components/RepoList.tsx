@@ -24,22 +24,7 @@ import {
   useUnsetStarredRepoMutation,
 } from 'services/userApi';
 
-type GetRepoUrl = {
-  repoIsClonedLocally: boolean;
-  repoFullName: string;
-};
-
-const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
-  if (!repoIsClonedLocally) {
-    return `/Home/Index#/clone-app/${repoFullName}`;
-  }
-
-  if (repoFullName.endsWith('-datamodels')) {
-    return `#/datamodelling/${repoFullName}`;
-  }
-
-  return `/designer/${repoFullName}`;
-};
+import { getRepoUrl } from 'common/utils/repoListUtils';
 
 type RepoListType = {
   repos: IRepository[];

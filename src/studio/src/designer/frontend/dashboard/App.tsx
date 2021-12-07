@@ -26,7 +26,7 @@ import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
 import { Dashboard } from 'features/dashboard';
 
-import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
+import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';
 
 import './App.css';
 
