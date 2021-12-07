@@ -15,9 +15,8 @@ interface Resource {
 
 const resources: Resource[] = [
   {
-    label: 'docs.altinn.studio',
-    description:
-      'Dokumentasjonen til Altinn Studio.Her vil du få hjelp til å utvikle dine egne applikasjoner',
+    label: 'dashboard.resource_docs_label',
+    description: 'dashboard.resource_docs_description',
     url: 'https://docs.altinn.studio',
     icon: (
       <svg
@@ -40,9 +39,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'Alle organisasjoner',
-    description:
-      'Se hva andre organisasjoner lager. Du har mulighet til å se og klone andre sine repositories.',
+    label: 'dashboard.resource_organisations_label',
+    description: 'dashboard.resource_organisations_description',
     url: 'https://altinn.studio/repos/explore/organizations',
     icon: (
       <svg
@@ -69,9 +67,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'Kontakt / Slack',
-    description:
-      'I vår Slack-kanal kan du snakke direkte med de som jobber med Altinn Studio og  andre som utvikler applikasjoner.',
+    label: 'dashboard.resource_slack_label',
+    description: 'dashboard.resource_slack_description',
     url: 'https://altinn.slack.com',
     icon: (
       <svg
@@ -118,9 +115,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'Design / brukertest',
-    description:
-      'Få tilgang til Figma for å prototype og brukerteste tjenesten din før den utvikles. Prototype-kitet inneholder alt du trenger.',
+    label: 'dashboard.resource_design_label',
+    description: 'dashboard.resource_design_description',
     url: 'https://www.figma.com/file/wnBveAG2ikUspFsQwM3GNE/Prototyping-av-skjematjenester?node-id=47%3A4068',
     icon: (
       <svg
@@ -159,9 +155,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'Roadmap',
-    description:
-      'Altinn er under kontinuerlig videreutvikling. Du får vite mer om hva vi har gjort og hva vi planlegger å gjøre her.',
+    label: 'dashboard.resource_roadmap_label',
+    description: 'dashboard.resource_roadmap_description',
     url: 'https://docs.altinn.studio/community/roadmap/studio/',
     icon: (
       <svg
@@ -180,9 +175,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'Driftsmeldinger',
-    description:
-      'Vi oppdaterer deg på nye releaser og driftsmessige hendelser som kan være relevante for deg i tjenesteutviklingen.',
+    label: 'dashboard.resource_status_label',
+    description: 'dashboard.resource_status_description',
     url: 'https://www.altinn.no/om-altinn/driftsmeldinger/',
     icon: (
       <svg

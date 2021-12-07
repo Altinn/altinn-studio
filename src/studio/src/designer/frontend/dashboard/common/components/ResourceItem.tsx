@@ -1,4 +1,6 @@
 import { Grid } from '@mui/material';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useAppSelector } from 'common/hooks';
 import React = require('react');
 
 export interface ResourceItemProps {
@@ -14,6 +16,8 @@ export function ResourceItem({
   description,
   icon,
 }: ResourceItemProps) {
+  const language = useAppSelector(state => state.language.language);
+
   return (
     <Grid container direction='row' alignItems='flex-start' justifyContent='flex-start' alignContent='left'>
       <Grid xs={2} sm={3} md={3} item>
@@ -23,10 +27,10 @@ export function ResourceItem({
         <Grid item>
           <a href={link}>
             <p style={{ fontWeight: 500, color: 'black', margin: 0}}>
-              {label}{' '}
+              {getLanguageFromKey(label, language)}{' '}
             </p>{' '}
           </a>
-          <p style={{ marginTop: 0 }}>{description}</p>
+          <p style={{ marginTop: 0 }}>{getLanguageFromKey(description, language)}</p>
         </Grid>
       </Grid>
     </Grid>
