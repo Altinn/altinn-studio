@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 }
             }
 
-            return await Task.FromResult(rulesList);
+            return rulesList;
         }
     }
 }
