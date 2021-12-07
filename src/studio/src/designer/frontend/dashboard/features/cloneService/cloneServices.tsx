@@ -159,7 +159,7 @@ export class CloneServiceComponent extends React.Component<
     const { classes } = this.props;
     const repoInfo = this.getCurrentRepositoryInfo();
     return (
-      <>
+      <div>
         <AltinnBreadcrumb
           className={classes.breadCrumb}
           firstLink={`${window.location.origin}/`}
@@ -255,7 +255,7 @@ export class CloneServiceComponent extends React.Component<
             </div>
           </div>
         )}
-      </>
+      </div>
     );
   }
 }
