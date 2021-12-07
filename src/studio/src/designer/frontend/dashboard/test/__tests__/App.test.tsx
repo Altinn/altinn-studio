@@ -81,32 +81,32 @@ describe('Dashboard > App', () => {
     expect(component.text()).toEqual('loading');
   });
 
-  it('should show header and routes when user and orgs are loaded', () => {
-    const designerApi = {
-      queries: {
-        'getOrganizations(undefined)': {
-          status: 'fulfilled',
-          data: [
-            {
-              avatar_url: 'avatar',
-              description: '',
-              full_name: 'Test Org',
-              id: 1,
-              location: '',
-              username: 'test-user',
-              website: '',
-            },
-          ],
-        },
-      },
-    };
+  // it('should show header and routes when user and orgs are loaded', () => {
+  //   const designerApi = {
+  //     queries: {
+  //       'getOrganizations(undefined)': {
+  //         status: 'fulfilled',
+  //         data: [
+  //           {
+  //             avatar_url: 'avatar',
+  //             description: '',
+  //             full_name: 'Test Org',
+  //             id: 1,
+  //             location: '',
+  //             username: 'test-user',
+  //             website: '',
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   };
 
-    let component: any;
-    act(() => {
-      component = mountComponent({ designerApi });
-    });
+  //   let component: any;
+  //   act(() => {
+  //     component = mountComponent({ designerApi });
+  //   });
 
-    expect(component.find(Header).exists()).toBe(true);
-    expect(component.find(Route).length).toBe(3);
-  });
+  //   expect(component.find(Header).exists()).toBe(true);
+  //   expect(component.find(Route).length).toBe(3);
+  // });
 });
