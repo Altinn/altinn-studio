@@ -24,7 +24,7 @@ import {
   useUnsetStarredRepoMutation,
 } from 'services/userApi';
 
-import { getRepoUrl } from 'common/utils/repoListUtils';
+import { getRepoEditUrl } from 'common/utils/repoListUtils';
 
 type RepoListType = {
   repos: IRepository[];
@@ -177,7 +177,7 @@ export const RepoList = ({
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
-          const editUrl = getRepoUrl({
+          const editUrl = getRepoEditUrl({
             repoFullName: params.row.full_name as string,
           });
 

@@ -15,6 +15,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { IRepository } from 'app-shared/types';
 import ServiceMenu from './serviceMenu';
 import { useAppSelector } from 'common/hooks';
+import { getRepoEditUrl } from 'common/utils/repoListUtils';
 
 export interface IServiceCardProps {
   service: IRepository;
@@ -87,18 +88,10 @@ export function ServiceCard(props: IServiceCardProps) {
     if (menuAnchorEl !== null) {
       return;
     }
-    const repoPath = props.service.full_name;
-    if (props.service.is_cloned_to_local) {
-      if (repoPath.endsWith('-datamodels')) {
-        window.location.assign(`#/datamodelling/${repoPath}`);
-      } else {
-        window.location.assign(`/designer/${repoPath}`);
-      }
-    } else {
-      window.location.assign(
-        `/Home/Index#/clone-app/${props.service.owner.login}/${props.service.name}`,
-      );
-    }
+
+    window.location.assign(
+      getRepoEditUrl({ repoFullName: props.service.full_name }),
+    );
   };
 
   const handleIconClick = (
