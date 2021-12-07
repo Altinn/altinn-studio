@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -92,16 +91,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            var repository = new Altinn.Studio.Designer.RepositoryClient.Model.Repository();
+            var repository = new RepositoryClient.Model.Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                repository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+                repository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
                 repository.RepositoryCreatedStatus = HttpStatusCode.Created;
             }
             else if (response.StatusCode == HttpStatusCode.Conflict)
@@ -120,16 +119,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos()
+        public async Task<IList<RepositoryClient.Model.Repository>> GetUserRepos()
         {
-            IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository> repos = new List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=50");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                repos = await response.Content.ReadAsAsync<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>();
+                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
 
-                foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repos)
+                foreach (RepositoryClient.Model.Repository repo in repos)
                 {
                     if (string.IsNullOrEmpty(repo.Owner?.Login))
                     {
@@ -283,7 +282,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return repository;
             }
 
-            foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repository.Data)
+            foreach (RepositoryClient.Model.Repository repo in repository.Data)
             {
                 if (string.IsNullOrEmpty(repo.Owner?.Login))
                 {
@@ -385,15 +384,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository)
+        public async Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository)
         {
-            Altinn.Studio.Designer.RepositoryClient.Model.Repository returnRepository = null;
+            RepositoryClient.Model.Repository returnRepository = null;
 
             string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                returnRepository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+                returnRepository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
             }
             else
             {

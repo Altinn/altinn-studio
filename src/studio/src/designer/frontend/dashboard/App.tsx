@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { ThemeProvider as ThemeProviderV5 } from '@mui/material/styles';
+import { ThemeProvider as ThemeProviderV5, styled } from '@mui/material/styles';
 import {
   ThemeProvider as ThemeProviderV4,
   StylesProvider,
 } from '@material-ui/core/styles';
+
 import { HashRouter as Router, Route } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import {
   DashboardActions,
   SelectedContext,
@@ -21,18 +23,24 @@ import { useAppSelector, useAppDispatch } from 'common/hooks';
 import { CenterContainer } from 'common/components/CenterContainer';
 import { Footer } from 'common/components/Footer';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
-import { CloneService } from 'features/cloneService/cloneServices';
 import { ServicesOverview } from 'features/serviceOverview/servicesOverview';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
 import { Dashboard } from 'features/dashboard';
 
-import { generateClassName, themeV4, themeV5 } from 'common/utils/mui-utils';
+import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';
 
 import './App.css';
+
+const Root = styled('div')(() => ({
+  height: '100vh',
+  display: 'grid',
+  gridTemplateRows: 'auto 1fr',
+}));
 
 export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
+  const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
@@ -84,15 +92,9 @@ export const App = () => {
         <ThemeProviderV5 theme={themeV5}>
           <Router>
             {user && !isLoadingOrganizations ? (
-              <div
-                style={{
-                  height: '100vh',
-                  display: 'grid',
-                  gridTemplateRows: 'auto 1fr',
-                }}
-              >
+              <Root>
                 <HeaderContext.Provider value={headerContextValue}>
-                  <Header />
+                  <Header language={language} />
                 </HeaderContext.Provider>
                 <Route
                   path='/'
@@ -116,19 +118,19 @@ export const App = () => {
                   )}
                 />
                 <Route
-                  path='/clone-app/:org/:serviceName'
-                  exact={true}
-                  component={CloneService}
-                />
-                <Route
                   path='/datamodelling/:org/:repoName'
                   exact={true}
                   component={StandaloneDataModelling}
                 />
-              </div>
+              </Root>
             ) : (
               <CenterContainer>
-                <AltinnSpinner spinnerText='Venter på svar' />
+                <AltinnSpinner
+                  spinnerText={getLanguageFromKey(
+                    'dashboard.loading',
+                    language,
+                  )}
+                />
                 {showLogOutButton && (
                   <AltinnButton
                     onClickFunction={() =>
@@ -140,7 +142,7 @@ export const App = () => {
                         },
                       )
                     }
-                    btnText={'Logg ut'}
+                    btnText={getLanguageFromKey('dashboard.logout', language)}
                   />
                 )}
               </CenterContainer>

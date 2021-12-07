@@ -1,4 +1,10 @@
-import { AppBar, Grid, makeStyles, Toolbar, Typography } from '@material-ui/core';
+import {
+  AppBar,
+  Grid,
+  makeStyles,
+  Toolbar,
+  Typography,
+} from '@material-ui/core';
 import { IGiteaOrganisation, IUser } from 'app-shared/types';
 import * as React from 'react';
 import AltinnStudioLogo from './AltinnStudioLogo';
@@ -23,6 +29,10 @@ export const HeaderContext = React.createContext<IHeaderContext>({
   user: undefined,
 });
 
+type HeaderProps = {
+  language: any;
+};
+
 const useStyles = makeStyles((theme) => ({
   appBar: {
     backgroundColor: theme.altinnPalette.primary.blueDarker,
@@ -40,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '2rem',
     marginLeft: 10,
     marginRight: 10,
-  }
+  },
 }));
 
 export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
@@ -48,9 +58,10 @@ export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
   return org?.full_name || org?.username;
 };
 
-export function Header() {
+export function Header({ language }: HeaderProps) {
   const classes = useStyles();
   const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
+
   return (
     <AppBar className={classes.appBar} position='static'>
       <Toolbar className={classes.toolbar}>
@@ -66,17 +77,18 @@ export function Header() {
                 <AltinnStudioLogo />
               </a>
             </Grid>
-            {selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self &&
-              <Grid>
-                <Typography className={classes.typography}>
-                  <span className={classes.divider}>/</span>
-                  {getOrgNameById(selectedContext as number, selectableOrgs)}
-                </Typography>
-              </Grid>
-            }
+            {selectedContext !== SelectedContextType.All &&
+              selectedContext !== SelectedContextType.Self && (
+                <Grid>
+                  <Typography className={classes.typography}>
+                    <span className={classes.divider}>/</span>
+                    {getOrgNameById(selectedContext as number, selectableOrgs)}
+                  </Typography>
+                </Grid>
+              )}
           </Grid>
           <Grid item>
-            <HeaderMenu />
+            <HeaderMenu language={language} />
           </Grid>
         </Grid>
       </Toolbar>

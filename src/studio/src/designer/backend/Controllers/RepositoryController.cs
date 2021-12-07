@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -111,7 +110,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<List<Organization>> Organizations()
         {
             List<Organization> orglist = await _giteaApi.GetUserOrganizations();
-            return orglist == null ? new List<Organization>() : orglist;
+            return orglist ?? new List<Organization>();
         }
 
         /// <summary>

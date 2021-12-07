@@ -10,34 +10,21 @@ import {
   GridColDef,
 } from '@mui/x-data-grid';
 import { makeStyles } from '@material-ui/core';
+import { IconButton } from '@mui/material';
 import cn from 'classnames';
 
-import { MakeCopyModal } from 'common/components/MakeCopyModal';
-
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { IRepository } from 'app-shared/types';
+
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { IconButton } from '@mui/material';
+import { MakeCopyModal } from 'common/components/MakeCopyModal';
+import { useAppSelector } from 'common/hooks';
 import {
   useSetStarredRepoMutation,
   useUnsetStarredRepoMutation,
 } from 'services/userApi';
 
-type GetRepoUrl = {
-  repoIsClonedLocally: boolean;
-  repoFullName: string;
-};
-
-const getRepoUrl = ({ repoIsClonedLocally, repoFullName }: GetRepoUrl) => {
-  if (!repoIsClonedLocally) {
-    return `/Home/Index#/clone-app/${repoFullName}`;
-  }
-
-  if (repoFullName.endsWith('-datamodels')) {
-    return `#/datamodelling/${repoFullName}`;
-  }
-
-  return `/designer/${repoFullName}`;
-};
+import { getRepoUrl } from 'common/utils/repoListUtils';
 
 type RepoListType = {
   repos: IRepository[];
@@ -82,7 +69,28 @@ const useStyles = makeStyles({
       'text-decoration': 'underline',
     },
   },
+  linkIcon: {
+    fontSize: '2rem',
+    marginLeft: '0.5rem',
+  },
+  dropdownIcon: {
+    fontSize: '2rem',
+  },
+  favoriteIcon: {
+    fontSize: 26,
+    color: '#000000',
+  },
 });
+
+const gridStyleOverride = {
+  border: 'none',
+  '.MuiDataGrid-iconSeparator': {
+    visibility: 'hidden',
+  },
+  '.MuiDataGrid-cell--withRenderer:focus-within': {
+    outline: 'none',
+  },
+};
 
 export const RepoList = ({
   repos = defaultArray,
@@ -95,6 +103,7 @@ export const RepoList = ({
   sortModel,
 }: RepoListType) => {
   const classes = useStyles();
+  const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
@@ -103,7 +112,7 @@ export const RepoList = ({
   const cols = React.useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
-      renderHeader: () => null,
+      renderHeader: (): null => null,
       hideSortIcons: true,
       type: 'actions',
       width: 50,
@@ -117,13 +126,14 @@ export const RepoList = ({
             setStarredRepo(repo);
           }
         };
+
         return [
           <IconButton key={params.row.id} onClick={handleToggleFav}>
             <i
-              style={{ fontSize: 26, color: '#000000' }}
-              className={
-                repo.user_has_starred ? 'fa fa-fav-filled' : 'fa fa-fav-outline'
-              }
+              className={cn(classes.favoriteIcon, {
+                'fa fa-fav-filled': repo.user_has_starred,
+                'fa fa-fav-outline': !repo.user_has_starred,
+              })}
             />
           </IconButton>,
         ];
@@ -133,12 +143,12 @@ export const RepoList = ({
     const columns: GridColDef[] = [
       {
         field: 'name',
-        headerName: 'Applikasjon',
+        headerName: getLanguageFromKey('dashboard.application', language),
         width: 150,
       },
       {
         field: 'owner.created_by',
-        headerName: 'Opprettet av',
+        headerName: getLanguageFromKey('dashboard.created_by', language),
         sortable: false,
         width: 160,
         valueGetter: (params: GridValueGetterParams) => {
@@ -148,7 +158,7 @@ export const RepoList = ({
       },
       {
         field: 'updated_at',
-        headerName: 'Sist endret',
+        headerName: getLanguageFromKey('dashboard.last_modified', language),
         width: 150,
         editable: true,
         type: 'date',
@@ -163,13 +173,12 @@ export const RepoList = ({
       {
         field: 'links',
         flex: 1,
-        renderHeader: () => null,
+        renderHeader: (): null => null,
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
           const editUrl = getRepoUrl({
-            repoIsClonedLocally: params.row.is_cloned_to_local,
-            repoFullName: params.row.full_name,
+            repoFullName: params.row.full_name as string,
           });
 
           const handleDuplicateClick = () => {
@@ -186,36 +195,32 @@ export const RepoList = ({
               href={params.row.html_url}
               className={cn(classes.actionLink, classes.repoLink)}
             >
-              <span>Repository</span>{' '}
-              <i
-                className='fa fa-gitea'
-                style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
-              />
+              <span>
+                {getLanguageFromKey('dashboard.repository', language)}
+              </span>
+              <i className={cn('fa fa-gitea', classes.linkIcon)} />
             </a>,
             <a
               key={params.row.id}
               href={editUrl}
               className={cn(classes.actionLink, classes.editLink)}
             >
-              <span>Rediger app</span>{' '}
-              <i
-                className='fa fa-edit'
-                style={{ fontSize: '2rem', marginLeft: '0.5rem' }}
-              />
+              <span>{getLanguageFromKey('dashboard.edit_app', language)}</span>
+              <i className={cn('fa fa-edit', classes.linkIcon)} />
             </a>,
             <GridActionsCellItem
-              icon={<i className='fa fa-copy' style={{ fontSize: '2rem' }} />}
+              icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
               key={params.row.id}
               onClick={handleDuplicateClick}
               showInMenu={true}
-              label='Lag kopi'
+              label={getLanguageFromKey('dashboard.make_copy', language)}
             />,
             <GridActionsCellItem
-              icon={<i className='fa fa-newtab' style={{ fontSize: '2rem' }} />}
+              icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
               key={params.row.id}
               onClick={handleOpenInNewClick}
               showInMenu={true}
-              label='Åpne i ny fane'
+              label={getLanguageFromKey('dashboard.open_in_new', language)}
             />,
           ];
         },
@@ -227,6 +232,10 @@ export const RepoList = ({
     classes.actionLink,
     classes.editLink,
     classes.repoLink,
+    classes.dropdownIcon,
+    classes.linkIcon,
+    classes.favoriteIcon,
+    language,
     setStarredRepo,
     unsetStarredRepo,
   ]);
@@ -236,7 +245,7 @@ export const RepoList = ({
   };
 
   return (
-    <div style={{ width: '100%' }} ref={copyModalAnchorRef}>
+    <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
           autoHeight={true}
@@ -253,6 +262,7 @@ export const RepoList = ({
           onSortModelChange={onSortModelChange}
           rowCount={rowCount}
           onPageChange={onPageChange}
+          sx={gridStyleOverride}
         />
       ) : (
         <DataGrid
@@ -264,6 +274,7 @@ export const RepoList = ({
           rowsPerPageOptions={[pageSize]}
           disableColumnMenu={true}
           isRowSelectable={() => false}
+          sx={gridStyleOverride}
         />
       )}
 

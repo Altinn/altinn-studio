@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { makeStyles } from '@material-ui/core';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import { IconButton } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
 import { useDebounce } from 'react-use';
+import cn from 'classnames';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { CreateNewService } from '../createService/createNewService';
@@ -11,9 +13,25 @@ import { useAppSelector } from 'common/hooks';
 
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
-import { SearchResult } from './Search';
+import { SearchResultReposList } from './SearchResultReposList';
+
+const useStyles = makeStyles(() => ({
+  marginTop: {
+    marginTop: 55,
+  },
+  topBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '24px',
+  },
+  clearIcon: {
+    fontSize: 26,
+    width: 26,
+  },
+}));
 
 export const Dashboard = () => {
+  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [searchText, setSearchText] = React.useState('');
   const [debouncedSearchText, setDebouncedSearchText] = React.useState('');
@@ -41,14 +59,8 @@ export const Dashboard = () => {
   };
 
   return (
-    <div style={{ marginTop: '55px' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: '24px',
-        }}
-      >
+    <div className={classes.marginTop}>
+      <div className={classes.topBar}>
         <div>
           <TextField
             id='outlined-basic'
@@ -69,7 +81,7 @@ export const Dashboard = () => {
                       onClick={handleClearSearch}
                       edge='end'
                     >
-                      <i className={'fa fa-exit'} />
+                      <i className={cn('fa fa-exit', classes.clearIcon)} />
                     </IconButton>
                   )}
                 </InputAdornment>
@@ -84,12 +96,12 @@ export const Dashboard = () => {
       </div>
 
       {debouncedSearchText ? (
-        <SearchResult searchValue={debouncedSearchText} />
+        <SearchResultReposList searchValue={debouncedSearchText} />
       ) : (
         <>
           <FavoriteReposList />
 
-          <div style={{ marginTop: '55px' }}>
+          <div className={classes.marginTop}>
             <OrgReposList />
           </div>
         </>
