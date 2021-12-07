@@ -22,6 +22,14 @@ describe('Dashboard > App', () => {
         },
       },
       designerApi: {},
+      language: {
+        language: {
+          dashboard: {
+            loading: 'loading',
+            logout: 'logout',
+          },
+        },
+      },
     };
 
     const mergedState = {
@@ -70,7 +78,7 @@ describe('Dashboard > App', () => {
     });
 
     expect(component.find(Header).exists()).toBe(false);
-    expect(component.text()).toEqual('Venter på svar');
+    expect(component.text()).toEqual('loading');
   });
 
   it('should show header and routes when user and orgs are loaded', () => {
@@ -99,6 +107,6 @@ describe('Dashboard > App', () => {
     });
 
     expect(component.find(Header).exists()).toBe(true);
-    expect(component.find(Route).length).toBe(4);
+    expect(component.find(Route).length).toBe(3);
   });
 });
