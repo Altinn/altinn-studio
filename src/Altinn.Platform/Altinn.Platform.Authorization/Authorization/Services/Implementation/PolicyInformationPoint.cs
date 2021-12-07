@@ -72,7 +72,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         CoveredBy = new List<AttributeMatch>(),
                         Resource = new List<AttributeMatch>()
                     };
-                    AddAttributeMatchesToRule(xacmlRule, rule);
+                    AddAttributeMatchesToRule(xacmlRule.Target, rule);
                     rules.Add(rule);
                 }
             }
@@ -80,9 +80,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return rules;
         }
 
-        private static void AddAttributeMatchesToRule(XacmlRule xacmlRule, Rule rule)
+        private static void AddAttributeMatchesToRule(XacmlTarget xacmlTarget, Rule rule)
         {
-            foreach (XacmlAnyOf anyOf in xacmlRule.Target.AnyOf)
+            foreach (XacmlAnyOf anyOf in xacmlTarget.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
