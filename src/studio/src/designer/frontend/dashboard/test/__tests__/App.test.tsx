@@ -4,7 +4,6 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
-import { Route } from 'react-router-dom';
 import { Header } from 'app-shared/navigation/main-header/Header';
 
 import { App } from '../../App';
@@ -80,33 +79,4 @@ describe('Dashboard > App', () => {
     expect(component.find(Header).exists()).toBe(false);
     expect(component.text()).toEqual('loading');
   });
-
-  // it('should show header and routes when user and orgs are loaded', () => {
-  //   const designerApi = {
-  //     queries: {
-  //       'getOrganizations(undefined)': {
-  //         status: 'fulfilled',
-  //         data: [
-  //           {
-  //             avatar_url: 'avatar',
-  //             description: '',
-  //             full_name: 'Test Org',
-  //             id: 1,
-  //             location: '',
-  //             username: 'test-user',
-  //             website: '',
-  //           },
-  //         ],
-  //       },
-  //     },
-  //   };
-
-  //   let component: any;
-  //   act(() => {
-  //     component = mountComponent({ designerApi });
-  //   });
-
-  //   expect(component.find(Header).exists()).toBe(true);
-  //   expect(component.find(Route).length).toBe(3);
-  // });
 });
