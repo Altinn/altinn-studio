@@ -46,8 +46,12 @@ export const App = () => {
   const { data, isLoading: isLoadingOrganizations } =
     useGetOrganizationsQuery();
 
-  const setSelectedContext = (selectedContext: SelectedContext) => {
-    dispatch(DashboardActions.setSelectedContext({ selectedContext }));
+  const setSelectedContext = (newSelectedContext: SelectedContext) => {
+    dispatch(
+      DashboardActions.setSelectedContext({
+        selectedContext: newSelectedContext,
+      }),
+    );
   };
 
   const headerContextValue: IHeaderContext = {

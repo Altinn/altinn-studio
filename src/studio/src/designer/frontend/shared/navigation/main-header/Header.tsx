@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
-  const org = orgs?.find((org) => org.id === id);
+  const org = orgs?.find((o) => o.id === id);
   return org?.full_name || org?.username;
 };
 

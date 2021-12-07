@@ -38,8 +38,8 @@ export const SearchResultReposList = ({
     starredRepos,
   });
 
-  const handlePageChange = (page: number) => {
-    setPage(page);
+  const handlePageChange = (newPageNumber: number) => {
+    setPage(newPageNumber);
   };
 
   const handleSortModelChange = (newSortModel: GridSortModel) => {
