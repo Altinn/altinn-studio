@@ -2685,14 +2685,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^17.0.37":
-  version: 17.0.37
-  resolution: "@types/react@npm:17.0.37"
+"@types/react@npm:17.0.34":
+  version: 17.0.34
+  resolution: "@types/react@npm:17.0.34"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: e68b0d59aa69577fc6a6d654b25d5d8408625498f4c483f160b557fac21e840f6e8807cbde93e9f039949b6d624a019b1990d18499c1d65aecf3605c25e30242
+  checksum: 16729ad7d50922ccbf8eb93874d7781dc2f1c64edc78134b5edc7154839d41e9fe320eb1c11ad2d1c9bf28b99cb1febda344509c1fda025955a5c2b43c688c8f
   languageName: node
   linkType: hard
 
@@ -3421,7 +3421,7 @@ __metadata:
     "@types/enzyme": ^3.10.10
     "@types/jest": ^27.0.3
     "@types/lodash.isequal": ^4.5.5
-    "@types/react": ^17.0.37
+    "@types/react": 17.0.34
     "@types/react-dom": ^17.0.11
     "@types/react-redux": ^7.1.20
     "@types/react-router-dom": ^5.3.2
@@ -13780,7 +13780,7 @@ __metadata:
     "@babel/preset-react": ^7.16.0
     "@material-ui/core": ^4.12.3
     "@types/jest": ^27.0.3
-    "@types/react": ^17.0.37
+    "@types/react": 17.0.34
     "@types/react-dom": ^17.0.11
     "@wojtekmaj/enzyme-adapter-react-17": ^0.6.5
     axios: ^0.24.0
@@ -14700,7 +14700,7 @@ __metadata:
     "@types/jest": ^27.0.3
     "@types/jsdom": ^16.2.13
     "@types/marked": ^1.2.2
-    "@types/react": ^17.0.37
+    "@types/react": 17.0.34
     "@types/react-dom": ^17.0.11
     "@types/react-html-parser": ^2.0.2
     "@types/react-router-dom": ^5.3.2
