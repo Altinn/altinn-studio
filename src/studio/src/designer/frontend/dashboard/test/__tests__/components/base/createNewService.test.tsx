@@ -1,5 +1,3 @@
-
-
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -28,14 +26,6 @@ describe('>>> components/base/createNewService.tsx', () => {
       ...mockWindow,
     };
 
-  });
-
-  let consoleError: any;
-
-  beforeAll(() => {
-    consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
-      return {};
-    });
   });
 
   it('+++ should handle update modal state on open and close', () => {
@@ -178,7 +168,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 409,
+      response: {
+        status: 409
+      },
     };
     const getStub = jest.fn();
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
@@ -186,7 +178,7 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
-    return Promise.resolve().then(() => {
+    return Promise.resolve().catch(() => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
@@ -208,7 +200,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 418,
+      response: {
+        status: 418
+      },
     };
 
     const getStub = jest.fn();
@@ -217,7 +211,7 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
-    return Promise.resolve().then(() => {
+    return Promise.resolve().catch(() => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance.componentMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
@@ -238,7 +232,11 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.componentMounted = true;
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
-    const mockError = Error('mocked error');
+    const mockError = {
+      response: {
+        status: 418
+      },
+    };
     const getStub = jest.fn();
     const mockPost = jest.spyOn(networking, 'post').mockImplementation(getStub);
     getStub.mockReturnValue(Promise.reject(mockError));
@@ -251,7 +249,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.componentMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
     expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
-    expect(consoleError).toHaveBeenCalled();
   });
 
   it('+++ should handle successfully creating new service', () => {
@@ -268,7 +265,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 201,
+      repositoryCreatedStatus: "Created",
       full_name: 'FirstOrg/service-name',
     };
     const getStub = jest.fn();

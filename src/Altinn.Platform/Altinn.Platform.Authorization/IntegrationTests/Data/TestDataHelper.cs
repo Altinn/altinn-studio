@@ -34,6 +34,54 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return rule;
         }
 
+        public static RequestToDelete GetRequestToDeleteModel(int lastChangedByUserId, int offeredByPartyId, string org, string app, List<string> ruleIds = null, int? coveredByPartyId = null, int? coveredByUserId = null)
+        {
+            AttributeMatch coveredBy = new AttributeMatch();
+            if (coveredByUserId == null)
+            {
+                coveredBy.Id = AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute;
+                coveredBy.Value = coveredByPartyId.ToString();
+            }
+            else
+            {
+                coveredBy.Id = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+                coveredBy.Value = coveredByUserId.ToString();
+            }
+
+            RequestToDelete requestToDelete = new RequestToDelete
+            {
+                DeletedByUserId = lastChangedByUserId,
+                PolicyMatch = new PolicyMatch
+                {
+                    CoveredBy = new List<AttributeMatch> { coveredBy },
+                    OfferedByPartyId = offeredByPartyId,
+                    Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } }
+                },
+                
+                RuleIds = ruleIds
+            };
+
+            return requestToDelete;
+        }
+
+        public static DelegationChange GetDelegationChange(string appid, int offeredByPartyId, int performedByUserId, bool isDeleted = true, int? coveredByPartyId = null, int? coveredByUserId = null)
+        {
+            string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
+            DelegationChange result = new DelegationChange
+            {
+                AltinnAppId = appid,
+                OfferedByPartyId = offeredByPartyId,
+                CoveredByPartyId = coveredByPartyId,
+                CoveredByUserId = coveredByUserId,
+                PerformedByUserId = performedByUserId,
+                BlobStoragePolicyPath = $"{appid}/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml",
+                BlobStorageVersionId = "CorrectLeaseId",
+                IsDeleted = isDeleted,
+                Created = DateTime.Now
+            };
+            return result;
+        }
+
         public static ResourceAction GetResourceActionModel(string action, IEnumerable<string> roles)
         {
             ResourceAction resourceAction = new ResourceAction
@@ -79,11 +127,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return policy;
         }
 
-        public static DelegationChange GetDelegationChange(string altinnAppId)
+        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId = 0, int? coveredByUserId = null, int? coveredByPartyId = null)
         {
+            string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
             return new DelegationChange
             {
-                AltinnAppId = altinnAppId
+                AltinnAppId = altinnAppId,
+                BlobStorageVersionId = "CorrectLeaseId",
+                BlobStoragePolicyPath = $"{altinnAppId}/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml",
+                CoveredByPartyId = coveredByPartyId,
+                CoveredByUserId = coveredByUserId,
+                Created = DateTime.Now,
+                IsDeleted = false,
+                OfferedByPartyId = offeredByPartyId,
+                PerformedByUserId = 20001336,
+                PolicyChangeId = new Random().Next()
             };
         }
     }

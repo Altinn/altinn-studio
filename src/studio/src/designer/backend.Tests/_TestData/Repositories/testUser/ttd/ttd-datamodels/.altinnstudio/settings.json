@@ -1,3 +1,4 @@
 {
-  "repotype": "datamodels"
+  "repotype": "datamodels",
+  "datamodelling.preference": "jsonSchema"
 }

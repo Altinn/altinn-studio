@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -70,7 +72,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
 
                 string rulesJson = JsonSerializer.Serialize(rules);
-                _logger.LogError("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
+                _logger.LogError($"Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
                 return StatusCode(400, $"Delegation could not be completed");
             }
             catch (Exception e)
@@ -78,6 +80,80 @@ namespace Altinn.Platform.Authorization.Controllers
                 _logger.LogError(e, "Delegation could not be completed. Unexpected exception.");
                 return StatusCode(500, $"Delegation could not be completed due to an unexpected exception.");
             }
+        }
+
+        /// <summary>
+        /// Endpoint for deleting delegated rules between parties
+        /// </summary>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Route("authorization/api/v1/[controller]/DeleteRules")]
+        public async Task<ActionResult> DeleteRule([FromBody] RequestToDeleteRuleList rulesToDelete)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicyRules(rulesToDelete);
+            int ruleCountToDelete = DelegationHelper.GetRulesCountToDeleteFromRequestToDelete(rulesToDelete);
+
+            if (deletionResults.Count == ruleCountToDelete)
+            {
+                return StatusCode(200, deletionResults);
+            }
+
+            string rulesToDeleteSerialized = JsonSerializer.Serialize(rulesToDelete);
+            if (deletionResults.Count > 0)
+            {
+                string deletionResultsSerialized = JsonSerializer.Serialize(deletionResults);
+                _logger.LogInformation($"Partial deletion completed deleted {deletionResults.Count} of {ruleCountToDelete}", rulesToDeleteSerialized, deletionResultsSerialized);
+                return StatusCode(206, deletionResults);
+            }
+
+            _logger.LogInformation($"Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesToDeleteSerialized}", rulesToDeleteSerialized);
+            return StatusCode(400, $"Unable to complete deletion");
+        }
+
+        /// <summary>
+        /// Endpoint for deleting an entire delegated policy between parties
+        /// </summary>
+        /// <response code="200" cref="List{Rule}">Deleted</response>
+        /// <response code="206" cref="List{Rule}">Partial Content</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPost]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Route("authorization/api/v1/[controller]/DeletePolicy")]
+        public async Task<ActionResult> DeletePolicy([FromBody] RequestToDeletePolicyList policiesToDelete)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+                        
+            List<Rule> deletionResults = await _pap.TryDeleteDelegationPolicies(policiesToDelete);
+            int countPolicies = DelegationHelper.GetPolicyCount(deletionResults);
+
+            if (countPolicies == policiesToDelete.Count)
+            {
+                return StatusCode(200, deletionResults);
+            }
+
+            string policiesToDeleteSerialized = JsonSerializer.Serialize(policiesToDelete);
+            if (countPolicies > 0)  
+            {
+                string deletionResultsSerialized = JsonSerializer.Serialize(deletionResults);
+                _logger.LogInformation($"Partial deletion completed deleted {countPolicies} of {policiesToDelete.Count}", policiesToDeleteSerialized, deletionResultsSerialized);
+                return StatusCode(206, deletionResults);
+            }
+
+            _logger.LogInformation($"Deletion could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{policiesToDeleteSerialized}", policiesToDeleteSerialized);
+            return StatusCode(400, $"Unable to complete deletion");            
         }
 
         /// <summary>
@@ -91,4 +167,4 @@ namespace Altinn.Platform.Authorization.Controllers
             return "Hello world!";
         }
     }
-}
+}   

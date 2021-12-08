@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xacml:Policy xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:example:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides">
+  <xacml:Target/>
+  <xacml:ObligationExpressions>
+    <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:1">
+      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation-assignment:1" Category="urn:altinn:minimum-authenticationlevel">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">4</xacml:AttributeValue>
+      </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+    <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:2">
+      <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation-assignment:2" Category="urn:altinn:minimum-authenticationlevel-org">
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">3</xacml:AttributeValue>
+      </xacml:AttributeAssignmentExpression>
+    </xacml:ObligationExpression>
+  </xacml:ObligationExpressions>
+</xacml:Policy>

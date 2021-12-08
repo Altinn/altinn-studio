@@ -3,10 +3,11 @@
     "dbaeumer.vscode-eslint",
     "github.vscode-pull-request-github",
     "hediet.vscode-drawio",
-    "msjsdiag.debugger-for-chrome",
     "ms-azuretools.vscode-docker",
     "ms-dotnettools.csharp",
     "ms-vscode-remote.remote-containers",
-    "ms-vsliveshare.vsliveshare"
+    "ms-vsliveshare.vsliveshare",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig"
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "UserId": 3,
+  "UserName": "selfSignedTest",
+  "PhoneNumber": null,
+  "Email": "testUser@digdir.no",
+  "PartyId": 1003,
+  "Party": {
+    "PartyId": "1003",
+    "PartyTypeName": 3,
+    "OrgNumber": null,
+    "SSN": null,
+    "UnitType": null,
+    "Name": "selfIdentified",
+    "IsDeleted": false,
+    "OnlyHierarchyElementWithNoAccess": false,
+    "Person": null,
+    "Organization": null,
+    "ChildParties": null
+  },
+  "UserType": 2,
+  "ProfileSettingPreference": {
+    "language": "nb",
+    "preSelectedPartyId": 0,
+    "doNotPromptForParty": true
+  }
+}
+
+

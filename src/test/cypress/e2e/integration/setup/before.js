@@ -9,7 +9,7 @@ import * as loginPage from '../../pageobjects/loginandreg';
  *    Create an org
  *    Create user in studio
  *    Make the user as owner of the org
- * command: npm run before:all
+ * command: yarn run before:all
  */
 context('Before all tests', () => {
   before(() => {

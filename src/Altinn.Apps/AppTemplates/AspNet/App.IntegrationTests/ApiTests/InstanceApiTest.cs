@@ -143,6 +143,28 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
+        [Fact]
+        public async Task Instance_Post_SelfIdentifiedUser()
+        {
+            string token = PrincipalUtil.GetSelfIdentifiedUserToken("selfIdentified", "1003", "3");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "datafields-app");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/datafields-app/instances?instanceOwnerPartyId=1003");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal("1003", createdInstance.InstanceOwner.PartyId);
+            Assert.Equal("selfIdentified", createdInstance.InstanceOwner.Username);
+            TestDataUtil.DeleteInstanceAndData("ttd", "datafields-app", 1003, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
         /// <summary>
         /// Scenario: Failed retrival of register data
         /// Succsess criteria: Forbidden
@@ -407,7 +429,10 @@ namespace App.IntegrationTests
                 response.EnsureSuccessStatusCode();
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
                 instanceGuid = Guid.Parse(createdInstance.Id.Split("/")[1]);
+                createdInstance.DataValues.TryGetValue("harIkkeReelleRettighetshavere", out string actualDataValue);
+
                 Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+                Assert.Equal("false", actualDataValue, ignoreCase: true);
 
                 string dataUri = createdInstance.Data[0].SelfLinks.Apps;
                 HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Get, dataUri);
@@ -1157,7 +1182,7 @@ namespace App.IntegrationTests
             string org = "ttd";
             string app = "presentationfields-app";
 
-            int instanceOwnerPartyId = 1337;
+            int instanceOwnerPartyId = 1401;
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 

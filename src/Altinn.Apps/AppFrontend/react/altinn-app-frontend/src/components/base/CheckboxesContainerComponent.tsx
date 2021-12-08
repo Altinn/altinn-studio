@@ -1,6 +1,4 @@
-/* eslint-disable import/first */
-/* eslint-disable react/no-array-index-key */
-/* eslint-disable no-undef */
+/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
@@ -8,9 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -64,7 +61,8 @@ const useStyles = makeStyles({
       width: 20,
       height: 20,
 
-      backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000000' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E\")",
+      backgroundImage:
+        "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000000' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E\")",
       content: '""',
     },
     'input:hover ~ &': {
@@ -90,11 +88,11 @@ function usePrevious(value) {
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-  const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
   const options = apiOptions || props.options || [];
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
-  const checkBoxesIsRow: boolean = (options.length <= 2);
+  const checkBoxesIsRow: boolean = options.length <= 2;
 
   React.useEffect(() => {
     returnState();
@@ -112,7 +110,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       props.preselectedOptionIndex < options.length
     ) {
       const preSelected: string[] = [];
-      preSelected[props.preselectedOptionIndex] = options[props.preselectedOptionIndex].value;
+      preSelected[props.preselectedOptionIndex] =
+        options[props.preselectedOptionIndex].value;
       props.handleDataChange(preSelected[props.preselectedOptionIndex]);
       setSelected(preSelected);
     } else {
@@ -171,7 +170,10 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   return (
     <FormControl key={`checkboxes_control_${props.id}`} component='fieldset'>
-      <FormLabel component='legend' classes={{ root: classNames(classes.legend) }}>
+      <FormLabel
+        component='legend'
+        classes={{ root: classNames(classes.legend) }}
+      >
         <RenderLegend />
       </FormLabel>
       <FormGroup
@@ -184,7 +186,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
             <FormControlLabel
               key={option.value}
               classes={{ root: classNames(classes.margin) }}
-              control={(
+              control={
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
                   onChange={onDataChanged}
@@ -195,12 +197,15 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   autoFocus={inFocus(index)}
                   label={props.getTextResourceAsString(option.label)}
                 />
-              )}
+              }
               label={props.getTextResource(option.label)}
             />
-            { props.validationMessages &&
+            {props.validationMessages &&
               isOptionSelected(option.value) &&
-              renderValidationMessagesForComponent(props.validationMessages.simpleBinding, props.id) }
+              renderValidationMessagesForComponent(
+                props.validationMessages.simpleBinding,
+                props.id,
+              )}
           </React.Fragment>
         ))}
       </FormGroup>
@@ -217,7 +222,9 @@ const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
       className={classes.root}
       disableRipple={true}
       color='default'
-      checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
+      checkedIcon={
+        <span className={classNames(classes.icon, classes.checkedIcon)} />
+      }
       icon={<span className={classes.icon} />}
       inputProps={{ 'aria-label': label }}
       {...checkboxProps}

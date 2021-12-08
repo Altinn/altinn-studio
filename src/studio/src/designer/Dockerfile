@@ -1,25 +1,17 @@
 # studio frontend
-FROM node:14.18.1-alpine3.14 AS generate-studio-frontend
+FROM node:16.13.1-alpine3.14 AS generate-studio-frontend
 
-# Copy and install Lerna
-COPY ./src/designer/frontend/lerna.json .
 COPY ./src/designer/frontend/package.json .
-COPY ./src/designer/frontend/package-lock.json .
-RUN npm ci
+COPY ./src/designer/frontend/yarn.lock .
 
-# Copy and install npm dependencies
+# Copy and install dependencies
 COPY ./src/designer/frontend/shared/package.json /shared/
-COPY ./src/designer/frontend/shared/package-lock.json /shared/
 COPY ./src/designer/frontend/app-development/package.json /app-development/
-COPY ./src/designer/frontend/app-development/package-lock.json /app-development/
 COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
-COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
-COPY ./src/designer/frontend/dashboard/package-lock.json ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/package.json /packages/schema-editor/
-COPY ./src/designer/frontend/packages/schema-editor/package-lock.json /packages/schema-editor/
 
-RUN npm run install-deps
+RUN yarn --immutable
 
 # Copy shared, app-development, ux-editor and dashboard
 WORKDIR /
@@ -30,10 +22,10 @@ COPY ./src/designer/frontend/dashboard/ ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/ ./packages/schema-editor/
 
 # Build app-development
-RUN npm run build --prefix /app-development
+RUN yarn workspace app-development run build
 
 # Build dashboard
-RUN npm run build --prefix /dashboard
+RUN yarn workspace dashboard run build
 
 # Create altinn-studio-frontend base image
 FROM alpine as altinn-studio-frontend
@@ -49,23 +41,24 @@ COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:14.18.1-alpine3.14 AS generate-designer-js
+FROM node:16.13.1-alpine3.14 AS generate-designer-js
+WORKDIR /app
 COPY src/designer/backend/package.json .
-COPY src/designer/backend/package-lock.json .
-RUN npm ci
+COPY src/designer/backend/yarn.lock .
 COPY src/designer/backend .
-RUN npm run gulp build
+RUN yarn --immutable
+RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.402-alpine3.14 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.403-alpine3.14 AS build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
 COPY src/designer/DataModeling ./DataModeling/
-COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
+COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.11-alpine3.14 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.12-alpine3.14 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .

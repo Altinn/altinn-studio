@@ -41,8 +41,14 @@ export interface IAltinnWindow extends Window {
 }
 
 export interface IComponentBindingValidation {
-  errors?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
-  warnings?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  errors?: (
+    | string
+    | ReactElement<any, string | JSXElementConstructor<any>>[]
+  )[];
+  warnings?: (
+    | string
+    | ReactElement<any, string | JSXElementConstructor<any>>[]
+  )[];
   fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
 }
 
@@ -132,13 +138,13 @@ export interface IFormRadioButtonComponent extends IFormComponent {
   preselectedOptionIndex?: number;
 }
 
-export interface IFormTextAreaComponent extends IFormComponent { }
+export type IFormTextAreaComponent = IFormComponent;
 
 export interface ILayoutSets {
-   sets: ILayoutSet[];
+  sets: ILayoutSet[];
 }
 
-export interface ILayoutSet{
+export interface ILayoutSet {
   id: string;
   dataType: string;
   tasks: string[];
@@ -234,7 +240,7 @@ export interface ITextResource {
   id: string;
   value: string;
   unparsedValue?: string;
-  variables?:IVariable[];
+  variables?: IVariable[];
 }
 
 export interface ITextResourceBindings {
@@ -312,7 +318,7 @@ export enum Triggers {
   Validation = 'validation',
   CalculatePageOrder = 'calculatePageOrder',
   ValidatePage = 'validatePage',
-  ValidateAllPages = 'validateAllPages'
+  ValidateAllPages = 'validateAllPages',
 }
 
 export interface ILabelSettings {
@@ -320,5 +326,10 @@ export interface ILabelSettings {
 }
 
 export enum DateFlags {
-  Today = 'today'
+  Today = 'today',
+}
+
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
 }

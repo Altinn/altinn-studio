@@ -6,9 +6,9 @@ import { call,
   all,
   take,
   put } from 'redux-saga/effects';
-import { get, getCurrentTaskDataElementId } from 'altinn-shared/utils';
+import { get } from 'altinn-shared/utils';
 import { IInstance } from 'altinn-shared/types';
-import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
+import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import { putWithoutConfig } from 'src/utils/networking';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormDataActions from '../formDataActions';

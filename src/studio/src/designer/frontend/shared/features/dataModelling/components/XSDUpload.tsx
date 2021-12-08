@@ -1,9 +1,10 @@
-import { TopToolbarButton } from "@altinn/schema-editor/index";
-import * as React from "react";
-import AltinnPopoverSimple from "app-shared/components/molecules/AltinnPopoverSimple";
-import { FileSelector, AltinnSpinner } from "app-shared/components";
-import { getLanguageFromKey } from "app-shared/utils/language";
-import axios from "axios";
+import * as React from 'react';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
+import { PopoverOrigin } from '@material-ui/core/Popover';
+import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { FileSelector, AltinnSpinner } from 'app-shared/components';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import axios from 'axios';
 
 export interface IXSDUploadProps {
   language: any;
@@ -11,6 +12,11 @@ export interface IXSDUploadProps {
   org: string;
   repo: string;
 }
+
+const anchorOrigin: PopoverOrigin = {
+  vertical: 'bottom',
+  horizontal: 'left',
+};
 
 const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
   const [uploadButtonAnchor, setUploadButtonAnchor] = React.useState(null);
@@ -23,7 +29,7 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
     axios
       .post(XSDUploadUrl, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       })
       .then((response) => {
@@ -36,9 +42,9 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
         if (error) {
           setErrorText(
             getLanguageFromKey(
-              "form_filler.file_uploader_validation_error_upload",
-              language
-            )
+              'form_filler.file_uploader_validation_error_upload',
+              language,
+            ),
           );
         }
       })
@@ -56,27 +62,24 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
   return (
     <>
       <TopToolbarButton
-        faIcon="fa fa-upload"
+        faIcon='fa fa-upload'
         iconSize={38}
         onClick={handleUploadClick}
         hideText={true}
       >
-        {getLanguageFromKey("app_data_modelling.upload_xsd", language)}
+        {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
       </TopToolbarButton>
       {uploadButtonAnchor && (
         <AltinnPopoverSimple
           anchorEl={uploadButtonAnchor}
           handleClose={handleUploadCancel}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
+          anchorOrigin={anchorOrigin}
         >
           {uploading ? (
             <AltinnSpinner
               spinnerText={getLanguageFromKey(
-                "app_data_modelling.uploading_xsd",
-                language
+                'app_data_modelling.uploading_xsd',
+                language,
               )}
             />
           ) : (
@@ -84,12 +87,12 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
               busy={uploading}
               language={language}
               submitHandler={handleUpload}
-              accept=".xsd"
-              labelTextResource="app_data_modelling.select_xsd"
-              formFileName="thefile"
+              accept='.xsd'
+              labelTextResource='app_data_modelling.select_xsd'
+              formFileName='thefile'
             />
           )}
-          {errorText && <p data-test-id="errorText">{errorText}</p>}
+          {errorText && <p data-test-id='errorText'>{errorText}</p>}
         </AltinnPopoverSimple>
       )}
     </>

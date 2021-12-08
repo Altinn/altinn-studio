@@ -27,6 +27,7 @@ using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -320,7 +321,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Simplified Instanciation with support for fieldprefill 
+        /// Simplified Instanciation with support for fieldprefill
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -403,7 +404,12 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            Instance instanceTemplate = new Instance() { InstanceOwner = instansiationInstance.InstanceOwner };
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = instansiationInstance.InstanceOwner,
+                VisibleAfter = instansiationInstance.VisibleAfter,
+                DueBefore = instansiationInstance.DueBefore
+            };
 
             // Run custom app logic to validate instantiation
             InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
@@ -540,6 +546,9 @@ namespace Altinn.App.Api.Controllers
                         app,
                         instanceOwnerPartyId,
                         dt.Id);
+
+                    await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
+                    await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
                 }
             }
         }
@@ -750,16 +759,7 @@ namespace Altinn.App.Api.Controllers
                 try
                 {
                     party = await _registerClient.GetParty(int.Parse(instanceOwner.PartyId));
-                    if (!string.IsNullOrEmpty(party.SSN))
-                    {
-                        instanceOwner.PersonNumber = party.SSN;
-                        instanceOwner.OrganisationNumber = null;
-                    }
-                    else if (!string.IsNullOrEmpty(party.OrgNumber))
-                    {
-                        instanceOwner.PersonNumber = null;
-                        instanceOwner.OrganisationNumber = party.OrgNumber;
-                    }
+                    SetInstanceOwnerProps(instanceOwner, party);
                 }
                 catch (ServiceException)
                 {
@@ -803,6 +803,28 @@ namespace Altinn.App.Api.Controllers
             }
 
             return party;
+        }
+
+        private static void SetInstanceOwnerProps(InstanceOwner instanceOwner, Party party)
+        {
+            if (!string.IsNullOrEmpty(party.SSN))
+            {
+                instanceOwner.PersonNumber = party.SSN;
+                instanceOwner.OrganisationNumber = null;
+                instanceOwner.Username = null;
+            }
+            else if (!string.IsNullOrEmpty(party.OrgNumber))
+            {
+                instanceOwner.PersonNumber = null;
+                instanceOwner.OrganisationNumber = party.OrgNumber;
+                instanceOwner.Username = null;
+            }
+            else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
+            {
+                instanceOwner.PersonNumber = null;
+                instanceOwner.OrganisationNumber = null;
+                instanceOwner.Username = party.Name;
+            }
         }
 
         private async Task StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
@@ -927,6 +949,40 @@ namespace Altinn.App.Api.Controllers
             }
 
             return StatusCode((int)HttpStatusCode.Forbidden);
+        }
+
+        private async Task UpdatePresentationTextsOnInstance(List<DataField> presentationFields, Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                presentationFields,
+                instance.PresentationTexts,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceClient.UpdatePresentationTexts(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new PresentationTexts { Texts = updatedValues });
+            }
+        }
+
+        private async Task UpdateDataValuesOnInstance(List<DataField> dataFields, Instance instance, string dataType, object data)
+        {
+            var updatedValues = DataHelper.GetUpdatedDataValues(
+                dataFields,
+                instance.DataValues,
+                dataType,
+                data);
+
+            if (updatedValues.Count > 0)
+            {
+                await _instanceClient.UpdateDataValues(
+                    int.Parse(instance.Id.Split("/")[0]),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    new DataValues { Values = updatedValues });
+            }
         }
     }
 }

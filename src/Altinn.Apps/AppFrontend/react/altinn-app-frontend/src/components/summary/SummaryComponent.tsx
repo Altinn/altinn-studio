@@ -2,20 +2,23 @@
 import * as React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 // import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import { componentHasValidationMessages,
+import {
+  componentHasValidationMessages,
   getComponentValidations,
-  getDisplayFormDataForComponent } from 'src/utils/formComponentUtils';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+  getDisplayFormDataForComponent,
+} from 'src/utils/formComponentUtils';
+import { shallowEqual } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { IGrid, ILayoutComponent } from 'src/features/form/layout';
 import { FormLayoutActions } from '../../features/form/layout/formLayoutSlice';
-import { IComponentValidations, IRuntimeState } from '../../types';
+import { IComponentValidations } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
 import { makeGetHidden } from '../../selectors/getLayoutData';
 import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
 import MultipleChoiceSummary from './MultipleChoiceSummary';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface ISummaryComponent {
   id: string;
@@ -45,66 +48,98 @@ const useStyles = makeStyles({
 
 export function SummaryComponent(props: ISummaryComponent) {
   const classes = useStyles();
-  const dispatch = useDispatch();
-  const {
-    pageRef,
-    id,
-  } = props;
+  const dispatch = useAppDispatch();
+  const { pageRef, id } = props;
   const GetHiddenSelector = makeGetHidden();
-  const [componentValidations, setComponentValidations] = React.useState<IComponentValidations>({});
+  const [componentValidations, setComponentValidations] =
+    React.useState<IComponentValidations>({});
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
-  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id }));
-  const summaryPageName = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-  const changeText = useSelector((state: IRuntimeState) => getTextFromAppOrDefault(
-    'form_filler.summary_item_change',
-    state.textResources.resources,
-    state.language.language,
-    null,
-    true,
-  ));
-  const formValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
-  const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[props.pageRef]);
-  const formComponent = useSelector((state: IRuntimeState) => {
-    return state.formLayout.layouts[props.pageRef].find(((c) => c.id === props.componentRef));
-  });
-  const goToCorrectPageLinkText = useSelector((state: IRuntimeState) => {
-    return getTextFromAppOrDefault('form_filler.summary_go_to_correct_page',
-      state.textResources.resources, state.language.language, [], true);
-  });
-  const formData = useSelector((state: IRuntimeState) => {
-    if (formComponent.type.toLowerCase() === 'group') return undefined;
-    return props.formData || getDisplayFormDataForComponent(
-      state.formData.formData,
-      formComponent as ILayoutComponent,
+  const hidden: boolean = useAppSelector(state => GetHiddenSelector(state, { id }));
+  const summaryPageName = useAppSelector(state => state.formLayout.uiConfig.currentView);
+  const changeText = useAppSelector(state =>
+    getTextFromAppOrDefault(
+      'form_filler.summary_item_change',
       state.textResources.resources,
-      state.optionState.options,
+      state.language.language,
+      null,
+      true,
+    ),
+  );
+  const formValidations = useAppSelector(state => state.formValidations.validations);
+  const layout = useAppSelector(state => state.formLayout.layouts[props.pageRef]);
+  const formComponent = useAppSelector(state => {
+    return state.formLayout.layouts[props.pageRef].find(
+      (c) => c.id === props.componentRef,
+    );
+  });
+  const goToCorrectPageLinkText = useAppSelector(state => {
+    return getTextFromAppOrDefault(
+      'form_filler.summary_go_to_correct_page',
+      state.textResources.resources,
+      state.language.language,
+      [],
       true,
     );
+  });
+  const formData = useAppSelector(state => {
+    if (formComponent.type.toLowerCase() === 'group') return undefined;
+    return (
+      props.formData ||
+      getDisplayFormDataForComponent(
+        state.formData.formData,
+        formComponent as ILayoutComponent,
+        state.textResources.resources,
+        state.optionState.options,
+        true,
+      )
+    );
   }, shallowEqual);
-  const title = useSelector((state: IRuntimeState) => {
+  const title = useAppSelector(state => {
     const titleKey = formComponent.textResourceBindings?.title;
     if (titleKey) {
-      return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], false);
+      return getTextFromAppOrDefault(
+        titleKey,
+        state.textResources.resources,
+        state.language.language,
+        [],
+        false,
+      );
     }
     return undefined;
   });
 
   const onChangeClick = () => {
-    dispatch(FormLayoutActions.updateCurrentView({
-      newView: pageRef,
-      runValidations: null,
-      returnToView: summaryPageName,
-    }));
+    dispatch(
+      FormLayoutActions.updateCurrentView({
+        newView: pageRef,
+        runValidations: null,
+        returnToView: summaryPageName,
+      }),
+    );
   };
 
   React.useEffect(() => {
     if (formComponent && formComponent.type.toLowerCase() !== 'group') {
-      const componentId = props.index >= 0 ? `${props.componentRef}-${props.index}` : props.componentRef;
-      const validations = getComponentValidations(formValidations, componentId, pageRef);
+      const componentId =
+        props.index >= 0
+          ? `${props.componentRef}-${props.index}`
+          : props.componentRef;
+      const validations = getComponentValidations(
+        formValidations,
+        componentId,
+        pageRef,
+      );
       setComponentValidations(validations);
       setHasValidationMessages(componentHasValidationMessages(validations));
     }
-  }, [formValidations, layout, pageRef, formComponent, props.componentRef, props.index]);
+  }, [
+    formValidations,
+    layout,
+    pageRef,
+    formComponent,
+    props.componentRef,
+    props.index,
+  ]);
 
   const renderSummaryComponent = () => {
     if (!formComponent) {
@@ -176,20 +211,22 @@ export function SummaryComponent(props: ISummaryComponent) {
     >
       <Grid container={true} className={classes.row}>
         {renderSummaryComponent()}
-        {hasValidationMessages &&
+        {hasValidationMessages && (
           <Grid
             container={true}
+            // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
             style={{ paddingTop: '12px' }}
             spacing={2}
           >
             {Object.keys(componentValidations).map((binding: string) => {
-              return componentValidations[binding]?.errors?.map((validationText: string) => {
-                return (
-                  <ErrorPaper
-                    message={validationText}
-                  />
-                );
-              });
+              return componentValidations[binding]?.errors?.map(
+                (validationText: string) => {
+                  return (
+                    // eslint-disable-next-line react/jsx-key
+                    <ErrorPaper message={validationText} />
+                  );
+                },
+              );
             })}
             <Grid item={true} xs={12}>
               <button
@@ -201,7 +238,7 @@ export function SummaryComponent(props: ISummaryComponent) {
               </button>
             </Grid>
           </Grid>
-        }
+        )}
       </Grid>
     </Grid>
   );

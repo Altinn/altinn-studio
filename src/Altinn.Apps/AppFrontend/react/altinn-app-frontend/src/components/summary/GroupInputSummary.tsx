@@ -21,7 +21,7 @@ function GroupInputSummary({ formData, label }: ISingleInputSumary) {
 
   React.useEffect(() => {
     if (formData && typeof formData === 'object') {
-      let displayString: string = '';
+      let displayString = '';
       Object.keys(formData).forEach((key, index) => {
         displayString += `${index > 0 ? ' ' : ''}${formData[key]}`;
       });
@@ -32,7 +32,9 @@ function GroupInputSummary({ formData, label }: ISingleInputSumary) {
   }, [formData]);
   return (
     <Typography variant='body1'>
-      <span className={classes.label}>{label} {': '}</span>
+      <span className={classes.label}>
+        {label} {': '}
+      </span>
       <span>{displayData}</span>
     </Typography>
   );

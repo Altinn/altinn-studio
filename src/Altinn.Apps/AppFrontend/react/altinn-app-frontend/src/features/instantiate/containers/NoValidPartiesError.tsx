@@ -1,22 +1,19 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function NoValidPartiesError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const appMetadata: IApplicationMetadata =
-    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+  const language = useAppSelector(state => state.language.language);
+  const appMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
 
   if (!language) {
     return null;
   }
 
   function getAllowedParties(): string {
-    let returnString: string = '';
+    let returnString = '';
     const partyTypes: string[] = [];
 
     const { partyTypesAllowed } = appMetadata;
@@ -37,7 +34,7 @@ function NoValidPartiesError() {
     for (let i = 0; i < partyTypes.length; i++) {
       if (i === 0) {
         returnString += partyTypes[i];
-      } else if (i === (partyTypes.length - 1)) {
+      } else if (i === partyTypes.length - 1) {
         returnString += ` ${language.party_selection.no_valid_selection_binding_word} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
@@ -86,7 +83,11 @@ function NoValidPartiesError() {
 
     // TODO: add url to language (more info)
     const hostName = getHostname();
-    const errorMoreInfo = getParsedLanguageFromKey('instantiate.authorization_error_info_rights', language, [hostName]);
+    const errorMoreInfo = getParsedLanguageFromKey(
+      'instantiate.authorization_error_info_rights',
+      language,
+      [hostName],
+    );
     const errorCustomerService = getCustomerService();
 
     return (

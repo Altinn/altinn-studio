@@ -1,182 +1,57 @@
 {
+  "root": true,
   "env": {
     "browser": true,
-    "es6": true,
-    "jest": true
+    "es2020": true,
+    "node": true
   },
   "extends": [
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:react-perf/recommended",
     "plugin:react/recommended",
-    "airbnb",
-    "eslint:recommended"
+    "plugin:react-hooks/recommended",
+    "prettier"
   ],
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
-        "jsx": true
+      "jsx": true
     },
-    "ecmaVersion": 2018,
     "sourceType": "module",
-    "project": "./tsconfig.json",
-    "extraFileExtensions": [".ts", ".tsx"]
+    "project": "tsconfig.json"
   },
+  "plugins": ["@typescript-eslint", "import"],
   "settings": {
-    "import/extensions": [".js",".jsx",".ts",".tsx"],
+    "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts",".tsx"]
+      "@typescript-eslint/parser": [".ts", ".tsx"]
     },
-    "import/resolver": {
-      "node": {
-        "extensions": [".js",".jsx",".ts",".tsx"]
-      }
+    "react": {
+      "version": "detect"
     }
   },
-  "plugins": [
-    "react",
-    "@typescript-eslint"
-  ],
-  "ignorePatterns": [
-    "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "setupTests.ts"
-  ],
+  "ignorePatterns": ["node_modules", "coverage", "**/*.snap"],
   "rules": {
-    "brace-style": [
-      "warn"
-    ],
-    "indent": [
-      "warn",
-      2,
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "react/jsx-indent": [
-      "warn",
-      2
-    ],
-    "react/jsx-props-no-spreading": "off",
-    "max-len": [
-      "warn",
-      120,
-      4,
-      {
-        "ignoreUrls": true,
-        "ignorePattern": "/^import|^export/",
-        "ignoreComments": true,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true
-      }
-    ],
     "no-console": [
       "warn",
       {
-        "allow": [
-          "warn",
-          "error"
-        ]
+        "allow": ["warn", "error"]
       }
-    ],
-    "no-plusplus": [
-      "error",
-      {
-        "allowForLoopAfterthoughts": true
-      }
-    ],
-    "no-shadow": "off",
-    "@typescript-eslint/no-shadow": ["error"],
-    // "@typescript-eslint/no-empty-interface": [
-    //   "warning",
-    //   {
-    //     "allowSingleExtends": false
-    //   }
-    // ]
-    "quotes": [
-      "warn",
-      "single",
-      {
-        "avoidEscape": true,
-        "allowTemplateLiterals": true
-      }
-    ],
-    "jsx-quotes": [
-      "warn",
-      "prefer-single"
     ],
     "react/jsx-filename-extension": [
-      "warn",
+      "error",
       {
-        "extensions": [
-          ".jsx",
-          ".tsx"
-        ]
+        "extensions": [".jsx", ".tsx"]
       }
     ],
-    "react/jsx-wrap-multilines": [
-      0
-    ],
-    "react/jsx-tag-spacing": [
-      0
-    ],
-    "react/jsx-curly-newline": [
-      0
-    ],
-    "operator-linebreak": "off",
-    "sort-keys": "off",
-    "camelcase": [
-      "warn"
-    ],
-    "id-blacklist": "off",
-    "import/extensions": "off",
-    "import/no-unresolved": "off",
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error", {
-      "vars": "all",
-      "args": "after-used",
-      "ignoreRestSiblings": false
-    }],
-    "no-duplicate-imports": [
-      0
-    ],
-    "import/no-duplicates": "off",
-    "import/prefer-default-export": "off",
-    "prefer-destructuring": "off",
-    "react/destructuring-assignment": "off",
-    "no-use-before-define":"off",
-    "react/jsx-one-expression-per-line": "off",
-    "react/jsx-fragments": "off",
-    "arrow-body-style": "off",
-    "import/no-extraneous-dependencies": [
-      "warn",
-      {
-        "devDependencies": true
-      }
-    ],
-    "object-curly-newline": [
-      "warn",
-      {
-        "ObjectExpression": { "minProperties": 3, "consistent": true },
-        "ObjectPattern": { "minProperties": 3, "consistent": true  },
-        "ImportDeclaration": "never",
-        "ExportDeclaration": { "minProperties": 3, "consistent": true }
-      }
-    ],
-    "react/jsx-max-props-per-line": [
-      "warn",
-      {
-        "maximum": 2
-      }
-    ],
-    "react/jsx-boolean-value": "off",
-    "linebreak-style": "off",
-    "import/no-cycle": "off",
-    "no-param-reassign": ["error", { "props": false }]
+    "jsx-a11y/no-autofocus": ["off"],
+    "@typescript-eslint/no-explicit-any": ["off"],
+    "import/no-unresolved": ["off"],
+    "react-perf/jsx-no-new-function-as-prop": ["off"],
+    "react-perf/jsx-no-new-object-as-prop": ["off"]
   }
 }
