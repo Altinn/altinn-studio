@@ -270,12 +270,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 // if nothing is deleted no update has been done and policy and postgree update can be skipped
                 if (currentRules.Count > 0)
                 {
-                    // Write delegation policy to blob storage
-                    MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
-                    Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
-                    if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
+                    Response<BlobContentInfo> response;
+                    try
                     {
-                        _logger.LogError("Writing of delegation policy at path: {policyPath} failed. Is delegation blob storage account alive and well?\n{response.GetRawResponse()}", policyPath, response.GetRawResponse());
+                        // Write delegation policy to blob storage
+                        MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
+                        response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Writing of delegation policy at path: {policyPath} failed. Is delegation blob storage account alive and well?", policyPath);
                         return null;
                     }
 
@@ -290,11 +294,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         return null;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An exception occured while processing rules to delete in policy: {policyPath}", policyPath);
-                return null;
             }
             finally
             {
@@ -350,12 +349,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                 existingDelegationPolicy.Rules.Clear();
 
-                // Write delegation policy to blob storage
-                MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
-                Response<BlobContentInfo> response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
-                if (response.GetRawResponse().Status != (int)HttpStatusCode.Created)
+                Response<BlobContentInfo> response;
+                try
                 {
-                    _logger.LogError("Writing of delegation policy at path: {policyPath} failed. Is delegation blob storage account alive and well?\n{response.GetRawResponse()}", policyPath, response.GetRawResponse());
+                    // Write delegation policy to blob storage
+                    MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
+                    response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,"Writing of delegation policy at path: {policyPath} failed. Is delegation blob storage account alive and well?}", policyPath);
                     return null;
                 }
 
@@ -371,11 +374,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
 
                 return currentPolicyRules;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An exception occured while processing rules to delete in policy: {policyPath}", policyPath);
-                return null;
             }
             finally
             {
