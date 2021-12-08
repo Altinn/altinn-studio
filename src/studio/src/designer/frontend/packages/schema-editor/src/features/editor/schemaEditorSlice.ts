@@ -338,9 +338,7 @@ const schemaEditorSlice = createSlice({
       state.schema = schema;
     },
     setPropertyName(state, action: PayloadAction<{ path: string, name: string, navigate?: string }>) {
-      const {
-        path, navigate,
-      } = action.payload;
+      const { path, navigate } = action.payload;
       let name = action.payload.name;
       if (!name || name.length === 0) {
         return;
