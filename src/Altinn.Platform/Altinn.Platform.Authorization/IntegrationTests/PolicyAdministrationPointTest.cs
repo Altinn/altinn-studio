@@ -179,7 +179,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app5", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded"}, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app5", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
                 TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
                 TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
             };
