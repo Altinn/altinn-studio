@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { Grid, GridJustification, makeStyles } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { IRuntimeState } from '../../types';
+import { IAltinnWindow } from '../../types';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IImageProps {
   id: string;
@@ -24,6 +24,7 @@ export interface IImagesrc {
   nb: string;
   nn?: string;
   en?: string;
+  [language: string]:string;
 }
 
 const useStyles = makeStyles({
@@ -34,17 +35,14 @@ const useStyles = makeStyles({
 
 export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
-  const language: string =
-    useSelector((state: IRuntimeState) => state.profile.profile.profileSettingPreference.language);
+  const language = useAppSelector(state => state.profile.profile.profileSettingPreference.language);
   const width = props.image.width || '100%';
   const align = props.image.align || 'center';
-  const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg) || 'image';
+  const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg);
 
-  let imgSrc = props.image.src.nb;
-  if (language === 'en' && props.image.src.en) {
-    imgSrc = props.image.src.en;
-  } else if (language === 'nn' && props.image.src.nn) {
-    imgSrc = props.image.src.nn;
+  let imgSrc = props.image.src[language] || props.image.src.nb;
+  if (imgSrc.startsWith('wwwroot')) {
+    imgSrc = imgSrc.replace('wwwroot', `/${(window as Window as IAltinnWindow).org}/${(window as Window as IAltinnWindow).app}`);
   }
 
   const imgType = imgSrc.slice(-3);

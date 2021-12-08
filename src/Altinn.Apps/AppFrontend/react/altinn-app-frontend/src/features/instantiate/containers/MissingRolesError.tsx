@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
-import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function MissingRolesError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
+  const language = useAppSelector(state => state.language.language);
+  const selectedParty = useAppSelector(state => state.party.selectedParty);
 
   if (!language) {
     return null;
