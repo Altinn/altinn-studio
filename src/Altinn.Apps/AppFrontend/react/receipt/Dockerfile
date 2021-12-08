@@ -1,5 +1,5 @@
 # base image
-FROM node:16.13.0-alpine3.14 AS generate-receipt-app
+FROM node:16.13.1-alpine3.14 AS generate-receipt-app
 
 # Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
 COPY Altinn.Apps/AppFrontend/react/package.json .

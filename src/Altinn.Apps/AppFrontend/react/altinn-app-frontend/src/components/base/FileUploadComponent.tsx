@@ -1,7 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import * as React from 'react';
 import DropZone, { FileRejection } from 'react-dropzone';
-import { useSelector } from 'react-redux';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnLoader } from 'altinn-shared/components';
@@ -11,9 +10,10 @@ import { removeFileEnding, getFileEnding } from '../../utils/attachment';
 import { IAttachment } from '../../shared/resources/attachments';
 import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
 import '../../styles/FileUploadComponent.css';
-import { IRuntimeState, IComponentValidations } from '../../types';
+import { IComponentValidations } from '../../types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -80,10 +80,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return state;
   }
 
-  const currentAttachments: IAttachment[] = useSelector(
-    (state: IRuntimeState) =>
-      state.attachments.attachments[props.id] || emptyArray,
-  );
+  const currentAttachments: IAttachment[] = useAppSelector(state => state.attachments.attachments[props.id] || emptyArray);
 
   React.useEffect(() => {
     dispatch({ type: 'replace', value: currentAttachments });
