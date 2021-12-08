@@ -243,7 +243,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       return;
     }
 
-    if (!nameError && selectedItem?.displayName !== nodeName) {
+    if (!nameError && selectedItem && selectedItem.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem.path, name: nodeName, navigate: selectedItem.path,
       }));
