@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
-using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
