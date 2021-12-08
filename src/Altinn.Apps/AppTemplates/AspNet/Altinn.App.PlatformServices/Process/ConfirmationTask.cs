@@ -30,15 +30,21 @@ namespace Altinn.App.PlatformServices.Process
         }
 
         /// <inheritdoc/>
-        public override Task HandleTaskComplete(ProcessChangeContext processChange)
+        public override async Task HandleTaskAbandon(ProcessChangeContext processChange)
         {
-            throw new NotImplementedException();
+            await _altinnApp.OnAbandonProcessTask(processChange.ElementToBeProcessed, processChange.Instance);
+        }
+
+        /// <inheritdoc/>
+        public override async Task HandleTaskComplete(ProcessChangeContext processChange)
+        {
+            await _altinnApp.OnEndProcessTask(processChange.ElementToBeProcessed, processChange.Instance);
         }
 
         /// <inheritdoc/>
         public override async Task HandleTaskStart(ProcessChangeContext processChange)
         {
-            throw new NotImplementedException();
+            await _altinnApp.OnStartProcessTask(processChange.ElementToBeProcessed, processChange.Instance, processChange.Prefill);
         }
     }
 }

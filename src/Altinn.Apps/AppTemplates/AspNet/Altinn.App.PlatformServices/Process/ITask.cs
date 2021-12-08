@@ -21,5 +21,10 @@ namespace Altinn.App.PlatformServices.Process
         /// This operatin triggers process logic need to complete a given task. The Logic depend on the different types of task.
         /// </summary>
         Task HandleTaskComplete(ProcessChangeContext processChangeContext);
+
+        /// <summary>
+        /// This operatin triggers process logic need to abandon a Task without completing it
+        /// </summary>
+        Task HandleTaskAbandon(ProcessChangeContext processChangeContext);
     }
 }

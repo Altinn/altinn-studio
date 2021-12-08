@@ -24,5 +24,11 @@ namespace Altinn.App.Common.Process.Elements
         /// </summary>
         [XmlAttribute("targetRef")]
         public string TargetRef { get; set; }
+
+        /// <summary>
+        /// Gets or sets the flowtype of a sequence flow. 
+        /// </summary>
+        [XmlAttribute("flowtype", Namespace = "http://altinn.no")]
+        public string FlowType { get; set; }
     }
 }

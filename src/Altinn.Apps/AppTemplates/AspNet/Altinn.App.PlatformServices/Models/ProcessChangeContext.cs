@@ -36,31 +36,6 @@ namespace Altinn.App.PlatformServices.Models
         public List<ProcessChangeInfo> ProcessMessages { get; set; }
 
         /// <summary>
-        /// The BPMN process
-        /// </summary>
-        public BpmnReader Process { get; set; }
-
-        /// <summary>
-        /// The performer triggering the ProcessChange
-        /// </summary>
-        public ClaimsPrincipal Performer { get; set; }
-
-        /// <summary>
-        /// Gets or sets the old process state
-        /// </summary>
-        public ProcessState OldProcessState { get; set; }
-
-        /// <summary>
-        /// Gets or sets the new process state
-        /// </summary>
-        public ProcessState NewProcessState { get; set; }
-
-        /// <summary>
-        /// Instances events created relate to process change
-        /// </summary>
-        public List<InstanceEvent> Events { get; set; }
-
-        /// <summary>
         /// Did process change fail?
         /// </summary>
         public bool FailedProcessChange { get; set; }
@@ -84,5 +59,10 @@ namespace Altinn.App.PlatformServices.Models
         /// Process prefill
         /// </summary>
         public Dictionary<string, string> Prefill { get; set; }
+
+        /// <summary>
+        /// The ProcessSequenceFlowType
+        /// </summary>
+        public ProcessSequenceFlowType ProcessSequenceFlowType { get; set; }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
@@ -69,9 +70,19 @@ namespace Altinn.App.PlatformServices.Implementation
                 return processChange;
             }
 
-            if (await _processChangeHandler.CanTaskBeEnded(processChange))
+            processChange.ProcessSequenceFlowType = processHelper.GetSequenceFlowType(currentElementId, processChange.RequestedProcessElementId);
+
+            if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
             {
-               return await _processChangeHandler.HandleNext(processChange);
+                if (await _processChangeHandler.CanTaskBeEnded(processChange))
+                {
+                    return await _processChangeHandler.HandleCompleteCurrentAndMoveToNext(processChange);
+                }
+            }
+
+            if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.AbandonCurrentReturnToNext))
+            {
+                return await _processChangeHandler.HandleAbandonCurrentReturnToNext(processChange);
             }
 
             processChange.FailedProcessChange = true;

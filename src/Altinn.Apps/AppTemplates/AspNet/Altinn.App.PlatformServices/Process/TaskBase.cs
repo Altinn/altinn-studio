@@ -17,5 +17,10 @@ namespace Altinn.App.PlatformServices.Process
         /// Handle task start
         /// </summary>
         public abstract Task HandleTaskStart(ProcessChangeContext processChange);
+
+        /// <summary>
+        /// Handle task abandon
+        /// </summary>
+        public abstract Task HandleTaskAbandon(ProcessChangeContext processChange);
     }
 }

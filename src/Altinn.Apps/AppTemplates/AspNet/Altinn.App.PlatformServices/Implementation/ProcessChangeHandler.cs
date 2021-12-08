@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Interface;
@@ -62,7 +63,21 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<ProcessChangeContext> HandleNext(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> HandleCompleteCurrentAndMoveToNext(ProcessChangeContext processChange)
+        {
+            processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
+            if (processChange.ProcessStateChange != null)
+            {
+                processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+
+                await RegisterEventWithEventsComponent(processChange.Instance);
+            }
+
+            return processChange;
+        }
+
+        /// <inheritdoc />
+        public async Task<ProcessChangeContext> HandleAbandonCurrentReturnToNext(ProcessChangeContext processChange)
         {
             processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
             if (processChange.ProcessStateChange != null)
@@ -183,7 +198,15 @@ namespace Altinn.App.PlatformServices.Implementation
                             await task.HandleTaskStart(processChangeContext);
                             break;
                         case InstanceEventType.process_EndTask:
-                            await task.HandleTaskComplete(processChangeContext);
+                            if (processChangeContext.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
+                            {
+                                await task.HandleTaskComplete(processChangeContext);
+                            }
+                            else if (processChangeContext.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.AbandonCurrentReturnToNext))
+                            {
+                                await task.HandleTaskAbandon(processChangeContext);
+                            }
+
                             break;
                         case InstanceEventType.process_EndEvent:
                             processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.EndEvent;

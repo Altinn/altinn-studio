@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 using Altinn.App.Common.Process;
+using Altinn.App.Common.Process.Elements;
 
 namespace Altinn.App.Services.Helpers
 {
@@ -140,8 +142,14 @@ namespace Altinn.App.Services.Helpers
         public string GetValidNextElementOrError(string currentElementId, string proposedElementId, out ProcessError nextElementError)
         {
             nextElementError = null;
+            bool ignoreGatewayDefaults = false;
 
-            List<string> possibleNextElements = Process.NextElements(currentElementId);
+            if (!string.IsNullOrEmpty(proposedElementId))
+            {
+                ignoreGatewayDefaults = true;
+            }
+
+            List<string> possibleNextElements = Process.NextElements(currentElementId, ignoreGatewayDefaults);
 
             if (!string.IsNullOrEmpty(proposedElementId))
             {
@@ -174,6 +182,24 @@ namespace Altinn.App.Services.Helpers
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Find the flowtype betweeend 
+        /// </summary>
+        public ProcessSequenceFlowType GetSequenceFlowType(string currentId, string nextElementId)
+        {
+            ProcessSequenceFlowType flowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext;
+            List<SequenceFlow> flows = Process.GetSequenceFlowsBetween(currentId, nextElementId);
+            foreach (SequenceFlow flow in flows)
+            { 
+                if (!string.IsNullOrEmpty(flow.FlowType))
+                {
+                    Enum.TryParse(flow.FlowType, out flowType);
+                }
+            }
+
+            return flowType;
         }
 
         private ProcessError Conflict(string text)
