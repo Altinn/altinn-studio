@@ -772,6 +772,15 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal("Task_3", processState.CurrentTask.ElementId);
             #endregion
 
+            #region GetUpdated instance to check pdf
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath);
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+            lockedDataElements = instance.Data.Where(r => r.Locked == true);
+            Assert.Equal(2, lockedDataElements.Count());
+            #endregion
+
             #region push back to data task
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/nextv2/?elementId=Task_2");
             response = await client.SendAsync(httpRequestMessage);
@@ -786,6 +795,15 @@ namespace App.IntegrationTestsRef.EndToEndTests
             processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Task_2", processState.CurrentTask.ElementId);
+            #endregion
+
+            #region GetUpdated instance to check pdf
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath);
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+            lockedDataElements = instance.Data.Where(r => r.Locked == true);
+            Assert.Single(lockedDataElements);
             #endregion
 
             #region push to confirm task
