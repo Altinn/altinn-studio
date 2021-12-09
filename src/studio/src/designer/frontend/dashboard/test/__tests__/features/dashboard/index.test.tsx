@@ -24,7 +24,7 @@ describe('Dashboard > index', () => {
     expect(dashboard.containsMatchingElement(<SearchResultReposList searchValue='' />)).toBe(false);
   });
 
-  it('displays search result and hides FavoriteReposList and OrgReposList when the user searches for repo', async () => {
+  it('displays search result and hides FavoriteReposList and OrgReposList when the user searches for repo', () => {
     const searchValue = 'test'
     jest.spyOn(React, 'useState').mockImplementation(jest.fn().mockReturnValue([searchValue]));
     mockUseState.mockReturnValue(searchValue);
