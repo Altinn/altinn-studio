@@ -26,9 +26,9 @@ import {
 
 import { getRepoEditUrl } from 'common/utils/repoListUtils';
 
-type RepoListType = {
-  repos: IRepository[];
+type RepoListProps = {
   isLoading: boolean;
+  repos?: IRepository[];
   isServerSort?: boolean;
   pageSize?: number;
   rowCount?: number;
@@ -38,6 +38,8 @@ type RepoListType = {
 };
 
 const defaultPageSize = 8;
+
+const isRowSelectable = () => false;
 
 const defaultArray: IRepository[] = [];
 
@@ -101,7 +103,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   sortModel,
-}: RepoListType) => {
+}: RepoListProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
@@ -240,6 +242,10 @@ export const RepoList = ({
     unsetStarredRepo,
   ]);
 
+  const rowsPerPage = React.useMemo(() => {
+    return [pageSize];
+  }, [pageSize]);
+
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
   };
@@ -253,9 +259,9 @@ export const RepoList = ({
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={[pageSize]}
+          rowsPerPageOptions={rowsPerPage}
           disableColumnMenu={true}
-          isRowSelectable={() => false}
+          isRowSelectable={isRowSelectable}
           sortModel={sortModel}
           paginationMode='server'
           sortingMode='server'
@@ -271,9 +277,9 @@ export const RepoList = ({
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={[pageSize]}
+          rowsPerPageOptions={rowsPerPage}
           disableColumnMenu={true}
-          isRowSelectable={() => false}
+          isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}
         />
       )}
