@@ -236,12 +236,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 string offeredBy = deleteRequest.PolicyMatch.OfferedByPartyId.ToString();
                 DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", deleteRequest.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
 
-                if (string.IsNullOrWhiteSpace(currentChange?.BlobStoragePolicyPath))
-                {
-                    _logger.LogWarning("No delegation was found for the request App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {offeredBy}", org, app, coveredBy, offeredBy);
-                    return null;
-                }
-
                 XacmlPolicy existingDelegationPolicy = null;
                 if (currentChange.IsDeleted)
                 {
@@ -295,6 +289,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An exception occured while processing rules to delete in policy: {policyPath}", policyPath);
+                return null;
+            }
             finally
             {
                 _policyRepository.ReleaseBlobLease(policyPath, leaseId);
@@ -308,7 +307,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             DelegationHelper.TryGetResourceFromAttributeMatch(policyToDelete.PolicyMatch.Resource, out string org, out string app);
             string coveredBy = DelegationHelper.GetCoveredByFromMatch(policyToDelete.PolicyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
 
-            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyToDelete.PolicyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
+            string policyPath;
+            try
+            {
+                policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyToDelete.PolicyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Not possible to build policy path App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}", org, app, coveredBy, policyToDelete.PolicyMatch.OfferedByPartyId);
+                return null;
+            }
 
             if (!await _policyRepository.PolicyExistsAsync(policyPath))
             {
@@ -326,12 +334,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             try
             {
                 DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
-
-                if (string.IsNullOrWhiteSpace(currentChange?.BlobStoragePolicyPath))
-                {
-                    _logger.LogWarning("No delegation was found for the request App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}", org, app, coveredBy, policyToDelete.PolicyMatch.OfferedByPartyId);
-                    return null;
-                }
 
                 XacmlPolicy existingDelegationPolicy;
                 if (currentChange.IsDeleted)
@@ -375,6 +377,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                 return currentPolicyRules;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An exception occured while processing rules to delete in policy: {policyPath}", policyPath);
+                return null;
+            }
             finally
             {
                 _policyRepository.ReleaseBlobLease(policyPath, leaseId);
@@ -385,14 +392,19 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             string coveredBy = DelegationHelper.GetCoveredByFromMatch(rulesToDelete.PolicyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
 
-            if (!DelegationHelper.TryGetResourceFromAttributeMatch(rulesToDelete.PolicyMatch.Resource, out string org, out string app))
+            DelegationHelper.TryGetResourceFromAttributeMatch(rulesToDelete.PolicyMatch.Resource, out string org, out string app);
+            
+            string policyPath;
+            try
+            {
+                policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, rulesToDelete.PolicyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
+            }
+            catch (Exception ex)
             {
                 string rulesToDeleteString = string.Join(", ", rulesToDelete.RuleIds);
-                _logger.LogWarning("No org/app was found for one RuleMatch with ruleIds: {rulesToDeleteString} offeredby: {rulesToDelete.PolicyMatch.OfferedByPartyId} coverdby: {coveredBy}", rulesToDeleteString, rulesToDelete.PolicyMatch.OfferedByPartyId, coveredBy);
+                _logger.LogError(ex, "Not possible to build policy path App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId} RuleIds: {rulesToDeleteString}", org, app, coveredBy, rulesToDelete.PolicyMatch.OfferedByPartyId, rulesToDeleteString);
                 return null;
             }
-
-            string policyPath = PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, rulesToDelete.PolicyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
 
             if (!await _policyRepository.PolicyExistsAsync(policyPath))
             {
