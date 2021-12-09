@@ -174,12 +174,12 @@ namespace Designer.Tests.Mocks
 
         public Task<bool> PutStarred(string org, string repository)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task<bool> DeleteStarred(string org, string repository)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task<SearchResults> SearchRepo(SearchOptions searchOption)

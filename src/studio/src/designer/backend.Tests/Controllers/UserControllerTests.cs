@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +56,35 @@ namespace Designer.Tests.Controllers
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task PutUserStarredRepositories_ShouldReturnNoContent()
+        {
+            var client = GetTestClient();
+
+            string requestUrl = "/designer/api/v1/user/starred/tdd/reponametostar";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        }
+
+        [Fact]
+        public async Task DeleteUserStarredRepositories_ShouldReturnNoContent()
+        {
+            var client = GetTestClient();
+
+            string requestUrl = "/designer/api/v1/user/starred/tdd/reponametounstar";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         }
 
         private HttpClient GetTestClient()
