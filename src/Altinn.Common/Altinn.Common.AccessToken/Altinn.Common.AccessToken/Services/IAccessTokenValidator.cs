@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 
-using Microsoft.IdentityModel.Tokens;
-
 namespace Altinn.Common.AccessToken.Services
 {
     /// <summary>
