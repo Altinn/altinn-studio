@@ -62,6 +62,7 @@ export interface IDataModelBinding {
 }
 
 export interface IDataModelBindings {
+  simpleBinding?: string;
   [id: string]: string;
 }
 

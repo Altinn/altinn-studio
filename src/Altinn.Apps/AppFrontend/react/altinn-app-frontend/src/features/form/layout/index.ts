@@ -35,6 +35,7 @@ export type GroupTypes = 'Group' | 'group';
 
 export type ComponentTypes =
   | 'AddressComponent'
+  | 'InputLookupComponent'
   | 'AttachmentList'
   | 'Button'
   | 'Checkboxes'
@@ -52,6 +53,7 @@ export type ComponentTypes =
   | 'TextArea';
 
 export interface IDataModelBindings {
+  simpleBinding?: string;
   [id: string]: string;
 }
 

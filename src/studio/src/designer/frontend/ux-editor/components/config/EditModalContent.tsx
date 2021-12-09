@@ -172,6 +172,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     this.props.handleComponentUpdate(updatedComponent);
   }
 
+  public handleUpdateLookupSrc = (event: any) => {
+    const updatedComponent: IInputLookupComponent = this.props.component as IInputLookupComponent;
+    updatedComponent.lookupSrc = event.value;
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
     updatedComponent.textResourceBindings.description
@@ -584,6 +590,69 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.props.language,
                 this.state.component.textResourceBindings?.title,
                 getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
+            </Grid>
+          </>
+        );
+      }
+
+      case ComponentTypes.InputLookupComponent: {
+        return (
+          <>
+            {this.renderChangeId()}
+            <EditBoilerplate
+              component={this.props.component}
+              textResources={this.props.textResources}
+              handleDataModelChange={this.handleDataModelChange}
+              handleTitleChange={this.handleTitleChange}
+              handleDescriptionChange={this.handleDescriptionChange}
+              language={this.props.language}
+            />
+            <Grid
+              item={true} xs={12}
+              style={styles.gridItem}
+            >
+              <AltinnCheckBox
+                checked={this.state.component.readOnly}
+                onChangeFunction={this.handleReadOnlyChange}
+              />
+              {this.props.language.ux_editor.modal_configure_read_only}
+            </Grid>
+            <Grid
+              item={true} xs={12}
+            >
+              <AltinnCheckBox
+                checked={this.state.component.required}
+                onChangeFunction={this.handleRequiredChange}
+              />
+              {this.props.language.ux_editor.modal_configure_required}
+            </Grid>
+            <Grid
+              item={true} xs={12}
+            >
+              <AltinnRadioGroup onChange={this.handleUpdateLookupSrc}
+                value={this.props.component.lookupSrc}
+                description="TODO: velg data kilde">
+                <AltinnRadio
+                  value="orgnr"
+                  label={"TODO: organisasjonsnummer"}
+                />
+                <AltinnRadio
+                  value="postnr"
+                  label={"TODO: postnummer"}
+                />
+              </AltinnRadioGroup>
+            </Grid>
+            <Grid
+              item={true} xs={12}
+            >
+              {renderSelectDataModelBinding(
+                this.props.component.dataModelBindings,
+                this.handleDataModelChange,
+                this.props.language,
+                "TODO: lookupResultBinding-textResouce",
+                "lookupResult",
+                "lookupResult",
+              )}
             </Grid>
           </>
         );

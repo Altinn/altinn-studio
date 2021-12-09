@@ -15,6 +15,7 @@ import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
 import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
+import { InputLookupComponent } from './advanced/InputLookupComponent';
 
 export interface IComponent {
   name: string;
@@ -39,6 +40,7 @@ export enum ComponentTypes {
   Button,
   Group,
   AddressComponent,
+  InputLookupComponent,
   NavigationButtons,
   InstantiationButton,
   AttachmentList,
@@ -156,6 +158,14 @@ export const advancedComponents: IComponent[] = [
       readOnly: false,
     },
   },
+  {
+    name: 'InputLookupComponent',
+    Tag: InputLookupComponent,
+    Type: ComponentTypes.InputLookupComponent,
+    customProperties: {
+      readonly: false,
+    }
+  }
 ];
 
 const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);

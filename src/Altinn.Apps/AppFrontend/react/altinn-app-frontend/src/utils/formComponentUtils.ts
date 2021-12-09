@@ -65,7 +65,7 @@ export const getFormDataForComponent = (
     return '';
   }
 
-  if (dataModelBindings.simpleBinding) {
+  if (Object.keys(dataModelBindings).length == 1 && dataModelBindings.simpleBinding) {
     const formDataVal = formData[dataModelBindings.simpleBinding];
     return formDataVal;
   }

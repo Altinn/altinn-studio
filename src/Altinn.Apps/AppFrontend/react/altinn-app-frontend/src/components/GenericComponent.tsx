@@ -130,11 +130,9 @@ export function GenericComponent(props: IGenericComponentProps) {
     );
   }, [componentValidations]);
 
-  if (hidden) {
-    return null;
-  }
 
-  const handleDataUpdate = (value: any, key = 'simpleBinding') => {
+
+  const handleDataUpdate = React.useCallback((value: any, key = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
     }
@@ -177,8 +175,12 @@ export function GenericComponent(props: IGenericComponentProps) {
       props.dataModelBindings[key],
       value,
     );
-  };
+  }, [currentView, dispatch, props.dataModelBindings, formData, props.id, props.readOnly, props.triggers]);
 
+  if (hidden) {
+    return null;
+  }
+  
   const handleFocusUpdate = (componentId: string, step?: number) => {
     dispatch(
       FormLayoutActions.updateFocus({

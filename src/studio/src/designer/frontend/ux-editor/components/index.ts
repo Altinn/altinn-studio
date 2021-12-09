@@ -1,5 +1,5 @@
-export interface IComponentIcon {
-  [key: string]: string;
+export type IComponentIcon = {
+  [key in keyof typeof ComponentTypes ]: string;
 }
 
 export interface IComponent {
@@ -23,6 +23,7 @@ export enum ComponentTypes {
   FileUpload = 'FileUpload',
   Button = 'Button',
   AddressComponent = 'AddressComponent',
+  InputLookupComponent = 'InputLookupComponent',
   Group = 'Group',
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
@@ -41,6 +42,7 @@ export const componentIcons: IComponentIcon = {
   FileUpload: 'fa fa-attachment',
   Button: 'fa fa-button',
   AddressComponent: 'fa fa-address',
+  InputLookupComponent: 'fa fa-glasses',
   Group: 'fa fa-group',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
@@ -142,6 +144,10 @@ export const advancedComponents: IComponent[] = [
       simplified: true,
       readOnly: false,
     },
+  },
+  {
+    name: ComponentTypes.InputLookupComponent,
+    Icon: componentIcons.InputLookupComponent,
   },
   {
     name: ComponentTypes.AttachmentList,

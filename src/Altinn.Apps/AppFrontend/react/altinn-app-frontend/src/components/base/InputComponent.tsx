@@ -10,7 +10,7 @@ export interface IInputBaseProps {
   readOnly: boolean;
   required: boolean;
   formatting?: IInputFormatting;
-  handleDataChange: (value: any) => void;
+  handleDataChange: (value: string, key?:string) => void;
 }
 
 export interface IInputFormatting {

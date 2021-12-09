@@ -128,6 +128,7 @@ declare global {
   }
 
   export interface IDataModelBindings {
+    simpleBinding?: string;
     [id: string]: string;
   }
 
@@ -147,6 +148,10 @@ declare global {
 
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
+  }
+
+  export interface IInputLookupComponent extends IFormComponent {
+    lookupSrc: string;
   }
 
   export interface IFormGroupComponent extends IFormComponent {
