@@ -12,7 +12,7 @@ namespace Altinn.Platform.Authorization.Models
         /// Gets or sets the ctions associcated with this particular resource including which roles have been granted access to it
         /// </summary>
         [Required]
-        public List<AttributeMatch> OrgApp { get; set; }
+        public List<AttributeMatch> AppId { get; set; }
 
         /// <summary>
         /// Gets or sets the list of resource matches which together uniquely identifies the resource in the app policy, e.g. org, app and/or tasks, events etc.

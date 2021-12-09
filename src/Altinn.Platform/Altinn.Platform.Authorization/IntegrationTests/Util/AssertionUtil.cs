@@ -195,7 +195,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
             }
             
-            AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
+            AssertCollections(expected.AppId, actual.AppId, AssertAttributeMatchEqual);
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
@@ -203,7 +203,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         }
 
         /// <summary>
-        /// Assert that two <see cref="ResourcePolicyResponse"/> have the same property in the same positions.
+        /// Assert that two <see cref="Rule"/> have the same property in the same positions.
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
         /// <param name="actual">The instance to verify.</param>

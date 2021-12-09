@@ -98,7 +98,7 @@ namespace Altinn.Platform.Authorization.Controllers
             List<int> coveredByPartyIds = new List<int>();
             List<int> coveredByUserIds = new List<int>();
             List<int> offeredByPartyIds = new List<int>();
-            List<string> orgApps = new List<string>();
+            List<string> appIds = new List<string>();
 
             foreach (PolicyMatch policyMatch in ruleQuery.PolicyMatches)
             {
@@ -106,7 +106,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 string app = policyMatch.Resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
                 if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(app))
                 {
-                    orgApps.Add($"{org}/{app}");
+                    appIds.Add($"{org}/{app}");
                 }
 
                 if (DelegationHelper.TryGetCoveredByPartyIdFromMatch(policyMatch.CoveredBy, out int partyId))
@@ -134,7 +134,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
             }
 
-            return Ok(await _pip.GetRulesAsync(orgApps, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
+            return Ok(await _pip.GetRulesAsync(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
         }
 
         /// <summary>

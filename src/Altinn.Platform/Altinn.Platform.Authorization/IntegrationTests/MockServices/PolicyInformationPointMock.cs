@@ -17,10 +17,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             _delegationRepository = delegationRepository;
         }
 
-        public async Task<List<Rule>> GetRulesAsync(List<string> orgApp, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
+        public async Task<List<Rule>> GetRulesAsync(List<string> appIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
         {
             List<Rule> rulesList = new List<Rule>();
-            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(orgApp, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
+            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange change in delegationChanges)
             {
                 if (change.AltinnAppId == "SKD/TaxReport" && change.OfferedByPartyId == 50001337 && change.CoveredByUserId == 20001336)

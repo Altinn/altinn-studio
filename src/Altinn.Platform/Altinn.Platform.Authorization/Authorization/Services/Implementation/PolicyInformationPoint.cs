@@ -20,24 +20,21 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IDelegationMetadataRepository _delegationRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
+        /// Initializes a new instance of the <see cref="PolicyInformationPoint"/> class.
         /// </summary>
         /// <param name="policyRetrievalPoint">The policy retrieval point</param>
-        /// <param name="policyRepository">The policy repository</param>
         /// <param name="delegationRepository">The delegation change repository</param>
-        /// <param name="memoryCache">The cache handler</param>
-        /// <param name="settings">The app settings</param>
-        public PolicyInformationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        public PolicyInformationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IDelegationMetadataRepository delegationRepository)
         {
             _prp = policyRetrievalPoint;
             _delegationRepository = delegationRepository;
         }
 
         /// <inheritdoc/>
-        public async Task<List<Rule>> GetRulesAsync(List<string> orgApp, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
+        public async Task<List<Rule>> GetRulesAsync(List<string> appIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
         {
             List<Rule> rules = new List<Rule>();
-            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(orgApp, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
+            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange delegationChange in delegationChanges)
             {
                 XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegationChange.BlobStoragePolicyPath, delegationChange.BlobStorageVersionId);
