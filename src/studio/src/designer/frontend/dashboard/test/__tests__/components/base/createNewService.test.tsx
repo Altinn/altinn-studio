@@ -11,7 +11,7 @@ describe('>>> components/base/createNewService.tsx', () => {
   let mockSelectableUser: any;
   let mockClasses: any;
   let mockLanguage: any;
-  const getOrganizations = () => {};
+  const getOrganizations = jest.fn();
 
   beforeEach(() => {
     mockSelectableUser = [

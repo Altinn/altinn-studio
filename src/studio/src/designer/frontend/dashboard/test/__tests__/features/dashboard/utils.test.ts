@@ -1,4 +1,8 @@
-import { getUidFilter, getReposLabel } from 'features/dashboard/utils';
+import {
+  getUidFilter,
+  getReposLabel,
+  mergeRepos,
+} from 'features/dashboard/utils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { Organizations } from 'services/organizationApi';
 
@@ -78,6 +82,88 @@ describe('Dashboard utils', () => {
       });
 
       expect(result).toEqual('org-id apps');
+    });
+  });
+
+  describe('mergeRepos', () => {
+    const repoData = {
+      name: 'repo',
+      full_name: 'repo_fullname',
+      owner: {
+        avatar_url: 'url',
+        login: 'login',
+        full_name: 'full_name',
+      },
+      description: 'description',
+      is_cloned_to_local: false,
+      updated_at: 'today',
+      html_url: 'html_url',
+      clone_url: 'clone_url',
+      user_has_starred: false,
+    };
+
+    it('should set user_has_starred to true when ids for repos in both lists match', () => {
+      const result = mergeRepos({
+        repos: [
+          {
+            ...repoData,
+            id: 1,
+          },
+          {
+            ...repoData,
+            id: 2,
+          },
+        ],
+        starredRepos: [
+          {
+            ...repoData,
+            id: 2,
+            user_has_starred: true,
+          },
+        ],
+      });
+
+      expect(result).toEqual([
+        {
+          ...repoData,
+          id: 1,
+          user_has_starred: false,
+        },
+        {
+          ...repoData,
+          id: 2,
+          user_has_starred: true,
+        },
+      ]);
+    });
+
+    it('should return empty array when no repos are passed', () => {
+      const result = mergeRepos({
+        repos: undefined,
+        starredRepos: undefined,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return original repos array when starred repos are undefined', () => {
+      const repos = [
+        {
+          ...repoData,
+          id: 1,
+        },
+        {
+          ...repoData,
+          id: 2,
+        },
+      ];
+
+      const result = mergeRepos({
+        repos,
+        starredRepos: undefined,
+      });
+
+      expect(result).toEqual(repos);
     });
   });
 });
