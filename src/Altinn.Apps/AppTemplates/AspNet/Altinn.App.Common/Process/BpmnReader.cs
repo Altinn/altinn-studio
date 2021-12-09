@@ -93,6 +93,7 @@ namespace Altinn.App.Common.Process
         /// Identifies the step to follow the given step.
         /// </summary>
         /// <param name="elementId">The id of the current process element. Usually a task.</param>
+        /// <param name="ignoreGatewayDefaults">Tell if code should ignore default sequence</param>
         /// <returns>The id of the next step.</returns>
         public List<string> NextElements(string elementId, bool ignoreGatewayDefaults = false)
         {

@@ -198,15 +198,10 @@ namespace Altinn.App.PlatformServices.Implementation
                             await task.HandleTaskStart(processChangeContext);
                             break;
                         case InstanceEventType.process_EndTask:
-                            if (processChangeContext.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
-                            {
-                                await task.HandleTaskComplete(processChangeContext);
-                            }
-                            else if (processChangeContext.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.AbandonCurrentReturnToNext))
-                            {
-                                await task.HandleTaskAbandon(processChangeContext);
-                            }
-
+                            await task.HandleTaskComplete(processChangeContext);
+                            break;
+                        case InstanceEventType.process_AbandonTask:
+                            await task.HandleTaskAbandon(processChangeContext);
                             break;
                         case InstanceEventType.process_EndEvent:
                             processChangeContext.ElementToBeProcessed = processEvent.ProcessInfo?.EndEvent;
@@ -381,14 +376,20 @@ namespace Altinn.App.PlatformServices.Implementation
             string previousElementId = currentState.CurrentTask?.ElementId;
 
             ElementInfo nextElementInfo = _processHelper.Process.GetElementInfo(nextElementId);
-
+            ProcessSequenceFlowType sequenceFlowType = _processHelper.GetSequenceFlowType(previousElementId, nextElementId);
             DateTime now = DateTime.UtcNow;
 
             // ending previous element if task
-            if (_processHelper.IsTask(previousElementId))
+            if (_processHelper.IsTask(previousElementId) && sequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
             {
                 instance.Process = previousState;
                 events.Add(GenerateProcessChangeEvent(InstanceEventType.process_EndTask.ToString(), instance, now, user));
+                instance.Process = currentState;
+            }
+            else if (_processHelper.IsTask(previousElementId))
+            {
+                instance.Process = previousState;
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_AbandonTask.ToString(), instance, now, user));
                 instance.Process = currentState;
             }
 
@@ -421,6 +422,7 @@ namespace Altinn.App.PlatformServices.Implementation
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
             instance.Process = currentState;
+            instance.Process.FlowType = sequenceFlowType.ToString();
 
             return events;
         }
