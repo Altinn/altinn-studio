@@ -3,6 +3,7 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 import { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { Organizations } from 'services/organizationApi';
+import { IRepository } from 'app-shared/types';
 
 type GetUidFilter = {
   userId: number;
@@ -13,6 +14,11 @@ type GetReposLabel = {
   selectedContext: SelectedContext;
   orgs: Organizations;
   language: any;
+};
+
+export type MergeReposProps = {
+  repos?: IRepository[];
+  starredRepos: IRepository[];
 };
 
 export const getUidFilter = ({ selectedContext, userId }: GetUidFilter) => {
@@ -43,4 +49,25 @@ export const getReposLabel = ({
   return `${
     orgs.find((org) => org.id === selectedContext).full_name
   } ${getLanguageFromKey('dashboard.apps', language)}`;
+};
+
+export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
+  if (!repos) {
+    return [];
+  }
+
+  if (!starredRepos) {
+    return repos;
+  }
+
+  return repos.map((repo) => {
+    return {
+      ...repo,
+      user_has_starred: starredRepos.find(
+        (starredRepo) => starredRepo.id === repo.id,
+      )
+        ? true
+        : false,
+    };
+  });
 };

@@ -1,25 +1,12 @@
 import * as React from 'react';
+import { mergeRepos, MergeReposProps } from './utils';
 import { IRepository } from 'app-shared/types';
-
-type AugmentReposWithStarred = {
-  repos: IRepository[];
-  starredRepos: IRepository[];
-};
 
 export const useAugmentReposWithStarred = ({
   repos,
   starredRepos,
-}: AugmentReposWithStarred): IRepository[] => {
+}: MergeReposProps): IRepository[] => {
   return React.useMemo(() => {
-    return repos?.map((repo) => {
-      return {
-        ...repo,
-        user_has_starred: starredRepos?.find(
-          (starredRepo) => starredRepo.id === repo.id,
-        )
-          ? true
-          : false,
-      };
-    });
+    return mergeRepos({ repos, starredRepos });
   }, [repos, starredRepos]);
 };
