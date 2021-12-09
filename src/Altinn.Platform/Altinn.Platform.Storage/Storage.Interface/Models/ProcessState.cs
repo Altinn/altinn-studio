@@ -41,5 +41,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "endEvent")]
         public string EndEvent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last flowtype.
+        /// </summary>
+        [JsonProperty(PropertyName = "flowType")]
+        public string FlowType { get; set; }
     }
 }
