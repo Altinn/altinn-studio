@@ -1,6 +1,6 @@
-using Microsoft.IdentityModel.Tokens;
-
 using System.Threading.Tasks;
+
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Common.AccessToken.Services
 {
@@ -14,6 +14,6 @@ namespace Altinn.Common.AccessToken.Services
         /// </summary>
         /// <param name="token">The token to validate</param>
         /// <returns>A boolean indicating the validity of the token</returns>
-        public Task<bool> ValidateAccessToken(string token);
+        public Task<bool> Validate(string token);
     }
 }

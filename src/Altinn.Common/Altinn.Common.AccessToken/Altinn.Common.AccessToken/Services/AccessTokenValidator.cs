@@ -1,17 +1,25 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+
 namespace Altinn.Common.AccessToken.Services
 {
+    /// <summary>
+    /// Service for access token validation
+    /// </summary>
     public class AccessTokenValidator : IAccessTokenValidator
     {
         private readonly ISigningKeysResolver _signingKeysResolver;
         private readonly ILogger<IAccessTokenValidator> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AccessTokenValidator"/> class.
+        /// </summary>
+        /// <param name="signingKeysResolver">The signing keys resolver</param>
+        /// <param name="logger">The logger</param>
         public AccessTokenValidator(
             ISigningKeysResolver signingKeysResolver,
             ILogger<IAccessTokenValidator> logger)
@@ -21,7 +29,7 @@ namespace Altinn.Common.AccessToken.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> ValidateAccessToken(string token)
+        public async Task<bool> Validate(string token)
         {
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
 
