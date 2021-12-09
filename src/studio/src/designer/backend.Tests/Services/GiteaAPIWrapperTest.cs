@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -301,6 +302,63 @@ namespace Designer.Tests.Services
             Assert.Equal(expectedResult, result);
         }
 
+        [Fact]
+        public async Task Get_Repository()
+        {
+            // Setting up the response message to get from Gitea for a repository request
+            Repository repository = GetRepositories().First();
+            HttpResponseMessage httpRepositoryResponseMessage = new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(repository), Encoding.UTF8, "application/json"),
+            };
+
+            // Configuring the mock handler to return the response message for repository requests
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            handlerMock
+              .Protected()
+              .Setup<Task<HttpResponseMessage>>(
+                 "SendAsync",
+                 ItExpr.IsAny<HttpRequestMessage>(),
+                 ItExpr.IsAny<CancellationToken>())
+              .ReturnsAsync(httpRepositoryResponseMessage)              
+              .Verifiable();
+
+            // Setting up the response message to get from Gitea for a organization request (which is done as part of getting the repository)
+            Organization organization = new Organization() { Username = "ttd", FullName = "Testdepartementet", Id = 658 };
+            HttpResponseMessage httpOrganizationResponseMessage = new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(organization), Encoding.UTF8, "application/json"),
+            };
+
+            // Configuring the mock handler to return the response message for organization requests.
+            // Note the org_ prefix added to the org code, this is how it needs to be when requesting a org from Gitea.
+            handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(request => request.Method == HttpMethod.Get && request.RequestUri.AbsolutePath.Contains("/orgs/org_ttd")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(httpOrganizationResponseMessage)
+                .Verifiable();
+
+            // Injecting the mock handler into a real http client
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri("http://altinn3.no/designer/api/v1/")
+            };
+
+            // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid GiteaAPIWrapper
+            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+
+            // Act
+            Repository result = await giteaApi.GetRepository("ttd", "repo");
+
+            // Assert
+            Assert.Equal(1769, result.Id);
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new List<Claim>();
@@ -329,7 +387,7 @@ namespace Designer.Tests.Services
             GiteaAPIWrapper service = new GiteaAPIWrapper(
                 repoSettings,
                 httpContextAccessorMock.Object,
-                new Mock<IMemoryCache>().Object,
+                new MemoryCache(new MemoryCacheOptions()),
                 new Mock<ILogger<GiteaAPIWrapper>>().Object,
                 c);
 
@@ -343,7 +401,7 @@ namespace Designer.Tests.Services
             if (File.Exists(path))
             {
                 string repositories = File.ReadAllText(path);
-                return JsonSerializer.Deserialize<List<Repository>>(repositories);
+                return JsonSerializer.Deserialize<List<Repository>>(repositories, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
             }
 
             return null;

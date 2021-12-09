@@ -751,9 +751,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     };
                 }
 
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-
                 // Keep in cache for this time, reset time if accessed.
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
                 // Save data in cache.
