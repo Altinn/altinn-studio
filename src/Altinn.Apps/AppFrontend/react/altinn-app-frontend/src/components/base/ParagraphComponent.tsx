@@ -14,6 +14,8 @@ export interface IParagraphProps {
 const useStyles = makeStyles({
   spacing: {
     letterSpacing: '0.3px',
+    maxWidth: '684px',
+    marginTop: '-12px',
   },
   // Class to override default stylings for headers created by markdown parsing. Done to align help text icon.
   typography: {

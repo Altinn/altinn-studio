@@ -68,7 +68,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            if (altinnGitRepository.GetRepositoryType().Result == Enums.AltinnRepositoryType.App)
             {
                 await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, jsonContent);
             }
@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            if (altinnGitRepository.GetRepositoryType().Result == Enums.AltinnRepositoryType.App)
             {
                 await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
                 
@@ -114,7 +114,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
+            // In case of null being passed in we default it to an empty string as the default value
+            // on the parameter does not apply if null is actually passed in.
+            relativeDirectory ??= string.Empty;
+
+            if (altinnGitRepository.GetRepositoryType().Result == Enums.AltinnRepositoryType.Datamodels)
             {
                 var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
                 JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
@@ -147,7 +151,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            if (altinnGitRepository.GetRepositoryType().Result == Enums.AltinnRepositoryType.App)
             {
                 var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
                 var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);

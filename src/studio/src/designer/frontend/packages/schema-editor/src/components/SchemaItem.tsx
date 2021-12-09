@@ -3,8 +3,8 @@ import * as React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProperty, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
-import { ILanguage, ISchemaState, PropertyType, UiSchemaItem } from '../types';
+import { addCombinationItem, addProperty, deleteCombinationItem, deleteProperty, navigateToType, promoteProperty, setSelectedId } from '../features/editor/schemaEditorSlice';
+import { ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils';
 
@@ -142,28 +142,61 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(promoteProperty({ path: item.path }));
   };
   const handleDeleteClick = () => {
-    dispatch(deleteProperty({ path: item.path }));
+    if (item.combinationItem) {
+      dispatch(deleteCombinationItem({ path: item.path }));
+    } else {
+      dispatch(deleteProperty({ path: item.path }));
+    }
   };
 
-  const handleAddProperty = (type: PropertyType) => {
-    dispatch(addProperty({
-      path: itemToDisplay.path,
+  const handleAddProperty = (type: ObjectKind) => {
+    const path = itemToDisplay.path;
+    const propertyProps = {
       type: (type === 'field' ? 'object' : undefined),
       $ref: (type === 'reference' ? '' : undefined),
-    }));
+      combination: (type === 'combination' ? [] : undefined),
+      combinationKind: (type === 'combination' ? 'allOf' : undefined),
+    } as UiSchemaItem;
+
+    if (itemToDisplay.combination) {
+      dispatch(addCombinationItem({
+        path,
+        props: propertyProps,
+      }));
+    } else {
+      dispatch(addProperty({
+        path,
+        props: propertyProps,
+      }));
+    }
   };
 
   const handleGoToType = () => {
-    dispatch(navigateToType({
-      id: item?.$ref,
-    }));
+    if (item.$ref) {
+      dispatch(navigateToType({
+        id: item.$ref,
+      }));
+    }
   };
 
   const getIconStr = () => {
     const type = item.type;
-    if (type !== 'array' && refItem) {
+    if (type !== 'array' && item.$ref !== undefined) {
       return 'fa-datamodel-ref';
     }
+
+    if (item.combination) {
+      return 'fa-group';
+    }
+
+    if (item.type === 'integer') {
+      return 'fa-datamodel-number';
+    }
+
+    if (type === 'null') {
+      return 'fa-datamodel-object';
+    }
+
     return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
   };
 
@@ -183,6 +216,9 @@ function SchemaItem(props: SchemaItemProps) {
     if (itemToDisplay.properties) {
       items.push(renderProperties(itemToDisplay.properties));
     }
+    if (item.combination) {
+      items.push(renderProperties(item.combination));
+    }
     return items;
   };
   return (
@@ -192,11 +228,14 @@ function SchemaItem(props: SchemaItemProps) {
         language={props.language}
         icon={getIconStr()}
         label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
-        onAddProperty={(item.type !== 'object') ? undefined : handleAddProperty}
+        onAddProperty={(item.type === 'object') ? handleAddProperty : undefined}
+        onAddReference={(item.type === 'object' || (item.combination)) ? handleAddProperty : undefined}
+        onAddCombination={(item.type === 'object') ? handleAddProperty : undefined}
         onDelete={handleDeleteClick}
         onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         onGoToType={(item.$ref && isPropertiesView) ? handleGoToType : undefined}
         key={`${item.path}-label`}
+        limitedItem={item.combinationItem}
       />}
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
       key={item.path}
