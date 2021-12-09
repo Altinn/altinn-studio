@@ -3,7 +3,6 @@ import getNamesFromLocation from './getNamesFromLocation';
 const cdn = 'https://altinncdn.no';
 export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-blue.svg`;
-export const altinnWhiteImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-white.svg`;
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
 
 export const sharedUrls = () => {
