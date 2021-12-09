@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
     /// <summary>
-    /// The Policy Administration Point responsible for storing and modifying delegation policies
+    /// The Policy Information Point responsible for storing and modifying delegation policies
     /// </summary>
     public class PolicyInformationPoint : IPolicyInformationPoint
     {
