@@ -82,7 +82,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton className={classes.iconButton} onClick={openMenu}>
+          <IconButton id='profile-icon-button' className={classes.iconButton} onClick={openMenu}>
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}
@@ -97,6 +97,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
         onClose={closeMenu}
       >
         <MenuItem
+          id='menu-all'
           selected={selectedContext === SelectedContextType.All}
           onClick={() => handleSetSelectedContext(SelectedContextType.All)}
         >
@@ -105,6 +106,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
         {selectableOrgs?.map((org) => {
           return (
             <MenuItem
+              id={'menu-org-' + org.id}
               selected={selectedContext === org.id}
               key={org.id}
               onClick={() => handleSetSelectedContext(org.id)}
@@ -114,6 +116,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           );
         })}
         <MenuItem
+          id='menu-self'
           selected={selectedContext === SelectedContextType.Self}
           onClick={() => handleSetSelectedContext(SelectedContextType.Self)}
         >
@@ -121,7 +124,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
         </MenuItem>
         <Divider />
         <MenuItem key='placeholder' style={{ display: 'none' }} />
-        <MenuItem>
+        <MenuItem id='menu-gitea'>
           <a
             href={sharedUrls().repositoryUrl}
             target='_blank'
@@ -130,7 +133,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
             {getLanguageFromKey('shared.header_go_to_gitea', language)}
           </a>
         </MenuItem>
-        <MenuItem onClick={handleLogout}>
+        <MenuItem id='menu-logout' onClick={handleLogout}>
           {getLanguageFromKey('shared.header_logout', language)}
         </MenuItem>
       </AltinnMenu>
