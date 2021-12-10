@@ -8,7 +8,6 @@ type Filters = {
   order?: string;
   page?: number;
   limit?: number;
-  not?: string;
 };
 
 type QueryResult = {
