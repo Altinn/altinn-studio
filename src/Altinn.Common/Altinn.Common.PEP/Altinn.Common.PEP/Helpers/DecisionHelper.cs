@@ -168,7 +168,7 @@ namespace Altinn.Common.PEP.Helpers
 
             if (!string.IsNullOrWhiteSpace(task))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.TaskId, app, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.TaskId, task, DefaultType, DefaultIssuer));
             }
 
             return resourceCategory;
