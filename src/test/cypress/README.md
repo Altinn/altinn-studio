@@ -47,19 +47,19 @@ The commands should be run in an order that makes sure the tests are intact on t
 1. Setup: Before all the tests
 
 ```cmd
-    yarn run before:all
+    yarn run before:all -e environment=local
 ```
 
 2. Tests on different solutions of studio
 
 ```cmd
-    yarn run test:studio --env=local
+    yarn run test:studio -e environment=local,component=studio
 ```
 
 3. Cleanup: After all the tests
 
 ```cmd
-    yarn run after:all
+    yarn run after:all -e environment=local
 ```
 
 ### Run App Frontend tests
@@ -89,24 +89,24 @@ If one has the frontend dependencies installed from before, run the below comman
 4. Start the app frontend tests from a new git bash terminal.
 
 ```cmd
-    yarn run test:appfrontend --env=local
+    yarn run test:appfrontend -e environment=local,component=appfrontend
 ```
 
 To run the tests towards AT21, an altinn user credential has to be supplied [here](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress#test-data-prerequisite).
 
 ```cmd
-    yarn run test:appfrontend --env=at21
+    yarn run test:appfrontend -e environment=at21,component=appfrontend
 ```
 
 5. To run a single test case open cypress runner using
 
 ```cmd
-    yarn run cy:open --env=local --component=appfrontend
+    yarn run cy:open -e environment=local,component=appfrontend
 ```
 
 ### Format files with prettier
 
 ```cmd
-    yarn run check # For checking the files deviating standards
-    yarn run format # format and save the files based on config
+    yarn run prettier:check # For checking the files deviating standards
+    yarn run prettier:format # format and save the files based on config
 ```
