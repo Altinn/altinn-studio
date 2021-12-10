@@ -11,7 +11,7 @@ namespace Altinn.Platform.Authentication.Model
         public string Token { get; set; }
 
         /// <summary>
-        /// token_type_hint
+        /// Gets or sets the token type hint
         /// </summary>
         public string TokenTypeHint { get; set; }
     }
