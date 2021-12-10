@@ -174,7 +174,6 @@ export const RepoList = ({
         field: 'updated_at',
         headerName: getLanguageFromKey('dashboard.last_modified', language),
         width: 150,
-        editable: true,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
