@@ -43,8 +43,6 @@ namespace Altinn.Platform.Authentication.Controllers
             switch (request.TokenTypeHint)
             {
                 case "eFormidlingAccessToken":
-                    response = await ValidateEFormidlingAccessToken(token);
-                    break;
                 default:
                     // default behavior must try to  validate against all supported token types
                     response = await ValidateEFormidlingAccessToken(token);
