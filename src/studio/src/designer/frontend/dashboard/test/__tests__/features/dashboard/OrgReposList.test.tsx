@@ -14,10 +14,22 @@ jest.spyOn(repoApi, 'useGetSearchQuery').
       data: [{
         full_name: "test",
         id: 4,
+        owner: {
+          full_name: 'ttd'
+        },
+        html_url: '',
+        user_has_starred: false,
+        updated_at: '2021-07-30T10:33:47Z'
       },
       {
         full_name: "test-datamodels",
         id: 3,
+        owner: {
+          full_name: 'ttd'
+        },
+        html_url: '',
+        user_has_starred: true,
+        updated_at: '2021-07-30T10:33:47Z'
       }],
       isLoading: false
     }));
