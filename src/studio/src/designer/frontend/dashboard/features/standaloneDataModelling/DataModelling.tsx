@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { RouteChildrenProps, useParams } from 'react-router-dom';
 import { DataModelling } from 'app-shared/features';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
+import { useAppDispatch } from 'common/hooks';
 
 type IStandaloneDataModellingProps = Partial<RouteChildrenProps> & {
   language: any;
@@ -22,7 +23,7 @@ const styles = createStyles({
 });
 
 const DataModellingContainer = ({ classes, language }: IStandaloneDataModellingProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
 
   const { org, repoName } = useParams() as IOrgRepoType;
@@ -48,5 +49,7 @@ const mapStateToProps = (
     language: state.language.language,
   };
 };
-const standaloneDataModelling = connect(mapStateToProps)(DataModellingContainer);
+const standaloneDataModelling = connect(mapStateToProps)(
+  DataModellingContainer,
+);
 export default withStyles(styles)(standaloneDataModelling);

@@ -1,17 +1,20 @@
-import { createStore, Store } from 'redux';
-import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
-import setupMiddlewares from 'app-shared/utils/middleware/setupMiddlewares';
-import reducers from '../reducers';
+import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
+import { rootReducer } from '../reducers/rootReducer';
+import { sagaMiddleware } from '../sagas/rootSaga';
 
-export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
-export const store: Store<IDashboardAppState> = configureStore();
+import { designerApi } from 'services/designerApi';
 
-function configureStore(initialState?: any): Store<IDashboardAppState> {
-  const enhancer = setupMiddlewares([sagaMiddleware]);
+const middlewares = [sagaMiddleware, designerApi.middleware];
 
-  return createStore(
-    reducers,
-    initialState,
-    enhancer,
-  );
-}
+export const store = configureStore({
+  reducer: rootReducer,
+  devTools: process.env.NODE_ENV !== 'production',
+  middleware: (getDefaultMiddleware: () => any[]) =>
+    getDefaultMiddleware().concat(middlewares),
+});
+
+setupListeners(store.dispatch);
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
