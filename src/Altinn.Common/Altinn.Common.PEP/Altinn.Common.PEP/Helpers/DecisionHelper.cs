@@ -42,8 +42,9 @@ namespace Altinn.Common.PEP.Helpers
         /// <param name="actionType">Policy action type i.e. read, write, delete, instantiate.</param>
         /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceGuid">Unique id to identify the instance.</param>
+        /// <param name="taskid">The taskid. Will override contexthandler if present</param>
         /// <returns>The decision request.</returns>
-        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, int instanceOwnerPartyId, Guid? instanceGuid)
+        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, int instanceOwnerPartyId, Guid? instanceGuid, string taskid = null)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -52,7 +53,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(user.Claims));
             request.Action.Add(CreateActionCategory(actionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId.ToString(), instanceGuid.ToString()));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId.ToString(), instanceGuid.ToString(), taskid));
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
@@ -90,7 +91,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
             request.Action.Add(CreateActionCategory(requirement.ActionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid, null));
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
@@ -140,7 +141,7 @@ namespace Altinn.Common.PEP.Helpers
             return attributes;
         }
 
-        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
+        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, string task, bool includeResult = false)
         {
             XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
             resourceCategory.Attribute = new List<XacmlJsonAttribute>();
@@ -163,6 +164,11 @@ namespace Altinn.Common.PEP.Helpers
             if (!string.IsNullOrWhiteSpace(app))
             {
                 resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
+            }
+
+            if (!string.IsNullOrWhiteSpace(task))
+            {
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.TaskId, app, DefaultType, DefaultIssuer));
             }
 
             return resourceCategory;
