@@ -467,7 +467,26 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Instance does not have current altinn task type information!");
                 }
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
+                ProcessSequenceFlowType processSequenceFlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext;
+                string targetElement = processHelper.GetValidNextElementOrError(instance.Process.CurrentTask?.ElementId, elementId, out ProcessError processError);
+                string targetElementType = null;
+
+                if (!string.IsNullOrEmpty(elementId) && processError == null)
+                {
+                    processSequenceFlowType = processHelper.GetSequenceFlowType(instance.Process.CurrentTask?.ElementId, targetElement);
+                }
+
+                bool authorized = false;
+                if (processSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
+                { 
+                    authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
+                }
+                else
+                {
+                    ElementInfo elemInfo = processHelper.Process.GetElementInfo(targetElement);
+                    authorized = await AuthorizeAction(elemInfo.AltinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, elemInfo.Id);
+                }
+
                 if (!authorized)
                 {
                     return Forbid();
