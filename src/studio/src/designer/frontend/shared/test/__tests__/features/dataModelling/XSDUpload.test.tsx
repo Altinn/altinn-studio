@@ -16,7 +16,7 @@ const defaultProps = {
   },
   org: 'test-org',
   repo: 'test-repo',
-  onXSDUploaded: () => {},
+  onXSDUploaded: jest.fn(),
 };
 
 const mockAnchorEl = document.getElementsByTagName('body')[0];
@@ -49,7 +49,7 @@ describe('XSDUpload', () => {
   it('should show uploading spinner and hide file picker when file upload is in progress', () => {
     const wrapper = mountComponent();
 
-    mockedAxios.post.mockImplementation(() => new Promise(() => {}));
+    mockedAxios.post.mockImplementation(() => new Promise(jest.fn()));
 
     wrapper.find(TopToolbarButton).simulate('click', { currentTarget: mockAnchorEl });
 

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { RouteChildrenProps, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { DataModelling } from 'app-shared/features';
 import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
 import { useAppDispatch } from 'common/hooks';
 
-type IStandaloneDataModellingProps = Partial<RouteChildrenProps> & {
+interface IStandaloneDataModellingProps {
   language: any;
   classes: any;
 }
@@ -22,7 +22,10 @@ const styles = createStyles({
   },
 });
 
-const DataModellingContainer = ({ classes, language }: IStandaloneDataModellingProps) => {
+const DataModellingContainer = ({
+  classes,
+  language,
+}: IStandaloneDataModellingProps) => {
   const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
 
