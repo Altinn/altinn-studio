@@ -8,6 +8,7 @@ import {
   GridValueGetterParams,
   GridValueFormatterParams,
   GridColDef,
+  GridOverlay,
 } from '@mui/x-data-grid';
 import { makeStyles } from '@material-ui/core';
 import { IconButton } from '@mui/material';
@@ -93,6 +94,16 @@ const gridStyleOverride = {
     outline: 'none',
   },
 };
+
+export const NoResults = (language: any) => {
+  return (
+    <GridOverlay>
+      <p>
+        {getLanguageFromKey('dashboard.no_repos_result', language)}
+      </p>
+    </GridOverlay>
+  );
+}
 
 export const RepoList = ({
   repos = defaultArray,
@@ -254,6 +265,9 @@ export const RepoList = ({
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
+          components={{
+            NoRowsOverlay: NoResults(language),
+          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -272,6 +286,9 @@ export const RepoList = ({
         />
       ) : (
         <DataGrid
+          components={{
+            NoRowsOverlay: NoResults(language),
+          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
