@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -7,7 +7,7 @@
     <FileVersion>1.0.39.0</FileVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{92f10f90-79c5-459f-8238-0ec4d02aa93c}</ProjectGuid>
-    
+    <IsPackable>true</IsPackable>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.PEP</PackageId>
     <PackageVersion>1.0.39-alpha</PackageVersion>
