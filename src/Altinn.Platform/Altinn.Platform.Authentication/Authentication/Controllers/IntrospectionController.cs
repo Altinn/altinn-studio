@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Platform.Authentication.Controllers
 {
     /// <summary>
-    /// Handles the authentication of requests to platform
+    /// Controller for introspection requests to Platform Authentication
     /// </summary>
     [Route("authentication/api/v1/introspection")]
     [ApiController]
