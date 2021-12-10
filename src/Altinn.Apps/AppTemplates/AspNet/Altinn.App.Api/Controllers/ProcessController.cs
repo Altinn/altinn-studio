@@ -126,7 +126,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
         /// <returns>The process state</returns>
-        [HttpPost("start")]
+        [HttpPost("startold")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -181,7 +181,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
         /// <returns>The process state</returns>
-        [HttpPost("startv2")]
+        [HttpPost("start")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -306,7 +306,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
         /// but must be specified if more than one element can be reached from the current process ellement.</param>
-        [HttpPut("next")]
+        [HttpPut("nextold")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -426,7 +426,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
         /// but must be specified if more than one element can be reached from the current process ellement.</param>
-        [HttpPut("nextv2")]
+        [HttpPut("next")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -469,7 +469,6 @@ namespace Altinn.App.Api.Controllers
 
                 ProcessSequenceFlowType processSequenceFlowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext;
                 string targetElement = processHelper.GetValidNextElementOrError(instance.Process.CurrentTask?.ElementId, elementId, out ProcessError processError);
-                string targetElementType = null;
 
                 if (!string.IsNullOrEmpty(elementId) && processError == null)
                 {
@@ -523,7 +522,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>current process status</returns>
-        [HttpPut("completeProcess")]
+        [HttpPut("completeProcessold")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -633,7 +632,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>current process status</returns>
-        [HttpPut("completeProcessv2")]
+        [HttpPut("completeProcess")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
