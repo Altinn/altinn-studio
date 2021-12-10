@@ -1356,7 +1356,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool forceOidc = false, string defaultOidc = "altinn")
-        {/*
+        {
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
@@ -1391,8 +1391,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-            return client;*/
-            return null;
+            return client;
         }
 
         private static string GetConfigPath()
