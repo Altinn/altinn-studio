@@ -95,7 +95,8 @@ const gridStyleOverride = {
   },
 };
 
-export const NoResults = (language: any) => {
+export const NoResults = () => {
+  const language = useAppSelector((state) => state.language.language);
   return (
     <GridOverlay>
       <p>
@@ -266,7 +267,7 @@ export const RepoList = ({
       {isServerSort ? (
         <DataGrid
           components={{
-            NoRowsOverlay: NoResults(language),
+            NoRowsOverlay: NoResults,
           }}
           autoHeight={true}
           loading={isLoading}
@@ -287,7 +288,7 @@ export const RepoList = ({
       ) : (
         <DataGrid
           components={{
-            NoRowsOverlay: NoResults(language),
+            NoRowsOverlay: NoResults,
           }}
           autoHeight={true}
           loading={isLoading}
