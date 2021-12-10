@@ -246,7 +246,8 @@ export const RepoList = ({
 
           if (isDatamodelling) {
             // TODO: remove this weird logic once standalone datamodelling is OK
-            colItems.splice(1);
+            // hides context menu and edit app as neither is applicable just yet
+            return colItems.splice(0, 1);
           }
 
          return colItems;
