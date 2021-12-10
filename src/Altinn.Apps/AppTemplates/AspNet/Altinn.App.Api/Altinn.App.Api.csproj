@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.1-alpha" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.39-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2-alpha" />
   </ItemGroup>
 
   <ItemGroup>

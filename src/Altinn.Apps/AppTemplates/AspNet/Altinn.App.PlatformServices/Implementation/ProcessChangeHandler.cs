@@ -415,6 +415,7 @@ namespace Altinn.App.PlatformServices.Implementation
                     Started = now,
                     AltinnTaskType = nextElementInfo.AltinnTaskType,
                     Validated = null,
+                    FlowType = sequenceFlowType.ToString(),
                 };
 
                 events.Add(GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user));
@@ -422,7 +423,6 @@ namespace Altinn.App.PlatformServices.Implementation
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
             instance.Process = currentState;
-            instance.Process.FlowType = sequenceFlowType.ToString();
 
             return events;
         }

@@ -347,7 +347,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Instance does not have current altinn task type information!");
                 }
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, taskIdToAuthorize);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
                 if (!authorized)
                 {
                     return Forbid();
