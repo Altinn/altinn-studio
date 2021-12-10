@@ -10,7 +10,7 @@
     
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.PEP</PackageId>
-    <PackageVersion>1.0.38-alpha</PackageVersion>
+    <PackageVersion>1.0.39-alpha</PackageVersion>
     <PackageTags>Altinn;Studio;Authorization;Policy;Enforcement;Point</PackageTags>
     <Description>
       Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.
