@@ -48,7 +48,7 @@ namespace Altinn.Common.AccessToken.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Failed to validate token.", ex);
+                _logger.LogWarning(ex, "Failed to validate token from issuer {Issuer}.", jwt.Issuer);
             }
 
             return false;
