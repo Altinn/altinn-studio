@@ -54,7 +54,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
         /// <summary>
         /// Scenario : Validate token called with an invalid token
         /// Expected : No further manipulation of the response object in service
-        /// Success Result: Inspection response contains active = false and no issuer.
+        /// Success Result: Inspection response contains active = false
         /// </summary>
         [Fact]
         public async Task ValidateToken_InvalidToken_ActiveFalse()

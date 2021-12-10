@@ -2,12 +2,12 @@ using Altinn.Platform.Authentication.Model;
 
 using Xunit;
 
-namespace Altinn.Platform.Authentication.Tests.Utils
+namespace Altinn.Platform.Authentication.Tests.Helpers
 {
     /// <summary>
     /// Util class for assertion.
     /// </summary>
-    public static class AssertUtil
+    public static class AdvancedAsserts
     {
         /// <summary>
         /// Asserts that two introspection responses as equal

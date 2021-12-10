@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
-using Altinn.Platform.Authentication.Tests.Utils;
+using Altinn.Platform.Authentication.Tests.Helpers;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -76,7 +76,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-            AssertUtil.Equal(expected, actual);
+            AdvancedAsserts.Equal(expected, actual);
             _eformidlingValidatorService.Verify(efvs => efvs.ValidateToken(It.IsAny<string>()), Times.Once());
         }
 
