@@ -104,15 +104,29 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
-type NameInUseProps = { parentSchema: UiSchemaItem | null, path: string, name: string };
-export const isNameInUse = ({ parentSchema, path, name}: NameInUseProps) => {
+type NameInUseProps = {uiSchemaItems: UiSchemaItem[], parentSchema: UiSchemaItem | null, path: string, name: string };
+export const isNameInUse = ({ uiSchemaItems, parentSchema, path, name}: NameInUseProps) => {
   // Check if the parent node has other children with the same name.
-  if (parentSchema?.properties?.some((p) => p.displayName === name && p.path !== path)) {
+  if (parentSchema?.properties?.some((prop) => prop.displayName === name && prop.path !== path)) {
+    return true;
+  } else if (isPathOnPropertiesRoot(path) && uiSchemaItems.some((schemaItem) => schemaItem.displayName === name && schemaItem.path !== path)) {
+    return true;
+  } else if (isPathOnDefinitionsRoot(path) && uiSchemaItems.some((schemaItem) => schemaItem.displayName === name && schemaItem.path !== path)) {
     return true;
   }
   
   return false;
 };
+
+export const isPathOnPropertiesRoot = (path: string) => {
+  const noOfMatches: number = ((path || '').match(/^#\/properties\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  return noOfMatches === 1 ? true : false;
+}
+
+export const isPathOnDefinitionsRoot = (path: string) => {
+  const noOfMatches: number = ((path || '').match(/^#\/definitions\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  return noOfMatches === 1 ? true : false;
+}
 
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
@@ -161,6 +175,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return null;
   });
 
+  const uiSchema = useSelector((state: ISchemaState) => {
+    return state.uiSchema;
+  });
+
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
@@ -199,7 +217,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: isNaN(value) ? value : +value,
       key,
     };
-    dispatch(setRestriction(data));
+    dispatch(setRestriction(data)); 
   };
 
   const onChangeRef = (path: string, ref: string) => {
@@ -238,7 +256,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
   };
 
   const onChangeNodeName = () => {
-    if (isNameInUse({parentSchema: parentItem, path: selectedId,  name: nodeName})) {
+    if (isNameInUse({uiSchemaItems: uiSchema, parentSchema: parentItem, path: selectedId,  name: nodeName})) {
       setNameError('Name already in use');
       return;
     }
