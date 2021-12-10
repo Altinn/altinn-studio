@@ -126,13 +126,10 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton(eFormidlingAccessValidatorMock);
-
                 });
-
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
             return client;
         }
-
     }
 }

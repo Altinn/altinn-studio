@@ -33,7 +33,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Produces("application/json")]
-        [Consumes("application/x-www-form-urlencoded") ]
+        [Consumes("application/x-www-form-urlencoded")]
         [ProducesResponseType(typeof(IntrospectionResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<IntrospectionResponse>> ValidateToken([FromForm] IntrospectionRequest request)
         {
