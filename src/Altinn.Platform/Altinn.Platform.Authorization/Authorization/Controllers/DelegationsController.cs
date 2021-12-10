@@ -91,7 +91,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        ////[Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/GetRules")]
         public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleQuery ruleQuery, [FromQuery] bool onlyDirectDelegations = false)
         {
@@ -99,6 +99,16 @@ namespace Altinn.Platform.Authorization.Controllers
             List<int> coveredByUserIds = new List<int>();
             List<int> offeredByPartyIds = new List<int>();
             List<string> appIds = new List<string>();
+
+            if (ruleQuery.KeyRolePartyIds.Any(id => id != 0))
+            {
+                coveredByPartyIds.AddRange(ruleQuery.KeyRolePartyIds);
+            }
+
+            if (ruleQuery.ParentPartyId != 0)
+            {
+                offeredByPartyIds.Add(ruleQuery.ParentPartyId);
+            }
 
             foreach (PolicyMatch policyMatch in ruleQuery.PolicyMatches)
             {
@@ -116,16 +126,6 @@ namespace Altinn.Platform.Authorization.Controllers
                 else if (DelegationHelper.TryGetCoveredByUserIdFromMatch(policyMatch.CoveredBy, out int userId))
                 {
                     coveredByUserIds.Add(userId);
-                }
-
-                if (ruleQuery.KeyRolePartyIds.Any(id => id != 0))
-                {
-                    coveredByPartyIds.AddRange(ruleQuery.KeyRolePartyIds);
-                }
-
-                if (ruleQuery.ParentPartyId != 0)
-                {
-                    offeredByPartyIds.Add(ruleQuery.ParentPartyId);
                 }
 
                 if (policyMatch.OfferedByPartyId != 0)
