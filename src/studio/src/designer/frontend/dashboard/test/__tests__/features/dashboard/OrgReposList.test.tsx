@@ -12,8 +12,15 @@ jest.spyOn(repoApi, 'useGetSearchQuery').
   mockImplementation(jest.fn().mockReturnValue(
     {
       data: [{
-        full_name: "Blodseriøs",
+        full_name: "test",
         id: 4,
+      }],
+      isLoading: false
+    },
+    {
+      data: [{
+        full_name: "test-datamodels",
+        id: 3,
       }],
       isLoading: false
     }));
