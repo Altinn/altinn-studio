@@ -5,7 +5,7 @@ import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper
 import { AltinnRadioGroup } from 'app-shared/components/AltinnRadioGroup';
 import { AltinnRadio } from 'app-shared/components/AltinnRadio';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'app/hooks';
+import { useAppSelector } from 'common/hooks';
 
 export enum DataModellingFormat {
   JSON = 'json',

@@ -3,7 +3,7 @@ import { DataModelling } from 'app-shared/features';
 import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
-import { useAppDispatch } from 'app/hooks';
+import { useAppDispatch } from 'common/hooks';
 
 interface IStandaloneDataModellingProps {
   language: any;

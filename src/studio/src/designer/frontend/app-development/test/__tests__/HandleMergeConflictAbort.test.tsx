@@ -33,12 +33,9 @@ describe('HandleMergeConflictAbort', () => {
     const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
 
     // Mocks
-    const mockData = {
-      isSuccessStatusCode: true,
-    };
     const getStub = jest.fn();
     const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve(mockData));
+    getStub.mockReturnValue(Promise.resolve());
 
     // Expected no result from networking yet
     expect(instance.state.networkingRes).toEqual(null);
@@ -72,7 +69,6 @@ describe('HandleMergeConflictAbort', () => {
     // Expect state to change
     expect(instance.state.popoverState.isLoading).toEqual(false);
     expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(true);
-    expect(instance.state.networkingRes.isSuccessStatusCode).toEqual(true);
 
   });
 
@@ -90,12 +86,9 @@ describe('HandleMergeConflictAbort', () => {
     const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
 
     // Mocks
-    const mockData = {
-      isSuccessStatusCode: false,
-    };
     const getStub = jest.fn();
     const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve(mockData));
+    getStub.mockReturnValue(Promise.reject());
 
     // Expected no result from networking yet
     expect(instance.state.networkingRes).toEqual(null);
@@ -129,7 +122,6 @@ describe('HandleMergeConflictAbort', () => {
     // Expect state to change
     expect(instance.state.popoverState.isLoading).toEqual(false);
     expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-    expect(instance.state.networkingRes.isSuccessStatusCode).toEqual(false);
     expect(consoleError).toHaveBeenCalled();
 
   });

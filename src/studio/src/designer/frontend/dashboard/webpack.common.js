@@ -20,6 +20,7 @@ module.exports = {
       app: path.resolve(__dirname, './app/'),
       features: path.resolve(__dirname, './features/'),
       common: path.resolve(__dirname, './common/'),
+      services: path.resolve(__dirname, './services/'),
       '@altinn/schema-editor': path.resolve(
         __dirname,
         '../packages/schema-editor/src/',

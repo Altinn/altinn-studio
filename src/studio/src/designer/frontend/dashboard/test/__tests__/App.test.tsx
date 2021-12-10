@@ -4,34 +4,48 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';
-import AppBarComponent from '../../../shared/navigation/main-header/appBar';
+import { Header } from 'app-shared/navigation/main-header/Header';
 
 import { App } from 'app/App';
 
 describe('Dashboard > App', () => {
   let store: any;
-  const dispatchMock = () => Promise.resolve({});
-  const initialState = {
-    dashboard: {
-      user: {
-        full_name: 'John Smith',
-        login: 'johnsmith',
-      },
-    },
-  };
 
-  const mountComponent = () =>
-    mount(
+  const mountComponent = (extraInitialState = {}) => {
+    const dispatchMock = () => Promise.resolve({});
+    const initialState = {
+      dashboard: {
+        user: {
+          full_name: 'John Smith',
+          login: 'johnsmith',
+        },
+      },
+      designerApi: {},
+      language: {
+        language: {
+          dashboard: {
+            loading: 'loading',
+            logout: 'logout',
+          },
+        },
+      },
+    };
+
+    const mergedState = {
+      ...initialState,
+      ...extraInitialState,
+    };
+
+    store = configureStore()(mergedState);
+    store.dispatch = jest.fn(dispatchMock);
+
+    return mount(
       <Provider store={store}>
         <App />
       </Provider>,
       { context: { store } },
     );
-
-  beforeEach(() => {
-    store = configureStore()(initialState);
-    store.dispatch = jest.fn(dispatchMock);
-  });
+  };
 
   it('should call dispatch on mount to setup initial data', () => {
     act(() => {
@@ -39,55 +53,30 @@ describe('Dashboard > App', () => {
     });
 
     expect(store.dispatch).toHaveBeenCalledTimes(4);
-    expect(store.dispatch).toHaveBeenNthCalledWith(1, {
-      payload: { url: 'http://localhost/designerapi/User/Current' },
+    expect(store.dispatch).toHaveBeenNthCalledWith(2, {
+      payload: { url: 'http://localhost/designer/api/v1/user/current' },
       type: 'dashboard/fetchCurrentUser',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(2, {
+    expect(store.dispatch).toHaveBeenNthCalledWith(3, {
       payload: {
         languageCode: 'nb',
         url: 'http://localhost/designerapi/Language/GetLanguageAsJSON',
       },
       type: 'language/fetchLanguage',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(3, {
-      payload: { url: 'http://localhost/designerapi/Repository/UserRepos' },
+    expect(store.dispatch).toHaveBeenNthCalledWith(4, {
+      payload: { url: 'http://localhost/designer/api/v1/user/repos' },
       type: 'dashboard/fetchServices',
     });
-    expect(store.dispatch).toHaveBeenNthCalledWith(4, {
-      payload: { url: 'http://localhost/designerapi/Repository/Organizations' },
-      type: 'dashboard/fetchOrganisations',
-    });
   });
 
-  it('should set AppBarComponent org to user.full_name if set', () => {
+  it('should show waiting while user and orgs are not loaded', () => {
     let component: any;
     act(() => {
       component = mountComponent();
     });
 
-    const appBarProps = component.find(AppBarComponent).props();
-
-    expect(appBarProps.org).toBe('John Smith');
-  });
-
-  it('should set AppBarComponent org to user.login when user.full_name is not set', () => {
-    const storeState = {
-      dashboard: {
-        user: {
-          login: 'johnsmith',
-        },
-      },
-    };
-
-    store = configureStore()(storeState);
-    let component: any;
-    act(() => {
-      component = mountComponent();
-    });
-
-    const appBarProps = component.find(AppBarComponent).props();
-
-    expect(appBarProps.org).toBe('johnsmith');
+    expect(component.find(Header).exists()).toBe(false);
+    expect(component.text()).toEqual('loading');
   });
 });

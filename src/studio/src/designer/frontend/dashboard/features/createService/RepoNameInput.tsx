@@ -5,7 +5,7 @@ import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'app/hooks';
+import { useAppSelector } from 'common/hooks';
 
 const zIndex = {
   zIndex: 1300,

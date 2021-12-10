@@ -1,15 +1,14 @@
 import * as React from 'react';
 
-import {
-  User,
-  Organisations,
-} from '../../resources/fetchDashboardResources/dashboardSlice';
+import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 
+import { IGiteaOrganisation } from 'app-shared/types';
 import AltinnDropdown from 'app-shared/components/AltinnDropdown';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useGetOrganizationsQuery } from 'services/organizationApi';
 
-import { useAppSelector } from 'app/hooks';
+import { useAppSelector } from 'common/hooks';
 
 const zIndex = {
   zIndex: 1300,
@@ -23,7 +22,7 @@ type ServiceOwnerSelectorProps = {
 
 type CombineCurrentUserAndOrg = {
   user: User;
-  organisations: Organisations;
+  organisations: IGiteaOrganisation[];
 };
 
 const combineCurrentUserAndOrg = ({
@@ -49,9 +48,8 @@ export const ServiceOwnerSelector = ({
   errorMessage,
   selectedOrgOrUser,
 }: ServiceOwnerSelectorProps) => {
-  const organisations = useAppSelector(
-    (state) => state.dashboard.organisations,
-  );
+  const { data: organisations } = useGetOrganizationsQuery();
+
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
 

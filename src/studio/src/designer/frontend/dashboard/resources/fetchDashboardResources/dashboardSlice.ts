@@ -1,6 +1,6 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IRepository } from 'app-shared/types';
+import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 export type User = {
   avatar_url: string;
@@ -10,18 +10,19 @@ export type User = {
   login: string;
 };
 
-export type Organisations = Array<string>;
+export type SelectedContext = SelectedContextType | number;
 
 export interface IDashboardState {
   services: IRepository[];
   user?: User;
-  organisations: Organisations;
+  /* all, self or org-id*/
+  selectedContext: SelectedContext;
 }
 
 const initialState: IDashboardState = {
   services: [],
   user: null,
-  organisations: [],
+  selectedContext: SelectedContextType.All,
 };
 
 export interface IFetchDashboardInfoAction {
@@ -36,6 +37,10 @@ export interface IFetchDashboardInfoActionRejected {
   error: Error;
 }
 
+export interface ISetSelectedContext {
+  selectedContext: SelectedContext;
+}
+
 const moduleName = 'dashboard';
 const dashboardSlice = createSlice({
   name: moduleName,
@@ -48,19 +53,16 @@ const dashboardSlice = createSlice({
       const { info } = action.payload;
       state.user = info;
     },
-    fetchOrganisationsFulfilled: (
-      state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
-    ) => {
-      const { info } = action.payload;
-      state.organisations = info;
-    },
     fetchServicesFulfilled: (
       state,
       action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
     ) => {
       const { info } = action.payload;
       state.services = info;
+    },
+    setSelectedContext: (state, action: PayloadAction<ISetSelectedContext>) => {
+      const { selectedContext } = action.payload;
+      state.selectedContext = selectedContext;
     },
   },
 });
@@ -71,12 +73,6 @@ const actions = {
   ),
   fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(
     `${moduleName}/fetchCurrentUserRejected`,
-  ),
-  fetchOrganisations: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchOrganisations`,
-  ),
-  fetchOrganisationsRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchOrganisationsRejected`,
   ),
   fetchServices: createAction<IFetchDashboardInfoAction>(
     `${moduleName}/fetchServices`,

@@ -3,7 +3,7 @@ import { Grid } from '@material-ui/core';
 import * as React from 'react';
 import { AxiosError } from 'axios';
 
-import { useAppSelector } from 'app/hooks';
+import { useAppSelector } from 'common/hooks';
 
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
@@ -124,7 +124,7 @@ export const CreateService = () => {
     if (isValid) {
       setPageState(PageState.Creating);
 
-      const url = `${window.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser}&repository=${repoName}`;
+      const url = `${window.location.origin}/designer/api/v1/repos/${selectedOrgOrUser}?repository=${repoName}`;
       post(url)
         .then((result: any) => {
           window.location.assign(
