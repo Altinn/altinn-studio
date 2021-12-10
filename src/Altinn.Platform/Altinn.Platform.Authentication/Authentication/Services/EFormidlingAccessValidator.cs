@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Platform.Authentication.Services
 {
     /// <summary>
-    /// t
+    /// Implementation of an eFormidling access validator
     /// </summary>
     public class EFormidlingAccessValidator : IEFormidlingAccessValidator
     {
@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authentication.Services
         /// <inheritdoc/>
         public async Task<IntrospectionResponse> ValidateToken(string token)
         {
-            IntrospectionResponse validationResult = new();
+            IntrospectionResponse result = new();
 
             bool isValid = await _validator.Validate(token);
 
@@ -37,11 +37,11 @@ namespace Altinn.Platform.Authentication.Services
                 JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
                 JwtSecurityToken jwt = tokenHandler.ReadJwtToken(token);
 
-                validationResult.Active = isValid;
-                validationResult.Iss = jwt.Issuer;
+                result.Active = isValid;
+                result.Iss = jwt.Issuer;
             }
 
-            return validationResult;
+            return result;
         }
     }
 }
