@@ -49,7 +49,7 @@ Cypress.Commands.add('deletecomponents', () => {
  */
 Cypress.Commands.add('deleteLocalChanges', (appId) => {
   cy.getCookie('AltinnStudioDesigner').should('exist');
-  cy.intercept('**/RepoStatus*').as('repoStatus');
+  cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
   cy.visit(`designer/${Cypress.env('deployApp')}#/about`);
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(5000);
