@@ -197,19 +197,23 @@ export const RepoList = ({
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
+
+          const repoFullName = params.row.full_name as string;
+          const isDatamodelling = repoFullName.endsWith('-datamodels');
+
           const editUrl = getRepoEditUrl({
-            repoFullName: params.row.full_name as string,
+            repoFullName,
           });
 
           const handleDuplicateClick = () => {
-            setCopyCurrentRepoName(params.row.full_name);
+            setCopyCurrentRepoName(repoFullName);
           };
 
           const handleOpenInNewClick = () => {
             window.open(editUrl, '_blank');
           };
 
-          return [
+          const colItems = [
             <a
               key={params.row.id}
               href={params.row.html_url}
@@ -243,6 +247,13 @@ export const RepoList = ({
               label={getLanguageFromKey('dashboard.open_in_new', language)}
             />,
           ];
+
+          if (isDatamodelling) {
+            // TODO: remove this weird logic once standalone datamodelling is OK
+            colItems.splice(1);
+          }
+
+         return colItems;
         },
       },
     ];
