@@ -30,6 +30,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     public partial class PayloadCommit 
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="PayloadCommit"/> class.
+        /// </summary>
+        public PayloadCommit()
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommit" /> class.
         /// </summary>
         /// <param name="Author">Author.</param>

@@ -20,6 +20,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     public partial class SearchResults : IEquatable<SearchResults>, IValidatableObject
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="SearchResults"/> class.
+        /// </summary>
+        public SearchResults()
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults" /> class.
         /// </summary>
         /// <param name="Data">Data.</param>
@@ -41,6 +48,18 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// </summary>
         [JsonProperty("ok")]
         public bool? Ok { get; set; }
+
+        /// <summary>
+        /// Gets or Sets TotalCount
+        /// </summary>
+        [JsonProperty("totalCount")]
+        public int TotalCount { get; set; }
+
+        /// <summary>
+        /// Gets or Sets TotalPages
+        /// </summary>
+        [JsonProperty("totalPages")]
+        public int TotalPages { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object

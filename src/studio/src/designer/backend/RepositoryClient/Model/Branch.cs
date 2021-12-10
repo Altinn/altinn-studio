@@ -9,7 +9,6 @@
  */
 
 using System.Runtime.Serialization;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Model
@@ -20,6 +19,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     [DataContract]
     public partial class Branch
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Branch"/> class.
+        /// </summary>
+        public Branch()
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Branch" /> class.
         /// </summary>
