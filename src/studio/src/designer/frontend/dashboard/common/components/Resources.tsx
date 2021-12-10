@@ -41,7 +41,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_organisations_label',
     description: 'dashboard.resource_organisations_description',
-    url: 'https://altinn.studio/repos/explore/organizations',
+    url: `${window.location.origin}/repos/explore/organizations`,
     icon: (
       <svg
         width='60'
