@@ -46,10 +46,10 @@ const defaultArray: IRepository[] = [];
 
 const useStyles = makeStyles({
   repoLink: {
-    color: '#579b2e',
+    color: '#57823D',
 
     '&:hover': {
-      color: '#579b2e',
+      color: '##57823D',
     },
   },
   editLink: {
@@ -142,7 +142,14 @@ export const RepoList = ({
         };
 
         return [
-          <IconButton key={params.row.id} onClick={handleToggleFav}>
+          <IconButton
+            key={params.row.id}
+            onClick={handleToggleFav}
+            aria-label={repo.user_has_starred ?
+              getLanguageFromKey('dashboard.unstar', language) :
+              getLanguageFromKey('dashboard.star', language)
+            }
+          >
             <i
               className={cn(classes.favoriteIcon, {
                 'fa fa-fav-filled': repo.user_has_starred,
