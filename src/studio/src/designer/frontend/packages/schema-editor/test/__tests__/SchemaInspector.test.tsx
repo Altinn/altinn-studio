@@ -481,6 +481,8 @@ it('should match if a properties based path is on root', () => {
 it('should match if a definitions based path is on root', () => {
   expect(isPathOnDefinitionsRoot('#/definitions/prop1')).toBe(true);
   expect(isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2')).toBe(false);
+  expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
+  expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(false);
 });
 
 it('dispatches correctly when changing type of combination', () => {

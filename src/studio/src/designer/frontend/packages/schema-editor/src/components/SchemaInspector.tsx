@@ -124,8 +124,9 @@ export const isPathOnPropertiesRoot = (path: string) => {
 }
 
 export const isPathOnDefinitionsRoot = (path: string) => {
-  const noOfMatches: number = ((path || '').match(/^#\/definitions\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
-  return noOfMatches === 1 ? true : false;
+  const noOfDefinitionMatches: number = ((path || '').match(/^#\/definitions\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  const noOfDefsMatches: number = ((path || '').match(/^#\/\$defs\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  return noOfDefinitionMatches === 1 || noOfDefsMatches === 1 ? true : false;
 }
 
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
