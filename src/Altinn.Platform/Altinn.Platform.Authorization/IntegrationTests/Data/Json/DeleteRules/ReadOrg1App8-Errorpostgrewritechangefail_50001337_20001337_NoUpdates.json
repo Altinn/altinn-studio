@@ -1,7 +1,7 @@
 [
   {
     "ruleIds": [
-	  "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9"
+	  "adfa64fa-5859-46e5-8d0d-62762082f3b9"
     ],
     "deletedByUserId": 20001336,
     "policyMatch": {
@@ -26,7 +26,7 @@
   },
   {
     "ruleIds": [
-      "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa"	  
+      "ade3b138-7fa4-4c83-9306-8ec4a72c2daa"	  
     ],
     "deletedByUserId": 20001336,
     "policyMatch": {
