@@ -37,7 +37,6 @@ namespace Altinn.Platform.Authentication.Controllers
         [ProducesResponseType(typeof(IntrospectionResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<IntrospectionResponse>> ValidateToken([FromForm] IntrospectionRequest request)
         {
-            IntrospectionResponse response = new();
             string token = request.Token;
 
             switch (request.TokenTypeHint)
@@ -45,11 +44,8 @@ namespace Altinn.Platform.Authentication.Controllers
                 case "eFormidlingAccessToken":
                 default:
                     // default behavior must try to  validate against all supported token types
-                    response = await ValidateEFormidlingAccessToken(token);
-                    break;
+                    return Ok(await ValidateEFormidlingAccessToken(token));
             }
-
-            return Ok(response);
         }
 
         private async Task<IntrospectionResponse> ValidateEFormidlingAccessToken(string token)
