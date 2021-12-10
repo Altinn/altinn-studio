@@ -99,7 +99,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>()
                 {
                     { "Token", "thisIsMyRandomToken" },
-                    { "TokenTypeHint", "eFormidlingAccessToken" }
                 }),
             };
 
