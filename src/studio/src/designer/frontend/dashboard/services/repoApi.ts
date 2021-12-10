@@ -23,7 +23,7 @@ export const adjustQueryParams = (params: Filters) => {
       params.sortby = 'alpha';
       break;
     case 'updated_at':
-      params.sortby = 'created';
+      params.sortby = 'updated';
       break;
   }
 
