@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
+using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Interface;
@@ -346,12 +347,6 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Instance does not have current altinn task type information!");
                 }
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
-                if (!authorized)
-                {
-                    return Forbid();
-                }
-
                 string currentElementId = instance.Process.CurrentTask?.ElementId;
 
                 if (currentElementId == null)
@@ -368,6 +363,16 @@ namespace Altinn.App.Api.Controllers
                 if (nextElementError != null)
                 {
                     return Conflict(nextElementError.Text);
+                }
+
+                string taskIdToAuthorize = null; 
+
+                ProcessSequenceFlowType sequenceFlowType = processHelper.GetSequenceFlowType(currentElementId, nextElement);
+
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, taskIdToAuthorize);
+                if (!authorized)
+                {
+                    return Forbid();
                 }
 
                 if (await CanTaskBeEnded(instance, currentElementId))
@@ -790,7 +795,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<bool> AuthorizeAction(string currentTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+        private async Task<bool> AuthorizeAction(string currentTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string taskId)
         {
             string actionType;
 
@@ -808,7 +813,7 @@ namespace Altinn.App.Api.Controllers
                     break;
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid, task);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
