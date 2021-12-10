@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Altinn.Common.AccessToken.Services
 {
     /// <summary>
-    /// Interface to validate access token
+    /// Defines the methods required for an implementation of an access token validator.
     /// </summary>
     public interface IAccessTokenValidator
     {
