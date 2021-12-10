@@ -40,7 +40,7 @@ export function ResourceItem({
         alignContent='center'
       >
         <Grid item>
-          <a href={link}>
+          <a href={link} target="_blank" rel="noopener noreferrer">
             <p style={{ fontWeight: 500, color: 'black', margin: 0 }}>
               {getLanguageFromKey(label, language)}{' '}
             </p>{' '}
