@@ -47,6 +47,9 @@ const defaultArray: IRepository[] = [];
 const useStyles = makeStyles({
   repoLink: {
     color: '#57823D',
+    '&:hover': {
+      color: '#57823D',
+    },
   },
   editLink: {
     color: '#165db8',
