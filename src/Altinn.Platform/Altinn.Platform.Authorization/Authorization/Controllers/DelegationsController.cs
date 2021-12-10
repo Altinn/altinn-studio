@@ -71,7 +71,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             string rulesJson = JsonSerializer.Serialize(rules);
             _logger.LogInformation("Delegation could not be completed. None of the rules could be processed, indicating invalid or incomplete input:\n{rulesJson}", rulesJson);
-            return StatusCode(400, $"Delegation could not be completed");
+            return BadRequest("Delegation could not be completed");
         }
 
         /// <summary>

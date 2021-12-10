@@ -709,7 +709,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease lock on delegation policy at path: error/blobstoragegetleaselockfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease on delegation policy at path: error/blobstoragegetleaselockfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);

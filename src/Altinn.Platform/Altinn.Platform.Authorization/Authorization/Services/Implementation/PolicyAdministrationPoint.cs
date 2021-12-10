@@ -327,7 +327,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             string leaseId = await _policyRepository.TryAcquireBlobLease(policyPath);
             if (leaseId == null)
             {
-                _logger.LogError("Could not acquire blob lease lock on delegation policy at path: {policyPath}", policyPath);
+                _logger.LogError("Could not acquire blob lease on delegation policy at path: {policyPath}", policyPath);
                 return null;
             }
 
@@ -335,14 +335,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             {
                 DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
 
-                XacmlPolicy existingDelegationPolicy;
                 if (currentChange.IsDeleted)
                 {
                     _logger.LogWarning("The policy is already deleted for App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}", org, app, coveredBy, policyToDelete.PolicyMatch.OfferedByPartyId);
                     return null;
                 }
 
-                existingDelegationPolicy = await _prp.GetPolicyVersionAsync(currentChange.BlobStoragePolicyPath, currentChange.BlobStorageVersionId);
+                XacmlPolicy  existingDelegationPolicy = await _prp.GetPolicyVersionAsync(currentChange.BlobStoragePolicyPath, currentChange.BlobStorageVersionId);
                 List<Rule> currentPolicyRules = new List<Rule>();
                 foreach (XacmlRule xacmlRule in existingDelegationPolicy.Rules)
                 {
@@ -354,7 +353,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 Response<BlobContentInfo> response;
                 try
                 {
-                    // Write delegation policy to blob storage
                     MemoryStream dataStream = PolicyHelper.GetXmlMemoryStreamFromXacmlPolicy(existingDelegationPolicy);
                     response = await _policyRepository.WritePolicyConditionallyAsync(policyPath, dataStream, leaseId);
                 }
@@ -364,7 +362,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     return null;
                 }
 
-                // Write delegation change to postgresql
                 bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId, policyToDelete.DeletedByUserId, policyPath, response.Value.VersionId, true);
                 if (!postgreSuccess)
                 {
