@@ -14,11 +14,8 @@ jest.spyOn(repoApi, 'useGetSearchQuery').
       data: [{
         full_name: "test",
         id: 4,
-      }],
-      isLoading: false
-    },
-    {
-      data: [{
+      },
+      {
         full_name: "test-datamodels",
         id: 3,
       }],
