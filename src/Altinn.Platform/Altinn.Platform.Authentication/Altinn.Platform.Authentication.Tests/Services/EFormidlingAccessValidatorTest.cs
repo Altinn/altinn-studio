@@ -21,7 +21,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
         private readonly Mock<IAccessTokenValidator> _validatorMock;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="EFormidlingAccessValidatorTest"/> class with the given WebApplicationFactory.
+        /// Initialises a new instance of the <see cref="EFormidlingAccessValidatorTest"/> class.
         /// </summary>
         public EFormidlingAccessValidatorTest()
         {
