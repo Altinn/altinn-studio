@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -13,6 +14,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// <summary>
     /// Repository for retrieving instance information
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class InstanceMetadataRepository : IInstanceMetadataRepository
     {
         private readonly string databaseId;
