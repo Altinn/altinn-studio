@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-
-using System;
 using System.Runtime.Serialization;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Authentication.Model
 {
