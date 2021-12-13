@@ -9,7 +9,8 @@ COPY Altinn.Apps/AppFrontend/react/yarn.lock .
 COPY Altinn.Apps/AppFrontend/react/.yarn/ ./.yarn/
 COPY Altinn.Apps/AppFrontend/react/.yarnrc.yml .
 
-# Copy shared and receipt
+# Copy shared, receipt, and app-frontend. App-frontend is needed because they all share the same yarn.lock file. Without this copy, the lockfile will be modified, and install will fail
+COPY Altinn.Apps/AppFrontend/react/altinn-app-frontend/ ./altinn-app-frontend/
 COPY Altinn.Apps/AppFrontend/react/shared/ ./shared/
 COPY Altinn.Apps/AppFrontend/react/receipt/ ./receipt/
 
