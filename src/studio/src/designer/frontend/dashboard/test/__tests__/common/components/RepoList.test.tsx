@@ -73,7 +73,6 @@ describe('Dashboard > Common > Components > RepoList', () => {
   it('should call useSetStarredRepoMutation when adding a favorites', () => {
     const component = mountComponent({ repos });
     component.find('#fav-repo-1').hostNodes().simulate('click');
-    console.log(component.debug());
     expect(useSetStarredRepoMutationSpy).toBeCalledWith(repos[0]);
   });
 
