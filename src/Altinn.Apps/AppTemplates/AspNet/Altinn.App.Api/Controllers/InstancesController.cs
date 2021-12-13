@@ -66,7 +66,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
-
+        private readonly IProcessEngine _processEngine;
         private readonly AppSettings _appSettings;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
@@ -334,6 +334,169 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [RequestSizeLimit(RequestSizeLimit)]
         public async Task<ActionResult<Instance>> PostSimplified(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromBody] InstansiationInstance instansiationInstance)
+        {
+            if (string.IsNullOrEmpty(org))
+            {
+                return BadRequest("The path parameter 'org' cannot be empty");
+            }
+
+            if (string.IsNullOrEmpty(app))
+            {
+                return BadRequest("The path parameter 'app' cannot be empty");
+            }
+
+            Application application = _appResourcesService.GetApplication();
+            if (application == null)
+            {
+                return NotFound($"AppId {org}/{app} was not found");
+            }
+
+            bool copySourceInstance = !string.IsNullOrEmpty(instansiationInstance.SourceInstanceId);
+            if (copySourceInstance && application.CopyInstanceSettings?.Enabled != true)
+            {
+                return BadRequest("Creating instance based on a copy from an archived instance is not enabled for this app.");
+            }
+
+            InstanceOwner lookup = instansiationInstance.InstanceOwner;
+
+            if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
+            {
+                return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
+            }
+
+            Party party;
+            try
+            {
+                party = await LookupParty(instansiationInstance.InstanceOwner);
+            }
+            catch (Exception partyLookupException)
+            {
+                if (partyLookupException is ServiceException)
+                {
+                    ServiceException sexp = partyLookupException as ServiceException;
+
+                    if (sexp.StatusCode.Equals(HttpStatusCode.Unauthorized))
+                    {
+                        return StatusCode((int)HttpStatusCode.Forbidden);
+                    }
+                }
+
+                return NotFound($"Cannot lookup party: {partyLookupException.Message}");
+            }
+
+            if (copySourceInstance && party.PartyId.ToString() != instansiationInstance.SourceInstanceId.Split("/")[0])
+            {
+                return BadRequest("It is not possible to copy instances between instance owners.");
+            }
+
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
+            }
+
+            if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+            }
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = instansiationInstance.InstanceOwner,
+                VisibleAfter = instansiationInstance.VisibleAfter,
+                DueBefore = instansiationInstance.DueBefore
+            };
+
+            // Run custom app logic to validate instantiation
+            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
+            if (validationResult != null && !validationResult.Valid)
+            {
+                return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
+            }
+
+            Instance instance;
+            ProcessStateChange processResult;
+            try
+            {
+                // start process and goto next task
+                instanceTemplate.Process = null;
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
+                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                string userOrgClaim = User.GetOrg();
+
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    instanceTemplate.Status ??= new InstanceStatus();
+                    instanceTemplate.Status.ReadStatus = ReadStatus.Read;
+                }
+
+                Instance source = null;
+
+                if (copySourceInstance)
+                {
+                    string[] sourceSplit = instansiationInstance.SourceInstanceId.Split("/");
+                    Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+
+                    try
+                    {
+                        source = await _instanceClient.GetInstance(app, org, party.PartyId, sourceInstanceGuid);
+                    }
+                    catch (PlatformHttpException exception)
+                    {
+                        return StatusCode(500, $"Retrieving source instance failed with status code {exception.Response.StatusCode}");
+                    }
+
+                    if (source.Process.Ended == null)
+                    {
+                        return BadRequest("It is not possible to copy an instance that isn't archived.");
+                    }
+                }
+
+                instance = await _instanceClient.CreateInstance(org, app, instanceTemplate);
+
+                if (copySourceInstance)
+                {
+                    await CopyDataFromSourceInstance(application, instance, source);
+                }
+
+                instance = await _instanceClient.GetInstance(instance);
+
+                // notify app and store events
+                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instansiationInstance.Prefill);
+                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
+            }
+
+            await RegisterEvent("app.instance.created", instance);
+
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+            string url = instance.SelfLinks.Apps;
+
+            return Created(url, instance);
+        }
+
+        /// <summary>
+        /// Simplified Instanciation with support for fieldprefill
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instansiationInstance">instansiation information</param>
+        /// <returns>The new instance</returns>
+        [HttpPost("createv2")]
+        [DisableFormValueModelBinding]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [RequestSizeLimit(RequestSizeLimit)]
+        public async Task<ActionResult<Instance>> PostSimplifiedv2(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstansiationInstance instansiationInstance)
