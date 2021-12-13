@@ -259,8 +259,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
                 if (policyResourceMatches.Any(resourceMatch => GetAttributeMatchKey(resourceMatch) == ruleResourceKey) && matchingActionFound)
                 {
-                    int guidIndex = policyRule.RuleId.IndexOf(AltinnXacmlConstants.Prefixes.RuleId);
-                    rule.RuleId = policyRule.RuleId.Substring(guidIndex + AltinnXacmlConstants.Prefixes.RuleId.Length);
+                    rule.RuleId = policyRule.RuleId;
                     return true;
                 }
             }

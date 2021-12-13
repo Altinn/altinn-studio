@@ -1,5 +1,5 @@
 import { GridSize } from '@material-ui/core';
-import { IOption, Triggers } from '../../../types';
+import { IMapping, IOption, Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -44,6 +44,7 @@ export type ComponentTypes =
   | 'Header'
   | 'Input'
   | 'NavigationButtons'
+  | 'InstantiationButton'
   | 'Paragraph'
   | 'Image'
   | 'RadioButtons'
@@ -111,6 +112,11 @@ export interface IInputProps extends ILayoutComponent {
 export interface INavigationButtonProps extends ILayoutComponent {
   next?: string;
   previous?: string;
+}
+
+export interface IInstantiationButtonProps extends ILayoutComponent {
+  mapping: IMapping;
+  text: string;
 }
 
 export type IParagraphProps = ILayoutComponent;

@@ -7,11 +7,10 @@ import {
   WithStyles,
 } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { AltinnCollapsableList } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
-import { IRuntimeState } from '../../types';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = createStyles({
   partyPaper: {
@@ -124,9 +123,7 @@ function AltinnParty(props: IAltinnPartyProps) {
     React.useState<boolean>(false);
   const { classes, party, onSelectParty } = props;
   const isOrg: boolean = party.orgNumber != null;
-  const language = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
+  const language = useAppSelector(state => state.language.language);
 
   function onClickParty(
     selectedParty: IParty,

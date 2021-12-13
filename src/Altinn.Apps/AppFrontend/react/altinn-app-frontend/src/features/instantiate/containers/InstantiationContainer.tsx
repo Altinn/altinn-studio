@@ -1,11 +1,9 @@
 import { createStyles, Grid, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IProfile } from 'altinn-shared/types';
 import Header from '../../../shared/components/altinnAppHeader';
-import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { useAppSelector } from 'src/common/hooks';
 
 const styles = createStyles({
   instantiatePage: {
@@ -29,8 +27,8 @@ function InstantiateContainer(props: IInstantiateContainerProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const { classes, children } = props;
 
-  const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
+  const language = useAppSelector(state => state.language.language);
+  const profile = useAppSelector(state => state.profile.profile);
 
   return (
     <Grid

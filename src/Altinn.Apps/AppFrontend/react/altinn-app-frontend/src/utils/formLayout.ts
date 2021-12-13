@@ -3,8 +3,10 @@ import {
   IRepeatingGroups,
   ILayoutNavigation,
   ITextResourceBindings,
+  IMapping,
 } from 'src/types';
 import {
+  IInstantiationButtonProps,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
@@ -227,6 +229,13 @@ export function createRepeatingGroupComponents(
         const hidden = !!hiddenFields?.find(
           (field) => field === `${deepCopyId}[${i}]`,
         );
+        let mapping;
+        if (componentDeepCopy.type === 'InstantiationButton') {
+          mapping = setMappingForRepeatingGroupComponent(
+            (componentDeepCopy as IInstantiationButtonProps).mapping,
+            i
+          );
+        }
         return {
           ...componentDeepCopy,
           textResourceBindings: componentDeepCopy.textResourceBindings,
@@ -234,12 +243,34 @@ export function createRepeatingGroupComponents(
           id: deepCopyId,
           baseComponentId: componentDeepCopy.id,
           hidden,
+          mapping
         };
       },
     );
     componentArray.push(childComponents);
   }
   return componentArray;
+}
+
+export function setMappingForRepeatingGroupComponent(
+  mapping: IMapping,
+  index: number,
+) {
+  if (mapping) {
+    const indexedMapping: IMapping = {
+      ...mapping
+    };
+    const mappingsWithRepeatingGroupSources = Object.keys(mapping).filter((source) => source.includes('[{0}]'));
+    mappingsWithRepeatingGroupSources.forEach((sourceMapping) => {
+      delete indexedMapping[sourceMapping];
+      const newSource = sourceMapping.replace('[{0}]', `[${index}]`);
+      indexedMapping[newSource] = mapping[sourceMapping];
+      delete indexedMapping[sourceMapping];
+    });
+    return indexedMapping;
+  } else {
+    return undefined;
+  }
 }
 
 export function setVariableTextKeysForRepeatingGroupComponent(

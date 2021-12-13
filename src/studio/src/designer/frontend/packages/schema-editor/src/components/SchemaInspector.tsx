@@ -104,6 +104,16 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
+type NameInUseProps = { parentSchema: UiSchemaItem | null, path: string, name: string };
+export const isNameInUse = ({ parentSchema, path, name}: NameInUseProps) => {
+  // Check if the parent node has other children with the same name.
+  if (parentSchema?.properties?.some((p) => p.displayName === name && p.path !== path)) {
+    return true;
+  }
+  
+  return false;
+};
+
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -191,6 +201,7 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     };
     dispatch(setRestriction(data));
   };
+
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -207,22 +218,32 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
+
   const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
       path, name: value,
     }));
   };
+
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
+
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
+
   const onDeleteEnumClick = (path: string, value: string) => {
     dispatch(deleteEnum({ path, value }));
   };
+
   const onChangeNodeName = () => {
-    if (!nameError && selectedItem && selectedItem?.displayName !== nodeName) {
+    if (isNameInUse({parentSchema: parentItem, path: selectedId,  name: nodeName})) {
+      setNameError('Name already in use');
+      return;
+    }
+
+    if (!nameError && selectedItem && selectedItem.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem.path, name: nodeName, navigate: selectedItem.path,
       }));

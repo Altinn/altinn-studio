@@ -45,7 +45,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 IsDeleted = isDeleted,
                 Created = DateTime.Now
             };
-
+    
             current.Add(currentDelegationChange);
 
             if (string.IsNullOrEmpty(altinnAppId) || altinnAppId == "error/postgrewritechangefail")
@@ -65,7 +65,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 case "org1/app3":
                 case "org2/app3":
                 case "org1/app4":
+                case "error/blobstorageleaselockwritefail":
+                case "error/postgrewritechangefail":
                     result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId);
+                    break;
+                case "org1/app5":
+                    result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId, isDeleted: true);
                     break;
                 case "error/postgregetcurrentfail":
                     throw new Exception("Some exception happened");
