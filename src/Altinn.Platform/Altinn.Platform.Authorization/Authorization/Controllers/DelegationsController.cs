@@ -91,7 +91,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost]
-        ////[Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
+        [Authorize(Policy = AuthzConstants.ALTINNII_AUTHORIZATION)]
         [Route("authorization/api/v1/[controller]/GetRules")]
         public async Task<ActionResult<List<Rule>>> GetRules([FromBody] RuleQuery ruleQuery, [FromQuery] bool onlyDirectDelegations = false)
         {
