@@ -135,10 +135,10 @@ export class AdministrationComponent extends
     const { org, app } = altinnWindow;
 
     this.props.dispatch(HandleServiceInformationActions.fetchService(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchInitialCommit(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
       { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },

@@ -61,7 +61,7 @@ export class HandleMergeConflictAbort extends
     const { org, app } = window as Window as IAltinnWindow;
 
     const abortUrl = `${window.location.origin}` +
-      `/designerapi/Repository/AbortMerge?org=${org}&repository=${app}`;
+      `/designer/api/v1/repos/${org}/${app}/abortmerge`;
 
     // Try to abort merge and catch error
     // If successfull merge abort then initiate forceRepoStatusCheck
@@ -76,30 +76,18 @@ export class HandleMergeConflictAbort extends
       });
 
       const abortRes = await get(abortUrl);
-      if (abortRes.isSuccessStatusCode === true) {
-        this.setState({
-          networkingRes: abortRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            shouldShowDoneIcon: true,
-          },
-        });
+      this.setState({
+        networkingRes: abortRes,
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: false,
+          shouldShowDoneIcon: true,
+        },
+      });
 
-        window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
-        this.handleClose();
-      } else {
-        this.setState({
-          networkingRes: abortRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            btnConfirmText: null,
-            btnCancelText: null,
-          },
-        });
-        console.error('Abort is unsuccessfull', abortRes);
-      }
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
+      this.handleClose();
+
     } catch (err) {
       this.setState({
         errorObj: err,

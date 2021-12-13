@@ -331,6 +331,11 @@ export enum DateFlags {
   Today = 'today',
 }
 
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
+}
+
 export interface IApplicationSettings {
   appOidcProvider: string;
 }

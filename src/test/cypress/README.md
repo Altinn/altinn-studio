@@ -9,7 +9,7 @@ These instructions will get you run the integration tests on local studio.
 ### Install dependencies
 
 ```cmd
-    npm install # only needed first time, or when dependencies are updated    
+    yarn --immutable # only needed first time, or when dependencies are updated
 ```
 
 ### Starting the solutions for testing studio
@@ -32,11 +32,11 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 
 ```json
 {
-    "adminUser": "",
-    "adminPwd": "",
-    "accessToken": "",
-    "testUserName": "",
-    "testUserPwd": ""
+  "adminUser": "",
+  "adminPwd": "",
+  "accessToken": "",
+  "testUserName": "",
+  "testUserPwd": ""
 }
 ```
 
@@ -45,55 +45,68 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 The commands should be run in an order that makes sure the tests are intact on the subsequent runs.
 
 1. Setup: Before all the tests
+
 ```cmd
-    npm run before:all
+    yarn run before:all -e environment=local
 ```
 
 2. Tests on different solutions of studio
+
 ```cmd
-    npm run test:studio --env=local
+    yarn run test:studio -e environment=local,component=studio
 ```
 
 3. Cleanup: After all the tests
+
 ```cmd
-    npm run after:all
+    yarn run after:all -e environment=local
 ```
 
 ### Run App Frontend tests
+
 Follow the steps below to start localtest, app frontend, app and the tests.
 
 1. Create testfiles that are used by the tests as attachments in app instances.
+
 ```cmd
-    npm run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
+    yarn run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
 ```
 
 2. Clone the app (frontend-test) to be tested and update config in `package.json` with the paths.
 
 3. Start localtest, app frontend, app. (Hop over to step 4 if the solutions are already running)
+
 ```cmd
-    npm run before:appfrontend
+    yarn run before:appfrontend
 ```
-If one has the frontend dependencies installed from  before, run the below command.
+
+If one has the frontend dependencies installed from before, run the below command.
+
 ```cmd
-    npm run before:appfrontend-no-deps
+    yarn run before:appfrontend-no-deps
 ```
 
 4. Start the app frontend tests from a new git bash terminal.
+
 ```cmd
-    npm run test:appfrontend --env=local
+    yarn run test:appfrontend -e environment=local,component=appfrontend
 ```
-   To run the tests towards AT21, an altinn user credential has to be supplied [here](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress#test-data-prerequisite).
+
+To run the tests towards AT21, an altinn user credential has to be supplied [here](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress#test-data-prerequisite).
+
 ```cmd
-    npm run test:appfrontend --env=at21
+    yarn run test:appfrontend -e environment=at21,component=appfrontend
 ```
+
 5. To run a single test case open cypress runner using
+
 ```cmd
-    npm run cy:open --env=local --component=appfrontend
+    yarn run cy:open -e environment=local,component=appfrontend
 ```
 
 ### Format files with prettier
 
 ```cmd
-    npm run check # For checking the files deviating standards
-    npm run format # format and save the files based on config
+    yarn run prettier:check # For checking the files deviating standards
+    yarn run prettier:format # format and save the files based on config
 ```

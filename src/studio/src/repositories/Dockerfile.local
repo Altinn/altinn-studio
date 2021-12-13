@@ -1,8 +1,0 @@
-# base image
-FROM gitea/gitea:1.15.6
-
-# copy configuration file
-COPY ./gitea-data/gitea/conf/app.ini data/gitea/conf/app.ini
-COPY ./gitea-data/gitea/options data/gitea/options/
-COPY ./gitea-data/gitea/public/img data/gitea/public/img
-COPY ./gitea-data/gitea/templates data/gitea/templates

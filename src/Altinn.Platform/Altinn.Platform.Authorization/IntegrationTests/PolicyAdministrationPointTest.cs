@@ -126,9 +126,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)                
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)                
             };
 
             List<Rule> expected = new List<Rule>
@@ -159,6 +159,64 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         /// <summary>
         /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether one policy is returned as already deleted the rules ok to delete is deleted the one already deleted ignored
+        /// Input:
+        /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of deleted policy is ignored rest is deleted.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_PolicyAlredyDeleted()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app5", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "org1/app4/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app4", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } }
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "The policy is already deleted for App: org1/app5 CoveredBy: 20001337 OfferedBy: 50001337"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
         /// Tests the TryWriteDelegationPolicyRules function, whether all rules are returned as successfully deleated whera all rules are deleted the db is also updated with isDeleted status
         /// Input:
         /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
@@ -179,7 +237,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app1", new List<string> { "urn:altinn:ruleid:57b3ee85-f932-42c6-9ab0-941eb6c96eb0",  "urn:altinn:ruleid:78e5cced-3bcb-42b6-9089-63c834f89e73" }, coveredByPartyId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app1", new List<string> { "57b3ee85-f932-42c6-9ab0-941eb6c96eb0",  "78e5cced-3bcb-42b6-9089-63c834f89e73" }, coveredByPartyId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -191,57 +249,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
             {
                 { "org1/app1/50001337/p50001336", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app1", offeredByPartyId, performedByUserId, isDeleted: false, coveredByPartyId: coveredBy) } },
-            };
-
-            // Act
-            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
-
-            // Assert
-            Assert.Equal(expected.Count, actual.Count);
-            Assert.True(actual.All(r => r.CreatedSuccessfully));
-            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
-            AssertionUtil.AssertEqual(expected, actual);
-            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
-        }
-
-        /// <summary>
-        /// Scenario:
-        /// Tests the TryWriteDelegationPolicyRules function, whether one rules are returned as not successfully deleated due to error updating data in db whera all rules are deleted the db is also updated with isDeleted status
-        /// Input:
-        /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
-        /// Expected Result:
-        /// List of all rules actualy deleted.
-        /// Success Criteria:
-        /// All returned rules match expected and have success flag and rule id set
-        /// </summary>
-        [Fact]
-        public async Task TryDeleteDelegationPolicyRules_DBUpdateFail()
-        {
-            // Arrange
-            int performedByUserId = 20001336;
-            int offeredByPartyId = 50001337;
-            int coveredBy = 20001337;
-            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
-            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
-
-            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
-            {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgrewritechangefail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
-            };
-
-            List<Rule> expected = new List<Rule>
-            {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-            };
-
-            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
-            {
-                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
-                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
             };
 
             // Act
@@ -277,9 +284,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgregetcurrentfail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgregetcurrentfail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -308,7 +315,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         /// <summary>
         /// Scenario:
-        /// Tests the TryWriteDelegationPolicyRules function, whether one rules are returned as not successfully deleated due to error locking data for update in blob storage where all rules are deleted the db is also updated with isDeleted status
+        /// Tests the TryWriteDelegationPolicyRules function, whether one rules are returned as not successfully deleted due to error locking data for update in blob storage where all rules are deleted the db is also updated with isDeleted status
         /// Input:
         /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
         /// Expected Result:
@@ -328,9 +335,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94", "urn:altinn:ruleid:6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstorageleaselockwritefail", new List<string> { "urn:altinn:ruleid:ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstoragegetleaselockfail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -355,6 +362,192 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
             AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease lock on delegation policy at path: error/blobstoragegetleaselockfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether one rules are returned as not successfully deleted due to error writing data for update in blob storage.
+        /// Input:
+        /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of all rules actualy deleted.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_DataWriteFail()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstorageleaselockwritefail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation policy at path: error/blobstorageleaselockwritefail/50001337/u20001337/delegationpolicy.xml failed. Is delegation blob storage account alive and well?" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether one rules are returned as not successfully deleted due to undefined resource
+        /// Input:
+        /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of all rules actualy deleted.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_PolicyPathInvalid()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: 0)
+            };
+            
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Not possible to build policy path App: org1/app4 CoveredBy: 0 OfferedBy: 50001337 RuleIds: ade3b138-7fa4-4c83-9306-8ec4a72c2daa" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, whether one policy are returned as not successfully deleted due to error update changelog.
+        /// Input:
+        /// List of unordered rules for deletion multiple apps same OfferedBy to one CoveredBy user, and one coveredBy organization/partyid
+        /// Expected Result:
+        /// List of all rules actualy deleted.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicyRules_PostgreeUpdateFail()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94", "6f11dd0b-5e5d-4bd1-85f0-9796300dfded" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "postgrewritechangefail", new List<string> { "ade3b138-7fa4-4c83-9306-8ec4a72c2daa" }, coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, isDeleted: false, coveredByUserId: coveredBy) } },
+                { "error/postgrewritechangefail/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("error/postgrewritechangefail", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicyRules(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: error/postgrewritechangefail/50001337/u20001337/delegationpolicy.xml. is authorization postgresql database alive and well?" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -379,9 +572,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
             {
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app8", new List<string> { "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "urn:altinn:ruleid:244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app8", new List<string> { "0d0c8570-64fb-49f9-9f7d-45c057fddf94" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", new List<string> { "244278c1-7c6b-4f6b-b6e9-2bd41f84812f" }, coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app4", new List<string> { "adfa64fa-5859-46e5-8d0d-62762082f3b9" }, coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -486,7 +679,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                 TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", coveredByUserId: coveredBy),
                 TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", coveredByUserId: coveredBy),
-                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstorageleaselockwritefail", coveredByUserId: coveredBy)
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "error", "blobstoragegetleaselockfail", coveredByUserId: coveredBy)
             };
 
             List<Rule> expected = new List<Rule>
@@ -512,6 +705,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
             AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Could not acquire blob lease on delegation policy at path: error/blobstoragegetleaselockfail/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -657,6 +858,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                 { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
                 { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "error/postgrewritechangefail/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("error/postgrewritechangefail", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } }
             };
 
             // Act
@@ -668,6 +870,134 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
             AssertionUtil.AssertEqual(expected, actual);
             AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: error/postgrewritechangefail/50001337/u20001337/delegationpolicy.xml. is authorization postgresql database alive and well?" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicies function, one rule are returned as failed due to error in resource to delete
+        /// Input:
+        /// List of unordered rules for deletion of the same apps from the same OfferedBy to one CoveredBy user
+        /// Expected Result:
+        /// List of all rules deleted returned.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicies_UndefinedResource()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", string.Empty, coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicies(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Error,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Not possible to build policy path App: org1/ CoveredBy: 20001337 OfferedBy: 50001337" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicies function, one rule are returned as failed due to policy already deleted
+        /// Input:
+        /// List of unordered rules for deletion of the same apps from the same OfferedBy to one CoveredBy user
+        /// Expected Result:
+        /// List of all rules deleted returned.
+        /// Success Criteria:
+        /// All returned rules match expected and have success flag and rule id set
+        /// </summary>
+        [Fact]
+        public async Task TryDeleteDelegationPolicies_PolicyAlreadyDeleted()
+        {
+            // Arrange
+            int performedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            int coveredBy = 20001337;
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+            _delegationMetadataRepositoryMock.MetadataChanges = new Dictionary<string, List<DelegationChange>>();
+
+            List<RequestToDelete> inputRuleMatchess = new List<RequestToDelete>
+            {
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app3", coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org2", "app3", coveredByUserId: coveredBy),
+                TestDataHelper.GetRequestToDeleteModel(performedByUserId, offeredByPartyId, "org1", "app5", coveredByUserId: coveredBy)
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+            };
+
+            Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
+            {
+                { "org1/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org1/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } },
+                { "org2/app3/50001337/u20001337", new List<DelegationChange> { TestDataHelper.GetDelegationChange("org2/app3", offeredByPartyId, performedByUserId, coveredByUserId: coveredBy) } }
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryDeleteDelegationPolicies(inputRuleMatchess);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.All(r => r.CreatedSuccessfully));
+            Assert.True(actual.All(r => !string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            AssertionUtil.AssertEqual(expectedDbUpdates, _delegationMetadataRepositoryMock.MetadataChanges);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "The policy is already deleted for App: org1/app5 CoveredBy: 20001337 OfferedBy: 50001337" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
         }
 
         /// <summary>

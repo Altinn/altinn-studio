@@ -23,6 +23,7 @@ namespace Altinn.Platform.Authorization.Repositories
         private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performedByUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_isDeleted, @_delegationChangeId)";
         private readonly string getCurrentDelegationChangeSql = "select * from delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
         private readonly string getAllDelegationChangesSql = "select * from delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
+        private readonly string getAllCurrentDelegationChangesSql = "select * from delegation.get_all_current_changes(@_altinnAppIds, @_offeredByPartyIds, @_coveredByPartyIds, @_coveredByUserIds)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationMetadataRepository"/> class
@@ -112,6 +113,37 @@ namespace Altinn.Platform.Authorization.Repositories
                 pgcom.Parameters.AddWithValue("_offeredByPartyId", offeredByPartyId);
                 pgcom.Parameters.AddWithValue("_coveredByUserId", coveredByUserId.HasValue ? coveredByUserId.Value : DBNull.Value);
                 pgcom.Parameters.AddWithValue("_coveredByPartyId", coveredByPartyId.HasValue ? coveredByPartyId.Value : DBNull.Value);
+
+                List<DelegationChange> delegationChanges = new List<DelegationChange>();
+
+                using NpgsqlDataReader reader = pgcom.ExecuteReader();
+                while (reader.Read())
+                {
+                    delegationChanges.Add(GetDelegationChange(reader));
+                }
+
+                return delegationChanges;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
+        {
+            try
+            {
+                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await conn.OpenAsync();
+
+                NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesSql, conn);
+                pgcom.Parameters.AddWithValue("_altinnAppIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text, altinnAppIds?.Count > 0 ? altinnAppIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds?.Count > 0 ? offeredByPartyIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByPartyIds?.Count > 0 ? coveredByPartyIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_coveredByUserIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByUserIds?.Count > 0 ? coveredByUserIds : DBNull.Value);
 
                 List<DelegationChange> delegationChanges = new List<DelegationChange>();
 

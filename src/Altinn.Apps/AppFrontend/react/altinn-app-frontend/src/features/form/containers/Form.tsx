@@ -1,13 +1,12 @@
 /* eslint-disable no-undef */
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
-import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { GroupContainer } from './GroupContainer';
 import { renderGenericComponent } from '../../../utils/layout';
 import { DisplayGroupContainer } from './DisplayGroupContainer';
+import { useAppSelector } from 'src/common/hooks';
 
 export function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup, layout: ILayout) {
   switch (layoutComponent.type) {
@@ -66,9 +65,8 @@ export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
   const [currentLayout, setCurrentLayout] = React.useState<string>();
 
-  const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-  const layout: ILayout =
-    useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
+  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
+  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
 
   React.useEffect(() => {
     setCurrentLayout(currentView);

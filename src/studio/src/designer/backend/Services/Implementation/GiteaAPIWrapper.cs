@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-
+using System.Web;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -91,16 +91,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            var repository = new Altinn.Studio.Designer.RepositoryClient.Model.Repository();
+            var repository = new RepositoryClient.Model.Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                repository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+                repository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
                 repository.RepositoryCreatedStatus = HttpStatusCode.Created;
             }
             else if (response.StatusCode == HttpStatusCode.Conflict)
@@ -119,16 +119,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos()
+        public async Task<IList<RepositoryClient.Model.Repository>> GetUserRepos()
         {
-            IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository> repos = new List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=50");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                repos = await response.Content.ReadAsAsync<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>();
+                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
 
-                foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repos)
+                foreach (RepositoryClient.Model.Repository repo in repos)
                 {
                     if (string.IsNullOrEmpty(repo.Owner?.Login))
                     {
@@ -142,6 +142,70 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         repo.Owner.UserType = UserType.Org;
                     }
                 }
+            }
+
+            return repos;
+        }
+
+        /// <summary>
+        /// Gets all repositores that the user has starred.
+        /// </summary>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public async Task<IList<RepositoryClient.Model.Repository>> GetStarred()
+        {
+            var starredRepos = new List<RepositoryClient.Model.Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync("user/starred");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
+                starredRepos.AddRange(repos);
+            }
+
+            return starredRepos;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> PutStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteStarred(string org, string repository)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org)
+        {
+            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{org}/repos?limit=50");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                repos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
             }
 
             return repos;
@@ -218,7 +282,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return repository;
             }
 
-            foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repository.Data)
+            foreach (RepositoryClient.Model.Repository repo in repository.Data)
             {
                 if (string.IsNullOrEmpty(repo.Owner?.Login))
                 {
@@ -237,19 +301,102 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository)
+        public async Task<SearchResults> SearchRepo(SearchOptions searchOption)
         {
-            Altinn.Studio.Designer.RepositoryClient.Model.Repository returnRepository = null;
+            string giteaSearchUriString = BuildSearchQuery(searchOption);
+
+            SearchResults searchResults = null;
+            HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                searchResults = await response.Content.ReadAsAsync<SearchResults>();
+                if (response.Headers.TryGetValues("X-Total-Count", out IEnumerable<string> countValues))
+                {
+                    searchResults.TotalCount = Convert.ToInt32(countValues.First());
+                }
+
+                if (response.Headers.TryGetValues("Link", out IEnumerable<string> linkValues))
+                {
+                    LinkHeader linkHeader = LinkHeader.LinksFromHeader(linkValues.First());
+                    if (!string.IsNullOrEmpty(linkHeader.LastLink))
+                    {
+                        Uri linkUri = new Uri(linkHeader.LastLink);
+                        string page = HttpUtility.ParseQueryString(linkUri.Query).Get("page");
+                        if (int.TryParse(page, out int lastPage))
+                        {
+                            searchResults.TotalPages = lastPage;
+                        }
+                    }
+                    else
+                    {
+                        searchResults.TotalPages = searchOption.Page;
+                    }
+                }
+
+                if (searchResults.TotalCount > 0 && searchResults.TotalPages == 0)
+                {
+                    searchResults.TotalPages = 1;
+                }
+            }
+            else
+            {
+                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+            }
+
+            return searchResults;
+        }
+
+        private string BuildSearchQuery(SearchOptions searchOption)
+        {
+            if (searchOption.Limit < 1)
+            {
+                searchOption.Limit = _settings.RepoSearchPageCount;
+            }
+
+            string giteaSearchUriString = $"repos/search?limit={searchOption.Limit}";
+
+            if (!string.IsNullOrEmpty(searchOption.Keyword))
+            {
+                giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            if (searchOption.UId != 0)
+            {
+                giteaSearchUriString += $"&uid={searchOption.UId}&exclusive=true";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.SortBy) && new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
+            {
+                giteaSearchUriString += $"&sort={searchOption.SortBy}";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.Order) && new[] { "asc", "desc" }.Contains(searchOption.Order, StringComparer.OrdinalIgnoreCase))
+            {
+                giteaSearchUriString += $"&order={searchOption.Order}";
+            }
+
+            if (searchOption.Page != 0)
+            {
+                giteaSearchUriString += $"&page={searchOption.Page}";
+            }
+
+            return giteaSearchUriString;
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository)
+        {
+            RepositoryClient.Model.Repository returnRepository = null;
 
             string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                returnRepository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
+                returnRepository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
             }
             else
             {
-                _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
+                _logger.LogWarning($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
             if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
@@ -311,16 +458,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> CreateBranch(string org, string repository, string branchName)
         {
-            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-
-            HttpRequestMessage m = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
-            m.Content = new StringContent(content, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.SendAsync(m);
+            HttpResponseMessage response = await PostBranch(org, repository, branchName);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                return await response.Content.ReadAsAsync<Branch>();
+                var branch = await response.Content.ReadAsAsync<Branch>();
+                return branch;
+            }
+
+            // In quite a few cases we have experienced that we get a 404 back
+            // when doing a POST to this endpoint, hence we do a simple retry
+            // with a specified wait time.
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                HttpResponseMessage retryResponse = await PostBranch(org, repository, branchName, 250);
+                Branch branch = await retryResponse.Content.ReadAsAsync<Branch>();
+                return branch;
             }
             else
             {
@@ -328,6 +481,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return null;
+        }
+
+        private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName, int waitMsBeforeCall = 0)
+        {
+            if (waitMsBeforeCall > 0)
+            {
+                Thread.Sleep(waitMsBeforeCall);
+            }
+
+            string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            message.Content = new StringContent(content, Encoding.UTF8, "application/json");
+
+            return await _httpClient.SendAsync(message);
         }
 
         /// <inheritdoc />
@@ -584,9 +751,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     };
                 }
 
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-
                 // Keep in cache for this time, reset time if accessed.
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
                 // Save data in cache.

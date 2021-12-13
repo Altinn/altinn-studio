@@ -2,7 +2,6 @@ import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useSelector, useDispatch } from 'react-redux';
 import ProcessWrapper from './shared/containers/ProcessWrapper';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
@@ -11,6 +10,7 @@ import { get } from './utils/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
 import Entrypoint from './features/entrypoint/Entrypoint';
+import { useAppDispatch, useAppSelector } from './common/hooks';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -18,12 +18,12 @@ const theme = createTheme(AltinnAppTheme);
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 export const App = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
-  const hasApiErrors: boolean = useSelector(hasErrorSelector);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore since appliacationSetting is not available in rootstate
-  const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
+    const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore since appliacationSetting is not available in rootstate
+    const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp = 0;
 

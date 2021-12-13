@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IRuntimeState } from '../../../types';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function UnknownError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
+  const language = useAppSelector(state => state.language.language);
   if (!language) {
     return null;
   }

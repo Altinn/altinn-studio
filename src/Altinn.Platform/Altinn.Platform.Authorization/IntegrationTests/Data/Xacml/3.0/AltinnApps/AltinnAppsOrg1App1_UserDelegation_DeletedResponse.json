@@ -1,0 +1,19 @@
+{
+  "response": [
+    {
+      "decision": "NotApplicable",
+      "status": {
+        "statusMessage": null,
+        "statusDetails": null,
+        "statusCode": {
+          "value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "statusCode": null
+        }
+      },
+      "obligations": null,
+      "associateAdvice": null,
+      "category": null,
+      "policyIdentifierList": null
+    }
+  ]
+}

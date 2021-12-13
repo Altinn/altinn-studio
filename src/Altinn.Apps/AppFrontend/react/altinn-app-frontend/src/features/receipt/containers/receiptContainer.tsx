@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
@@ -11,10 +10,7 @@ import {
   AltinnReceiptSimple,
 } from 'altinn-shared/components';
 import {
-  IInstance,
   IParty,
-  ITextResource,
-  IProfile,
   IAttachment,
 } from 'altinn-shared/types';
 import {
@@ -29,9 +25,8 @@ import {
 } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
-import { IRuntimeState } from '../../../types';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
+import { useAppSelector } from 'src/common/hooks';
 
 export type IReceiptContainerProps = RouteChildrenProps;
 
@@ -79,27 +74,13 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
-  const allOrgs: any = useSelector(
-    (state: IRuntimeState) => state.organisationMetaData.allOrgs,
-  );
-  const applicationMetadata: IApplicationMetadata = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
-  );
-  const instance: IInstance = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const parties: IParty[] = useSelector(
-    (state: IRuntimeState) => state.party.parties,
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const profile: IProfile = useSelector(
-    (state: IRuntimeState) => state.profile.profile,
-  );
+  const allOrgs = useAppSelector(state => state.organisationMetaData.allOrgs);
+  const applicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
+  const instance = useAppSelector(state => state.instanceData.instance);
+  const language = useAppSelector(state => state.language.language);
+  const parties = useAppSelector(state => state.party.parties);
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const profile = useAppSelector(state => state.profile.profile);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;

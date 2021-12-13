@@ -73,8 +73,6 @@ const useStyles = makeStyles({
   },
 });
 
-const defaultArray = [];
-
 export function RepeatingGroupTable({
   id,
   container,
@@ -266,7 +264,8 @@ export function RepeatingGroupTable({
                 ].some((component: ILayoutComponent | ILayoutGroup) => {
                   return childElementHasErrors(component, index);
                 });
-                const items: IMobileTableItem[] = defaultArray;
+                // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
+                const items: IMobileTableItem[] = [];
                 components.forEach((component) => {
                   const childId =
                     (component as any).baseComponentId || component.id;
