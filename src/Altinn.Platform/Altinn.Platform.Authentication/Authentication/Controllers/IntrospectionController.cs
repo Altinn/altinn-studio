@@ -16,19 +16,18 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class IntrospectionController : ControllerBase
     {
-        private readonly IEFormidlingAccessValidator _eFormidlingAccessValidator;
+        private readonly IAuthentication _authentication;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IntrospectionController"/> class.
         /// </summary>
-        /// <param name="eFormidlingAccessValidator">The eFormidling access validator service</param>
-        public IntrospectionController(IEFormidlingAccessValidator eFormidlingAccessValidator)
+        public IntrospectionController(IAuthentication authentication)
         {
-            _eFormidlingAccessValidator = eFormidlingAccessValidator;
+            _authentication = authentication;
         }
 
         /// <summary>
-        /// Validate token.
+        /// Validates provided token.
         /// </summary>
         [AllowAnonymous]
         [HttpPost]
@@ -37,20 +36,14 @@ namespace Altinn.Platform.Authentication.Controllers
         [ProducesResponseType(typeof(IntrospectionResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<IntrospectionResponse>> ValidateToken([FromForm] IntrospectionRequest request)
         {
-            string token = request.Token;
-
-            switch (request.TokenTypeHint)
+            if (string.IsNullOrEmpty(request.Token))
             {
-                case "eFormidlingAccessToken":
-                default:
-                    // default behavior must try to  validate against all supported token types
-                    return Ok(await ValidateEFormidlingAccessToken(token));
+                return BadRequest("Token canot be empty.");
             }
-        }
 
-        private async Task<IntrospectionResponse> ValidateEFormidlingAccessToken(string token)
-        {
-            return await _eFormidlingAccessValidator.ValidateToken(token);
+            var response = await _authentication.IntrospectionValidation(request);
+
+            return Ok(response);
         }
     }
 }

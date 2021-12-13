@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Authentication.Tests.Helpers;
 
@@ -60,8 +61,8 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>()
                 {
-                    { "Token", "thisIsMyRandomToken" },
-                    { "TokenTypeHint", "eFormidlingAccessToken" }
+                    { "token", "thisIsMyRandomToken" },
+                    { "token_type_hint", "eFormidlingAccessToken" }
                 }),
             };
 
@@ -98,7 +99,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>()
                 {
-                    { "Token", "thisIsMyRandomToken" },
+                    { "token", "thisIsMyRandomToken" },
                 }),
             };
 
@@ -124,8 +125,10 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             {
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddSingleton<IAuthentication, AuthenticationCore>();
                     services.AddSingleton(eFormidlingAccessValidatorMock);
                 });
+
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
             return client;

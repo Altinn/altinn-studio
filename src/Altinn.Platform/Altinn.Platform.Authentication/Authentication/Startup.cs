@@ -119,6 +119,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<Common.AccessToken.Services.IAccessTokenValidator, Common.AccessToken.Services.AccessTokenValidator>();
             services.AddSingleton<IEFormidlingAccessValidator, EFormidlingAccessValidator>();
             services.AddHttpClient<IOidcProvider, OidcProviderService>();
+            services.AddSingleton<IAuthentication, AuthenticationCore>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
