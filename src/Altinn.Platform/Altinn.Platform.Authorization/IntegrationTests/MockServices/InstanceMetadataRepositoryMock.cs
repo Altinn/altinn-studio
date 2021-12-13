@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
-    public class PolicyInformationRepositoryMock : IPolicyInformationRepository
+    public class InstanceMetadataRepositoryMock : IInstanceMetadataRepository
     {
         public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
         {

@@ -13,21 +13,21 @@ namespace Altinn.Platform.Authorization.Repositories
     /// <summary>
     /// Repository for retrieving instance information
     /// </summary>
-    public class PolicyInformationRepository : IPolicyInformationRepository
+    public class InstanceMetadataRepository : IInstanceMetadataRepository
     {
         private readonly string databaseId;
         private readonly string instanceCollectionId;
         private readonly string applicationCollectionId;
         private readonly DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
-        private readonly ILogger<PolicyInformationRepository> logger;
+        private readonly ILogger<InstanceMetadataRepository> logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyInformationRepository"/> class
+        /// Initializes a new instance of the <see cref="InstanceMetadataRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         /// <param name="logger">the logger</param>
-        public PolicyInformationRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<PolicyInformationRepository> logger)
+        public InstanceMetadataRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceMetadataRepository> logger)
         {
             this.logger = logger;
 
