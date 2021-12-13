@@ -283,8 +283,6 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
 
-            // TODO: Fix so we don't need /branch
-
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>

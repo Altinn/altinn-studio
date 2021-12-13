@@ -2,7 +2,7 @@
 <xacml:Policy PolicyId="urn:altinn:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">
   <xacml:Description>Delegation policy containing all delegated rights/actions from 50001337 to 20001337, for resources on the app; org2/app1</xacml:Description>
   <xacml:Target/>
-  <xacml:Rule RuleId="urn:altinn:ruleid:f6db3370-b7ea-4e53-b535-142dd0dc1474" Effect="Permit">
+  <xacml:Rule RuleId="f6db3370-b7ea-4e53-b535-142dd0dc1474" Effect="Permit">
     <xacml:Description>Delegation of a right/action from 50001337 to 20001337, for a resource on the app; org2/app1, by user; 20001336</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>

@@ -17,7 +17,7 @@ context(
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
     });
     beforeEach(() => {
-      cy.intercept('**/RepoStatus*').as('repoStatus');
+      cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
       Cypress.Cookies.preserveOnce('AltinnStudioDesigner', 'i_like_gitea', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
       cy.visit(`designer/${Cypress.env('deployApp')}#/about`);
       cy.wait('@repoStatus');
@@ -39,7 +39,7 @@ context(
     it('Gitea connection - Pull changes', () => {      
       cy.deleteLocalChanges(Cypress.env('deployApp'));
       cy.wait(5000);
-      cy.intercept(/.*designerapi\/Repository\/Pull.*/).as('pullChanges');
+      cy.intercept(/(P|p)ull/).as('pullChanges');
       cy.get(designer.syncApp.pull).should('be.visible').click();
       cy.wait('@pullChanges');
       cy.get('h3').contains('Appen din er oppdatert til siste versjon').should('be.visible');

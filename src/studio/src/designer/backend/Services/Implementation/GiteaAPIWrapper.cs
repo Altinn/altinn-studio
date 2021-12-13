@@ -303,46 +303,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<SearchResults> SearchRepo(SearchOptions searchOption)
         {
+            string giteaSearchUriString = BuildSearchQuery(searchOption);
+
             SearchResults searchResults = null;
-
-            if (searchOption.Limit < 1)
-            {
-                searchOption.Limit = _settings.RepoSearchPageCount;
-            }
-
-            string giteaSearchUriString = $"repos/search?limit={searchOption.Limit}";
-
-            if (!string.IsNullOrEmpty(searchOption.Keyword))
-            {
-                giteaSearchUriString += $"&q={searchOption.Keyword}";
-            }
-
-            if (searchOption.UId != 0)
-            {
-                giteaSearchUriString += $"&uid={searchOption.UId}";
-            }
-
-            if (!string.IsNullOrEmpty(searchOption.SortBy))
-            {
-                if (new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
-                {
-                    giteaSearchUriString += $"&sort={searchOption.SortBy}";
-                }
-            }
-
-            if (!string.IsNullOrEmpty(searchOption.Order))
-            {
-                if (new[] { "asc", "desc" }.Contains(searchOption.Order, StringComparer.OrdinalIgnoreCase))
-                {
-                    giteaSearchUriString += $"&order={searchOption.Order}";
-                }
-            }
-
-            if (searchOption.Page != 0)
-            {
-                giteaSearchUriString += $"&page={searchOption.Page}";
-            }
-
             HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -381,6 +344,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return searchResults;
+        }
+
+        private string BuildSearchQuery(SearchOptions searchOption)
+        {
+            if (searchOption.Limit < 1)
+            {
+                searchOption.Limit = _settings.RepoSearchPageCount;
+            }
+
+            string giteaSearchUriString = $"repos/search?limit={searchOption.Limit}";
+
+            if (!string.IsNullOrEmpty(searchOption.Keyword))
+            {
+                giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            if (searchOption.UId != 0)
+            {
+                giteaSearchUriString += $"&uid={searchOption.UId}&exclusive=true";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.SortBy) && new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
+            {
+                giteaSearchUriString += $"&sort={searchOption.SortBy}";
+            }
+
+            if (!string.IsNullOrEmpty(searchOption.Order) && new[] { "asc", "desc" }.Contains(searchOption.Order, StringComparer.OrdinalIgnoreCase))
+            {
+                giteaSearchUriString += $"&order={searchOption.Order}";
+            }
+
+            if (searchOption.Page != 0)
+            {
+                giteaSearchUriString += $"&page={searchOption.Page}";
+            }
+
+            return giteaSearchUriString;
         }
 
         /// <inheritdoc/>

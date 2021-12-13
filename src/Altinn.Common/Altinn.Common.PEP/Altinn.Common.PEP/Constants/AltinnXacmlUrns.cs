@@ -34,5 +34,10 @@ namespace Altinn.Common.PEP.Constants
         /// Get the value for for event id
         /// </summary>
         public const string EventId = "urn:altinn:event-id";
+
+        /// <summary>
+        /// Get the value task id
+        /// </summary>
+        public const string TaskId = "urn:altinn:task";
     }
 }

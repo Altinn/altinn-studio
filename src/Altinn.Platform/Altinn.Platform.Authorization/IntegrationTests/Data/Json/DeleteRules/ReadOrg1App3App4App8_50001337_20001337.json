@@ -1,7 +1,7 @@
 [
   {
     "ruleIds": [
-      "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+      "0d0c8570-64fb-49f9-9f7d-45c057fddf94"
     ],
     "deletedByUserId": 20001336,
     "policyMatch": {
@@ -26,8 +26,8 @@
   },
   {
     "ruleIds": [
-      "urn:altinn:ruleid:adfa64fa-5859-46e5-8d0d-62762082f3b9",
-	  "urn:altinn:ruleid:7d015074-e91a-464a-a5f6-e4d4f58c3511"	  
+      "adfa64fa-5859-46e5-8d0d-62762082f3b9",
+	  "7d015074-e91a-464a-a5f6-e4d4f58c3511"	  
     ],
     "deletedByUserId": 20001336,
     "policyMatch": {
@@ -52,7 +52,7 @@
   },
   {
     "ruleIds": [
-      "urn:altinn:ruleid:0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+      "0d0c8570-64fb-49f9-9f7d-45c057fddf94"
     ],
     "deletedByUserId": 20001336,
     "policyMatch": {
