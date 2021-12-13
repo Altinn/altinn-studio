@@ -362,7 +362,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (searchOption.UId != 0)
             {
-                giteaSearchUriString += $"&uid={searchOption.UId}";
+                giteaSearchUriString += $"&uid={searchOption.UId}&exclusive=true";
             }
 
             if (!string.IsNullOrEmpty(searchOption.SortBy) && new[] { "alpha", "created", "updated", "size", "id" }.Contains(searchOption.SortBy, StringComparer.OrdinalIgnoreCase))
