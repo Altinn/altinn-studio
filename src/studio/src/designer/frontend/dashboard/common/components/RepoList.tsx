@@ -142,7 +142,8 @@ export const RepoList = ({
 
         return [
           <IconButton
-            key={params.row.id}
+            key={repo.id}
+            id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
             aria-label={repo.user_has_starred ?
               getLanguageFromKey('dashboard.unstar', language) :

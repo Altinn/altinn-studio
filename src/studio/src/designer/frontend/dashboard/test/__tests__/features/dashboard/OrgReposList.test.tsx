@@ -9,30 +9,7 @@ import { userApi } from '../../../../services/userApi';
 import { getDefaultMiddleware } from '@reduxjs/toolkit';
 
 jest.spyOn(repoApi, 'useGetSearchQuery').
-  mockImplementation(jest.fn().mockReturnValue(
-    {
-      data: [{
-        full_name: "test",
-        id: 4,
-        owner: {
-          full_name: 'ttd'
-        },
-        html_url: '',
-        user_has_starred: false,
-        updated_at: '2021-07-30T10:33:47Z'
-      },
-      {
-        full_name: "test-datamodels",
-        id: 3,
-        owner: {
-          full_name: 'ttd'
-        },
-        html_url: '',
-        user_has_starred: true,
-        updated_at: '2021-07-30T10:33:47Z'
-      }],
-      isLoading: false
-    }));
+  mockImplementation(jest.fn().mockReturnValue({ data: [], isLoading: false }));
 jest.spyOn(organizationApi, 'useGetOrganizationsQuery').
   mockImplementation(jest.fn().mockReturnValue({ data: [] }));
 jest.spyOn(userApi, 'useGetUserStarredReposQuery').
