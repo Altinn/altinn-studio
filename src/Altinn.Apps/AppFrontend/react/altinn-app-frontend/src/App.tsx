@@ -21,9 +21,7 @@ export const App = () => {
   const dispatch = useAppDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
     const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore since appliacationSetting is not available in rootstate
-    const appOidcProvider = useSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
+    const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp = 0;
 
