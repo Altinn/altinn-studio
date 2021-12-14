@@ -1,5 +1,5 @@
 import { expectSaga } from "redux-saga-test-plan";
-import { getApplicationSettings, watchGetApplicationSettingsSaga } from '../../../../../src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
+import { getApplicationSettings } from '../../../../../src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
 import { ApplicationSettingsActions } from '../../../../../src/shared/resources/applicationSettings/applicationSettingsSlice';
 import { applicationSettingsApiUrl } from "../../../../../src/utils/urlHelper";
 import * as networking from "../../../../../src/utils/networking";
