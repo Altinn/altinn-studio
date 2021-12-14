@@ -24,7 +24,7 @@ const applicationSettingsSlice = createSlice({
       state.applicationSettings = settings;
     },
     fetchApplicationSettingsRejected:
-    (state, action: PayloadAction<ApplicationSettingsTypes.IApplicationSettingsActionRejected>) => {
+    (state, action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },

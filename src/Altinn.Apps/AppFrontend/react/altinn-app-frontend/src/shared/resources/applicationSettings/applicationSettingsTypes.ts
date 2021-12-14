@@ -4,6 +4,6 @@ export interface IFetchApplicationSettingsFulfilled {
   settings: IApplicationSettings;
 }
 
-export interface IApplicationSettingsActionRejected {
+export interface IFetchApplicationSettingsRejected {
   error: Error;
 }

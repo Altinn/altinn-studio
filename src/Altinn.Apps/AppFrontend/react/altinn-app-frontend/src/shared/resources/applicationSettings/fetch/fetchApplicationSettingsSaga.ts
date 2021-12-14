@@ -4,7 +4,7 @@ import { get } from '../../../../utils/networking';
 import { applicationSettingsApiUrl } from '../../../../utils/urlHelper';
 import { ApplicationSettingsActions as Actions } from '../applicationSettingsSlice';
 
-function* getApplicationSettings(): SagaIterator {
+export function* getApplicationSettings(): SagaIterator {
   try {
     const applicationSettings = yield call(get, applicationSettingsApiUrl);
     yield put(Actions.fetchApplicationSettingsFulfilled({ settings: applicationSettings }));
