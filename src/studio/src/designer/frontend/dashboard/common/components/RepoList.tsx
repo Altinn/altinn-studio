@@ -36,6 +36,7 @@ type RepoListProps = {
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   sortModel?: GridSortModel;
+  disableVirtualization?: boolean;
 };
 
 const defaultPageSize = 8;
@@ -114,6 +115,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   sortModel,
+  disableVirtualization = false,
 }: RepoListProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
@@ -302,6 +304,7 @@ export const RepoList = ({
           rowCount={rowCount}
           onPageChange={onPageChange}
           sx={gridStyleOverride}
+          disableVirtualization={disableVirtualization}
         />
       ) : (
         <DataGrid
@@ -317,6 +320,7 @@ export const RepoList = ({
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}
+          disableVirtualization={disableVirtualization}
         />
       )}
 
