@@ -8,6 +8,7 @@ import {
   GridValueGetterParams,
   GridValueFormatterParams,
   GridColDef,
+  GridOverlay,
 } from '@mui/x-data-grid';
 import { makeStyles } from '@material-ui/core';
 import { IconButton } from '@mui/material';
@@ -35,6 +36,7 @@ type RepoListProps = {
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   sortModel?: GridSortModel;
+  disableVirtualization?: boolean;
 };
 
 const defaultPageSize = 8;
@@ -45,10 +47,9 @@ const defaultArray: IRepository[] = [];
 
 const useStyles = makeStyles({
   repoLink: {
-    color: '#579b2e',
-
+    color: '#57823D',
     '&:hover': {
-      color: '#579b2e',
+      color: '#57823D',
     },
   },
   editLink: {
@@ -94,6 +95,17 @@ const gridStyleOverride = {
   },
 };
 
+export const NoResults = () => {
+  const language = useAppSelector((state) => state.language.language);
+  return (
+    <GridOverlay>
+      <p>
+        {getLanguageFromKey('dashboard.no_repos_result', language)}
+      </p>
+    </GridOverlay>
+  );
+}
+
 export const RepoList = ({
   repos = defaultArray,
   isLoading,
@@ -103,6 +115,7 @@ export const RepoList = ({
   onPageChange,
   onSortModelChange,
   sortModel,
+  disableVirtualization = false,
 }: RepoListProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
@@ -130,7 +143,15 @@ export const RepoList = ({
         };
 
         return [
-          <IconButton key={params.row.id} onClick={handleToggleFav}>
+          <IconButton
+            key={repo.id}
+            id={`fav-repo-${repo.id}`}
+            onClick={handleToggleFav}
+            aria-label={repo.user_has_starred ?
+              getLanguageFromKey('dashboard.unstar', language) :
+              getLanguageFromKey('dashboard.star', language)
+            }
+          >
             <i
               className={cn(classes.favoriteIcon, {
                 'fa fa-fav-filled': repo.user_has_starred,
@@ -162,11 +183,10 @@ export const RepoList = ({
         field: 'updated_at',
         headerName: getLanguageFromKey('dashboard.last_modified', language),
         width: 150,
-        editable: true,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
-          return new Date(date).toLocaleDateString();
+          return new Date(date).toLocaleDateString('nb');
         },
       },
     ];
@@ -179,19 +199,23 @@ export const RepoList = ({
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
+
+          const repoFullName = params.row.full_name as string;
+          const isDatamodelling = repoFullName.endsWith('-datamodels');
+
           const editUrl = getRepoEditUrl({
-            repoFullName: params.row.full_name as string,
+            repoFullName,
           });
 
           const handleDuplicateClick = () => {
-            setCopyCurrentRepoName(params.row.full_name);
+            setCopyCurrentRepoName(repoFullName);
           };
 
           const handleOpenInNewClick = () => {
             window.open(editUrl, '_blank');
           };
 
-          return [
+          const colItems = [
             <a
               key={params.row.id}
               href={params.row.html_url}
@@ -225,6 +249,14 @@ export const RepoList = ({
               label={getLanguageFromKey('dashboard.open_in_new', language)}
             />,
           ];
+
+          if (isDatamodelling) {
+            // TODO: remove this weird logic once standalone datamodelling is OK
+            // hides context menu and edit app as neither is applicable just yet
+            return colItems.splice(0, 1);
+          }
+
+         return colItems;
         },
       },
     ];
@@ -254,6 +286,9 @@ export const RepoList = ({
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
         <DataGrid
+          components={{
+            NoRowsOverlay: NoResults,
+          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -269,9 +304,13 @@ export const RepoList = ({
           rowCount={rowCount}
           onPageChange={onPageChange}
           sx={gridStyleOverride}
+          disableVirtualization={disableVirtualization}
         />
       ) : (
         <DataGrid
+          components={{
+            NoRowsOverlay: NoResults,
+          }}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -281,6 +320,7 @@ export const RepoList = ({
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}
+          disableVirtualization={disableVirtualization}
         />
       )}
 

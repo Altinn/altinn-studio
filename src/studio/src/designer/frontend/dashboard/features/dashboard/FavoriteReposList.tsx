@@ -16,7 +16,7 @@ export const FavoriteReposList = () => {
   return (
     <div>
       <Typography variant='h2'>
-        {getLanguageFromKey('dashboard.favorites', language)}
+        {getLanguageFromKey('dashboard.favourites', language)}
       </Typography>
 
       <RepoList

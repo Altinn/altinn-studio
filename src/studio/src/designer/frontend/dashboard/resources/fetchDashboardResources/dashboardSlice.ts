@@ -23,7 +23,7 @@ export interface IDashboardState {
 const initialState: IDashboardState = {
   services: [],
   user: null,
-  selectedContext: SelectedContextType.All,
+  selectedContext: SelectedContextType.Self,
 };
 
 export interface IFetchDashboardInfoAction {
