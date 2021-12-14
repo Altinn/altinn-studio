@@ -23,6 +23,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '24px',
+    alignItems: 'center',
   },
   clearIcon: {
     fontSize: 26,
