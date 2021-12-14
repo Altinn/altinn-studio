@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import * as React from 'react';
 import DropZone, { FileRejection } from 'react-dropzone';
 import { AltinnAppTheme } from 'altinn-shared/theme';

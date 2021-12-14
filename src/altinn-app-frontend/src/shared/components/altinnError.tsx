@@ -73,7 +73,6 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
         </div>
         <div className={classes.contentMargin}>
           <Typography
-            // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
             classes={{ root: classes.articleText }}
             className={styling ? styling.content : null}
           >

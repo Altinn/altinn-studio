@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import moment from 'moment';
 import * as React from 'react';
 import '../../styles/DatepickerComponent.css';

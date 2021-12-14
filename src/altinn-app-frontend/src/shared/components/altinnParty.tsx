@@ -171,7 +171,6 @@ function AltinnParty(props: IAltinnPartyProps) {
               <div className={classes.subUnitListHeaderIcon}>
                 <i
                   className='ai ai-expand-circle'
-                  // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
                   style={{
                     WebkitTransition: '-webkit-transform 0.5s',
                     transition: 'transform 0.5s',

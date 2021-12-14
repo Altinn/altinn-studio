@@ -33,7 +33,6 @@ export function TextAreaComponent(props: ITextAreaComponentProps) {
         onBlur={onDataChangeSubmit}
         onChange={onDataChanged}
         readOnly={props.readOnly}
-        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
         className={
           (props.isValid
