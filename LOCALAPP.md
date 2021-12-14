@@ -95,10 +95,12 @@ These are some of the required steps, tips and tricks when it comes to running a
 3. Configuration of LocalTest   
     The LocalTest application acts as an emulator of the Altinn 3 platform services. It provides things like authentication, authorization and storage. Everything your apps will need to run locally.   
 
-    Settings:    
+    Settings (under `LocalPlatformSettings`):
     - `LocalTestingStorageBasePath` - The folder to which LocalTest will store instances and data being created during testing.
-    - `AppRepositoryBasePath` - The folder where LocalTest will look for apps and their files.
     - `LocalTestingStaticTestDataPath` - Test user data like profile, register and roles. (`<path to altinn-studio repo>/src/development/TestData/`)
+    - `LocalAppMode` - (default `file`) If set to `http`, LocalTest will find the active app configuration and policy.xml using apis exposed on `LocalAppUrl`. (note that this is a new setting needs to be added manually under `LocalPlatformSettings`, it might also require updates to altinn dependencies for your apps in order to support this functionality)
+    - `AppRepositoryBasePath` - The folder where LocalTest will look for apps and their files if `LocalAppMode` == `"file"`. This is typically the parent directory where you checkout all your apps.
+    - `LocalAppUrl` - If `LocalAppMode` == `"file"`, this URL will be used instead of `AppRepositoryBasePath` to find apps and their files. Typically the value will be `"http://localhost:5005"`
 
     The recommended way of changing settings for LocalTest is through [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret). User secrets is a set of developer specific settings that will overwrite values from the `appsettings.json` file when the application is started in developer "mode". The alternative is to edit the `appsettings.json` file directly. Just be careful not to commit developer specific changes back to the repository.
    1. Define a user secret with the following command:  (make sure you are in the LocalTest folder)
