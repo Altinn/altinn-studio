@@ -3,9 +3,43 @@
   ViewData["Title"] = "Altinn Studio Local Testing";
 }
 
-@{ if (!Model.InvalidAppPath && !Model.InvalidTestDataPath)
+@{ 
+  if (Model.HttpException != null)
   {
+    <div class="alert alert-dark" role="alert">
+      An exception occured while fetching aplicationData
+      @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
+        <text>
+          <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
+          This is likely because you have not updated your app to the latest version
+          nuget packages. Please ensure you have at least __VERSION__ or run
+          LocalTest outside of docker in `file` mode
+        </text>
+      } else if(Model.HttpException.InnerException is System.Net.Sockets.SocketException) {
+        <pre>No application running on @Model.LocalAppUrl</pre>
+      } else {
+        <pre>
+          @(Model.HttpException.ToString())
+          @(Model.HttpException.StackTrace.ToString())
+        </pre>
+      }
+    </div>
+  }
+  else if (Model.InvalidAppPath)
+  {
+    <div class="alert alert-dark" role="alert">
+      Check your configured app path in appsettings.json for localtest project  Can't find any Altinn App at this location: @Model.AppPath
+    </div>
 
+  }
+  else if (Model.InvalidTestDataPath)
+  {
+    <div class="alert alert-dark" role="alert">
+      Check your configurred path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
+    </div>
+  }
+  else
+  {
   <div class="text-center">
     <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
     <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
@@ -26,19 +60,10 @@
       </div>
       <button type="submit" class="btn btn-primary">Sign in</button>
     }
-  </div>
-  }
-  else if (Model.InvalidAppPath)
-  {
-    <div class="alert alert-dark" role="alert">
-      Check your configured app path in appsettings.json for localtest project  Can't find any Altinn App at this location: @Model.AppPath
-    </div>
 
-  }
-  else if (Model.InvalidTestDataPath)
-  {
-    <div class="alert alert-dark" role="alert">
-      Check your configurred path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
+    <div class="alert alert-light" role="alert">
+      To access attachments XML and other data, visit <a href="/LocalPlatformStorage/">/LocalPlatformStorage</a>
     </div>
+  </div>
   }
 }
