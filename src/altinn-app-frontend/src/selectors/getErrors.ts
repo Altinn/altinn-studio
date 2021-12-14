@@ -27,6 +27,13 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
   }
 
   // we have a few special cases where we allow 404 status codes but not other errors
+  const applicationSettingsError = state.applicationSettings.error;
+  if (applicationSettingsError !== null) {
+    if (applicationSettingsError.message.indexOf('404') === -1) {
+      hasError = true;
+    }
+  }
+
   const textResourceError = state.textResources.error;
   if (textResourceError !== null) {
     if (textResourceError.message.indexOf('404') === -1) {
