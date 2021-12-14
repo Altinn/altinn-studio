@@ -19,8 +19,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.instanceData.error ||
     state.applicationMetadata.error ||
     state.formDataModel.error ||
-    state.optionState.error ||
-    state.applicationSettings.error);
+    state.optionState.error);
 
   if (error !== null) {
     // we have an error on something we consider critical, return true
@@ -34,7 +33,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
       hasError = true;
     }
   }
-  
+
   const textResourceError = state.textResources.error;
   if (textResourceError !== null) {
     if (textResourceError.message.indexOf('404') === -1) {

@@ -15,11 +15,11 @@ describe('resources > applicationSettings > fetch > fetchApplicationSettingsSaga
   });
 
   it('fetchApplicationSettingsSagas should set state with error if get fails', () => {
-    const mockError = { message: 'some error'};
+    const mockError = new Error('failed with 404');
     jest.spyOn(networking, 'get').mockRejectedValue(mockError);
     return expectSaga(getApplicationSettings)
       .call(networking.get, applicationSettingsApiUrl)
-      .call(ApplicationSettingsActions.fetchApplicationSettingsRejected, mockError)
+      .put(ApplicationSettingsActions.fetchApplicationSettingsRejected({ error: mockError}))
       .run();
   });
 });

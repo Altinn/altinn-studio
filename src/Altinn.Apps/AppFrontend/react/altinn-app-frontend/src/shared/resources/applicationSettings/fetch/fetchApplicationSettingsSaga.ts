@@ -9,7 +9,7 @@ export function* getApplicationSettings(): SagaIterator {
     const applicationSettings = yield call(get, applicationSettingsApiUrl);
     yield put(Actions.fetchApplicationSettingsFulfilled({ settings: applicationSettings }));
   } catch (error) {
-    yield call(Actions.fetchApplicationSettingsRejected, error);
+    yield put(Actions.fetchApplicationSettingsRejected({ error }));
   }
 }
 
