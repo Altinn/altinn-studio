@@ -12,6 +12,7 @@ namespace Altinn.Platform.Authentication.Controllers
     /// <summary>
     /// Controller for introspection requests to Platform Authentication
     /// </summary>
+    [Authorize]
     [Route("authentication/api/v1/introspection")]
     [ApiController]
     public class IntrospectionController : ControllerBase
@@ -29,7 +30,6 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Validates provided token.
         /// </summary>
-        [AllowAnonymous]
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/x-www-form-urlencoded")]
