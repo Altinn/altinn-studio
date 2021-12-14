@@ -9,14 +9,32 @@
     <div class="alert alert-dark" role="alert">
       An exception occured while fetching aplicationData
       @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
-        <text>
-          <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
-          This is likely because you have not updated your app to the latest version
-          nuget packages. Please ensure you have at least __VERSION__ or run
-          LocalTest outside of docker in `file` mode
-        </text>
+        <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
+        <p>
+          You are currently running LocalTest in "http" mode, and this requires
+          apps created before December 2021 to update to nuget pacakges to fix
+          an access controll issue.
+        </p>
+        <p>
+          You can either change the setting "LocalPlatformSettings.LocalAppMode"
+          to "file", or update the altinn nuget pacakges in your app to at least
+          4.21.0
+        </p>
+        <p>
+          See <a href="https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/">https://docs.altinn.studio/community/changelog/app-nuget/v4/breaking-changes/</a> for instructions on how to update.
+        </p>
       } else if(Model.HttpException.InnerException is System.Net.Sockets.SocketException) {
-        <pre>No application running on @Model.LocalAppUrl</pre>
+        @if(string.IsNullOrWhiteSpace(Model.LocalAppUrl)){
+          <p>
+            LocalTest is running in "LocalPlatformSettings.LocalAppMode" == "http" mode, but
+            "LocalPlatformSettings.LocalAppUrl" is not set to a valid adress.
+          </p>
+        } else {
+          <pre>No application running on @Model.LocalAppUrl</pre>
+          <p>
+            Please start your an app on this adress.
+          </p>
+        }
       } else {
         <pre>
           @(Model.HttpException.ToString())
