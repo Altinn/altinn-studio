@@ -25,14 +25,5 @@
     }
   },
   "include": ["./**/*", "../shared/**/*"],
-  "exclude": [
-    "node_modules",
-    "test",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
-  ]
+  "exclude": ["node_modules"]
 }

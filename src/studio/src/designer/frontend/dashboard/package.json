@@ -113,8 +113,8 @@
       "js"
     ],
     "testEnvironment": "jsdom",
-    "setupFiles": [
-      "<rootDir>/test/setupTests.js"
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTests.ts"
     ]
   },
   "browserslist": [

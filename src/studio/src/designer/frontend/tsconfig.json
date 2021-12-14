@@ -15,15 +15,5 @@
     "noUnusedLocals": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": [
-    "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "setupTests.ts",
-    "templates",
-    "**/setupTests.ts"
-  ]
+  "exclude": ["node_modules"]
 }
