@@ -225,7 +225,6 @@ export function RepeatingGroupTable({
                       })}
                       <TableCell align='right' key={`delete-${index}`}>
                         <IconButton
-                          // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
                           style={{
                             color: theme.altinnPalette.primary.blueDark,
                             fontWeight: 700,
@@ -264,7 +263,6 @@ export function RepeatingGroupTable({
                 ].some((component: ILayoutComponent | ILayoutGroup) => {
                   return childElementHasErrors(component, index);
                 });
-                // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
                 const items: IMobileTableItem[] = [];
                 components.forEach((component) => {
                   const childId =

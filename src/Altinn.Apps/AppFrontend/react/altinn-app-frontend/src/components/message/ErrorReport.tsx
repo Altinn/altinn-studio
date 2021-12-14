@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable no-prototype-builtins */
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
