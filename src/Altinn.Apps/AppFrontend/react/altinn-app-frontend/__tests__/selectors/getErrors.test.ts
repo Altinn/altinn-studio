@@ -23,6 +23,6 @@ describe('selectors > getErrors', () => {
     });
     const getError = makeGetHasErrorsSelector();
     const result = getError(initialState);
-    expect(result).toEqual(true);
+    expect(result).toEqual(false);
   });
 });
