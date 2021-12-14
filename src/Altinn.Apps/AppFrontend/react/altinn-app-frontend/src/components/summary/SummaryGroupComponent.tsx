@@ -257,7 +257,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         },
       );
       componentArray.push(
-        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         <div style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
       );
     }
@@ -268,7 +267,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   const createRepeatingGroupSummaryForLargeGroups = () => {
     const componentArray = [];
     for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
-      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
       const groupContainer: ILayoutGroup = {
         id: `${groupComponent.id}-${i}-summary`,
         type: 'Group',

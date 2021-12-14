@@ -48,7 +48,6 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
           backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
           anchorEl={openPopover ? helpIconRef.current : null}
           handleClose={closePopover}
-          // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
           paperProps={{
             classes: {
               root: classes.helpTextPopoverPaper,
