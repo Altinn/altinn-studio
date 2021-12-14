@@ -1,6 +1,5 @@
 import { IFormDataState } from '../../src/features/form/data/formDataReducer';
 import { makeGetHasErrorsSelector } from '../../src/selectors/getErrors';
-import { IRuntimeState } from '../../src/types';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 
 describe('selectors > getErrors', () => {
@@ -17,9 +16,10 @@ describe('selectors > getErrors', () => {
 
   it('getHasErrors should return false if applicationSettingsError is from a 404', () => {
     const initialState = getInitialStateMock({
-      formData: {
+      applicationSettings: {
         error: new Error('404'),
-      } as IFormDataState,
+        applicationSettings: undefined,
+      },
     });
     const getError = makeGetHasErrorsSelector();
     const result = getError(initialState);
