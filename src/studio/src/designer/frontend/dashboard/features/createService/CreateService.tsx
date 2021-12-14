@@ -1,20 +1,20 @@
 import { makeStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
 import * as React from 'react';
-import { AxiosError } from 'axios';
 
 import { useAppSelector } from 'common/hooks';
 
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { post } from 'app-shared/utils/networking';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
-import { RepoTypeSelector, DataModellingFormat } from './RepoTypeSelector';
+import { RepoTypeSelector } from './RepoTypeSelector';
+import { useAddRepoMutation, DataModellingFormat } from 'services/repoApi';
 
 import { validateRepoName } from 'common/utils';
+import { applicationAboutPage } from 'common/utils/urlUtils';
 
 const useStyles = makeStyles({
   button: {
@@ -101,6 +101,7 @@ export const CreateService = () => {
   const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);
   const [repoName, setRepoName] = React.useState('');
   const [pageState, setPageState] = React.useState(PageState.Idle);
+  const [addRepo] = useAddRepoMutation();
 
   const handleServiceOwnerChanged = React.useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
@@ -112,7 +113,7 @@ export const CreateService = () => {
     setRepoErrorMessage(null);
   }, []);
 
-  const handleCreateService = () => {
+  const handleCreateService = async () => {
     const isValid = validateInputs({
       selectedOrgOrUser,
       repoName,
@@ -124,29 +125,34 @@ export const CreateService = () => {
     if (isValid) {
       setPageState(PageState.Creating);
 
-      const url = `${window.location.origin}/designer/api/v1/repos/${selectedOrgOrUser}?repository=${repoName}`;
-      post(url)
-        .then((result: any) => {
-          window.location.assign(
-            `${window.location.origin}/designer/${result.full_name}#/about`,
+      try {
+        const result = await addRepo({
+          owner: selectedOrgOrUser,
+          repoName: repoName,
+          modelType: selectedFormat,
+        }).unwrap();
+
+        window.location.assign(
+          applicationAboutPage({
+            repoFullName: result.full_name,
+          }),
+        );
+      } catch (error) {
+        if (error.status === 409) {
+          setPageState(PageState.Idle);
+
+          setRepoErrorMessage(
+            getLanguageFromKey('dashboard.app_already_exist', language),
           );
-        })
-        .catch((error: AxiosError) => {
-          if (error.response.status === 409) {
-            setPageState(PageState.Idle);
+        } else {
+          console.error('Unsucessful creating new app', error);
+          setPageState(PageState.Idle);
 
-            setRepoErrorMessage(
-              getLanguageFromKey('dashboard.app_already_exist', language),
-            );
-          } else {
-            console.error('Unsucessful creating new app', error);
-            setPageState(PageState.Idle);
-
-            setRepoErrorMessage(
-              getLanguageFromKey('dashboard.error_when_creating_app', language),
-            );
-          }
-        });
+          setRepoErrorMessage(
+            getLanguageFromKey('dashboard.error_when_creating_app', language),
+          );
+        }
+      }
     }
   };
 
@@ -156,12 +162,7 @@ export const CreateService = () => {
 
   return (
     <div className={classes.marginTop}>
-      <Grid
-        container={true}
-        justifyContent='center'
-        direction='row'
-        className='block-with-text'
-      >
+      <Grid container={true} justifyContent='center' direction='row'>
         <Grid item={true} xs={6}>
           <div className={classes.marginBottom_24}>
             <ServiceOwnerSelector

@@ -24,7 +24,7 @@ import {
   useUnsetStarredRepoMutation,
 } from 'services/userApi';
 
-import { getRepoEditUrl } from 'common/utils/repoListUtils';
+import { getRepoEditUrl } from 'common/utils/urlUtils';
 
 type RepoListProps = {
   isLoading: boolean;
