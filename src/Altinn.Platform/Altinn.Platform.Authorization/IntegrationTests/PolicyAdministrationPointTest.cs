@@ -484,7 +484,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Not possible to build policy path App: org1/app4 CoveredBy: 0 OfferedBy: 50001337 RuleIds: ade3b138-7fa4-4c83-9306-8ec4a72c2daa" && @type.Name == "FormattedLogValues"),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "Not possible to build policy path App: org1/app4 CoveredBy: (null) OfferedBy: 50001337 RuleIds: ade3b138-7fa4-4c83-9306-8ec4a72c2daa" && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);

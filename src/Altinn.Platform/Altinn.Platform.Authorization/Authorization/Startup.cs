@@ -88,9 +88,10 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IDelegationContextHandler, DelegationContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<Services.Interface.IPolicyInformationPoint, PolicyInformationPoint>();
             services.AddSingleton<IPolicyAdministrationPoint, PolicyAdministrationPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
-            services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
+            services.AddSingleton<IInstanceMetadataRepository, InstanceMetadataRepository>();
             services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));

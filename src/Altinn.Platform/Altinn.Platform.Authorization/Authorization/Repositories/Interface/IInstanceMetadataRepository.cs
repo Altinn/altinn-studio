@@ -6,7 +6,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
     /// <summary>
     /// Interface for operations on instance information
     /// </summary>
-    public interface IPolicyInformationRepository
+    public interface IInstanceMetadataRepository
     {
         /// <summary>
         /// Gets the information of a given instance
