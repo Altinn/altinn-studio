@@ -1,26 +1,31 @@
 import * as React from 'react';
-
+import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
+
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import { AltinnRadioGroup } from 'app-shared/components/AltinnRadioGroup';
 import { AltinnRadio } from 'app-shared/components/AltinnRadio';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'common/hooks';
 
-export enum DataModellingFormat {
-  JSON = 'json',
-  XSD = 'xsd',
-}
+import { useAppSelector } from 'common/hooks';
+import { DataModellingFormat } from 'services/repoApi';
 
 type RepoTypeSelectorProps = {
   selectedFormat: DataModellingFormat;
   onFormatChange: (newFormat: DataModellingFormat) => void;
 };
 
+const useStyles = makeStyles({
+  radioGroup: {
+    marginTop: '-2rem',
+  },
+});
+
 export const RepoTypeSelector = ({
   selectedFormat,
   onFormatChange,
 }: RepoTypeSelectorProps) => {
+  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
 
   const handleChange = ({ target }: { target: HTMLInputElement }) => {
@@ -32,7 +37,11 @@ export const RepoTypeSelector = ({
       <Typography variant='h2'>
         {getLanguageFromKey('dashboard.select_datamodelling_format', language)}
       </Typography>
-      <AltinnRadioGroup value={selectedFormat} onChange={handleChange}>
+      <AltinnRadioGroup
+        value={selectedFormat}
+        onChange={handleChange}
+        className={classes.radioGroup}
+      >
         <AltinnRadio
           label={getLanguageFromKey(
             'dashboard.datamodelling_format_json',
