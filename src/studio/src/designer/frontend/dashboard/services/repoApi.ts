@@ -39,8 +39,9 @@ export const adjustQueryParams = (params: Filters) => {
 };
 
 export enum DataModellingFormat {
-  JSON = 'json',
-  XSD = 'xsd',
+  Unknown = '0',
+  XSD = '1',
+  JSON = '2',
 }
 
 export const repoApi = designerApi.injectEndpoints({
@@ -83,13 +84,12 @@ export const repoApi = designerApi.injectEndpoints({
     }),
     addRepo: builder.mutation<IRepository, AddQuery>({
       query: ({ owner, repoName, modelType }) => {
-        console.log(modelType);
         return {
           url: `repos/${owner}`,
           method: 'POST',
           params: {
             repository: repoName,
-            // modelType,
+            datamodellingPreference: modelType,
           },
         };
       },
