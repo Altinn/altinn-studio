@@ -20,8 +20,8 @@ const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 export const App = () => {
   const dispatch = useAppDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
-    const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
-    const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
+  const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
+  const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp = 0;
 
