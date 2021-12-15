@@ -21,7 +21,8 @@
       "app/*": ["./app/*"],
       "features/*": ["./features/*"],
       "common/*": ["./common/*"],
-      "services/*": ["./services/*"]
+      "services/*": ["./services/*"],
+      "test/*": ["./test/*"]
     }
   },
   "include": ["./**/*", "../shared/**/*"],
