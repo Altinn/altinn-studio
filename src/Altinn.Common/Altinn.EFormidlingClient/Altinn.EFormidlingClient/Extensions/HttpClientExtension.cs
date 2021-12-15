@@ -25,13 +25,7 @@ namespace Altinn.EFormidlingClient.Extensions
                 Content = content
             };
 
-            if (requestHeaders != null)
-            {
-                foreach (KeyValuePair<string, string> header in requestHeaders)
-                {
-                    request.Headers.Add(header.Key, header.Value);
-                }
-            }
+            SetRequestHeaders(request, requestHeaders);
 
             return httpClient.SendAsync(request, CancellationToken.None);
         }
@@ -51,13 +45,7 @@ namespace Altinn.EFormidlingClient.Extensions
                 Content = content
             };
 
-            if (requestHeaders != null)
-            {
-                foreach (KeyValuePair<string, string> header in requestHeaders)
-                {
-                    request.Headers.Add(header.Key, header.Value);
-                }
-            }
+            SetRequestHeaders(request, requestHeaders);
 
             return httpClient.SendAsync(request, CancellationToken.None);
         }
@@ -73,13 +61,7 @@ namespace Altinn.EFormidlingClient.Extensions
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
-            if (requestHeaders != null)
-            {
-                foreach (KeyValuePair<string, string> header in requestHeaders)
-                {
-                    request.Headers.Add(header.Key, header.Value);
-                }
-            }
+            SetRequestHeaders(request, requestHeaders);
 
             return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
         }
@@ -95,6 +77,13 @@ namespace Altinn.EFormidlingClient.Extensions
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
 
+            SetRequestHeaders(request, requestHeaders);
+
+            return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
+        }
+
+        private static void SetRequestHeaders(HttpRequestMessage request, Dictionary<string, string> requestHeaders)
+        {
             if (requestHeaders != null)
             {
                 foreach (KeyValuePair<string, string> header in requestHeaders)
@@ -102,8 +91,6 @@ namespace Altinn.EFormidlingClient.Extensions
                     request.Headers.Add(header.Key, header.Value);
                 }
             }
-
-            return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
         }
     }
 }
