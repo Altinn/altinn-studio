@@ -50,6 +50,14 @@ export const handlers = [
     ];
     return res(ctx.json(mockApiResponse));
   }),
+  rest.get('http://localhost/designer/api/v1/user/starred', (req, res, ctx) => {
+    const mockApiResponse: any = [];
+    return res(ctx.json(mockApiResponse));
+  }),
+  rest.get('http://localhost/designer/api/v1/repos/search', (req, res, ctx) => {
+    const mockApiResponse: any = [];
+    return res(ctx.json(mockApiResponse));
+  }),
 ];
 
 export { setupServer, rest };
