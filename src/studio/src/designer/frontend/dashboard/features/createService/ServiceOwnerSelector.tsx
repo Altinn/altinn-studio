@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 
+import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { IGiteaOrganisation } from 'app-shared/types';
 import AltinnDropdown from 'app-shared/components/AltinnDropdown';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
@@ -26,7 +27,7 @@ type CombineCurrentUserAndOrg = {
 };
 
 const combineCurrentUserAndOrg = ({
-  organisations,
+  organisations = [],
   user,
 }: CombineCurrentUserAndOrg) => {
   const allUsers = organisations.map((props: any) => {
@@ -48,7 +49,8 @@ export const ServiceOwnerSelector = ({
   errorMessage,
   selectedOrgOrUser,
 }: ServiceOwnerSelectorProps) => {
-  const { data: organisations } = useGetOrganizationsQuery();
+  const { data: organisations, isLoading: isLoadingOrganisations } =
+    useGetOrganizationsQuery();
 
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
@@ -63,12 +65,10 @@ export const ServiceOwnerSelector = ({
   }, [organisations, user]);
 
   React.useEffect(() => {
-    if (selectableOrgsOrUser.length === 1) {
-      onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
-    } else if (selectableOrgsOrUser.length > 1) {
-      onServiceOwnerChanged(''); // reset selection to '' when there are more than 1 option loaded
+    if (isLoadingOrganisations === false && selectableOrgsOrUser.length === 1) {
+      onServiceOwnerChanged(selectableOrgsOrUser[0].label); // auto-select the option when theres only 1 option
     }
-  }, [selectableOrgsOrUser, onServiceOwnerChanged]);
+  }, [selectableOrgsOrUser, onServiceOwnerChanged, isLoadingOrganisations]);
 
   React.useLayoutEffect(() => {
     serviceOwnerRef.current = document.querySelector('#service-owner');
@@ -77,6 +77,14 @@ export const ServiceOwnerSelector = ({
   const handleChange = ({ target }: { target: HTMLInputElement }) => {
     onServiceOwnerChanged(target.value);
   };
+
+  if (isLoadingOrganisations) {
+    return (
+      <AltinnSpinner
+        spinnerText={getLanguageFromKey('dashboard.loading', language)}
+      />
+    );
+  }
 
   return (
     <div>

@@ -145,7 +145,6 @@ export const CreateService = () => {
             getLanguageFromKey('dashboard.app_already_exist', language),
           );
         } else {
-          console.error('Unsucessful creating new app', error);
           setPageState(PageState.Idle);
 
           setRepoErrorMessage(
