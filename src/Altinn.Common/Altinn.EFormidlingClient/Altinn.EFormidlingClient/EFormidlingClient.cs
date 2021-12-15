@@ -81,10 +81,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(serviceIdentifier))
-            {
-                throw new ArgumentNullException(nameof(serviceIdentifier));
-            }
+            AssertNotNullOrEmpty(serviceIdentifier, nameof(serviceIdentifier));
 
             try
             {
@@ -124,10 +121,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(orgId))
-            {
-                throw new ArgumentNullException(nameof(orgId));
-            }
+            AssertNotNullOrEmpty(orgId, nameof(orgId));
 
             try
             {
@@ -170,10 +164,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
@@ -196,10 +187,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
@@ -222,10 +210,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
@@ -246,20 +231,9 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UploadAttachment(Stream stream, string id, string filename, Dictionary<string, string> requestHeaders)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (string.IsNullOrEmpty(filename))
-            {
-                throw new ArgumentNullException(nameof(filename));
-            }
-
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
+            AssertNotNullOrEmpty(filename, nameof(filename));
+            AssertNotNull(stream, nameof(stream));
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
@@ -293,10 +267,7 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd, Dictionary<string, string> requestHeaders)
         {
-            if (sbd == null)
-            {
-                throw new ArgumentNullException(nameof(sbd));
-            }
+            AssertNotNull(sbd, nameof(sbd));
 
             var jsonContent = JsonSerializer.Serialize(sbd);
             byte[] buffer = Encoding.UTF8.GetBytes(jsonContent);
@@ -331,10 +302,7 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> SubscribeeFormidling(CreateSubscription subscription, Dictionary<string, string> requestHeaders)
         {
-            if (subscription == null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
+            AssertNotNull(subscription, nameof(subscription));
 
             string responseBody = null;
             try
@@ -363,10 +331,7 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UnSubscribeeFormidling(int id, Dictionary<string, string> requestHeaders)
         {
-            if (id <= 0)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNull(id, nameof(id));
 
             string responseBody;
 
@@ -388,6 +353,22 @@ namespace Altinn.Common.EFormidlingClient
             }
 
             return false;
+        }
+
+        private static void AssertNotNullOrEmpty(string paramValue, string paramName)
+        {
+            if (string.IsNullOrEmpty(paramValue))
+            {
+                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
+        }
+
+        private static void AssertNotNull(object paramValue, string paramName)
+        {
+            if (paramValue == null)
+            {
+                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
         }
     }
 }
