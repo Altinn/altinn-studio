@@ -92,7 +92,6 @@ export const Dashboard = () => {
         </div>
 
         <div>
-          {/* TODO: fix styling */}
           <Link to='/new'>
             {getLanguageFromKey('dashboard.new_service', language)}
           </Link>
