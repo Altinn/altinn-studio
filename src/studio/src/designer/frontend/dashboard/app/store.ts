@@ -1,20 +1,28 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
 import { designerApi } from 'services/designerApi';
 import { rootReducer } from './rootReducer';
 import { sagaMiddleware } from './rootSaga';
+import type { PreloadedState } from '@reduxjs/toolkit';
 
-const middlewares = [sagaMiddleware, designerApi.middleware];
+export const middlewares = [sagaMiddleware, designerApi.middleware];
 
-export const store = configureStore({
-  reducer: rootReducer,
-  devTools: process.env.NODE_ENV !== 'production',
-  middleware: (getDefaultMiddleware: () => any[]) =>
-    getDefaultMiddleware().concat(middlewares),
-});
+const reducer = combineReducers(rootReducer);
 
-setupListeners(store.dispatch);
+export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
+  const store = configureStore({
+    reducer,
+    devTools: process.env.NODE_ENV !== 'production',
+    middleware: (getDefaultMiddleware: () => any[]) =>
+      getDefaultMiddleware().concat(middlewares),
+    preloadedState,
+  });
+  setupListeners(store.dispatch);
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+  return store;
+};
+
+export type RootState = ReturnType<typeof reducer>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore['dispatch'];

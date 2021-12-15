@@ -5,20 +5,15 @@ import { HashRouter } from 'react-router-dom';
 
 import { App } from './app/App';
 import { run } from './app/rootSaga';
-import { store } from './app/store';
+import { setupStore } from './app/store';
 
-/**
- * This is the Script that starts the React application
- */
+const store = setupStore();
 
 /**
  * Setup all Sagas to listen to the defined events
  */
 run();
 
-/**
- *
- */
 render(
   <Provider store={store}>
     <HashRouter>
