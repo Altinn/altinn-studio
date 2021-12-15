@@ -107,6 +107,13 @@ export const MakeCopyModal = ({
       return false;
     }
 
+    if (repoName.length > 30) {
+      setErrorMessage(
+        getLanguageFromKey('dashboard.service_name_is_too_long', language),
+      );
+      return false;
+    }
+
     if (!validateRepoName(repoName)) {
       setErrorMessage(
         getLanguageFromKey(
@@ -117,12 +124,6 @@ export const MakeCopyModal = ({
       return false;
     }
 
-    if (repoName.length > 30) {
-      setErrorMessage(
-        getLanguageFromKey('dashboard.service_name_is_too_long', language),
-      );
-      return false;
-    }
     return true;
   };
 

@@ -28,4 +28,12 @@ describe('validateRepoName', () => {
     expect(validateRepoName('repo-')).toBe(false);
     expect(validateRepoName('repo*')).toBe(false);
   });
+
+  it('should return true when length is 30 characters', () => {
+    expect(validateRepoName('a23456789012345678901234567890')).toBe(true);
+  });
+
+  it('should return false when length is more than 30 characters', () => {
+    expect(validateRepoName('a234567890123456789012345678901')).toBe(false);
+  });
 });
