@@ -4,7 +4,7 @@ export default class DashBoard {
   constructor() {
     this.homeButton = Selector('img').withAttribute('title', 'startside');
     this.logoutButton = Selector('.dropdown-item').withText('Logg ut');
-    this.newAppButton = Selector('button > span').withExactText('ny app');
+    this.newAppButton = Selector('button > span').withExactText('Opprett ny applikasjon');
     this.appSearch = Selector('#service-search');
     this.appOwner = Selector('#service-owner');
     this.appName = Selector('#service-saved-name');
