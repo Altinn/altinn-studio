@@ -285,7 +285,6 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       <Grid
         container={true}
         direction='row'
-        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         style={{
           display: 'flex',
           flexDirection: 'row',

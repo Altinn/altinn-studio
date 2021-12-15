@@ -64,7 +64,7 @@ export const Dashboard = () => {
       <div className={classes.topBar}>
         <div>
           <TextField
-            id='outlined-basic'
+            id='search-repos'
             label={getLanguageFromKey('dashboard.search', language)}
             variant='outlined'
             value={searchText}

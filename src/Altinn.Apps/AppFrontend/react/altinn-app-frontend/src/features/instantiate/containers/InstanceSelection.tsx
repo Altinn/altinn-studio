@@ -80,7 +80,6 @@ export default function InstanceSelection({
           {instances.map((instance) => {
             return (
               <AltinnMobileTableItem
-                // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
                 items={[
                   {
                     label: getLanguageFromKey(

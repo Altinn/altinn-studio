@@ -258,7 +258,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" },
@@ -293,7 +293,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "InvalidApp" },
@@ -328,7 +328,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" }
                    },
@@ -362,7 +362,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" }
                    },

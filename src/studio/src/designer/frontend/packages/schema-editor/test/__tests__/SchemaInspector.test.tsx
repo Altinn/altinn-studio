@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Autocomplete } from '@material-ui/lab';
 import { MenuItem } from '@material-ui/core';
-import SchemaInspector, {isValidName, isNameInUse} from '../../src/components/SchemaInspector';
+import SchemaInspector, {isValidName, isNameInUse, isPathOnPropertiesRoot, isPathOnDefinitionsRoot} from '../../src/components/SchemaInspector';
 import { dataMock } from '../../src/mockData';
 import { buildUISchema, resetUniqueNumber } from '../../src/utils';
 import { ISchemaState, UiSchemaItem } from '../../src/types';
@@ -418,7 +418,7 @@ it('dispatches correctly when adding fields', () => {
 });
 
 it('should not be possible to have two properties with the same name', () => {
-  const parentSchema: UiSchemaItem = {
+  const uiSchemaItems: UiSchemaItem[] = [{
     path: '#/definitions/name',
     type: 'object',
     properties: [{
@@ -433,11 +433,31 @@ it('should not be possible to have two properties with the same name', () => {
     } 
     ],
     displayName: 'name',
-  }
+  },
+  {
+    path: '#/definitions/name2',
+    type: 'object',
+    properties: [{
+      path: '#/definitions/name/properties/child1',
+      type: 'string',
+      displayName: 'child21',
+    },
+    {
+      path: '#/definitions/name/properties/child2',
+      type: 'string',
+      displayName: 'child22',
+    } 
+    ],
+    displayName: 'name2',
+  }]
 
-  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'name'})).toBe(false);
-  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'child2'})).toBe(true);
-  expect(isNameInUse( {parentSchema: parentSchema, path: '#/definitions/name', name:'child3'})).toBe(false);
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: uiSchemaItems[0], path: '#/definitions/name', name:'name'})).toBe(false);
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: uiSchemaItems[0], path: '#/definitions/name/properties/child1', name:'child2'})).toBe(true);
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: uiSchemaItems[0], path: '#/definitions/name/properties/child2', name:'child3'})).toBe(false);
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: null, path: '#/properties/name', name:'name2'})).toBe(true); 
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: null, path: '#/properties/name4', name:'name4'})).toBe(false);
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: null, path: '#/definitions/name', name:'name2'})).toBe(true); 
+  expect(isNameInUse( {uiSchemaItems: uiSchemaItems, parentSchema: null, path: '#/definitions/name4', name:'name4'})).toBe(false);
 });
 
 it('validates that the name only contains legal characters', () => {
@@ -451,6 +471,18 @@ it('validates that the name only contains legal characters', () => {
   expect(isValidName('_melding')).toBe(false);
   expect(isValidName('.melding')).toBe(false);
   expect(isValidName('melding%')).toBe(false);
+});
+
+it('should match if a properties based path is on root', () => {
+  expect(isPathOnPropertiesRoot('#/properties/prop1')).toBe(true);
+  expect(isPathOnPropertiesRoot('#/properties/prop1/properties/prop2')).toBe(false);
+});
+
+it('should match if a definitions based path is on root', () => {
+  expect(isPathOnDefinitionsRoot('#/definitions/prop1')).toBe(true);
+  expect(isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2')).toBe(false);
+  expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
+  expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(false);
 });
 
 it('dispatches correctly when changing type of combination', () => {

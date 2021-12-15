@@ -110,7 +110,6 @@ export function RepeatingGroupsEditContainer({
           >
             <Grid item={true}>
               <IconButton
-                // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
                 classes={{ root: classes.deleteButton }}
                 onClick={removeClicked}
               >
