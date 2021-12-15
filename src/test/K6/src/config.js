@@ -215,4 +215,5 @@ export var altinnUi = {
   inbox: `https://${baseUrl}/ui/messagebox`,
   archive: `https://${baseUrl}/ui/messagebox/archive`,
   deleted: `https://${baseUrl}/ui/messagebox/trash`,
+  search: `https://${baseUrl}/ui/messagebox/search`,
 };

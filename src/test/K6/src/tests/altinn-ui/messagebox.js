@@ -6,6 +6,7 @@
 
 import { check } from 'k6';
 import * as appInstances from '../../api/app/instances.js';
+import * as appResources from '../../api/app/resources.js';
 import * as altinnUi from '../../api/altinn-ui/messagebox.js';
 import * as setUpData from '../../setup.js';
 import { addErrorCount } from '../../errorcounter.js';
@@ -23,12 +24,15 @@ export const options = {
   setupTimeout: '1m',
 };
 
-//Function to setup data and return aspxAuth cookie
+//Function to setup data and return aspxAuth cookie, app title and partyid
 export function setup() {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   var altinnToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+  var appTitle = appResources.getAppMetadata(altinnToken, appOwner, appName);
+  appTitle = appTitle.json('title.nb');
   var data = setUpData.getUserData(altinnToken, appOwner, appName);
   data.aspxAuthCookie = aspxauthCookie;
+  data.appTitle = appTitle;
   setUpData.clearCookies();
   appInstances.postInstance(altinnToken, data['partyId'], appOwner, appName);
   return data;
@@ -37,12 +41,24 @@ export function setup() {
 //Tests for Altinn Ui: Messagebox
 export default function (data) {
   const aspxAuthCookie = data['aspxAuthCookie'];
-  var res, success;
+  const partyId = data['partyId'];
+  const appTitle = data['appTitle'];
+  var res, success, searchCriteria;
 
-  res = altinnUi.loadAltinnInbox(aspxAuthCookie);
+  res = altinnUi.loadAltinnInbox(aspxAuthCookie, partyId);
   success = check(res, {
     'Load Altinn inbox - status is 200': (r) => r.status === 200,
-    'Altinn 3 instances are loaded': (r) => r.html().find("div[data-load-url*='AltinnIIIActiveElementInfo']").size() > 0,
+    'Load Altinn inbox - elements are loaded': (r) => r.html().find('.elementHeader').size() > 0,
+  });
+  addErrorCount(success);
+
+  searchCriteria = {
+    'ElementSearch.Title': appTitle,
+  };
+  res = altinnUi.searchMessageBox(aspxAuthCookie, partyId, searchCriteria);
+  success = check(res, {
+    'Search messagebox - status is 200': (r) => r.status === 200,
+    'Search messagebox - Altinn 3 instances are fetched': (r) => r.html().find("div[data-load-url*='AltinnIIIActiveElementInfo']").size() > 0,
   });
   addErrorCount(success);
 }
