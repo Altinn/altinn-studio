@@ -4,7 +4,7 @@
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import * as appInstances from '../../api/app/instances.js';
 import * as appResources from '../../api/app/resources.js';
 import * as altinnUi from '../../api/altinn-ui/messagebox.js';
@@ -45,6 +45,7 @@ export default function (data) {
   const appTitle = data['appTitle'];
   var res, success, searchCriteria;
 
+  sleep(5);
   res = altinnUi.loadAltinnInbox(aspxAuthCookie, partyId);
   success = check(res, {
     'Load Altinn inbox - status is 200': (r) => r.status === 200,
