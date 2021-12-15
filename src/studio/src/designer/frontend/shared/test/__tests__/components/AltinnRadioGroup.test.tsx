@@ -26,7 +26,7 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
 
   it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
-      <AltinnRadioGroup value={mockValue}>
+      <AltinnRadioGroup value={mockValue} name='radioGroup'>
         <AltinnRadio />
       </AltinnRadioGroup>,
     );
@@ -42,6 +42,7 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
         description={mockDescription}
         row={mockRow}
         className={mockClassName}
+        name='radioGroup'
       >
         <AltinnRadio />
       </AltinnRadioGroup>,
@@ -51,7 +52,7 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
 
   it('+++ Should render children', () => {
     const wrapper = mount(
-      <AltinnRadioGroup value={mockValue}>
+      <AltinnRadioGroup value={mockValue} name='radioGroup'>
         <AltinnRadio />
         <AltinnRadio />
       </AltinnRadioGroup>,
@@ -61,7 +62,11 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
 
   it('+++ Should render description typography if description is supplied', () => {
     const wrapper = mount(
-      <AltinnRadioGroup value={mockValue} description={mockDescription}>
+      <AltinnRadioGroup
+        value={mockValue}
+        description={mockDescription}
+        name='radioGroup'
+      >
         <AltinnRadio />
       </AltinnRadioGroup>,
     );

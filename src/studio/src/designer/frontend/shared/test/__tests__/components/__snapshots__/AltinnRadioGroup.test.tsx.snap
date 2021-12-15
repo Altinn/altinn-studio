@@ -36,7 +36,7 @@ exports[`>>> AltinnRadioButtonGroup.tsx +++ Should match snapshot with all param
         <input
           checked={false}
           className="PrivateSwitchBase-input-10"
-          name="mui-23207"
+          name="radioGroup"
           onChange={[Function]}
           type="radio"
         />
@@ -103,6 +103,7 @@ exports[`>>> AltinnRadioButtonGroup.tsx +++ Should match snapshot with the least
         <input
           checked={false}
           className="PrivateSwitchBase-input-10"
+          name="radioGroup"
           onChange={[Function]}
           type="radio"
         />
