@@ -13,7 +13,7 @@ describe('AltinnDropdown DropdownItems', () => {
       <AltinnDropdown
         dropdownItems={items}
         id='id'
-        handleChange={() => {}}
+        handleChange={jest.fn()}
         selectedValue=''
         disabled={false}
       />,
@@ -51,7 +51,7 @@ describe('AltinnDropdown DropdownItems', () => {
       <AltinnDropdown
         dropdownItems={items}
         id='id'
-        handleChange={() => {}}
+        handleChange={jest.fn()}
         selectedValue=''
         disabled={false}
       />,
