@@ -85,9 +85,15 @@ export const App = () => {
 
   const [showLogOutButton, setShowLogoutButton] = React.useState(false);
   React.useEffect(() => {
-    if (!user) {
-      setTimeout(() => setShowLogoutButton(true), 5000);
-    }
+    const timer = setTimeout(() => {
+      if (!user) {
+        setShowLogoutButton(true);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [user]);
 
   return (
