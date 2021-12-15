@@ -24,7 +24,7 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
   const [errorText, setErrorText] = React.useState(null);
 
   const handleUpload = (formData: FormData, fileName: string) => {
-    const XSDUploadUrl = `${window.location.origin}/designer/${org}/${repo}/Model/Upload`;
+    const XSDUploadUrl = `${window.location.origin}/designer/${org}/${repo}/datamodels/upload`;
     setUploading(true);
     axios
       .post(XSDUploadUrl, formData, {

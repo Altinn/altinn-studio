@@ -162,7 +162,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when trying to update application metadata ", ex);
+                _logger.LogError(ex, "Something went wrong when trying to update application metadata.");
                 return false;
             }
         }
@@ -181,7 +181,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception e)
             {
-                _logger.LogInformation($"An error occurred when trying to store model metadata: {e.GetType()} : {e.Message}");
+                _logger.LogError(e, $"An error occurred when trying to store model metadata.");
                 return false;
             }
 
@@ -313,7 +313,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                _logger.LogError(ex, "Something went wrong when fetching application metadata.");
                 return null;
             }
         }
@@ -979,8 +979,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception trying to write generated C# to disc.");
                 return false;
             }
 
@@ -995,8 +996,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception trying to write XSD to disc.");
                     return false;
                 }
 
@@ -1015,13 +1017,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception while generating or writing JsonSchema to disc.");
                     return false;
                 }
             }
 
-            // Update the ServiceImplementation class with the correct model type name
             UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + root);
 
             return true;
