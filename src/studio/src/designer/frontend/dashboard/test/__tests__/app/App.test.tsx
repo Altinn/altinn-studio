@@ -13,7 +13,7 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-const render = () => {
+const render = (extraDashboardState: any = {}) => {
   renderWithProviders(<App />, {
     preloadedState: {
       language: {
@@ -22,13 +22,7 @@ const render = () => {
       dashboard: {
         services: [],
         selectedContext: SelectedContextType.Self,
-        user: {
-          id: 1,
-          avatar_url: 'avatar_url',
-          email: 'email',
-          full_name: 'user_full_name',
-          login: 'user_login',
-        },
+        ...extraDashboardState,
       },
     },
   });
@@ -44,7 +38,6 @@ describe('Dashboard > App', () => {
 
   it('should show logout button when user request takes too long', async () => {
     jest.useFakeTimers();
-
     render();
     act(() => {
       jest.advanceTimersByTime(6000);
@@ -58,7 +51,15 @@ describe('Dashboard > App', () => {
   });
 
   it('should show header when loaded', async () => {
-    render();
+    render({
+      user: {
+        id: 1,
+        avatar_url: 'avatar_url',
+        email: 'email',
+        full_name: 'user_full_name',
+        login: 'user_login',
+      },
+    });
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.loading'),
