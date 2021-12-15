@@ -173,9 +173,12 @@ export function AddressComponent(props: IAddressComponentProps) {
 
     Object.keys(AddressKeys).forEach((fieldKey: string) => {
       if (!validationMessages[fieldKey]) {
-        validationMessages[fieldKey] = {
-          errors: [],
-          warnings: [],
+        validationMessages = {
+          ...validationMessages,
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          }
         };
       }
     });
@@ -189,9 +192,12 @@ export function AddressComponent(props: IAddressComponentProps) {
             validationMessages[fieldKey].errors.push(validations[fieldKey]);
           }
         } else {
-          validationMessages[fieldKey] = {
-            errors: [],
-            warnings: [],
+          validationMessages = {
+            ...validationMessages,
+            [fieldKey]: {
+              errors: [],
+              warnings: [],
+            }
           };
           validationMessages[fieldKey].errors = [validations[fieldKey]];
         }
