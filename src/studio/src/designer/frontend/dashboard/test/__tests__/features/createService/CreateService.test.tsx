@@ -71,7 +71,7 @@ describe('Dashboard > CreateService', () => {
       screen.getByText('dashboard.loading'),
     );
 
-    screen.getByDisplayValue('user_full_name');
+    expect(screen.getByDisplayValue('user_full_name')).toBeInTheDocument();
   });
 
   it('should show error message that app name is too long when it exceeds max length', async () => {
