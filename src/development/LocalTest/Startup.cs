@@ -169,9 +169,6 @@ namespace LocalTest
                 app.UseHsts();
             }
             
-            // app.UseHttpsRedirection(); // we run on HTTP
-            // using Microsoft.Extensions.FileProviders;
-            // using System.IO;
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
