@@ -7,7 +7,7 @@
     <FileVersion>1.1.0.0</FileVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{790c4782-cdb0-4c06-8e16-514cb617b8e0}</ProjectGuid>
-    
+
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.EFormidlingClient</PackageId>
     <PackageVersion>1.1.0-alpha</PackageVersion>
@@ -33,7 +33,7 @@
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>			
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <AdditionalFiles Include="..\..\..\..\stylecop.json">
       <Link>stylecop.json</Link>

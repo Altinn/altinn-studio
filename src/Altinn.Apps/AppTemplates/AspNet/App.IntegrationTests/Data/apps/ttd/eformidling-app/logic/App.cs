@@ -14,6 +14,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -67,7 +68,8 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
             IText textService,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient efor,
-            IOptions<AppSettings> appsettings)
+            IOptions<AppSettings> appsettings,
+            IAccessTokenGenerator tokenGenerator)
             : base(
                 appResourcesService,
                 logger,
@@ -82,7 +84,8 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                 textService,
                 httpContextAccessor,
                 efor,
-                appsettings)
+                appsettings,
+                tokenGenerator)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);
