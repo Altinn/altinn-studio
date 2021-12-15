@@ -660,8 +660,8 @@ namespace Altinn.App.Services.Implementation
 
             var requestHeaders = new Dictionary<string, string>
             {
-                { "Authorization", $"Bearer {authzToken}"},
-                { General.EFormidlingAccessTokenHeaderName, accessToken}
+                { "Authorization", $"Bearer {authzToken}" },
+                { General.EFormidlingAccessTokenHeaderName, accessToken }
             };
 
             string instanceGuid = instance.Id.Split("/")[1];

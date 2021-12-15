@@ -54,6 +54,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         /// <param name="httpContextAccessor">A context accessor</param>
         /// <param name="efor">THe eformidling service</param>
         /// <param name="appsettings">the app settings</param>
+        /// <param name="tokenGenerator">The token generator</param>
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
