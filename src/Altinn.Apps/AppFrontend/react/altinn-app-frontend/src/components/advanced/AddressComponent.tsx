@@ -108,12 +108,12 @@ export function AddressComponent(props: IAddressComponentProps) {
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {
     const validationErrors: IAddressValidationErrors = validate();
     setValidations(validationErrors);
-    if (key === AddressKeys.zipCode && !value) {
-      // if we are removing a zip code, also remove post place from form data
-      onBlurField(AddressKeys.postPlace, '');
-    }
     if (!validationErrors[key]) {
       props.handleDataChange(value, key);
+      if (key === AddressKeys.zipCode && !value) {
+        // if we are removing a zip code, also remove post place from form data
+        onBlurField(AddressKeys.postPlace, '');
+      }
     }
   };
 
