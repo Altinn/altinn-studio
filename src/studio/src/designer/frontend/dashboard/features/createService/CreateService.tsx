@@ -10,7 +10,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
-import { RepoTypeSelector } from './RepoTypeSelector';
+// import { RepoTypeSelector } from './RepoTypeSelector';
 import { useAddRepoMutation, DataModellingFormat } from 'services/repoApi';
 
 import { validateRepoName } from 'common/utils';
@@ -93,9 +93,10 @@ export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
   const classes = useStyles();
 
-  const [selectedFormat, setSelectedFormat] = React.useState(
-    DataModellingFormat.JSON,
-  );
+  const selectedFormat = DataModellingFormat.XSD;
+  // const [selectedFormat, setSelectedFormat] = React.useState(
+  //   DataModellingFormat.JSON,
+  // );
   const [selectedOrgOrUser, setSelectedOrgOrUser] = React.useState('');
   const [orgErrorMessage, setOrgErrorMessage] = React.useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);
@@ -178,13 +179,13 @@ export const CreateService = () => {
               errorMessage={repoErrorMessage}
             />
           </div>
-
+          {/*
           <div className={classes.marginBottom_24}>
             <RepoTypeSelector
               selectedFormat={selectedFormat}
               onFormatChange={setSelectedFormat}
             />
-          </div>
+          </div> */}
 
           {pageState === PageState.Creating ? (
             <AltinnSpinner
