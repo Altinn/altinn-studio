@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as loginPage from '../../pageobjects/loginandreg';
-import * as dashboard from '../../pageobjects/dashboard';
+import { login } from '../../pageobjects/loginandreg';
+import { dashboard } from '../../pageobjects/dashboard';
 
 context('Login', () => {
   beforeEach(() => {
@@ -16,6 +16,6 @@ context('Login', () => {
 
   it('Login with invalid user credentials', () => {
     cy.studiologin(Cypress.env('autoTestUser'), 'test123');
-    cy.get(loginPage.errorMessage).should('be.visible');
+    cy.get(login.errorMessage).should('be.visible');
   });
 });

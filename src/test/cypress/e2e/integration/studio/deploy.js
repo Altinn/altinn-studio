@@ -1,10 +1,10 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as designer from '../../pageobjects/designer';
+import { designer } from '../../pageobjects/designer';
 import Common from '../../pageobjects/common';
-import * as header from '../../pageobjects/header';
-import * as dashboard from '../../pageobjects/dashboard';
+import { header } from '../../pageobjects/header';
+import { dashboard } from '../../pageobjects/dashboard';
 import { builds } from '../../fixtures/builds';
 import { deploys } from '../../fixtures/deploys';
 
@@ -23,8 +23,9 @@ context('Deploy', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get(dashboard.searchApp).type(Cypress.env('deployApp').split('/')[1]);
-    cy.contains(common.gridItem, 'deploy').click();
+    var appName = Cypress.env('deployApp').split('/')[1];
+    cy.get(dashboard.searchApp).type(appName);
+    cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
     cy.get(designer.appMenu['deploy']).click();
   });
 

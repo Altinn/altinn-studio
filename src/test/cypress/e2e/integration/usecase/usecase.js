@@ -2,7 +2,8 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as designer from '../../pageobjects/designer';
+import { designer } from '../../pageobjects/designer';
+import { dashboard } from '../../pageobjects/dashboard';
 
 context(
   'Bruksmønster',
@@ -19,7 +20,10 @@ context(
     beforeEach(() => {
       cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
       Cypress.Cookies.preserveOnce('AltinnStudioDesigner', 'i_like_gitea', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
-      cy.visit(`designer/${Cypress.env('deployApp')}#/about`);
+      var appName = Cypress.env('deployApp').split('/')[1];
+      cy.visit('/');
+      cy.get(dashboard.searchApp).should('be.visible').type(appName);
+      cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
       cy.wait('@repoStatus');
       cy.get(designer.layOutContainer).should('be.visible');
     });
@@ -36,7 +40,7 @@ context(
       cy.getIframeBody().find('#saveTextsBtn').should('be.visible');
     });
 
-    it('Gitea connection - Pull changes', () => {      
+    it('Gitea connection - Pull changes', () => {
       cy.deleteLocalChanges(Cypress.env('deployApp'));
       cy.wait(5000);
       cy.intercept(/(P|p)ull/).as('pullChanges');

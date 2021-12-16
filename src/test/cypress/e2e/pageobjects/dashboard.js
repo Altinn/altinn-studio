@@ -1,9 +1,19 @@
 //Selectors in dashboard
-export const newApp = '#createService';
-export const appOwners = '#service-owner';
-export const appName = '#service-saved-name';
-export const button = 'button';
-export const createApp = 'Opprett';
-export const appOwnersList = "li[role='option']";
-export const closeButton = '.ai-exit-test';
-export const searchApp = '#service-search';
+export const dashboard = {
+  newApp: '#createService',
+  appOwners: '#service-owner',
+  appName: '#service-saved-name',
+  button: 'button',
+  createApp: 'Opprett',
+  appOwnersList: "li[role='option']",
+  closeButton: '.ai-exit-test',
+  searchApp: '#search-repos',
+  apps: {
+    name: "div[data-field='name']",
+    createdBy: "div[data-field='owner.created_by']",
+    updatedAt: "div[data-field='updated_at']",
+    links: "div[data-field='links']",
+    favorite: "button[id*='fav-repo']",
+    edit: "a[href*='/designer/']"
+  },
+};

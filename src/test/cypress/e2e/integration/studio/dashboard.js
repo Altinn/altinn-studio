@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as dashboard from '../../pageobjects/dashboard';
+import { dashboard } from '../../pageobjects/dashboard';
 import Common from '../../pageobjects/common';
 import { repos } from '../../fixtures/repo';
 
@@ -10,10 +10,10 @@ const common = new Common();
 context('Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
+    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
   });
 
-  it('Create an app and exit creation', () => {
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+  it('Is possible to start app creation and exits', () => {
     cy.get(dashboard.newApp).should('be.visible');
     cy.get(dashboard.newApp).click();
     cy.get(dashboard.appOwners).click();
@@ -22,13 +22,28 @@ context('Dashboard', () => {
     cy.get(dashboard.closeButton).click({ force: true });
   });
 
-  it('Login and dashboard lists app', () => {
-    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/designerapi/Repository/UserRepos', repos(10));
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get('h2')
-      .parent('div')
-      .siblings(common.gridContainer)
-      .children(common.gridItem)
-      .should('have.length.greaterThan', 1);
+  it('Is possible to view apps, add and remove favorites', () => {
+    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
+    cy.contains('h2', 'Mine applikasjoner')
+      .siblings()
+      .find(common.gridRow)
+      .then((apps) => {
+        cy.get(apps).should('have.length.gte', 1);
+        cy.get(apps)
+          .first()
+          .then((app) => {
+            cy.get(app).find(dashboard.apps.favorite).click();
+            cy.get(app).children(dashboard.apps.name).invoke('text').should('not.be.empty');
+            cy.get(app).children(dashboard.apps.createdBy).should('have.text', Cypress.env('autoTestUser'));
+            cy.get(app).children(dashboard.apps.updatedAt).invoke('text').should('not.be.empty');
+          });
+      });
+    cy.contains('h2', 'Favoritter')
+      .siblings()
+      .find(common.gridRow)
+      .then((favorites) => {
+        cy.get(favorites).should('have.length.gte', 1);
+        cy.get(favorites).first().find(dashboard.apps.favorite).click();
+      });
   });
 });
