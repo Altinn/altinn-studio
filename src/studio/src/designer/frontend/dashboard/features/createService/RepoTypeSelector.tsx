@@ -19,6 +19,12 @@ const useStyles = makeStyles({
   radioGroup: {
     marginTop: '-2rem',
   },
+  paragraph: {
+    marginTop: '0',
+  },
+  paperWrapper: {
+    margin: '12px 0 0 0',
+  },
 });
 
 export const RepoTypeSelector = ({
@@ -57,16 +63,16 @@ export const RepoTypeSelector = ({
           value={DataModellingFormat.XSD}
         />
       </AltinnRadioGroup>
-      <div style={{ margin: '12px 0 0 0' }}>
+      <div className={classes.paperWrapper}>
         <AltinnInformationPaper>
           <>
-            <p>
+            <p className={classes.paragraph}>
               {getLanguageFromKey(
                 'dashboard.datamodelling_description_json',
                 language,
               )}
             </p>
-            <p>
+            <p className={classes.paragraph}>
               {getLanguageFromKey(
                 'dashboard.datamodelling_description_xsd',
                 language,
