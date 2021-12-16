@@ -120,7 +120,7 @@
       "json"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.js"
+      "<rootDir>/setupTests.ts"
     ],
     "collectCoverageFrom": [
       "!__tests__/**/*",
