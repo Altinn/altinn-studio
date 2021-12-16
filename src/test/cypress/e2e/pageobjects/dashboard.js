@@ -14,6 +14,10 @@ export const dashboard = {
     updatedAt: "div[data-field='updated_at']",
     links: "div[data-field='links']",
     favorite: "button[id*='fav-repo']",
-    edit: "a[href*='/designer/']"
+    edit: "a[href*='/designer/']",
+    previousPage: '[data-testid=KeyboardArrowLeftIcon]',
+    nextPage: '[data-testid=KeyboardArrowRightIcon]',
+    sortUp: '[data-testid=ArrowUpwardIcon]',
+    sortDown: '[data-testid=ArrowDownwardIcon]',
   },
 };

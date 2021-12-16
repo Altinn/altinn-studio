@@ -14,7 +14,7 @@ context('Designer', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.createapp(Cypress.env('appOwner'), 'designer');
-      cy.get(header.profileButton).click();
+      cy.get(header.profileIcon).click();
       cy.contains(header.menuItem, 'Logout').click();
     }
   });

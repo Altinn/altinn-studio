@@ -13,5 +13,6 @@ export default class Common {
     this.tableElement = 'tr > td';
     this.listedAnchor = 'ul > a';
     this.caption = '.MuiTypography-caption';
+    this.columnHeader = '.MuiDataGrid-columnHeaders';
   }
 }
