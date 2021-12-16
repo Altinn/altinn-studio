@@ -1179,7 +1179,7 @@ export function hasValidationsOfSeverity(
 ): boolean {
   if (!validations) {
     return false;
-  };
+  }
 
   return Object.keys(validations).some((layout) => {
     return Object.keys(validations[layout]).some((componentKey: string) => {
