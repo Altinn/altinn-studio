@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
     <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.10" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
