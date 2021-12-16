@@ -24,7 +24,7 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
   const [errorText, setErrorText] = React.useState(null);
 
   const handleUpload = (formData: FormData, fileName: string) => {
-    const XSDUploadUrl = `${window.location.origin}/designer/${org}/${repo}/datamodels/upload`;
+    const XSDUploadUrl = `${window.location.origin}/designer/api/${org}/${repo}/datamodels/upload`;
     setUploading(true);
     axios
       .post(XSDUploadUrl, formData, {
@@ -89,7 +89,7 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
               submitHandler={handleUpload}
               accept='.xsd'
               labelTextResource='app_data_modelling.select_xsd'
-              formFileName='thefile'
+              formFileName='file'
             />
           )}
           {errorText && <p data-test-id='errorText'>{errorText}</p>}

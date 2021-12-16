@@ -408,11 +408,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.UpdateCSharpClasses(classes, schemaName);
         }
 
-        private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string rootName)
+        private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string typeName)
         {
             Application application = await altinnAppGitRepository.GetApplicationMetadata();
 
-            UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + rootName);
+            UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + typeName);
 
             await altinnAppGitRepository.UpdateApplicationMetadata(application);
         }
