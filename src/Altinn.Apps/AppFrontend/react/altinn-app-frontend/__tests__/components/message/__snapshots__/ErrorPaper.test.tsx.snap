@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> components/message/ErrorPaper.tsx +++ should match snapshot 1`] = `
+exports[` components > message > ErrorPaper.tsx should match snapshot 1`] = `
 <div
   className="MuiPaper-root makeStyles-paper-1 MuiPaper-elevation1"
 >
