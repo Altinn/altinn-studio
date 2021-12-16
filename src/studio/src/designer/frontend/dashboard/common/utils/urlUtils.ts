@@ -1,18 +1,18 @@
-interface ApplicationAboutPage {
+interface IApplicationAboutPage {
   repoFullName: string;
 }
 
 export const applicationAboutPage = ({
   repoFullName,
-}: ApplicationAboutPage) => {
+}: IApplicationAboutPage) => {
   return `${window.location.origin}/designer/${repoFullName}#/about`;
 };
 
-interface GetRepoUrl {
+interface IGetRepoUrl {
   repoFullName: string;
 }
 
-export const getRepoEditUrl = ({ repoFullName }: GetRepoUrl) => {
+export const getRepoEditUrl = ({ repoFullName }: IGetRepoUrl) => {
   if (repoFullName.endsWith('-datamodels')) {
     return `#/datamodelling/${repoFullName}`;
   }

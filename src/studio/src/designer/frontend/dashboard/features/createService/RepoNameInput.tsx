@@ -11,11 +11,11 @@ const zIndex = {
   zIndex: 1300,
 };
 
-type RepoNameInputProps = {
+interface IRepoNameInputProps {
   repoName: string;
   errorMessage?: string;
   onRepoNameChanged: (newValue: string) => void;
-};
+}
 
 const useStyles = makeStyles({
   strong: {
@@ -27,7 +27,7 @@ export const RepoNameInput = ({
   repoName,
   onRepoNameChanged,
   errorMessage,
-}: RepoNameInputProps) => {
+}: IRepoNameInputProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const serviceNameRef = React.useRef(null);

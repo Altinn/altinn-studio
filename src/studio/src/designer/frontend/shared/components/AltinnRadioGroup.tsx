@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { RadioGroup, Typography, makeStyles } from '@material-ui/core';
 
-type AltinnRadioGroupProps = {
+interface IAltinnRadioGroupProps {
   id?: any;
   value: any;
   onChange?: any;
@@ -11,7 +11,7 @@ type AltinnRadioGroupProps = {
   row?: boolean;
   description?: string;
   children: React.ReactNode;
-};
+}
 
 const useStyles = makeStyles({
   altinnRadioGroup: {
@@ -35,7 +35,7 @@ export const AltinnRadioGroup = ({
   row,
   id,
   children,
-}: AltinnRadioGroupProps) => {
+}: IAltinnRadioGroupProps) => {
   const classes = useStyles();
 
   return (

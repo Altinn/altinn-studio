@@ -3,14 +3,14 @@ import { createTheme } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-type AltinnRadioProps = {
+interface IAltinnRadioProps {
   id?: any;
   value?: any;
   checked?: boolean;
   onChange?: any;
   label?: string;
   disabled?: boolean;
-};
+}
 
 const theme = createTheme(altinnTheme);
 
@@ -36,7 +36,7 @@ export const AltinnRadio = ({
   onChange,
   disabled,
   value,
-}: AltinnRadioProps) => {
+}: IAltinnRadioProps) => {
   const classes = useStyles();
 
   if (!label) {

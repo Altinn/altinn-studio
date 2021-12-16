@@ -10,10 +10,10 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from 'common/hooks';
 import { DataModellingFormat } from 'services/repoApi';
 
-type RepoTypeSelectorProps = {
+interface IRepoTypeSelectorProps {
   selectedFormat: DataModellingFormat;
   onFormatChange: (newFormat: DataModellingFormat) => void;
-};
+}
 
 const useStyles = makeStyles({
   radioGroup: {
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
 export const RepoTypeSelector = ({
   selectedFormat,
   onFormatChange,
-}: RepoTypeSelectorProps) => {
+}: IRepoTypeSelectorProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
 

@@ -15,21 +15,21 @@ const zIndex = {
   zIndex: 1300,
 };
 
-type ServiceOwnerSelectorProps = {
+interface IServiceOwnerSelectorProps {
   onServiceOwnerChanged: (newValue: string) => void;
   errorMessage?: string;
   selectedOrgOrUser: string;
-};
+}
 
-type CombineCurrentUserAndOrg = {
+interface ICombineCurrentUserAndOrg {
   user: User;
   organisations: IGiteaOrganisation[];
-};
+}
 
 const combineCurrentUserAndOrg = ({
   organisations = [],
   user,
-}: CombineCurrentUserAndOrg) => {
+}: ICombineCurrentUserAndOrg) => {
   const allUsers = organisations.map((props: any) => {
     return {
       value: props.username,
@@ -44,11 +44,12 @@ const combineCurrentUserAndOrg = ({
 
   return allUsers;
 };
+
 export const ServiceOwnerSelector = ({
   onServiceOwnerChanged,
   errorMessage,
   selectedOrgOrUser,
-}: ServiceOwnerSelectorProps) => {
+}: IServiceOwnerSelectorProps) => {
   const { data: organisations, isLoading: isLoadingOrganisations } =
     useGetOrganizationsQuery();
 

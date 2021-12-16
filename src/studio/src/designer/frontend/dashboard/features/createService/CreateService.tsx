@@ -39,13 +39,13 @@ enum PageState {
   Creating = 'Creating',
 }
 
-type ValidateInputs = {
+interface IValidateInputs {
   selectedOrgOrUser: string;
   setOrgErrorMessage: (value: string) => void;
   setRepoErrorMessage: (value: string) => void;
   repoName: string;
   language: any;
-};
+}
 
 const validateInputs = ({
   selectedOrgOrUser,
@@ -53,7 +53,7 @@ const validateInputs = ({
   setRepoErrorMessage,
   repoName,
   language,
-}: ValidateInputs) => {
+}: IValidateInputs) => {
   let isValid = true;
 
   if (!selectedOrgOrUser) {

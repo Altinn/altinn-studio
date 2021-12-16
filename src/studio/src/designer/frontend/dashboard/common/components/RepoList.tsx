@@ -27,7 +27,7 @@ import {
 
 import { getRepoEditUrl } from 'common/utils/urlUtils';
 
-type RepoListProps = {
+interface IRepoListProps {
   isLoading: boolean;
   repos?: IRepository[];
   isServerSort?: boolean;
@@ -37,7 +37,7 @@ type RepoListProps = {
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
-};
+}
 
 const defaultPageSize = 8;
 
@@ -99,12 +99,10 @@ export const NoResults = () => {
   const language = useAppSelector((state) => state.language.language);
   return (
     <GridOverlay>
-      <p>
-        {getLanguageFromKey('dashboard.no_repos_result', language)}
-      </p>
+      <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
     </GridOverlay>
   );
-}
+};
 
 export const RepoList = ({
   repos = defaultArray,
@@ -116,7 +114,7 @@ export const RepoList = ({
   onSortModelChange,
   sortModel,
   disableVirtualization = false,
-}: RepoListProps) => {
+}: IRepoListProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
@@ -147,9 +145,10 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            aria-label={repo.user_has_starred ?
-              getLanguageFromKey('dashboard.unstar', language) :
-              getLanguageFromKey('dashboard.star', language)
+            aria-label={
+              repo.user_has_starred
+                ? getLanguageFromKey('dashboard.unstar', language)
+                : getLanguageFromKey('dashboard.star', language)
             }
           >
             <i
@@ -199,7 +198,6 @@ export const RepoList = ({
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
-
           const repoFullName = params.row.full_name as string;
           const isDatamodelling = repoFullName.endsWith('-datamodels');
 
@@ -256,7 +254,7 @@ export const RepoList = ({
             return colItems.splice(0, 1);
           }
 
-         return colItems;
+          return colItems;
         },
       },
     ];
