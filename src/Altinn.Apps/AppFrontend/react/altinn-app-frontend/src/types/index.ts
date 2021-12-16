@@ -19,6 +19,7 @@ import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 
 export type FormComponentType =
   | IFormAddressComponent
@@ -207,6 +208,7 @@ export interface IRuntimeStore {
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
+  applicationSettings: IApplicationSettingsState;
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
@@ -335,4 +337,8 @@ export enum DateFlags {
 // source, target dict
 export interface IMapping {
   [source: string]: string;
+}
+
+export interface IApplicationSettings {
+  appOidcProvider: string;
 }
