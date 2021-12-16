@@ -6,6 +6,7 @@ import { IRuntimeState } from '../../../src/types';
 import ErrorReport from '../../../src/components/message/ErrorReport';
 import { IValidationState } from '../../../src/features/form/validation/validationSlice';
 import * as React from 'react';
+import { getParsedLanguageFromText } from '../../../../shared/src';
 
 describe('components > ErrorReport.tsx', () => {
 
@@ -25,7 +26,7 @@ describe('components > ErrorReport.tsx', () => {
         page1: {
           someComponent: {
             simpleBinding: {
-              errors: ['some error'],
+              errors: [getParsedLanguageFromText('some error')],
             },
           }
         }
@@ -47,7 +48,7 @@ describe('components > ErrorReport.tsx', () => {
         unmapped: { // unmapped layout
           unmapped: { // unmapped component
             unmapped: { // unmapped data binding
-              errors: ['some unmapped error'],
+              errors: [getParsedLanguageFromText('some unmapped error')],
             },
           },
         },
