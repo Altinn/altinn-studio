@@ -792,13 +792,13 @@ export function mapToComponentValidations(
 ) {
   let dataModelFieldKey = validatedComponent
     ? Object.keys(
-        (validatedComponent as ILayoutComponent).dataModelBindings,
-      ).find((name) => {
-        return (
-          (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
-          dataBindingName
-        );
-      })
+      (validatedComponent as ILayoutComponent).dataModelBindings,
+    ).find((name) => {
+      return (
+        (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
+        dataBindingName
+      );
+    })
     : null;
 
   const layoutComponent =
@@ -815,7 +815,7 @@ export function mapToComponentValidations(
               key &&
               component.dataModelBindings[key] &&
               component.dataModelBindings[key].toLowerCase() ===
-                dataBindingWithoutIndex
+              dataBindingWithoutIndex
             );
           },
         );
@@ -932,6 +932,10 @@ export function findLayoutIdFromValidationIssue(
   layouts: ILayouts,
   validationIssue: IValidationIssue,
 ) {
+  if (!validationIssue.field) {
+    // validation issue could be mapped to task and not to a field in the datamodel
+    return 'unmapped';
+  }
   return Object.keys(layouts).find((id) => {
     const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
       // Special handling for FileUpload component
@@ -1148,15 +1152,14 @@ function addValidation(
  * gets unmapped errors from validations as string array
  * @param validations the validations
  */
-export function getUnmappedErrors(validations: IValidations): string[] {
-  const messages: string[] = [];
+export function getUnmappedErrors(validations: IValidations): React.ReactNode[] {
+  const messages: React.ReactNode[] = [];
   if (!validations) {
     return messages;
   }
   Object.keys(validations).forEach((layout: string) => {
     Object.keys(validations[layout]?.unmapped || {}).forEach((key: string) => {
-      // eslint-disable-next-line no-unused-expressions
-      validations[layout].unmapped[key]?.errors?.forEach((message: string) => {
+      validations[layout].unmapped[key]?.errors?.forEach((message) => {
         messages.push(message);
       });
     });
@@ -1164,73 +1167,41 @@ export function getUnmappedErrors(validations: IValidations): string[] {
   return messages;
 }
 
-/**
- * gets total number of components with mapped errors
- * @param validations the validations
- */
-export function getNumberOfComponentsWithErrors(
-  validations: IValidations,
-): number {
-  return getNumberOfComponentsWithValidationMessages(
-    validations,
-    Severity.Error,
-  );
-}
 
 /**
- * gets total number of components with mapped warnings
+ * checks if a validation contains any errors of a given severity.
  * @param validations the validations
+ * @param severity the severity
  */
-export function getNumberOfComponentsWithWarnings(
-  validations: IValidations,
-): number {
-  return getNumberOfComponentsWithValidationMessages(
-    validations,
-    Severity.Warning,
-  );
-}
-
-/**
- * gets total number of components with mapped validation message of the given type
- * @param validations the validations
- */
-export function getNumberOfComponentsWithValidationMessages(
+export function hasValidationsOfSeverity(
   validations: IValidations,
   severity: Severity,
-): number {
-  let numberOfComponents = 0;
+): boolean {
   if (!validations) {
-    return numberOfComponents;
-  }
+    return false;
+  };
 
-  Object.keys(validations).forEach((layout) => {
-    Object.keys(validations[layout]).forEach((componentKey: string) => {
-      if (componentKey !== 'unmapped') {
-        const componentHasMessages = Object.keys(
-          validations[layout][componentKey] || {},
-        ).some((bindingKey: string) => {
-          if (
-            severity === Severity.Error &&
-            validations[layout][componentKey][bindingKey].errors?.length > 0
-          ) {
-            return true;
-          }
-          if (
-            severity === Severity.Warning &&
-            validations[layout][componentKey][bindingKey].warnings?.length > 0
-          ) {
-            return true;
-          }
-          return false;
-        });
-        if (componentHasMessages) {
-          numberOfComponents += 1;
+  return Object.keys(validations).some((layout) => {
+    return Object.keys(validations[layout]).some((componentKey: string) => {
+      return Object.keys(
+        validations[layout][componentKey] || {},
+      ).some((bindingKey: string) => {
+        if (
+          severity === Severity.Error &&
+          validations[layout][componentKey][bindingKey].errors?.length > 0
+        ) {
+          return true;
         }
-      }
+        if (
+          severity === Severity.Warning &&
+          validations[layout][componentKey][bindingKey].warnings?.length > 0
+        ) {
+          return true;
+        }
+        return false;
+      });
     });
   });
-
-  return numberOfComponents;
 }
 
 /*
