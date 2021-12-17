@@ -1,12 +1,11 @@
 //Selectors in dashboard
 export const dashboard = {
-  newApp: '#createService',
+  newApp: 'a[href="#/new"]',
   appOwners: '#service-owner',
   appName: '#service-saved-name',
   button: 'button',
-  createApp: 'Opprett',
+  createApp: 'Opprett applikasjon',
   appOwnersList: "li[role='option']",
-  closeButton: '.ai-exit-test',
   searchApp: '#search-repos',
   apps: {
     name: "div[data-field='name']",

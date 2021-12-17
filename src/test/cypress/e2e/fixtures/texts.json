@@ -18,5 +18,6 @@
   "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn",
   "alreadyStartedForm": "Du har allerede startet å fylle ut dette skjemaet.",
   "continueOrStartNew": "Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.",
-  "welcome": "Velkommen til Altinn Studio"
+  "welcome": "Velkommen til Altinn Studio",
+  "appExists": "En app med det navnet finnes allerede."
 }

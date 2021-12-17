@@ -15,15 +15,6 @@ context('Dashboard', () => {
     cy.get(dashboard.searchApp).should('be.visible');
   });
 
-  it('is possible to start app creation and exits', () => {
-    cy.get(dashboard.newApp).should('be.visible');
-    cy.get(dashboard.newApp).click();
-    cy.get(dashboard.appOwners).click();
-    cy.contains(dashboard.appOwnersList, Cypress.env('appOwner')).click();
-    cy.get(dashboard.appName).type('dashboard');
-    cy.get(dashboard.closeButton).click({ force: true });
-  });
-
   it('is possible to view apps, add and remove favorites', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
     cy.contains('h2', 'Mine applikasjoner')

@@ -7,23 +7,23 @@ import { designer } from '../pageobjects/designer';
  * Login to studio with user name and password
  */
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
-  cy.get(login.loginButton).click();
-  cy.get(login.userName).type(userName);
-  cy.get(login.userPwd).type(userPwd, { log: false });
-  cy.get(login.submit).click();
+  cy.get(login.loginButton).should('be.visible').click();
+  cy.get(login.userName).should('be.visible').type(userName);
+  cy.get(login.userPwd).should('be.visible').type(userPwd, { log: false });
+  cy.get(login.submit).should('be.visible').click();
 });
 
 /**
  * create an app in studio with user logged in and in dashboard
  */
 Cypress.Commands.add('createapp', (orgName, appName) => {
-  cy.get(dashboard.newApp).click();
-  cy.get(dashboard.appOwners).click();
+  cy.get(dashboard.newApp).should('be.visible').click();
+  cy.get(dashboard.appOwners).should('be.visible').click();
   cy.contains(dashboard.appOwnersList, orgName).click();
-  cy.get(dashboard.appName).type(appName);
-  cy.intercept('POST', '**/designerapi/Repository/CreateApp**').as('postCreateApp');
-  cy.get(dashboard.button).contains(dashboard.createApp).click();
-  cy.wait('@postCreateApp', { timeout: 20000 }).its('response.statusCode').should('eq', 200);
+  cy.get(dashboard.appName).should('be.visible').type(appName);
+  cy.intercept('POST', '**/designer/api/v1/repos/**').as('postCreateApp');
+  cy.contains(dashboard.button, dashboard.createApp).should('be.visible').click();
+  cy.wait('@postCreateApp', { timeout: 30000 }).its('response.statusCode').should('eq', 201);
 });
 
 /**
