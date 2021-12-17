@@ -17,6 +17,12 @@ type QueryResult = {
   totalPages: number;
 };
 
+type AddQuery = {
+  owner: string;
+  repoName: string;
+  modelType: DataModellingFormat;
+};
+
 export const adjustQueryParams = (params: Filters) => {
   switch (params.sortby) {
     case 'name':
@@ -31,6 +37,12 @@ export const adjustQueryParams = (params: Filters) => {
 
   return params;
 };
+
+export enum DataModellingFormat {
+  Unknown = '0',
+  XSD = '1',
+  JSON = '2',
+}
 
 export const repoApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -70,7 +82,24 @@ export const repoApi = designerApi.injectEndpoints({
         },
       ],
     }),
+    addRepo: builder.mutation<IRepository, AddQuery>({
+      query: ({ owner, repoName, modelType }) => {
+        return {
+          url: `repos/${owner}`,
+          method: 'POST',
+          params: {
+            repository: repoName,
+            datamodellingPreference: modelType,
+          },
+        };
+      },
+      invalidatesTags: [
+        {
+          type: TagTypes.OrgRepositories,
+        },
+      ],
+    }),
   }),
 });
 
-export const { endpoints, useGetSearchQuery } = repoApi;
+export const { endpoints, useGetSearchQuery, useAddRepoMutation } = repoApi;

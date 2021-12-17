@@ -5,9 +5,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
+import { Link } from 'react-router-dom';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { CreateNewService } from '../createService/createNewService';
 
 import { useAppSelector } from 'common/hooks';
 
@@ -23,6 +23,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '24px',
+    alignItems: 'center',
   },
   clearIcon: {
     fontSize: 26,
@@ -91,7 +92,9 @@ export const Dashboard = () => {
         </div>
 
         <div>
-          <CreateNewService />
+          <Link to='/new'>
+            {getLanguageFromKey('dashboard.new_service', language)}
+          </Link>
         </div>
       </div>
 

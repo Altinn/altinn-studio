@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -18,7 +19,7 @@ using AltinnCore.Authentication.Constants;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -102,6 +103,35 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Null(actual);
+        }
+
+        [Fact]
+        public async Task CreateRepository_DoesNotExists_ShouldCreate()
+        {
+            string org = "ttd";
+            string repositoryName = Guid.NewGuid().ToString();
+            string developer = "testUser";
+
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            var repositoryService = GetServiceForTest(developer);
+
+            try
+            {
+                var repository = await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName, DatamodellingPreference = DatamodellingPreference.JsonSchema });
+                var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
+                altinnStudioSettings.DatamodellingPreference.Should().Be(DatamodellingPreference.JsonSchema);
+            }
+            finally
+            {
+                // We do a sleep here beacuse the creation process holds a lock on the files
+                // it modifies. 300ms is the magic number as a result by trial and error.
+                Thread.Sleep(300);
+                Directory.Delete(repositoryDirectory, true);
+                Directory.Delete(repositoryRemoteDirectory, true);
+            }
         }
 
         [Fact]
@@ -261,9 +291,17 @@ namespace Designer.Tests.Services
 
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
+            IOptions<GeneralSettings> generalSettings = Options.Create(
+                new GeneralSettings()
+                {
+                    TemplateLocation = @"../../../../../../AppTemplates/AspNet",
+                    DeploymentLocation = @"../../../../../../AppTemplates/AspNet/deployment",
+                    AppLocation = @"../../../../../../AppTemplates/AspNet/App"
+                });
+            
             RepositorySI service = new RepositorySI(
                 repoSettings,
-                new Mock<IOptions<GeneralSettings>>().Object,
+                generalSettings,
                 new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),

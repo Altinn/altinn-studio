@@ -11,7 +11,6 @@
     "rootDir": "./",
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
     "strictNullChecks": false,
     "noUnusedLocals": true
   },

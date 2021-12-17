@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -35,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
     /// </summary>
-    public class RepositorySI : Interfaces.IRepository
+    public class RepositorySI : IRepository
     {
         private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
@@ -1121,7 +1120,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
-            var options = new RepositoryClient.Model.CreateRepoOption(serviceConfig.RepositoryName);
+            var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
@@ -1147,6 +1146,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 CreateLanguageResources(org, serviceConfig);
+                await CreateRepositorySettings(org, serviceConfig.RepositoryName, userName, serviceConfig.DatamodellingPreference);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -1154,6 +1154,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        private async Task CreateRepositorySettings(string org, string repository, string developer, DatamodellingPreference datamodellingPreference)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            var settings = new AltinnStudioSettings() { DatamodellingPreference = datamodellingPreference, RepoType = AltinnRepositoryType.App };
+            await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
         private void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)

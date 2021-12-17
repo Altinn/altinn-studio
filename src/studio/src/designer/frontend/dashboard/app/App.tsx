@@ -13,20 +13,21 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import {
   DashboardActions,
   SelectedContext,
-} from './resources/fetchDashboardResources/dashboardSlice';
-import { fetchLanguage } from './resources/fetchLanguage/languageSlice';
+} from '../resources/fetchDashboardResources/dashboardSlice';
+import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import Header, {
   IHeaderContext,
   HeaderContext,
 } from 'app-shared/navigation/main-header/Header';
+
+import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import { CenterContainer } from 'common/components/CenterContainer';
 import { Footer } from 'common/components/Footer';
 import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
 import { Dashboard } from 'features/dashboard';
-
-import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';
+import { CreateService } from 'features/createService/CreateService';
 
 import './App.css';
 
@@ -84,9 +85,15 @@ export const App = () => {
 
   const [showLogOutButton, setShowLogoutButton] = React.useState(false);
   React.useEffect(() => {
-    if (!user) {
-      setTimeout(() => setShowLogoutButton(true), 5000);
-    }
+    const timer = setTimeout(() => {
+      if (!user) {
+        setShowLogoutButton(true);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [user]);
 
   return (
@@ -116,6 +123,7 @@ export const App = () => {
                   exact={true}
                   component={StandaloneDataModelling}
                 />
+                <Route path='/new' exact={true} component={CreateService} />
               </Root>
             ) : (
               <CenterContainer>

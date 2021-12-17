@@ -7929,6 +7929,9 @@ __metadata:
     "@mui/material": ^5.2.0
     "@mui/x-data-grid": ^5.0.1
     "@reduxjs/toolkit": ^1.6.2
+    "@testing-library/jest-dom": ^5.16.1
+    "@testing-library/react": ^12.1.2
+    "@testing-library/user-event": ^13.5.0
     "@types/classnames": ^2.3.1
     "@types/enzyme": ^3.10.10
     "@types/jest": ^27.0.3
@@ -7957,6 +7960,7 @@ __metadata:
     jest-junit: ^12.3.0
     mini-css-extract-plugin: ^1.6.2
     moment: ^2.29.1
+    msw: ^0.36.3
     prettier: ^2.5.1
     react: ^17.0.2
     react-dom: ^17.0.2
@@ -19492,8 +19496,6 @@ __metadata:
     fork-ts-checker-notifier-webpack-plugin: ^4.0.0
     fork-ts-checker-webpack-plugin: ^6.5.0
     jest: ^27.4.3
-    jest-environment-enzyme: ^7.1.2
-    jest-enzyme: ^7.1.2
     jest-junit: ^12.3.0
     jsdom: ^16.7.0
     marked: ^1.2.9
