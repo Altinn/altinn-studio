@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 /// <reference path="../../support/index.d.ts" />
 
-import * as loginPage from '../../pageobjects/loginandreg';
+import { login, registration } from '../../pageobjects/loginandreg';
 
 /**
  * Setup test script that is run before all the tests
@@ -22,13 +22,13 @@ context('Before all tests', () => {
 
   it('Create User', () => {
     cy.visit('/');
-    cy.get(loginPage.loginButton).click();
-    cy.get(loginPage.singUp).click();
-    cy.get(loginPage.userName).type(Cypress.env('userName'));
-    cy.get(loginPage.email).type(Cypress.env('testEmail'));
-    cy.get(loginPage.userPwd).type(Cypress.env('userPwd'));
-    cy.get(loginPage.reTypePwd).type(Cypress.env('userPwd'));
-    cy.get(loginPage.submit).click();
+    cy.get(login.loginButton).click();
+    cy.get(registration.singUp).click();
+    cy.get(login.userName).type(Cypress.env('userName'));
+    cy.get(registration.email).type(Cypress.env('testEmail'));
+    cy.get(login.userPwd).type(Cypress.env('userPwd'));
+    cy.get(registration.reTypePwd).type(Cypress.env('userPwd'));
+    cy.get(login.submit).click();
   });
 
   it('Make an user owner of an org', () => {

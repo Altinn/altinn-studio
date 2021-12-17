@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
-import * as designer from '../../pageobjects/designer';
-import * as dashboard from '../../pageobjects/dashboard';
-import * as header from '../../pageobjects/header';
+import { designer } from '../../pageobjects/designer';
+import { dashboard } from '../../pageobjects/dashboard';
+import { header } from '../../pageobjects/header';
 import Common from '../../pageobjects/common';
 
 const common = new Common();
@@ -14,15 +14,16 @@ context('Designer', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.createapp(Cypress.env('appOwner'), 'designer');
-      cy.get(header.profileButton).click();
+      cy.get(header.profileIcon).click();
       cy.contains(header.menuItem, 'Logout').click();
     }
   });
   beforeEach(() => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.get(dashboard.searchApp).type(Cypress.env('designerApp').split('/')[1]);
-    cy.contains(common.gridItem, 'designer').click();
+    var appName = Cypress.env('deployApp').split('/')[1];
+    cy.get(dashboard.searchApp).type(appName);
+    cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
   });
 
   it('About App', () => {
