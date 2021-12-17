@@ -1,133 +1,119 @@
-import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
+import {
+  render as rtlRender,
+  screen,
+  fireEvent,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 
-import { mount } from 'enzyme';
-import { render, fireEvent } from '@testing-library/react';
+import { HeaderComponent } from '../../../src/components/base/HeaderComponent';
 
-import { HeaderComponent, IHeaderProps } from '../../../src/components/base/HeaderComponent';
-import { ITextResourceBindings } from '../../../src/types';
+const render = (props = {}) => {
+  const allProps = {
+    id: 'id',
+    text: 'text',
+    getTextResource: (key: string) => key,
+    language: {},
+    textResourceBindings: {},
+    ...props,
+  };
 
-describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
-  let mockId: string;
-  let mockText: string;
-  let mockSize: string;
-  let mockGetTextResource: (key: string) => string;
-  let mockLanguage: any;
-  let mockTextResourceBindings: ITextResourceBindings;
-  mockId = 'mock-id';
-  mockText = 'Here goes a paragraph';
-  mockGetTextResource = (key: string) => key;
+  rtlRender(<HeaderComponent {...allProps} />);
+};
 
-  beforeEach(() => {
-    mockId = 'mock-id';
-    mockText = 'test';
-    mockSize = 'S';
+describe('components/base/HeaderComponent.tsx --- Snapshot', () => {
+  it('should render <h2> when size is "L"', () => {
+    render({ size: 'L' });
+
+    const header = screen.getByRole('heading', { level: 2 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        size={mockSize}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
+  it('should render <h2> when size is "h2"', () => {
+    render({ size: 'h2' });
+
+    const header = screen.getByRole('heading', { level: 2 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should render <h2> if size is \'L\'', () => {
-    const wrapper = mount(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        size={'L'}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-      />,
-    );
-    expect(wrapper.find('h2')).toHaveLength(1);
-    expect(wrapper.find(`h2[id='${mockId}']`)).toHaveLength(1);
-    expect(wrapper.find('h3')).toHaveLength(0);
-    expect(wrapper.find('h4')).toHaveLength(0);
+  it('should render <h3> when size is "M"', () => {
+    render({ size: 'M' });
+
+    const header = screen.getByRole('heading', { level: 3 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should render <h3> if size is \'M\'', () => {
-    const wrapper = mount(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        size={'M'}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-      />,
-    );
-    expect(wrapper.find('h2')).toHaveLength(0);
-    expect(wrapper.find('h3')).toHaveLength(1);
-    expect(wrapper.find(`h3[id='${mockId}']`)).toHaveLength(1);
-    expect(wrapper.find('h4')).toHaveLength(0);
+  it('should render <h3> when size is "h3"', () => {
+    render({ size: 'h3' });
+
+    const header = screen.getByRole('heading', { level: 3 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should render <h4> if size is \'S\'', () => {
-    const wrapper = mount(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        size={'S'}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-      />,
-    );
+  it('should render <h4> when size is "S"', () => {
+    render({ size: 'S' });
 
-    expect(wrapper.find('h2')).toHaveLength(0);
-    expect(wrapper.find('h3')).toHaveLength(0);
-    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
-    expect(wrapper.find('h4')).toHaveLength(1);
-
+    const header = screen.getByRole('heading', { level: 4 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should render <h4> if size is not defined', () => {
-    const wrapper = mount(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-      />,
-    );
-    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
+  it('should render <h4> when size is "h4"', () => {
+    render({ size: 'h4' });
+
+    const header = screen.getByRole('heading', { level: 4 });
+    expect(header).toBeInTheDocument();
   });
 
-  it('+++ should render help text if help text is supplied', () => {
-    const wrapper = mount(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={{ help: 'this is the help text'}}
-      />,
-    );
-    expect(wrapper.find('HelpTextContainer')).toHaveLength(1);
+  it('should render <h4> when size is not defined', () => {
+    render();
+
+    const header = screen.getByRole('heading', { level: 4 });
+    expect(header).toBeInTheDocument();
   });
 
-  function renderHeaderComponent(props?: Partial<IHeaderProps>){
-    const defaultProps: IHeaderProps = {
-      id: mockId,
-      text: mockText,
-      size: mockSize,
-      language: mockLanguage,
-      textResourceBindings: mockTextResourceBindings,
-      getTextResource: mockGetTextResource,
-    };
+  it('should not render help button when help text is not defined', () => {
+    render();
 
-    return render(<HeaderComponent {...defaultProps} {...props}/>);
-  }
+    const helpButton = screen.queryByRole('button', {
+      name: /popover\.popover_button_helptext/i,
+    });
+
+    expect(helpButton).not.toBeInTheDocument();
+  });
+
+  it('should render help button when help text is defined', () => {
+    render({
+      textResourceBindings: {
+        help: 'this is the help text',
+      },
+    });
+
+    const helpButton = screen.getByRole('button', {
+      name: /popover\.popover_button_helptext/i,
+    });
+
+    expect(helpButton).toBeInTheDocument();
+  });
+
+  it('should show and hide help text when clicking help button', async () => {
+    const helpText = 'this is the help text';
+    render({
+      textResourceBindings: {
+        help: helpText,
+      },
+    });
+
+    const helpButton = screen.getByRole('button', {
+      name: /popover\.popover_button_helptext/i,
+    });
+
+    expect(screen.queryByText(helpText)).not.toBeInTheDocument();
+    fireEvent.click(helpButton);
+    expect(screen.getByText(helpText)).toBeInTheDocument();
+    fireEvent.click(helpButton);
+
+    await waitForElementToBeRemoved(() => screen.queryByText(helpText));
+
+    expect(screen.queryByText(helpText)).not.toBeInTheDocument();
+  });
 });
