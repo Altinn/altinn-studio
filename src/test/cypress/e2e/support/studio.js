@@ -1,16 +1,16 @@
 /// <reference types="cypress" />
-import * as loginPage from '../pageobjects/loginandreg';
-import * as dashboard from '../pageobjects/dashboard';
-import * as designer from '../pageobjects/designer';
+import { login } from '../pageobjects/loginandreg';
+import { dashboard } from '../pageobjects/dashboard';
+import { designer } from '../pageobjects/designer';
 
 /**
  * Login to studio with user name and password
  */
 Cypress.Commands.add('studiologin', (userName, userPwd) => {
-  cy.get(loginPage.loginButton).click();
-  cy.get(loginPage.userName).type(userName);
-  cy.get(loginPage.userPwd).type(userPwd, { log: false });
-  cy.get(loginPage.submit).click();
+  cy.get(login.loginButton).click();
+  cy.get(login.userName).type(userName);
+  cy.get(login.userPwd).type(userPwd, { log: false });
+  cy.get(login.submit).click();
 });
 
 /**
@@ -39,7 +39,7 @@ Cypress.Commands.add('deletecomponents', () => {
         cy.get($component).each(($el) => {
           cy.wrap($el).click();
         });
-        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true});
+        cy.get(designer.deleteComponent).parents('button').click({ multiple: true, force: true });
       }
     });
 });

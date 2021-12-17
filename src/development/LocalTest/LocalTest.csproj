@@ -12,7 +12,19 @@
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="jwtselfsignedcert.pfx" />
+    <None Remove="JWTValidationCert.cer" />
+    <None Remove="MaskinportenJwtValidationCert.cer" />
+    <Content Include="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
