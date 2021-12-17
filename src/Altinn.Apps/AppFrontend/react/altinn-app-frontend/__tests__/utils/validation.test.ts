@@ -1003,7 +1003,7 @@ describe('utils > validation', () => {
     });
 
     it('should return false when validations have no warnings and no errors and checking for Severity.Error', () => {
-      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Warning);
+      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Error);
       expect(result).toBeFalsy();
     });
 
