@@ -1,11 +1,11 @@
 import 'jest';
 import { ITextResource, IDataSources, IDataSource } from '../../src/types';
-import { replaceTextResourceParams } from '../../src/utils/language';
+import { getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
-  let mockTextResources : ITextResource[];
-  let mockDataSources : IDataSources;
-  let mockDataSource : IDataSource;
+  let mockTextResources: ITextResource[];
+  let mockDataSources: IDataSources;
+  let mockDataSource: IDataSource;
   let adjectiveValue: string;
   let colorValue: string;
   let animal0Value: string;
@@ -142,5 +142,17 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
     expect(textResource.value).toEqual(`This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`);
+  });
+
+  describe('getParsedLanguageFromText', () => {
+    it('should return single element if only text is parsed', () => {
+      const result = getParsedLanguageFromText('just som plain text')
+      expect(result instanceof Array).toBeFalsy();
+    });
+
+    it('should return array of nodes for more complex markdown', () => {
+      const result = getParsedLanguageFromText('# Header \n With some text');
+      expect(result instanceof Array).toBeTruthy();
+    });
   });
 });

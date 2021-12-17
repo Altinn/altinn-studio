@@ -2,7 +2,7 @@ import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
-import { JSXElementConstructor, ReactElement } from 'react';
+import { ReactNode } from 'react';
 import Ajv from 'ajv/dist/core';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -44,13 +44,16 @@ export interface IAltinnWindow extends Window {
 export interface IComponentBindingValidation {
   errors?: (
     | string
-    | ReactElement<any, string | JSXElementConstructor<any>>[]
+    | ReactNode
   )[];
   warnings?: (
     | string
-    | ReactElement<any, string | JSXElementConstructor<any>>[]
+    | ReactNode
   )[];
-  fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  fixed?: (
+    | string
+    | ReactNode
+  )[];
 }
 
 export interface IComponentValidations {
