@@ -94,8 +94,8 @@ Navigate to the designer backend folder. The first time running, or after any pa
 
 ```bash
 cd src/studio/src/designer/backend
-yarn run gulp-install-deps
 yarn --immutable
+yarn run gulp-install-deps
 ```
 
 On MacOS you need two extra steps:
@@ -118,7 +118,7 @@ Build and prepare for running the application
 
 ```bash
 dotnet build
-yarn run gulp # first time only
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
 ```
 
 There are multiple ways to start the applications
@@ -133,7 +133,7 @@ If you are not going to edit the designer react app (frontend) you can use
 ```bash
 cd src/studio/src/designer/backend
 yarn --immutable
-yarn run gulp # first time only
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
 dotnet run
 ```
 
