@@ -1,7 +1,6 @@
 import 'jest';
 import * as React from 'react';
 import '@testing-library/jest-dom/extend-expect';
-import * as renderer from 'react-test-renderer';
 import { render } from '@testing-library/react';
 import ErrorPaper from '../../../src/components/message/ErrorPaper';
 
