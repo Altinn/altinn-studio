@@ -1,0 +1,12 @@
+[
+  [
+    {
+      "id": "urn:altinn:org",
+      "value": "org2"
+    },
+    {
+      "id": "urn:altinn:app",
+      "value": "app1"
+    }
+  ]
+]
