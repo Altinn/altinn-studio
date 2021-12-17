@@ -6,15 +6,6 @@ import { render } from '@testing-library/react';
 import ErrorPaper from '../../../src/components/message/ErrorPaper';
 
 describe('components > message > ErrorPaper.tsx', () => {
-  it('should match snapshot', () => {
-    const rendered = renderer.create(
-      <ErrorPaper
-        message='mock message'
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
   it('should render the supplied message', async () => {
     const utils = render(
       <ErrorPaper
