@@ -16,7 +16,6 @@ import * as refOnRootSchema from '../../__mocks__/json-schema/ref-on-root.json';
 import * as complexSchema from '../../__mocks__/json-schema/complex.json';
 
 describe('utils > validation', () => {
-  let mockValidations: IValidations;
   let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
@@ -30,25 +29,6 @@ describe('utils > validation', () => {
   let mockDataElementValidations: IValidationIssue[];
 
   beforeEach(() => {
-    mockValidations = {
-      default: {
-        messages: {
-          dataModelField_1: {
-            errors: ['Error message 1', 'Error message 2'],
-            warnings: [],
-          },
-          dataModelField_2: {
-            errors: [],
-            warnings: ['Warning message 1', 'Warning message 2'],
-          },
-          random_key: {
-            errors: ['test error'],
-            warnings: ['test warning'],
-          },
-        },
-      },
-    };
-
     mockLanguage = {
       language: {
         form_filler: {
@@ -982,41 +962,63 @@ describe('utils > validation', () => {
 
 
   describe('hasValidationsOfSeverity', () => {
+    const validationsWithFixed: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            fixed: ['some error'],
+          },
+        },
+      },
+    };
+
+    const validationsWithWarnings: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            warnings: ['some warning'],
+          },
+        },
+      },
+    };
+
+    const validationsWithErrors: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            errors: ['some error'],
+          },
+        },
+      },
+    };
+
     it('should return true when validations have errors and checking for Severity.Error', () => {
-      const result = validation.hasValidationsOfSeverity(mockValidations, Severity.Error);
+      const result = validation.hasValidationsOfSeverity(validationsWithErrors, Severity.Error);
       expect(result).toBeTruthy();
     });
 
-    it('should return false when validations have no errors and checking for Severity.Error', () => {
-      const validationsWithNoErrors: IValidations = {
-        page1: {
-          component1: {
-            simpleBinding: {
-              warnings: ['some warning'],
-            },
-          },
-        },
-      };
-      const result = validation.hasValidationsOfSeverity(validationsWithNoErrors, Severity.Error);
+    it('should return false when validations have warnings and checking for Severity.Error', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithWarnings, Severity.Error);
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when validations have no warnings and no errors and checking for Severity.Error', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Warning);
       expect(result).toBeFalsy();
     });
 
     it('should return true when validations have warnings and checking for Severity.Warning', () => {
-      const result = validation.hasValidationsOfSeverity(mockValidations, Severity.Warning);
+      const result = validation.hasValidationsOfSeverity(validationsWithWarnings, Severity.Warning);
       expect(result).toBeTruthy();
     });
 
-    it('should return false when validations have no warnings and checking for Severity.Warning', () => {
-      const validationsWithNoWarnings: IValidations = {
-        page1: {
-          component1: {
-            simpleBinding: {
-              errors: ['some error'],
-            },
-          },
-        },
-      };
-      const result = validation.hasValidationsOfSeverity(validationsWithNoWarnings, Severity.Warning);
+    it('should return false when validations have errors and checking for Severity.Warning', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithErrors, Severity.Warning);
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when validations have no warnings and no errors and checking for Severity.Warning', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Warning);
       expect(result).toBeFalsy();
     });
   });

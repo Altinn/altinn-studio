@@ -5,7 +5,7 @@ import * as renderer from 'react-test-renderer';
 import { render } from '@testing-library/react';
 import ErrorPaper from '../../../src/components/message/ErrorPaper';
 
-describe(' components > message > ErrorPaper.tsx', () => {
+describe('components > message > ErrorPaper.tsx', () => {
   it('should match snapshot', () => {
     const rendered = renderer.create(
       <ErrorPaper
