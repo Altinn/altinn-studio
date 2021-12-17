@@ -25,7 +25,6 @@ export const repos = (count) => {
       },
       updated_at: '2019-11-21T08:28:59Z',
     };
-    console.log(name);
     userRepos.push(userRepo);
   }
 

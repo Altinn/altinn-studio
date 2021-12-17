@@ -3,6 +3,7 @@ export default class Common {
     // Standard Material UI components
     this.gridItem = '.MuiGrid-item';
     this.gridContainer = '.MuiGrid-container';
+    this.gridRow = '.MuiDataGrid-row';
     this.button = 'button[class*="MuiButton-root"]';
     this.listItem = '.MuiListItem-root';
     this.leftDrawer = '.MuiDrawer-paperAnchorLeft';
@@ -12,5 +13,6 @@ export default class Common {
     this.tableElement = 'tr > td';
     this.listedAnchor = 'ul > a';
     this.caption = '.MuiTypography-caption';
+    this.columnHeader = '.MuiDataGrid-columnHeaders';
   }
 }
