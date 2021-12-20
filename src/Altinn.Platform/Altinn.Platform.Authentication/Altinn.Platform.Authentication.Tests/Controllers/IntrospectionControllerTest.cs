@@ -7,7 +7,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
@@ -34,6 +33,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         private readonly Mock<IEFormidlingAccessValidator> _eformidlingValidatorService;
         private string _baseUrl = "/authentication/api/v1/introspection";
         private ClaimsPrincipal _testPrincipal;
+        private readonly JsonSerializerOptions _options;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="IntrospectionControllerTest"/> class with the given WebApplicationFactory.
@@ -55,6 +55,11 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             _testPrincipal = new ClaimsPrincipal(identity);
+
+            _options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
         }
 
         /// <summary>
@@ -96,7 +101,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Act
             HttpResponseMessage res = await client.SendAsync(requestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
-            IntrospectionResponse actual = JsonSerializer.Deserialize<IntrospectionResponse>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            IntrospectionResponse actual = JsonSerializer.Deserialize<IntrospectionResponse>(responseString, _options);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -136,7 +141,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Act
             HttpResponseMessage res = await client.SendAsync(requestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
-            IntrospectionResponse actual = JsonSerializer.Deserialize<IntrospectionResponse>(responseString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            IntrospectionResponse actual = JsonSerializer.Deserialize<IntrospectionResponse>(responseString, _options);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -147,7 +152,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// <summary>
         /// Scenario : Endpoint called without a token hint and with an invalid token.
         /// Expected : All available validators are called until a match is met, or all have been tested. 
-        /// Success Result: 200 status code, and a false active response is returned.
+        /// Success Result: 401 status code. 
         /// </summary>
         [Fact]
         public async Task ValidateToken_NoBearerToken_Unauthorized()

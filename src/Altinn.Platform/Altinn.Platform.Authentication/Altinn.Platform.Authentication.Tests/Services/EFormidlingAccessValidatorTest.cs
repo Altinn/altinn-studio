@@ -1,14 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
-
-using Microsoft.AspNetCore.Mvc.Testing;
 
 using Moq;
 
