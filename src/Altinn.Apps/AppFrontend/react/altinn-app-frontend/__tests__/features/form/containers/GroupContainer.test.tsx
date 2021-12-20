@@ -13,7 +13,7 @@ import { ILayoutGroup } from '../../../../src/features/form/layout';
 import { Triggers } from '../../../../src/types';
 
 describe('features > form > containers > GroupContainer.tsx', () => {
-  let mockStore: MockStoreEnhanced<unknown, {}>;
+  let mockStore: MockStoreEnhanced<unknown, unknown>;
   let mockLayout: any;
   let mockData: any;
   let mockComponents: any;
@@ -172,17 +172,21 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     mockStore.dispatch = jest.fn();
   });
 
-  it('should render add new button', async () => {
-    const utils = render(
+  function renderComponent(container?: ILayoutGroup, id?: string) {
+    return render(
       <Provider store={mockStore}>
         <GroupContainer
           components={mockComponents}
-          container={mockContainer}
-          id='mock-container-id'
+          container={container ? container : mockContainer}
+          id={id || 'mock-container-id'}
           key='testKey'
         />
       </Provider>,
     );
+  }
+
+  it('should render add new button', async () => {
+    const utils = renderComponent();
     const item = await utils.findByText('Legg til ny');
     expect(item).not.toBe(null);
   });
@@ -194,16 +198,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       },
       ...mockContainer,
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          container={mockContainerWithLabel}
-          components={mockComponents}
-          id='mock-container-id'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerWithLabel)
     const item = await utils.findByText('Legg til ny person');
     expect(item).not.toBeNull();
   });
@@ -213,31 +208,13 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       maxCount: 3,
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainerWithMaxCount}
-          id='mock-container-id'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerWithMaxCount)
     const addButton = utils.queryByText('Legg til ny');
     expect(addButton).toBeNull();
   });
 
   it('should show option label when displaying selection components', async () => {
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainer}
-          id='mock-container-id'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent();
     const item = await utils.findByText('Value to be shown');
     expect(item).not.toBeNull();
   });
@@ -248,16 +225,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       id: 'mock-container-id-2',
       triggers: [Triggers.Validation]
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainerInEditModeWithTrigger}
-          id='mock-container-id-2'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerInEditModeWithTrigger, 'mock-container-id-2')
     const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
@@ -281,16 +249,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       id: 'mock-container-id-2',
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainerInEditMode}
-          id='mock-container-id-2'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerInEditMode, 'mock-container-id-2')
 
     const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
@@ -315,16 +274,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       id: 'mock-container-id-2',
       triggers: [Triggers.Validation]
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainerInEditModeWithTrigger}
-          id='mock-container-id-2'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerInEditModeWithTrigger, 'mock-container-id-2');
 
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
@@ -348,16 +298,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       id: 'mock-container-id-2',
     };
-    const utils = render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={mockContainerInEditMode}
-          id='mock-container-id-2'
-          key='testKey'
-        />
-      </Provider>,
-    );
+    const utils = renderComponent(mockContainerInEditMode, 'mock-container-id-2')
 
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
@@ -375,4 +316,35 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
+
+  it('should not display "Add new" button when edit.addButton is false', () => {
+    const mockContainerDisabledAddButton = {
+      ...mockContainer,
+      edit: {
+        addButton: false
+      },
+    };
+    const utils = renderComponent(mockContainerDisabledAddButton);
+    const addButton = utils.queryByText('Legg til ny');
+    expect(addButton).toBeNull();
+  });
+
+  it('should display "Add new" button when edit.addButton is true', () => {
+    const mockContainerDisabledAddButton = {
+      ...mockContainer,
+      edit: {
+        addButton: true
+      },
+    };
+    const utils = renderComponent(mockContainerDisabledAddButton);
+    const addButton = utils.queryByText('Legg til ny');
+    expect(addButton).not.toBeNull();
+  });
+
+  it('should display "Add new" button when edit.addButton is undefined', () => {
+    const utils = renderComponent(mockContainer);
+    const addButton = utils.queryByText('Legg til ny');
+    expect(addButton).not.toBeNull();
+  });
+
 });

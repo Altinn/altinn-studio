@@ -224,6 +224,7 @@ export function GroupContainer({
       )}
       <Grid container={true} justifyContent='flex-end' />
       {container.edit?.mode !== 'showAll' &&
+        container.edit?.addButton !== false &&
         editIndex < 0 &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
@@ -280,6 +281,7 @@ export function GroupContainer({
             );
           })}
       {container.edit?.mode === 'showAll' &&
+        container.edit?.addButton !== false &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
             container={container}
