@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
@@ -74,13 +74,13 @@ export function RepeatingGroupsEditContainer({
     JSON.stringify(components),
   );
 
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
+  const repeatingGroupDeepCopyComponents = useMemo(() => createRepeatingGroupComponents(
     container,
     renderComponents,
     repeatingGroupIndex,
     textResources,
     hiddenFields,
-  );
+  ), [container, renderComponents, repeatingGroupIndex, textResources, hiddenFields]);
 
   const closeEditContainer = () => {
     onClickSave();
