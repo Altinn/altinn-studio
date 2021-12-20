@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, createTheme } from '@material-ui/core';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
@@ -7,6 +7,7 @@ import { useDebounce } from 'react-use';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
 
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { useAppSelector } from 'common/hooks';
@@ -14,6 +15,8 @@ import { useAppSelector } from 'common/hooks';
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
+
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => ({
   marginTop: {
@@ -37,7 +40,7 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
   },
   newLink: {
-    color: '#022f51',
+    color: theme.altinnPalette.primary.blueDarker,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -45,7 +48,7 @@ const useStyles = makeStyles(() => ({
     fontWeight: 500,
 
     '&:hover': {
-      color: '#022f51',
+      color: theme.altinnPalette.primary.blueDarker,
       textDecoration: 'none',
     },
     '&:hover span': {
