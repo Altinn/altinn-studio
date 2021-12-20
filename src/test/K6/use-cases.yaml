@@ -64,6 +64,8 @@ steps:
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |   
+   k6 run  --quiet $(pwd)/src/tests/altinn-ui/messagebox.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
+
    k6 run  --quiet $(pwd)/src/tests/platform/events/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd)  -e appsaccesskey=$(appsAccessSubsKey)
    
    k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
