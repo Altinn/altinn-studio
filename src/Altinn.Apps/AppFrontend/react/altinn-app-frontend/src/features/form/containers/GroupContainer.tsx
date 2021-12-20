@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Grid } from '@material-ui/core';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
@@ -99,6 +99,18 @@ export function GroupContainer({
     }
   }, [formData, container]);
 
+  const onClickAdd = useCallback(() => {
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+    if (container.edit?.mode !== 'showAll') {
+      dispatch(
+        FormLayoutActions.updateRepeatingGroupsEditIndex({
+          group: id,
+          index: repeatingGroupIndex + 1,
+        }),
+      );
+    }
+  }, [container.edit?.mode, dispatch, id, repeatingGroupIndex]);
+
   React.useEffect(() => {
     const { edit } = container;
     if (!edit) {
@@ -112,19 +124,7 @@ export function GroupContainer({
     if (edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
-  }, [container]);
-
-  const onClickAdd = () => {
-    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    if (container.edit?.mode !== 'showAll') {
-      dispatch(
-        FormLayoutActions.updateRepeatingGroupsEditIndex({
-          group: id,
-          index: repeatingGroupIndex + 1,
-        }),
-      );
-    }
-  };
+  }, [container, onClickAdd, repeatingGroupIndex]);
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (
