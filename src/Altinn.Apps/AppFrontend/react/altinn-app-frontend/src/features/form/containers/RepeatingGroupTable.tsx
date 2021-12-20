@@ -43,6 +43,7 @@ export interface IRepeatingGroupTableProps {
   components: (ILayoutComponent | ILayoutGroup)[];
   repeatingGroupIndex: number;
   repeatingGroups: IRepeatingGroups;
+  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
   formData: any;
   options: IOptions;
@@ -78,6 +79,7 @@ export function RepeatingGroupTable({
   container,
   components,
   repeatingGroupIndex,
+  repeatingGroupDeepCopyComponents,
   editIndex,
   formData,
   options,
@@ -107,13 +109,6 @@ export function RepeatingGroupTable({
       componentTitles.push(component.textResourceBindings?.title || '');
     }
   });
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
-    container,
-    renderComponents,
-    repeatingGroupIndex,
-    textResources,
-    hiddenFields,
-  );
 
   const getFormDataForComponent = (
     component: ILayoutComponent | ILayoutGroup,

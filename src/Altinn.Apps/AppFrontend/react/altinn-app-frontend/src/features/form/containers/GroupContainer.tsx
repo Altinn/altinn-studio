@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Grid } from '@material-ui/core';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
@@ -61,21 +61,22 @@ export function GroupContainer({
     return -1;
   };
   const repeatingGroupIndex = getRepeatingGroupIndex(id);
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
+  const repeatingGroupDeepCopyComponents = useMemo(() => createRepeatingGroupComponents(
     container,
     renderComponents,
     repeatingGroupIndex,
     textResources,
     hiddenFields,
-  );
-  const tableHasErrors = repeatingGroupHasValidations(
+  ), [container, renderComponents, repeatingGroupIndex, textResources, hiddenFields]);
+
+  const tableHasErrors = useMemo(() => repeatingGroupHasValidations(
     container,
     repeatingGroupDeepCopyComponents,
     validations,
     currentView,
     repeatingGroups,
     layout,
-  );
+  ), [container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout]);
 
   React.useEffect(() => {
     if (container.edit?.filter && container.edit.filter.length > 0) {
@@ -212,6 +213,7 @@ export function GroupContainer({
           language={language}
           layout={layout}
           options={options}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           repeatingGroupIndex={repeatingGroupIndex}
           repeatingGroups={repeatingGroups}
           setEditIndex={setEditIndex}
@@ -234,17 +236,14 @@ export function GroupContainer({
         )}
       {editIndex >= 0 && (
         <RepeatingGroupsEditContainer
-          components={components}
           container={container}
           editIndex={editIndex}
-          hiddenFields={hiddenFields}
           id={id}
           language={language}
           layout={layout}
           onClickRemove={onClickRemove}
           onClickSave={onClickSave}
-          repeatingGroupIndex={repeatingGroupIndex}
-          textResources={textResources}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           hideSaveButton={container.edit?.saveButton === false}
           hideDeleteButton={container.edit?.deleteButton === false}
           multiPageIndex={multiPageIndex}
@@ -267,17 +266,14 @@ export function GroupContainer({
             return (
               <RepeatingGroupsEditContainer
                 key={index}
-                components={components}
-                container={container}
                 editIndex={index}
-                hiddenFields={hiddenFields}
+                container={container}
                 id={id}
                 language={language}
                 layout={layout}
                 onClickRemove={onClickRemove}
                 onClickSave={onClickSave}
-                repeatingGroupIndex={repeatingGroupIndex}
-                textResources={textResources}
+                repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
                 hideSaveButton={true}
                 hideDeleteButton={container.edit?.deleteButton === false}
               />

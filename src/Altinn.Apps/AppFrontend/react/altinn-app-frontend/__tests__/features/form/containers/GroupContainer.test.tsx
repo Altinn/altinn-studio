@@ -6,14 +6,13 @@ import * as React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { getInitialStateMock } from '../../../../__mocks__/mocks';
 import { ILayoutGroup } from '../../../../src/features/form/layout';
 import { Triggers } from '../../../../src/types';
 
-describe('>>> features/form/components/Group.tsx', () => {
+describe('features > form > containers > GroupContainer.tsx', () => {
   let mockStore: MockStoreEnhanced<unknown, {}>;
   let mockLayout: any;
   let mockData: any;
@@ -173,21 +172,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     mockStore.dispatch = jest.fn();
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          id='mock-container-id'
-          key='testKey'
-          container={mockContainer}
-        />
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
-  it('+++ should render add new button', async () => {
+  it('should render add new button', async () => {
     const utils = render(
       <Provider store={mockStore}>
         <GroupContainer
@@ -202,7 +187,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(item).not.toBe(null);
   });
 
-  it('+++ should render add new button with custom label when supplied', async () => {
+  it('should render add new button with custom label when supplied', async () => {
     const mockContainerWithLabel: ILayoutGroup = {
       textResourceBindings: {
         add_button: 'person',
@@ -223,7 +208,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(item).not.toBeNull();
   });
 
-  it('+++ should not show add button when maxOccurs is reached', () => {
+  it('should not show add button when maxOccurs is reached', () => {
     const mockContainerWithMaxCount = {
       ...mockContainer,
       maxCount: 3,
@@ -242,7 +227,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(addButton).toBeNull();
   });
 
-  it('+++ should show option label when displaying selection components', async () => {
+  it('should show option label when displaying selection components', async () => {
     const utils = render(
       <Provider store={mockStore}>
         <GroupContainer
@@ -257,7 +242,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(item).not.toBeNull();
   });
 
-  it('+++ should trigger validate when closing edit mode if validation trigger is present', () => {
+  it('should trigger validate when closing edit mode if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -277,20 +262,21 @@ describe('>>> features/form/components/Group.tsx', () => {
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
-      {
-        payload: {
-          group: 'mock-container-id-2',
-          index: -1,
-          validate: true
-        },
-        type: 'formLayout/updateRepeatingGroupsEditIndex'
-      };
+    {
+      payload: {
+        group: 'mock-container-id-2',
+        index: -1,
+        validate: true
+      },
+      type: 'formLayout/updateRepeatingGroupsEditIndex'
+    };
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('+++ should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
+
+  it('should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -305,24 +291,25 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
+
     const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
-      {
-        payload: {
-          group: 'mock-container-id-2',
-          index: -1,
-          validate: false
-        },
-        type: 'formLayout/updateRepeatingGroupsEditIndex'
-      };
+    {
+      payload: {
+        group: 'mock-container-id-2',
+        index: -1,
+        validate: false
+      },
+      type: 'formLayout/updateRepeatingGroupsEditIndex'
+    };
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('+++ should trigger validate when saving if validation trigger is present', () => {
+  it('should trigger validate when saving if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -338,24 +325,25 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
+
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
-      {
-        payload: {
-          group: 'mock-container-id-2',
-          index: -1,
-          validate: true
-        },
-        type: 'formLayout/updateRepeatingGroupsEditIndex'
-      };
+    {
+      payload: {
+        group: 'mock-container-id-2',
+        index: -1,
+        validate: true
+      },
+      type: 'formLayout/updateRepeatingGroupsEditIndex'
+    };
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('+++ should NOT trigger validate when saving if validation trigger is NOT present', () => {
+  it('should NOT trigger validate when saving if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'mock-container-id-2',
@@ -370,18 +358,19 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
+
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
-      {
-        payload: {
-          group: 'mock-container-id-2',
-          index: -1,
-          validate: false
-        },
-        type: 'formLayout/updateRepeatingGroupsEditIndex'
-      };
+    {
+      payload: {
+        group: 'mock-container-id-2',
+        index: -1,
+        validate: false
+      },
+      type: 'formLayout/updateRepeatingGroupsEditIndex'
+    };
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
     expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);

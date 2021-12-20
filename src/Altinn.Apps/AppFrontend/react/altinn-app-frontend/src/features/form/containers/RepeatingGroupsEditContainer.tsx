@@ -1,21 +1,16 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
-import { ITextResource } from '../../../types';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[];
-  hiddenFields: string[];
-  repeatingGroupIndex: number;
+  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   language: any;
-  textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;
   onClickRemove: (groupIndex: number) => void;
@@ -55,11 +50,8 @@ const style = {
 export function RepeatingGroupsEditContainer({
   id,
   container,
-  components,
-  hiddenFields,
-  repeatingGroupIndex,
+  repeatingGroupDeepCopyComponents,
   language,
-  textResources,
   layout,
   editIndex,
   onClickRemove,
@@ -70,17 +62,6 @@ export function RepeatingGroupsEditContainer({
   setMultiPageIndex,
 }: IRepeatingGroupsEditContainer): JSX.Element {
   const classes = useStyles();
-  const renderComponents: ILayoutComponent[] = JSON.parse(
-    JSON.stringify(components),
-  );
-
-  const repeatingGroupDeepCopyComponents = useMemo(() => createRepeatingGroupComponents(
-    container,
-    renderComponents,
-    repeatingGroupIndex,
-    textResources,
-    hiddenFields,
-  ), [container, renderComponents, repeatingGroupIndex, textResources, hiddenFields]);
 
   const closeEditContainer = () => {
     onClickSave();
@@ -138,7 +119,7 @@ export function RepeatingGroupsEditContainer({
             },
           )}
         </Grid>
-        <Grid item={true} spacing={3} className={classes.saveItem}>
+        <Grid item={true} container={true} spacing={3} className={classes.saveItem}>
           {container.edit?.multiPage && (
             <div style={style}>
               {multiPageIndex > -1 &&
