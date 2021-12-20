@@ -29,12 +29,36 @@ const useStyles = makeStyles(() => ({
     fontSize: 26,
     width: 26,
   },
+  plusIcon: {
+    fontSize: 40,
+    width: 40,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newLink: {
+    color: '#022f51',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: 18,
+    fontWeight: 500,
+
+    '&:hover': {
+      color: '#022f51',
+      textDecoration: 'none',
+    },
+    '&:hover span': {
+      textDecoration: 'underline',
+    },
+  },
 }));
 
 export const Dashboard = () => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [searchText, setSearchText] = React.useState('');
+  const [isNewLinkFocused, setIsNewLinkFocused] = React.useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = React.useState('');
 
   useDebounce(
@@ -57,6 +81,14 @@ export const Dashboard = () => {
 
   const handleClearSearch = () => {
     setSearchText('');
+  };
+
+  const handleNewLinkFocus = () => {
+    setIsNewLinkFocused(true);
+  };
+
+  const handleNewLinkFocusOut = () => {
+    setIsNewLinkFocused(false);
   };
 
   return (
@@ -92,8 +124,19 @@ export const Dashboard = () => {
         </div>
 
         <div>
-          <Link to='/new'>
-            {getLanguageFromKey('dashboard.new_service', language)}
+          <Link
+            to='/new'
+            className={classes.newLink}
+            onMouseEnter={handleNewLinkFocus}
+            onMouseLeave={handleNewLinkFocusOut}
+          >
+            <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+            <i
+              className={cn('fa', classes.plusIcon, {
+                'fa-circle-plus': isNewLinkFocused,
+                'fa-circle-plus-outline': !isNewLinkFocused,
+              })}
+            />
           </Link>
         </div>
       </div>
