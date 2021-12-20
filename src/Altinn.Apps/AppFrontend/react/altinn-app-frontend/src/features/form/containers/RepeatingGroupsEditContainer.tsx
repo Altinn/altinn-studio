@@ -119,7 +119,7 @@ export function RepeatingGroupsEditContainer({
             },
           )}
         </Grid>
-        <Grid item={true} container={true} spacing={3} className={classes.saveItem}>
+        <Grid item={true} className={classes.saveItem}>
           {container.edit?.multiPage && (
             <div style={style}>
               {multiPageIndex > -1 &&
