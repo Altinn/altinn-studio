@@ -241,6 +241,7 @@ export function GroupContainer({
           editIndex={editIndex}
           id={id}
           language={language}
+          textResources={textResources}
           layout={layout}
           onClickRemove={onClickRemove}
           onClickSave={onClickSave}
@@ -271,6 +272,7 @@ export function GroupContainer({
                 container={container}
                 id={id}
                 language={language}
+                textResources={textResources}
                 layout={layout}
                 onClickRemove={onClickRemove}
                 onClickSave={onClickSave}

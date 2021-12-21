@@ -101,6 +101,10 @@ export interface IInstanceState {
   isArchived: boolean;
 }
 
+export interface ILanguage {
+    [key: string]: string | ILanguage;
+}
+
 export interface IOrganisation {
   orgNumber: string;
   name: string;

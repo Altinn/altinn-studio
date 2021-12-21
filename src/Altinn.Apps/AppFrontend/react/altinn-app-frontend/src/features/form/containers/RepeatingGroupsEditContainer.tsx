@@ -2,15 +2,17 @@ import React from 'react';
 import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
+import { ITextResource } from 'src/types';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
   container: ILayoutGroup;
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   language: any;
+  textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;
   onClickRemove: (groupIndex: number) => void;
@@ -52,6 +54,7 @@ export function RepeatingGroupsEditContainer({
   container,
   repeatingGroupDeepCopyComponents,
   language,
+  textResources,
   layout,
   editIndex,
   onClickRemove,
@@ -150,7 +153,11 @@ export function RepeatingGroupsEditContainer({
           )}
           {!hideSaveButton && (
             <AltinnButton
-              btnText={getLanguageFromKey('general.save', language)}
+              btnText={
+                container.textResourceBindings?.save_button ?
+                getTextResourceByKey(container.textResourceBindings.save_button, textResources) :
+                getLanguageFromKey('general.save', language)
+              }
               onClickFunction={closeEditContainer}
               id={`add-button-grp-${id}`}
             />

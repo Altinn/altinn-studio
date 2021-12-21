@@ -94,7 +94,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       layouts: {
         FormLayout: [
           {
-            id: 'mock-container-id',
+            id: 'container-closed-id',
             type: 'group',
             dataModelBindings: {
               group: 'Group',
@@ -107,7 +107,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
             ],
           },
           {
-            id: 'mock-container-id-2',
+            id: 'container-in-edit-mode-id',
             type: 'group',
             dataModelBindings: {
               group: 'Group',
@@ -124,11 +124,11 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       uiConfig: {
         hiddenFields: [],
         repeatingGroups: {
-          'mock-container-id': {
+          'container-closed-id': {
             count: 3,
             editIndex: -1,
           },
-          'mock-container-id-2': {
+          'container-in-edit-mode-id': {
             count: 4,
             editIndex: 0,
           }
@@ -139,7 +139,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     };
 
     mockContainer = {
-      id: 'mock-container-id',
+      id: 'container-closed-id',
       type: 'Group',
       children: [
         'field1',
@@ -160,7 +160,12 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     };
 
     mockTextResources = {
-      resources: [{ id: 'option.label', value: 'Value to be shown' }],
+      resources: [
+        { id: 'option.label', value: 'Value to be shown' },
+        { id: 'button.open', value: 'New open text' },
+        { id: 'button.close', value: 'New close text' },
+        { id: 'button.save', value: 'New save text' },
+      ],
     };
 
     const initialState = getInitialStateMock({
@@ -172,13 +177,13 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     mockStore.dispatch = jest.fn();
   });
 
-  function renderComponent(container?: ILayoutGroup, id?: string) {
+  function renderComponent(container: ILayoutGroup) {
     return render(
       <Provider store={mockStore}>
         <GroupContainer
           components={mockComponents}
-          container={container ? container : mockContainer}
-          id={id || 'mock-container-id'}
+          container={container}
+          id={container.id}
           key='testKey'
         />
       </Provider>,
@@ -186,7 +191,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   }
 
   it('should render add new button', async () => {
-    const utils = renderComponent();
+    const utils = renderComponent(mockContainer);
     const item = await utils.findByText('Legg til ny');
     expect(item).not.toBe(null);
   });
@@ -214,7 +219,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   });
 
   it('should show option label when displaying selection components', async () => {
-    const utils = renderComponent();
+    const utils = renderComponent(mockContainer);
     const item = await utils.findByText('Value to be shown');
     expect(item).not.toBeNull();
   });
@@ -222,17 +227,17 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   it('should trigger validate when closing edit mode if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
-      id: 'mock-container-id-2',
+      id: 'container-in-edit-mode-id',
       triggers: [Triggers.Validation]
     };
-    const utils = renderComponent(mockContainerInEditModeWithTrigger, 'mock-container-id-2')
+    const utils = renderComponent(mockContainerInEditModeWithTrigger)
     const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
     {
       payload: {
-        group: 'mock-container-id-2',
+        group: 'container-in-edit-mode-id',
         index: -1,
         validate: true
       },
@@ -247,9 +252,9 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   it('should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
-      id: 'mock-container-id-2',
+      id: 'container-in-edit-mode-id',
     };
-    const utils = renderComponent(mockContainerInEditMode, 'mock-container-id-2')
+    const utils = renderComponent(mockContainerInEditMode)
 
     const editButton = utils.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
@@ -257,7 +262,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     const mockDispatchedAction =
     {
       payload: {
-        group: 'mock-container-id-2',
+        group: 'container-in-edit-mode-id',
         index: -1,
         validate: false
       },
@@ -271,10 +276,10 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   it('should trigger validate when saving if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
-      id: 'mock-container-id-2',
+      id: 'container-in-edit-mode-id',
       triggers: [Triggers.Validation]
     };
-    const utils = renderComponent(mockContainerInEditModeWithTrigger, 'mock-container-id-2');
+    const utils = renderComponent(mockContainerInEditModeWithTrigger);
 
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
@@ -282,7 +287,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     const mockDispatchedAction =
     {
       payload: {
-        group: 'mock-container-id-2',
+        group: 'container-in-edit-mode-id',
         index: -1,
         validate: true
       },
@@ -296,9 +301,9 @@ describe('features > form > containers > GroupContainer.tsx', () => {
   it('should NOT trigger validate when saving if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
-      id: 'mock-container-id-2',
+      id: 'container-in-edit-mode-id',
     };
-    const utils = renderComponent(mockContainerInEditMode, 'mock-container-id-2')
+    const utils = renderComponent(mockContainerInEditMode)
 
     const editButton = utils.getAllByText('Lagre')[0].closest('button');
     fireEvent.click(editButton);
@@ -306,7 +311,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     const mockDispatchedAction =
     {
       payload: {
-        group: 'mock-container-id-2',
+        group: 'container-in-edit-mode-id',
         index: -1,
         validate: false
       },
@@ -345,6 +350,44 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     const utils = renderComponent(mockContainer);
     const addButton = utils.queryByText('Legg til ny');
     expect(addButton).not.toBeNull();
+  });
+
+  it('should display textResourceBindings.edit_button_open as edit button if present when opening', () => {
+    const mockContainerWithEditButtonOpen = {
+      ...mockContainer,
+      textResourceBindings: {
+        edit_button_open: 'button.open' // referencing a text resource
+      }
+    }
+    const utils = renderComponent(mockContainerWithEditButtonOpen);
+    const openButtons = utils.queryAllByText('New open text');
+    expect(openButtons).toHaveLength(4);
+  });
+
+  it('should display textResourceBindings.edit_button_close as edit button if present when closing', () => {
+    const mockContainerWithEditButtonClose = {
+      ...mockContainer,
+      id: 'container-in-edit-mode-id',
+      textResourceBindings: {
+        edit_button_close: 'button.close' // referencing a text resource
+      }
+    }
+    const utils = renderComponent(mockContainerWithEditButtonClose);
+    const closeButtons = utils.queryAllByText('New close text');
+    expect(closeButtons).toHaveLength(1);
+  });
+
+  it('should display textResourceBindings.save_button as save button if present', () => {
+    const mockContainerWithAddButton = {
+      ...mockContainer,
+      id: 'container-in-edit-mode-id',
+      textResourceBindings: {
+        save_button: 'button.save' // referencing a text resource
+      }
+    }
+    const utils = renderComponent(mockContainerWithAddButton);
+    const saveButton = utils.queryByText('New save text');
+    expect(saveButton).not.toBeNull();
   });
 
 });
