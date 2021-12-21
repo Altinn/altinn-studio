@@ -1,5 +1,4 @@
 import Typography from '@material-ui/core/Typography';
-import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
 import { MessageComponent } from '../components/message/MessageComponent';
 
