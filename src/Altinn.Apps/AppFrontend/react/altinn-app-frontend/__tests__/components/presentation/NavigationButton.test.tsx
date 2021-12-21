@@ -7,6 +7,7 @@ import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 import { getFormLayoutStateMock, getInitialStateMock } from '../../../__mocks__/mocks';
 import { NavigationButtons } from '../../../src/components/presentation/NavigationButtons';
+import { IComponentProps } from 'src/components';
 
 describe('>>> components/presentation/NavigationButton.tsx', () => {
   let mockStore;
@@ -92,6 +93,7 @@ describe('>>> components/presentation/NavigationButton.tsx', () => {
           id='nav-button-1'
           showBackButton={false}
           textResourceBindings={null}
+          {...({} as IComponentProps)}
         />
       </Provider>,
     );
@@ -107,6 +109,7 @@ describe('>>> components/presentation/NavigationButton.tsx', () => {
           id='nav-button-1'
           showBackButton={true}
           textResourceBindings={null}
+          {...({} as IComponentProps)}
         />
       </Provider>,
     );
@@ -136,6 +139,7 @@ describe('>>> components/presentation/NavigationButton.tsx', () => {
           id='nav-button-2'
           showBackButton={true}
           textResourceBindings={null}
+          {...({} as IComponentProps)}
         />
       </Provider>,
     );

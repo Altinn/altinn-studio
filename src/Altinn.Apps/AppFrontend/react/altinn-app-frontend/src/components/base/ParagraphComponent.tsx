@@ -1,16 +1,8 @@
 import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
-import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { ILanguage } from 'altinn-shared/types';
+import { IComponentProps } from '..';
 
-export interface IParagraphProps {
-  id: string;
-  text: string;
-  textResourceBindings: ITextResourceBindings;
-  language: ILanguage;
-  getTextResource: (key: string) => string;
-}
 
 const useStyles = makeStyles({
   spacing: {
@@ -41,7 +33,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function ParagraphComponent(props: IParagraphProps) {
+export function ParagraphComponent(props: IComponentProps) {
   const classes = useStyles();
   return (
     <Grid

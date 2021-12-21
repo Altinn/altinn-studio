@@ -5,15 +5,10 @@ import classNames from 'classnames';
 import { makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useAppSelector } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface IDropdownProps {
-  formData: string;
-  getTextResourceAsString: (resourceKey: string) => string;
-  handleDataChange: (value: string) => void;
-  id: string;
-  isValid?: boolean;
+export interface IDropdownProps extends IComponentProps {
   optionsId: string;
-  readOnly: boolean;
   preselectedOptionIndex?: number;
 }
 
@@ -46,7 +41,7 @@ function DropdownComponent(props: IDropdownProps) {
 
   const returnState = () => {
     if (
-      !props.formData &&
+      !props.formData?.simpleBinding &&
       props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
@@ -66,7 +61,7 @@ function DropdownComponent(props: IDropdownProps) {
   return (
     <select
       id={props.id}
-      value={props.formData}
+      value={props.formData?.simpleBinding}
       disabled={props.readOnly}
       className={classNames(classes.select, 'custom-select a-custom-select', {
         'validation-error': !props.isValid,
