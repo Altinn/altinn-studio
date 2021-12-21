@@ -1,7 +1,7 @@
 import * as DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
 import * as React from 'react';
-import { ITextResource, IDataSources } from '../types';
+import { ITextResource, IDataSources, ILanguage } from '../types';
 
 const marked = require('marked');
 
@@ -12,7 +12,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export function getLanguageFromKey(key: string, language: any) {
+export function getLanguageFromKey(key: string, language: ILanguage) {
   if (!key) {
     return key;
   }
@@ -28,7 +28,7 @@ export function getNestedObject(nestedObj: any, pathArr: string[]) {
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-export const getParsedLanguageFromKey = (key: string, language: any, params?: any[], stringOutput?: boolean) => {
+export const getParsedLanguageFromKey = (key: string, language: ILanguage, params?: any[], stringOutput?: boolean) => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
 

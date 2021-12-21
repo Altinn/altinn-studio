@@ -4,6 +4,7 @@ import { AltinnPopover } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { isMobile } from 'react-device-detect';
+import { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -29,7 +30,7 @@ export interface IHelpTextPopoverProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
   helpText: string;
-  language: any;
+  language: ILanguage;
   id: string;
   closePopover: () => void;
 }

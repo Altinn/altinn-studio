@@ -1,4 +1,5 @@
 import Typography from '@material-ui/core/Typography';
+import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
 import { MessageComponent } from '../components/message/MessageComponent';
 
@@ -12,10 +13,6 @@ export const styles = {
 
 export function renderPropertyLabel(textKey: string) {
   return <Typography style={styles.inputHelper}>{textKey}</Typography>;
-}
-
-export function noOptionsMessage(language: any): string {
-  return language.general.no_options;
 }
 
 const messageComponentStyle = {

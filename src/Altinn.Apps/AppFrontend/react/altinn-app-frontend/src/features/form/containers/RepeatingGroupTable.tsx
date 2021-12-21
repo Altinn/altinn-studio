@@ -50,7 +50,7 @@ export interface IRepeatingGroupTableProps {
   formData: any;
   options: IOptions;
   textResources: ITextResource[];
-  language: any;
+  language: ILanguage;
   currentView: string;
   layout: ILayout;
   validations: IValidations;

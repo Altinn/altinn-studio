@@ -6,12 +6,13 @@ import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
 import { ITextResource } from 'src/types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
   container: ILayoutGroup;
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
-  language: any;
+  language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;

@@ -4,10 +4,11 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import classNames from 'classnames';
 import { useMediaQuery } from '@material-ui/core';
 import { PresentationType, ProcessTaskType } from '../../types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IHeaderProps {
   type: ProcessTaskType | PresentationType;
-  language: any;
+  language: ILanguage;
   header?: string;
 }
 

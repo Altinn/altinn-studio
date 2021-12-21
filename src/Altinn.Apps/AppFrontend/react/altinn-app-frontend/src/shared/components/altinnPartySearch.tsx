@@ -6,6 +6,7 @@ import * as React from 'react';
 import { AltinnInput } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useAppSelector } from 'src/common/hooks';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({
   partySearchContainer: {
@@ -26,7 +27,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
 
   React.useEffect(() => {
     onSearchUpdated(searchString);
-  }, [searchString]);
+  }, [onSearchUpdated, searchString]);
 
   const onChangeSearchString = (e: any) => {
     setSearchString(e.target.value);
@@ -35,19 +36,10 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
   return (
     <Grid container={true} className={classes.partySearchContainer}>
       <AltinnInput
-        label={
-          !language.party_selection ?
-            'party_selection.search_placeholder' :
-            language.party_selection.search_placeholder
-        }
+        label={getLanguageFromKey('party_selection.search_placeholder', language)}
         showLabel={false}
-        // eslint-disable-next-line react/jsx-no-bind
         onChange={onChangeSearchString}
-        placeholder={
-          !language.party_selection ?
-            'party_selection.search_placeholder' :
-            language.party_selection.search_placeholder
-        }
+        placeholder={getLanguageFromKey('party_selection.search_placeholder', language)}
         iconString='fa fa-others'
       />
     </Grid>

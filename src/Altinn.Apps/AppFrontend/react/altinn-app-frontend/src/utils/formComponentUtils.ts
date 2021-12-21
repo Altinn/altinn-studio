@@ -1,3 +1,4 @@
+import { ILanguage } from 'altinn-shared/types';
 import {
   getLanguageFromKey,
   getParsedLanguageFromText,
@@ -265,7 +266,7 @@ export function selectComponentTexts(
 
 export function getFileUploadComponentValidations(
   validationError: string,
-  language: any,
+  language: ILanguage,
 ): IComponentValidations {
   const componentValidations: any = {
     simpleBinding: {
