@@ -27,7 +27,14 @@
         "required": true,
         "readOnly": false,
         "triggers": ["validation"],
-        "formatting": {}
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
       },
       {
         "id": "newLastName",
@@ -40,7 +47,15 @@
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonEtternavnNytt-datadef-34757.value"
         },
         "required": true,
-        "readOnly": false
+        "readOnly": false,
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
       },
       {
         "id": "newMiddleName",
@@ -55,7 +70,15 @@
         "required": false,
         "readOnly": false,
         "triggers": ["validation"],
-        "labelSettings": { "optionalIndicator": false }
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "labelGrid": {
+            "md": 6
+          },
+          "innerGrid": {
+            "md": 6
+          }
+        }
       },
       {
         "id": "yourChanges",
