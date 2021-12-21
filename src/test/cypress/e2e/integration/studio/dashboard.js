@@ -15,8 +15,9 @@ context('Dashboard', () => {
     cy.get(dashboard.searchApp).should('be.visible');
   });
 
-  it('is possible to view apps, add and remove favorites', () => {
+  it('is possible to view apps, add and remove favourites', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
+    cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
       .siblings()
       .find(common.gridRow)
@@ -25,18 +26,21 @@ context('Dashboard', () => {
         cy.get(apps)
           .first()
           .then((app) => {
-            cy.get(app).find(dashboard.apps.favorite).click();
+            cy.get(app).find(dashboard.apps.favourite).click();
+            cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
             cy.get(app).children(dashboard.apps.name).invoke('text').should('not.be.empty');
             cy.get(app).children(dashboard.apps.createdBy).should('have.text', Cypress.env('autoTestUser'));
             cy.get(app).children(dashboard.apps.updatedAt).invoke('text').should('not.be.empty');
           });
       });
+    cy.intercept('DELETE', '**/designer/api/v1/user/starred/**').as('removeFavourite');
     cy.contains('h2', 'Favoritter')
       .siblings()
       .find(common.gridRow)
-      .then((favorites) => {
-        cy.get(favorites).should('have.length.gte', 1);
-        cy.get(favorites).first().find(dashboard.apps.favorite).click();
+      .then((favourites) => {
+        cy.get(favourites).should('have.length.gte', 1);
+        cy.get(favourites).first().find(dashboard.apps.favourite).click();
+        cy.wait('@removeFavourite').its('response.statusCode').should('eq', 204);
       });
   });
 
