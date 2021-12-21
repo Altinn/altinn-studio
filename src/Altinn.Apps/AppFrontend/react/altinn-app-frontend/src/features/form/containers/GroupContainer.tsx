@@ -36,24 +36,36 @@ export function GroupContainer({
     JSON.stringify(components),
   );
 
-  const editIndex = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
+  const editIndex = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
+  );
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
-  const validations = useAppSelector(state => state.formValidations.validations);
-  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
-  const language = useAppSelector(state => state.language.language);
-  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
-  const hiddenFields = useAppSelector(state =>
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
+  const currentView = useAppSelector(
+    (state) => state.formLayout.uiConfig.currentView,
+  );
+  const language = useAppSelector((state) => state.language.language);
+  const repeatingGroups = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups,
+  );
+  const hiddenFields = useAppSelector((state) =>
     getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components),
   );
   const GetHiddenSelector = makeGetHidden();
-  const hidden = useAppSelector(state => GetHiddenSelector(state, { id }));
-  const formData = useAppSelector(state => state.formData.formData);
-  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const options = useAppSelector(state => state.optionState.options);
-  const textResources = useAppSelector(state => state.textResources.resources);
+  const hidden = useAppSelector((state) => GetHiddenSelector(state, { id }));
+  const formData = useAppSelector((state) => state.formData.formData);
+  const layout = useAppSelector(
+    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
+  );
+  const options = useAppSelector((state) => state.optionState.options);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
       return repeatingGroups[containerId].count;
@@ -99,6 +111,18 @@ export function GroupContainer({
     }
   }, [formData, container]);
 
+  const onClickAdd = React.useCallback(() => {
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+    if (container.edit?.mode !== 'showAll') {
+      dispatch(
+        FormLayoutActions.updateRepeatingGroupsEditIndex({
+          group: id,
+          index: repeatingGroupIndex + 1,
+        }),
+      );
+    }
+  }, [dispatch, id, container.edit?.mode, repeatingGroupIndex]);
+
   React.useEffect(() => {
     const { edit } = container;
     if (!edit) {
@@ -112,19 +136,7 @@ export function GroupContainer({
     if (edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
-  }, [container]);
-
-  const onClickAdd = () => {
-    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    if (container.edit?.mode !== 'showAll') {
-      dispatch(
-        FormLayoutActions.updateRepeatingGroupsEditIndex({
-          group: id,
-          index: repeatingGroupIndex + 1,
-        }),
-      );
-    }
-  };
+  }, [container, onClickAdd, repeatingGroupIndex]);
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (

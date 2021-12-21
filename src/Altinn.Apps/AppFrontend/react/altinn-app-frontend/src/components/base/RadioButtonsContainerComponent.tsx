@@ -77,36 +77,35 @@ export const RadioButtonContainerComponent = (
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options || [];
+  const apiOptions = useAppSelector(
+    (state) => state.optionState.options[props.optionsId],
+  );
+  const options = React.useMemo(() => {
+    return apiOptions || props.options || [];
+  }, [apiOptions, props]);
   const radioGroupIsRow: boolean = options.length <= 2;
 
   React.useEffect(() => {
+    const returnSelected = () => {
+      if (
+        !props.formData &&
+        props.preselectedOptionIndex >= 0 &&
+        options &&
+        props.preselectedOptionIndex < options.length
+      ) {
+        const preSelectedValue = options[props.preselectedOptionIndex].value;
+        props.handleDataChange(preSelectedValue);
+        setSelected(preSelectedValue);
+      } else {
+        setSelected(
+          props.formData !== undefined && props.formData !== null
+            ? props.formData
+            : '',
+        );
+      }
+    };
     returnSelected();
-  }, [options]);
-
-  React.useEffect(() => {
-    returnSelected();
-  }, [props.formData]);
-
-  const returnSelected = () => {
-    if (
-      !props.formData &&
-      props.preselectedOptionIndex >= 0 &&
-      options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      const preSelectedValue = options[props.preselectedOptionIndex].value;
-      props.handleDataChange(preSelectedValue);
-      setSelected(preSelectedValue);
-    } else {
-      setSelected(
-        props.formData !== undefined && props.formData !== null
-          ? props.formData
-          : '',
-      );
-    }
-  };
+  }, [options, props]);
 
   const onDataChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelected(event.target.value);

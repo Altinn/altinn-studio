@@ -1,7 +1,10 @@
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import { AxiosError } from 'axios';
 import * as React from 'react';
-import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
+import {
+  AltinnContentLoader,
+  AltinnContentIconFormData,
+} from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
@@ -17,13 +20,14 @@ import UnknownError from './UnknownError';
 import InstantiateValidationError from './InstantiateValidationError';
 import { useAppSelector } from 'src/common/hooks';
 
-const styles = () => createStyles({
-  modal: {
-    boxShadow: null,
-    MozBoxShadow: null,
-    WebkitBoxShadow: null,
-  },
-});
+const styles = () =>
+  createStyles({
+    modal: {
+      boxShadow: null,
+      MozBoxShadow: null,
+      WebkitBoxShadow: null,
+    },
+  });
 
 const titleKey = 'instantiate.starting';
 
@@ -38,29 +42,32 @@ function InstantiateContainer() {
   const { org, app } = window as Window as IAltinnWindow;
 
   const [instantiating, setInstantiating] = React.useState(false);
-  const instantiation = useAppSelector(state => state.instantiation);
-  const selectedParty = useAppSelector(state => state.party.selectedParty);
-  const titleText: any = useAppSelector(state => {
-    const text = getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
+  const instantiation = useAppSelector((state) => state.instantiation);
+  const selectedParty = useAppSelector((state) => state.party.selectedParty);
+  const titleText: any = useAppSelector((state) => {
+    const text = getTextFromAppOrDefault(
+      titleKey,
+      state.textResources.resources,
+      state.language.language,
+      [],
+      true,
+    );
     return text === titleKey ? '' : text;
   });
 
-  const createNewInstance = () => {
-    if (!selectedParty) {
-      return;
-    }
-    setInstantiating(true);
-    InstantiationActions.instantiate(org, app);
-  };
-
   React.useEffect(() => {
-    if (
-      !instantiating &&
-      !instantiation.instanceId
-    ) {
+    const createNewInstance = () => {
+      if (!selectedParty) {
+        return;
+      }
+      setInstantiating(true);
+      InstantiationActions.instantiate(org, app);
+    };
+
+    if (!instantiating && !instantiation.instanceId) {
       createNewInstance();
     }
-  }, [instantiating]);
+  }, [instantiating, instantiation.instanceId, selectedParty, app, org]);
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
     const axiosError = instantiation.error as AxiosError;
@@ -69,27 +76,18 @@ function InstantiateContainer() {
       if (message) {
         return <InstantiateValidationError message={message} />;
       }
-      return (
-        <MissingRolesError />
-      );
+      return <MissingRolesError />;
     }
 
-    return (
-      <UnknownError />
-    );
+    return <UnknownError />;
   }
 
   if (instantiation.instanceId !== null) {
-    return (
-      <Redirect to={`/instance/${instantiation.instanceId}`} />
-    );
+    return <Redirect to={`/instance/${instantiation.instanceId}`} />;
   }
 
   return (
-    <Presentation
-      header={titleText}
-      type={ProcessTaskType.Unknown}
-    >
+    <Presentation header={titleText} type={ProcessTaskType.Unknown}>
       <AltinnContentLoader width='100%' height='400'>
         <AltinnContentIconFormData />
       </AltinnContentLoader>

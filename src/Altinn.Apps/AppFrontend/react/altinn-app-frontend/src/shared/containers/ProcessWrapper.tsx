@@ -38,16 +38,22 @@ const ProcessWrapper = (props) => {
   const [userLanguage, setUserLanguage] = React.useState('nb');
   const [appHeader, setAppHeader] = React.useState('');
 
-  const instantiating = useAppSelector(state => state.instantiation.instantiating);
-  const instanceId = useAppSelector(state => state.instantiation.instanceId);
-  const instanceData = useAppSelector(state => state.instanceData.instance);
-  const applicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
-  const isLoading = useAppSelector(state => state.isLoading.dataTask);
-  const serviceName = useAppSelector(state => getTextResourceByKey('ServiceName', state.textResources.resources));
-  const process = useAppSelector(state => state.process);
+  const instantiating = useAppSelector(
+    (state) => state.instantiation.instantiating,
+  );
+  const instanceId = useAppSelector((state) => state.instantiation.instanceId);
+  const instanceData = useAppSelector((state) => state.instanceData.instance);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
+  );
+  const isLoading = useAppSelector((state) => state.isLoading.dataTask);
+  const serviceName = useAppSelector((state) =>
+    getTextResourceByKey('ServiceName', state.textResources.resources),
+  );
+  const process = useAppSelector((state) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useAppSelector(hasErrorSelector);
-  const profile = useAppSelector(state => state.profile.profile);
+  const profile = useAppSelector((state) => state.profile.profile);
 
   (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
 
@@ -76,7 +82,7 @@ const ProcessWrapper = (props) => {
       return appName;
     };
     setAppHeader(getHeaderText());
-  }, [serviceName, applicationMetadata]);
+  }, [serviceName, applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
@@ -103,13 +109,13 @@ const ProcessWrapper = (props) => {
       default:
         break;
     }
-  }, [process, applicationMetadata, instanceData]);
+  }, [process, applicationMetadata, instanceData, dispatch]);
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
       InstanceDataActions.getInstanceData(partyId, instanceGuid);
     }
-  }, [instantiating, instanceId]);
+  }, [instantiating, instanceId, instanceGuid, partyId]);
 
   if (hasApiErrors) {
     return <UnknownError />;

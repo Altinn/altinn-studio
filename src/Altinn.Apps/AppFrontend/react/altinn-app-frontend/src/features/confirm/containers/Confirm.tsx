@@ -90,16 +90,22 @@ const Confirm = (props: IConfirmProps) => {
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  const applicationMetadata: IApplicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
-  const instance = useAppSelector(state => state.instanceData.instance);
-  const language = useAppSelector(state => state.language.language);
-  const parties = useAppSelector(state => state.party.parties);
-  const validations = useAppSelector(state => state.formValidations.validations);
+  const applicationMetadata: IApplicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
+  );
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const language = useAppSelector((state) => state.language.language);
+  const parties = useAppSelector((state) => state.party.parties);
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
 
   const routeParams: any = props.match.params;
 
   const { instanceId } = window as Window as IAltinnWindow;
-  const textResources = useAppSelector(state => state.textResources.resources);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
 
   const isLoading = (): boolean =>
     !attachments ||
@@ -115,7 +121,7 @@ const Confirm = (props: IConfirmProps) => {
       routeParams.partyId,
       routeParams.instanceGuid,
     );
-  }, []);
+  }, [routeParams.partyId, routeParams.instanceGuid]);
 
   React.useEffect(() => {
     if (instance && instance.org && parties && applicationMetadata) {
@@ -129,7 +135,7 @@ const Confirm = (props: IConfirmProps) => {
       });
       setInstanceMetaObject(obj);
     }
-  }, [parties, instance, lastChangedDateTime, applicationMetadata]);
+  }, [parties, instance, lastChangedDateTime, applicationMetadata, language]);
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {

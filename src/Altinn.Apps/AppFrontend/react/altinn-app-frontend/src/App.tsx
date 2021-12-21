@@ -21,30 +21,20 @@ export const App = () => {
   const dispatch = useAppDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
-  const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
+  const appOidcProvider = useAppSelector(
+    (state) => state.applicationSettings?.applicationSettings?.appOidcProvider,
+  );
+  const lastRefreshTokenTimestamp = React.useRef(0);
 
-  let lastRefreshTokenTimestamp = 0;
-
-  function setUpEventListeners() {
-    window.addEventListener('mousemove', refreshJwtToken);
-    window.addEventListener('scroll', refreshJwtToken);
-    window.addEventListener('onfocus', refreshJwtToken);
-    window.addEventListener('keydown', refreshJwtToken);
-  }
-
-  function removeEventListeners() {
-    window.removeEventListener('mousemove', refreshJwtToken);
-    window.removeEventListener('scroll', refreshJwtToken);
-    window.removeEventListener('onfocus', refreshJwtToken);
-    window.removeEventListener('keydown', refreshJwtToken);
-  }
-
-  function refreshJwtToken() {
-    const timeNow = Date.now();
-    if (timeNow - lastRefreshTokenTimestamp > TEN_MINUTE_IN_MILLISECONDS) {
-      lastRefreshTokenTimestamp = timeNow;
-      get(refreshJwtTokenUrl)
-        .catch((err) => {
+  React.useEffect(() => {
+    function refreshJwtToken() {
+      const timeNow = Date.now();
+      if (
+        timeNow - lastRefreshTokenTimestamp.current >
+        TEN_MINUTE_IN_MILLISECONDS
+      ) {
+        lastRefreshTokenTimestamp.current = timeNow;
+        get(refreshJwtTokenUrl).catch((err) => {
           // Most likely the user has an expired token, so we redirect to the login-page
           try {
             window.location.href = getEnvironmentLoginUrl(appOidcProvider);
@@ -52,17 +42,31 @@ export const App = () => {
             console.error(err, error);
           }
         });
+      }
     }
-  }
 
-  React.useEffect(() => {
+    function setUpEventListeners() {
+      window.addEventListener('mousemove', refreshJwtToken);
+      window.addEventListener('scroll', refreshJwtToken);
+      window.addEventListener('onfocus', refreshJwtToken);
+      window.addEventListener('keydown', refreshJwtToken);
+    }
+
+    function removeEventListeners() {
+      window.removeEventListener('mousemove', refreshJwtToken);
+      window.removeEventListener('scroll', refreshJwtToken);
+      window.removeEventListener('onfocus', refreshJwtToken);
+      window.removeEventListener('keydown', refreshJwtToken);
+    }
+
     refreshJwtToken();
     dispatch(startInitialAppTaskQueue());
     setUpEventListeners();
-    return function cleanup() {
+
+    return () => {
       removeEventListeners();
     };
-  }, [appOidcProvider]);
+  }, [dispatch, appOidcProvider]);
 
   if (hasApiErrors) {
     return <UnknownError />;

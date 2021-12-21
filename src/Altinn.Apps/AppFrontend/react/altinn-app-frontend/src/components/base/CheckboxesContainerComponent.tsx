@@ -87,36 +87,35 @@ function usePrevious(value) {
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options || [];
+  const apiOptions = useAppSelector(
+    (state) => state.optionState.options[props.optionsId],
+  );
+  const options = React.useMemo(() => {
+    return apiOptions || props.options || [];
+  }, [props, apiOptions]);
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
   const checkBoxesIsRow: boolean = options.length <= 2;
 
   React.useEffect(() => {
+    const returnState = () => {
+      if (
+        !props.formData &&
+        props.preselectedOptionIndex >= 0 &&
+        options &&
+        props.preselectedOptionIndex < options.length
+      ) {
+        const preSelected: string[] = [];
+        preSelected[props.preselectedOptionIndex] =
+          options[props.preselectedOptionIndex].value;
+        props.handleDataChange(preSelected[props.preselectedOptionIndex]);
+        setSelected(preSelected);
+      } else {
+        setSelected(props.formData ? props.formData.toString().split(',') : []);
+      }
+    };
     returnState();
-  }, [options]);
-
-  React.useEffect(() => {
-    returnState();
-  }, [props.formData]);
-
-  const returnState = () => {
-    if (
-      !props.formData &&
-      props.preselectedOptionIndex >= 0 &&
-      options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      const preSelected: string[] = [];
-      preSelected[props.preselectedOptionIndex] =
-        options[props.preselectedOptionIndex].value;
-      props.handleDataChange(preSelected[props.preselectedOptionIndex]);
-      setSelected(preSelected);
-    } else {
-      setSelected(props.formData ? props.formData.toString().split(',') : []);
-    }
-  };
+  }, [options, props]);
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();

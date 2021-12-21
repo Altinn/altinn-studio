@@ -1,5 +1,8 @@
 /* eslint-disable import/no-named-as-default */
-import { AltinnContentIconFormData, AltinnContentLoader } from 'altinn-shared/components';
+import {
+  AltinnContentIconFormData,
+  AltinnContentLoader,
+} from 'altinn-shared/components';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from 'src/common/hooks';
@@ -9,7 +12,10 @@ import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlic
 import { ISimpleInstance, PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
 import { get, HttpStatusCodes, post } from 'src/utils/networking';
-import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urlHelper';
+import {
+  getActiveInstancesUrl,
+  getPartyValidationUrl,
+} from 'src/utils/urlHelper';
 import Form from '../form/containers/Form';
 import { updateValidations } from '../form/validation/validationSlice';
 import Instantiate from '../instantiate/containers';
@@ -17,48 +23,57 @@ import InstanceSelection from '../instantiate/containers/InstanceSelection';
 import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
 
 export default function Entrypoint() {
-  const applicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
-  const selectedParty = useAppSelector(state => state.party.selectedParty);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
+  );
+  const selectedParty = useAppSelector((state) => state.party.selectedParty);
   const [action, setAction] = React.useState<ShowTypes>(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
-  const [activeInstances, setActiveInstances] = React.useState<ISimpleInstance[]>(null);
-  const statelessLoading: boolean = useAppSelector(state => state.isLoading.stateless);
+  const [activeInstances, setActiveInstances] =
+    React.useState<ISimpleInstance[]>(null);
+  const statelessLoading: boolean = useAppSelector(
+    (state) => state.isLoading.stateless,
+  );
   const dispatch = useAppDispatch();
-
-  const validatatePartySelection = async () => {
-    if (!selectedParty) {
-      return;
-    }
-    try {
-      const { data } = await post(getPartyValidationUrl(selectedParty.partyId));
-      setPartyValidation(data);
-    } catch (err) {
-      console.error(err);
-      throw new Error('Server did not respond with party validation');
-    }
-  };
-
-  const fetchExistingInstances = async () => {
-    try {
-      const instances = await get(getActiveInstancesUrl(selectedParty.partyId));
-      setActiveInstances(instances || []);
-    } catch (err) {
-      console.error(err);
-      throw new Error('Server did not return active instances');
-    }
-  };
 
   const handleNewInstance = () => {
     setAction('new-instance');
   };
 
   React.useEffect(() => {
+    const fetchExistingInstances = async () => {
+      try {
+        const instances = await get(
+          getActiveInstancesUrl(selectedParty.partyId),
+        );
+        setActiveInstances(instances || []);
+      } catch (err) {
+        console.error(err);
+        throw new Error('Server did not return active instances');
+      }
+    };
+
     if (action === 'select-instance' && partyValidation?.valid) {
       fetchExistingInstances();
     }
-  }, [action, partyValidation]);
+  }, [action, partyValidation, selectedParty]);
 
   React.useEffect(() => {
+    const validatatePartySelection = async () => {
+      if (!selectedParty) {
+        return;
+      }
+      try {
+        const { data } = await post(
+          getPartyValidationUrl(selectedParty.partyId),
+        );
+        setPartyValidation(data);
+      } catch (err) {
+        console.error(err);
+        throw new Error('Server did not respond with party validation');
+      }
+    };
+
     if (selectedParty) {
       validatatePartySelection();
     }
@@ -67,7 +82,7 @@ export default function Entrypoint() {
   React.useEffect(() => {
     // If user comes back to entrypoint from an active instance we need to clear validation messages
     dispatch(updateValidations({ validations: {} }));
-  }, []);
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (applicationMetadata) {
@@ -82,13 +97,9 @@ export default function Entrypoint() {
 
   if (partyValidation?.valid === false) {
     if (partyValidation.validParties?.length === 0) {
-      return (
-        <NoValidPartiesError />
-      );
+      return <NoValidPartiesError />;
     }
-    return (
-      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />
-    );
+    return <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />;
   }
 
   // regular view with instance
@@ -96,7 +107,11 @@ export default function Entrypoint() {
     return <Instantiate />;
   }
 
-  if (action === 'select-instance' && partyValidation?.valid && activeInstances !== null) {
+  if (
+    action === 'select-instance' &&
+    partyValidation?.valid &&
+    activeInstances !== null
+  ) {
     if (activeInstances.length === 0) {
       // no existing instances exist, we start instantiation
       return <Instantiate />;
@@ -135,10 +150,7 @@ export default function Entrypoint() {
   }
 
   return (
-    <Presentation
-      header=''
-      type={ProcessTaskType.Unknown}
-    >
+    <Presentation header='' type={ProcessTaskType.Unknown}>
       <AltinnContentLoader width='100%' height='400'>
         <AltinnContentIconFormData />
       </AltinnContentLoader>

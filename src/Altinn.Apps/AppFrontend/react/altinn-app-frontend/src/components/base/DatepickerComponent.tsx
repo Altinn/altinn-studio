@@ -119,11 +119,11 @@ function DatepickerComponent(props: IDatePickerProps) {
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
 
-  const isDateEmpty = () => {
+  const isDateEmpty = React.useCallback(() => {
     return date && date.parsingFlags().parsedDateParts.length === 0;
-  };
+  }, [date]);
 
-  const getValidationMessages = () => {
+  const getValidationMessages = React.useCallback(() => {
     const checkDate = isDateEmpty() ? '' : date?.toISOString();
     const validations: IComponentBindingValidation = validateDatepickerFormData(
       checkDate,
@@ -148,17 +148,25 @@ function DatepickerComponent(props: IDatePickerProps) {
       });
     }
     return validations;
-  };
+  }, [
+    date,
+    format,
+    isDateEmpty,
+    minDate,
+    maxDate,
+    props.language,
+    props.componentValidations?.simpleBinding,
+  ]);
 
   React.useEffect(() => {
     const dateValue = props.formData ? moment(props.formData) : null;
     setDate(dateValue);
     setValidationMessages(getValidationMessages());
-  }, [props.formData]);
+  }, [props.formData, getValidationMessages]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-  }, [props.componentValidations]);
+  }, [props.componentValidations, getValidationMessages]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
     dateValue
