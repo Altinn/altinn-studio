@@ -244,6 +244,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           return (
             // eslint-disable-next-line react/jsx-key
             <GroupInputSummary
+              key={componentId}
               formData={formDataForComponent}
               label={getTextFromAppOrDefault(
                 component.textResourceBindings?.title,
@@ -257,7 +258,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         },
       );
       componentArray.push(
-        <div style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
+        <div key={i} style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
       );
     }
 
