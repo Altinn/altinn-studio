@@ -11,6 +11,7 @@ import { AltinnCollapsableList } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { useAppSelector } from 'src/common/hooks';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({
   partyPaper: {
@@ -186,9 +187,7 @@ function AltinnParty(props: IAltinnPartyProps) {
               <Typography className={classes.subUnitListHeaderText}>
                 {party.childParties.length}
                 &nbsp;
-                {language.party_selection.unit_type_subunit_plural
-                  ? language.party_selection.unit_type_subunit_plural
-                  : 'language.party_selection.unit_type_subunit_plural'}
+                {getLanguageFromKey('party_selection.unit_type_subunit_plural', language)}
               </Typography>
             </Grid>
           </Grid>
@@ -220,9 +219,7 @@ function AltinnParty(props: IAltinnPartyProps) {
                 </Typography>
                 <Typography className={classes.partyInfo}>
                   &nbsp;
-                  {!language.party_selection
-                    ? 'party_selection.unit_org_number'
-                    : language.party_selection.unit_org_number}
+                  {getLanguageFromKey('party_selection.unit_org_number', language)}
                   &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>
@@ -270,24 +267,14 @@ function AltinnParty(props: IAltinnPartyProps) {
         <Typography className={classes.partyName}>
           {party.name +
             (party.isDeleted
-              ? ` (${
-                  !language.party_selection
-                    ? 'party_selection.unit_deleted'
-                    : language.party_selection.unit_deleted
-                }) `
+              ? ` (${getLanguageFromKey('party_selection.unit_deleted', language)}) `
               : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
           {isOrg
-            ? `${
-                !language.party_selection
-                  ? 'party_selection.unit_org_number'
-                  : language.party_selection.unit_org_number
+            ? `${getLanguageFromKey('party_selection.unit_org_number', language)
               } ${party.orgNumber}`
-            : `${
-                !language.party_selection
-                  ? 'party_selection.unit_personal_number'
-                  : language.party_selection.unit_personal_number
+            : `${getLanguageFromKey('party_selection.unit_personal_number', language)
               } ${party.ssn}`}
         </Typography>
       </Grid>

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { createTheme, makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -19,7 +20,7 @@ const useStyle = makeStyles({
 export interface IHelpTextIconProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
-  language: any;
+  language: ILanguage;
   id: string;
   toggleClickPopover: (event: any) => void;
   toggleKeypressPopover: (event: any) => void;
