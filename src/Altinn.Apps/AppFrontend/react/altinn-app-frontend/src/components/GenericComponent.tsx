@@ -208,7 +208,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderComponent = components.find(
     (componentCandidate) => componentCandidate.name === props.type,
   );
-  if(!RenderComponent){
+  if (!RenderComponent) {
     return <div>
       Unknown component type: {props.type}<br />
       Valid component types: {components.map(c=>c.name).join(', ')}
