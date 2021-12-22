@@ -5,6 +5,7 @@ import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
+import { HashRouter as Router } from 'react-router-dom';
 
 import { setupStore } from 'app/store';
 import type { AppStore, RootState } from 'app/store';
@@ -23,7 +24,11 @@ export const renderWithProviders = (
   }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    return <Provider store={store}>{children}</Provider>;
+    return (
+      <Provider store={store}>
+        <Router>{children}</Router>
+      </Provider>
+    );
   }
 
   return {
