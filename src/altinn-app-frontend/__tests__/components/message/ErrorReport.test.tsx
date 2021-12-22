@@ -37,7 +37,7 @@ describe('components > ErrorReport.tsx', () => {
     }
     const initialState = getInitialStateMock({ formValidations: mockValidationState});
     const component = mountComponent(initialState);
-    const genericErrorText = initialState.language.language.form_filler.error_report_description;
+    const genericErrorText = initialState.language.language.form_filler['error_report_description'];
     expect(component.text().includes(genericErrorText)).toBeTruthy();
 
   });
@@ -59,7 +59,7 @@ describe('components > ErrorReport.tsx', () => {
     };
     const initialState = getInitialStateMock({ formValidations: mockValidationState});
     const component = mountComponent(initialState);
-    const genericErrorText = initialState.language.language.form_filler.error_report_description;
+    const genericErrorText = initialState.language.language.form_filler['error_report_description'];
     expect(component.text().includes(genericErrorText)).toBeFalsy();
     expect(component.text().includes('some unmapped error')).toBeTruthy();
   });

@@ -11,6 +11,7 @@ import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import classNames from 'classnames';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IAddressComponentProps {
   id: string;
@@ -23,7 +24,7 @@ export interface IAddressComponentProps {
   readOnly: boolean;
   required: boolean;
   labelSettings?: ILabelSettings;
-  language: any;
+  language: ILanguage;
   textResourceBindings: ITextResourceBindings;
   componentValidations?: IComponentValidations;
 }

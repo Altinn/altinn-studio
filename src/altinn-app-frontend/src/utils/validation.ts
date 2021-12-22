@@ -44,6 +44,7 @@ import { createRepeatingGroupComponents } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
 import { getFlagBasedDate } from './dateHelpers';
 import JsonPointer from 'jsonpointer';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;
@@ -172,7 +173,7 @@ export function validateEmptyFields(
   formData: any,
   layouts: ILayouts,
   layoutOrder: string[],
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ) {
@@ -198,7 +199,7 @@ export function validateEmptyFields(
 export function validateEmptyFieldsForLayout(
   formData: any,
   formLayout: ILayout,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ): ILayoutValidations {
@@ -356,7 +357,7 @@ export function getGroupChildren(
 export function validateEmptyField(
   formData: any,
   dataModelBindings: IDataModelBindings,
-  language: any,
+  language: ILanguage,
   groupDataBinding?: string,
   index?: number,
 ): IComponentValidations {
@@ -398,7 +399,7 @@ export function validateFormComponents(
   layouts: any,
   layoutOrder: string[],
   formData: any,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
 ) {
   const validations: any = {};
@@ -425,7 +426,7 @@ export function validateFormComponentsForLayout(
   attachments: any,
   formLayout: any,
   formData: any,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
 ): ILayoutValidations {
   const validations: any = {};
@@ -497,7 +498,7 @@ export function validateDatepickerFormData(
   minDate: string = DatePickerMinDateDefault,
   maxDate: string = DatePickerMaxDateDefault,
   format: string = DatePickerFormatDefault,
-  language: any,
+  language: ILanguage,
 ): IComponentBindingValidation {
   const validations: IComponentBindingValidation = { errors: [], warnings: [] };
   const messages: string[] = [];
@@ -531,7 +532,7 @@ export function validateComponentFormData(
   formData: any,
   dataModelField: string,
   component: ILayoutComponent,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
   existingValidationErrors?: IComponentValidations,
@@ -680,7 +681,7 @@ export function validateFormData(
   layouts: ILayouts,
   layoutOrder: string[],
   schemaValidator: ISchemaValidator,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
 ): IValidationResult {
   const validations: any = {};
@@ -714,7 +715,7 @@ export function validateFormDataForLayout(
   layout: ILayout,
   layoutKey: string,
   schemaValidator: ISchemaValidator,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
 ): IValidationResult {
   const { validator, rootElementPath, schema } = schemaValidator;

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/base/InputComponent.tsx feature/form/containers/RepeatingGroupTable -- should match snapshot 1`] = `
+exports[`features > form > containers > RepeatingGroupTable.tsx should match snapshot 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root MuiGrid-container MuiGrid-item"
