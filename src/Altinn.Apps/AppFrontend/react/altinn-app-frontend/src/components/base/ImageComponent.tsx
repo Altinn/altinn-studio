@@ -4,12 +4,13 @@ import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { IAltinnWindow } from '../../types';
 import { useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IImageProps {
   id: string;
   image: IImage;
   textResourceBindings: ITextResourceBindings;
-  language: any;
+  language: ILanguage;
   getTextResource: (key: string) => string;
   getTextResourceAsString: (key: string) => string;
 }

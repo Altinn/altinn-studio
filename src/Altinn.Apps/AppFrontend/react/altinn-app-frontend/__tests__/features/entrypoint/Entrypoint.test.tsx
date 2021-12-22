@@ -11,7 +11,7 @@ import { IApplicationMetadata } from '../../../src/shared/resources/applicationM
 
 jest.mock('axios');
 
-describe('>>> features/entrypoint/Entrypoint.tsx', () => {
+describe('features > entrypoint > Entrypoint.tsx', () => {
   let mockInitialState: IRuntimeState;
   let mockStore: any;
   let mockReducer: any;
@@ -40,7 +40,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     mockStore = createStore(mockReducer, mockInitialState);
   });
 
-  it('+++ should show invalid party error if user has no valid parties', async () => {
+  it('should show invalid party error if user has no valid parties', async () => {
     (axios.post as jest.Mock).mockResolvedValue({
       data: {
         valid: false,
@@ -62,7 +62,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     expect(invalidPartyText).not.toBeNull();
   });
 
-  it('+++ should show loader while fetching data then start instantiation by default ', async () => {
+  it('should show loader while fetching data then start instantiation by default ', async () => {
     const rendered = render(
       <Provider store={mockStore}>
         <Entrypoint />
@@ -76,7 +76,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     expect(instantiationText).not.toBeNull();
   });
 
-  it('+++ should show loader while fetching data then start statelessQueue if stateless app', async () => {
+  it('should show loader while fetching data then start statelessQueue if stateless app', async () => {
     const statelessApplication: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,
       onEntry: {
@@ -105,7 +105,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     });
   });
 
-  it('+++ should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
+  it('should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
     const application: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,
       onEntry: {

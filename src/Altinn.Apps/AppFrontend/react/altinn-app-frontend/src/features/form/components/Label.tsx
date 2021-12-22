@@ -4,11 +4,12 @@ import { Grid } from '@material-ui/core';
 import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { HelpTextContainer } from './HelpTextContainer';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IFormLabelProps {
   labelText: any;
   id: string;
-  language: any;
+  language: ILanguage;
   required: boolean;
   readOnly: boolean;
   labelSettings?: ILabelSettings;
