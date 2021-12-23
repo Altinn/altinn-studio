@@ -1,5 +1,6 @@
 /* eslint-disable import/no-named-as-default */
 import { AltinnContentIconFormData, AltinnContentLoader } from 'altinn-shared/components';
+import { AxiosError } from 'axios';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from 'src/common/hooks';
@@ -8,12 +9,13 @@ import { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
 import { ISimpleInstance, PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
-import { get, HttpStatusCodes, post } from 'src/utils/networking';
+import { checkIfAxiosError, get, HttpStatusCodes, post } from 'src/utils/networking';
 import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urlHelper';
 import Form from '../form/containers/Form';
 import { updateValidations } from '../form/validation/validationSlice';
 import Instantiate from '../instantiate/containers';
 import InstanceSelection from '../instantiate/containers/InstanceSelection';
+import MissingRolesError from '../instantiate/containers/MissingRolesError';
 import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
 
 export default function Entrypoint() {
@@ -22,7 +24,8 @@ export default function Entrypoint() {
   const [action, setAction] = React.useState<ShowTypes>(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [activeInstances, setActiveInstances] = React.useState<ISimpleInstance[]>(null);
-  const statelessLoading: boolean = useAppSelector(state => state.isLoading.stateless);
+  const statelessLoading = useAppSelector(state => state.isLoading.stateless);
+  const formDataError = useAppSelector(state => state.formData.error);
   const dispatch = useAppDispatch();
 
   const validatatePartySelection = async () => {
@@ -89,6 +92,16 @@ export default function Entrypoint() {
     return (
       <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />
     );
+  }
+
+  // error trying to fetch data, if missing rights we display relevant page
+  if (checkIfAxiosError(formDataError)) {
+    const axiosError = formDataError as AxiosError;
+    if (axiosError.response.status === HttpStatusCodes.Forbidden) {
+      return (
+        <MissingRolesError />
+      );
+    }
   }
 
   // regular view with instance

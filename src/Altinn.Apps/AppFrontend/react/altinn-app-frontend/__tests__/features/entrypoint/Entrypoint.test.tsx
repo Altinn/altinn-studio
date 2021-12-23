@@ -150,4 +150,21 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
     const selectInstnaceText = await rendered.findByText('Du har allerede startet å fylle ut dette skjemaet.');
     expect(selectInstnaceText).not.toBeNull();
   });
+
+  it('should display MissingRolesError if getFormData has returned 403', () => {
+    const mockState: IRuntimeState = {
+      formData: {
+        error: new Error('403'),
+      },
+      ...mockInitialState,
+    }
+    mockStore = createStore(mockReducer, mockState);
+    const rendered = render(
+      <Provider store={mockStore}>
+        <Entrypoint />
+      </Provider>,
+    );
+    const missingRolesText = rendered.findByText('Du mangler rettigheter for å se denne tjenesten.');
+    expect(missingRolesText).not.toBeNull();
+  })
 });
