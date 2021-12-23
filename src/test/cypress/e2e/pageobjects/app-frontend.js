@@ -10,6 +10,7 @@ export default class AppFrontend {
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
     this.sendinButton = '#sendInButton';
+    this.instantiationButton = '#instantiation-button';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
