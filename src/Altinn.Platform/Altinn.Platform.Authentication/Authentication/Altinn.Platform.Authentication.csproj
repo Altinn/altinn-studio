@@ -14,7 +14,7 @@
     <PackageReference Include="Altinn.Common.AccessToken" Version="1.1.0-alpha" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
     <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.2.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.19.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.22" />
