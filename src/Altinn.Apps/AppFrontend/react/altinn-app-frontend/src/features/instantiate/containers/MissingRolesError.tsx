@@ -50,7 +50,7 @@ function MissingRolesError() {
 
     const errorRights = getErrorRights();
     const errorChangeParty = <Link to='/partyselection'>{getParsedLanguageFromText(
-      getLanguageFromKey('instantiate.party_selection.change_party', language))}
+      getLanguageFromKey('party_selection.change_party', language))}
     </Link>;
     const errorAsk = getParsedLanguageFromText(
       getLanguageFromKey('instantiate.authorization_error_ask', language)
