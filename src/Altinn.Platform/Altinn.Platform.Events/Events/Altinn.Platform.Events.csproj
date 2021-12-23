@@ -14,7 +14,7 @@
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.8.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.19.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
