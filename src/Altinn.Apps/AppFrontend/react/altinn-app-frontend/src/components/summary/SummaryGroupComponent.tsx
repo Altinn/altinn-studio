@@ -42,8 +42,6 @@ const gridStyle = {
   paddingTop: '12px',
 };
 
-const defaultArray = [];
-
 export function getHiddenFieldsForSummaryGroup(
   hiddenFields: string[],
   componentIds: string[],
@@ -275,7 +273,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           title: groupComponent.textResourceBindings?.title,
         },
       };
-      const childSummaryComponents = defaultArray;
+      const childSummaryComponents = [];
       groupChildComponents.forEach((componentId: string) => {
         const component = layout.find(
           (c: ILayoutComponent) => c.id === componentId,
