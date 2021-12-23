@@ -2,7 +2,11 @@
   "sets": [
     {
       "id": "stateless",
-      "dataType": "default",
+      "dataType": "default"      
+    },
+    {
+      "id": "statefull",
+      "dataType": "message",
       "tasks": [
         "Task_1"
       ]

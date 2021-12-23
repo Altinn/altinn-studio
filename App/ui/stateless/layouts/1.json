@@ -3,6 +3,27 @@
   "data": {
     "layout": [
       {
+        "id": "altinnLogo",
+        "type": "Image",
+        "textResourceBindings": {
+          "altTextImg": "Altinn Logo",
+          "help": "Altinn logo"
+        },
+        "image":{
+          "src":{
+            "nb": "wwwroot/images/altinn-logo.svg",
+            "en": "https://raw.githubusercontent.com/Altinn/altinn-cdn/master/img/Altinn-logo-black.svg"
+          },
+          "width": "70%",
+          "align": "left"          
+        },
+        "grid": {
+          "xs": 3,
+          "md": 6,
+          "xl": 12
+        }
+      },
+      {
         "id": "info",
         "type": "Paragraph",
         "textResourceBindings": {
@@ -60,6 +81,17 @@
         "required": false,
         "readOnly": false,
         "labelSettings": {"optionalIndicator": false}
+      },
+      {
+        "id": "instantiation-button",
+        "type": "InstantiationButton",
+        "textResourceBindings": {
+          "title": "Start instans"
+        },
+        "mapping": {
+          "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value": "name",
+          "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value": "num"
+        }
       }
     ]
   }

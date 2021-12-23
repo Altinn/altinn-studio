@@ -167,7 +167,7 @@ namespace Altinn.App
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseStaticFiles("/ttd/stateless-app");
+            app.UseStaticFiles("/" + applicationId);
 
             app.UseEndpoints(endpoints =>
             {

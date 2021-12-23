@@ -17,9 +17,17 @@
       "appLogic": {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.Skjema"
+      }      
+    },
+    {
+      "id": "message",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.MessageV1"
       },
-      "taskId": "Task_1",
       "maxCount": 1,
+      "taskId": "Task_1",
       "minCount": 1
     }
   ],

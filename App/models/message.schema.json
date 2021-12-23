@@ -1,0 +1,38 @@
+﻿{
+	"$schema" : "http://json-schema.org/schema#",
+	"$id" : "schema.json",
+	"type" : "object",
+	"properties" : {
+			"Message" : {
+					"$ref" : "#/definitions/MessageV1"
+				}
+		},
+	"definitions" : {
+			"MessageV1" : {
+					"properties" : {
+							"ProcessTask" : {
+									"type" : "string"
+								},
+							"Title" : {
+									"type" : "string"
+								},
+							"Body" : {
+									"type" : "string"
+								},
+							"Reference" : {
+									"type" : "string"
+								},
+							"Sender" : {
+									"type" : "string"
+								}
+						},
+					"required" : [
+							"ProcessTask",
+							"Title",
+							"Body",
+							"Reference",
+							"Sender"
+						]
+				}
+		}
+}
