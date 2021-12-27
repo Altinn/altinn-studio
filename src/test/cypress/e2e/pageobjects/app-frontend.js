@@ -71,6 +71,7 @@ export default class AppFrontend {
       subGroup: '[id^="group-subGroup"]',
       currentValue: 'input[id^="currentValue"]',
       newValue: 'input[id^="newValue"]',
+      newValueLabel: 'label[for^="newValue"]',
       addNewItem: 'div[class*="addButton"]',
       comments: 'input[id^="comments"]',
       delete: 'button[class*="makeStyles-deleteButton"]',
@@ -81,6 +82,7 @@ export default class AppFrontend {
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
+      mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]'
     };
 
     //Stateless-app
