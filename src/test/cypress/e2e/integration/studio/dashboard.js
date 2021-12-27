@@ -65,4 +65,16 @@ context('Dashboard', () => {
         cy.get(searchResult).find(common.gridRow).first().find(dashboard.apps.name).should('contain.text', 'auto');
       });
   });
+
+  it('is not possible to find an app that does not exist', () => {
+    cy.intercept('**/repos/search**').as('searchRepos');
+    cy.get(dashboard.searchApp).type('cannotfindapp');
+    cy.wait('@searchRepos');
+    cy.contains('h2', 'Søkeresultat')
+      .siblings()
+      .then((searchResult) => {
+        cy.get(searchResult).find(common.gridRow).should('have.length', 0);
+        cy.get(searchResult).find('p').should('contain.text', 'Ingen applikasjoner funnet');
+      });
+  });
 });

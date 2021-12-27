@@ -8,7 +8,6 @@
     "deployApp": "ttd/auto-deploy-app-v2",
     "designerApp": "AutoTest/auto-designer-app",
     "withoutDataModelApp": "AutoTest/appwithout-dm",
-    "rulesApp": "AutoTest/rules-service",
     "appOwner": "Testdepartementet"
   },
   "defaultCommandTimeout": 20000,

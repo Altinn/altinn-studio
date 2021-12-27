@@ -9,7 +9,6 @@
     "deployApp": "ttd/deploy",
     "designerApp": "ttd/designer",
     "withoutDataModelApp": "ttd/appwithout-dm",
-    "rulesApp": "ttd/rulesservice",
     "appOwner": "ttd"
   },
   "defaultCommandTimeout": 20000,

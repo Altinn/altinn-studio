@@ -51,4 +51,18 @@ export const designer = {
     formButton: "i[class^='fa fa-button']",
   },
   deleteComponent: '.fa-circletrash',
+  rules: {
+    add: 'button[aria-label="Legg til regel for beregninger"]',
+    list: 'select[name="selectRule"]',
+    paramA: '#a',
+    paramValue: 'div[class$="indicatorContainer"]',
+    dataModelBinding: 'div[class$="option"][id^="react-select"]',
+  },
+  dynamics: {
+    add: 'button[aria-label="Legg til regel for vis/skjul felt"]',
+    list: '#selectConditionalRule',
+    action: '#select_action',
+  },
+  submit: 'button[type="submit"]',
+  delete: '.a-btn-danger',
 };
