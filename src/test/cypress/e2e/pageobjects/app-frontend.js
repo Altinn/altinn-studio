@@ -82,7 +82,7 @@ export default class AppFrontend {
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
-      mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]'
+      mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
     };
 
     //Stateless-app
