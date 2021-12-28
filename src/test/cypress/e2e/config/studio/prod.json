@@ -3,7 +3,6 @@
   "baseUrl": "https://altinn.studio",
   "env": {
     "autoTestUser": "AutoTest",
-    "noDeployUser": "noDeployUser",
     "useCaseUser": "bruksmonster",
     "deployApp": "ttd/auto-deploy-app-v2",
     "designerApp": "AutoTest/auto-designer-app",
