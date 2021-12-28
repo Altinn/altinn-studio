@@ -66,7 +66,9 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
     .should('be.visible')
     .type(`${appId.split('/')[1]}`)
     .blur();
+  cy.intercept('GET', '**/reset').as('resetRepo');
   cy.get(designer.deleteChanges.confirm).should('be.visible').click();
+  cy.wait('@resetRepo');
   cy.get(designer.deleteChanges.name).should('not.exist');
 });
 

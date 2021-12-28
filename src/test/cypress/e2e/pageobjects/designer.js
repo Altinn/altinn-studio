@@ -10,6 +10,19 @@ export const designer = {
   inprogressSpinner: "[role='progressbar']",
   failedCheck: "i[class*='ai-circle-exclamation']",
   successCheck: "i[class*='ai-check-circle']",
+  build: {
+    versionNum: 'input[aria-label="Versjonsnummer"]',
+    versionDesc: 'textarea',
+  },
+  deploy: {
+    at22Versions: '#deploy-select-at22',
+    prodVersions: '#deploy-select-production',
+    versions: '.select__menu-list',
+    latestBuild: '.select__option--is-focused',
+    confirm: '#deployPopover',
+    at22Deploy: '#deploy-button-at22',
+    prodDeploy: '#deploy-button-production',
+  },
   deployHistory: {
     at22: '#deploy-history-table-at22',
     prod: '#deploy-history-table-production',
@@ -25,6 +38,8 @@ export const designer = {
     push: '#changes_to_share_btn',
     noChanges: '#no_changes_to_share_btn',
     pushButton: '#share_changes_modal_button',
+    commitMessage: 'textarea[id="test"]',
+    pushSuccess: '.fa.fa-circlecheck',
   },
   deleteChanges: {
     reset: '#reset-repo-button',
@@ -65,4 +80,20 @@ export const designer = {
   },
   submit: 'button[type="submit"]',
   delete: '.a-btn-danger',
+  clone: {
+    copyRepo: '#copy-repository-url-button',
+    missingDatamodel: 'Datamodell mangler',
+    datamodelLink: 'a[href$="datamodel"]',
+    docs: 'a[href="https://docs.altinn.studio/"]',
+  },
+  texts: {
+    new: '.json-editor-btn-add',
+    root: 'div[data-schemapath="root.resources"]',
+    resources: 'tr[data-schemapath^="root.resources"]',
+    resourceId: 'input[name$="[id]"]',
+    resourceValue: 'input[name$="[value]"]',
+    requiredError: '.help-block.errormsg',
+    save: 'input[onclick="submitForm()"]',
+    delete: '.json-editor-btn-delete',
+  },
 };

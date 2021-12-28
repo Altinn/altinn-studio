@@ -4,9 +4,9 @@
 import { designer } from '../../pageobjects/designer';
 import Common from '../../pageobjects/common';
 import { header } from '../../pageobjects/header';
-import { dashboard } from '../../pageobjects/dashboard';
 import { builds } from '../../fixtures/builds';
 import { deploys } from '../../fixtures/deploys';
+import * as texts from '../../fixtures/texts.json';
 
 const common = new Common();
 
@@ -23,7 +23,7 @@ context('Deploy', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-    cy.searchAndOpenApp(Cypress.env('deployApp'));    
+    cy.searchAndOpenApp(Cypress.env('deployApp'));
     cy.get(designer.appMenu['deploy']).click();
   });
 
@@ -66,7 +66,17 @@ context('Deploy', () => {
   it('is possible to view history of app deploys', () => {
     if (Cypress.env('environment') == 'local')
       cy.intercept('GET', '**/designer/api/v1/*/*/Deployments**', deploys()).as('deploys');
-    cy.contains('div', 'AT22').should('be.visible');
-    cy.get(designer.deployHistory.at22).find('tbody > tr').should('contain.text', Cypress.env('autoTestUser'));
+    if (Cypress.env('environment') != 'prod') {
+      cy.contains('div', 'AT22').scrollIntoView().should('be.visible');
+      cy.get(designer.deployHistory.at22).find('tbody > tr').should('contain.text', Cypress.env('autoTestUser'));
+    } else {
+      cy.contains('div', 'PRODUCTION').scrollIntoView().should('be.visible');
+      cy.get(designer.deployHistory.prod).find('tbody > tr').should('contain.text', Cypress.env('autoTestUser'));
+    }
+  });
+
+  it('is not possible to deploy without access', () => {
+    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/permissions', '["AT22"]');
+    cy.contains(common.gridContainer, texts.noDeployAccess).should('exist').and('be.visible');
   });
 });
