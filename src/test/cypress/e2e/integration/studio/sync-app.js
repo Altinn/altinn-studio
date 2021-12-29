@@ -13,14 +13,13 @@ if (Cypress.env('environment') != 'local') {
       cy.intercept('GET', '**/releases**').as('getAppBuilds');
       cy.intercept('POST', '**/releases**').as('startAppBuild');
       cy.intercept('GET', '**/Deployments**').as('getAppDeploys');
-      cy.intercept('POST', '**/Deployments**').as('startAppDeploy');
     });
     it('is possible to edit information about the app', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.searchAndOpenApp(Cypress.env('deployApp'));
 
-      //sync app changes
+      // Sync app changes
       cy.get(designer.appMenu.edit).click();
       cy.deletecomponents();
       cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
@@ -37,7 +36,7 @@ if (Cypress.env('environment') != 'local') {
       cy.get(designer.syncApp.pushSuccess).isVisible();
       cy.reload();
 
-      //Start app build
+      // Start app build
       cy.get(designer.appMenu.deploy).click();
       cy.wait('@getAppBuilds').then((res) => {
         expect(res.response.statusCode).to.eq(200);
@@ -52,8 +51,12 @@ if (Cypress.env('environment') != 'local') {
         cy.wait('@startAppBuild').its('response.statusCode').should('eq', 201);
       });
 
-      //Start app deploy
       cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
+      // Wait before starting app deploy
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(20000);
+
+      // Start app deploy
       var deployVerions =
         Cypress.env('environment') != 'prod' ? designer.deploy.at22Versions : designer.deploy.prodVersions;
       var deployButton = Cypress.env('environment') != 'prod' ? designer.deploy.at22Deploy : designer.deploy.prodDeploy;
@@ -62,7 +65,8 @@ if (Cypress.env('environment') != 'local') {
       cy.get(designer.deploy.latestBuild).scrollIntoView().click();
       cy.get(deployButton).should('be.visible').focus().click();
       cy.get(designer.deploy.confirm).should('be.visible').focus().click();
-      cy.wait('@startAppDeploy').its('response.statusCode').should('eq', 201);
+      cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
+      cy.get(deployVerions).siblings().find(designer.inprogressSpinner).should('be.visible');
     });
   });
 }
