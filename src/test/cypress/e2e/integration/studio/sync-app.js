@@ -14,7 +14,7 @@ if (Cypress.env('environment') != 'local') {
       cy.intercept('POST', '**/releases**').as('startAppBuild');
       cy.intercept('GET', '**/Deployments**').as('getAppDeploys');
     });
-    it('is possible to edit information about the app', () => {
+    it('is possible sync changes, build and deploy app', () => {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
       cy.searchAndOpenApp(Cypress.env('deployApp'));
