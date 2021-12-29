@@ -11,11 +11,13 @@ const common = new Common();
 context('Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
+    cy.intercept('GET', '**/repos/search**').as('fetchApps');
     cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
+    cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
-  it('is possible to view apps, add and remove favourites', () => {
+  it.only('is possible to view apps, add and remove favourites', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
@@ -23,11 +25,11 @@ context('Dashboard', () => {
       .find(common.gridRow)
       .then((apps) => {
         cy.get(apps).should('have.length.gte', 1);
+        cy.get(apps).find(dashboard.apps.favourite).click({ multiple: true });
+        cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
         cy.get(apps)
           .first()
           .then((app) => {
-            cy.get(app).find(dashboard.apps.favourite).click();
-            cy.wait('@addFavourite').its('response.statusCode').should('eq', 204);
             cy.get(app).children(dashboard.apps.name).invoke('text').should('not.be.empty');
             cy.get(app).children(dashboard.apps.createdBy).should('have.text', Cypress.env('autoTestUser'));
             cy.get(app).children(dashboard.apps.updatedAt).invoke('text').should('not.be.empty');
@@ -46,18 +48,16 @@ context('Dashboard', () => {
 
   it('is possible to change context and view all apps', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
-    cy.intercept('**/repos/search**').as('getAllRepos');
     cy.get(header.profileIcon).should('be.visible').click();
     cy.get(header.menu.all).should('be.visible').click();
-    cy.wait('@getAllRepos');
+    cy.wait('@fetchApps');
     cy.contains('h2', 'Alle applikasjoner').should('be.visible');
   });
 
   it('is possible to search an app by name', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
-    cy.intercept('**/repos/search**').as('searchRepos');
     cy.get(dashboard.searchApp).type('auto');
-    cy.wait('@searchRepos');
+    cy.wait('@fetchApps');
     cy.contains('h2', 'Søkeresultat')
       .siblings()
       .then((searchResult) => {
@@ -67,9 +67,8 @@ context('Dashboard', () => {
   });
 
   it('is not possible to find an app that does not exist', () => {
-    cy.intercept('**/repos/search**').as('searchRepos');
     cy.get(dashboard.searchApp).type('cannotfindapp');
-    cy.wait('@searchRepos');
+    cy.wait('@fetchApps');
     cy.contains('h2', 'Søkeresultat')
       .siblings()
       .then((searchResult) => {
