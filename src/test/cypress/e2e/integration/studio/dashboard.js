@@ -17,7 +17,7 @@ context('Dashboard', () => {
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
-  it.only('is possible to view apps, add and remove favourites', () => {
+  it('is possible to view apps, add and remove favourites', () => {
     if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
