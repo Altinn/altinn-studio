@@ -53,7 +53,6 @@ context('Designer', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
     cy.get(designer.appMenu.texts).click();
     cy.getIframeBody().find(designer.texts.root).find(designer.texts.new).should('be.visible').click();
-    cy.intercept('POST', '**/SaveResource/**').as('saveText');
     cy.getIframeBody()
       .find(designer.texts.resources)
       .last()
@@ -62,10 +61,8 @@ context('Designer', () => {
         cy.get(newText).find(designer.texts.resourceValue).should('be.visible').type('automation').tab();
         cy.get(newText).find(designer.texts.requiredError).should('be.visible');
         cy.getIframeBody().find(designer.texts.save).should('be.visible').focus().click();
-        cy.wait('@saveText').its('response.statusCode').should('eq', 200);
         cy.get(newText).find(designer.texts.delete).should('be.visible').click();
         cy.getIframeBody().find(designer.texts.save).should('be.visible').focus().click();
-        cy.wait('@saveText').its('response.statusCode').should('eq', 200);
       });
   });
 
