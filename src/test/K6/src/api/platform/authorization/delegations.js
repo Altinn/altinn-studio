@@ -2,9 +2,16 @@ import http from 'k6/http';
 import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
 
-export function getPolicies(altinnToken, appOwner, appName) {
+/**
+ * Retrieve policy of an app in json format
+ * @param {*} altinnToken authorization token
+ * @param {*} appOwner
+ * @param {*} appName
+ * @returns return response of GET request
+ */
+export function getPolicies(appOwner, appName) {
   var endpoint = config.platformAuthorization.getPolicies;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var params = header.buildHeaderWithJson('platform');
   var body = [
     [
       {
@@ -17,5 +24,5 @@ export function getPolicies(altinnToken, appOwner, appName) {
       },
     ],
   ];
-  return http.request('GET', endpoint, body, params);
+  return http.post(endpoint, JSON.stringify(body), params);
 }
