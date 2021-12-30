@@ -29,6 +29,8 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
+   yarn run cy:prunecache
+
    yarn --immutable
 
    yarn run cy:cachelist

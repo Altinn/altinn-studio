@@ -18,6 +18,7 @@
     "cy:version": "cypress -v",
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
+    "cy:prunecache": "cypress cache prune",
     "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js'",
     "test:studio": "cypress run -b chrome -s 'e2e/integration/studio/*.js'",
