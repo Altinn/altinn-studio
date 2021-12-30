@@ -6,7 +6,7 @@ import { designer } from '../../pageobjects/designer';
 
 if (Cypress.env('environment') != 'local') {
   context('Sync app and deploy', () => {
-    before(() => {
+    beforeEach(() => {
       cy.intercept('GET', '**/status').as('getRepoStatus');
       cy.intercept('POST', '**/commit').as('commitChanges');
       cy.intercept('GET', '**/pull').as('pullChanges');
