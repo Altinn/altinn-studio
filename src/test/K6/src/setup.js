@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check } from 'k6';
 import * as config from './config.js';
 import * as headers from './buildrequestheaders.js';
-import { getParties } from './api/platform/authorization.js';
+import { getParties } from './api/platform/authorization/authorization.js';
 import { addErrorCount, stopIterationOnFail } from './errorcounter.js';
 import * as support from './support.js';
 import { convertMaskinPortenToken } from './api/platform/authentication.js';

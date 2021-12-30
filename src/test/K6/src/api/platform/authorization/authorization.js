@@ -1,6 +1,6 @@
 import http from 'k6/http';
-import * as config from '../../config.js';
-import * as header from '../../buildrequestheaders.js';
+import * as config from '../../../config.js';
+import * as header from '../../../buildrequestheaders.js';
 
 //Request to get parties that an user can represent and return response
 export function getParties(userId) {

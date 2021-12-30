@@ -44,10 +44,15 @@ export var platformRegister = {
 
 //Authorization
 export var platformAuthorization = {
-  decision: 'https://platform.' + baseUrl + '/authorization/api/v1/decision',
-  parties: 'https://platform.' + baseUrl + '/authorization/api/v1/parties',
-  policy: 'https://platform.' + baseUrl + '/authorization/api/v1/policies',
-  roles: 'https://platform.' + baseUrl + '/authorization/api/v1/roles',
+  decision: `https://platform.${baseUrl}/authorization/api/v1/decision`,
+  parties: `https://platform.${baseUrl}/authorization/api/v1/parties`,
+  policy: `https://platform.${baseUrl}/authorization/api/v1/policies`,
+  roles: `https://platform.${baseUrl}/authorization/api/v1/roles`,
+  getPolicies: `https://platform.${baseUrl}/authorization/api/v1/policies/GetPolicies`,
+  addRules: `https://platform.${baseUrl}/authorization/api/v1/delegations/AddRules`,
+  getRules: `https://platform.${baseUrl}/authorization/api/v1/delegations/GetRules`,
+  deleteRules: `https://platform.${baseUrl}/authorization/api/v1/delegations/DeleteRules`,
+  deletePolicy: `https://platform.${baseUrl}/authorization/api/v1/delegations/DeletePolicy`,
 };
 
 //PDF
@@ -188,6 +193,7 @@ export var appAuthorization = {
 export var tokenGenerator = {
   getEnterpriseToken: 'https://altinn-testtools-token-generator.azurewebsites.net/api/GetEnterpriseToken',
   getPersonalToken: 'https://altinn-testtools-token-generator.azurewebsites.net/api/GetPersonalToken',
+  getPlatformToken: 'https://altinn-testtools-token-generator.azurewebsites.net/api/GetPlatformToken',
 };
 
 //AltinnCDN
