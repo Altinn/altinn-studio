@@ -22,6 +22,7 @@ export const designer = {
     confirm: '#deployPopover',
     at22Deploy: '#deploy-button-at22',
     prodDeploy: '#deploy-button-production',
+    inProgress: 'div[class*="MuiCircularProgress-indeterminate"][role="progressbar"]',
   },
   deployHistory: {
     at22: '#deploy-history-table-at22',

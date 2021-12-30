@@ -3,6 +3,9 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
+import Common from '../../pageobjects/common';
+
+const common = new Common();
 
 if (Cypress.env('environment') != 'local') {
   context('Sync app and deploy', () => {
@@ -67,7 +70,7 @@ if (Cypress.env('environment') != 'local') {
       cy.get(designer.deploy.confirm).should('be.visible').focus().click();
       cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
       cy.wait(5000);
-      cy.get(deployVerions).siblings().find(designer.inprogressSpinner).should('be.visible');
+      cy.get(deployVerions).siblings(common.gridContainer).find(designer.deploy.inProgress).should('be.visible');
     });
   });
 }
