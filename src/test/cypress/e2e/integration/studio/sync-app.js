@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /// <reference types="cypress" />
 /// <reference types="../../support" />
 
@@ -53,7 +54,6 @@ if (Cypress.env('environment') != 'local') {
 
       cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
       // Wait before starting app deploy
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(20000);
 
       // Start app deploy
@@ -66,6 +66,7 @@ if (Cypress.env('environment') != 'local') {
       cy.get(deployButton).should('be.visible').focus().click();
       cy.get(designer.deploy.confirm).should('be.visible').focus().click();
       cy.wait('@getAppDeploys').its('response.statusCode').should('eq', 200);
+      cy.wait(5000);
       cy.get(deployVerions).siblings().find(designer.inprogressSpinner).should('be.visible');
     });
   });
