@@ -44,6 +44,7 @@ import { createRepeatingGroupComponents } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
 import { getFlagBasedDate } from './dateHelpers';
 import JsonPointer from 'jsonpointer';
+import { IAttachment } from 'src/shared/resources/attachments';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;
@@ -455,7 +456,9 @@ export function validateFormComponentsForLayout(
       }
       if (component.type === 'FileUploadWithTag') {
         const isValid = attachmentsValid(attachments, component);
-        const missingTagAttachments = attachmentsThatAreMissingTags(attachments, component);
+        const missingTagAttachments = attachments[component.id]
+          .filter((attachment) => attachmentIsMissingTag(attachment))
+          .map((attachment) => attachment.id);
         if (!isValid || missingTagAttachments.length > 0) {
           validations[component.id] = {};
           const componentValidations: IComponentValidations = {
@@ -515,10 +518,8 @@ function attachmentsValid(attachments: any, component: any): boolean {
   );
 }
 
-function attachmentsThatAreMissingTags(attachments: any, component: any): string[] {
-  return attachments[component.id]
-    .filter((attachment) => attachment.tags === undefined || attachment.tags.length === 0)
-    .map((attachment) => attachment.id);
+export function attachmentIsMissingTag(attachment: IAttachment): boolean {
+  return attachment.tags === undefined || attachment.tags.length === 0
 }
 
 /*

@@ -8,6 +8,7 @@ import {
   ILayoutGroup,
   ISelectionComponentProps,
 } from 'src/features/form/layout';
+import { IAttachment } from 'src/shared/resources/attachments';
 import {
   IDataModelBindings,
   IComponentValidations,
@@ -300,3 +301,62 @@ export function getFileUploadComponentValidations(
   }
   return componentValidations;
 }
+
+export function getFileUploadWithTagComponentValidations(
+  validationMessages: IComponentValidations,
+  validationState: Array<{ id: string, message: string }>
+) : Array<{ id: string, message: string }> {
+  const result: Array<{ id: string, message: string }> = [];
+  validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
+  if (!validationMessages || !validationMessages.simpleBinding) {
+    validationMessages = {
+      simpleBinding: {
+        errors: [],
+        warnings: [],
+      }
+    };
+  }
+  if (validationMessages.simpleBinding !== undefined && validationMessages.simpleBinding.errors.length > 0) {
+    parseFileUploadComponentWithTagValidationObject(validationMessages.simpleBinding.errors as string[]).forEach((validation) => {
+      result.push(validation);
+    });
+  }
+  validationState.forEach((validation) => {
+    result.push(validation);
+  });
+  return result;
+}
+
+export const parseFileUploadComponentWithTagValidationObject = (validationArray: string[]): Array<{ id: string, message: string }> => {
+  if (validationArray === undefined || validationArray.length === 0) {
+    return [];
+  }
+  const obj: Array<{ id: string, message: string }> = [];
+  validationArray.forEach((validation) => {
+    const val = validation.toString().split(String.fromCharCode(31));
+    if (val.length === 2) {
+      obj.push({ id: val[0], message: val[1] });
+    } else {
+      obj.push({ id: '', message: validation });
+    }
+  });
+  return obj;
+};
+
+export const isAttachmentError = (error: { id: string, message: string }): boolean => {
+  return error.id ? true : false
+};
+
+export const isNotAttachmentError = (error: { id: string, message: string }): boolean => {
+  return !error.id;
+};
+
+export const atleastOneTagExists = (
+  attachments: IAttachment[]
+): boolean => {
+  const totalTagCount: number = attachments
+    .map((attachment: IAttachment) => (attachment.tags?.length ? attachment.tags.length : 0))
+    .reduce((total, current) => total + current, 0);
+
+  return totalTagCount !== undefined && totalTagCount >= 1;
+};

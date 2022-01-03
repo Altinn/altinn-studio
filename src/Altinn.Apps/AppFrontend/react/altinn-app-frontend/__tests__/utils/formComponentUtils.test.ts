@@ -1,7 +1,8 @@
-import { getDisplayFormData, getFormDataForComponentInRepeatingGroup, isSimpleComponent } from '../../src/utils/formComponentUtils';
+import { atleastOneTagExists, getDisplayFormData, getFileUploadWithTagComponentValidations, getFormDataForComponentInRepeatingGroup, isAttachmentError, isNotAttachmentError, isSimpleComponent, parseFileUploadComponentWithTagValidationObject } from '../../src/utils/formComponentUtils';
 import { IOptions, ITextResource } from '../../src/types';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { ILayoutComponent, ISelectionComponentProps } from '../../src/features/form/layout';
+import { IAttachment } from '../../src/shared/resources/attachments';
 
 describe('>>> utils/formComponentUtils.ts', () => {
   const mockFormData: IFormData = {
@@ -42,6 +43,60 @@ describe('>>> utils/formComponentUtils.ts', () => {
       { value: 'repOptionValue3', label: 'repTextKey3' },
     ],
   };
+  const mockAttachments: IAttachment[] = [
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: ['mockTag'],
+      id: '12345'
+    },{
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '123456'
+    },{
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: null,
+      id: '123457'
+    },
+  ];
+  const mockAttachmentsWithoutTag: IAttachment[] = [
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '12345'
+    },{
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '123456'
+    },{
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: null,
+      id: '123457'
+    },
+  ];
 
   it('+++ getDisplayFormData should return form data for a component', () => {
     const inputComponent = {
@@ -104,14 +159,62 @@ describe('>>> utils/formComponentUtils.ts', () => {
     expect(result).toEqual(false);
   });
 
-  it('+++ isSimpleComponent should return true when component type is Input', () => {
-    const genericComponent = {
-      type: 'Input',
-      dataModelBindings: {
-        simpleBinding: 'group.secretnumber',
-      },
-    }
-    const result = isSimpleComponent(genericComponent.dataModelBindings, genericComponent.type);
+  // *********************** BEGIN
+  // TODO Move to component tests?
+  /* it('+++ getFileUploadComponentWithTagValidations', () => {
+    const result = getFileUploadWithTagComponentValidations(props.validationMessages, validationState);
     expect(result).toEqual(true);
+  });
+
+  it('+++ parseFileUploadComponentWithTagValidationObject ', () => {
+    const result = parseFileUploadComponentWithTagValidationObject(validationArray);
+    expect(result).toEqual(true);
+  }); */
+  // *********************** END
+
+  it('+++ isAttachmentError should return true when error has attachmentId', () => {
+    const error = {
+      id: 'mockUUID',
+      message: 'mockMessage'
+    }
+    const result = isAttachmentError(error);
+    expect(result).toEqual(true);
+  });
+
+  it('+++ isAttachmentError should return false when error does not have attachmentId', () => {
+    const error = {
+      id: null,
+      message: 'mockMessage'
+    }
+    const result = isAttachmentError(error);
+    expect(result).toEqual(false);
+  });
+
+  it('+++ isNotAttachmentError should return true when error does not have attachmentId', () => {
+    const error = {
+      id: null,
+      message: 'mockMessage'
+    }
+    const result = isNotAttachmentError(error);
+    expect(result).toEqual(true);
+  });
+
+  it('+++ isNotAttachmentError should return false when error has attachmentId', () => {
+    const error = {
+      id: 'mockUUID',
+      message: 'mockMessage'
+    }
+    const result = isNotAttachmentError(error);
+    expect(result).toEqual(false);
+  });
+
+  it('+++ atleastOneTagExists should return true if one or more attachments has a tag', () => {
+    const result = atleastOneTagExists(mockAttachments);
+    expect(result).toEqual(true);
+  });
+
+  it('+++ atleastOneTagExists should return false if none of the attachments has a tag', () => {
+    const result = atleastOneTagExists(mockAttachmentsWithoutTag);
+    expect(result).toEqual(false);
   });
 });

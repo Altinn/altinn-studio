@@ -14,6 +14,7 @@ import '../../styles/FileUploadComponent.css';
 import { IRuntimeState, IComponentValidations } from '../../types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
+import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -28,26 +29,6 @@ export interface IFileUploadProps {
   readOnly: boolean;
   validFileEndings?: string;
 }
-
-const baseStyle = {
-  width: 'auto',
-  height: '15.6rem',
-  borderWidth: '2px',
-  borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
-  borderStyle: 'dotted',
-  cursor: 'pointer',
-};
-const activeStyle = {
-  borderStyle: 'solid',
-};
-const rejectStyle = {
-  borderStyle: 'solid',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
-};
-const validationErrorStyle = {
-  borderStyle: 'dotted',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
-};
 
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];

@@ -1,7 +1,8 @@
 import 'jest';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../../src/features/form/layout';
+import { IAttachmentState } from '../../src/shared/resources/attachments/attachmentReducer';
 import { IRepeatingGroups } from '../../src/types';
-import { createRepeatingGroupComponents, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from '../../src/utils/formLayout';
+import { createRepeatingGroupComponents, getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from '../../src/utils/formLayout';
 
 describe('>>> layout.ts', () => {
   it('+++ getRepeatingGroups should handle nested groups', () => {
@@ -293,6 +294,152 @@ describe('>>> layout.ts', () => {
 
     const result = createRepeatingGroupComponents(container, [testLayout[1]], 1, mockTextResources);
 
+    expect(result).toEqual(expected);
+  });
+
+  it('+++ getFileUploadersWithTag should return expected uiConfig', () => {
+    const testLayout: ILayout = [
+      {
+        id: 'file-upload-with-tag-1',
+        type: 'FileUploadWithTag',
+        textResourceBindings: {
+          title: 'VedleggTest',
+          description: 'VedleggsTestBeskrivelse',
+          tagTitle: 'Datatype'
+        },
+        dataModelBindings: {},
+        maxFileSizeInMB: 25,
+        maxNumberOfAttachments: 15,
+        minNumberOfAttachments: 1,
+        displayMode: 'simple',
+        required: true,
+        optionsId: 'dataTypes',
+        hasCustomFileEndings: true,
+        validFileEndings: [
+          '.jpeg',
+          '.jpg',
+          '.pdf'
+        ]
+      } as ILayoutComponent,
+      {
+        id: 'file-upload-with-tag-2',
+        type: 'FileUploadWithTag',
+        textResourceBindings: {
+          title: 'VedleggTest',
+          description: 'VedleggsTestBeskrivelse',
+          tagTitle: 'Datatype'
+        },
+        dataModelBindings: {},
+        maxFileSizeInMB: 25,
+        maxNumberOfAttachments: 15,
+        minNumberOfAttachments: 1,
+        displayMode: 'simple',
+        required: true,
+        optionsId: 'dataTypes',
+        hasCustomFileEndings: true,
+        validFileEndings: [
+          '.jpeg',
+          '.jpg',
+          '.pdf'
+        ]
+      } as ILayoutComponent,
+      {
+        id: 'file-upload-with-tag-3',
+        type: 'FileUploadWithTag',
+        textResourceBindings: {
+          title: 'VedleggTest',
+          description: 'VedleggsTestBeskrivelse',
+          tagTitle: 'Datatype'
+        },
+        dataModelBindings: {},
+        maxFileSizeInMB: 25,
+        maxNumberOfAttachments: 15,
+        minNumberOfAttachments: 1,
+        displayMode: 'simple',
+        required: true,
+        optionsId: 'dataTypes',
+        hasCustomFileEndings: true,
+        validFileEndings: [
+          '.jpeg',
+          '.jpg',
+          '.pdf'
+        ]
+      } as ILayoutComponent
+    ];
+    const testAttachments: IAttachmentState = {
+      attachments: {
+        'file-upload-with-tag-1': [
+          {
+            name: 'test-1.pdf',
+            size: 18302,
+            uploaded: true,
+            tags: [
+              'TAG-1'
+            ],
+            id: 'id-1',
+            deleting: false,
+            updating: false
+          },
+          {
+            name: 'test-2.pdf',
+            size: 22165,
+            uploaded: true,
+            tags: [
+              'TAG-2'
+            ],
+            id: 'id-2',
+            deleting: false,
+            updating: false
+          }
+        ],
+        'file-upload-with-tag-2': [
+          {
+            name: 'test-3.pdf',
+            size: 18302,
+            uploaded: true,
+            tags: [
+              'TAG-3'
+            ],
+            id: 'id-3',
+            deleting: false,
+            updating: false
+          },
+          {
+            name: 'test-4.pdf',
+            size: 22165,
+            uploaded: true,
+            tags: [
+              'TAG-4'
+            ],
+            id: 'id-4',
+            deleting: false,
+            updating: false
+          }
+        ],
+      }
+    };
+    const expected = {
+      'file-upload-with-tag-1': {
+        editIndex: -1,
+        chosenOptions: {
+          'id-1': 'TAG-1',
+          'id-2': 'TAG-2'
+        }
+      },
+      'file-upload-with-tag-2': {
+        editIndex: -1,
+        chosenOptions: {
+          'id-3': 'TAG-3',
+          'id-4': 'TAG-4'
+        }
+      },
+      'file-upload-with-tag-3': {
+        editIndex: -1,
+        chosenOptions: {
+        }
+      }
+    };
+    const result = getFileUploadersWithTag(testLayout, testAttachments);
     expect(result).toEqual(expected);
   });
 });

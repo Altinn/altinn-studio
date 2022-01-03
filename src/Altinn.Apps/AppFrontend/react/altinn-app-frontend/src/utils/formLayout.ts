@@ -139,7 +139,7 @@ export function getFileUploadersWithTag(
     ) {
       const chosenOptions: IOptionsChosen = {};
       for (let index = 0; index < attachments.length; index++) {
-        chosenOptions[index] = attachmentState.attachments[uploader.id][index].tags[0];
+        chosenOptions[attachments[index].id] = attachments[index].tags[0];
       }
       fileUploaders[uploader.id] = {
         editIndex: -1,

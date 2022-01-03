@@ -33,18 +33,6 @@ export function* updateAttachmentSaga(
 
     const fileUpdateLink = fileTagUrl(attachment.id);
 
-    if (tag === undefined) {
-      const validations = getFileUploadComponentValidations('update', language, attachment.id);
-      yield put(updateComponentValidations({
-        componentId: attachmentType,
-        layoutId: currentView,
-        validations,
-      }));
-      yield call(AttachmentDispatcher.updateAttachmentRejected,
-        attachment, attachmentType, undefined);
-      return;
-    }
-
     if (attachment.tags !== undefined && attachment.tags.length > 0 && tag !== attachment.tags[0]) {
       const deleteResponse: any = yield call(httpDelete, `${fileUpdateLink}/${attachment.tags[0]}`);
       if (deleteResponse.status !== 204) {

@@ -83,7 +83,7 @@ export interface IUpdateFileUploadersWithTagFulfilled {
 export interface IUpdateFileUploaderWithTagEditIndex {
   uploader: string;
   index: number;
-  validate?: boolean;
+  attachmentId?: string;
 }
 
 export interface IUpdateFileUploaderWithTagEditIndexFulfilled {
@@ -95,7 +95,6 @@ export interface IUpdateFileUploaderWithTagChosenOptions {
   uploader: string;
   id: string;
   option: IOption;
-  validate?: boolean;
 }
 
 export interface IUpdateFileUploaderWithTagChosenOptionsFulfilled {

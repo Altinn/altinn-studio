@@ -2,7 +2,7 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
-import { IFileUploadersWithTag, IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
+import { IFileUploadersWithTag, IFormFileUploaderWithTagComponent, IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
@@ -374,38 +374,20 @@ export function* watchInitRepeatingGroupsSaga(): SagaIterator {
 }
 
 export function* updateFileUploaderWithTagEditIndexSaga({ payload: {
-  uploader, index, validate,
+  uploader, index, attachmentId = null
 } }: PayloadAction<IUpdateFileUploaderWithTagEditIndex>): SagaIterator {
   try {
-    if (validate) {
+    if (attachmentId && index === -1) { // In the case of closing an edit view.
       const state: IRuntimeState = yield select();
-      const validations: IValidations = state.formValidations.validations;
-      const currentView = state.formLayout.uiConfig.currentView;
-      const frontendValidations: IValidations = validateGroup(uploader, state);
-      const options: AxiosRequestConfig = {
-        headers: {
-          ComponentId: uploader,
-        },
-      };
-      const currentTaskDataId = getCurrentTaskDataElementId(
-        state.applicationMetadata.applicationMetadata,
-        state.instanceData.instance,
-      );
-      const serverValidations: IValidationIssue[] = yield call(get, getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId), options);
-      const mappedServerValidations: IValidations = mapDataElementValidationToRedux(serverValidations, state.formLayout.layouts, state.textResources.resources);
-      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
-      if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
+      const chosenOption = state.formLayout.uiConfig.fileUploadersWithTag[uploader].chosenOptions[attachmentId]
+      if(chosenOption && chosenOption !== '') {
         yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
       } else {
         yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error: null }));
-        // only overwrite validtions specific to the uploader - leave all other untouched
-        const newValidations = { ...validations, [currentView]: { ...validations[currentView], ...combinedValidations[currentView] } };
-        yield put(updateValidations({ validations: newValidations }));
       }
     } else {
       yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
     }
-    yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
   } catch (error) {
     yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error }));
   }
@@ -416,44 +398,23 @@ export function* watchUpdateFileUploaderWithTagEditIndexSaga(): SagaIterator {
 }
 
 export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
-  uploader, id, option, validate,
+  uploader, id, option
 } }: PayloadAction<IUpdateFileUploaderWithTagChosenOptions>): SagaIterator {
   try {
-    if (validate) {
-      const state: IRuntimeState = yield select();
-      const validations: IValidations = state.formValidations.validations;
-      const currentView = state.formLayout.uiConfig.currentView;
-      const frontendValidations: IValidations = validateGroup(uploader, state);
-      const options: AxiosRequestConfig = {
-        headers: {
-          ComponentId: uploader,
-        },
-      };
-      const currentTaskDataId = getCurrentTaskDataElementId(
-        state.applicationMetadata.applicationMetadata,
-        state.instanceData.instance,
-      );
-      const serverValidations: IValidationIssue[] = yield call(get, getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId), options);
-      const mappedServerValidations: IValidations = mapDataElementValidationToRedux(serverValidations, state.formLayout.layouts, state.textResources.resources);
-      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
-      if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
-        yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
-          uploader, id, option,
-        }));
-      } else {
-        yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error: null }));
-        // only overwrite validtions specific to the uploader - leave all other untouched
-        const newValidations = { ...validations, [currentView]: { ...validations[currentView], ...combinedValidations[currentView] } };
-        yield put(updateValidations({ validations: newValidations }));
-      }
-    } else {
+    // Validate option to available options
+    const state: IRuntimeState = yield select();
+    const currentView = state.formLayout.uiConfig.currentView;
+    const component = state.formLayout.layouts[currentView]
+        .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
+    const componentOptions = state.optionState.options[component.optionsId]
+
+    if (componentOptions.find(op => op.value === option.value)) {
       yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
         uploader, id, option,
       }));
+    } else {
+      yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error: null }));
     }
-    yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
-      uploader, id, option,
-    }));
   } catch (error) {
     yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error }));
   }

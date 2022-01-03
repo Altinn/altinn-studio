@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
 import { IAttachment } from 'src/shared/resources/attachments';
-import { ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
+import { ISelectionComponentProps } from 'src/features/form/layout';
 import { EditButton } from './EditButton';
 
 export interface IAttachmentWithTagSummaryComponent {
@@ -12,7 +12,7 @@ export interface IAttachmentWithTagSummaryComponent {
   label: any;
   hasValidationMessages: boolean;
   changeText: any;
-  component: ILayoutComponent
+  component: ISelectionComponentProps
   onChangeClick: () => void;
 }
 
@@ -45,8 +45,7 @@ export function AttachmentWithTagSummaryComponent(props: IAttachmentWithTagSumma
   const attachments: IAttachment[] =
     useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const selectionComponent = props.component as ISelectionComponentProps;
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[selectionComponent.optionsId]);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.component.optionsId]);
 
   return (
     <>

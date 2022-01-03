@@ -10,13 +10,14 @@ import { isMobile } from 'react-device-detect';
 import { removeFileEnding, getFileEnding } from '../../utils/attachment';
 import { IAttachment } from '../../shared/resources/attachments';
 import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
-import '../../styles/FileUploadComponent.css';
 import { IRuntimeState , IComponentValidations } from '../../types';
 import { renderValidationMessages, renderValidationMessagesForComponent } from '../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
 import { Grid, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, IconButton, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
+import { atleastOneTagExists, getFileUploadWithTagComponentValidations, isAttachmentError, isNotAttachmentError, parseFileUploadComponentWithTagValidationObject } from 'src/utils/formComponentUtils';
+import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
 
 export interface IFileUploadWithTagProps {
   hasCustomFileEndings?: boolean;
@@ -35,28 +36,6 @@ export interface IFileUploadWithTagProps {
   textResourceBindings: any;
 }
 
-// DropZone styles
-const baseStyle = {
-  width: 'auto',
-  height: '15.6rem',
-  borderWidth: '2px',
-  borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
-  borderStyle: 'dotted',
-  cursor: 'pointer',
-};
-const activeStyle = {
-  borderStyle: 'solid',
-};
-const rejectStyle = {
-  borderStyle: 'solid',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
-};
-const validationErrorStyle = {
-  borderStyle: 'dotted',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
-};
-
-// const theme = createTheme(altinnAppTheme);
 const useStyles = makeStyles({
   table: {
     marginTop: '2.4rem',
@@ -200,70 +179,15 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     (state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray,
   );
 
-  const getComponentValidations = (): Array<{ id: string, message: string }> => {
-    let validationMessages = props.componentValidations;
-    const result: Array<{ id: string, message: string }> = [];
-    validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
-    if (!validationMessages || !validationMessages.simpleBinding) {
-      validationMessages = {
-        simpleBinding: {
-          errors: [],
-          warnings: [],
-        },
-      };
-    }
-    if (validationMessages.simpleBinding.errors !== undefined || validationMessages.simpleBinding.errors.length < 1) {
-      parseValidationObject(validationMessages.simpleBinding.errors as string[]).forEach((validation) => {
-        result.push(validation);
-      });
-    }
-    validations.forEach((validation) => {
-      result.push(validation);
-    });
-    return result;
-  };
-
-  const parseValidationObject = (validationArray: string[]): Array<{ id: string, message: string }> => {
-    if (validationArray === undefined || validationArray.length === 0) {
-      return [];
-    }
-    const obj: Array<{ id: string, message: string }> = [];
-    validationArray.forEach((validation) => {
-      const val = validation.toString().split(String.fromCharCode(31));
-      if (val.length === 2) {
-        obj.push({ id: val[0], message: val[1] });
-      } else {
-        obj.push({ id: '', message: validation });
-      }
-    });
-    return obj;
-  };
-
   const setValidationsFromArray = (validationArray: string[]) => {
     setValidations(
-      validations.concat(parseValidationObject(validationArray)),
+      validations.concat(parseFileUploadComponentWithTagValidationObject(validationArray)),
     );
-  };
-
-  const isAttachmentError = (error: { id: string, message: string }): boolean => {
-    return error.id !== '' && error.id !== undefined;
-  };
-
-  const isNotAttachmentError = (error: { id: string, message: string }): boolean => {
-    return error.id === '' || error.id === undefined;
-  };
-
-  const atleastOneTagExists = (): boolean => {
-    const totalTagCount: number = attachments
-      .map((attachment: IAttachment) => (attachment.tags?.length ? attachment.tags.length : 0))
-      .reduce((total, current) => total + current, 0);
-
-    return totalTagCount !== undefined && totalTagCount >= 1;
   };
 
   const setEditIndex = (index: number) => {
     dataDispatch(FormLayoutActions.updateFileUploaderWithTagEditIndex({
-      uploader: props.id, index,
+      uploader: props.id, index
     }));
   };
 
@@ -279,7 +203,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       const option = options?.find((o) => o.value === value);
       if (option !== undefined) {
         dataDispatch(FormLayoutActions.updateFileUploaderWithTagChosenOptions({
-          uploader: props.id, id, option,
+          uploader: props.id, id, option
         }));
       } else console.error(`Could not find option for ${value}`);
     } else console.error('Should not be called');
@@ -313,7 +237,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
           message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', props.language)} ${props.getTextResource(props.textResourceBindings.tagTitle).toLowerCase()}.`,
         },
       );
-      setValidations(validations.filter((obj) => obj !== tmpValidations[0]).concat(tmpValidations));
+      setValidations(validations.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
     }
   };
 
@@ -443,7 +367,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       >
         <TableContainer component={Grid}>
           <Table className={!mobileView ? classes.table : classes.tableMobile}>
-            {atleastOneTagExists() &&
+            {atleastOneTagExists(attachments) &&
               <TableHead className={classes.tableHeader}>
                 <TableRow className={mobileView ? classes.mobileTableRow : ''}>
                   <TableCell align='left'>
@@ -495,7 +419,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
                                 : null}
                               {!attachment.uploaded &&
                                 <AltinnLoader
-                                  id='loader-upload'
+                                  id={`attachment-loader-upload-${attachments[index].id}`}
                                   style={{ marginBottom: '1.6rem', marginRight: '1.3rem' }}
                                   srContent={getLanguageFromKey('general.loading', props.language)}
                                 />
@@ -509,7 +433,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
                         className={classes.textContainer}
                       >
                         {props
-                          .getTextResource(options?.find((option) => option.value === attachment.tags[0]).label)
+                          .getTextResourceAsString(options?.find((option) => option.value === attachment.tags[0]).label)
                         }
                       </TableCell>
                       {!mobileView ?
@@ -533,7 +457,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
                           }
                           {!attachment.uploaded &&
                             <AltinnLoader
-                              id='loader-upload'
+                              id={`attachment-loader-upload-${attachment.id}`}
                               style={{ marginBottom: '1.6rem', marginRight: '1.3rem' }}
                               srContent={getLanguageFromKey('general.loading', props.language)}
                             />
@@ -585,7 +509,10 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       index = editIndex;
     }
     return (
-      <div className={classes.editContainer}>
+      <div
+        id={`attachment-edit-window-${attachments[index].id}`}
+        className={classes.editContainer}
+        >
         <Grid
           justifyContent='space-between'
           container={true}
@@ -615,7 +542,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
               }
               {!attachments[index].uploaded &&
                 <AltinnLoader
-                  id='loader-upload'
+                  id={`attachment-loader-upload-${attachments[index].id}`}
                   style={{
                     width: '80px',
                   }}
@@ -645,7 +572,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
               xs
             >
               <select
-                id={props.id}
+                id={`attachment-tag-dropdown-${attachments[index].id}`}
                 tabIndex={0}
                 defaultValue={attachments[index].tags !== undefined ? attachments[index].tags[0] : null}
                 disabled={attachments[index].updating ? true : props.readOnly}
@@ -671,6 +598,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
             >
               {attachments[index].updating ?
                 <AltinnLoader
+                  id={`attachment-loader-update-${attachments[index].id}`}
                   srContent={getLanguageFromKey('general.loading', props.language)}
                   style={{
                     height: '30px',
@@ -686,7 +614,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
                   <AltinnButton
                     btnText={getLanguageFromKey('general.save', props.language)}
                     onClickFunction={() => onClickSave(attachments[index])}
-                    id={`add-button-grp-${props.id}`}
+                    id={`attachment-save-tag-button-${attachments[index].id}`}
                     disabled={tagSaveIsDisabled(attachments[index]) ? true : props.readOnly}
                   />
                 </div>
@@ -700,7 +628,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
               whiteSpace: 'pre-wrap',
             }}
           >
-            {renderValidationMessages(attachmentValidationMessages.filter((i) => i.id === attachments[index].id).map((e) => { return e.message; }), props.id, 'error')}
+            {renderValidationMessages(attachmentValidationMessages.filter((i) => i.id === attachments[index].id).map((e) => { return e.message; }), `attachment-error-${attachments[index].id}`, 'error')}
           </div>
           : undefined
         }
@@ -733,7 +661,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   };
 
   // Get validations and filter general from identified validations.
-  const tmpValidationMessages = getComponentValidations();
+  const tmpValidationMessages = getFileUploadWithTagComponentValidations(props.componentValidations, validations);
   const validationMessages = { errors: tmpValidationMessages.filter(isNotAttachmentError).map((el) => (el.message)) };
   const attachmentValidationMessages = tmpValidationMessages.filter(isAttachmentError);
   const hasValidationMessages: boolean = validationMessages.errors.length > 0;
