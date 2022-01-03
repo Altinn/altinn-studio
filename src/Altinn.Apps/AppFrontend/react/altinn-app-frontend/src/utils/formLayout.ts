@@ -6,7 +6,7 @@ import {
   ITextResourceBindings,
   IFileUploadersWithTag,
   IOptionsChosen,
-  IFormFileUploaderWithTagComponent
+  IFormFileUploaderWithTagComponent,
   IMapping,
 } from 'src/types';
 import {
