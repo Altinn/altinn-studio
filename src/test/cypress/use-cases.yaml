@@ -29,10 +29,10 @@ steps:
   condition: succeededOrFailed()
 
 - bash: |
-   yarn run cy:prunecache
-
    yarn --immutable
-
+   
+   yarn run cy:prunecache
+   
    yarn run cy:cachelist
 
    yarn run cy:version
