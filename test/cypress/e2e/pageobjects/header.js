@@ -9,5 +9,6 @@ export const header = {
     gitea: '#menu-gitea',
     logOut: '#menu-logout',
     openRepo: 'a[href*="repos"]',
+    docs: 'a[href="https://docs.altinn.studio/"]',
   },
 };

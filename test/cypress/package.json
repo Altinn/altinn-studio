@@ -18,6 +18,7 @@
     "cy:version": "cypress -v",
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
+    "cy:prunecache": "cypress cache prune",
     "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js'",
     "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js'",
     "test:studio": "cypress run -b chrome -s 'e2e/integration/studio/*.js'",
@@ -34,16 +35,16 @@
   },
   "devDependencies": {
     "axe-core": "^4.3.5",
-    "cypress": "^9.1.0",
+    "cypress": "^9.2.0",
     "cypress-axe": "^0.13.0",
     "cypress-file-upload": "^5.0.8",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^8.3.0",
+    "eslint": "^8.5.0",
     "eslint-plugin-cypress": "^2.12.1",
     "faker": "^5.5.3",
     "fs-extra": "^10.0.0",
     "path": "^0.12.7",
-    "prettier": "^2.5.0",
+    "prettier": "^2.5.1",
     "start-server-and-test": "^1.14.0"
   },
   "packageManager": "yarn@3.1.0"
