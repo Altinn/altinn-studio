@@ -52,6 +52,9 @@ export const textComponents: IComponent[] = [
   {
     name: ComponentTypes.Header,
     Icon: componentIcons.Header,
+    customProperties: {
+      size: "L",
+    },
   },
   {
     name: ComponentTypes.Paragraph,

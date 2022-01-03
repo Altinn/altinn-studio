@@ -3,13 +3,11 @@
   "baseUrl": "https://altinn.studio",
   "env": {
     "autoTestUser": "AutoTest",
-    "noDeployUser": "noDeployUser",
     "useCaseUser": "bruksmonster",
     "deployApp": "ttd/auto-deploy-app-v2",
-    "compilerErrorApp": "ttd/compile-error-app",
     "designerApp": "AutoTest/auto-designer-app",
     "withoutDataModelApp": "AutoTest/appwithout-dm",
-    "rulesApp": "AutoTest/rules-service"
+    "appOwner": "Testdepartementet"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

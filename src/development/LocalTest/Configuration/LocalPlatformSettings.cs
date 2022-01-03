@@ -22,6 +22,16 @@ namespace LocalTest.Configuration
         /// </summary>
         public string LocalTestingStaticTestDataPath { get; set; }
 
+        /// <summary>
+        /// Url for the local app when LocalAppMode == http
+        /// <summary>
+        public string LocalAppUrl { get; set; }
+
+        /// <summary>
+        /// which access mode to use ("file", "http")
+        /// <summary>
+        public string LocalAppMode { get; set; }
+
         public string DocumentDbFolder { get; set;  } = "documentdb/";
 
         public string InstanceCollectionFolder { get; set; } = "instances/";

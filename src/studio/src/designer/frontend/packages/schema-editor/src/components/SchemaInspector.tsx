@@ -104,6 +104,31 @@ export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
+type NameInUseProps = {uiSchemaItems: UiSchemaItem[], parentSchema: UiSchemaItem | null, path: string, name: string };
+export const isNameInUse = ({ uiSchemaItems, parentSchema, path, name}: NameInUseProps) => {
+  // Check if the parent node has other children with the same name.
+  if (parentSchema?.properties?.some((prop) => prop.displayName === name && prop.path !== path)) {
+    return true;
+  } else if (isPathOnPropertiesRoot(path) && uiSchemaItems.some((schemaItem) => schemaItem.displayName === name && schemaItem.path !== path)) {
+    return true;
+  } else if (isPathOnDefinitionsRoot(path) && uiSchemaItems.some((schemaItem) => schemaItem.displayName === name && schemaItem.path !== path)) {
+    return true;
+  }
+  
+  return false;
+};
+
+export const isPathOnPropertiesRoot = (path: string) => {
+  const noOfMatches: number = ((path || '').match(/^#\/properties\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  return noOfMatches === 1 ? true : false;
+}
+
+export const isPathOnDefinitionsRoot = (path: string) => {
+  const noOfDefinitionMatches: number = ((path || '').match(/^#\/definitions\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  const noOfDefsMatches: number = ((path || '').match(/^#\/\$defs\/[a-zæøåA-ZÆØÅ0-9]*$/) || []).length;
+  return noOfDefinitionMatches === 1 || noOfDefsMatches === 1 ? true : false;
+}
+
 const SchemaInspector = ((props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -151,6 +176,10 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
     return null;
   });
 
+  const uiSchema = useSelector((state: ISchemaState) => {
+    return state.uiSchema;
+  });
+
   React.useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setItemTitle(selectedItem?.title ?? '');
@@ -189,8 +218,9 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       value: isNaN(value) ? value : +value,
       key,
     };
-    dispatch(setRestriction(data));
+    dispatch(setRestriction(data)); 
   };
+
   const onChangeRef = (path: string, ref: string) => {
     const data = {
       path,
@@ -207,22 +237,32 @@ const SchemaInspector = ((props: ISchemaInspectorProps) => {
       path, oldKey, newKey,
     }));
   };
+
   const onChangPropertyName = (path: string, value: string) => {
     dispatch(setPropertyName({
       path, name: value,
     }));
   };
+
   const onDeleteFieldClick = (path: string, key: string) => {
     dispatch(deleteField({ path, key }));
   };
+
   const onDeleteObjectClick = (path: string) => {
     dispatch(deleteProperty({ path }));
   };
+
   const onDeleteEnumClick = (path: string, value: string) => {
     dispatch(deleteEnum({ path, value }));
   };
+
   const onChangeNodeName = () => {
-    if (!nameError && selectedItem && selectedItem?.displayName !== nodeName) {
+    if (isNameInUse({uiSchemaItems: uiSchema, parentSchema: parentItem, path: selectedId,  name: nodeName})) {
+      setNameError('Name already in use');
+      return;
+    }
+
+    if (!nameError && selectedItem && selectedItem.displayName !== nodeName) {
       dispatch(setPropertyName({
         path: selectedItem.path, name: nodeName, navigate: selectedItem.path,
       }));

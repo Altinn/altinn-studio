@@ -1,5 +1,5 @@
 import { GridSize } from '@material-ui/core';
-import { IOption, Triggers } from '../../../types';
+import { IMapping, IOption, Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -34,22 +34,23 @@ export interface ILayoutComponent extends ILayoutEntry {
 export type GroupTypes = 'Group' | 'group';
 
 export type ComponentTypes =
-  'AddressComponent' |
-  'AttachmentList' |
-  'Button' |
-  'Checkboxes' |
-  'Datepicker' |
-  'Dropdown' |
-  'FileUpload' |
-  'FileUploadWithTag' |
-  'Header' |
-  'Input' |
-  'NavigationButtons' |
-  'Paragraph' |
-  'Image' |
-  'RadioButtons' |
-  'Summary' |
-  'TextArea';
+  | 'AddressComponent'
+  | 'AttachmentList'
+  | 'Button'
+  | 'Checkboxes'
+  | 'Datepicker'
+  | 'Dropdown'
+  | 'FileUpload'
+  | 'FileUploadWithTag'
+  | 'Header'
+  | 'Input'
+  | 'NavigationButtons'
+  | 'InstantiationButton'
+  | 'Paragraph'
+  | 'Image'
+  | 'RadioButtons'
+  | 'Summary'
+  | 'TextArea';
 
 export interface IDataModelBindings {
   [id: string]: string;
@@ -77,6 +78,7 @@ export interface IFileuploadProps extends ILayoutComponent {
 }
 
 export interface IGrid extends IGridStyling {
+  labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
 }
 
@@ -113,6 +115,11 @@ export interface INavigationButtonProps extends ILayoutComponent {
   previous?: string;
 }
 
+export interface IInstantiationButtonProps extends ILayoutComponent {
+  mapping: IMapping;
+  text: string;
+}
+
 export type IParagraphProps = ILayoutComponent;
 
 export interface IRadioButtonsProps extends ILayoutComponent {
@@ -132,6 +139,7 @@ export interface IAdressComponent extends ILayoutComponent {
 export interface IGroupEditProperties {
   mode?: 'hideTable' | 'showTable' | 'showAll';
   filter?: IGroupFilter[];
+  addButton?: boolean;
   saveButton?: boolean;
   deleteButton?: boolean;
   multiPage?: boolean;

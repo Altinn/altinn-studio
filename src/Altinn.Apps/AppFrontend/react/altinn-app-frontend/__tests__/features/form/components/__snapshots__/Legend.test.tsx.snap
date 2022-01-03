@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> features/form/components/Legend.tsx +++ should not render optional because labelSettings.optionalIndicator is false 1`] = `
+exports[`features > form > components > Legend.tsx should not render optional because labelSettings.optionalIndicator is false 1`] = `
 Array [
   <label
     className="a-form-label title-label"
@@ -18,7 +18,7 @@ Array [
 ]
 `;
 
-exports[`>>> features/form/components/Legend.tsx +++ should not render optional because required 1`] = `
+exports[`features > form > components > Legend.tsx should not render optional because required 1`] = `
 Array [
   <label
     className="a-form-label title-label"
@@ -36,7 +36,7 @@ Array [
 ]
 `;
 
-exports[`>>> features/form/components/Legend.tsx +++ should not render optional because required is true even when labelSettings.optionalIndicator is true 1`] = `
+exports[`features > form > components > Legend.tsx should not render optional because required is true even when labelSettings.optionalIndicator is true 1`] = `
 Array [
   <label
     className="a-form-label title-label"
@@ -54,7 +54,7 @@ Array [
 ]
 `;
 
-exports[`>>> features/form/components/Legend.tsx +++ should render optional 1`] = `
+exports[`features > form > components > Legend.tsx should render optional 1`] = `
 Array [
   <label
     className="a-form-label title-label"

@@ -1,13 +1,12 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { shallowEqual, useSelector } from 'react-redux';
+import { shallowEqual } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 import {
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
 } from 'src/features/form/layout';
-import { IRepeatingGroups, IRuntimeState, IValidations } from 'src/types';
 import {
   getDisplayFormDataForComponent,
   getFormDataForComponentInRepeatingGroup,
@@ -19,6 +18,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import GroupInputSummary from './GroupInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
 import { EditButton } from './EditButton';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface ISummaryGroupComponent {
   id: string;
@@ -41,8 +41,6 @@ export function getComponentForSummaryGroup(
 const gridStyle = {
   paddingTop: '12px',
 };
-
-const defaultArray = [];
 
 export function getHiddenFieldsForSummaryGroup(
   hiddenFields: string[],
@@ -93,36 +91,22 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
     string[]
   >([]);
 
-  const groupComponent = useSelector(
-    (state: IRuntimeState) =>
+  const groupComponent = useAppSelector(
+    state =>
       getComponentForSummaryGroup(
         state.formLayout.layouts[pageRef],
         componentRef,
       ),
     shallowEqual,
   );
-  const repeatingGroups: IRepeatingGroups = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups,
-  );
-  const layout: ILayout = useSelector(
-    (state: IRuntimeState) => state.formLayout.layouts[pageRef],
-  );
-  const formData: any = useSelector(
-    (state: IRuntimeState) => state.formData.formData,
-  );
-  const textResources = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const options = useSelector(
-    (state: IRuntimeState) => state.optionState.options,
-  );
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
-  const hiddenFields = useSelector((state: IRuntimeState) =>
+  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
+  const layout = useAppSelector(state => state.formLayout.layouts[pageRef]);
+  const formData = useAppSelector(state => state.formData.formData);
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const language = useAppSelector(state => state.language.language);
+  const options = useAppSelector(state => state.optionState.options);
+  const validations = useAppSelector(state => state.formValidations.validations);
+  const hiddenFields = useAppSelector(state =>
     getHiddenFieldsForSummaryGroup(
       state.formLayout.uiConfig.hiddenFields,
       groupComponent.edit?.multiPage
@@ -270,7 +254,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         },
       );
       componentArray.push(
-        // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
         <div style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
       );
     }
@@ -281,7 +264,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
   const createRepeatingGroupSummaryForLargeGroups = () => {
     const componentArray = [];
     for (let i = 0; i <= repeatingGroupMaxIndex; i++) {
-      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
       const groupContainer: ILayoutGroup = {
         id: `${groupComponent.id}-${i}-summary`,
         type: 'Group',
@@ -291,7 +273,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           title: groupComponent.textResourceBindings?.title,
         },
       };
-      const childSummaryComponents = defaultArray;
+      const childSummaryComponents = [];
       groupChildComponents.forEach((componentId: string) => {
         const component = layout.find(
           (c: ILayoutComponent) => c.id === componentId,

@@ -108,7 +108,7 @@ namespace Altinn.App.Services.Configuration
 
         /// <summary>
         /// Gets the location for the XACML Policy file
-        /// <summary>
+        /// </summary>
         public string ApplicationXACMLPolicyFileName { get; } = "policy.xml";
 
         /// <summary>

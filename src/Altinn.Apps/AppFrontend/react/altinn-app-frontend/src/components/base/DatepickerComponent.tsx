@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import moment from 'moment';
 import * as React from 'react';
 import '../../styles/DatepickerComponent.css';
@@ -25,6 +24,7 @@ import {
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IDatePickerProps {
   id: string;
@@ -37,7 +37,7 @@ export interface IDatePickerProps {
   format: string;
   minDate: string;
   maxDate: string;
-  language: any;
+  language: ILanguage;
   componentValidations: IComponentValidations;
 }
 

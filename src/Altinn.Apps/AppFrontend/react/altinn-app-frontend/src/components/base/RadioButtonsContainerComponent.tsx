@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio, { RadioProps } from '@material-ui/core/Radio';
@@ -8,9 +7,8 @@ import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { FormLabel } from '@material-ui/core';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -79,9 +77,7 @@ export const RadioButtonContainerComponent = (
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const apiOptions = useSelector(
-    (state: IRuntimeState) => state.optionState.options[props.optionsId],
-  );
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
   const options = apiOptions || props.options || [];
   const radioGroupIsRow: boolean = options.length <= 2;
 

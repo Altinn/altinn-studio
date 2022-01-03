@@ -1,8 +1,8 @@
-import { RadioGroup, Typography } from '@material-ui/core';
-import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 
-export interface IAltinnRadioGroupComponentProvidedProps extends WithStyles<typeof styles> {
+import { RadioGroup, Typography, makeStyles } from '@material-ui/core';
+
+interface IAltinnRadioGroupProps {
   id?: any;
   value: any;
   onChange?: any;
@@ -10,12 +10,10 @@ export interface IAltinnRadioGroupComponentProvidedProps extends WithStyles<type
   name?: string;
   row?: boolean;
   description?: string;
+  children: React.ReactNode;
 }
 
-export interface IAltinnRadioGroupComponentState {
-}
-
-const styles = () => createStyles({
+const useStyles = makeStyles({
   altinnRadioGroup: {
     marginTop: '0rem',
     marginBottom: '0rem',
@@ -28,31 +26,38 @@ const styles = () => createStyles({
   },
 });
 
-export class AltinnRadioGroup extends
-  React.Component<IAltinnRadioGroupComponentProvidedProps, IAltinnRadioGroupComponentState> {
+export const AltinnRadioGroup = ({
+  description,
+  onChange,
+  value,
+  className,
+  name,
+  row,
+  id,
+  children,
+}: IAltinnRadioGroupProps) => {
+  const classes = useStyles();
 
-  public render() {
-    return (
-      <div className={this.props.classes.altinnRadioGroupWrapper}>
-        {this.props.description &&
-          <Typography classes={{ root: this.props.classes.altinnRadioGroupDescription }}>
-            {this.props.description}
-          </Typography>
-        }
-        <RadioGroup
-          classes={{ root: this.props.classes.altinnRadioGroup }}
-          onChange={this.props.onChange}
-          value={this.props.value}
-          className={this.props.className}
-          name={this.props.name}
-          id={this.props.id}
-          row={this.props.row}
-        >
-          {this.props.children}
-        </RadioGroup>
-      </div>
-    );
-  }
-}
+  return (
+    <div className={classes.altinnRadioGroupWrapper}>
+      {description && (
+        <Typography classes={{ root: classes.altinnRadioGroupDescription }}>
+          {description}
+        </Typography>
+      )}
+      <RadioGroup
+        classes={{ root: classes.altinnRadioGroup }}
+        onChange={onChange}
+        value={value}
+        className={className}
+        name={name}
+        id={id}
+        row={row}
+      >
+        {children}
+      </RadioGroup>
+    </div>
+  );
+};
 
-export default withStyles(styles)(AltinnRadioGroup);
+export default AltinnRadioGroup;

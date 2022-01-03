@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
-import { IRuntimeState } from '../../../types';
+import { getLanguageFromKey, getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function MissingRolesError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
+  const language = useAppSelector(state => state.language.language);
+  const selectedParty = useAppSelector(state => state.party.selectedParty);
 
   if (!language) {
     return null;
@@ -26,7 +25,7 @@ function MissingRolesError() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
       language,
-      [language.general.customer_service_phone_number],
+      [getLanguageFromKey('general.customer_service_phone_number', language)],
     );
   }
 
@@ -50,8 +49,12 @@ function MissingRolesError() {
     const hostName = getHostname();
 
     const errorRights = getErrorRights();
-    const errorChangeParty = <Link to='/partyselection'>{getParsedLanguageFromText(language.party_selection.change_party)}</Link>;
-    const errorAsk = getParsedLanguageFromText(language.instantiate.authorization_error_ask);
+    const errorChangeParty = <Link to='/partyselection'>{getParsedLanguageFromText(
+      getLanguageFromKey('party_selection.change_party', language))}
+    </Link>;
+    const errorAsk = getParsedLanguageFromText(
+      getLanguageFromKey('instantiate.authorization_error_ask', language)
+    );
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);
     const errorCustomerService = getCustomerService();
@@ -74,9 +77,9 @@ function MissingRolesError() {
 
   return (
     <InstantiationErrorPage
-      title={language.instantiate.authorization_error_main_title}
+      title={getLanguageFromKey('instantiate.authorization_error_main_title', language)}
       content={createErrorContent()}
-      statusCode={`${language.party_selection.error_caption_prefix} 403`}
+      statusCode={`${getLanguageFromKey('party_selection.error_caption_prefix', language)} 403`}
     />
   );
 }

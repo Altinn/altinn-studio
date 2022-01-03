@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class ContextHandler : IContextHandler
     {
-        private readonly IPolicyInformationRepository _policyInformationRepository;
+        private readonly IInstanceMetadataRepository _policyInformationRepository;
         private readonly IRoles _rolesWrapper;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
         public ContextHandler(
-            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+            IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _policyInformationRepository = policyInformationRepository;
             _rolesWrapper = rolesWrapper;
@@ -53,14 +53,18 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// Ads needed information to the Context Request.
         /// </summary>
         /// <param name="request">The original Xacml Context Request</param>
-        /// <returns></returns>
+        /// <returns>The enriched XacmlContextRequest</returns>
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
             await EnrichResourceAttributes(request);
             return await Task.FromResult(request);
         }
 
-        private async Task EnrichResourceAttributes(XacmlContextRequest request)
+        /// <summary>
+        /// Enriches the resource attribute collection with additional attributes retrieved based on the instance on the request
+        /// </summary>
+        /// <param name="request">The original Xacml Context Request</param>
+        protected async Task EnrichResourceAttributes(XacmlContextRequest request)
         {
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
             XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
@@ -121,7 +125,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        /// <summary>
+        /// Maps the XacmlContextAttributes for the Xacml Resource category to the Altinn XacmlResourceAttributes model
+        /// </summary>
+        /// <param name="resourceContextAttributes">XacmlContextAttributes for mapping of resource attribute values</param>
+        /// <returns>XacmlResourceAttributes</returns>
+        protected XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -161,7 +170,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return resourceAttributes;
         }
 
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        /// <summary>
+        /// Add a XacmlAttribute to the resourceAttributes collection, if the existing value is empty
+        /// </summary>
+        /// <param name="resourceAttributes">The collection of resource attribues</param>
+        /// <param name="attributeId">The attribute id</param>
+        /// <param name="attributeValue">The existing attribute value</param>
+        /// <param name="newAttributeValue">The new attribute value</param>
+        protected void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
@@ -169,7 +185,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
         }
 
-        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        /// <summary>
+        /// Gets a XacmlAttribute model for the specified attribute id and value
+        /// </summary>
+        /// <param name="attributeId">The attribute id</param>
+        /// <param name="attributeValue">The attribute value</param>
+        /// <returns>XacmlAttribute</returns>
+        protected XacmlAttribute GetAttribute(string attributeId, string attributeValue)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
             if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
@@ -182,7 +204,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return attribute;
         }
 
-        private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
+        /// <summary>
+        /// Enriches the XacmlContextRequest with the Roles the subject user has for the resource reportee
+        /// </summary>
+        /// <param name="request">The original Xacml Context Request</param>
+        /// <param name="resourceParty">The resource reportee party id</param>
+        protected async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
         {
             // If there is no resource party then it is impossible to enrich roles
             if (string.IsNullOrEmpty(resourceParty))
@@ -213,7 +240,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlAttribute GetRoleAttribute(List<Role> roles)
+        /// <summary>
+        /// Gets a XacmlAttribute model for the list of roletype codes
+        /// </summary>
+        /// <param name="roles">The list of roletype codes</param>
+        /// <returns>XacmlAttribute</returns>
+        protected XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(XacmlRequestAttribute.RoleAttribute), false);
             foreach (Role role in roles)
@@ -224,7 +256,29 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return attribute;
         }
 
-        private async Task<List<Role>> GetRoles(int subjectUserId, int resourcePartyId)
+        /// <summary>
+        /// Gets a XacmlAttribute model for a list of party ids
+        /// </summary>
+        /// <param name="partyIds">The list of party ids</param>
+        /// <returns>XacmlAttribute</returns>
+        protected XacmlAttribute GetPartyIdsAttribute(List<int> partyIds)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(XacmlRequestAttribute.PartyAttribute), false);
+            foreach (int partyId in partyIds)
+            {
+                attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), partyId.ToString()));
+            }
+
+            return attribute;
+        }
+
+        /// <summary>
+        /// Gets the list of roletype codes the subject user has for the resource reportee
+        /// </summary>
+        /// <param name="subjectUserId">The user id of the subject</param>
+        /// <param name="resourcePartyId">The party id of the reportee</param>
+        /// <returns>List of roles</returns>
+        protected async Task<List<Role>> GetRoles(int subjectUserId, int resourcePartyId)
         {
             string cacheKey = GetCacheKey(subjectUserId, resourcePartyId);
            

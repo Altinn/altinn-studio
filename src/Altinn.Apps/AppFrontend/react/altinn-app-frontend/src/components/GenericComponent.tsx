@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useSelector, shallowEqual, useDispatch } from 'react-redux';
+import { shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import {
   ILabelSettings,
@@ -9,19 +9,18 @@ import {
 } from 'src/types';
 
 import { Grid, makeStyles } from '@material-ui/core';
-import { ILanguageState } from '../shared/resources/language/languageReducers';
+import classNames from 'classnames';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
-import { IFormData } from '../features/form/data/formDataReducer';
 import {
   IDataModelBindings,
   IGrid,
+  IGridStyling,
   ITextResourceBindings,
 } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
-import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
 import { renderValidationMessagesForComponent } from '../utils/render';
@@ -35,6 +34,8 @@ import {
 } from '../utils/formComponentUtils';
 import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IGenericComponentProps {
   id: string;
@@ -50,17 +51,40 @@ export interface IGenericComponentProps {
   hidden?: boolean;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   container: {
     '@media print': {
       display: 'flex !important',
     },
   },
-});
+  xs: {
+    'border-bottom': '1px dashed #949494',
+  },
+  sm: {
+    [theme.breakpoints.up('sm')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  md: {
+    [theme.breakpoints.up('md')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  lg: {
+    [theme.breakpoints.up('lg')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+  xl: {
+    [theme.breakpoints.up('xl')]: {
+      'border-bottom': '1px dashed #949494',
+    },
+  },
+}));
 
 export function GenericComponent(props: IGenericComponentProps) {
   const { id, ...passThroughProps } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const classes = useStyles(props);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
@@ -68,39 +92,31 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [hasValidationMessages, setHasValidationMessages] =
     React.useState(false);
 
-  const formData: IFormData = useSelector(
-    (state: IRuntimeState) =>
+  const formData = useAppSelector(
+    state =>
       getFormDataForComponent(state.formData.formData, props.dataModelBindings),
     shallowEqual,
   );
-  const currentView: string = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.currentView,
+  const currentView: string = useAppSelector(
+    state => state.formLayout.uiConfig.currentView,
   );
-  const isValid: boolean = useSelector((state: IRuntimeState) =>
+  const isValid = useAppSelector(state =>
     isComponentValid(
       state.formValidations.validations[currentView]?.[props.id],
     ),
   );
-  const language: ILanguageState = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const texts: any = useSelector((state: IRuntimeState) =>
+  const language = useAppSelector(state => state.language.language);
+  const textResources: ITextResource[] = useAppSelector(state => state.textResources.resources);
+  const texts: any = useAppSelector(state =>
     selectComponentTexts(
       state.textResources.resources,
       props.textResourceBindings,
     ),
   );
-  const hidden: boolean = useSelector(
-    (state: IRuntimeState) => props.hidden || GetHiddenSelector(state, props),
-  );
-  const shouldFocus: boolean = useSelector((state: IRuntimeState) =>
-    GetFocusSelector(state, props),
-  );
-  const componentValidations: IComponentValidations = useSelector(
-    (state: IRuntimeState) =>
+  const hidden = useAppSelector(state => props.hidden || GetHiddenSelector(state, props));
+  const shouldFocus = useAppSelector(state => GetFocusSelector(state, props));
+  const componentValidations = useAppSelector(
+    state =>
       state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
   );
@@ -284,6 +300,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Checkboxes',
     'RadioButtons',
     'AttachmentList',
+    'InstantiationButton'
   ];
 
   return (
@@ -296,11 +313,20 @@ export function GenericComponent(props: IGenericComponentProps) {
       lg={props.grid?.lg || false}
       xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
-      className={`form-group a-form-group ${classes.container}`}
+      className={
+        classNames('form-group', 'a-form-group', classes.container, gridToHiddenProps(props.grid?.labelGrid, classes))
+      }
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) && (
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={props.grid?.labelGrid?.xs || 12}
+          sm={props.grid?.labelGrid?.sm || false}
+          md={props.grid?.labelGrid?.md || false}
+          lg={props.grid?.labelGrid?.lg || false}
+          xl={props.grid?.labelGrid?.xl || false}
+        >
           <RenderLabelScoped
             props={props}
             passThroughProps={passThroughProps}
@@ -335,7 +361,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
 interface IRenderLabelProps {
   texts: any;
-  language: any;
+  language: ILanguage;
   props: any;
   passThroughProps: any;
 }
@@ -351,6 +377,17 @@ const RenderLabelScoped = (props: IRenderLabelProps) => {
       {...props.passThroughProps}
     />
   );
+};
+
+const gridToHiddenProps = (labelGrid: IGridStyling, classes: ReturnType<typeof useStyles>) => {
+  if (!labelGrid) return undefined;
+  return {
+    [classes.xs]: labelGrid.xs > 0 && labelGrid.xs < 12,
+    [classes.sm]: labelGrid.sm > 0 && labelGrid.sm < 12,
+    [classes.md]: labelGrid.md > 0 && labelGrid.md < 12,
+    [classes.lg]: labelGrid.lg > 0 && labelGrid.lg < 12,
+    [classes.xl]: labelGrid.xl > 0 && labelGrid.xl < 12,
+  };
 };
 
 export default GenericComponent;

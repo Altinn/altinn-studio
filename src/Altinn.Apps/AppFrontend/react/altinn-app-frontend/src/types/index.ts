@@ -2,7 +2,7 @@ import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
-import { JSXElementConstructor, ReactElement } from 'react';
+import { ReactNode } from 'react';
 import Ajv from 'ajv/dist/core';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -19,6 +19,7 @@ import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 
 export type FormComponentType =
   | IFormAddressComponent
@@ -44,13 +45,16 @@ export interface IAltinnWindow extends Window {
 export interface IComponentBindingValidation {
   errors?: (
     | string
-    | ReactElement<any, string | JSXElementConstructor<any>>[]
+    | ReactNode
   )[];
   warnings?: (
     | string
-    | ReactElement<any, string | JSXElementConstructor<any>>[]
+    | ReactNode
   )[];
-  fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  fixed?: (
+    | string
+    | ReactNode
+  )[];
 }
 
 export interface IComponentValidations {
@@ -223,6 +227,7 @@ export interface IRuntimeStore {
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
+  applicationSettings: IApplicationSettingsState;
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
@@ -347,4 +352,13 @@ export interface ILabelSettings {
 
 export enum DateFlags {
   Today = 'today',
+}
+
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
+}
+
+export interface IApplicationSettings {
+  appOidcProvider: string;
 }

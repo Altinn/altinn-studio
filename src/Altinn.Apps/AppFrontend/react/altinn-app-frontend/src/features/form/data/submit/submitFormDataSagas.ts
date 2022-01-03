@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
-import { getCurrentTaskDataElementId, get, put } from 'altinn-shared/utils';
-import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import { get, put } from 'altinn-shared/utils';
+import { IRuntimeState, IRuntimeStore, IUiConfig, Severity } from 'src/types';
 import { isIE } from 'react-device-detect';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from 'src/utils/networking';
@@ -10,8 +10,7 @@ import ProcessDispatcher from '../../../../shared/resources/process/processDispa
 import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import { canFormBeSaved,
-  getNumberOfComponentsWithErrors,
-  getNumberOfComponentsWithWarnings,
+  hasValidationsOfSeverity,
   getValidator,
   mapDataElementValidationToRedux,
   mergeValidationObjects,
@@ -23,7 +22,7 @@ import { runSingleFieldValidation, updateValidations } from '../../validation/va
 import FormDataActions from '../formDataActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
-import { getCurrentDataTypeForApplication, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
@@ -89,8 +88,8 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   const mappedValidations =
     mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
   yield sagaPut(updateValidations({ validations: mappedValidations }));
-  const hasErrors = getNumberOfComponentsWithErrors(mappedValidations) > 0;
-  const hasWarnings = getNumberOfComponentsWithWarnings(mappedValidations) > 0;
+  const hasErrors = hasValidationsOfSeverity(mappedValidations, Severity.Error);
+  const hasWarnings = hasValidationsOfSeverity(mappedValidations, Severity.Warning);
   if (hasErrors || (stopWithWarnings && hasWarnings)) {
     // we have validation errors or warnings that should be shown, do not submit
     return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));

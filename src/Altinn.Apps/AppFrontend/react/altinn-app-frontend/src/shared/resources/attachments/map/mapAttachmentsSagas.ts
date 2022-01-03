@@ -1,7 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, take, takeLatest } from 'redux-saga/effects';
 import { IData, IInstance } from 'altinn-shared/types';
-import { getCurrentTaskData } from 'altinn-shared/utils';
 import { IAttachments } from '..';
 import { IRuntimeState } from '../../../../types';
 import { mapAttachmentListToAttachments } from '../../../../utils/attachment';
@@ -9,6 +8,7 @@ import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import { IApplicationMetadata } from '../../applicationMetadata';
 import { FETCH_APPLICATION_METADATA_FULFILLED } from '../../applicationMetadata/actions/types';
+import { getCurrentTaskData } from 'src/utils/appMetadata';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {
   yield takeLatest(AttachmentActionsTypes.MAP_ATTACHMENTS, mapAttachments);

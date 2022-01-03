@@ -16,8 +16,8 @@ import {
 } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState, ISimpleInstance } from 'src/types';
+import { useAppSelector } from 'src/common/hooks';
+import { ISimpleInstance } from 'src/types';
 import { getInstanceUiUrl } from '../../../utils/urlHelper';
 
 export interface IInstanceSelectionProps {
@@ -63,9 +63,7 @@ export default function InstanceSelection({
   instances,
   onNewInstance,
 }: IInstanceSelectionProps) {
-  const language = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
+  const language = useAppSelector(state => state.language.language);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
   const openInstance = (instanceId: string) => {
@@ -82,7 +80,6 @@ export default function InstanceSelection({
           {instances.map((instance) => {
             return (
               <AltinnMobileTableItem
-                // eslint-disable-next-line react-perf/jsx-no-new-array-as-prop
                 items={[
                   {
                     label: getLanguageFromKey(

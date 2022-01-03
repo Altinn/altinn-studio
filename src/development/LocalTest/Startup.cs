@@ -23,6 +23,8 @@ using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Events.Implementation;
+using LocalTest.Services.LocalApp.Implementation;
+using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
@@ -36,6 +38,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using LocalTest.Services.Localtest.Interface;
@@ -131,10 +135,25 @@ namespace LocalTest
                 // Adding custom model binders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
+            
+            services.AddDirectoryBrowser();
+
+            // Access local app details depending on LocalAppMode ("file" or "http")
+            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
+            {
+                services.AddTransient<ILocalApp, LocalAppHttp>();
+            }
+            else
+            {
+                services.AddTransient<ILocalApp, LocalAppFile>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             if (env.IsDevelopment())
             {
@@ -149,7 +168,19 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
+            
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage",
+                ServeUnknownFileTypes = true,
+            });
+
+            app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage"
+            });
             app.UseStaticFiles();
 
             app.UseRouting();

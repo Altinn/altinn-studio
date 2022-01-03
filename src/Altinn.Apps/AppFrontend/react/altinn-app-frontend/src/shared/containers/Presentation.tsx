@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   AltinnAppHeader,
   AltinnSubstatusPaper,
 } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty, IInstance } from 'altinn-shared/types';
+import { IParty } from 'altinn-shared/types';
 import {
   returnUrlToMessagebox,
   getTextResourceByKey,
@@ -13,9 +12,7 @@ import {
   returnUrlFromQueryParameter
 } from 'altinn-shared/utils';
 import {
-  IRuntimeState,
   ProcessTaskType,
-  ITextResource,
   PresentationType,
 } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
@@ -25,6 +22,7 @@ import { getRedirectUrl } from 'src/utils/urlHelper';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/presentation/Header';
 import NavBar from '../../components/presentation/NavBar';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IPresentationProvidedProps {
   header: string;
@@ -37,26 +35,14 @@ const style = {
 };
 
 const PresentationComponent = (props: IPresentationProvidedProps) => {
-  const dispatch = useDispatch();
-  const party: IParty = useSelector((state: IRuntimeState) =>
-    state.party ? state.party.selectedParty : ({} as IParty),
-  );
-  const language: any = useSelector((state: IRuntimeState) =>
-    state.language ? state.language.language : {},
-  );
-  const hideCloseButton: boolean = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.hideCloseButton,
-  );
-  const instance: IInstance = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance,
-  );
-  const userParty: IParty = useSelector((state: IRuntimeState) =>
-    state.profile.profile ? state.profile.profile.party : ({} as IParty),
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const previousFormPage: string = useSelector((state: IRuntimeState) =>
+  const dispatch = useAppDispatch();
+  const party = useAppSelector(state => state.party?.selectedParty || ({} as IParty));
+  const language = useAppSelector(state => state.language.language || {});
+  const hideCloseButton = useAppSelector(state => state.formLayout.uiConfig.hideCloseButton);
+  const instance = useAppSelector(state => state.instanceData.instance);
+  const userParty = useAppSelector(state => state.profile.profile?.party || ({} as IParty));
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const previousFormPage: string = useAppSelector(state =>
     getNextView(
       state.formLayout.uiConfig.navigationConfig[
         state.formLayout.uiConfig.currentView
@@ -66,9 +52,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       true,
     ),
   );
-  const returnToView = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.returnToView,
-  );
+  const returnToView = useAppSelector(state => state.formLayout.uiConfig.returnToView);
 
   const handleBackArrowButton = () => {
     if (returnToView) {
@@ -128,7 +112,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       <div className='container'>
         <div className='row'>
           <div className='col-xl-12 a-p-static'>
-            <ErrorReport language={language} />
+            <ErrorReport />
             {isProcessStepsArchived && instance?.status?.substatus && (
               <AltinnSubstatusPaper
                 label={getTextResourceByKey(
