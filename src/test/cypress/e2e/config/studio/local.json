@@ -4,12 +4,10 @@
   "env": {
     "autoTestUser": "testuser",
     "autoTestUserPwd": "Studio@123",
-    "noDeployUser": "automatedtest@email.com",
     "testEmail": "test1@test.com",
     "deployApp": "ttd/deploy",
     "designerApp": "ttd/designer",
     "withoutDataModelApp": "ttd/appwithout-dm",
-    "rulesApp": "ttd/rulesservice",
     "appOwner": "ttd"
   },
   "defaultCommandTimeout": 20000,
