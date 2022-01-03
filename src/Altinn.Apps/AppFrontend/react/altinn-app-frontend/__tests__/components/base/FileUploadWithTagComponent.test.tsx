@@ -92,11 +92,6 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => { // TODO
     mockGetTextResourceAsString = () => 'test';
   });
 
-  it('+++ should match snapshot', () => {
-    const {asFragment} = renderFileUploadWithTagComponent();
-    expect(asFragment()).toMatchSnapshot();
-  });
-
   it('+++ should show spinner when file is uploading or updating ', () => {
     const wrapper = mount(
       <Provider store={mockStore}>
