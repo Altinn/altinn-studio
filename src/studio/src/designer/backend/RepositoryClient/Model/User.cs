@@ -9,18 +9,11 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using SwaggerDateConverter = Altinn.Studio.Designer.RepositoryClient.Client.SwaggerDateConverter;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
@@ -30,6 +23,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     [DataContract]
     public partial class User : IEquatable<User>, IValidatableObject
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="User"/> class.
+        /// </summary>
+        public User()
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="User" /> class.
         /// </summary>

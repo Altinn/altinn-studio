@@ -10,6 +10,7 @@ export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
+export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const updateCookieUrl: (partyId: string) => string = (
   partyId: string,
 ) => `
@@ -84,22 +85,23 @@ export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
   )}&reqAuthLevel=${reqAuthLevel}`;
 }
 
-export const getEnvironmentLoginUrl: () => string = () => {
+export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
+  let issParam = '';
+  if (oidcprovider != null && oidcprovider != '') {
+    issParam = `&iss=${oidcprovider}`;
+  }
+
   if (domainSplitted.length === 5) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`
-    );
+    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   if (domainSplitted.length === 4) {
-    return (
-      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`
-    );
+    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
   }
 
   // TODO: what if altinn3?

@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies" Version="1.2.4" />
     <PackageReference Include="FluentAssertions" Version="6.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.13" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
@@ -76,6 +76,7 @@
     <None Remove="_TestData\Model\JsonSchema\restriction-max-min-integer.schema.json" />
     <None Remove="_TestData\Model\Xsd\restriction-max-min-integer.xsd" />
     <None Remove="_TestData\Remote\ttd\apps-test\App\config\authorization\policy.xml" />
+    <None Remove="_TestData\RepoCollection\Repositories.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\App\config\applicationmetadata.json" />
     <None Remove="_TestData\Repositories\testUser\ttd\empty-app\README.md" />
     <None Remove="_TestData\Remote\ttd\existing-repo\content.json" />

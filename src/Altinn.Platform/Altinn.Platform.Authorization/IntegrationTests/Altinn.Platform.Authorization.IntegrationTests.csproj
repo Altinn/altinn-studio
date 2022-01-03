@@ -6,7 +6,7 @@
   </PropertyGroup>
 
 <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.13" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
@@ -60,6 +60,8 @@
 
   <ItemGroup>
     <None Remove="Data\blobs\input\skd\taxreport\1000\u20001337\delegationpolicy.xml" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App1Request.json" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App2Request.json" />
     <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationRequest.xml" />
     <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationResponse.xml" />
   </ItemGroup>

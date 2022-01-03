@@ -16,11 +16,6 @@ namespace Altinn.Platform.Authorization.Constants
             public const string PolicyId = "urn:altinn:policyid:";
 
             /// <summary>
-            /// The Rule Id prefix.
-            /// </summary>
-            public const string RuleId = "urn:altinn:ruleid:";
-
-            /// <summary>
             /// The Obligation Id prefix.
             /// </summary>
             public const string ObligationId = "urn:altinn:obligationid:";

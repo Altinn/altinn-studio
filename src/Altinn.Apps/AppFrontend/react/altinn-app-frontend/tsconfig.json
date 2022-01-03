@@ -1,25 +1,14 @@
 {
   "compilerOptions": {
     "skipLibCheck": true,
-    "types": [
-      "node",
-      "jest"
-    ],
     "baseUrl": ".",
     "paths": {
-      "altinn-shared/*": [
-        "../shared/src/*",
-      ]
+      "altinn-shared/*": ["../shared/src/*"]
     },
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
-    "lib": [
-      "es6",
-      "dom",
-      "es7",
-      "esnext"
-    ],
+    "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -29,16 +18,13 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [
-    "./src/**/*",
-  ],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "node_modules",
     "build",
     "scripts",
     "acceptance-tests",
     "webpack",
-    "jest",
-    "src/setupTests.ts"
+    "jest"
   ]
 }

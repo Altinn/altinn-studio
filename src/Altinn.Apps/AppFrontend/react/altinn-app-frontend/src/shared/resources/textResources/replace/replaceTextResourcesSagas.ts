@@ -41,6 +41,7 @@ export function* watchReplaceTextResourcesSaga(): SagaIterator {
   yield call(replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.fetchFormDataFulfilled, replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.updateFormDataFulfilled, replaceTextResourcesSaga);
+  yield takeLatest(FormDataActions.updateFormDataSkipAutosave, replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.setFormDataFulfilled, replaceTextResourcesSaga);
 }
 

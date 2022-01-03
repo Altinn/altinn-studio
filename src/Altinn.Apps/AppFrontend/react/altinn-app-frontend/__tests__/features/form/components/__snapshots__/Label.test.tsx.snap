@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> features/form/components/Label.tsx +++ should not render optional because labelSettings.optionalIndicator is false 1`] = `
+exports[`features > form > components >Label.tsx should not render optional because labelSettings.optionalIndicator is false 1`] = `
 <div
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
@@ -18,7 +18,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 </div>
 `;
 
-exports[`>>> features/form/components/Label.tsx +++ should not render optional because readOnly 1`] = `
+exports[`features > form > components >Label.tsx should not render optional because readOnly 1`] = `
 <div
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
@@ -36,7 +36,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 </div>
 `;
 
-exports[`>>> features/form/components/Label.tsx +++ should not render optional because required 1`] = `
+exports[`features > form > components >Label.tsx should not render optional because required 1`] = `
 <div
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
@@ -54,7 +54,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 </div>
 `;
 
-exports[`>>> features/form/components/Label.tsx +++ should not render optional because required is true even when labelSettings.optionalIndicator is true 1`] = `
+exports[`features > form > components >Label.tsx should not render optional because required is true even when labelSettings.optionalIndicator is true 1`] = `
 <div
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >
@@ -72,7 +72,7 @@ exports[`>>> features/form/components/Label.tsx +++ should not render optional b
 </div>
 `;
 
-exports[`>>> features/form/components/Label.tsx +++ should render optional 1`] = `
+exports[`features > form > components >Label.tsx should render optional 1`] = `
 <div
   className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
 >

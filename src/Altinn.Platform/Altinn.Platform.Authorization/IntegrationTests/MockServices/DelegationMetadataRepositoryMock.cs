@@ -45,7 +45,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 IsDeleted = isDeleted,
                 Created = DateTime.Now
             };
-
+    
             current.Add(currentDelegationChange);
 
             if (string.IsNullOrEmpty(altinnAppId) || altinnAppId == "error/postgrewritechangefail")
@@ -65,10 +65,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 case "org1/app3":
                 case "org2/app3":
                 case "org1/app4":
+                case "error/blobstorageleaselockwritefail":
+                case "error/postgrewritechangefail":
                     result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId);
                     break;
+                case "org1/app5":
+                    result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId, isDeleted: true);
+                    break;
                 case "error/postgregetcurrentfail":
-                    throw new Exception("Some exception happened");            
+                    throw new Exception("Some exception happened");
                 default:
                     result = null;
                     break;
@@ -106,6 +111,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             if (altinnAppIds.Any(appId => appId == "org1/app1") && offeredByPartyIds.Contains(50001337) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
             {
                 result.Add(TestDataHelper.GetDelegationChange("org1/app1", 50001337, coveredByPartyId: 50001336));
+            }
+
+            if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001337) && (coveredByUserIds != null && coveredByUserIds.Contains(20001336)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001337, coveredByUserId: 20001336, performedByUserId: 20001337));
+            }
+
+            if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001337) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001337, coveredByPartyId: 50001336, performedByUserId: 20001337));
+            }
+
+            if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001338) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001339)))
+            {
+                result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001338, coveredByPartyId: 50001339, performedByUserId: 20001338));
             }
 
             return Task.FromResult(result);
