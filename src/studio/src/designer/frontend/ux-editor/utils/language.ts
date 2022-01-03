@@ -40,6 +40,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.FileUpload: {
       return language.ux_editor.component_file_upload;
     }
+    case ComponentTypes.FileUploadWithTag: {
+      return language.ux_editor.component_file_upload_with_tag;
+    }
     case ComponentTypes.Header: {
       return language.ux_editor.component_header;
     }

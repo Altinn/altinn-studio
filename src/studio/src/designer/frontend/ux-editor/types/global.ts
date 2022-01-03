@@ -123,6 +123,16 @@ declare global {
     validFileEndings?: string;
   }
 
+  export interface IFormFileUploaderWithTagComponent extends IFormComponent {
+    description: string;
+    hasCustomFileEndings: boolean;
+    maxFileSizeInMB: number;
+    maxNumberOfAttachments: number;
+    minNumberOfAttachments: number;
+    validFileEndings?: string;
+    optionsId: string;
+  }
+
   export interface IFormDesignerActionRejected {
     error: Error;
   }
@@ -164,6 +174,7 @@ declare global {
     | IFormRadioButtonComponent
     | IFormDropdownComponent
     | IFormFileUploaderComponent
+    | IFormFileUploaderWithTagComponent
     | IFormAddressComponent
     | IFormImageComponent;
 
