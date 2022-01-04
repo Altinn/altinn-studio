@@ -55,8 +55,6 @@
     "fork-ts-checker-notifier-webpack-plugin": "^4.0.0",
     "fork-ts-checker-webpack-plugin": "^6.5.0",
     "jest": "^27.4.3",
-    "jest-environment-enzyme": "^7.1.2",
-    "jest-enzyme": "^7.1.2",
     "jest-junit": "^12.3.0",
     "jsdom": "^16.7.0",
     "msw": "^0.36.3",

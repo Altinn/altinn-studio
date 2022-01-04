@@ -214,7 +214,6 @@ export function SummaryComponent(props: ISummaryComponent) {
         {hasValidationMessages && (
           <Grid
             container={true}
-            // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
             style={{ paddingTop: '12px' }}
             spacing={2}
           >

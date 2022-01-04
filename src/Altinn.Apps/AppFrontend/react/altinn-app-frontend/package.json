@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "3.19.2",
+  "version": "3.22.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -120,7 +120,7 @@
       "json"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.js"
+      "<rootDir>/setupTests.ts"
     ],
     "collectCoverageFrom": [
       "!__tests__/**/*",

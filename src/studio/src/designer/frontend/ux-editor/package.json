@@ -43,6 +43,9 @@
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
     "@babel/preset-react": "^7.16.0",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
     "@types/classnames": "^2.3.1",
     "@types/deepmerge": "^2.2.0",
     "@types/enzyme": "^3.10.10",
@@ -106,8 +109,8 @@
       "js"
     ],
     "testEnvironment": "jsdom",
-    "setupFiles": [
-      "<rootDir>/test/setupTests.js"
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTests.ts"
     ]
   }
 }

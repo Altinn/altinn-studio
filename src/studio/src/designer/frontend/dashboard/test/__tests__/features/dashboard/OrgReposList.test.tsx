@@ -9,11 +9,11 @@ import { userApi } from '../../../../services/userApi';
 import { getDefaultMiddleware } from '@reduxjs/toolkit';
 
 jest.spyOn(repoApi, 'useGetSearchQuery').
-  mockImplementation(jest.fn().mockReturnValue({ data: [], isLoading: false}));
+  mockImplementation(jest.fn().mockReturnValue({ data: [], isLoading: false }));
 jest.spyOn(organizationApi, 'useGetOrganizationsQuery').
-  mockImplementation(jest.fn().mockReturnValue({ data: []}));
+  mockImplementation(jest.fn().mockReturnValue({ data: [] }));
 jest.spyOn(userApi, 'useGetUserStarredReposQuery').
-  mockImplementation(jest.fn().mockReturnValue({ data: [], isLoading: false}));
+  mockImplementation(jest.fn().mockReturnValue({ data: [], isLoading: false }));
 
 
 describe('Dashboard > Common > Components > OrgReposList', () => {

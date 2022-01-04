@@ -127,7 +127,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return policy;
         }
 
-        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId = 0, int? coveredByUserId = null, int? coveredByPartyId = null)
+        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId = 0, int? coveredByUserId = null, int? coveredByPartyId = null, bool isDeleted = false)
         {
             string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
             return new DelegationChange
@@ -138,7 +138,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
                 CoveredByPartyId = coveredByPartyId,
                 CoveredByUserId = coveredByUserId,
                 Created = DateTime.Now,
-                IsDeleted = false,
+                IsDeleted = isDeleted,
                 OfferedByPartyId = offeredByPartyId,
                 PerformedByUserId = 20001336,
                 PolicyChangeId = new Random().Next()

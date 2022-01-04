@@ -46,6 +46,9 @@
     "@babel/polyfill": "^7.12.1",
     "@babel/preset-env": "^7.16.4",
     "@babel/preset-react": "^7.16.0",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^13.5.0",
     "@types/classnames": "^2.3.1",
     "@types/enzyme": "^3.10.10",
     "@types/jest": "^27.0.3",
@@ -72,6 +75,7 @@
     "jest-enzyme": "^7.1.2",
     "jest-junit": "^12.3.0",
     "mini-css-extract-plugin": "^1.6.2",
+    "msw": "^0.36.3",
     "prettier": "^2.5.1",
     "react-test-renderer": "^17.0.2",
     "redux-mock-store": "^1.5.4",
@@ -104,6 +108,7 @@
       "^features/(.*)": "<rootDir>/features/$1",
       "^common/(.*)": "<rootDir>/common/$1",
       "^services/(.*)": "<rootDir>/services/$1",
+      "^test/(.*)": "<rootDir>/test/$1",
       "^@altinn/schema-editor/(.*)": "<rootDir>/../packages/schema-editor/src/$1"
     },
     "testRegex": "(/test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
@@ -113,8 +118,8 @@
       "js"
     ],
     "testEnvironment": "jsdom",
-    "setupFiles": [
-      "<rootDir>/test/setupTests.js"
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTests.ts"
     ]
   },
   "browserslist": [
