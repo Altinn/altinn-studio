@@ -198,6 +198,7 @@
     <Folder Include="Data\apps\ttd\externalprefil\config\texts\" />
     <Folder Include="Data\apps\ttd\externalprefil\ui\layouts\" />
     <Folder Include="Data\Instances\ttd\datafields-app\1337\" />
+    <Folder Include="Process\" />
   </ItemGroup>
 
 </Project>

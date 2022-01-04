@@ -119,7 +119,7 @@ namespace Altinn.App.PlatformServices.Implementation
             if (nextElementError != null)
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
-                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Unable to goto next element due to { nextElementError.Code}-{ nextElementError.Text}", Type = "Conflict" });
+                processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Unable to goto next element due to {nextElementError.Code}-{nextElementError.Text}", Type = "Conflict" });
                 return processChange;
             }
 
