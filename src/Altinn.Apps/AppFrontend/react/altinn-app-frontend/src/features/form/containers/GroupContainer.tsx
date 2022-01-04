@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Grid } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -25,6 +25,20 @@ export interface IGroupProps {
 const gridStyle = {
   paddingTop: '12px',
 };
+
+const useStyles = makeStyles({
+  minusMargin: {
+    left: 'calc(0px + 24px)',
+    width: 'calc(100% + 48px)',
+    position: 'relative',
+    marginLeft: '-48px',
+    '@media (min-width:768px)': {
+      left: 'calc(-117px + 154px)',
+      width: 'calc(100% + 154px)',
+      marginLeft: '-74px',
+    },
+  }
+});
 
 export function GroupContainer({
   id,
@@ -193,12 +207,14 @@ export function GroupContainer({
     );
   };
 
+  const classes = useStyles();
+
   if (hidden) {
     return null;
   }
 
   return (
-    <Grid container={true} item={true}>
+    <Grid container={true} item={true} className={classes.minusMargin}>
       {(!container.edit?.mode ||
         container.edit?.mode === 'showTable' ||
         (container.edit?.mode === 'hideTable' && editIndex < 0)) && (
