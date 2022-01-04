@@ -108,7 +108,7 @@ namespace Altinn.App.PlatformServices.Implementation
             };
             processChange.ProcessStateChange = processStateChange;
 
-            if (processChange.DontUpdateProcessAndDispatchEvents)
+            if (!processChange.DontUpdateProcessAndDispatchEvents)
             {
                 processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
             }
