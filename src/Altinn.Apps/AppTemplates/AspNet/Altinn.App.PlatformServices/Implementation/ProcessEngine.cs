@@ -61,7 +61,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 return processChange;
             }
 
-            // Find next valid element. Later this will be dynamic
+             // Find next valid element. Later this will be dynamic
             processChange.RequestedProcessElementId = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError nextElementError);
             if (nextElementError != null)
             {
@@ -111,6 +111,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 return processChange;
             }
 
+            processChange.ProcessFlowElements = new List<string>();
             processChange.ProcessFlowElements.Add(validStartElement);
 
             // find next task

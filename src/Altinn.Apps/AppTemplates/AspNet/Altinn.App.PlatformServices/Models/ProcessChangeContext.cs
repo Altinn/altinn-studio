@@ -64,5 +64,10 @@ namespace Altinn.App.PlatformServices.Models
         /// The ProcessSequenceFlowType
         /// </summary>
         public ProcessSequenceFlowType ProcessSequenceFlowType { get; set; }
+
+        /// <summary>
+        /// Defines if the process handler should not handle events
+        /// </summary>
+        public bool DontUpdateProcessAndDispatchEvents { get; set; }
     }
 }

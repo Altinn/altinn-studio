@@ -86,7 +86,8 @@ namespace Altinn.App.Api.Controllers
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfile profileClient)
+            IProfile profileClient,
+            IProcessEngine processEngine)
         {
             _logger = logger;
             _instanceClient = instanceClient;
@@ -100,6 +101,7 @@ namespace Altinn.App.Api.Controllers
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
             _profileClientClient = profileClient;
+            _processEngine = processEngine;
         }
 
         /// <summary>
@@ -327,13 +329,13 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instansiationInstance">instansiation information</param>
         /// <returns>The new instance</returns>
-        [HttpPost("create")]
+        [HttpPost("createold")]
         [DisableFormValueModelBinding]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [RequestSizeLimit(RequestSizeLimit)]
-        public async Task<ActionResult<Instance>> PostSimplified(
+        public async Task<ActionResult<Instance>> PostSimplifiedold(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstansiationInstance instansiationInstance)
@@ -490,13 +492,13 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instansiationInstance">instansiation information</param>
         /// <returns>The new instance</returns>
-        [HttpPost("createv2")]
+        [HttpPost("create")]
         [DisableFormValueModelBinding]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [RequestSizeLimit(RequestSizeLimit)]
-        public async Task<ActionResult<Instance>> PostSimplifiedv2(
+        public async Task<ActionResult<Instance>> PostSimplified(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstansiationInstance instansiationInstance)
@@ -587,8 +589,13 @@ namespace Altinn.App.Api.Controllers
             {
                 // start process and goto next task
                 instanceTemplate.Process = null;
-                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
-                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                ProcessChangeContext processChangeContext = new ProcessChangeContext();
+                processChangeContext.Instance = instanceTemplate;
+                processChangeContext.User = User;
+                processChangeContext.Prefill = instansiationInstance.Prefill;
+                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                processResult = processChangeContext.ProcessStateChange;
 
                 string userOrgClaim = User.GetOrg();
 
@@ -629,9 +636,9 @@ namespace Altinn.App.Api.Controllers
 
                 instance = await _instanceClient.GetInstance(instance);
 
-                // notify app and store events
-                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instansiationInstance.Prefill);
-                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+                processChangeContext.Instance = instance;
+
+                await _processEngine.StartTask(processChangeContext);
             }
             catch (Exception exception)
             {

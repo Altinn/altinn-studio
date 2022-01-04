@@ -107,15 +107,20 @@ namespace Altinn.App.PlatformServices.Implementation
                 Events = new List<InstanceEvent> { startEvent, goToNextEvent }
             };
             processChange.ProcessStateChange = processStateChange;
-            processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+
+            if (processChange.DontUpdateProcessAndDispatchEvents)
+            {
+                processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+            }
            
             return processChange;
         }
 
         /// <inheritdoc />
-        public Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> HandleStartTask(ProcessChangeContext processChange)
         {
-            return Task.FromResult(processChange);
+            processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
+            return processChange;
         }
 
         /// <inheritdoc />
