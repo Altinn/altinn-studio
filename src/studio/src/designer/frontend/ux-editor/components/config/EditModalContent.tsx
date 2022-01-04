@@ -91,6 +91,16 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
+  public handleTagTitleChange = (e: any): void => {
+    this.setState((prevState: IEditModalContentState) => {
+      const updatedComponent = prevState.component;
+      updatedComponent.textResourceBindings.tagTitle = e ? e.value : null;
+      return {
+        component: updatedComponent,
+      };
+    }, () => this.props.handleComponentUpdate(this.state.component));
+  }
+
   public handleIdChange = (event: any) => {
     this.setState({
       tmpId: event.target.value,
@@ -771,6 +781,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 this.props.language,
                 this.state.component.textResourceBindings?.description,
                 this.props.component.textResourceBindings?.description)}
+              {renderSelectTextFromResources('modal_properties_tag_helper',
+                this.handleTagTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.state.component.textResourceBindings?.tagTitle,
+                this.props.component.textResourceBindings?.tagTitle)}
             </Grid>
             <Grid item={true} xs={12}>
               <AltinnInputField
