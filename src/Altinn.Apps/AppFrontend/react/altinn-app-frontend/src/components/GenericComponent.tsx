@@ -123,6 +123,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   React.useEffect(() => {
     setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
