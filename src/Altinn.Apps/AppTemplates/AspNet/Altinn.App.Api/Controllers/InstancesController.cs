@@ -63,7 +63,6 @@ namespace Altinn.App.Api.Controllers
 
         private readonly IAppResources _appResourcesService;
         private readonly IAltinnApp _altinnApp;
-        private readonly IProcess _processService;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
         private readonly IProcessEngine _processEngine;
@@ -81,7 +80,6 @@ namespace Altinn.App.Api.Controllers
             IData dataClient,
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
-            IProcess processService,
             IPDP pdp,
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
@@ -95,7 +93,6 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerClient = registerClient;
             _altinnApp = altinnApp;
-            _processService = processService;
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
