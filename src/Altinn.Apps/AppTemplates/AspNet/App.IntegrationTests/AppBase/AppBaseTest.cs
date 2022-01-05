@@ -190,9 +190,7 @@ namespace App.IntegrationTestsRef.AppBase
         [Fact]
         public async void OnTaskEnd_EFormidlingEnabled_GenerateMetadataNotImplemented()
         {
-            string expected = "No method available for generating arkivmelding for eFormidling shipment.";
             string token = PrincipalUtil.GetToken(1337);
-
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "eformidling-app-invalid");
 
             Instance instance = await CreateInstance("ttd", "eformidling-app-invalid");
@@ -202,18 +200,10 @@ namespace App.IntegrationTestsRef.AppBase
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
 
-            try
-            {
-                await client.SendAsync(httpRequestMessage);
-            }
-            catch (Exception e)
-            {
-                Assert.Equal(expected, e.Message);
-            }
-            finally
-            {
-                DeleteInstance(instance);
-            }
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            DeleteInstance(instance);
+
+            Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
         }
 
         [Fact]

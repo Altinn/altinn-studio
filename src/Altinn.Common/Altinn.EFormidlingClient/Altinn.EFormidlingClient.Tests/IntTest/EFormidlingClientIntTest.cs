@@ -43,7 +43,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Get_Capabilities() 
         {        
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            var result = await service.GetCapabilities("984661185");
+            var result = await service.GetCapabilities("984661185", null);
 
             Assert.Equal(typeof(Capabilities), result.GetType());
             Assert.IsType<Capabilities>(result);
@@ -57,9 +57,9 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Get_Capabilities_Invalid_ParameterInput()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            var result = await service.GetCapabilities("984661185");
+            var result = await service.GetCapabilities("984661185", null);
 
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(string.Empty));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(string.Empty, null));
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;        
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
             
-            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);     
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd, null);     
             Assert.Equal(JsonSerializer.Serialize(sbdVerified), JsonSerializer.Serialize(sbd));
         }
 
@@ -101,7 +101,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Get_Conversation_By_Id()
         {
             var myService = _serviceProvider.GetService<IEFormidlingClient>();
-            Conversation conversation = await myService.GetConversationByMessageId(_guid);
+            Conversation conversation = await myService.GetConversationByMessageId(_guid, null);
 
             Assert.NotNull(conversation);
         }
@@ -130,7 +130,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
-            _ = await service.CreateMessage(sbd);
+            _ = await service.CreateMessage(sbd, null);
 
             string filename = "arkivmelding.xml";
             bool sendArkivmelding = false;
@@ -139,7 +139,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             {
                 if (fs.Length > 3)
                 {
-                    sendArkivmelding = await service.UploadAttachment(fs, _guid, filename);
+                    sendArkivmelding = await service.UploadAttachment(fs, _guid, filename, null);
                 }
             }
 
@@ -168,7 +168,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
 
-            WebException ex = await Assert.ThrowsAsync<WebException>(async () => await service.CreateMessage(sbd));
+            WebException ex = await Assert.ThrowsAsync<WebException>(async () => await service.CreateMessage(sbd, null));
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
-            _ = await service.CreateMessage(sbd);
+            _ = await service.CreateMessage(sbd, null);
 
             string filename = "test.pdf";
             bool sendBinaryFile = false;
@@ -207,7 +207,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             {
                 if (fs.Length > 3)
                 {
-                    sendBinaryFile = await service.UploadAttachment(fs, _guid, filename);
+                    sendBinaryFile = await service.UploadAttachment(fs, _guid, filename, null);
                 }
             }
 
@@ -222,7 +222,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Message()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            var completeSending = await service.SendMessage(_guid);
+            var completeSending = await service.SendMessage(_guid, null);
 
             Assert.True(completeSending);
         }
@@ -260,14 +260,14 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
 
-            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd);
+            await service.CreateMessage(sbd, null);
 
             string filename = "arkivmelding.xml";
             using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
             {
                 if (fs.Length > 3)
                 {
-                    _ = await service.UploadAttachment(fs, _guid, filename);
+                    _ = await service.UploadAttachment(fs, _guid, filename, null);
                 }
             }
 
@@ -276,11 +276,11 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             {
                 if (fs.Length > 3)
                 {
-                    _ = await service.UploadAttachment(fs, _guid, filenameAttachment);
+                    _ = await service.UploadAttachment(fs, _guid, filenameAttachment, null);
                 }
             }
 
-            await service.SendMessage(_guid);
+            await service.SendMessage(_guid, null);
             Thread.Sleep(20000);
 
             var httpClient = new HttpClient();
@@ -291,7 +291,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             HttpResponseMessage response = await httpClient.GetAsync($"{baseUrl}messages/in/peek?serviceIdentifier=DPO");
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            StandardBusinessDocument sbdLocked = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
+            JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
             response = await httpClient.GetAsync($"{baseUrl}messages/in/pop/{messageId}");
 
             FileInfo fileInfo;
@@ -299,10 +299,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             using (var stream = response.Content.ReadAsStreamAsync().Result)
             {
                 fileInfo = new FileInfo("sent_package.zip");
-                using (var fileStream = fileInfo.OpenWrite()) 
-                {
-                    await stream.CopyToAsync(fileStream);                         
-                }
+                using var fileStream = fileInfo.OpenWrite();
+                await stream.CopyToAsync(fileStream);
             }
                            
             response = await httpClient.DeleteAsync($"{baseUrl}messages/in/{messageId}");

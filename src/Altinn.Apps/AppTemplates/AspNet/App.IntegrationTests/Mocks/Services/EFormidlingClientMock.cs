@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -15,7 +16,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
     public class EFormidlingClientMock : IEFormidlingClient
     {
         /// <inheritdoc/>
-        public Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd)
+        public Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd, Dictionary<string, string> requestHeaders)
         {
             var jsonContent = JsonSerializer.Serialize(sbd);
             byte[] buffer = Encoding.UTF8.GetBytes(jsonContent);
@@ -26,62 +27,62 @@ namespace App.IntegrationTestsRef.Mocks.Services
             return Task.FromResult(sbd);
         }
 
-        public Task<bool> UploadAttachment(Stream stream, string id, string filename)
+        public Task<bool> UploadAttachment(Stream stream, string id, string filename, Dictionary<string, string> requestHeaders)
         {
             return Task.FromResult(true);
         }
 
-        public Task<bool> SendMessage(string id)
+        public Task<bool> SendMessage(string id, Dictionary<string, string> requestHeaders)
         {
             return Task.FromResult(true);
         }
 
-        public Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter)
+        public Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> SubscribeeFormidling(CreateSubscription subscription)
+        public Task<bool> SubscribeeFormidling(CreateSubscription subscription, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UnSubscribeeFormidling(int id)
+        public Task<bool> UnSubscribeeFormidling(int id, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task FindOutGoingMessages(string serviceIdentifier)
+        public Task FindOutGoingMessages(string serviceIdentifier, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Conversation> GetAllConversations()
+        public Task<Conversation> GetAllConversations(Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Statuses> GetAllMessageStatuses()
+        public Task<Statuses> GetAllMessageStatuses(Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Capabilities> GetCapabilities(string orgId)
+        public Task<Capabilities> GetCapabilities(string orgId, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Conversation> GetConversationById(string id)
+        public Task<Conversation> GetConversationById(string id, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Conversation> GetConversationByMessageId(string id)
+        public Task<Conversation> GetConversationByMessageId(string id, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Statuses> GetMessageStatusById(string id)
+        public Task<Statuses> GetMessageStatusById(string id, Dictionary<string, string> requestHeaders)
         {
             throw new NotImplementedException();
         }
