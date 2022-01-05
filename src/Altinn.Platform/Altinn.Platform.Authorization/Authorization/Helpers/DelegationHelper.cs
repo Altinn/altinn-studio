@@ -286,28 +286,33 @@ namespace Altinn.Platform.Authorization.Helpers
                 if (TryGetDelegationParamsFromRule(rule, out _, out _, out _, out int? coveredByPartyId, out int? coveredByUserId, out _)
                     && rule.Type == RuleType.None)
                 {
-                    if ((TryGetCoveredByUserIdFromMatch(coveredBy, out int coveredByUserIdFromRequest) && coveredByUserIdFromRequest == coveredByUserId)
-                        || (TryGetCoveredByPartyIdFromMatch(coveredBy, out int coveredByPartyIdFromRequest) && coveredByPartyIdFromRequest == coveredByPartyId))
-                    {
-                        rule.Type = RuleType.DirectlyDelegated;
-                    }
-                    else if (TryGetCoveredByUserIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
-                    {
-                        rule.Type = RuleType.InheritedViaKeyRole;
-                    }
-                    else if (parentPartyId == coveredByPartyId)
-                    {
-                        rule.Type = RuleType.InheritedAsSubunit;
-                    }
-                    else if (TryGetCoveredByPartyIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
-                    {
-                        rule.Type = RuleType.InheritedAsSubunitViaKeyrole;
-                    }
-                    else
-                    {
-                        rule.Type = RuleType.None;
-                    }
+                    SetTypeForSingleRule(keyRolePartyIds, coveredBy, parentPartyId, rule, coveredByPartyId, coveredByUserId);
                 }
+            }
+        }
+
+        private static void SetTypeForSingleRule(List<int> keyRolePartyIds, List<AttributeMatch> coveredBy, int parentPartyId, Rule rule, int? coveredByPartyId, int? coveredByUserId)
+        {
+            if ((TryGetCoveredByUserIdFromMatch(coveredBy, out int coveredByUserIdFromRequest) && coveredByUserIdFromRequest == coveredByUserId)
+                || (TryGetCoveredByPartyIdFromMatch(coveredBy, out int coveredByPartyIdFromRequest) && coveredByPartyIdFromRequest == coveredByPartyId))
+            {
+                rule.Type = RuleType.DirectlyDelegated;
+            }
+            else if (TryGetCoveredByUserIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+            {
+                rule.Type = RuleType.InheritedViaKeyRole;
+            }
+            else if (parentPartyId == coveredByPartyId)
+            {
+                rule.Type = RuleType.InheritedAsSubunit;
+            }
+            else if (TryGetCoveredByPartyIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+            {
+                rule.Type = RuleType.InheritedAsSubunitViaKeyrole;
+            }
+            else
+            {
+                rule.Type = RuleType.None;
             }
         }
     }

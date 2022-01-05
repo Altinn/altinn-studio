@@ -38,7 +38,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange delegationChange in delegationChanges)
             {
-                if (delegationChange.IsDeleted == false)
+                if (!delegationChange.IsDeleted)
                 {
                     XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegationChange.BlobStoragePolicyPath, delegationChange.BlobStorageVersionId);
                     rules.AddRange(GetRulesFromPolicyAndDelegationChange(policy.Rules, delegationChange));
