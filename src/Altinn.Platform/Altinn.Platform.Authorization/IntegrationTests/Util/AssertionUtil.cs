@@ -196,6 +196,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             }
             
             AssertCollections(expected.AppId, actual.AppId, AssertAttributeMatchEqual);
+            Assert.Equal(expected.MinimumAuthenticationLevel, actual.MinimumAuthenticationLevel);
+
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);

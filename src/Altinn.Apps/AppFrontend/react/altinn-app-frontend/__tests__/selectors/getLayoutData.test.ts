@@ -2,7 +2,7 @@
 import 'jest';
 import { makeGetFocus, makeGetHidden } from '../../src/selectors/getLayoutData';
 
-describe('>>> selectors/getLayoutData.test.tsx', () => {
+describe('selectors > getLayoutData', () => {
   let initialState: any;
   let mockProps: any;
   let mockPropsFocus: any;

@@ -9,6 +9,7 @@ import FormRuleReducer from '../features/form/rules/rulesReducer';
 import ValidationReducer from '../features/form/validation/validationSlice';
 import InstantiationReducer from '../features/instantiate/instantiation/reducer';
 import ApplicationMetadataReducer from '../shared/resources/applicationMetadata/reducer';
+import ApplicationSettingsReducer from '../shared/resources/applicationSettings/applicationSettingsSlice';
 import AttachmentReducer from '../shared/resources/attachments/attachmentReducer';
 import InstanceDataReducer from '../shared/resources/instanceData/instanceDataReducers';
 import LanguageReducer from '../shared/resources/language/languageReducers';
@@ -41,6 +42,7 @@ const reducers = {
   queue: QueueReducer,
   textResources: TextResourcesReducer,
   optionState: OptionsReducer,
+  applicationSettings: ApplicationSettingsReducer,
   [appApi.reducerPath]: appApi.reducer,
 };
 

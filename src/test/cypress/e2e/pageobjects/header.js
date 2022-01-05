@@ -1,4 +1,14 @@
 //Selectors in header of studio common to all pages
-export const header = 'header';
-export const profileButton = "button[aria-label*='profilikon']";
-export const menuItem = "li[role='menuitem']";
+export const header = {
+  profileIcon: '#profile-icon-button',
+  profileIconDesigner: "button[aria-label*='profilikon']",
+  menu: {
+    all: '#menu-all',
+    self: '#menu-self',
+    org: "[id='menu-org*']",
+    gitea: '#menu-gitea',
+    logOut: '#menu-logout',
+    openRepo: 'a[href*="repos"]',
+    docs: 'a[href="https://docs.altinn.studio/"]',
+  },
+};

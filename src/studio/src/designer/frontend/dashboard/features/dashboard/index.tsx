@@ -1,19 +1,22 @@
 import * as React from 'react';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, createTheme } from '@material-ui/core';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
+import { Link } from 'react-router-dom';
 
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { CreateNewService } from '../createService/createNewService';
 
 import { useAppSelector } from 'common/hooks';
 
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
+
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() => ({
   marginTop: {
@@ -23,10 +26,34 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '24px',
+    alignItems: 'center',
   },
   clearIcon: {
     fontSize: 26,
     width: 26,
+  },
+  plusIcon: {
+    fontSize: 40,
+    width: 40,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newLink: {
+    color: theme.altinnPalette.primary.blueDarker,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: 18,
+    fontWeight: 500,
+
+    '&:hover': {
+      color: theme.altinnPalette.primary.blueDarker,
+      textDecoration: 'none',
+    },
+    '&:hover span': {
+      textDecoration: 'underline',
+    },
   },
 }));
 
@@ -34,6 +61,7 @@ export const Dashboard = () => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [searchText, setSearchText] = React.useState('');
+  const [isNewLinkFocused, setIsNewLinkFocused] = React.useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = React.useState('');
 
   useDebounce(
@@ -56,6 +84,14 @@ export const Dashboard = () => {
 
   const handleClearSearch = () => {
     setSearchText('');
+  };
+
+  const handleNewLinkFocus = () => {
+    setIsNewLinkFocused(true);
+  };
+
+  const handleNewLinkFocusOut = () => {
+    setIsNewLinkFocused(false);
   };
 
   return (
@@ -91,7 +127,20 @@ export const Dashboard = () => {
         </div>
 
         <div>
-          <CreateNewService />
+          <Link
+            to='/new'
+            className={classes.newLink}
+            onMouseEnter={handleNewLinkFocus}
+            onMouseLeave={handleNewLinkFocusOut}
+          >
+            <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+            <i
+              className={cn('fa', classes.plusIcon, {
+                'fa-circle-plus': isNewLinkFocused,
+                'fa-circle-plus-outline': !isNewLinkFocused,
+              })}
+            />
+          </Link>
         </div>
       </div>
 

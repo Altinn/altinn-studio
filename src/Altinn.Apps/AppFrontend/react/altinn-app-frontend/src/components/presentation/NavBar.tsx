@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface INavBarProps {
-  language: any;
+  language: ILanguage;
   handleClose: (e: any) => void;
   handleBack: (e: any) => void;
   showBackArrow?: boolean;

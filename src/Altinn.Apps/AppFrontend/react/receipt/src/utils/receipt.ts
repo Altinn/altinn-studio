@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { IApplication, IInstance, IParty } from '../../../shared/src/types';
+import { IApplication, IInstance, ILanguage, IParty } from '../../../shared/src/types';
 import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { getArchiveRef } from './instance';
@@ -7,7 +7,7 @@ import { getArchiveRef } from './instance';
 export const getInstanceMetaDataObject = (
   instance: IInstance,
   party: IParty,
-  language: any,
+  language: ILanguage,
   organisations: any,
   application: IApplication,
 ) => {
@@ -23,7 +23,7 @@ export const getInstanceMetaDataObject = (
     dateSubmitted = moment(lastChanged).format('DD.MM.YYYY / HH:mm');
   }
   obj[getLanguageFromKey('receipt_platform.date_sent', language)] = dateSubmitted;
-  let sender: string = '';
+  let sender = '';
   if (party && party.ssn) {
     sender = `${party.ssn}-${party.name}`;
   } else if (party && party.orgNumber) {

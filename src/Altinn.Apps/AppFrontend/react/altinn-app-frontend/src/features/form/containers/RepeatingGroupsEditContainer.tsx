@@ -2,19 +2,17 @@ import React from 'react';
 import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
-import { ITextResource } from '../../../types';
+import { ITextResource } from 'src/types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[];
-  hiddenFields: string[];
-  repeatingGroupIndex: number;
-  language: any;
+  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
+  language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout;
   editIndex: number;
@@ -55,9 +53,7 @@ const style = {
 export function RepeatingGroupsEditContainer({
   id,
   container,
-  components,
-  hiddenFields,
-  repeatingGroupIndex,
+  repeatingGroupDeepCopyComponents,
   language,
   textResources,
   layout,
@@ -70,17 +66,6 @@ export function RepeatingGroupsEditContainer({
   setMultiPageIndex,
 }: IRepeatingGroupsEditContainer): JSX.Element {
   const classes = useStyles();
-  const renderComponents: ILayoutComponent[] = JSON.parse(
-    JSON.stringify(components),
-  );
-
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
-    container,
-    renderComponents,
-    repeatingGroupIndex,
-    textResources,
-    hiddenFields,
-  );
 
   const closeEditContainer = () => {
     onClickSave();
@@ -138,7 +123,7 @@ export function RepeatingGroupsEditContainer({
             },
           )}
         </Grid>
-        <Grid item={true} spacing={3} className={classes.saveItem}>
+        <Grid item={true} className={classes.saveItem}>
           {container.edit?.multiPage && (
             <div style={style}>
               {multiPageIndex > -1 &&
@@ -169,7 +154,11 @@ export function RepeatingGroupsEditContainer({
           )}
           {!hideSaveButton && (
             <AltinnButton
-              btnText={getLanguageFromKey('general.save', language)}
+              btnText={
+                container.textResourceBindings?.save_button ?
+                getTextResourceByKey(container.textResourceBindings.save_button, textResources) :
+                getLanguageFromKey('general.save', language)
+              }
               onClickFunction={closeEditContainer}
               id={`add-button-grp-${id}`}
             />
