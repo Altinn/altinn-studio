@@ -6,6 +6,7 @@ using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 
 using Moq;
@@ -61,6 +62,30 @@ namespace Altinn.Platform.Authentication.Tests.Services
         {
             // Arrrange
             string accessToken = "invalidRandomToken";
+
+            _validatorMock
+              .Setup(vm => vm.Validate(It.IsAny<string>()))
+              .Throws<KeyVaultErrorException>();
+
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
+
+            // Act
+            IntrospectionResponse actual = await sut.ValidateToken(accessToken);
+
+            // Assert
+            Assert.False(actual.Active);
+        }
+
+        /// <summary>
+        /// Scenario : Validate token called with a token with an unknown issuer
+        /// Expected : Exception is caught, and does not disturbe applicaton flow
+        /// Success Result: Inspection response contains active = false
+        /// </summary>
+        [Fact]
+        public async Task ValidateToken_ValidationThrowsException_ActiveFalse()
+        {
+            // Arrrange
+            string accessToken = "validTokenInvalidIssuer";
 
             EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
 
