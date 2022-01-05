@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("// EFormidlingAccessTokenValidator // Token vlidation failed with exception {Exception}", ex);
+                _logger.LogInformation("// EFormidlingAccessTokenValidator // Token validation failed with exception {Exception}", ex);
             }
 
             if (isValid)
