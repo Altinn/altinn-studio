@@ -40,7 +40,7 @@ namespace Altinn.EFormidlingClient.Extensions
         /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PutAsync(this HttpClient httpClient, string requestUri, HttpContent content, Dictionary<string, string> requestHeaders)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUri)
             {
                 Content = content
             };
