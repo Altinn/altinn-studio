@@ -275,5 +275,40 @@ namespace Altinn.Platform.Authorization.Helpers
         {
             return string.Concat(attributeMatches.OrderBy(r => r.Id).Select(r => r.Id + r.Value));
         }
+
+        /// <summary>
+        /// Sets the RuleType on each rule in the given list
+        /// </summary>
+        public static void SetRuleType(List<Rule> rulesList, List<int> keyRolePartyIds, List<AttributeMatch> coveredBy, int parentPartyId = 0)
+        {
+            foreach (Rule rule in rulesList)
+            {
+                if (TryGetDelegationParamsFromRule(rule, out _, out _, out _, out int? coveredByPartyId, out int? coveredByUserId, out _)
+                    && rule.Type == RuleType.None)
+                {
+                    if ((TryGetCoveredByUserIdFromMatch(coveredBy, out int coveredByUserIdFromRequest) && coveredByUserIdFromRequest == coveredByUserId)
+                        || (TryGetCoveredByPartyIdFromMatch(coveredBy, out int coveredByPartyIdFromRequest) && coveredByPartyIdFromRequest == coveredByPartyId))
+                    {
+                        rule.Type = RuleType.DirectlyDelegated;
+                    }
+                    else if (TryGetCoveredByUserIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+                    {
+                        rule.Type = RuleType.InheritedViaKeyRole;
+                    }
+                    else if (parentPartyId == coveredByPartyId)
+                    {
+                        rule.Type = RuleType.InheritedAsSubunit;
+                    }
+                    else if (TryGetCoveredByPartyIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+                    {
+                        rule.Type = RuleType.InheritedAsSubunitViaKeyrole;
+                    }
+                    else
+                    {
+                        rule.Type = RuleType.None;
+                    }
+                }
+            }
+        }
     }
 }

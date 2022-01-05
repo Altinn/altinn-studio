@@ -830,7 +830,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: GetRules returns a list of rules offeredby has given coveredby
         /// </summary>
         [Fact]
-        public async Task GetRules_Success()
+        public async Task GetRules_RuleType_Is_DirectlyDelegated()
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_SuccessRequest.json");
@@ -849,18 +849,66 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: GetRules returns a list of rules offeredby has given coveredby
-        /// Expected: GetRules returns a list of rules offeredby has given coveredby
+        /// Test case: GetRules returns a list of rules that have been inherited by the recipient via keyrole
+        /// Expected: GetRules returns a list of rules offeredby's main unit has given to the recipient via keyrole
         /// </summary>
         [Fact]
-        public async Task GetRules_MultiplePolicyMatches_Success()
+        public async Task GetRules_RuleType_Is_InheritedViaKeyRole()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_MultiplePolicyMatches_SuccessRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_RuleTypeInheritedViaKeyRoleRequest.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            List<Rule> expectedRules = GetExpectedRulesForUser();
-            expectedRules.Add(TestDataHelper.GetRuleModel(20001338, 50001338, "50001339", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
+            List<Rule> expectedRules = new List<Rule>();
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
+        }
+
+        /// <summary>
+        /// Test case: GetRules returns a list of rules that have been inherited by the subunit recipient via keyrole
+        /// Expected: GetRules returns a list of rules offeredby's main unit has given to the subunit recipient via keyrole
+        /// </summary>
+        [Fact]
+        public async Task GetRules_RuleType_Is_InheritedAsSubunitViaKeyrole()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_RuleTypeInheritedAsSubunitViaKeyroleRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            List<Rule> expectedRules = new List<Rule>();
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunitViaKeyrole));
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
+        }
+
+        /// <summary>
+        /// Test case: GetRules returns rule that is inherited by a subunit from the main unit
+        /// Expected: GetRules returns a list of rules the subunit has received from the main unit
+        /// </summary>
+        [Fact]
+        public async Task GetRules_RuleType_Is_InheritedAsSubunit()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_RuleTypeInheritedAsSubunitRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            List<Rule> expectedRules = new List<Rule>();
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunit));
 
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
@@ -939,41 +987,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
         }
 
-        /// <summary>
-        /// Test case: GetRules returns a list of rules where the offeredby is a subunit
-        /// Expected: GetRules returns a list of rules offeredby's main unit has given coveredby
-        /// </summary>
-        [Fact]
-        public async Task GetRules_WithParentPartyIdSuccess()
-        {
-            // Arrange
-            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_UsingParentPartyIdRequest.json");
-            StreamContent content = new StreamContent(dataStream);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            List<Rule> expectedRules = GetExpectedRulesForUser();
-
-            // Act
-            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<Rule> actualRules = JsonConvert.DeserializeObject<List<Rule>>(responseContent);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            AssertionUtil.AssertCollections(expectedRules, actualRules, AssertionUtil.AssertRuleEqual);
-        }
-
         private static List<Rule> GetExpectedRulesForUser()
         {
             List<Rule> list = new List<Rule>();
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport"));
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "SKD", "TaxReport"));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
             return list;
         }
 
         private static List<Rule> GetExpectedRulesForParty()
         {
             List<Rule> list = new List<Rule>();
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
             return list;
         }
     }

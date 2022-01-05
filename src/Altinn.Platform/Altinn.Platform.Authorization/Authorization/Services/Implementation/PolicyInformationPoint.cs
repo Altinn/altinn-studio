@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
@@ -37,8 +38,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange delegationChange in delegationChanges)
             {
-                XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegationChange.BlobStoragePolicyPath, delegationChange.BlobStorageVersionId);
-                rules.AddRange(GetRulesFromPolicyAndDelegationChange(policy.Rules, delegationChange));
+                if (delegationChange.IsDeleted == false)
+                {
+                    XacmlPolicy policy = await _prp.GetPolicyVersionAsync(delegationChange.BlobStoragePolicyPath, delegationChange.BlobStorageVersionId);
+                    rules.AddRange(GetRulesFromPolicyAndDelegationChange(policy.Rules, delegationChange));
+                }
             }
 
             return rules;

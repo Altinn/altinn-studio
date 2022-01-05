@@ -99,31 +99,31 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (ruleQuery.ParentPartyId != 0)
             {
-                offeredByPartyIds.Add(ruleQuery.ParentPartyId);
+                coveredByPartyIds.Add(ruleQuery.ParentPartyId);
             }
 
-            foreach (PolicyMatch policyMatch in ruleQuery.PolicyMatches)
+            foreach (List<AttributeMatch> resource in ruleQuery.Resources)
             {
-                string org = policyMatch.Resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
-                string app = policyMatch.Resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
+                string org = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
+                string app = resource.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
                 if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(app))
                 {
                     appIds.Add($"{org}/{app}");
                 }
+            }
 
-                if (DelegationHelper.TryGetCoveredByPartyIdFromMatch(policyMatch.CoveredBy, out int partyId))
-                {
-                    coveredByPartyIds.Add(partyId);
-                }
-                else if (DelegationHelper.TryGetCoveredByUserIdFromMatch(policyMatch.CoveredBy, out int userId))
-                {
-                    coveredByUserIds.Add(userId);
-                }
+            if (DelegationHelper.TryGetCoveredByPartyIdFromMatch(ruleQuery.CoveredBy, out int partyId))
+            {
+                coveredByPartyIds.Add(partyId);
+            }
+            else if (DelegationHelper.TryGetCoveredByUserIdFromMatch(ruleQuery.CoveredBy, out int userId))
+            {
+                coveredByUserIds.Add(userId);
+            }
 
-                if (policyMatch.OfferedByPartyId != 0)
-                {
-                    offeredByPartyIds.Add(policyMatch.OfferedByPartyId);
-                }
+            if (ruleQuery.OfferedByPartyId != 0)
+            {
+                offeredByPartyIds.Add(ruleQuery.OfferedByPartyId);
             }
 
             if (offeredByPartyIds.Count == 0 && coveredByPartyIds.Count == 0 && coveredByUserIds.Count == 0)
@@ -132,7 +132,9 @@ namespace Altinn.Platform.Authorization.Controllers
                 return StatusCode(400, $"Unable to get the rules: Missing offeredby and coveredby values.");
             }
 
-            return Ok(await _pip.GetRulesAsync(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds));
+            List<Rule> rulesList = await _pip.GetRulesAsync(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
+            DelegationHelper.SetRuleType(rulesList, ruleQuery.KeyRolePartyIds, ruleQuery.CoveredBy, ruleQuery.ParentPartyId);
+            return Ok(rulesList);
         }
 
         /// <summary>
