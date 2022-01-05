@@ -294,7 +294,7 @@ namespace Altinn.App.Services.Implementation
             {
                 if (_eFormidlingClient == null || _tokenGenerator == null)
                 {
-                    throw new NullReferenceException("eFormidling support has not been correctly configured in App.cs. " +
+                    throw new ArgumentNullException("eFormidling support has not been correctly configured in App.cs. " +
                         "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor.");
                 }
 
