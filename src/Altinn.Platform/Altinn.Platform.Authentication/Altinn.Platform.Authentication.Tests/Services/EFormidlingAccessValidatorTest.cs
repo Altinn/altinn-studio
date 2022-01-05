@@ -63,10 +63,6 @@ namespace Altinn.Platform.Authentication.Tests.Services
             // Arrrange
             string accessToken = "invalidRandomToken";
 
-            _validatorMock
-              .Setup(vm => vm.Validate(It.IsAny<string>()))
-              .Throws<KeyVaultErrorException>();
-
             EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
 
             // Act
@@ -87,20 +83,38 @@ namespace Altinn.Platform.Authentication.Tests.Services
             // Arrrange
             string accessToken = "validTokenInvalidIssuer";
 
-            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false, true), _loggerMock.Object);
 
             // Act
             IntrospectionResponse actual = await sut.ValidateToken(accessToken);
 
             // Assert
+            _loggerMock.Verify(
+              x => x.Log(
+               LogLevel.Information,
+               It.IsAny<EventId>(),
+               It.IsAny<It.IsAnyType>(),
+               It.IsAny<Exception>(),
+               (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+              Times.Once);
+
             Assert.False(actual.Active);
         }
 
-        private IAccessTokenValidator GetMockObjectWithResponse(bool response)
+        private IAccessTokenValidator GetMockObjectWithResponse(bool response, bool throwsException = false)
         {
-            _validatorMock
+            if (throwsException)
+            {
+                _validatorMock
                 .Setup(vm => vm.Validate(It.IsAny<string>()))
-                .ReturnsAsync(response);
+                .Throws<KeyVaultErrorException>();
+            }
+            else
+            {
+                _validatorMock
+               .Setup(vm => vm.Validate(It.IsAny<string>()))
+               .ReturnsAsync(response);
+            }
 
             return _validatorMock.Object;
         }
