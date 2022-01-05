@@ -5,16 +5,16 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnLoader } from 'altinn-shared/components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
-import { removeFileEnding, getFileEnding } from '../../utils/attachment';
-import { IAttachment } from '../../shared/resources/attachments';
-import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
-import '../../styles/FileUploadComponent.css';
-import { IComponentValidations } from '../../types';
-import { renderValidationMessagesForComponent } from '../../utils/render';
+import { IAttachment } from '../../../shared/resources/attachments';
+import AttachmentDispatcher from '../../../shared/resources/attachments/attachmentActions';
+import '../../../styles/FileUploadComponent.css';
+import { IComponentValidations } from '../../../types';
+import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
 import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
 import { useAppSelector } from 'src/common/hooks';
 import { ILanguage } from 'altinn-shared/types';
+import { renderAttachmentsCounter, renderFileName, renderFileUploadContent } from './shared/render';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -230,22 +230,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
                   tabIndex={0}
                 >
                   <td>
-                    <div
-                      style={{
-                        display: 'flex',
-                      }}
-                    >
-                      <div
-                        style={{
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {removeFileEnding(attachment.name)}
-                      </div>
-                      <div style={{}}>{getFileEnding(attachment.name)}</div>
-                    </div>
+                    {renderFileName(attachment.name)}
                     {mobileView ? (
                       <div
                         style={{
@@ -356,63 +341,6 @@ export function FileUploadComponent(props: IFileUploadProps) {
     );
   };
 
-  const renderFileUploadContent = (): JSX.Element => {
-    return (
-      <div className='container'>
-        <div className='col text-center icon' style={{ marginTop: '3.5rem' }}>
-          <i className='ai ai-upload' />
-        </div>
-        <div className='col text-center'>
-          <label
-            htmlFor={props.id}
-            className='file-upload-text-bold'
-            id='file-upload-description'
-          >
-            {isMobile ? (
-              <>
-                {getLanguageFromKey(
-                  'form_filler.file_uploader_upload',
-                  props.language,
-                )}
-              </>
-            ) : (
-              <>
-                {getLanguageFromKey(
-                  'form_filler.file_uploader_drag',
-                  props.language,
-                )}
-                <span className='file-upload-text-bold blue-underline'>
-                  {` ${getLanguageFromKey(
-                    'form_filler.file_uploader_find',
-                    props.language,
-                  )}`}
-                </span>
-              </>
-            )}
-          </label>
-        </div>
-        <div className='col text-center'>
-          <label
-            htmlFor={props.id}
-            className='file-upload-text'
-            id='file-format-description'
-          >
-            {getLanguageFromKey(
-              'form_filler.file_uploader_valid_file_format',
-              props.language,
-            )}
-            {props.hasCustomFileEndings
-              ? ` ${props.validFileEndings}`
-              : ` ${getLanguageFromKey(
-                  'form_filler.file_upload_valid_file_format_all',
-                  props.language,
-                )}`}
-          </label>
-        </div>
-      </div>
-    );
-  };
-
   const updateShowFileUpload = () => {
     setShowFileUpload(true);
   };
@@ -449,21 +377,6 @@ export function FileUploadComponent(props: IFileUploadProps) {
       );
     }
     return null;
-  };
-
-  const renderAttachmentsCounter = (): JSX.Element => {
-    return (
-      <div className='file-upload-text-bold-small' id='number-of-attachments'>
-        {`${getLanguageFromKey(
-          'form_filler.file_uploader_number_of_files',
-          props.language,
-        )} ${
-          props.minNumberOfAttachments
-            ? `${attachments.length}/${props.maxNumberOfAttachments}`
-            : attachments.length
-        }.`}
-      </div>
-    );
   };
 
   const onClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -519,7 +432,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
                   role='button'
                 >
                   <input {...getInputProps()} id={props.id} />
-                  {renderFileUploadContent()}
+                  {renderFileUploadContent(props.id, isMobile, props.language, props.hasCustomFileEndings, props.validFileEndings)}
                 </div>
               );
             }}
@@ -527,7 +440,8 @@ export function FileUploadComponent(props: IFileUploadProps) {
         </div>
       )}
 
-      {shouldShowFileUpload() && renderAttachmentsCounter()}
+      {shouldShowFileUpload() &&
+      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
 
       {validationMessages.simpleBinding.errors.length > 0 &&
         showFileUpload &&
@@ -538,7 +452,8 @@ export function FileUploadComponent(props: IFileUploadProps) {
 
       {renderFileList()}
 
-      {!shouldShowFileUpload() && renderAttachmentsCounter()}
+      {!shouldShowFileUpload() &&
+      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
 
       {validationMessages.simpleBinding.errors.length > 0 &&
         !showFileUpload &&

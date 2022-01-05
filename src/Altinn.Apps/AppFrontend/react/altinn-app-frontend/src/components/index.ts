@@ -6,8 +6,8 @@ import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent'
 // eslint-disable-next-line import/no-cycle
 import DatepickerComponent from './base/DatepickerComponent';
 import DropdownComponent from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
-import { FileUploadWithTagComponent } from './base/FileUploadWithTagComponent';
+import { FileUploadComponent } from './base/FileUpload/FileUploadComponent';
+import { FileUploadWithTagComponent } from './base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';

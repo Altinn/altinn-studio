@@ -6,7 +6,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render } from '@testing-library/react';
-import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUploadComponent';
+import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUpload/FileUploadComponent';
 import { getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations } from '../../../src/utils/formComponentUtils';
 

@@ -6,7 +6,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render } from '@testing-library/react';
-import { FileUploadWithTagComponent, IFileUploadWithTagProps } from '../../../src/components/base/FileUploadWithTagComponent';
+import { FileUploadWithTagComponent, IFileUploadWithTagProps } from '../../../src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations, parseFileUploadComponentWithTagValidationObject } from '../../../src/utils/formComponentUtils';
 import { ITextResourceBindings } from '../../../src/features/form/layout';
