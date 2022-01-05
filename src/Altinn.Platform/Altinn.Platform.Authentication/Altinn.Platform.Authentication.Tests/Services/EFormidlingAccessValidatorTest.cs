@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
+using Altinn.Platform.Authentication.Services.Interfaces;
+
+using Microsoft.Extensions.Logging;
 
 using Moq;
 
@@ -14,6 +17,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
     public class EFormidlingAccessValidatorTest
     {
         private readonly Mock<IAccessTokenValidator> _validatorMock;
+        private readonly Mock<ILogger<IEFormidlingAccessValidator>> _loggerMock;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="EFormidlingAccessValidatorTest"/> class.
@@ -21,6 +25,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
         public EFormidlingAccessValidatorTest()
         {
             _validatorMock = new Mock<IAccessTokenValidator>();
+            _loggerMock = new Mock<ILogger<IEFormidlingAccessValidator>>();
         }
 
         /// <summary>
@@ -36,7 +41,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
 
             string accessToken = JwtTokenMock.GenerateAccessToken("studio", "studio.designer", TimeSpan.FromMinutes(2));
 
-            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(true));
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(true), _loggerMock.Object);
 
             // Act
             IntrospectionResponse actual = await sut.ValidateToken(accessToken);
@@ -57,7 +62,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
             // Arrrange
             string accessToken = "invalidRandomToken";
 
-            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false));
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
 
             // Act
             IntrospectionResponse actual = await sut.ValidateToken(accessToken);
