@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace Altinn.EFormidlingClient.Extensions
     /// <summary>
     /// This extension is created to make it easy to add a bearer token to a HttpRequests. 
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class HttpClientExtension
     {
         /// <summary>
