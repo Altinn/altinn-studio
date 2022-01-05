@@ -70,15 +70,15 @@ export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, covered
 }
 
 /**
- * POSt call to delete a delegated rule based on rule id
+ * Post call to delete a delegated rule based on rule id
  * @param {*} altinnToken token for authorizing the request
  * @param {*} policyMatchKeys keys to be populated in the request
  * @param {Array} ruleIds an array of guids
  * @param {*} deletedByUserId user who deletes the rule
  * @param {*} offeredByPartyId party id of the user who offers the rule
  * @param {*} coveredById user id or party id of whom that receives the rule
- * @param {*} appOwner 
- * @param {*} appName 
+ * @param {*} appOwner
+ * @param {*} appName
  * @param {*} altinnTask Task_1, EndEvent_1
  * @param {*} altinnAction read,write,sign
  * @returns  response of the POST request
@@ -100,6 +100,27 @@ export function deleteRules(
   var body = [{}];
   body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, altinnAction);
   body[0].ruleIds = ruleIds;
+  body[0].deletedByUserId = deletedByUserId;
+  return http.post(endpoint, JSON.stringify(body), params);
+}
+
+/**
+ * Post call to delete the complete policy wit all rules
+ * @param {*} altinnToken token for authorizing the request
+ * @param {*} policyMatchKeys keys to be populated in the request
+ * @param {*} deletedByUserId user who deletes the policy
+ * @param {*} offeredByPartyId party id of the user who offers the rule
+ * @param {*} coveredById user id or party id of whom that receives the rule
+ * @param {*} appOwner 
+ * @param {*} appName 
+ * @param {*} altinnTask Task_1, EndEvent_1
+ * @returns response of the POST request
+ */
+export function deletePolicy(altinnToken, policyMatchKeys, deletedByUserId, offeredByPartyId, coveredById, appOwner, appName, altinnTask) {
+  var endpoint = config.platformAuthorization.deletePolicy;
+  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var body = [{}];
+  body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, null);  
   body[0].deletedByUserId = deletedByUserId;
   return http.post(endpoint, JSON.stringify(body), params);
 }

@@ -3,11 +3,14 @@
   Command: docker-compose run k6 run /src/tests/platform/authorization/delegations.js 
   -e env=*** -e org=*** -e app=***  -e tokengenuser=*** -e tokengenuserpwd=*** -e appsaccesskey=***
 */
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as delegation from '../../../api/platform/authorization/delegations.js';
+import * as authz from '../../../api/platform/authorization/authorization.js';
 import { generateToken } from '../../../api/altinn-testtools/token-generator.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
+
+let pdpInputJson = open('../../../data/pdpinput.json');
 
 const appOwner = __ENV.org;
 const appName = __ENV.app;
@@ -34,14 +37,16 @@ export function setup() {
 //Tests for platform Authorization:Delegations
 export default function (data) {
   const altinnToken = data;
-  var res, success, policyMatchKeys, ruleId;
+  var res, success, policyMatchKeys, ruleId, jsonPermitData;
 
+  //Retrieve policy of an app
   res = delegation.getPolicies(appOwner, appName);
   success = check(res, {
     'GET app policy - status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
+  //Add read access to an user for app in a particular task
   policyMatchKeys = {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
@@ -59,6 +64,23 @@ export default function (data) {
 
   ruleId = res.json('0.ruleId');
 
+  sleep(3);
+
+  //Delete the delegated read access rule
+  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  success = check(res, {
+    'Delete delegated rule - status is 200': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+
+  //Deleting a non existing rules fails
+  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  success = check(res, {
+    'Delete a not existing rule - status is 400': (r) => r.status === 400,
+  });
+  addErrorCount(success);
+
+  //Rules cannot be delegated with invalid app details
   res = delegation.addRules(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, 'test', 'Task_1', 'read');
   success = check(res, {
     'Add delegation rule for an invalid app - status is 400': (r) => r.status === 400,
@@ -66,6 +88,12 @@ export default function (data) {
   });
   addErrorCount(success);
 
+  //add a rule to give write access
+  res = delegation.addRules(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, appName, 'Task_1', 'write');
+  ruleId = res.json('0.ruleId');
+  sleep(3);
+
+  //Retrieve all the rules that are delegated to an user from a party
   policyMatchKeys = {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
@@ -80,13 +108,32 @@ export default function (data) {
   });
   addErrorCount(success);
 
-  policyMatchKeys = {
-    coveredBy: 'urn:altinn:userid',
-    resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
+  //Decision to write is permit based on the delegated rule
+  jsonPermitData = {
+    AccessSubject: ['urn:altinn:userid'],
+    Action: ['write'],
+    Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
   };
-  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 456, 123, 'Task_1');
   success = check(res, {
-    'Delete delegated rule - status is 200': (r) => r.status === 200,
+    'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === 'Permit',
+  });
+  addErrorCount(success);
+
+  //Delete all the delegated rules from an user by a party
+  res = delegation.deletePolicy(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, appName, null);
+  success = check(res, {
+    'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  sleep(3);
+
+  //User can no longer write to app instance after delegate policy is deleted
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 456, 123, 'Task_1');
+  success = check(res, {
+    'Get PDP Decision for deleted rule - Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
   });
   addErrorCount(success);
 }
