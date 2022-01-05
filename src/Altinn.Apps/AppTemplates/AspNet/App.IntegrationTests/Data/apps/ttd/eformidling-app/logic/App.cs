@@ -52,8 +52,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
         /// <param name="httpContextAccessor">A context accessor</param>
-        /// <param name="efor">THe eformidling service</param>
+        /// <param name="efor">The eformidling service</param>
         /// <param name="appsettings">the app settings</param>
+        /// <param name="platformSettings">The platform settings</param>
         /// <param name="tokenGenerator">The token generator</param>
         public App(
             IAppResources appResourcesService,
@@ -70,6 +71,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient efor,
             IOptions<AppSettings> appsettings,
+            IOptions<PlatformSettings> platformSettings,
             IAccessTokenGenerator tokenGenerator)
             : base(
                 appResourcesService,
@@ -86,6 +88,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                 httpContextAccessor,
                 efor,
                 appsettings,
+                platformSettings,
                 tokenGenerator)
         {
             _logger = logger;

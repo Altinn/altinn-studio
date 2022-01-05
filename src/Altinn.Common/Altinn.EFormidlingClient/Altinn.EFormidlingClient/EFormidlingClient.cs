@@ -40,7 +40,7 @@ namespace Altinn.Common.EFormidlingClient
             ILogger<EFormidlingClient> logger)
         {
             _client = httpClient ?? throw new ArgumentNullException("httpClient");
-            _eformidlingSettings = eformidlingSettings.Value ?? throw new ArgumentNullException("eformidlingSettings");
+            _eformidlingSettings = eformidlingSettings?.Value ?? throw new ArgumentNullException("eformidlingSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
             _client.DefaultRequestHeaders.Clear();

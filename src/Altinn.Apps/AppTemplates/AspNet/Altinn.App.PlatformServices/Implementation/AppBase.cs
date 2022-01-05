@@ -56,6 +56,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IProfile _profileClient;
         private readonly IText _textClient;
         private readonly IAccessTokenGenerator _tokenGenerator;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
@@ -74,6 +75,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
         /// <param name="eFormidlingClient">The eFormidling client</param>
         /// <param name="appSettings">The appsettings</param>
+        /// <param name="platformSettings">The platform settings</param>
         /// <param name="tokenGenerator">The access token generator</param>
         protected AppBase(
             IAppResources resourceService,
@@ -90,6 +92,7 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient eFormidlingClient = null,
             IOptions<AppSettings> appSettings = null,
+            IOptions<PlatformSettings> platformSettings = null,
             IAccessTokenGenerator tokenGenerator = null)
         {
             _appMetadata = resourceService.GetApplication();
@@ -108,6 +111,7 @@ namespace Altinn.App.Services.Implementation
             _appSettings = appSettings?.Value;
             _eFormidlingClient = eFormidlingClient;
             _tokenGenerator = tokenGenerator;
+            _platformSettings = platformSettings?.Value;
         }
 
         /// <inheritdoc />
@@ -286,7 +290,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
+            if (_appSettings != null && _platformSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
                 if (_eFormidlingClient == null || _tokenGenerator == null)
                 {
@@ -661,7 +665,8 @@ namespace Altinn.App.Services.Implementation
             var requestHeaders = new Dictionary<string, string>
             {
                 { "Authorization", $"Bearer {authzToken}" },
-                { General.EFormidlingAccessTokenHeaderName, accessToken }
+                { General.EFormidlingAccessTokenHeaderName, accessToken },
+                { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey }
             };
 
             string instanceGuid = instance.Id.Split("/")[1];

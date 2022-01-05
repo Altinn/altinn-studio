@@ -9,9 +9,11 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using App.IntegrationTests.Mocks.Apps.Ttd.EFormidling;
 
 using Microsoft.AspNetCore.Http;
@@ -46,8 +48,10 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
         /// <param name="httpContextAccessor">A context accessor</param>
-        /// <param name="efor">THe eformidling service</param>
-        /// <param name="appsettings">the app settings</param>
+        /// <param name="efor">A client for eFormidling integration</param>
+        /// <param name="appsettings">Application settings</param>
+        /// <param name="platformSettings">Platform settings</param>
+        /// <param name="tokenGenerator">A service for generating access tokens</param>
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
@@ -62,7 +66,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
             IText textService,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient efor,
-            IOptions<AppSettings> appsettings)
+            IOptions<AppSettings> appsettings,
+            IOptions<PlatformSettings> platformSettings,
+            IAccessTokenGenerator tokenGenerator)
             : base(
                 appResourcesService,
                 logger,
@@ -77,7 +83,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidlingInvalid
                 textService,
                 httpContextAccessor,
                 efor,
-                appsettings)
+                appsettings,
+                platformSettings,
+                tokenGenerator)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);

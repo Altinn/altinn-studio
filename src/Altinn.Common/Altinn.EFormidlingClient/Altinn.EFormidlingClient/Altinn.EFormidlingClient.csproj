@@ -10,7 +10,7 @@
 
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.EFormidlingClient</PackageId>
-    <PackageVersion>1.1.0-alpha</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <PackageTags>Altinn;Studio;eFormidling;client</PackageTags>
     <Description>
       Altinn.Common.EFormidlingClient is a package for sending messages via eFormidling to receiver.
