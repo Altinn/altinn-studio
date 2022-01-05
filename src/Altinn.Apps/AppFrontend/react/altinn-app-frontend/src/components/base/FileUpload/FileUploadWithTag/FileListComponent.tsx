@@ -265,7 +265,6 @@ export function FileList(props: FileListProps): JSX.Element {
                   </TableRow>
                 );
               }
-              console.log(props.editIndex);
               return ( // If no tag on attachment, show edit window
                 <TableRow
                   key={`altinn-unchosen-option-attachment-row-${index}`}
