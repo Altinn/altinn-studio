@@ -15,11 +15,7 @@ namespace Altinn.App.PlatformServices.Process
     /// </summary>
     public class DataTask : TaskBase
     {
-        private readonly IProcess _processService;
-
         private readonly IAltinnApp _altinnApp;
-
-        private readonly IInstance _instanceClient;
 
         /// <summary>
         /// Constructor

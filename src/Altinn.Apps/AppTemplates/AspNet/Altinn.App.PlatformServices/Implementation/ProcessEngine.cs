@@ -72,12 +72,9 @@ namespace Altinn.App.PlatformServices.Implementation
 
             processChange.ProcessSequenceFlowType = processHelper.GetSequenceFlowType(currentElementId, processChange.RequestedProcessElementId);
 
-            if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
+            if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext) && await _processChangeHandler.CanTaskBeEnded(processChange))
             {
-                if (await _processChangeHandler.CanTaskBeEnded(processChange))
-                {
-                    return await _processChangeHandler.HandleCompleteCurrentAndMoveToNext(processChange);
-                }
+                return await _processChangeHandler.HandleCompleteCurrentAndMoveToNext(processChange);
             }
 
             if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.AbandonCurrentReturnToNext))
