@@ -332,6 +332,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict(changeContext.ProcessMessages[0].Message);
                 }
 
+                await RegisterEventWithEventsComponent(changeContext.Instance);
                 return Ok(changeContext.Instance.Process);
             }
             catch (PlatformHttpException e)
@@ -433,6 +434,7 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     currentTaskId = instance.Process.CurrentTask?.ElementId;
+                    await RegisterEventWithEventsComponent(instance);
                 }
                 catch (Exception ex)
                 {
