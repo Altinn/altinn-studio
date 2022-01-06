@@ -28,7 +28,7 @@ namespace Altinn.App.PlatformServices.Tests.Options
         public void GetOptionsProvider_CustomOptionsProvider_ShouldReturnDefault()
         {
             var appResourcesMock = new Mock<IAppResources>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new CountryAppOptionsProvider() });
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() {new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
