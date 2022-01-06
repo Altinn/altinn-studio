@@ -22,11 +22,11 @@ export function HeaderComponent(props: IHeaderProps) {
   var textArr;
   const replacePattern = '{help}';
 
-  function replaceIcon(element, patern){
+  function replaceIcon(element, pattern){
     
-    const iconPos = element.indexOf(patern);
+    const iconPos = element.indexOf(pattern);
 
-    if(element.indexOf(patern) !== -1) {
+    if(element.indexOf(pattern) !== -1) {
       header = 
           <> 
             {element.substring(0, iconPos)} 

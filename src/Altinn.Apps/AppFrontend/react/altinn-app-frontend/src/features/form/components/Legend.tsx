@@ -24,16 +24,16 @@ export default function Legend(props: IFormLegendProps) {
   var textArr;
   const replacePattern = '{help}';
 
-  function replaceIcon(element, patern){
+  function replaceIcon(element, pattern){
 
     for(var j=0; j < element.length; j++){
       if(element[j]['props']) {
         if(element[j]['props']['children']) {
-          replaceIcon(element[j]['props']['children'], patern)
+          replaceIcon(element[j]['props']['children'], pattern)
         }
       } else {
-        iconPos = element[j].indexOf(patern);
-        if(element[j].indexOf(patern) !== -1) {
+        iconPos = element[j].indexOf(pattern);
+        if(element[j].indexOf(pattern) !== -1) {
             element[j] = 
               <> 
                 {element[j].substring(0, iconPos)} 
