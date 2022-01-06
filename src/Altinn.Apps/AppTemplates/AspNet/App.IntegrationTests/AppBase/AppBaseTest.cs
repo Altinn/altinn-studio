@@ -159,7 +159,6 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.NotNull(processState.Ended);
         }
 
-        [Fact]
         public async void OnTaskEnd_EFormidlingEnabled_AllMethodsImplemented()
         {
             string token = PrincipalUtil.GetToken(1337);
@@ -187,7 +186,6 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.NotNull(processState.Ended);
         }
 
-        [Fact]
         public async void OnTaskEnd_EFormidlingEnabled_GenerateMetadataNotImplemented()
         {
             string token = PrincipalUtil.GetToken(1337);
