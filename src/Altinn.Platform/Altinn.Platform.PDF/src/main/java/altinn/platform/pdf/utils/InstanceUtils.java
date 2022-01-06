@@ -4,7 +4,9 @@ import altinn.platform.pdf.models.Data;
 import altinn.platform.pdf.models.Instance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InstanceUtils {
 
@@ -28,6 +30,26 @@ public class InstanceUtils {
       }
     }
     return list;
+  }
+
+  /***
+   * Gets a map of attachments and their tags in an instance based on the file upload component id
+   * @param id the component id
+   * @param instance the instance
+   * @return a list of filenames
+   */
+  public static Map<String, List<String>> getAttachmentsAndTagsByComponentId(String id, Instance instance) {
+    Map<String, List<String>> map = new HashMap<String, List<String>>();
+    if (instance == null || instance.getData() == null || id == null) {
+      return map;
+    }
+
+    for (Data data: instance.getData()) {
+      if (id.equals(data.getDataType())) {
+        map.put(TextUtils.removeIllegalChars(data.getFilename()), data.getTags());
+      }
+    }
+    return map;
   }
 
   /**
