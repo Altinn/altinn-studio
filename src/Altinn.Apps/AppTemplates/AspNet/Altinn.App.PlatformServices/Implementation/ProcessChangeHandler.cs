@@ -6,10 +6,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Process;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
-using Altinn.App.PlatformServices.Process;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -20,7 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace Altinn.App.PlatformServices.Implementation
+namespace Altinn.App.Core.Implementation
 {
     /// <summary>
     /// Handler that implements needed logic related to different process changes. Identifies the correct types of tasks and trigger the different task and event

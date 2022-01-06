@@ -1,17 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process;
-using Altinn.App.Common.Process.Elements;
+using Altinn.App.Core.Interface;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.PlatformServices.Implementation
+namespace Altinn.App.Core.Implementation
 {
     /// <summary>
     /// The process engine is responsible for all BMPN related functionality

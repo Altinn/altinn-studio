@@ -13,6 +13,7 @@ using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
+using Altinn.App.Core.Interface;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Interface;

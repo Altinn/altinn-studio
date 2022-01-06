@@ -8,7 +8,7 @@ using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.PlatformServices.Process
+namespace Altinn.App.Core.Process
 {
     /// <summary>
     /// Defines the task of type data 

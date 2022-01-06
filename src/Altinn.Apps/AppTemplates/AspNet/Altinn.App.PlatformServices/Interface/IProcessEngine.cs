@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Models;
 
-namespace Altinn.App.PlatformServices.Interface
+namespace Altinn.App.Core.Interface
 {
     /// <summary>
     /// Process engine interface that defines the Altinn App process engine

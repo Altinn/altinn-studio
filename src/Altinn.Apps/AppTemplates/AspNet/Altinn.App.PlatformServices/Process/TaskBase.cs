@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Models;
 
-namespace Altinn.App.PlatformServices.Process
+namespace Altinn.App.Core.Process
 {
     /// <summary>
     /// TaskBase with default implentation

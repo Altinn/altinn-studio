@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Models;
 
-namespace Altinn.App.PlatformServices.Process
+namespace Altinn.App.Core.Process
 {
     /// <summary>
     /// Interface desbring the basic task
