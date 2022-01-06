@@ -26,21 +26,21 @@ namespace Altinn.App.Core.Process
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskAbandon(ProcessChangeContext processChange)
+        public override async Task HandleTaskAbandon(ProcessChangeContext processChangeContext)
         {
-            await _altinnApp.OnAbandonProcessTask(processChange.ElementToBeProcessed, processChange.Instance);
+            await _altinnApp.OnAbandonProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance);
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskComplete(ProcessChangeContext processChange)
+        public override async Task HandleTaskComplete(ProcessChangeContext processChangeContext)
         {
-            await _altinnApp.OnEndProcessTask(processChange.ElementToBeProcessed, processChange.Instance);
+            await _altinnApp.OnEndProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance);
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskStart(ProcessChangeContext processChange)
+        public override async Task HandleTaskStart(ProcessChangeContext processChangeContext)
         {
-            await _altinnApp.OnStartProcessTask(processChange.ElementToBeProcessed, processChange.Instance, processChange.Prefill);
+            await _altinnApp.OnStartProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance, processChangeContext.Prefill);
         }
     }
 }

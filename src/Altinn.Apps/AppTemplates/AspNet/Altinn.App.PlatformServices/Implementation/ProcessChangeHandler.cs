@@ -252,7 +252,7 @@ namespace Altinn.App.Core.Implementation
             return null;
         }
 
-        private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
+        private static InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
@@ -272,7 +272,7 @@ namespace Altinn.App.Core.Implementation
             return instanceEvent;
         }
 
-        private InstanceEvent CopyInstanceEventValue(InstanceEvent e)
+        private static InstanceEvent CopyInstanceEventValue(InstanceEvent e)
         {
             return new InstanceEvent
             {
