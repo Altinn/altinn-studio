@@ -20,10 +20,8 @@ context(
     beforeEach(() => {
       cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
       Cypress.Cookies.preserveOnce('AltinnStudioDesigner', 'i_like_gitea', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
-      var appName = Cypress.env('deployApp').split('/')[1];
       cy.visit('/');
-      cy.get(dashboard.searchApp).should('be.visible').type(appName);
-      cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
+      cy.searchAndOpenApp(Cypress.env('deployApp'));
       cy.wait('@repoStatus');
       cy.get(designer.layOutContainer).should('be.visible');
     });
