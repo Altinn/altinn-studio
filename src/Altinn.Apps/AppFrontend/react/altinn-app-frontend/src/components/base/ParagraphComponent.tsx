@@ -42,11 +42,12 @@ export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
   const replacePattern = '{help}';
-
+  var textArr;
+  
   function replaceIcon(element, pattern){
 
     var iconPos;
-    
+
     for(var j=0; j < element.length; j++){
       if(element[j]['props']) {
         if(element[j]['props']['children']) {
@@ -69,6 +70,9 @@ export function ParagraphComponent(props: IParagraphProps) {
       }
     }
   }
+
+  textArr = props.text;
+  replaceIcon(textArr, replacePattern);
 
   return (
     <Grid
