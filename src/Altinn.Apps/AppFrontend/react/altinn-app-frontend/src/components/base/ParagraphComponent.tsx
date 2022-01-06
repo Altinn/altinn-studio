@@ -41,11 +41,12 @@ const useStyles = makeStyles({
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
-  var iconPos;
   const replacePattern = '{help}';
 
   function replaceIcon(element, pattern){
 
+    var iconPos;
+    
     for(var j=0; j < element.length; j++){
       if(element[j]['props']) {
         if(element[j]['props']['children']) {

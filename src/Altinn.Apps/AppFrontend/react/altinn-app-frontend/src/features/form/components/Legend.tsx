@@ -20,12 +20,13 @@ export default function Legend(props: IFormLegendProps) {
     return null;
   }
 
-  var iconPos;
   var textArr;
   const replacePattern = '{help}';
 
   function replaceIcon(element, pattern){
 
+    var iconPos;
+    
     for(var j=0; j < element.length; j++){
       if(element[j]['props']) {
         if(element[j]['props']['children']) {

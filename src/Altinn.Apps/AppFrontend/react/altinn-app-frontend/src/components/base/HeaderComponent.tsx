@@ -18,7 +18,6 @@ export function HeaderComponent(props: IHeaderProps) {
     marginBottom: '0',
   };
 
-  var iconPos;
   var textArr;
   const replacePattern = '{help}';
 
