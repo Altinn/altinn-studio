@@ -20,10 +20,11 @@ export function HeaderComponent(props: IHeaderProps) {
 
   var iconPos;
   var textArr;
+  const replacePattern = '{help}';
 
   function replaceIcon(element, patern){
-
-    iconPos = element.indexOf(patern);
+    
+    const iconPos = element.indexOf(patern);
 
     if(element.indexOf(patern) !== -1) {
       header = 
@@ -34,16 +35,14 @@ export function HeaderComponent(props: IHeaderProps) {
               id={props.id}
               helpText={props.getTextResource(props.textResourceBindings.help)}
             />
-            {element.substring(iconPos + 6)}
+            {element.substring(iconPos + replacePattern.length)}
           </>;
     }
-      
-    
   }
 
   var header;
   textArr = props.text;
-  replaceIcon(textArr, '{help}');
+  replaceIcon(textArr, replacePattern);
 
   const renderHeader = () => {
 

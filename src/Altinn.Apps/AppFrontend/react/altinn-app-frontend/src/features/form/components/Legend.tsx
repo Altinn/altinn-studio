@@ -22,6 +22,7 @@ export default function Legend(props: IFormLegendProps) {
 
   var iconPos;
   var textArr;
+  const replacePattern = '{help}';
 
   function replaceIcon(element, patern){
 
@@ -41,7 +42,7 @@ export default function Legend(props: IFormLegendProps) {
                     id={props.id}
                     helpText={props.helpText}
                   />
-                {element[j].substring(iconPos + 6)}
+                {element[j].substring(iconPos + replacePattern.length)}
               </>;
         }
       }
@@ -49,7 +50,7 @@ export default function Legend(props: IFormLegendProps) {
   }
 
   textArr = props.labelText;
-  replaceIcon(textArr, '{help}');
+  replaceIcon(textArr, replacePattern);
 
   return (
     <>

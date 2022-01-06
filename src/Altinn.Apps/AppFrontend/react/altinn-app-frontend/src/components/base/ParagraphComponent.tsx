@@ -42,6 +42,7 @@ export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
   var iconPos;
+  const replacePattern = '{help}';
 
   function replaceIcon(element, patern){
 
@@ -61,7 +62,7 @@ export function ParagraphComponent(props: IParagraphProps) {
                     id={props.id}
                     helpText={props.getTextResource(props.textResourceBindings.help)}
                   /> 
-                {element[j].substring(iconPos + 6)}
+                {element[j].substring(iconPos + replacePattern.length)}
               </>;
         }
       }
