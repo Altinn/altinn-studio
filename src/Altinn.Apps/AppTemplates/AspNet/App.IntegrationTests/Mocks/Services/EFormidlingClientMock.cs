@@ -32,7 +32,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
             return Task.FromResult(true);
         }
 
-        public Task<bool> SendMessage(string id, Dictionary<string, string> requestHeaders)
+        public Task SendMessage(string id, Dictionary<string, string> requestHeaders)
         {
             return Task.FromResult(true);
         }
