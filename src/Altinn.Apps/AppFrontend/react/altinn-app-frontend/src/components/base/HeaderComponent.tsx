@@ -26,22 +26,22 @@ export function HeaderComponent(props: IHeaderProps) {
     const iconPos = element.indexOf(pattern);
 
     if(element.indexOf(pattern) !== -1) {
-      header = 
-          <> 
-            {element.substring(0, iconPos)} 
+      return (
+        <> 
+          {element.substring(0, iconPos)} 
             <HelpTextContainer
               language={props.language}
               id={props.id}
               helpText={props.getTextResource(props.textResourceBindings.help)}
             />
-            {element.substring(iconPos + replacePattern.length)}
-          </>;
+          {element.substring(iconPos + replacePattern.length)}
+        </>
+      ); 
     }
   }
 
-  var header;
   textArr = props.text;
-  replaceIcon(textArr, replacePattern);
+  const header = replaceIcon(textArr, replacePattern);
 
   const renderHeader = () => {
 
