@@ -18,7 +18,7 @@ using App.IntegrationTests.Utils;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace App.IntegrationTests
+namespace App.IntegrationTests.ApiTests
 {
     public class SiriusApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {

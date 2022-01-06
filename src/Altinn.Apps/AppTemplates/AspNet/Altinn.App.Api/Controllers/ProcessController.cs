@@ -241,106 +241,6 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Change the instance's process state to next process element in accordance with process definition.
-        /// </summary>
-        /// <returns>new process state</returns>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
-        /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
-        /// but must be specified if more than one element can be reached from the current process ellement.</param>
-        [HttpPut("nextold")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProcessState>> NextElement(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid,
-            [FromQuery] string elementId = null)
-        {
-            try
-            {
-                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-                if (instance.Process == null)
-                {
-                    return Conflict($"Process is not started. Use start!");
-                }
-
-                if (instance.Process.Ended.HasValue)
-                {
-                    return Conflict($"Process is ended.");
-                }
-
-                if (!string.IsNullOrEmpty(elementId))
-                {
-                    ElementInfo elemInfo = processHelper.Process.GetElementInfo(elementId);
-                    if (elemInfo == null)
-                    {
-                        return BadRequest($"Requested element id {elementId} is not found in process definition");
-                    }
-                }
-
-                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
-
-                if (altinnTaskType == null)
-                {
-                    return Conflict($"Instance does not have current altinn task type information!");
-                }
-
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
-                if (!authorized)
-                {
-                    return Forbid();
-                }
-
-                string currentElementId = instance.Process.CurrentTask?.ElementId;
-
-                if (currentElementId == null)
-                {
-                    return Conflict($"Instance does not have current task information!");
-                }
-
-                if (currentElementId.Equals(elementId))
-                {
-                    return Conflict($"Requested process element {elementId} is same as instance's current task. Cannot change process.");
-                }
-
-                string nextElement = processHelper.GetValidNextElementOrError(currentElementId, elementId, out ProcessError nextElementError);
-                if (nextElementError != null)
-                {
-                    return Conflict(nextElementError.Text);
-                }
-
-                if (await CanTaskBeEnded(instance, currentElementId))
-                {
-                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
-                    if (nextResult != null)
-                    {
-                        Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
-
-                        await RegisterEventWithEventsComponent(changedInstance);
-
-                        return Ok(changedInstance.Process);
-                    }
-                }
-
-                return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
-            }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, "Process next failed.");
-            }
-            catch (Exception exception)
-            {
-                return ExceptionResponse(exception, "Process next failed.");
-            }
-        }
-
         private async Task<bool> CanTaskBeEnded(Instance instance, string currentElementId)
         {
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
@@ -375,7 +275,7 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProcessState>> NextElementV2(
+        public async Task<ActionResult<ProcessState>> NextElement(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
@@ -457,117 +357,7 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(exception, "Process next failed.");
             }
         }
-
-        /// <summary>
-        /// Attemts to end the process by running next until an end event is reached.
-        /// Notice that process must have been started.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
-        /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <returns>current process status</returns>
-        [HttpPut("completeProcessold")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProcessState>> CompleteProcess(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid)
-        {
-            Instance instance;
-
-            try
-            {
-                instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, "Could not complete process.");
-            }
-
-            if (instance.Process == null)
-            {
-                return Conflict($"Process is not started. Use start!");
-            }
-            else
-            {
-                if (instance.Process.Ended.HasValue)
-                {
-                    return Conflict($"Process is ended. It cannot be restarted.");
-                }
-            }
-
-            string currentTaskId = instance.Process.CurrentTask?.ElementId ?? instance.Process.StartEvent;
-
-            if (currentTaskId == null)
-            {
-                return Conflict($"Instance does not have valid currentTask");
-            }
-
-            // do next until end event is reached or task cannot be completed.
-            int counter = 0;
-            do
-            {
-                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
-
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid, null);
-                if (!authorized)
-                {
-                    return Forbid();
-                }
-
-                if (!await CanTaskBeEnded(instance, currentTaskId))
-                {
-                    return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
-                }
-
-                List<string> nextElements = processHelper.Process.NextElements(currentTaskId);
-
-                if (nextElements.Count > 1)
-                {
-                    return Conflict($"Cannot complete process. Multiple outgoing sequence flows detected from task {currentTaskId}. Please select manually among {nextElements}");
-                }
-
-                string nextElement = nextElements.First();
-
-                try
-                {
-                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
-
-                    if (nextResult != null)
-                    {
-                        instance = await UpdateProcessAndDispatchEvents(instance, nextResult);
-
-                        currentTaskId = instance.Process.CurrentTask?.ElementId;
-
-                        await RegisterEventWithEventsComponent(instance);
-                    }
-                    else
-                    {
-                        return Conflict($"Cannot complete process. Unable to move to next element {nextElement}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return ExceptionResponse(ex, "Complete process failed.");
-                }
-
-                counter++;
-            }
-            while (instance.Process.EndEvent == null || counter > MaxIterationsAllowed);
-
-            if (counter > MaxIterationsAllowed)
-            {
-                _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
-                return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
-            }
-
-            return Ok(instance.Process);
-        }
-
+       
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
         /// Notice that process must have been started.
@@ -581,7 +371,7 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProcessState>> CompleteProcessv2(
+        public async Task<ActionResult<ProcessState>> CompleteProcess(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
