@@ -88,10 +88,7 @@ export function ParagraphComponent(props: IParagraphProps) {
           {props.text}
         </Typography>
       </Grid>
-      {props.textResourceBindings?.help &&
-      <Grid item={true} className={classes.spacing}>
-      </Grid>
-      }
+      {props.textResourceBindings?.help}
     </Grid>
   );
 }
