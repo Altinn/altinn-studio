@@ -63,12 +63,6 @@ export interface EditWindowProps{
 
 export function EditWindowComponent(props: EditWindowProps): JSX.Element {
   const classes = useStyles();
-  /* let index = -1;
-  if (newIndex !== -1) {
-    index = newIndex;
-  } else {
-    index = editIndex;
-  } */
 
   const handleDeleteFile = () => {
     AttachmentDispatcher.deleteAttachment(props.attachment, props.id, props.id);
