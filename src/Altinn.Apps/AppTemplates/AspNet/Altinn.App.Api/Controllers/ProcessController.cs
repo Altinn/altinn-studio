@@ -445,6 +445,8 @@ namespace Altinn.App.Api.Controllers
                     {
                         return Conflict(processChange.ProcessMessages[0].Message);
                     }
+
+                    currentTaskId = instance.Process.CurrentTask?.ElementId;
                 }
                 catch (Exception ex)
                 {
