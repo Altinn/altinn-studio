@@ -100,6 +100,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
+            services.AddMemoryCache();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);

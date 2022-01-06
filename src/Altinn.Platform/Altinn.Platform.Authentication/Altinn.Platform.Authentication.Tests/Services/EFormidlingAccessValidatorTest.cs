@@ -4,6 +4,10 @@ using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
+using Altinn.Platform.Authentication.Services.Interfaces;
+
+using Microsoft.Azure.KeyVault.Models;
+using Microsoft.Extensions.Logging;
 
 using Moq;
 
@@ -14,6 +18,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
     public class EFormidlingAccessValidatorTest
     {
         private readonly Mock<IAccessTokenValidator> _validatorMock;
+        private readonly Mock<ILogger<IEFormidlingAccessValidator>> _loggerMock;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="EFormidlingAccessValidatorTest"/> class.
@@ -21,6 +26,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
         public EFormidlingAccessValidatorTest()
         {
             _validatorMock = new Mock<IAccessTokenValidator>();
+            _loggerMock = new Mock<ILogger<IEFormidlingAccessValidator>>();
         }
 
         /// <summary>
@@ -36,7 +42,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
 
             string accessToken = JwtTokenMock.GenerateAccessToken("studio", "studio.designer", TimeSpan.FromMinutes(2));
 
-            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(true));
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(true), _loggerMock.Object);
 
             // Act
             IntrospectionResponse actual = await sut.ValidateToken(accessToken);
@@ -57,7 +63,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
             // Arrrange
             string accessToken = "invalidRandomToken";
 
-            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false));
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false), _loggerMock.Object);
 
             // Act
             IntrospectionResponse actual = await sut.ValidateToken(accessToken);
@@ -66,11 +72,49 @@ namespace Altinn.Platform.Authentication.Tests.Services
             Assert.False(actual.Active);
         }
 
-        private IAccessTokenValidator GetMockObjectWithResponse(bool response)
+        /// <summary>
+        /// Scenario : Validate token called with a token with an unknown issuer
+        /// Expected : Exception is caught, and does not disturbe applicaton flow
+        /// Success Result: Inspection response contains active = false
+        /// </summary>
+        [Fact]
+        public async Task ValidateToken_ValidationThrowsException_ActiveFalse()
         {
-            _validatorMock
+            // Arrrange
+            string accessToken = "validTokenInvalidIssuer";
+
+            EFormidlingAccessValidator sut = new EFormidlingAccessValidator(GetMockObjectWithResponse(false, true), _loggerMock.Object);
+
+            // Act
+            IntrospectionResponse actual = await sut.ValidateToken(accessToken);
+
+            // Assert
+            _loggerMock.Verify(
+              x => x.Log(
+               LogLevel.Information,
+               It.IsAny<EventId>(),
+               It.IsAny<It.IsAnyType>(),
+               It.IsAny<Exception>(),
+               (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+              Times.Once);
+
+            Assert.False(actual.Active);
+        }
+
+        private IAccessTokenValidator GetMockObjectWithResponse(bool response, bool throwsException = false)
+        {
+            if (throwsException)
+            {
+                _validatorMock
                 .Setup(vm => vm.Validate(It.IsAny<string>()))
-                .ReturnsAsync(response);
+                .Throws<KeyVaultErrorException>();
+            }
+            else
+            {
+                _validatorMock
+               .Setup(vm => vm.Validate(It.IsAny<string>()))
+               .ReturnsAsync(response);
+            }
 
             return _validatorMock.Object;
         }
