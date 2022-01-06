@@ -208,7 +208,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dataElement.Locked = false;
                     _logger.LogInformation($"Unlocking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    Task updateData = _dataClient.Update(instance, dataElement);
+                    await _dataClient.Update(instance, dataElement);
                 }
             }
 

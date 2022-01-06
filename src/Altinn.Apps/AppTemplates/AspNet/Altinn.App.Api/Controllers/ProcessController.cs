@@ -50,10 +50,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
         private readonly IPDP _pdp;
-        private readonly IEvents _eventsService;
-        private readonly AppSettings _appSettings;
         private readonly IProcessEngine _processEngine;
-
         private readonly ProcessHelper processHelper;
 
         /// <summary>
@@ -66,8 +63,6 @@ namespace Altinn.App.Api.Controllers
             IAltinnApp altinnApp,
             IValidation validationService,
             IPDP pdp,
-            IEvents eventsService,
-            IOptions<AppSettings> appSettings,
             IProcessEngine processEngine)
         {
             _logger = logger;
@@ -76,8 +71,6 @@ namespace Altinn.App.Api.Controllers
             _altinnApp = altinnApp;
             _validationService = validationService;
             _pdp = pdp;
-            _eventsService = eventsService;
-            _appSettings = appSettings.Value;
             _processEngine = processEngine;
             using Stream bpmnStream = _processService.GetProcessDefinition();
             processHelper = new ProcessHelper(bpmnStream);
