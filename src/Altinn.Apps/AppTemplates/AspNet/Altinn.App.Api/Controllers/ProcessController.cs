@@ -9,6 +9,7 @@ using Altinn.App.Api.Filters;
 using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;

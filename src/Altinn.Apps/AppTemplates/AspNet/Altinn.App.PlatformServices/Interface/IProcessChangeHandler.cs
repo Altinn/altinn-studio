@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Models;
 
 namespace Altinn.App.Core.Interface

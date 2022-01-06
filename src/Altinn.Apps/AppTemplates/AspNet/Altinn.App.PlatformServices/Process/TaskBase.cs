@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Models;
+using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Process
 {

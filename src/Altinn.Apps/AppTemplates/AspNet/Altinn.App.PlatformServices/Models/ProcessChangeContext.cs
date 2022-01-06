@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Altinn.App.Common.Process;
-using Altinn.App.Common.Process.Elements;
+using Altinn.App.PlatformServices.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.PlatformServices.Models
+namespace Altinn.App.Core.Models
 {
     /// <summary>
     /// Data entity that will floow between Process Api, Process Engine, Process Handlers and the TaskImpl/Gateway implt

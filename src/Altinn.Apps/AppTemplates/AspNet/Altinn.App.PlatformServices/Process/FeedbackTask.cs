@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
