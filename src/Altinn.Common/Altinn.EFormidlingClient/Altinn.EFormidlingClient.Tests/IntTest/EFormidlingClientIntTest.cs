@@ -5,15 +5,19 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging.Debug;
+
 using Xunit;
+using Xunit.Sdk;
 
 namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 {
@@ -32,7 +36,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public EFormidlingClientIntTest(Fixture fixture)
         {
             _serviceProvider = fixture.ServiceProvider;
-            _guid = fixture.CustomGuid;        
+            _guid = fixture.CustomGuid;
         }
 
         /// <summary>
@@ -40,8 +44,8 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         /// Expected: Response is valid Type of Capabilities dto
         /// </summary>
         [Fact]
-        public async void Get_Capabilities() 
-        {        
+        public async void Get_Capabilities()
+        {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
             var result = await service.GetCapabilities("984661185", null);
 
@@ -68,9 +72,9 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         /// </summary>
         [Fact]
         public async void Send_Standard_Business_Document()
-        {       
+        {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            var jsonString = File.ReadAllText(@"TestData\sbd.json"); 
+            var jsonString = File.ReadAllText(@"TestData\sbd.json");
             StandardBusinessDocument sbd = JsonSerializer.Deserialize<StandardBusinessDocument>(jsonString);
 
             string process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0";
@@ -86,10 +90,10 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
-            sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;        
+            sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.CreationDateAndTime = currentCreationTime;
-            
-            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd, null);     
+
+            StandardBusinessDocument sbdVerified = await service.CreateMessage(sbd, null);
             Assert.Equal(JsonSerializer.Serialize(sbdVerified), JsonSerializer.Serialize(sbd));
         }
 
@@ -162,7 +166,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
             DateTime currentCreationTime = DateTime.Now;
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
-          
+
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.Type = type;
             sbd.StandardBusinessDocumentHeader.DocumentIdentification.InstanceIdentifier = _guid;
@@ -188,7 +192,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             DateTime currentCreationTime = DateTime.Now;
             currentCreationTime = currentCreationTime.AddMinutes(-1);
             DateTime currentCreationTime2HoursLater = currentCreationTime.AddHours(2);
-            
+
             Guid obj = Guid.NewGuid();
             _guid = obj.ToString();
 
@@ -222,9 +226,14 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
         public async void Send_Message()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            var completeSending = await service.SendMessage(_guid, null);
-
-            Assert.True(completeSending);
+            try
+            {
+                await service.SendMessage(_guid, null);
+            }
+            catch (Exception ex)
+            {
+                throw new XunitException("Expected no exception, but got: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -252,7 +261,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
 
             Guid obj = Guid.NewGuid();
             _guid = obj.ToString();
-           
+
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().Identifier = process;
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().InstanceIdentifier = _guid;
             sbd.StandardBusinessDocumentHeader.BusinessScope.Scope.First().ScopeInformation.First().ExpectedResponseDateTime = currentCreationTime2HoursLater;
@@ -295,18 +304,18 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
             response = await httpClient.GetAsync($"{baseUrl}messages/in/pop/{messageId}");
 
             FileInfo fileInfo;
-                            
+
             using (var stream = response.Content.ReadAsStreamAsync().Result)
             {
                 fileInfo = new FileInfo("sent_package.zip");
                 using var fileStream = fileInfo.OpenWrite();
                 await stream.CopyToAsync(fileStream);
             }
-                           
+
             response = await httpClient.DeleteAsync($"{baseUrl}messages/in/{messageId}");
             _ = await response.Content.ReadAsStringAsync();
 
-            Assert.True(fileInfo.Exists);              
+            Assert.True(fileInfo.Exists);
         }
 
         /// <summary>
@@ -352,7 +361,7 @@ namespace Altinn.Common.EFormidlingClient.Tests.ClientTest
                 serviceCollection.AddTransient<HttpClient>();
                 serviceCollection.AddTransient<IEFormidlingClient, EFormidlingClient>();
                 ServiceProvider = serviceCollection.BuildServiceProvider();
-      
+
                 Guid obj = Guid.NewGuid();
                 CustomGuid = obj.ToString();
             }
