@@ -11,16 +11,16 @@ namespace Altinn.App.Core.Process
         /// <summary>
         /// hallooo asdf
         /// </summary>
-        public abstract Task HandleTaskComplete(ProcessChangeContext processChange);
+        public abstract Task HandleTaskComplete(ProcessChangeContext processChangeContext);
 
         /// <summary>
         /// Handle task start
         /// </summary>
-        public abstract Task HandleTaskStart(ProcessChangeContext processChange);
+        public abstract Task HandleTaskStart(ProcessChangeContext processChangeContext);
 
         /// <summary>
         /// Handle task abandon
         /// </summary>
-        public abstract Task HandleTaskAbandon(ProcessChangeContext processChange);
+        public abstract Task HandleTaskAbandon(ProcessChangeContext processChangeContext);
     }
 }

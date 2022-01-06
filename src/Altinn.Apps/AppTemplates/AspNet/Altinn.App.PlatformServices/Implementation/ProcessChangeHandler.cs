@@ -344,29 +344,6 @@ namespace Altinn.App.Core.Implementation
             return null;
         }
 
-        private string CheckNextElementId(Instance instance, string proposedNextElementId)
-        {
-            string currentElementId = instance.Process?.CurrentTask?.ElementId ?? instance.Process?.StartEvent;
-            if (currentElementId == null)
-            {
-                throw new ArgumentException("Process has not started");
-            }
-
-            if (instance.Process?.EndEvent != null)
-            {
-                throw new ArgumentException("Process has ended. Cannot do next");
-            }
-
-            string validNextElementId = _processHelper.GetValidNextElementOrError(currentElementId, proposedNextElementId, out ProcessError nextElementError);
-
-            if (nextElementError != null)
-            {
-                throw new ArgumentException($"Wanted next element id {proposedNextElementId} is not a possible move from {currentElementId} in process model. {nextElementError.Text}");
-            }
-
-            return validNextElementId;
-        }
-
         /// <summary>
         /// Assumes that nextElementId is a valid task/state
         /// </summary>

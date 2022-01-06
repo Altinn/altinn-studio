@@ -18,9 +18,7 @@ namespace Altinn.App.Core.Implementation
     /// </summary>
     public class ProcessEngine : IProcessEngine
     {
-        private IProcessChangeHandler _processChangeHandler;
-
-        private readonly IProcess _processService;
+        private readonly IProcessChangeHandler _processChangeHandler;
 
         private readonly ProcessHelper processHelper;
 
@@ -31,9 +29,8 @@ namespace Altinn.App.Core.Implementation
                 IProcessChangeHandler processChangeHandler,
                 IProcess processService)
         {
-            _processService = processService;
             _processChangeHandler = processChangeHandler;
-            using Stream bpmnStream = _processService.GetProcessDefinition();
+            using Stream bpmnStream = processService.GetProcessDefinition();
             processHelper = new ProcessHelper(bpmnStream);
         }
 
