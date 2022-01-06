@@ -683,11 +683,14 @@ namespace Altinn.App.Services.Implementation
 
             await SendInstanceData(instance, requestHeaders);
 
-            bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
-
-            if (!shipmentResult)
+            try
+            {
+                await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
+            }
+            catch
             {
                 _logger.LogError("// AppBase // SendEFormidlingShipment // Shipment of instance {InstanceId} failed.", instance.Id);
+                throw;
             }
         }
     }

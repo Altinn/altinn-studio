@@ -32,9 +32,9 @@ namespace App.IntegrationTestsRef.Mocks.Services
             return Task.FromResult(true);
         }
 
-        public Task<bool> SendMessage(string id, Dictionary<string, string> requestHeaders)
+        public Task SendMessage(string id, Dictionary<string, string> requestHeaders)
         {
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
 
         public Task<bool> SubscribeeFormidling(string name, string pushEndpoint, string resource, string @event, string filter, Dictionary<string, string> requestHeaders)
