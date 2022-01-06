@@ -20,7 +20,7 @@ public class SwaggerConfiguration {
     return new OpenAPI()
       .info(new Info().title("Altinn PDF")
         .description("API for creating a receipt pdf for an archived altinn app.")
-        .version("v0.0.1")
+        .version("v1.0.0")
         .license(new License().name("Apache 2.0").url("http://springdoc.org")))
       .externalDocs(new ExternalDocumentation()
         .description("SpringShop Wiki Documentation")
