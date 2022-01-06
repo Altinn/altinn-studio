@@ -68,12 +68,12 @@ namespace Altinn.App.Core.Implementation
 
             if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext) && await _processChangeHandler.CanTaskBeEnded(processChange))
             {
-                return await _processChangeHandler.HandleCompleteCurrentAndMoveToNext(processChange);
+                return await _processChangeHandler.HandleMoveToNext(processChange);
             }
 
             if (processChange.ProcessSequenceFlowType.Equals(ProcessSequenceFlowType.AbandonCurrentReturnToNext))
             {
-                return await _processChangeHandler.HandleAbandonCurrentReturnToNext(processChange);
+                return await _processChangeHandler.HandleMoveToNext(processChange);
             }
 
             processChange.FailedProcessChange = true;

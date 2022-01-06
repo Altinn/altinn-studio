@@ -65,21 +65,7 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<ProcessChangeContext> HandleCompleteCurrentAndMoveToNext(ProcessChangeContext processChange)
-        {
-            processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
-            if (processChange.ProcessStateChange != null)
-            {
-                processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
-
-                await RegisterEventWithEventsComponent(processChange.Instance);
-            }
-
-            return processChange;
-        }
-
-        /// <inheritdoc />
-        public async Task<ProcessChangeContext> HandleAbandonCurrentReturnToNext(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> HandleMoveToNext(ProcessChangeContext processChange)
         {
             processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
             if (processChange.ProcessStateChange != null)
@@ -146,6 +132,10 @@ namespace Altinn.App.Core.Implementation
             return canEndTask;
         }
 
+        /// <summary>
+        /// Identify the correct task implementation
+        /// </summary>
+        /// <returns></returns>
         private ITask GetProcessTask(string altinnTaskType)
         {
             if (string.IsNullOrEmpty(altinnTaskType))
@@ -222,7 +212,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Does not save process. Instance is updated.
         /// </summary>
-        private ProcessStateChange ProcessStart(Instance instance, string startEvent, ClaimsPrincipal user)
+        private static ProcessStateChange ProcessStart(Instance instance, string startEvent, ClaimsPrincipal user)
         {
             if (instance.Process == null)
             {

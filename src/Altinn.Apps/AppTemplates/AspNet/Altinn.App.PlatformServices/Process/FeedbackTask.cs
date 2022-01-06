@@ -39,9 +39,9 @@ namespace Altinn.App.Core.Process
         }
 
         /// <inheritdoc/>
-        public override async Task HandleTaskStart(ProcessChangeContext processChange)
+        public override async Task HandleTaskStart(ProcessChangeContext processChangeContext)
         {
-            await _altinnApp.OnStartProcessTask(processChange.ElementToBeProcessed, processChange.Instance, processChange.Prefill);
+            await _altinnApp.OnStartProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance, processChangeContext.Prefill);
         }
     }
 }

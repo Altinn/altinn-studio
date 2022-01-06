@@ -18,13 +18,7 @@ namespace Altinn.App.Core.Interface
         /// Handle complete task and move to 
         /// </summary>
         /// <returns></returns>
-        Task<ProcessChangeContext> HandleCompleteCurrentAndMoveToNext(ProcessChangeContext processChange);
-
-        /// <summary>
-        /// Handle navigation to ext
-        /// </summary>
-        /// <returns></returns>
-        Task<ProcessChangeContext> HandleAbandonCurrentReturnToNext(ProcessChangeContext processChange);
+        Task<ProcessChangeContext> HandleMoveToNext(ProcessChangeContext processChange);
 
         /// <summary>
         /// Handle start task
