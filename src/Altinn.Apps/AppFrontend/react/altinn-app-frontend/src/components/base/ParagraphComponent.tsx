@@ -42,7 +42,6 @@ export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
   var iconPos;
-  var textArr;
 
   function replaceIcon(element, patern){
 
@@ -68,72 +67,6 @@ export function ParagraphComponent(props: IParagraphProps) {
       }
     }
   }
-
-  textArr = props.text;
-  replaceIcon(textArr, '{help}')
-
-  //non-recursive code
-  // for(var i=0; i<textArr.length; i++) {
-  //   if(textArr[i]['props']) {
-  //     if(textArr[i]['props']['children']) {
-  //       for(var j=0; j<textArr[i]['props']['children'].length; j++) {
-  //         if(textArr[i]['props']['children'][j]['props']) {
-  //           if(textArr[i]['props']['children'][j]['props']['children']) {
-  //             for(var z=0; z<textArr[i]['props']['children'][j]['props']['children'].length; z++) {
-  //               text = textArr[i]['props']['children'][j]['props']['children'][z].toString();
-  //               placeIconTrue = text.indexOf('{help}'); 
-    
-  //               if(placeIconTrue !== -1) {
-  //                 textArr[i]['props']['children'][j]['props']['children'][z] = 
-  //                 <> 
-  //                   {textArr[i]['props']['children'][j]['props']['children'][z].substring(0, placeIconTrue)} 
-  //                     <HelpTextContainer
-  //                       language={props.language}
-  //                       id={props.id}
-  //                       helpText={props.getTextResource(props.textResourceBindings.help)}
-  //                     /> 
-  //                   {textArr[i]['props']['children'][j]['props']['children'][z].substring(placeIconTrue + 6)}
-  //                 </>;
-  //               }
-  //             }
-  //           }
-  //         }
-
-  //         text = textArr[i]['props']['children'][j].toString();
-  //         placeIconTrue = text.indexOf('{help}'); 
-
-  //         if(placeIconTrue !== -1) {
-  //           textArr[i]['props']['children'][j] = 
-  //           <> 
-  //             {textArr[i]['props']['children'][j].substring(0, placeIconTrue)} 
-  //               <HelpTextContainer
-  //                 language={props.language}
-  //                 id={props.id}
-  //                 helpText={props.getTextResource(props.textResourceBindings.help)}
-  //               /> 
-  //             {textArr[i]['props']['children'][j].substring(placeIconTrue + 6)}
-  //           </>;
-  //         }
-  //       }
-  //     }
-  //   } else {
-  //     text = textArr[i].toString();
-  //     placeIconTrue = text.indexOf('{help}'); 
-
-  //     if(placeIconTrue !== -1) {
-  //       textArr[i] = 
-  //       <>
-  //           {textArr[i].substring(0, placeIconTrue)} 
-  //             <HelpTextContainer
-  //               language={props.language}
-  //               id={props.id}
-  //               helpText={props.getTextResource(props.textResourceBindings.help)}
-  //             /> 
-  //           {textArr[i].substring(placeIconTrue + 6)}
-  //       </>;
-  //     }
-  //   }
-  // }
 
   return (
     <Grid
