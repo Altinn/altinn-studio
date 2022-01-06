@@ -189,17 +189,20 @@ namespace Altinn.App.Services.Helpers
         /// </summary>
         public ProcessSequenceFlowType GetSequenceFlowType(string currentId, string nextElementId)
         {
-            ProcessSequenceFlowType flowType = ProcessSequenceFlowType.CompleteCurrentMoveToNext;
             List<SequenceFlow> flows = Process.GetSequenceFlowsBetween(currentId, nextElementId);
             foreach (SequenceFlow flow in flows)
             { 
                 if (!string.IsNullOrEmpty(flow.FlowType))
                 {
-                    Enum.TryParse(flow.FlowType, out flowType);
+                    ProcessSequenceFlowType flowType;
+                    if (Enum.TryParse(flow.FlowType, out flowType))
+                    {
+                        return flowType;
+                    }
                 }
             }
 
-            return flowType;
+            return ProcessSequenceFlowType.CompleteCurrentMoveToNext;
         }
 
         private ProcessError Conflict(string text)
