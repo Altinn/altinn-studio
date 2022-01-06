@@ -152,10 +152,9 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
               onBlur={(e) => props.onDropdownDataChange(props.attachment.id, e.target.value)}
             >
               <option style={{ display: 'none' }} />
-              {props.options?.map((option, optionIndex) => (
+              {props.options?.map((option) => (
                 <option
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={optionIndex}
+                  key={option.value}
                   value={option.value}
                 >
                   {props.getTextResourceAsString(option.label)}

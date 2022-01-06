@@ -159,19 +159,6 @@ describe('>>> utils/formComponentUtils.ts', () => {
     expect(result).toEqual(false);
   });
 
-  // *********************** BEGIN
-  // TODO Move to component tests?
-  /* it('+++ getFileUploadComponentWithTagValidations', () => {
-    const result = getFileUploadWithTagComponentValidations(props.validationMessages, validationState);
-    expect(result).toEqual(true);
-  });
-
-  it('+++ parseFileUploadComponentWithTagValidationObject ', () => {
-    const result = parseFileUploadComponentWithTagValidationObject(validationArray);
-    expect(result).toEqual(true);
-  }); */
-  // *********************** END
-
   it('+++ isAttachmentError should return true when error has attachmentId', () => {
     const error = {
       id: 'mockUUID',

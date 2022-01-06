@@ -36,7 +36,7 @@ public class InstanceUtils {
    * Gets a map of attachments and their tags in an instance based on the file upload component id
    * @param id the component id
    * @param instance the instance
-   * @return a list of filenames
+   * @return a map of filenames and corresponding tags
    */
   public static Map<String, List<String>> getAttachmentsAndTagsByComponentId(String id, Instance instance) {
     Map<String, List<String>> map = new HashMap<String, List<String>>();

@@ -12,7 +12,7 @@ import { getFileUploadComponentValidations, parseFileUploadComponentWithTagValid
 import { ITextResourceBindings } from '../../../src/features/form/layout';
 
 
-describe('>>> components/base/FileUploadWithTagComponent.tsx', () => { // TODO
+describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
   let mockId: string;
   let mockIsValid: boolean;
   let mockMaxFileSizeInMB: number;
