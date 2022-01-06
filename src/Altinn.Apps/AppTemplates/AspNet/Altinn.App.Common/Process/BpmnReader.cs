@@ -190,12 +190,9 @@ namespace Altinn.App.Common.Process
 
             foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == gatewayId))
             {
-                if (!ignoreGatewayDefaults && !string.IsNullOrEmpty(defaultSequence))
+                if (!ignoreGatewayDefaults && !string.IsNullOrEmpty(defaultSequence) && !defaultSequence.Equals(sequenceFlow.Id))
                 {
-                    if (!defaultSequence.Equals(sequenceFlow.Id))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 ExclusiveGateway exclusiveGateway = definitions.Process.ExclusiveGateway.Find(g => g.Id == sequenceFlow.TargetRef);
