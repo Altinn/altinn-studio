@@ -28,7 +28,7 @@ namespace Altinn.App.PlatformServices.Options
         {
             foreach (var appOptionProvider in AppOptionsProviders)
             {
-                if (appOptionProvider.Id != optionsId)
+                if (appOptionProvider.Id.ToLower() != optionsId.ToLower())
                 {
                     continue;
                 }

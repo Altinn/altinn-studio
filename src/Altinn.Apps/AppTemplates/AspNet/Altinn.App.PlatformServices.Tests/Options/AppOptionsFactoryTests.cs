@@ -25,12 +25,24 @@ namespace Altinn.App.PlatformServices.Tests.Options
         }
 
         [Fact]
-        public void GetOptionsProvider_CustomOptionsProvider_ShouldReturnDefault()
+        public void GetOptionsProvider_CustomOptionsProvider_ShouldReturnCustomType()
         {
             var appResourcesMock = new Mock<IAppResources>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() {new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
+
+            optionsProvider.Should().BeOfType<CountryAppOptionsProvider>();
+            optionsProvider.Id.Should().Be("country");
+        }
+
+        [Fact]
+        public void GetOptionsProvider_CustomOptionsProviderWithUpperCase_ShouldReturnCustomType()
+        {
+            var appResourcesMock = new Mock<IAppResources>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
+
+            IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
 
             optionsProvider.Should().BeOfType<CountryAppOptionsProvider>();
             optionsProvider.Id.Should().Be("country");
