@@ -34,7 +34,7 @@ namespace Altinn.App.Core.Process
         /// <inheritdoc/>
         public override async Task HandleTaskComplete(ProcessChangeContext processChangeContext)
         {
-            await _altinnApp.OnEndProcessTask(processChangeContext.ElementToBeProcessed, prprocessChangeContextocessChangeContext.Instance);
+            await _altinnApp.OnEndProcessTask(processChangeContext.ElementToBeProcessed, processChangeContext.Instance);
         }
 
         /// <inheritdoc/>
