@@ -168,21 +168,6 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<Instance> UpdateProcessAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
-        {
-            await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
-
-            // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
-            Instance updatedInstance = await _instanceClient.UpdateProcess(instance);
-
-            await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
-
-            // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
-            updatedInstance = await _instanceClient.GetInstance(updatedInstance);
-
-            return updatedInstance;
-        }
-
         /// <summary>
         /// Gets a list of the next process elements that can be reached from the current process element.
         /// If process is not started it returns the possible start events.
@@ -509,42 +494,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return StatusCode(500, $"{message}");
-        }
-
-        /// <summary>
-        /// Perform calls to the custom App logic.
-        /// </summary>
-        /// <param name="altinnApp">The application core logic.</param>
-        /// <param name="instance">The currently loaded instance.</param>
-        /// <param name="events">The events to trigger.</param>
-        /// <param name="prefill">Prefill values.</param>
-        /// <returns>A Task to enable async await.</returns>
-        internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events, Dictionary<string, string> prefill = null)
-        {
-            foreach (InstanceEvent processEvent in events)
-            {
-                if (Enum.TryParse<InstanceEventType>(processEvent.EventType, true, out InstanceEventType eventType))
-                {
-                    switch (eventType)
-                    {
-                        case InstanceEventType.process_StartEvent:
-
-                            break;
-
-                        case InstanceEventType.process_StartTask:
-                            await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance, prefill);
-                            break;
-
-                        case InstanceEventType.process_EndTask:
-                            await altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
-                            break;
-
-                        case InstanceEventType.process_EndEvent:
-                            await altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);
-                            break;
-                    }
-                }
-            }
         }
 
         private async Task<bool> AuthorizeAction(string currentTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string taskId = null)
