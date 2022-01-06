@@ -128,9 +128,9 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Process Start Current task. The main goal is to trigger the Task related business logic seperate from start process
         /// </summary>
-        public Task<ProcessChangeContext> StartTask(ProcessChangeContext processChange)
+        public async Task<ProcessChangeContext> StartTask(ProcessChangeContext processChange)
         {
-            return _processChangeHandler.HandleStartTask(processChange);
+            return await _processChangeHandler.HandleStartTask(processChange);
         }
     }
 }
