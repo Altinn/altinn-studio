@@ -333,7 +333,6 @@ namespace Altinn.App.Api.Controllers
                     return Conflict(changeContext.ProcessMessages[0].Message);
                 }
 
-                await RegisterEventWithEventsComponent(changeContext.Instance);
                 return Ok(changeContext.Instance.Process);
             }
             catch (PlatformHttpException e)
@@ -435,7 +434,6 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     currentTaskId = instance.Process.CurrentTask?.ElementId;
-                    await RegisterEventWithEventsComponent(instance);
                 }
                 catch (Exception ex)
                 {
@@ -546,28 +544,6 @@ namespace Altinn.App.Api.Controllers
             else
             {
                 return ExceptionResponse(e, defaultMessage);
-            }
-        }
-
-        private async Task RegisterEventWithEventsComponent(Instance instance)
-        {
-            if (_appSettings.RegisterEventsWithEventsComponent)
-            {
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(instance.Process.CurrentTask?.ElementId))
-                    {
-                        await _eventsService.AddEvent($"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
-                    }
-                    else if (instance.Process.EndEvent != null)
-                    {
-                        await _eventsService.AddEvent("app.instance.process.completed", instance);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
-                }
             }
         }
     }
