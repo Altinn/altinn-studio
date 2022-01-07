@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
@@ -20,6 +21,16 @@ namespace Altinn.App.PlatformServices.Tests.Options
 
             optionsProvider.Should().BeOfType<DefaultAppOptionsProvider>();
             optionsProvider.Id.Should().Be("country");
+        }
+
+        [Fact]
+        public void GetOptionsProvider_NoDefaultProvider_ShouldThrowException()
+        {
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>());
+
+            Action action = () => factory.GetOptionsProvider("country");
+
+            action.Should().Throw<KeyNotFoundException>();
         }
 
         [Fact]
