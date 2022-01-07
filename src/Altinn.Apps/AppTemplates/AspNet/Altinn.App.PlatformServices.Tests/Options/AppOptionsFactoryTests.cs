@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Options;
-using Altinn.App.Services.Implementation;
-using Altinn.App.Services.Interface;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -15,8 +13,8 @@ namespace Altinn.App.PlatformServices.Tests.Options
         [Fact]
         public void GetOptionsProvider_NoCustomOptionsProvider_ShouldReturnDefault()
         {
-            var appResourcesMock = new Mock<IAppResources>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appResourcesMock.Object) });
+            var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) });
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
@@ -27,8 +25,8 @@ namespace Altinn.App.PlatformServices.Tests.Options
         [Fact]
         public void GetOptionsProvider_CustomOptionsProvider_ShouldReturnCustomType()
         {
-            var appResourcesMock = new Mock<IAppResources>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
+            var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("country");
 
@@ -39,8 +37,8 @@ namespace Altinn.App.PlatformServices.Tests.Options
         [Fact]
         public void GetOptionsProvider_CustomOptionsProviderWithUpperCase_ShouldReturnCustomType()
         {
-            var appResourcesMock = new Mock<IAppResources>();
-            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appResourcesMock.Object), new CountryAppOptionsProvider() });
+            var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object), new CountryAppOptionsProvider() });
 
             IAppOptionsProvider optionsProvider = factory.GetOptionsProvider("Country");
 

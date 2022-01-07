@@ -81,6 +81,8 @@ namespace Altinn.App.PlatformServices.Extensions
             services.Configure<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
             services.AddSingleton<AppOptionsFactory>();
             services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+            services.AddTransient<IAppOptionsService, AppOptionsService>();
+            services.AddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
 
             if (!env.IsDevelopment())
             {

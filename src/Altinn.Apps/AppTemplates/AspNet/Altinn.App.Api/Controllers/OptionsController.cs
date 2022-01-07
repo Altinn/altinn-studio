@@ -15,17 +15,17 @@ namespace Altinn.App.Api.Controllers
     public class OptionsController : ControllerBase
     {
         private readonly IAltinnApp _altinnApp;
-        private readonly AppOptionsFactory _appOptionsFactory;
+        private readonly IAppOptionsService _appOptionsService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OptionsController"/> class.
         /// </summary>
         /// <param name="altinnApp">The current App Core used to interface with custom logic</param>
-        /// <param name="appOptionsFactory">Factory class for resolving the <see cref="IAppOptionsProvider"/> implementation to use.</param>
-        public OptionsController(IAltinnApp altinnApp, AppOptionsFactory appOptionsFactory)
+        /// <param name="appOptionsService">Service for handling app options</param>
+        public OptionsController(IAltinnApp altinnApp, IAppOptionsService appOptionsService)
         {
             _altinnApp = altinnApp;
-            _appOptionsFactory = appOptionsFactory;
+            _appOptionsService = appOptionsService;
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string optionsId,
             [FromQuery] Dictionary<string, string> queryParams)
         {
-            AppOptions appOptions = await _appOptionsFactory.GetOptionsProvider(optionsId).GetAppOptionsAsync(queryParams);
+            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, queryParams);
 
             // Kept for backwards compatibility, but should use the IAppOptionsProvider instead.
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
