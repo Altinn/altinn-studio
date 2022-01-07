@@ -175,7 +175,7 @@ export interface INavigationConfig {
 
 export interface IOption {
   label: string;
-  value: any;
+  value: string;
 }
 
 export interface IOptions {

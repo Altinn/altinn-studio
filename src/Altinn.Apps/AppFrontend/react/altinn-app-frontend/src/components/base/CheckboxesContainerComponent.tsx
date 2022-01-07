@@ -8,10 +8,11 @@ import classNames from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
 import { IComponentProps } from '..';
+import { IOption } from 'src/types';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: any;
-  options: any[];
+  options: IOption[];
   optionsId: string;
   preselectedOptionIndex?: number;
 }
@@ -67,95 +68,46 @@ const useStyles = makeStyles({
   },
 });
 
-function usePrevious(value) {
-  const ref = React.useRef();
-  React.useEffect(() => {
-    ref.current = value.slice();
-  });
 
-  return ref.current;
-}
+const emptyList: undefined[] = []; // constant for reference stability
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options || [];
-  const [selected, setSelected] = React.useState([]);
-  const prevSelected: any = usePrevious(selected);
+  const apiOptions: IOption[] = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const options = apiOptions || props.options || emptyList;
   const checkBoxesIsRow: boolean = options.length <= 2;
 
+  const selected = React.useMemo(() => {
+    return props.formData.simpleBinding.split(',').map(v => options.find(o => o.value == v)).filter(o => !!o) ?? emptyList;
+  }, [props.formData, options])
+
+  // Implement preselected functionality
   React.useEffect(() => {
-    returnState();
+    const preselectedOption = options?.[props.preselectedOptionIndex]?.value;
+    if (
+      !selected &&
+      preselectedOption
+    ) {
+      props.handleDataChange(preselectedOption);
+    }
+    // This effect should only run when new options are loaded
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
-  React.useEffect(() => {
-    returnState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.formData?.simpleBinding]);
 
-  const returnState = () => {
-    if (
-      !props.formData?.simpleBinding &&
-      props.preselectedOptionIndex >= 0 &&
-      options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      const preSelected: string[] = [];
-      preSelected[props.preselectedOptionIndex] =
-        options[props.preselectedOptionIndex].value;
-      props.handleDataChange(preSelected[props.preselectedOptionIndex]);
-      setSelected(preSelected);
-    } else {
-      setSelected(props.formData?.simpleBinding ? props.formData.simpleBinding.split(',') : []);
-    }
-  };
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected: any = selected.slice();
-    const index = newSelected.indexOf(event.target.name);
+    const previouslySelected = selected.some(v => v.value === event.target.name);
 
-    if (index >= 0) {
-      newSelected[index] = '';
-    } else {
-      newSelected.push(event.target.name);
-    }
-    const filtered = newSelected.filter((element: string) => !!element);
+    const newSelected = previouslySelected ?
+      selected.filter(o => o.value !== event.target.name) :
+      [...selected, options.find(o => o.value === event.target.name)];
+    props.handleDataChange(newSelected.map(o => o.value).join());
     props.handleFocusUpdate(props.id);
-    props.handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
 
-  const handleOnBlur = () => {
-    props.handleDataChange(props.formData?.simpleBinding ?? '');
-  };
-
-  const selectedHasValues = (select: string[]): boolean => {
-    return select.some((element) => element !== '');
-  };
-
-  const isOptionSelected = (option: string) => {
-    return selected.indexOf(option) > -1;
-  };
-
-  const inFocus = (index: number) => {
-    let changed: any;
-    if (!prevSelected) {
-      return false;
-    }
-    if (prevSelected.length === 0) {
-      changed = selected.findIndex((x) => !!x && x !== '');
-    } else {
-      changed = selected.findIndex((x) => !prevSelected.includes(x));
-    }
-    if (changed === -1) {
-      changed = prevSelected.findIndex((x) => !selected.includes(x));
-    }
-
-    if (changed === -1) {
-      return false;
-    }
-    const should = props.shouldFocus && changed === index;
-    return should;
+  const isOptionSelected = (option: IOption) => {
+    return selected.some(o => o.value === option.value);
   };
 
   const RenderLegend = props.legend;
@@ -180,20 +132,18 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
               classes={{ root: classNames(classes.margin) }}
               control={
                 <StyledCheckbox
-                  checked={isOptionSelected(option.value)}
+                  checked={isOptionSelected(option)}
                   onChange={onDataChanged}
-                  onBlur={handleOnBlur}
                   value={index}
                   key={option.value}
                   name={option.value}
-                  autoFocus={inFocus(index)}
                   label={props.getTextResourceAsString(option.label)}
                 />
               }
               label={props.getTextResource(option.label)}
             />
             {props.validationMessages &&
-              isOptionSelected(option.value) &&
+              isOptionSelected(option) &&
               renderValidationMessagesForComponent(
                 props.validationMessages.simpleBinding,
                 props.id,
