@@ -7,8 +7,9 @@ import { RepeatingGroupTable } from '../../../../src/features/form/containers/Re
 import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../../../../src/features/form/layout';
 import { IOption, ITextResource } from '../../../../src/types';
 import { ILayoutState } from '../../../../src/features/form/layout/formLayoutSlice';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 
-describe('components/base/InputComponent.tsx', () => {
+describe('features > form > containers > RepeatingGroupTable.tsx', () => {
   let mockContainer: ILayoutGroup;
   let mockLanguage: any;
   let mockTextResources: ITextResource[];
@@ -17,6 +18,8 @@ describe('components/base/InputComponent.tsx', () => {
   let mockCurrentView: string;
   let mockData: any;
   let mockOptions: IOption[];
+  let repeatingGroupIndex: number;
+  let mockRepeatingGroupDeepCopyComponents: Array<Array<ILayoutComponent | ILayoutGroup>>;
 
   beforeEach(() => {
     mockOptions = [{ value: 'option.value', label: 'option.label' }];
@@ -122,9 +125,16 @@ describe('components/base/InputComponent.tsx', () => {
     ];
 
     mockCurrentView = 'FormLayout';
+    repeatingGroupIndex = 3;
+    mockRepeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
+      mockContainer,
+      mockComponents,
+      repeatingGroupIndex,
+      mockTextResources,
+    );
   });
 
-  test('feature/form/containers/RepeatingGroupTable -- should match snapshot', () => {
+  it('should match snapshot', () => {
     const { asFragment } = render(
       <RepeatingGroupTable
         container={mockContainer}
@@ -138,10 +148,10 @@ describe('components/base/InputComponent.tsx', () => {
         id={mockContainer.id}
         layout={mockLayout.layouts[mockCurrentView]}
         options={{}}
-        repeatingGroupIndex={3}
+        repeatingGroupDeepCopyComponents={mockRepeatingGroupDeepCopyComponents}
+        repeatingGroupIndex={repeatingGroupIndex}
         repeatingGroups={mockLayout.uiConfig.repeatingGroups}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        setEditIndex={(index: number) => {}}
+        setEditIndex={jest.fn()}
         validations={{}}
       />,
     );

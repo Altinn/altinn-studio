@@ -35,6 +35,7 @@ import {
 import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IGenericComponentProps {
   id: string;
@@ -365,7 +366,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
 interface IRenderLabelProps {
   texts: any;
-  language: any;
+  language: ILanguage;
   props: any;
   passThroughProps: any;
 }

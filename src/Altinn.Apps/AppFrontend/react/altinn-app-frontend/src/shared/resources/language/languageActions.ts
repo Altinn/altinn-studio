@@ -1,3 +1,4 @@
+import { ILanguage } from 'altinn-shared/types';
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 
@@ -6,7 +7,7 @@ import * as FetchLanguage from './fetch/fetchLanguageActions';
 export interface ILanguageActions extends ActionCreatorsMapObject {
   fetchLanguage: () => Action;
   fetchLanguageFulfilled: (
-    language: any,
+    language: ILanguage,
   ) => FetchLanguage.IFetchLanguageFulfilled;
   fetchLanguageRecjeted: (
     error: Error,

@@ -368,5 +368,11 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
 export function* watchInitRepeatingGroupsSaga(): SagaIterator {
   yield take(FormLayoutActions.fetchLayoutFulfilled);
   yield call(initRepeatingGroupsSaga);
-  yield takeLatest([FormDataActions.fetchFormDataFulfilled, FormLayoutActions.initRepeatingGroups], initRepeatingGroupsSaga);
+  yield takeLatest([
+    FormDataActions.fetchFormDataFulfilled,
+    FormLayoutActions.initRepeatingGroups,
+    FormLayoutActions.fetchLayoutFulfilled
+    ],
+    initRepeatingGroupsSaga
+  );
 }

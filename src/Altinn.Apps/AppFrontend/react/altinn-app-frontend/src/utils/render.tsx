@@ -14,10 +14,6 @@ export function renderPropertyLabel(textKey: string) {
   return <Typography style={styles.inputHelper}>{textKey}</Typography>;
 }
 
-export function noOptionsMessage(language: any): string {
-  return language.general.no_options;
-}
-
 const messageComponentStyle = {
   display: 'block',
   width: 'fit-content',

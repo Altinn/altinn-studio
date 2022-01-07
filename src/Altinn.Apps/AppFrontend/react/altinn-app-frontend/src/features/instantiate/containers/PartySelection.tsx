@@ -21,6 +21,7 @@ import InstantiationContainer from './InstantiationContainer';
 import NoValidPartiesError from './NoValidPartiesError';
 import InstantiationActions from '../instantiation/actions/index';
 import { useAppSelector } from 'src/common/hooks';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({
   partySelectionTitle: {
@@ -171,12 +172,12 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
               >
                 {`
                   ${
-                    language.party_selection.invalid_selection_first_part
+                    getLanguageFromKey('party_selection.invalid_selection_first_part', language)
                   } ${getRepresentedPartyName()}.
                   ${
-                    language.party_selection.invalid_selection_second_part
+                    getLanguageFromKey('party_selection.invalid_selection_second_part', language)
                   } ${templatePartyTypesString()}.
-                  ${language.party_selection.invalid_selection_third_part}
+                  ${getLanguageFromKey('party_selection.invalid_selection_third_part', language)}
                 `}
               </Typography>
             );
@@ -210,16 +211,16 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     let returnString = '';
 
     if (partyTypesAllowed.person) {
-      partyTypes.push(language.party_selection.unit_type_private_person);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_private_person', language));
     }
     if (partyTypesAllowed.organisation) {
-      partyTypes.push(language.party_selection.unit_type_company);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_company', language));
     }
     if (partyTypesAllowed.subUnit) {
-      partyTypes.push(language.party_selection.unit_type_subunit);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_subunit', language));
     }
     if (partyTypesAllowed.bankruptcyEstate) {
-      partyTypes.push(language.party_selection.unit_type_bankruptcy_state);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_bankruptcy_state', language));
     }
 
     if (partyTypes.length === 1) {
@@ -230,7 +231,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       if (i === 0) {
         returnString += partyTypes[i];
       } else if (i === partyTypes.length - 1) {
-        returnString += ` ${language.party_selection.binding_word} ${partyTypes[i]}`;
+        returnString += ` ${getLanguageFromKey('party_selection.binding_word', language)} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }
@@ -259,9 +260,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         <Grid container={true} direction='row'>
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
-            {!language.party_selection
-              ? 'party_selection.load_more'
-              : language.party_selection.load_more}
+            {getLanguageFromKey('party_selection.load_more', language)}
           </Typography>
         </Grid>
       </button>
@@ -291,9 +290,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         }}
       >
         <Typography className={classes.partySelectionTitle}>
-          {!language.party_selection
-            ? 'party_selection.header'
-            : language.party_selection.header}
+          {getLanguageFromKey('party_selection.header', language)}
         </Typography>
         {templateErrorMessage()}
       </Grid>
@@ -308,9 +305,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         <Grid container={true} justifyContent='space-between' direction='row'>
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
-              {!language.party_selection
-                ? 'party_selection.subheader'
-                : language.party_selection.subheader}
+              {getLanguageFromKey('party_selection.subheader', language)}
             </Typography>
           </Grid>
 
@@ -323,9 +318,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                     onChangeFunction={toggleShowDeleted}
                   />
                   <Typography className={classes.checkboxLabes}>
-                    {!language.party_selection
-                      ? 'party_selection.show_deleted'
-                      : language.party_selection.show_deleted}
+                    {getLanguageFromKey('party_selection.show_deleted', language)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -336,9 +329,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                     onChangeFunction={toggleShowSubUnits}
                   />
                   <Typography className={classes.checkboxLabes}>
-                    {!language.party_selection
-                      ? 'party_selection.show_sub_unit'
-                      : language.party_selection.show_sub_unit}
+                    {getLanguageFromKey('party_selection.show_sub_unit', language)}
                   </Typography>
                 </Grid>
               </Grid>
