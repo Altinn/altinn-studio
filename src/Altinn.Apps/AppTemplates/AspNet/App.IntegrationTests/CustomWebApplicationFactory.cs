@@ -1,5 +1,7 @@
+using Altinn.App.PlatformServices.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.IntegrationTests
 {
@@ -10,6 +12,7 @@ namespace Altinn.App.IntegrationTests
         {
             builder.ConfigureServices(services =>
             {
+                services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
             });
         }
     }

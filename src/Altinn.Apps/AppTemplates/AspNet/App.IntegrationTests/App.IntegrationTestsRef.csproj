@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -197,6 +198,7 @@
   <ItemGroup>
     <Folder Include="Data\apps\ttd\externalprefil\config\texts\" />
     <Folder Include="Data\apps\ttd\externalprefil\ui\layouts\" />
+    <Folder Include="Data\Instances\dibk\nabovarsel\1337\7c208f22-bde7-4d70-9c2b-26cc3f05abbe\blob\" />
     <Folder Include="Data\Instances\ttd\datafields-app\1337\" />
   </ItemGroup>
 
