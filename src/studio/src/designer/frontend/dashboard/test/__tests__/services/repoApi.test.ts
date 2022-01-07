@@ -18,12 +18,12 @@ describe('repoApi', () => {
       expect(result.sortby).toBe('alpha');
     });
 
-    it('should change sortby param to "created" when sortby is "updated_at"', () => {
+    it('should change sortby param to "updated" when sortby is "updated_at"', () => {
       const result = adjustQueryParams({
         sortby: 'updated_at',
       });
 
-      expect(result.sortby).toBe('created');
+      expect(result.sortby).toBe('updated');
     });
   });
 });

@@ -21,16 +21,13 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly IDataRepository _dataRepository;
 
         public InstanceRepository(
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            ILocalTestAppSelection localTestAppSelectionService,
             IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
             _dataRepository = dataRepository;
         }
 
@@ -80,7 +77,7 @@ namespace LocalTest.Services.Storage.Implementation
             return null;
         }
 
-        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             List<string> validQueryParams = new List<string>
             {
@@ -207,11 +204,11 @@ namespace LocalTest.Services.Storage.Implementation
 
             instances.ForEach(async i => await PostProcess(i));
 
-            return new InstanceQueryResponse
+            return Task.FromResult(new InstanceQueryResponse
             {
                 Instances = instances,
                 Count = instances.Count,
-            };
+            });
         }
 
         public async Task<Instance> Update(Instance instance)

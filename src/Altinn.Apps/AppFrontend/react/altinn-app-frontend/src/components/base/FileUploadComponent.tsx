@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import * as React from 'react';
 import DropZone, { FileRejection } from 'react-dropzone';
 import { AltinnAppTheme } from 'altinn-shared/theme';
@@ -14,6 +13,7 @@ import { IComponentValidations } from '../../types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -21,7 +21,7 @@ export interface IFileUploadProps {
   id: string;
   isValid?: boolean;
   componentValidations?: IComponentValidations;
-  language: any;
+  language: ILanguage;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;
   minNumberOfAttachments: number;

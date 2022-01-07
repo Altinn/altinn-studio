@@ -1108,6 +1108,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 CreateLanguageResources(org, serviceConfig);
+                await CreateRepositorySettings(org, serviceConfig.RepositoryName, userName, serviceConfig.DatamodellingPreference);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -1115,6 +1116,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return repository;
+        }
+
+        private async Task CreateRepositorySettings(string org, string repository, string developer, DatamodellingPreference datamodellingPreference)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            var settings = new AltinnStudioSettings() { DatamodellingPreference = datamodellingPreference, RepoType = AltinnRepositoryType.App };
+            await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
         private void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)

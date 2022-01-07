@@ -116,7 +116,10 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
+            services.AddSingleton<Common.AccessToken.Services.IAccessTokenValidator, Common.AccessToken.Services.AccessTokenValidator>();
+            services.AddSingleton<IEFormidlingAccessValidator, EFormidlingAccessValidator>();
             services.AddHttpClient<IOidcProvider, OidcProviderService>();
+            services.AddSingleton<IAuthentication, AuthenticationCore>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

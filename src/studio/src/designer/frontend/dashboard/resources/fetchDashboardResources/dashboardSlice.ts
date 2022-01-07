@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IRepository } from 'app-shared/types';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
@@ -23,7 +22,7 @@ export interface IDashboardState {
 const initialState: IDashboardState = {
   services: [],
   user: null,
-  selectedContext: SelectedContextType.All,
+  selectedContext: SelectedContextType.Self,
 };
 
 export interface IFetchDashboardInfoAction {
@@ -54,7 +53,6 @@ const dashboardSlice = createSlice({
       const { info } = action.payload;
       state.user = info;
     },
-
     fetchServicesFulfilled: (
       state,
       action: PayloadAction<IFetchDashboardInfoActionFulfilled>,

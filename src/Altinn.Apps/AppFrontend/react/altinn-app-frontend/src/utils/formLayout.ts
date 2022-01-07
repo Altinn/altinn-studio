@@ -203,8 +203,8 @@ export function createRepeatingGroupComponents(
   repeatingGroupIndex: number,
   textResources: ITextResource[],
   hiddenFields?: string[],
-) {
-  const componentArray = [];
+): Array<Array<ILayoutComponent | ILayoutGroup>> {
+  const componentArray: Array<Array<ILayoutComponent | ILayoutGroup>> = [];
   for (let i = 0; i <= repeatingGroupIndex; i++) {
     const childComponents = renderComponents.map(
       (component: ILayoutComponent | ILayoutGroup) => {

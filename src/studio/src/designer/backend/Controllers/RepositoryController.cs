@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -283,8 +284,6 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Branch> Branch(string org, string repository, [FromQuery] string branch)
             => await _giteaApi.GetBranch(org, repository, branch);
 
-            // TODO: Fix so we don't need /branch
-
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
@@ -370,13 +369,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository.</param>
+        /// <param name="datamodellingPreference">The prefered way of doing data modelling for this app. See <see cref="DatamodellingPreference"/> for options.
+        /// XSD is the Altinn 2 way, while Json Schema is the Altinn 3 way. You can go from XSD to Json Schema, but there isn't an easy way to go from Json Schema to XSD.
+        /// </param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
         [Route("{org}")]
-        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, [FromQuery] string repository)
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, [FromQuery] string repository, [FromQuery] DatamodellingPreference datamodellingPreference = DatamodellingPreference.JsonSchema)
         {
             try
             {
@@ -387,10 +389,16 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
+            if (datamodellingPreference == DatamodellingPreference.Unknown)
+            {
+                datamodellingPreference = DatamodellingPreference.JsonSchema;
+            }
+
             var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
                 ServiceName = repository,
+                DatamodellingPreference = datamodellingPreference
             };
 
             var repositoryResult = await _repository.CreateService(org, config);

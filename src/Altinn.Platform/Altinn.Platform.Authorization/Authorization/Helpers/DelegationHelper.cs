@@ -52,9 +52,9 @@ namespace Altinn.Platform.Authorization.Helpers
         public static bool TryGetCoveredByPartyIdFromMatch(List<AttributeMatch> match, out int coveredByPartyId)
         {
             coveredByPartyId = 0;
-            if (match?.Count == 1 && match.First().Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute && int.TryParse(match.First().Value, out coveredByPartyId))
+            if (match?.Count == 1 && match.First().Id == AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute)
             {
-                return true;
+                return int.TryParse(match.First().Value, out coveredByPartyId) && coveredByPartyId != 0;
             }
 
             return false;
@@ -67,9 +67,9 @@ namespace Altinn.Platform.Authorization.Helpers
         public static bool TryGetCoveredByUserIdFromMatch(List<AttributeMatch> match, out int coveredByUserId)
         {
             coveredByUserId = 0;
-            if (match?.Count == 1 && match.First().Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute && int.TryParse(match.First().Value, out coveredByUserId))
+            if (match?.Count == 1 && match.First().Id == AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute)
             {
-                return true;
+                return int.TryParse(match.First().Value, out coveredByUserId) && coveredByUserId != 0;
             }
 
             return false;
@@ -259,8 +259,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
                 if (policyResourceMatches.Any(resourceMatch => GetAttributeMatchKey(resourceMatch) == ruleResourceKey) && matchingActionFound)
                 {
-                    int guidIndex = policyRule.RuleId.IndexOf(AltinnXacmlConstants.Prefixes.RuleId);
-                    rule.RuleId = policyRule.RuleId.Substring(guidIndex + AltinnXacmlConstants.Prefixes.RuleId.Length);
+                    rule.RuleId = policyRule.RuleId;
                     return true;
                 }
             }

@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
@@ -96,10 +95,12 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   const returnState = () => {

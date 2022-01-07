@@ -195,11 +195,31 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
             }
             
-            AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
+            AssertCollections(expected.AppId, actual.AppId, AssertAttributeMatchEqual);
+            Assert.Equal(expected.MinimumAuthenticationLevel, actual.MinimumAuthenticationLevel);
+
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
             }
+        }
+
+        /// <summary>
+        /// Assert that two <see cref="Rule"/> have the same property in the same positions.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertRuleEqual(Rule expected, Rule actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            Assert.Equal(expected.CreatedSuccessfully, actual.CreatedSuccessfully);
+            Assert.Equal(expected.DelegatedByUserId, actual.DelegatedByUserId);
+            Assert.Equal(expected.OfferedByPartyId, actual.OfferedByPartyId);
+            AssertEqual(expected.CoveredBy, actual.CoveredBy);
+            AssertEqual(expected.Resource, actual.Resource);
+            AssertEqual(expected.Action, actual.Action);
         }
 
         private static void AssertEqual(List<AttributeMatch> expected, List<AttributeMatch> actual)

@@ -44,6 +44,7 @@ import { createRepeatingGroupComponents } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
 import { getFlagBasedDate } from './dateHelpers';
 import JsonPointer from 'jsonpointer';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;
@@ -172,7 +173,7 @@ export function validateEmptyFields(
   formData: any,
   layouts: ILayouts,
   layoutOrder: string[],
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ) {
@@ -198,7 +199,7 @@ export function validateEmptyFields(
 export function validateEmptyFieldsForLayout(
   formData: any,
   formLayout: ILayout,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
   repeatingGroups: IRepeatingGroups,
 ): ILayoutValidations {
@@ -356,7 +357,7 @@ export function getGroupChildren(
 export function validateEmptyField(
   formData: any,
   dataModelBindings: IDataModelBindings,
-  language: any,
+  language: ILanguage,
   groupDataBinding?: string,
   index?: number,
 ): IComponentValidations {
@@ -398,7 +399,7 @@ export function validateFormComponents(
   layouts: any,
   layoutOrder: string[],
   formData: any,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
 ) {
   const validations: any = {};
@@ -425,7 +426,7 @@ export function validateFormComponentsForLayout(
   attachments: any,
   formLayout: any,
   formData: any,
-  language: any,
+  language: ILanguage,
   hiddenFields: string[],
 ): ILayoutValidations {
   const validations: any = {};
@@ -497,7 +498,7 @@ export function validateDatepickerFormData(
   minDate: string = DatePickerMinDateDefault,
   maxDate: string = DatePickerMaxDateDefault,
   format: string = DatePickerFormatDefault,
-  language: any,
+  language: ILanguage,
 ): IComponentBindingValidation {
   const validations: IComponentBindingValidation = { errors: [], warnings: [] };
   const messages: string[] = [];
@@ -531,7 +532,7 @@ export function validateComponentFormData(
   formData: any,
   dataModelField: string,
   component: ILayoutComponent,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
   existingValidationErrors?: IComponentValidations,
@@ -680,7 +681,7 @@ export function validateFormData(
   layouts: ILayouts,
   layoutOrder: string[],
   schemaValidator: ISchemaValidator,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
 ): IValidationResult {
   const validations: any = {};
@@ -714,7 +715,7 @@ export function validateFormDataForLayout(
   layout: ILayout,
   layoutKey: string,
   schemaValidator: ISchemaValidator,
-  language: any,
+  language: ILanguage,
   textResources: ITextResource[],
 ): IValidationResult {
   const { validator, rootElementPath, schema } = schemaValidator;
@@ -792,13 +793,13 @@ export function mapToComponentValidations(
 ) {
   let dataModelFieldKey = validatedComponent
     ? Object.keys(
-        (validatedComponent as ILayoutComponent).dataModelBindings,
-      ).find((name) => {
-        return (
-          (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
-          dataBindingName
-        );
-      })
+      (validatedComponent as ILayoutComponent).dataModelBindings,
+    ).find((name) => {
+      return (
+        (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
+        dataBindingName
+      );
+    })
     : null;
 
   const layoutComponent =
@@ -815,7 +816,7 @@ export function mapToComponentValidations(
               key &&
               component.dataModelBindings[key] &&
               component.dataModelBindings[key].toLowerCase() ===
-                dataBindingWithoutIndex
+              dataBindingWithoutIndex
             );
           },
         );
@@ -932,6 +933,10 @@ export function findLayoutIdFromValidationIssue(
   layouts: ILayouts,
   validationIssue: IValidationIssue,
 ) {
+  if (!validationIssue.field) {
+    // validation issue could be mapped to task and not to a field in the datamodel
+    return 'unmapped';
+  }
   return Object.keys(layouts).find((id) => {
     const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
       // Special handling for FileUpload component
@@ -1148,15 +1153,14 @@ function addValidation(
  * gets unmapped errors from validations as string array
  * @param validations the validations
  */
-export function getUnmappedErrors(validations: IValidations): string[] {
-  const messages: string[] = [];
+export function getUnmappedErrors(validations: IValidations): React.ReactNode[] {
+  const messages: React.ReactNode[] = [];
   if (!validations) {
     return messages;
   }
   Object.keys(validations).forEach((layout: string) => {
     Object.keys(validations[layout]?.unmapped || {}).forEach((key: string) => {
-      // eslint-disable-next-line no-unused-expressions
-      validations[layout].unmapped[key]?.errors?.forEach((message: string) => {
+      validations[layout].unmapped[key]?.errors?.forEach((message) => {
         messages.push(message);
       });
     });
@@ -1164,73 +1168,41 @@ export function getUnmappedErrors(validations: IValidations): string[] {
   return messages;
 }
 
-/**
- * gets total number of components with mapped errors
- * @param validations the validations
- */
-export function getNumberOfComponentsWithErrors(
-  validations: IValidations,
-): number {
-  return getNumberOfComponentsWithValidationMessages(
-    validations,
-    Severity.Error,
-  );
-}
 
 /**
- * gets total number of components with mapped warnings
+ * checks if a validation contains any errors of a given severity.
  * @param validations the validations
+ * @param severity the severity
  */
-export function getNumberOfComponentsWithWarnings(
-  validations: IValidations,
-): number {
-  return getNumberOfComponentsWithValidationMessages(
-    validations,
-    Severity.Warning,
-  );
-}
-
-/**
- * gets total number of components with mapped validation message of the given type
- * @param validations the validations
- */
-export function getNumberOfComponentsWithValidationMessages(
+export function hasValidationsOfSeverity(
   validations: IValidations,
   severity: Severity,
-): number {
-  let numberOfComponents = 0;
+): boolean {
   if (!validations) {
-    return numberOfComponents;
+    return false;
   }
 
-  Object.keys(validations).forEach((layout) => {
-    Object.keys(validations[layout]).forEach((componentKey: string) => {
-      if (componentKey !== 'unmapped') {
-        const componentHasMessages = Object.keys(
-          validations[layout][componentKey] || {},
-        ).some((bindingKey: string) => {
-          if (
-            severity === Severity.Error &&
-            validations[layout][componentKey][bindingKey].errors?.length > 0
-          ) {
-            return true;
-          }
-          if (
-            severity === Severity.Warning &&
-            validations[layout][componentKey][bindingKey].warnings?.length > 0
-          ) {
-            return true;
-          }
-          return false;
-        });
-        if (componentHasMessages) {
-          numberOfComponents += 1;
+  return Object.keys(validations).some((layout) => {
+    return Object.keys(validations[layout]).some((componentKey: string) => {
+      return Object.keys(
+        validations[layout][componentKey] || {},
+      ).some((bindingKey: string) => {
+        if (
+          severity === Severity.Error &&
+          validations[layout][componentKey][bindingKey].errors?.length > 0
+        ) {
+          return true;
         }
-      }
+        if (
+          severity === Severity.Warning &&
+          validations[layout][componentKey][bindingKey].warnings?.length > 0
+        ) {
+          return true;
+        }
+        return false;
+      });
     });
   });
-
-  return numberOfComponents;
 }
 
 /*

@@ -35,6 +35,7 @@ import {
 import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IGenericComponentProps {
   id: string;
@@ -122,6 +123,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   React.useEffect(() => {
     setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -207,7 +209,13 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const RenderComponent = components.find(
     (componentCandidate) => componentCandidate.name === props.type,
-  ).Tag;
+  );
+  if (!RenderComponent) {
+    return <div>
+      Unknown component type: {props.type}<br />
+      Valid component types: {components.map(c=>c.name).join(', ')}
+    </div>;
+  }
 
   const RenderLabel = () => {
     return (
@@ -344,7 +352,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         lg={props.grid?.innerGrid?.lg || false}
         xl={props.grid?.innerGrid?.xl || false}
       >
-        <RenderComponent {...componentProps} />
+        <RenderComponent.Tag {...componentProps} />
 
         {isSimple &&
           hasValidationMessages &&
@@ -359,7 +367,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
 interface IRenderLabelProps {
   texts: any;
-  language: any;
+  language: ILanguage;
   props: any;
   passThroughProps: any;
 }

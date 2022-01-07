@@ -21,6 +21,7 @@ export const App = () => {
   const dispatch = useAppDispatch();
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
+  const appOidcProvider = useAppSelector((state) => state.applicationSettings?.applicationSettings?.appOidcProvider);
 
   let lastRefreshTokenTimestamp = 0;
 
@@ -42,14 +43,15 @@ export const App = () => {
     const timeNow = Date.now();
     if (timeNow - lastRefreshTokenTimestamp > TEN_MINUTE_IN_MILLISECONDS) {
       lastRefreshTokenTimestamp = timeNow;
-      get(refreshJwtTokenUrl).catch((err) => {
-        // Most likely the user has an expired token, so we redirect to the login-page
-        try {
-          window.location.href = getEnvironmentLoginUrl();
-        } catch (error) {
-          console.error(err, error);
-        }
-      });
+      get(refreshJwtTokenUrl)
+        .catch((err) => {
+          // Most likely the user has an expired token, so we redirect to the login-page
+          try {
+            window.location.href = getEnvironmentLoginUrl(appOidcProvider);
+          } catch (error) {
+            console.error(err, error);
+          }
+        });
     }
   }
 
@@ -60,7 +62,8 @@ export const App = () => {
     return function cleanup() {
       removeEventListeners();
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appOidcProvider]);
 
   if (hasApiErrors) {
     return <UnknownError />;
