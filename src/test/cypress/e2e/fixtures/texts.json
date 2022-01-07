@@ -17,5 +17,8 @@
   "zeroIsNotValid": "0 er ikke en gyldig verdi",
   "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn",
   "alreadyStartedForm": "Du har allerede startet å fylle ut dette skjemaet.",
-  "continueOrStartNew": "Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny."
+  "continueOrStartNew": "Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.",
+  "welcome": "Velkommen til Altinn Studio",
+  "appExists": "En app med det navnet finnes allerede.",
+  "noDeployAccess": "Du har ikke rettigheter til å starte en deploy til AT21-miljøet. Tilgang kan delegeres av owners"
 }

@@ -1,8 +1,8 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(description = "The form layout json file.")
+@Schema(description = "The form layout json file.")
 public class FormLayout {
   private FormLayoutData data;
 

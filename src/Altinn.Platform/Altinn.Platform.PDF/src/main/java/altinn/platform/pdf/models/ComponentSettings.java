@@ -1,12 +1,12 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@ApiModel(description = "Pages settings")
+@Schema(description = "Pages settings")
 @Getter
 @Setter
 public class ComponentSettings {

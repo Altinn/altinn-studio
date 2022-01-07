@@ -165,6 +165,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     continue;
                 }
 
+                response.MinimumAuthenticationLevel = PolicyHelper.GetMinimumAuthenticationLevelFromXacmlPolicy(policy);
                 response.ResourcePolicies = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
             }
 

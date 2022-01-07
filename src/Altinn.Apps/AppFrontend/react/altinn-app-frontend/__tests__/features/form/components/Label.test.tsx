@@ -4,20 +4,14 @@ import '@testing-library/jest-dom/extend-expect';
 import * as renderer from 'react-test-renderer';
 import Label from '../../../../src/features/form/components/Label';
 
-describe('>>> features/form/components/Label.tsx', () => {
-  beforeAll(() => {
-  });
-
-  beforeEach(() => {
-  });
-
-  it('+++ should render optional', () => {
+describe('features > form > components >Label.tsx', () => {
+  it('should render optional', () => {
     const rendered = renderer.create(
       <Label
         id='label1'
         labelText='label.text'
         helpText=''
-        language='no'
+        language={{}}
         readOnly={false}
         required={false}
       />,
@@ -25,13 +19,13 @@ describe('>>> features/form/components/Label.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should not render optional because required', () => {
+  it('should not render optional because required', () => {
     const rendered = renderer.create(
       <Label
         id='label1'
         labelText='label.text'
         helpText=''
-        language='no'
+        language={{}}
         readOnly={false}
         required={true}
       />,
@@ -39,13 +33,13 @@ describe('>>> features/form/components/Label.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should not render optional because readOnly', () => {
+  it('should not render optional because readOnly', () => {
     const rendered = renderer.create(
       <Label
         id='label1'
         labelText='label.text'
         helpText=''
-        language='no'
+        language={{}}
         readOnly={true}
         required={false}
       />,
@@ -53,13 +47,13 @@ describe('>>> features/form/components/Label.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should not render optional because labelSettings.optionalIndicator is false', () => {
+  it('should not render optional because labelSettings.optionalIndicator is false', () => {
     const rendered = renderer.create(
       <Label
         id='label1'
         labelText='label.text'
         helpText=''
-        language='no'
+        language={{}}
         readOnly={false}
         required={false}
         labelSettings={{ optionalIndicator: false }}
@@ -68,13 +62,13 @@ describe('>>> features/form/components/Label.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should not render optional because required is true even when labelSettings.optionalIndicator is true', () => {
+  it('should not render optional because required is true even when labelSettings.optionalIndicator is true', () => {
     const rendered = renderer.create(
       <Label
         id='label1'
         labelText='label.text'
         helpText=''
-        language='no'
+        language={{}}
         readOnly={false}
         required={true}
         labelSettings={{ optionalIndicator: true }}

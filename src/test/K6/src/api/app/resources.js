@@ -41,3 +41,16 @@ export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appNam
   res = http.batch(req);
   return res;
 }
+
+/**
+ * Fetch app metadata
+ * @param {*} altinnToken
+ * @param {*} appOwner
+ * @param {*} appName
+ * @returns returns the response of the get request
+ */
+export function getAppMetadata(altinnToken, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.appResources['applicationmetadata'];
+  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  return http.get(endpoint, params);
+}

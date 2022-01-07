@@ -9,8 +9,8 @@ namespace LocalTest.Services.Localtest.Interface
 {
     public interface ILocalTestAppSelection
     {
-        public string GetAppPath(XacmlContextRequest request);
+        string GetAppPath(XacmlContextRequest request);
 
-        public string GetAppPath(string app);
+        string GetAppPath(string app);
     }
 }
