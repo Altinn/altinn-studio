@@ -155,10 +155,12 @@ function DatepickerComponent(props: IDatePickerProps) {
     const dateValue = props.formData ? moment(props.formData) : null;
     setDate(dateValue);
     setValidationMessages(getValidationMessages());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
