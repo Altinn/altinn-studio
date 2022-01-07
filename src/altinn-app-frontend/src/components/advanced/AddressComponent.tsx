@@ -104,6 +104,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData.zipCode]);
 
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {

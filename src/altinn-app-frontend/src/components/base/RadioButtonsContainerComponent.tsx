@@ -83,10 +83,12 @@ export const RadioButtonContainerComponent = (
 
   React.useEffect(() => {
     returnSelected();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnSelected();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   const returnSelected = () => {
