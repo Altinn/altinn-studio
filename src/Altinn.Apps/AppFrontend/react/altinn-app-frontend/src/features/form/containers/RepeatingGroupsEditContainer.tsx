@@ -203,6 +203,7 @@ export function RepeatingGroupsEditContainer({
           {!hideSaveButton && (
             <IconButton
             classes={{ root: classes.hideSaveButton }}
+            id={`add-button-grp-${id}`}
             onClick={closeEditContainer}>
               <i className='ai ai-check-circle' />
               <span className="hideSaveButton-label">{getLanguageFromKey('general.done', language)}</span>
