@@ -23,16 +23,6 @@ const Header = (props: IHeaderProps) => {
       })}
     >
       <div className='a-iconText a-iconText-background a-iconText-large'>
-<<<<<<< HEAD
-=======
-        <div className='a-iconText-icon'>
-          <i
-            className='fa fa-corp a-icon'
-            aria-hidden='true'
-            style={mobileView ? mobileStyle : null}
-          />
-        </div>
->>>>>>> 4b8e5851696d2bea855fb6194f472e1672f1bd43
         <h1 className='a-iconText-text mb-0'>
           <span className='a-iconText-text-large'>
             {props.type === ProcessTaskType.Archived ? (
