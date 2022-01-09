@@ -55,6 +55,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
 
         /// <summary>
+        /// Builds a JSON schema based on the uploaded XSD.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="modelName">The name of the new model.</param>
+        /// <param name="xsdStream">Stream representing the XSD.</param>
+        Task<string> BuildSchemaFromXsd(string org, string repository, string developer, string modelName, Stream xsdStream);
+
+        /// <summary>
         /// Creates a JSON schema based on a template.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
