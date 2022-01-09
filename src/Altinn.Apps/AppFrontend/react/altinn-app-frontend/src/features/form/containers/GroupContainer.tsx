@@ -28,14 +28,18 @@ const gridStyle = {
 
 const useStyles = makeStyles({
   minusMargin: {
-    left: 'calc(0px + 24px)',
+    left: '24px',
     width: 'calc(100% + 48px)',
     position: 'relative',
     marginLeft: '-48px',
     '@media (min-width:768px)': {
-      left: 'calc(-117px + 154px)',
-      width: 'calc(100% + 154px)',
+      left: '50px',
+      width: 'calc(100% + 48px)',
       marginLeft: '-74px',
+    },
+    '@media (min-width:993px)': {
+      left: '37px',
+      width: 'calc(100% + 154px)',
     },
   }
 });

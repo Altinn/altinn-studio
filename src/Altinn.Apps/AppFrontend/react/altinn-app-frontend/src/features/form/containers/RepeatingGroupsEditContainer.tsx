@@ -37,8 +37,11 @@ const useStyles = makeStyles({
     marginBottom: '24px',
     backgroundColor: 'rgba(227, 247, 255, 0.3)',
     '@media (min-width:768px)': {
-      padding: '36px',
+      padding: '24px',
       border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    },
+    '@media (min-width:993px)': {
+      padding: '36px',
     },
   },
   deleteItem: {

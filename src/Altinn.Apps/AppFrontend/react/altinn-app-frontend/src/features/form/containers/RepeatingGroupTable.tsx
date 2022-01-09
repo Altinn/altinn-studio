@@ -70,6 +70,7 @@ const useStyles = makeStyles({
     color: theme.altinnPalette.primary.red,
     marginBottom: '2px',
     marginTop: '1px',
+    paddingRight: '4px',
   },
   editIcon: {
     paddingRight: '6px',
