@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,6 +25,53 @@ namespace Altinn.App.Services.Helpers
         {
             Dictionary<string, string> dataFieldValues = GetDataFieldValues(dataFields, dataType, updatedData);
             return CompareDictionaries(currentDataValues, dataFieldValues);
+        }
+
+        /// <summary>
+        /// Re-sets the listed data fields to their default value in the data object. 
+        /// </summary>
+        /// <param name="dataFields">The data fields to monitor</param>
+        /// <param name="data">The data object</param>
+        public static void ResetDataFields(List<string> dataFields, object data)
+        {
+            foreach (string dataField in dataFields)
+            {
+                string fixedPath = dataField.Replace("-", string.Empty);
+                string[] keys = fixedPath.Split(".");
+                ResetDataField(keys, data);
+            }
+        }
+
+        private static void ResetDataField(string[] keys, object data, int index = 0)
+        {
+            string key = keys[index];
+            Type current = data.GetType();
+            bool isLastKey = (keys.Length - 1) == index;
+
+            PropertyInfo property = current.GetProperty(
+               key,
+               BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+            if (property == null)
+            {
+                return;
+            }
+
+            object propertyValue = property.GetValue(data, null);
+
+            if (propertyValue == null)
+            {
+                return;
+            }
+
+            if (isLastKey)
+            {
+                object defaultValue = property.PropertyType.IsValueType ? Activator.CreateInstance(property.PropertyType) : null;
+                property.SetValue(data, defaultValue);
+                return;
+            }
+
+            ResetDataField(keys, property.GetValue(data, null), index + 1);
         }
 
         /// <summary>

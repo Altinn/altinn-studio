@@ -7,10 +7,11 @@ import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayoutGroup } from '../layout';
 import { ITextResource } from '../../../types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupAddButton {
   container: ILayoutGroup;
-  language: any;
+  language: ILanguage;
   textResources: ITextResource[];
   onClickAdd: () => void;
   onKeypressAdd: (event: React.KeyboardEvent<HTMLDivElement>) => void;

@@ -111,5 +111,28 @@ declare namespace Cypress {
      * @example cy.testWcag()
      */
       testWcag(): Chainable<Element>;
+
+      /**
+     * Reset local repo of an app
+     * @example cy.deleteLocalChanges('test/test-app')
+     */
+       deleteLocalChanges(appId: String): Chainable<Element>;
+
+       /**
+     * Get body of ifram from the DOM
+     * @example cy.getIframeBody()
+     */
+        getIframeBody(): Chainable<Element>;
+
+      /**
+       * check visibility of an element whose parent is found hidden by cypress 
+       */
+        isVisible(): Chainable<Element>;
+
+      /**
+      * Custom command to search and open an app
+      * @example cy.searchAndOpenApp('ttd/app')
+      */
+       searchAndOpenApp(appId: string): Chainable<Element>;
   }
 }

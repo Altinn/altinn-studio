@@ -99,7 +99,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
       className="row"
     >
       <div
-        className="col-xl-10 offset-xl-1 a-p-static"
+        className="col-xl-12 a-p-static"
       >
         <div
           className="a-modal-content-target"

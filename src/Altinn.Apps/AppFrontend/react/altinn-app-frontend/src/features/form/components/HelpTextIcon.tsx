@@ -2,15 +2,17 @@ import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { createTheme, makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {
     fontSize: '3rem',
-    color: theme.altinnPalette.primary.blue,
+    color: theme.altinnPalette.primary.blueDarker,
     '&:hover': {
-      color: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.blueDark,
+      cursor: 'pointer',
     },
   },
 });
@@ -18,7 +20,7 @@ const useStyle = makeStyles({
 export interface IHelpTextIconProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
-  language: any;
+  language: ILanguage;
   id: string;
   toggleClickPopover: (event: any) => void;
   toggleKeypressPopover: (event: any) => void;
@@ -39,7 +41,7 @@ export default function HelpTextIcon(props: IHelpTextIconProps) {
         aria-hidden={false}
       >
         <i
-          className={`${classes.helpTextIcon} ${props.openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+          className={`${classes.helpTextIcon} ${props.openPopover ? 'reg reg-help-filled' : 'reg reg-help-outline'}`}
         />
       </span>
     );

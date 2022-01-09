@@ -47,7 +47,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             if (filepath.Contains("error/blobstoragegetleaselockfail"))
             {
                 return Task.FromResult((string)null);
-            }
+            }   
 
             return Task.FromResult("CorrectLeaseId");
         }
@@ -58,18 +58,31 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public Task<bool> PolicyExistsAsync(string filepath)
         {
-            return Task.FromResult(true);
+            string fullpath = Path.Combine(GetDataInputBlobPath(), filepath);
+
+            if (File.Exists(fullpath))
+            {
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
         }
 
-        private string GetDataBlobPath()
+        private static string GetDataOutputBlobPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, "../../../data/blobs/");
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data/blobs/output/");
         }
 
-        private Stream GetTestDataStream(string filepath)
+        private static string GetDataInputBlobPath()
         {
-            string dataPath = Path.Combine(GetDataBlobPath(), filepath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data/blobs/input/");
+        }
+
+        private static Stream GetTestDataStream(string filepath)
+        {
+            string dataPath = Path.Combine(GetDataInputBlobPath(), filepath);
             Stream ms = new MemoryStream();
             if (File.Exists(dataPath))
             {
@@ -80,9 +93,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return ms;
         }
 
-        private async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
+        private static async Task<Response<BlobContentInfo>> WriteStreamToTestDataFolder(string filepath, Stream fileStream)
         {
-            string dataPath = GetDataBlobPath() + filepath;
+            string dataPath = GetDataOutputBlobPath() + filepath;
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {

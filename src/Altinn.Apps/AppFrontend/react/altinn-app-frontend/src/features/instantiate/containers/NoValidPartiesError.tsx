@@ -1,44 +1,41 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IRuntimeState } from '../../../types';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function NoValidPartiesError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const appMetadata: IApplicationMetadata =
-    useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
+  const language = useAppSelector(state => state.language.language);
+  const appMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
 
   if (!language) {
     return null;
   }
 
   function getAllowedParties(): string {
-    let returnString: string = '';
+    let returnString = '';
     const partyTypes: string[] = [];
 
     const { partyTypesAllowed } = appMetadata;
 
     if (partyTypesAllowed.person) {
-      partyTypes.push(language.party_selection.unit_type_private_person);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_private_person', language));
     }
     if (partyTypesAllowed.organisation) {
-      partyTypes.push(language.party_selection.unit_type_company);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_company', language));
     }
     if (partyTypesAllowed.subUnit) {
-      partyTypes.push(language.party_selection.unit_type_subunit);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_subunit', language));
     }
     if (partyTypesAllowed.bankruptcyEstate) {
-      partyTypes.push(language.party_selection.unit_type_bankruptcy_state);
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_bankruptcy_state', language));
     }
 
     for (let i = 0; i < partyTypes.length; i++) {
       if (i === 0) {
         returnString += partyTypes[i];
-      } else if (i === (partyTypes.length - 1)) {
-        returnString += ` ${language.party_selection.no_valid_selection_binding_word} ${partyTypes[i]}`;
+      } else if (i === partyTypes.length - 1) {
+        returnString += ` ${getLanguageFromKey('party_selection.no_valid_selection_binding_word', language)} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }
@@ -51,7 +48,7 @@ function NoValidPartiesError() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
       language,
-      [language.general.customer_service_phone_number],
+      [getLanguageFromKey('general.customer_service_phone_number', language)],
     );
   }
 
@@ -86,7 +83,11 @@ function NoValidPartiesError() {
 
     // TODO: add url to language (more info)
     const hostName = getHostname();
-    const errorMoreInfo = getParsedLanguageFromKey('instantiate.authorization_error_info_rights', language, [hostName]);
+    const errorMoreInfo = getParsedLanguageFromKey(
+      'instantiate.authorization_error_info_rights',
+      language,
+      [hostName],
+    );
     const errorCustomerService = getCustomerService();
 
     return (
@@ -103,9 +104,9 @@ function NoValidPartiesError() {
 
   return (
     <InstantiationErrorPage
-      title={createErrorTitle()}
+        title={createErrorTitle()}
       content={createErrorContent()}
-      statusCode={`${language.party_selection.error_caption_prefix} 403`}
+      statusCode={`${getLanguageFromKey('party_selection.error_caption_prefix', language)} 403`}
     />
   );
 }

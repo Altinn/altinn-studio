@@ -500,13 +500,38 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_50Restriksjon/502232"
 				},
 			"allOfTest": {
-					"type": "object",
 					"allOf": [
 						{
 							"$ref": "#/definitions/Tekst_50"
 						}
 					]
 				},
+      "oneOfTestNullable": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "null"
+            }
+          ]
+      },
+      "anyOfTestSeveralItems": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Tekst_50"
+            },
+            {
+              "type": "string"
+            }
+          ]
+      },
 			"Dato" : {
 					"type" : "string",
 					"format" : "date",

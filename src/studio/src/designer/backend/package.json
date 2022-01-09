@@ -18,13 +18,12 @@
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-run-command": "^0.0.10",
-    "lerna": "^4.0.0",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "altinn-designsystem": "^2.7.12",
-    "bootstrap": "^4.6.0",
+    "bootstrap": "^4.6.1",
     "bootstrap-list-filter": "^0.3.4",
     "jquery": "^3.6.0",
     "jquery-ui-dist": "^1.12.1",
@@ -39,6 +38,7 @@
     "rivets": "^0.9.6",
     "select2": "^4.0.13",
     "sightglass": "^0.2.6",
-    "underscore": "^1.13.1"
-  }
+    "underscore": "^1.13.2"
+  },
+  "packageManager": "yarn@3.1.0"
 }

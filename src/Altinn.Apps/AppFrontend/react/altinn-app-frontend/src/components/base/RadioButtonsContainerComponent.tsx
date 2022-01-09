@@ -1,5 +1,3 @@
-/* eslint-disable import/first */
-/* eslint-disable react/no-array-index-key */
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio, { RadioProps } from '@material-ui/core/Radio';
@@ -9,9 +7,8 @@ import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { FormLabel } from '@material-ui/core';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -24,7 +21,6 @@ export interface IRadioButtonsContainerProps {
   preselectedOptionIndex: number;
   shouldFocus: boolean;
   title: string;
-  // eslint-disable-next-line no-undef
   legend: () => JSX.Element;
   getTextResource: (key: string) => string;
 }
@@ -75,20 +71,24 @@ const useStyles = makeStyles({
   },
 });
 
-export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
+export const RadioButtonContainerComponent = (
+  props: IRadioButtonsContainerProps,
+) => {
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
   const options = apiOptions || props.options || [];
-  const radioGroupIsRow: boolean = (options.length <= 2);
+  const radioGroupIsRow: boolean = options.length <= 2;
 
   React.useEffect(() => {
     returnSelected();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnSelected();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   const returnSelected = () => {
@@ -102,7 +102,11 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
       props.handleDataChange(preSelectedValue);
       setSelected(preSelectedValue);
     } else {
-      setSelected((props.formData !== undefined && props.formData !== null) ? props.formData : '');
+      setSelected(
+        props.formData !== undefined && props.formData !== null
+          ? props.formData
+          : '',
+      );
     }
   };
 
@@ -138,13 +142,21 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
         {options.map((option: any, index: number) => (
           <React.Fragment key={index}>
             <FormControlLabel
-              control={<StyledRadio autoFocus={props.shouldFocus && selected === option.value} />}
+              control={
+                <StyledRadio
+                  autoFocus={props.shouldFocus && selected === option.value}
+                />
+              }
               label={props.getTextResource(option.label)}
               value={option.value}
               classes={{ root: classNames(classes.margin) }}
             />
-            {props.validationMessages && (selected === option.value) &&
-              renderValidationMessagesForComponent(props.validationMessages.simpleBinding, props.id)}
+            {props.validationMessages &&
+              selected === option.value &&
+              renderValidationMessagesForComponent(
+                props.validationMessages.simpleBinding,
+                props.id,
+              )}
           </React.Fragment>
         ))}
       </RadioGroup>
@@ -158,7 +170,9 @@ const StyledRadio = (radioProps: RadioProps) => {
     <Radio
       className={classes.root}
       disableRipple={true}
-      checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
+      checkedIcon={
+        <span className={classNames(classes.icon, classes.checkedIcon)} />
+      }
       icon={<span className={classes.icon} />}
       {...radioProps}
     />

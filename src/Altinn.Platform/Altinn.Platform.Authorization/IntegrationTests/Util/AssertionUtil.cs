@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -84,7 +85,45 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 }
             }
         }
-        
+
+        public static void AssertEqual(Dictionary<string, List<DelegationChange>> expected, Dictionary<string, List<DelegationChange>> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            foreach (KeyValuePair<string, List<DelegationChange>> expectedEntry in expected)
+            {
+                List<DelegationChange> actualValue = actual[expectedEntry.Key];
+                Assert.NotNull(actualValue);
+                AssertEqual(expectedEntry.Value, actualValue);
+            }
+        }
+
+        public static void AssertEqual(List<DelegationChange> expected, List<DelegationChange> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            foreach (DelegationChange expectedEntity in expected)
+            {
+                DelegationChange actualentity = actual.FirstOrDefault(a => a.AltinnAppId == expectedEntity.AltinnAppId
+                                                                        && a.BlobStoragePolicyPath == expectedEntity.BlobStoragePolicyPath
+                                                                        && a.CoveredByPartyId == expectedEntity.CoveredByPartyId
+                                                                        && a.CoveredByUserId == expectedEntity.CoveredByUserId
+                                                                        && a.OfferedByPartyId == expectedEntity.OfferedByPartyId
+                                                                        && a.IsDeleted == expectedEntity.IsDeleted);
+                Assert.NotNull(actualentity);
+            }
+        }
+
         /// <summary>
         /// Assert that two <see cref="XacmlContextRequest"/> have the same property values.
         /// </summary>
@@ -156,11 +195,31 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 AssertCollections(expected.ResourcePolicies, actual.ResourcePolicies, AssertResourcePolicyEqual);
             }
             
-            AssertCollections(expected.OrgApp, actual.OrgApp, AssertAttributeMatchEqual);
+            AssertCollections(expected.AppId, actual.AppId, AssertAttributeMatchEqual);
+            Assert.Equal(expected.MinimumAuthenticationLevel, actual.MinimumAuthenticationLevel);
+
             if (expected.ErrorResponse != null && actual.ErrorResponse != null)
             {
                 Assert.Equal(expected.ErrorResponse, actual.ErrorResponse);
             }
+        }
+
+        /// <summary>
+        /// Assert that two <see cref="Rule"/> have the same property in the same positions.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertRuleEqual(Rule expected, Rule actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+
+            Assert.Equal(expected.CreatedSuccessfully, actual.CreatedSuccessfully);
+            Assert.Equal(expected.DelegatedByUserId, actual.DelegatedByUserId);
+            Assert.Equal(expected.OfferedByPartyId, actual.OfferedByPartyId);
+            AssertEqual(expected.CoveredBy, actual.CoveredBy);
+            AssertEqual(expected.Resource, actual.Resource);
+            AssertEqual(expected.Action, actual.Action);
         }
 
         private static void AssertEqual(List<AttributeMatch> expected, List<AttributeMatch> actual)

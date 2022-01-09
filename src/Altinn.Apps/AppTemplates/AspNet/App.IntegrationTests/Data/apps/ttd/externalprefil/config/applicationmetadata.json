@@ -33,6 +33,17 @@
     "person": false,
     "subUnit": false
   },
+  "copyInstanceSettings": {
+    "enabled": true,
+    "excludedDataFields": [ "Skjemainnhold.reelleRettigheter.rettighetId" ]
+  },
+  "dataFields": [
+    {
+      "id": "harIkkeReelleRettighetshavere",
+      "path": "Skjemainnhold.reelleRettigheter.harIkkeReelleRettighetshavere",
+      "dataTypeId": "Brønnøysundregistrene_ReelleRettighetshavere_M_2021-04-13_6900_46449_SERES"
+    }
+  ],
   "autoDeleteOnProcessEnd": false,
   "created": "2021-10-19T13:05:38.7523183Z",
   "createdBy": "TheTechArch",

@@ -3,11 +3,11 @@
 import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
 import { Grid, makeStyles } from '@material-ui/core';
-import { useDispatch, useSelector } from 'react-redux';
-import { IRuntimeState, INavigationConfig, ILayoutNavigation, Triggers } from 'src/types';
+import { INavigationConfig, ILayoutNavigation, Triggers } from 'src/types';
 import classNames from 'classnames';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 const useStyles = makeStyles({
   backButton: {
@@ -24,17 +24,17 @@ export interface INavigationButtons {
 
 export function NavigationButtons(props: INavigationButtons) {
   const classes = useStyles();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
-  const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-  const orderedLayoutKeys = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
-  const returnToView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.returnToView);
-  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const pageTriggers = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.pageTriggers);
-  const { next, previous } = useSelector(
-    (state: IRuntimeState) => getNavigationConfigForCurrentView(
+  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
+  const orderedLayoutKeys = useAppSelector(state => state.formLayout.uiConfig.layoutOrder);
+  const returnToView = useAppSelector(state => state.formLayout.uiConfig.returnToView);
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const language = useAppSelector(state => state.language.language);
+  const pageTriggers = useAppSelector(state => state.formLayout.uiConfig.pageTriggers);
+  const { next, previous } = useAppSelector(state =>
+    getNavigationConfigForCurrentView(
       state.formLayout.uiConfig.navigationConfig,
       state.formLayout.uiConfig.currentView,
     ),
@@ -47,6 +47,7 @@ export function NavigationButtons(props: INavigationButtons) {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
     setDisableBack(!!returnToView || (!previous && currentViewIndex === 0));
     setDisableNext(!returnToView && !next && currentViewIndex === orderedLayoutKeys.length - 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, orderedLayoutKeys]);
 
   const onClickPrevious = () => {

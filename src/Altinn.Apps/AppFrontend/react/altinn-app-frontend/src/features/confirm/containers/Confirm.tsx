@@ -1,19 +1,24 @@
-/* eslint-disable max-len */
 import * as React from 'react';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
 import { createTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
+import {
+  AltinnReceipt,
+  AltinnContentLoader,
+  AltinnContentIconReceipt,
+  AltinnButton,
+  AltinnLoader,
+} from 'altinn-shared/components';
+import { IAttachment, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { mapInstanceAttachments, getTextResourceByKey } from 'altinn-shared/utils';
+import {
+  mapInstanceAttachments,
+  getTextResourceByKey,
+} from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow } from '../../../types';
 import { get } from '../../../utils/networking';
 import { getValidationUrl } from '../../../utils/urlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
@@ -22,10 +27,10 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
-// eslint-disable-next-line import/order
-import moment = require('moment');
+import moment from 'moment';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
-export interface IConfirmProps extends RouteChildrenProps {}
+export type IConfirmProps = RouteChildrenProps;
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -33,7 +38,7 @@ const useStyles = makeStyles({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
-    textTransform: 'none' as 'none',
+    textTransform: 'none' as const,
     fontWeight: 400,
     height: 36,
     borderRadius: '0',
@@ -55,11 +60,17 @@ export interface ISummaryData {
   instanceOwnerParty?: any;
 }
 
-export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
+const loaderStyles = {
+  paddingTop: '30px',
+  marginLeft: '40px',
+  height: '64px',
+};
+
+export const returnConfirmSummaryObject = (data: ISummaryData) => {
   const obj: any = {};
   const { languageData, instanceOwnerParty } = data;
 
-  let sender: string = '';
+  let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
@@ -72,36 +83,39 @@ export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
 
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  const applicationMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
-  const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
-  const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
-  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
+  const applicationMetadata: IApplicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
+  const instance = useAppSelector(state => state.instanceData.instance);
+  const language = useAppSelector(state => state.language.language);
+  const parties = useAppSelector(state => state.party.parties);
+  const validations = useAppSelector(state => state.formValidations.validations);
 
   const routeParams: any = props.match.params;
 
   const { instanceId } = window as Window as IAltinnWindow;
-  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const textResources = useAppSelector(state => state.textResources.resources);
 
-  const isLoading = (): boolean => (
+  const isLoading = (): boolean =>
     !attachments ||
     !instanceMetaObject ||
     !lastChangedDateTime ||
     !instance ||
     !lastChangedDateTime ||
-    !parties
-  );
+    !parties;
 
   React.useEffect(() => {
     OrgsActions.fetchOrgs();
-    InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);
+    InstanceDataActions.getInstanceData(
+      routeParams.partyId,
+      routeParams.instanceGuid,
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -116,14 +130,22 @@ const Confirm = (props: IConfirmProps) => {
       });
       setInstanceMetaObject(obj);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parties, instance, lastChangedDateTime, applicationMetadata]);
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
-      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
-      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id));
+      const appLogicDataTypes = applicationMetadata.dataTypes.filter(
+        (dataType) => !!dataType.appLogic,
+      );
+      const attachmentsResult = mapInstanceAttachments(
+        instance.data,
+        appLogicDataTypes.map((type) => type.id),
+      );
       setAttachments(attachmentsResult);
-      setLastChangedDateTime(moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'));
+      setLastChangedDateTime(
+        moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'),
+      );
     }
   }, [instance, applicationMetadata]);
 
@@ -133,53 +155,87 @@ const Confirm = (props: IConfirmProps) => {
 
   const onClickConfirm = () => {
     setIsSubmitting(true);
-    get(getValidationUrl(instanceId)).then((data: any) => {
-      const mappedValidations = mapDataElementValidationToRedux(data, {}, textResources);
-      dispatch(updateValidations({ validations: mappedValidations }));
-      if (data.length === 0) {
-        ProcessDispatcher.completeProcess();
-      }
-    }).catch(() => {
-      setIsSubmitting(false);
-    });
+    get(getValidationUrl(instanceId))
+      .then((data: any) => {
+        const mappedValidations = mapDataElementValidationToRedux(
+          data,
+          {},
+          textResources,
+        );
+        dispatch(updateValidations({ validations: mappedValidations }));
+        if (data.length === 0) {
+          ProcessDispatcher.completeProcess();
+        }
+      })
+      .catch(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
     <>
-      {isLoading() &&
+      {isLoading() && (
         <AltinnContentLoader width={705} height={561}>
-          <AltinnContentIconReceipt/>
+          <AltinnContentIconReceipt />
         </AltinnContentLoader>
-      }
-      {!isLoading() &&
-      <>
-        <AltinnReceipt
-          attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
-          body={getTextFromAppOrDefault('confirm.body', textResources, language, [getTextResourceByKey('ServiceName', textResources)])}
-          collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
-          hideCollapsibleCount={true}
-          instanceMetaDataObject={instanceMetaObject}
-          title={getTextFromAppOrDefault('confirm.title', textResources, language, null, true)}
-          titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language, null, true)}
-        />
-        {isSubmitting ?
-          <AltinnLoader
-            style={{
-              paddingTop: '30px',
-              marginLeft: '40px',
-              height: '64px',
-            }}
-            srContent={getLanguageFromKey('general.loading', language)}
-          /> :
-          <AltinnButton
-            btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
-            onClickFunction={onClickConfirm}
-            className={classes.button}
-            id='confirm-button'
+      )}
+      {!isLoading() && (
+        <>
+          <AltinnReceipt
+            attachmentGroupings={getAttachmentGroupings(
+              attachments,
+              applicationMetadata,
+              textResources,
+            )}
+            body={getTextFromAppOrDefault(
+              'confirm.body',
+              textResources,
+              language,
+              [getTextResourceByKey('ServiceName', textResources)],
+            )}
+            collapsibleTitle={getTextFromAppOrDefault(
+              'confirm.attachments',
+              textResources,
+              language,
+              null,
+              true,
+            )}
+            hideCollapsibleCount={true}
+            instanceMetaDataObject={instanceMetaObject}
+            title={getTextFromAppOrDefault(
+              'confirm.title',
+              textResources,
+              language,
+              null,
+              true,
+            )}
+            titleSubmitted={getTextFromAppOrDefault(
+              'confirm.answers',
+              textResources,
+              language,
+              null,
+              true,
+            )}
           />
-        }
-      </>
-      }
+          {isSubmitting ? (
+            <AltinnLoader
+              style={loaderStyles}
+              srContent={getLanguageFromKey('general.loading', language)}
+            />
+          ) : (
+            <AltinnButton
+              btnText={getTextFromAppOrDefault(
+                'confirm.button_text',
+                textResources,
+                language,
+              )}
+              onClickFunction={onClickConfirm}
+              className={classes.button}
+              id='confirm-button'
+            />
+          )}
+        </>
+      )}
     </>
   );
 };

@@ -1,11 +1,9 @@
-# base image
-FROM gitea/gitea:1.15.6
+FROM gitea/gitea:1.15.9-rootless
+
+RUN mkdir -p /var/lib/gitea/git && mkdir -p /var/lib/gitea/db && mkdir -p /var/lib/gitea/avatars && mkdir -p /var/lib/gitea/attachments
 
 # copy configuration file
-# Has to be copied to the templates-folder so parsing of environment variables is correct
-COPY gitea-config/app.ini etc/templates/app.ini
-
-# Copy rest of configuration
-COPY gitea-data/gitea/options data/gitea/options/
-COPY gitea-data/gitea/public/img data/gitea/public/img
-COPY gitea-data/gitea/templates data/gitea/templates
+COPY --chown=git:git ./gitea-data/gitea/conf/app.ini /etc/gitea/app.ini
+COPY --chown=git:git ./gitea-data/gitea/options /var/lib/gitea/custom/options/
+COPY --chown=git:git ./gitea-data/gitea/public/img /var/lib/gitea/custom/public/img
+COPY --chown=git:git ./gitea-data/gitea/templates /var/lib/gitea/custom/templates

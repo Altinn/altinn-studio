@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
@@ -18,7 +19,7 @@ using AltinnCore.Authentication.Constants;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -105,6 +106,35 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public async Task CreateRepository_DoesNotExists_ShouldCreate()
+        {
+            string org = "ttd";
+            string repositoryName = Guid.NewGuid().ToString();
+            string developer = "testUser";
+
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            var repositoryService = GetServiceForTest(developer);
+
+            try
+            {
+                var repository = await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName, DatamodellingPreference = DatamodellingPreference.JsonSchema });
+                var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
+                altinnStudioSettings.DatamodellingPreference.Should().Be(DatamodellingPreference.JsonSchema);
+            }
+            finally
+            {
+                // We do a sleep here beacuse the creation process holds a lock on the files
+                // it modifies. 300ms is the magic number as a result by trial and error.
+                Thread.Sleep(300);
+                Directory.Delete(repositoryDirectory, true);
+                Directory.Delete(repositoryRemoteDirectory, true);
+            }
+        }
+
+        [Fact]
         public async Task CopyRepository_TargetExistsRemotely_Conflict()
         {
             // Arrange
@@ -133,7 +163,7 @@ namespace Designer.Tests.Services
 
             PrepareRemoteTestData(org, sourceRepository);
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+            await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
 
             RepositorySI sut = GetServiceForTest(developer);
 
@@ -142,10 +172,10 @@ namespace Designer.Tests.Services
 
             // Assert
             string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
-            int actualCloneCount = Directory.GetDirectories(developerClonePath).Where(d => d.Contains("apps-test-2021")).Count();
+            int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains("apps-test-2021"));
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
+            await TestDataHelper.CleanUpReplacedRepositories("ttd", "apps-test-2021", "testUser");
 
             Assert.Equal(2, actualCloneCount);
         }
@@ -261,9 +291,17 @@ namespace Designer.Tests.Services
 
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
+            IOptions<GeneralSettings> generalSettings = Options.Create(
+                new GeneralSettings()
+                {
+                    TemplateLocation = @"../../../../../../AppTemplates/AspNet",
+                    DeploymentLocation = @"../../../../../../AppTemplates/AspNet/deployment",
+                    AppLocation = @"../../../../../../AppTemplates/AspNet/App"
+                });
+            
             RepositorySI service = new RepositorySI(
                 repoSettings,
-                new Mock<IOptions<GeneralSettings>>().Object,
+                generalSettings,
                 new Mock<IDefaultFileFactory>().Object,
                 httpContextAccessorMock.Object,
                 new IGiteaMock(),

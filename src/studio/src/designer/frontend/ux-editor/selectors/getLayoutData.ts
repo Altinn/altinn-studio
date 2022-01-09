@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { createSelector } from 'reselect';
+import { createSelector, ParametricSelector } from 'reselect';
 
 const layoutOrderSelector = (state: IAppState) => {
   return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order;
@@ -72,22 +72,6 @@ const getLayoutComponents = () => {
   );
 };
 
-const getActiveFormContainer = () => {
-  return createSelector(
-    [activeFormContainerSelector],
-    (isActive) => {
-      return isActive;
-    },
-  );
-};
-
-const getLayoutContainerOrder = () => {
-  return createSelector(
-    [layoutContainerOrderSelector],
-    (order: any) => order,
-  );
-};
-
 const getAllLayoutComponents = () => {
   return createSelector(
     [allLayoutComponentSelector],
@@ -115,11 +99,32 @@ const getFullOrder = () => {
   );
 };
 
+export const makeGetLayoutContainerOrder = (): ParametricSelector<
+  IAppState,
+  string,
+  string[]
+> =>
+  createSelector(
+    [layoutContainerOrderSelector],
+    (order: string[]) => order,
+  );
+
+export const makeGetActiveFormContainer = (): ParametricSelector<
+  IAppState,
+  {
+    id: string;
+  },
+  boolean
+> =>
+  createSelector(
+    [activeFormContainerSelector],
+    (isActive) => {
+      return isActive;
+    },
+  );
 export const makeGetLayoutOrderSelector = getLayoutOrder;
 export const makeGetLayoutContainersSelector = getLayoutContainers;
 export const makeGetLayoutComponentsSelector = getLayoutComponents;
-export const makeGetActiveFormContainer = getActiveFormContainer;
-export const makeGetLayoutContainerOrder = getLayoutContainerOrder;
 export const makeGetAllLayoutComponents = getAllLayoutComponents;
 export const makeGetALlLayoutContainers = getAllLayoutContainers;
 export const makeGetFullOrder = getFullOrder;
