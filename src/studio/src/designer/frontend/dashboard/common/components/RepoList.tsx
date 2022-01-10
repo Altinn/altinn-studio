@@ -7,6 +7,7 @@ import {
   GridActionsCellItem,
   GridValueGetterParams,
   GridValueFormatterParams,
+  GridRenderCellParams,
   GridColDef,
   GridOverlay,
 } from '@mui/x-data-grid';
@@ -83,6 +84,10 @@ const useStyles = makeStyles({
     fontSize: 26,
     color: '#000000',
   },
+  textWithTooltip: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
 });
 
 const gridStyleOverride = {
@@ -97,10 +102,21 @@ const gridStyleOverride = {
 
 export const NoResults = () => {
   const language = useAppSelector((state) => state.language.language);
+
   return (
     <GridOverlay>
       <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
     </GridOverlay>
+  );
+};
+
+const TextWithTooltip = (params: GridRenderCellParams) => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.textWithTooltip} title={params.value}>
+      {params.value}
+    </div>
   );
 };
 
@@ -166,13 +182,15 @@ export const RepoList = ({
       {
         field: 'name',
         headerName: getLanguageFromKey('dashboard.application', language),
-        width: 150,
+        width: 200,
+        renderCell: TextWithTooltip,
       },
       {
         field: 'owner.created_by',
         headerName: getLanguageFromKey('dashboard.created_by', language),
         sortable: false,
-        width: 160,
+        width: 180,
+        renderCell: TextWithTooltip,
         valueGetter: (params: GridValueGetterParams) => {
           const owner = params.row.owner as User;
           return owner.full_name || owner.login;
@@ -181,19 +199,26 @@ export const RepoList = ({
       {
         field: 'updated_at',
         headerName: getLanguageFromKey('dashboard.last_modified', language),
-        width: 150,
+        width: 120,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
           return new Date(date).toLocaleDateString('nb');
         },
       },
+      {
+        field: 'description',
+        headerName: getLanguageFromKey('dashboard.description', language),
+        flex: 1,
+        minWidth: 120,
+        renderCell: TextWithTooltip,
+      },
     ];
 
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        flex: 1,
+        width: 320,
         renderHeader: (): null => null,
         type: 'actions',
         align: 'right',
@@ -280,6 +305,17 @@ export const RepoList = ({
     setCopyCurrentRepoName(null);
   };
 
+  const componentPropsLabelOverrides = React.useMemo(() => {
+    return {
+      pagination: {
+        labelRowsPerPage: getLanguageFromKey(
+          'dashboard.rows_per_page',
+          language,
+        ),
+      },
+    };
+  }, [language]);
+
   return (
     <div ref={copyModalAnchorRef}>
       {isServerSort ? (
@@ -287,6 +323,7 @@ export const RepoList = ({
           components={{
             NoRowsOverlay: NoResults,
           }}
+          componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
@@ -306,6 +343,7 @@ export const RepoList = ({
         />
       ) : (
         <DataGrid
+          componentsProps={componentPropsLabelOverrides}
           components={{
             NoRowsOverlay: NoResults,
           }}
