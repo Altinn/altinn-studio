@@ -168,7 +168,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           break;
         }
 
-        // eslint-disable-next-line no-loop-func
         groupChildComponents.forEach((componentId: string) => {
           const component: ILayoutComponent = layout.find(
             (c: ILayoutComponent) => c.id === componentId,
@@ -239,8 +238,8 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           }
 
           return (
-            // eslint-disable-next-line react/jsx-key
             <GroupInputSummary
+              key={componentId}
               formData={formDataForComponent}
               label={getTextFromAppOrDefault(
                 component.textResourceBindings?.title,

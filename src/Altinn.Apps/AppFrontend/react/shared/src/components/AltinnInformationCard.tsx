@@ -100,14 +100,14 @@ export class AltinnInformationCard extends
         direction='column'
         className={classes.root}
         spacing={0}
-        justify={'center'}
+        justifyContent={'center'}
         alignContent={'center'}
       >
         <Grid
           container={true}
           item={true}
           spacing={0}
-          justify={'center'}
+          justifyContent={'center'}
           alignContent={'center'}
           className={classNames(classes.scrollable)}
         >
@@ -144,7 +144,7 @@ export class AltinnInformationCard extends
                   </div>
                 </Grid>
               </Grid>
-              <Grid container={true} sm={12} md={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
+              <Grid container={true} sm={12} md={5} item={true} spacing={0} justifyContent={'center'} alignContent={'center'}>
                 <img alt='information' src={this.props.imageSource} />
               </Grid>
             </Grid>
