@@ -62,6 +62,7 @@ export const App = () => {
     return function cleanup() {
       removeEventListeners();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appOidcProvider]);
 
   if (hasApiErrors) {

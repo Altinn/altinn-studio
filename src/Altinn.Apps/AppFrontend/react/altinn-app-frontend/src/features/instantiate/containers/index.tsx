@@ -60,6 +60,7 @@ function InstantiateContainer() {
     ) {
       createNewInstance();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instantiating]);
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {

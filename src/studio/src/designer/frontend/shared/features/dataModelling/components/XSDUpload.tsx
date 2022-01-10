@@ -1,15 +1,16 @@
+import * as React from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { PopoverOrigin } from '@material-ui/core/Popover';
-import * as React from 'react';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { FileSelector, AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { XSDUploadUrl } from 'utils/urlHelper';
 import axios from 'axios';
 
-interface IXSDUploaderProps {
+export interface IXSDUploadProps {
   language: any;
   onXSDUploaded: (filename: string) => void;
+  org: string;
+  repo: string;
 }
 
 const anchorOrigin: PopoverOrigin = {
@@ -17,51 +18,46 @@ const anchorOrigin: PopoverOrigin = {
   horizontal: 'left',
 };
 
-export default function XSDUploader({
-  onXSDUploaded,
-  language,
-}: IXSDUploaderProps) {
+const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
   const [uploadButtonAnchor, setUploadButtonAnchor] = React.useState(null);
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
-  const handleUploadClick = React.useCallback((event) => {
-    setUploadButtonAnchor(event.currentTarget);
-  }, []);
+  const handleUpload = (formData: FormData, fileName: string) => {
+    const XSDUploadUrl = `${window.location.origin}/designer/api/${org}/${repo}/datamodels/upload`;
+    setUploading(true);
+    axios
+      .post(XSDUploadUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          onXSDUploaded(fileName);
+          setUploadButtonAnchor(null);
+        }
+      })
+      .catch((error) => {
+        if (error) {
+          setErrorText(
+            getLanguageFromKey(
+              'form_filler.file_uploader_validation_error_upload',
+              language,
+            ),
+          );
+        }
+      })
+      .finally(() => setUploading(false));
+  };
 
-  const handleUploadCancel = React.useCallback(() => {
+  const handleUploadCancel = () => {
     setUploadButtonAnchor(null);
-  }, []);
+  };
 
-  const onUploading = React.useCallback(
-    (formData: FormData, fileName: string) => {
-      setUploading(true);
-      axios
-        .post(XSDUploadUrl, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-        .then((response) => {
-          if (response) {
-            onXSDUploaded(fileName);
-            setUploadButtonAnchor(null);
-          }
-        })
-        .catch((error) => {
-          if (error) {
-            setErrorText(
-              getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_upload',
-                language,
-              ),
-            );
-          }
-        })
-        .finally(() => setUploading(false));
-    },
-    [language, onXSDUploaded],
-  );
+  const handleUploadClick = (event: any) => {
+    setUploadButtonAnchor(event.currentTarget);
+  };
 
   return (
     <>
@@ -90,15 +86,17 @@ export default function XSDUploader({
             <FileSelector
               busy={uploading}
               language={language}
-              submitHandler={onUploading}
+              submitHandler={handleUpload}
               accept='.xsd'
               labelTextResource='app_data_modelling.select_xsd'
-              formFileName='thefile'
+              formFileName='file'
             />
           )}
-          {errorText && <p>{errorText}</p>}
+          {errorText && <p data-test-id='errorText'>{errorText}</p>}
         </AltinnPopoverSimple>
       )}
     </>
   );
-}
+};
+
+export default XSDUpload;
