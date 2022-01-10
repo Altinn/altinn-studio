@@ -239,7 +239,6 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           }
 
           return (
-            // eslint-disable-next-line react/jsx-key
             <GroupInputSummary
               key={componentId}
               formData={formDataForComponent}
