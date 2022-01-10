@@ -548,7 +548,9 @@ namespace Altinn.App.Services.Implementation
                 AppOptions appOptions = new AppOptions();
 
                 appOptions.Options = _resourceService.GetOptions(optionsId);
+#pragma warning disable CS0618 // Type or member is obsolete
                 appOptions = await GetOptions(optionsId, appOptions);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (appOptions.Options != null && !dictionary.ContainsKey(optionsId))
                 {

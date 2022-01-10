@@ -42,7 +42,9 @@ namespace Altinn.App.Api.Controllers
             AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, queryParams);
 
             // Kept for backwards compatibility, but should use the IAppOptionsProvider instead.
+#pragma warning disable CS0618 // Type or member is obsolete
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             if (appOptions.Options == null || appOptions.Options.Count == 0)
             {
