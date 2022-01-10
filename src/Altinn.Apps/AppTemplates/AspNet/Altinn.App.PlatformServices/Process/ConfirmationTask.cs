@@ -5,14 +5,14 @@ using Altinn.App.Services.Interface;
 namespace Altinn.App.Core.Process
 {
     /// <summary>
-    /// Defines the task of type data 
+    /// Represents the process task responsible for collecting user confirmation.
     /// </summary>
     public class ConfirmationTask : TaskBase
     {
         private readonly IAltinnApp _altinnApp;
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="ConfirmationTask"/> class.
         /// </summary>
         public ConfirmationTask(IAltinnApp altinnApp)
         {
