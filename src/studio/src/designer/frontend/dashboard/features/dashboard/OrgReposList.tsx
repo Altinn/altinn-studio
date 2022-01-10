@@ -22,7 +22,7 @@ export const OrgReposList = () => {
   const uid = getUidFilter({ selectedContext, userId });
 
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: 'alpha', sort: 'asc' },
+    { field: 'name', sort: 'asc' },
   ]);
 
   const { data: starredRepos, isLoading: isLoadingStarred } =
