@@ -122,7 +122,7 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -221,7 +221,7 @@ namespace Altinn.Platform.Authorization.Helpers
         public static bool PolicyContainsMatchingRule(XacmlPolicy policy, Rule rule)
         {
             string ruleResourceKey = GetAttributeMatchKey(rule.Resource);
-            
+
             foreach (XacmlRule policyRule in policy.Rules)
             {
                 if (!policyRule.Effect.Equals(XacmlEffectType.Permit) || policyRule.Target == null)
@@ -279,34 +279,40 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <summary>
         /// Sets the RuleType on each rule in the given list
         /// </summary>
-        public static void SetRuleType(List<Rule> rulesList, List<int> keyRolePartyIds, List<AttributeMatch> coveredBy, int parentPartyId = 0)
+        public static void SetRuleType(List<Rule> rulesList, int offeredByPartyId, List<int> keyRolePartyIds, List<AttributeMatch> coveredBy, int parentPartyId = 0)
         {
             foreach (Rule rule in rulesList)
             {
                 if (TryGetDelegationParamsFromRule(rule, out _, out _, out _, out int? coveredByPartyId, out int? coveredByUserId, out _)
                     && rule.Type == RuleType.None)
                 {
-                    SetTypeForSingleRule(keyRolePartyIds, coveredBy, parentPartyId, rule, coveredByPartyId, coveredByUserId);
+                    SetTypeForSingleRule(keyRolePartyIds, offeredByPartyId, coveredBy, parentPartyId, rule, coveredByPartyId, coveredByUserId);
                 }
             }
         }
 
-        private static void SetTypeForSingleRule(List<int> keyRolePartyIds, List<AttributeMatch> coveredBy, int parentPartyId, Rule rule, int? coveredByPartyId, int? coveredByUserId)
+        private static void SetTypeForSingleRule(List<int> keyRolePartyIds, int offeredByPartyId, List<AttributeMatch> coveredBy, int parentPartyId, Rule rule, int? coveredByPartyId, int? coveredByUserId)
         {
-            if ((TryGetCoveredByUserIdFromMatch(coveredBy, out int coveredByUserIdFromRequest) && coveredByUserIdFromRequest == coveredByUserId)
-                || (TryGetCoveredByPartyIdFromMatch(coveredBy, out int coveredByPartyIdFromRequest) && coveredByPartyIdFromRequest == coveredByPartyId))
+            bool isUserId = TryGetCoveredByUserIdFromMatch(coveredBy, out int coveredByUserIdFromRequest);
+            bool isPartyId = TryGetCoveredByPartyIdFromMatch(coveredBy, out int coveredByPartyIdFromRequest);
+
+            if (((isUserId && coveredByUserIdFromRequest == coveredByUserId) || (isPartyId && coveredByPartyIdFromRequest == coveredByPartyId))
+                && rule.OfferedByPartyId == offeredByPartyId)
             {
-                rule.Type = RuleType.DirectlyDelegated;
+                if (parentPartyId != 0 && parentPartyId == rule.OfferedByPartyId && rule.OfferedByPartyId == offeredByPartyId)
+                {
+                    rule.Type = RuleType.InheritedAsSubunit;
+                }
+                else
+                {
+                    rule.Type = RuleType.DirectlyDelegated;
+                }
             }
-            else if (TryGetCoveredByUserIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+            else if (isUserId && keyRolePartyIds.Any(id => id == coveredByPartyId) && rule.OfferedByPartyId == offeredByPartyId)
             {
                 rule.Type = RuleType.InheritedViaKeyRole;
             }
-            else if (parentPartyId == coveredByPartyId)
-            {
-                rule.Type = RuleType.InheritedAsSubunit;
-            }
-            else if (TryGetCoveredByPartyIdFromMatch(coveredBy, out _) && keyRolePartyIds.Any(id => id == coveredByPartyId))
+            else if (isPartyId && keyRolePartyIds.Any(id => id == coveredByPartyId) && rule.OfferedByPartyId == offeredByPartyId)
             {
                 rule.Type = RuleType.InheritedAsSubunitViaKeyrole;
             }

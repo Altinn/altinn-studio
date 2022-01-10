@@ -1,5 +1,5 @@
 {
-  "parentPartyId": 50001336,
+  "parentPartyId": 50001337,
   "keyRolePartyIds": [
     
   ],
@@ -19,7 +19,7 @@
   "coveredBy": [
     {
       "id": "urn:altinn:partyid",
-      "value": "50001341"
+      "value": "50001336"
     }
   ]
 }
