@@ -5,14 +5,14 @@ using Altinn.App.Services.Interface;
 namespace Altinn.App.Core.Process
 {
     /// <summary>
-    /// Defines the task of type data 
+    /// Represents the process task responsible for form filling steps. 
     /// </summary>
     public class DataTask : TaskBase
     {
         private readonly IAltinnApp _altinnApp;
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="DataTask"/> class.
         /// </summary>
         public DataTask(IAltinnApp altinnApp)
         {
