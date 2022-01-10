@@ -21,12 +21,6 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc/>
-        public AppOptions GetOptions(string optionId)
-        {
-            return _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(new Dictionary<string, string>()).Result;
-        }
-
-        /// <inheritdoc/>
         public async Task<AppOptions> GetOptionsAsync(string optionId, Dictionary<string, string> keyValuePairs)
         {
             return await _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(keyValuePairs);
