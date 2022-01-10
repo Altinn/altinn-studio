@@ -36,11 +36,14 @@ interface IRepoListProps {
   rowCount?: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
+  onPageSizeChange?: (newPageSize: number) => void;
+  rowsPerPageOptions?: Array<number>;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
 }
 
-const defaultPageSize = 8;
+const defaultPageSize = 5;
+const defaultRowsPerPageOptions = [5];
 
 const isRowSelectable = () => false;
 
@@ -120,6 +123,7 @@ const TextWithTooltip = (params: GridRenderCellParams) => {
   );
 };
 
+
 export const RepoList = ({
   repos = defaultArray,
   isLoading,
@@ -128,6 +132,8 @@ export const RepoList = ({
   rowCount,
   onPageChange,
   onSortModelChange,
+  onPageSizeChange,
+  rowsPerPageOptions = defaultRowsPerPageOptions,
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
@@ -297,10 +303,6 @@ export const RepoList = ({
     unsetStarredRepo,
   ]);
 
-  const rowsPerPage = React.useMemo(() => {
-    return [pageSize];
-  }, [pageSize]);
-
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
   };
@@ -329,14 +331,15 @@ export const RepoList = ({
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={rowsPerPage}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sortModel={sortModel}
           paginationMode='server'
           sortingMode='server'
           onSortModelChange={onSortModelChange}
+          onPageSizeChange={onPageSizeChange}
           rowCount={rowCount}
+          rowsPerPageOptions={rowsPerPageOptions}
           onPageChange={onPageChange}
           sx={gridStyleOverride}
           disableVirtualization={disableVirtualization}
@@ -352,7 +355,7 @@ export const RepoList = ({
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={rowsPerPage}
+          rowsPerPageOptions={rowsPerPageOptions}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}

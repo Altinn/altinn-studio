@@ -11,7 +11,10 @@ import { useGetUserStarredReposQuery } from 'services/userApi';
 import { useAugmentReposWithStarred } from './hooks';
 import { getUidFilter, getReposLabel } from './utils';
 
+const rowsPerPageOptions = [5, 10, 20]
+
 export const OrgReposList = () => {
+  const [pageSize, setPageSize] = React.useState(rowsPerPageOptions[0]);
   const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
@@ -33,7 +36,7 @@ export const OrgReposList = () => {
     page: page,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
-    limit: 5,
+    limit: pageSize,
   });
 
   const reposWithStarred = useAugmentReposWithStarred({
@@ -57,12 +60,14 @@ export const OrgReposList = () => {
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
+        onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
         isServerSort={true}
         rowCount={repos?.totalCount}
         onPageChange={handlePageChange}
         onSortModelChange={handleSortModelChange}
         sortModel={sortModel}
-        pageSize={5}
+        rowsPerPageOptions={rowsPerPageOptions}
+        pageSize={pageSize}
       />
     </div>
   );

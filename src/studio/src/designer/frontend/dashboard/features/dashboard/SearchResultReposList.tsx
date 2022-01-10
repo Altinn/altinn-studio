@@ -11,6 +11,8 @@ import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
 import { useAugmentReposWithStarred } from './hooks';
 
+const rowsPerPageOptions = [8];
+
 export const SearchResultReposList = ({
   searchValue,
 }: {
@@ -59,6 +61,8 @@ export const SearchResultReposList = ({
         onPageChange={handlePageChange}
         onSortModelChange={handleSortModelChange}
         sortModel={sortModel}
+        pageSize={rowsPerPageOptions[0]}
+        rowsPerPageOptions={rowsPerPageOptions}
       />
     </div>
   );
