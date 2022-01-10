@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-
+import { insertHelpIconInText } from '../../../src/utils/replaceIcon';
 export interface IParagraphProps {
   id: string;
   text: string;
@@ -41,38 +41,10 @@ const useStyles = makeStyles({
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
-  const replacePattern = '{help}';
   var textArr;
-  
-  function replaceIcon(element, pattern){
-
-    var iconPos;
-
-    for(var j=0; j < element.length; j++){
-      if(element[j]['props']) {
-        if(element[j]['props']['children']) {
-          replaceIcon(element[j]['props']['children'], pattern)
-        }
-      } else {
-        iconPos = element[j].indexOf(pattern);
-        if(element[j].indexOf(pattern) !== -1) {
-            element[j] = 
-              <> 
-                {element[j].substring(0, iconPos)} 
-                  <HelpTextContainer
-                    language={props.language}
-                    id={props.id}
-                    helpText={props.getTextResource(props.textResourceBindings.help)}
-                  /> 
-                {element[j].substring(iconPos + replacePattern.length)}
-              </>;
-        }
-      }
-    }
-  }
 
   textArr = props.text;
-  replaceIcon(textArr, replacePattern);
+  insertHelpIconInText (textArr, props.language, props.id, props.getTextResource(props.textResourceBindings.help));
 
   return (
     <Grid
