@@ -42,6 +42,7 @@ function DropdownComponent(props: IDropdownProps) {
 
   React.useEffect(() => {
     returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const returnState = () => {

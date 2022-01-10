@@ -24,6 +24,7 @@ import {
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IDatePickerProps {
   id: string;
@@ -36,7 +37,7 @@ export interface IDatePickerProps {
   format: string;
   minDate: string;
   maxDate: string;
-  language: any;
+  language: ILanguage;
   componentValidations: IComponentValidations;
 }
 
@@ -154,10 +155,12 @@ function DatepickerComponent(props: IDatePickerProps) {
     const dateValue = props.formData ? moment(props.formData) : null;
     setDate(dateValue);
     setValidationMessages(getValidationMessages());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {

@@ -50,7 +50,7 @@ Cypress.Commands.add('deletecomponents', () => {
 Cypress.Commands.add('deleteLocalChanges', (appId) => {
   cy.getCookie('AltinnStudioDesigner').should('exist');
   cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
-  cy.visit(`designer/${Cypress.env('deployApp')}#/about`);
+  cy.visit(`designer/${appId}#/about`);
   // eslint-disable-next-line cypress/no-unnecessary-waiting
   cy.wait(5000);
   cy.wait('@repoStatus');
@@ -66,7 +66,9 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
     .should('be.visible')
     .type(`${appId.split('/')[1]}`)
     .blur();
+  cy.intercept('GET', '**/reset').as('resetRepo');
   cy.get(designer.deleteChanges.confirm).should('be.visible').click();
+  cy.wait('@resetRepo');
   cy.get(designer.deleteChanges.name).should('not.exist');
 });
 
@@ -75,4 +77,13 @@ Cypress.Commands.add('deleteLocalChanges', (appId) => {
  */
 Cypress.Commands.add('getIframeBody', () => {
   return cy.get('iframe').its('0.contentDocument.body').should('not.be.empty').then(cy.wrap);
+});
+
+/**
+ * Search an app from dashboard and open app
+ */
+Cypress.Commands.add('searchAndOpenApp', (appId) => {
+  var appName = appId.split('/')[1];
+  cy.get(dashboard.searchApp).type(appName);
+  cy.contains(dashboard.apps.name, appName).siblings(dashboard.apps.links).find(dashboard.apps.edit).click();
 });

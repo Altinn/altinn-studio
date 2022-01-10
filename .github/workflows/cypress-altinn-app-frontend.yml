@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machines: [1, 2]
+        machines: [1, 2, 3]
 
     steps:
       - name: Checkout

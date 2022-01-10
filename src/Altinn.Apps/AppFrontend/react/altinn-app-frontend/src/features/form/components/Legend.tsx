@@ -4,11 +4,12 @@ import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IFormLegendProps {
   labelText: string;
   descriptionText: string;
-  language: any;
+  language: ILanguage;
   required?: boolean;
   labelSettings?: ILabelSettings;
   helpText: string;

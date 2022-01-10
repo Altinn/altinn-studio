@@ -68,4 +68,21 @@ describe('Summary', () => {
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredField).should('not.exist');
       });
   });
+
+  it('is possible to view summary of repeating group', () => {
+    cy.compelteTask3Form();
+    cy.get(appFrontend.group.mainGroupSummary).should('be.visible').and('have.length', 1);
+    cy.get(appFrontend.group.mainGroupSummary)
+      .first()
+      .children(mui.gridItem)
+      .then((item) => {
+        cy.get(item).should('have.length', 4);
+        cy.get(item).find(mui.buttonIcon).should('have.length', 3);
+        cy.get(item)
+          .eq(1)
+          .children(mui.gridContainer)
+          .should('have.css', 'border-bottom', '1px dashed rgb(0, 143, 214)');
+        cy.get(item).eq(3).should('contain.text', 'automation');
+      });
+  });
 });

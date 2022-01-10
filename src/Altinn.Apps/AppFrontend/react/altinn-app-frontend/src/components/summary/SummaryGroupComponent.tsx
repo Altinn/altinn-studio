@@ -7,7 +7,6 @@ import {
   ILayoutComponent,
   ILayoutGroup,
 } from 'src/features/form/layout';
-import { IRepeatingGroups, IValidations } from 'src/types';
 import {
   getDisplayFormDataForComponent,
   getFormDataForComponentInRepeatingGroup,
@@ -42,8 +41,6 @@ export function getComponentForSummaryGroup(
 const gridStyle = {
   paddingTop: '12px',
 };
-
-const defaultArray = [];
 
 export function getHiddenFieldsForSummaryGroup(
   hiddenFields: string[],
@@ -102,13 +99,13 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
       ),
     shallowEqual,
   );
-  const repeatingGroups: IRepeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
-  const layout: ILayout = useAppSelector(state => state.formLayout.layouts[pageRef]);
-  const formData: any = useAppSelector(state => state.formData.formData);
+  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
+  const layout = useAppSelector(state => state.formLayout.layouts[pageRef]);
+  const formData = useAppSelector(state => state.formData.formData);
   const textResources = useAppSelector(state => state.textResources.resources);
-  const language: any = useAppSelector(state => state.language.language);
+  const language = useAppSelector(state => state.language.language);
   const options = useAppSelector(state => state.optionState.options);
-  const validations: IValidations = useAppSelector(state => state.formValidations.validations);
+  const validations = useAppSelector(state => state.formValidations.validations);
   const hiddenFields = useAppSelector(state =>
     getHiddenFieldsForSummaryGroup(
       state.formLayout.uiConfig.hiddenFields,
@@ -277,7 +274,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
           title: groupComponent.textResourceBindings?.title,
         },
       };
-      const childSummaryComponents = defaultArray;
+      const childSummaryComponents = [];
       groupChildComponents.forEach((componentId: string) => {
         const component = layout.find(
           (c: ILayoutComponent) => c.id === componentId,

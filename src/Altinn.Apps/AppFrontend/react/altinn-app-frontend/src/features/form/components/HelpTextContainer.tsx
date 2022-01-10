@@ -1,9 +1,10 @@
 import * as React from 'react';
 import HelpTextPopover from './HelpTextPopover';
 import HelpTextIcon from './HelpTextIcon';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IHelpTextContainerProps {
-  language: any;
+  language: ILanguage;
   id: string;
   helpText: string;
 }

@@ -5,6 +5,7 @@ import { AltinnLoader } from 'altinn-shared/components';
 import { IAltinnWindow } from '../../types';
 import FormDataActions from '../../features/form/data/formDataActions';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IButtonProvidedProps {
   id: string;
@@ -12,7 +13,7 @@ export interface IButtonProvidedProps {
   disabled: boolean;
   handleDataChange: (value: any) => void;
   formDataCount: number;
-  language: any;
+  language: ILanguage;
 }
 
 const buttonStyle = {

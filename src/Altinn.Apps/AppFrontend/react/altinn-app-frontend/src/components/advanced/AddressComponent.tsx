@@ -11,6 +11,7 @@ import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import classNames from 'classnames';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IAddressComponentProps {
   id: string;
@@ -23,7 +24,7 @@ export interface IAddressComponentProps {
   readOnly: boolean;
   required: boolean;
   labelSettings?: ILabelSettings;
-  language: any;
+  language: ILanguage;
   textResourceBindings: ITextResourceBindings;
   componentValidations?: IComponentValidations;
 }
@@ -103,6 +104,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData.zipCode]);
 
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {

@@ -9,7 +9,7 @@ import {
   useMediaQuery,
 } from '@material-ui/core';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import {
   componentHasValidations,
   repeatingGroupHasValidations,
@@ -35,7 +35,9 @@ import {
   IRepeatingGroups,
   IValidations,
   IOptions,
+  ITextResourceBindings,
 } from '../../../types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupTableProps {
   id: string;
@@ -43,11 +45,12 @@ export interface IRepeatingGroupTableProps {
   components: (ILayoutComponent | ILayoutGroup)[];
   repeatingGroupIndex: number;
   repeatingGroups: IRepeatingGroups;
+  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
   formData: any;
   options: IOptions;
   textResources: ITextResource[];
-  language: any;
+  language: ILanguage;
   currentView: string;
   layout: ILayout;
   validations: IValidations;
@@ -73,11 +76,26 @@ const useStyles = makeStyles({
   },
 });
 
+function getEditButtonText(
+  language: ILanguage,
+  isEditing: boolean,
+  textResources: ITextResource[],
+  textResourceBindings?: ITextResourceBindings) {
+  if (isEditing && textResourceBindings?.edit_button_close) {
+    return getTextResourceByKey(textResourceBindings?.edit_button_close, textResources);
+  } else if (!isEditing && textResourceBindings?.edit_button_open) {
+    return getTextResourceByKey(textResourceBindings?.edit_button_open, textResources);
+  }
+
+  return getLanguageFromKey('general.edit_alt', language);
+}
+
 export function RepeatingGroupTable({
   id,
   container,
   components,
   repeatingGroupIndex,
+  repeatingGroupDeepCopyComponents,
   editIndex,
   formData,
   options,
@@ -107,13 +125,6 @@ export function RepeatingGroupTable({
       componentTitles.push(component.textResourceBindings?.title || '');
     }
   });
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
-    container,
-    renderComponents,
-    repeatingGroupIndex,
-    textResources,
-    hiddenFields,
-  );
 
   const getFormDataForComponent = (
     component: ILayoutComponent | ILayoutGroup,
@@ -233,10 +244,15 @@ export function RepeatingGroupTable({
                         >
                           {rowHasErrors
                             ? getLanguageFromKey(
-                                'general.edit_alt_error',
-                                language,
-                              )
-                            : getLanguageFromKey('general.edit_alt', language)}
+                              'general.edit_alt_error',
+                              language,
+                            )
+                            : getEditButtonText(
+                              language,
+                              editIndex === index,
+                              textResources,
+                              container.textResourceBindings
+                            )}
                           <i
                             className={
                               rowHasErrors
@@ -287,10 +303,15 @@ export function RepeatingGroupTable({
                       <>
                         {rowHasErrors
                           ? getLanguageFromKey(
-                              'general.edit_alt_error',
-                              language,
-                            )
-                          : getLanguageFromKey('general.edit_alt', language)}
+                            'general.edit_alt_error',
+                            language,
+                          )
+                          : getEditButtonText(
+                            language,
+                            editIndex === index,
+                            textResources,
+                            container.textResourceBindings
+                          )}
                         <i
                           className={
                             rowHasErrors
