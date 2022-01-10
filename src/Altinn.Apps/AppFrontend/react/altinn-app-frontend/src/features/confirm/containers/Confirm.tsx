@@ -38,7 +38,7 @@ const useStyles = makeStyles({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
-    textTransform: 'none' as const,
+    textTransform: 'none',
     fontWeight: 400,
     height: 36,
     borderRadius: '0',
