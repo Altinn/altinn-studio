@@ -2,7 +2,7 @@ import { createTheme, createStyles, FormControl, TextField, Typography, withStyl
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import AltinnButton from './AltinnButton';
+import { AltinnButton } from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -24,9 +24,6 @@ export interface IAltinnInputFieldComponentProvidedProps {
   type?: any;
   textFieldId?: string;
   fullWidth?: boolean;
-}
-
-export interface IAltinnInputFieldComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -66,7 +63,7 @@ const styles = createStyles({
 });
 
 
-export class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+export class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps> {
   public textInput: any;
   constructor(props: any) {
     super(props);

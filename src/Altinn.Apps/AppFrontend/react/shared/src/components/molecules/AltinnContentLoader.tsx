@@ -1,22 +1,24 @@
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
-import AltinnContentIcon from '../atoms/AltinnContentIcon';
+import { AltinnContentIcon } from '../atoms/AltinnContentIcon';
 
 export interface IAltinnContentLoaderProps {
-/** The height of the loader, defaults to 200 */
   height?: number | string;
-/** The width of the loader, defaults to 400 */
   width?: number | string;
+  children?: React.ReactNode;
 }
 
-export default function(props: React.PropsWithChildren<IAltinnContentLoaderProps>) {
+const AltinnContentLoader = ({
+  width = 400,
+  height = 200,
+  children,
+}: IAltinnContentLoaderProps) => {
 
   return (
-    <ContentLoader
-          height={props.height ? props.height : 200}
-          width={props.width ? props.width : 400}
-    >
-      {props.children ? props.children : <AltinnContentIcon/>}
+    <ContentLoader height={height} width={width}>
+      {children ? children : <AltinnContentIcon />}
     </ContentLoader>
   );
-}
+};
+
+export default AltinnContentLoader;

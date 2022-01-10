@@ -1,12 +1,12 @@
 import { createTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import { withStyles } from '@material-ui/core/styles';
-import { createStyles } from '@material-ui/core/styles';
+import { withStyles , createStyles } from '@material-ui/core/styles';
+
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
-import AltinnIcon from './AltinnIcon';
+import AltinnIconComponent from './AltinnIcon';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   classes: any;
@@ -18,9 +18,6 @@ export interface IAltinnInformationCardComponentProvidedProps {
   imageSource: string;
   language?: any;
   shadow: boolean;
-}
-
-export interface IAltinnInformationCardComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -93,7 +90,7 @@ const styles = () => createStyles({
 });
 
 export class AltinnInformationCard extends
-  React.Component<IAltinnInformationCardComponentProvidedProps, IAltinnInformationCardComponentState> {
+  React.Component<IAltinnInformationCardComponentProvidedProps> {
 
   public render() {
     const { classes } = this.props;
@@ -138,7 +135,7 @@ export class AltinnInformationCard extends
                       className={classes.link}
                     >
                       {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
-                      <AltinnIcon
+                      <AltinnIconComponent
                         isActive={true}
                         iconClass='fa fa-arrowrightup'
                         iconColor={theme.altinnPalette.primary.black}
