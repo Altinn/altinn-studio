@@ -24,6 +24,19 @@ namespace Altinn.App.PlatformServices.Tests.Options
         }
 
         [Fact]
+        public void GetOptionsProvider_NoCustomOptionsProvider_ShouldReturnDefaultTwice()
+        {
+            var appOptionsFileHandler = new Mock<IAppOptionsFileHandler>();
+            var factory = new AppOptionsFactory(new List<IAppOptionsProvider>() { new DefaultAppOptionsProvider(appOptionsFileHandler.Object) });
+
+            IAppOptionsProvider optionsProvider1 = factory.GetOptionsProvider("fylke");
+            IAppOptionsProvider optionsProvider2 = factory.GetOptionsProvider("kommune");
+            
+            optionsProvider1.Id.Should().Be("fylke");
+            optionsProvider2.Id.Should().Be("kommune");
+        }
+
+        [Fact]
         public void GetOptionsProvider_NoDefaultProvider_ShouldThrowException()
         {
             var factory = new AppOptionsFactory(new List<IAppOptionsProvider>());

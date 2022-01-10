@@ -76,7 +76,11 @@ namespace App.IntegrationTests.Utils
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-                    services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                    var defaultProviderService = services.Where(s => s.ServiceType == typeof(IAppOptionsProvider)).FirstOrDefault();
+                    if (defaultProviderService == null)
+                    {
+                        services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                    }
 
                     switch (app)
                     {

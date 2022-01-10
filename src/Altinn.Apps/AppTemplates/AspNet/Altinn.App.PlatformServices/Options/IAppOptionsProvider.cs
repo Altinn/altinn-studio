@@ -12,10 +12,9 @@ namespace Altinn.App.PlatformServices.Options
         /// <summary>
         /// The id/name of the options this provider supports ie. land, fylker, kommuner.
         /// You can have as many providers as you like, but you should have only one per
-        /// id. In the case of multiple providers registred with the same id it's non
-        /// deterministic which one will be returned.
+        /// id. 
         /// </summary>
-        string Id { get; set; }
+        string Id { get; }
 
         /// <summary>
         /// Gets the <see cref="AppOptions"/> based on the provided options id and key value pairs.

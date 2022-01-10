@@ -1,3 +1,4 @@
+using System.Linq;
 using Altinn.App.PlatformServices.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -12,7 +13,11 @@ namespace Altinn.App.IntegrationTests
         {
             builder.ConfigureServices(services =>
             {
-                services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                var defaultProviderService = services.Where(s => s.ServiceType == typeof(IAppOptionsProvider)).FirstOrDefault();
+                if (defaultProviderService == null)
+                {
+                    services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                }                
             });
         }
     }

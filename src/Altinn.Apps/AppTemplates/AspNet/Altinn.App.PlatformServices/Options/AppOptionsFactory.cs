@@ -45,13 +45,13 @@ namespace Altinn.App.PlatformServices.Options
                 throw new KeyNotFoundException("No default app options provider found in the configures services. Please check your services configuration.");
             }
 
-            // In the case of no custom providers registred, we use the default
-            // provider and set the requested id as this is the key for finding
-            // the options file.
-            var appOptions = GetOptionsProvider(DEFAULT_PROVIDER_NAME);
-            appOptions.Id = optionsId;
+            // In the case of no providers registred specifically for the requested id,
+            // we use the default provider as base. Hence we set the requested id as this is
+            // the key for finding the options file.
+            var defaultAppOptions = (DefaultAppOptionsProvider)GetOptionsProvider(DEFAULT_PROVIDER_NAME);
+            var clonedAppOptions = defaultAppOptions.CloneDefaultTo(optionsId);
 
-            return appOptions;
+            return clonedAppOptions;
         }
     }
 }
