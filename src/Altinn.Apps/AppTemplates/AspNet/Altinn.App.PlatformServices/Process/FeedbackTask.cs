@@ -1,25 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
-using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Interface.Enums;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Process
 {
     /// <summary>
-    /// Defines the task of type data 
+    /// Represents the process task responsible for waiting for feedback from application owner.
     /// </summary>
     public class FeedbackTask : TaskBase
     {
         private readonly IAltinnApp _altinnApp;
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new instance of the <see cref="FeedbackTask"/> class.
         /// </summary>
         public FeedbackTask(IAltinnApp altinnApp)
         {
