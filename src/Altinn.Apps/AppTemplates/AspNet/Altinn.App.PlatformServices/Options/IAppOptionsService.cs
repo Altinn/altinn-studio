@@ -10,13 +10,6 @@ namespace Altinn.App.PlatformServices.Options
     public interface IAppOptionsService
     {
         /// <summary>
-        /// Get the list of options for a specific options list by its id.
-        /// </summary>
-        /// <param name="optionId">The id of the options list to retrieve</param>
-        /// <returns>The list of options</returns>
-        AppOptions GetOptions(string optionId);
-
-        /// <summary>
         /// Get the list of options for a specific options list by its id and key/value pairs.
         /// </summary>
         /// <param name="optionId">The id of the options list to retrieve</param>
