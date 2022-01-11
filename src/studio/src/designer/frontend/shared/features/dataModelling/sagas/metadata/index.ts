@@ -3,7 +3,6 @@ export {
   IDataModelsMetadataState,
   IDataModelMetadataItem,
   DataModelsMetadataActions,
+  LoadingState,
 } from './dataModelsMetadataSlice';
-export {
-  watchGetDataModelsMetadataSaga,
-} from './get/getDataModelsMetadataSagas';
+export { watchGetDataModelsMetadataSaga } from './get/getDataModelsMetadataSagas';

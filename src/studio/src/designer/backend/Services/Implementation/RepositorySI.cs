@@ -150,103 +150,66 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
+        public void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
-            try
-            {
-                string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
-                string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when trying to update application metadata ", ex);
-                return false;
-            }
+            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName)
+        public void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName)
         {
-            try
-            {
-                string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
-                string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                string filePath = modelsFolderPath + $"{modelName}.metadata.json";
+            string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
+            string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filePath = modelsFolderPath + $"{modelName}.metadata.json";
 
-                Directory.CreateDirectory(modelsFolderPath);
-                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
-            }
-            catch (Exception e)
-            {
-                _logger.LogInformation($"An error occurred when trying to store model metadata: {e.GetType()} : {e.Message}");
-                return false;
-            }
-
-            return true;
+            Directory.CreateDirectory(modelsFolderPath);
+            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool AddMetadataForAttachment(string org, string app, string applicationMetadata)
+        public void AddMetadataForAttachment(string org, string app, string applicationMetadata)
         {
-            try
-            {
-                PlatformStorageModels.DataType formMetadata = JsonConvert.DeserializeObject<PlatformStorageModels.DataType>(applicationMetadata);
-                formMetadata.TaskId = "Task_1";
-                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
-                existingApplicationMetadata.DataTypes.Add(formMetadata);
+            PlatformStorageModels.DataType formMetadata = JsonConvert.DeserializeObject<PlatformStorageModels.DataType>(applicationMetadata);
+            formMetadata.TaskId = "Task_1";
+            PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+            existingApplicationMetadata.DataTypes.Add(formMetadata);
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
-                string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
+            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
+        public void UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
         {
-            try
-            {
-                dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
-                string attachmentId = attachmentMetadata.GetValue("id").Value;
-                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
-                PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
-                applicationForm.AllowedContentTypes = new List<string>();
+            dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
+            string attachmentId = attachmentMetadata.GetValue("id").Value;
+            PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+            PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
+            applicationForm.AllowedContentTypes = new List<string>();
 
-                if (attachmentMetadata.GetValue("fileType") != null)
+            if (attachmentMetadata.GetValue("fileType") != null)
+            {
+                string fileTypes = attachmentMetadata.GetValue("fileType").Value;
+                string[] fileType = fileTypes.Split(",");
+
+                foreach (string type in fileType)
                 {
-                    string fileTypes = attachmentMetadata.GetValue("fileType").Value;
-                    string[] fileType = fileTypes.Split(",");
-
-                    foreach (string type in fileType)
-                    {
-                        applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
-                    }
+                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
                 }
-
-                applicationForm.Id = attachmentMetadata.GetValue("id").Value;
-                applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
-                applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
-                applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
-
-                DeleteMetadataForAttachment(org, app, attachmentId);
-                string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
-                AddMetadataForAttachment(org, app, metadataAsJson);
-            }
-            catch (Exception)
-            {
-                return false;
             }
 
-            return true;
+            applicationForm.Id = attachmentMetadata.GetValue("id").Value;
+            applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
+            applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
+            applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+
+            DeleteMetadataForAttachment(org, app, attachmentId);
+            string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
+            AddMetadataForAttachment(org, app, metadataAsJson);
         }
 
         /// <inheritdoc/>
@@ -312,7 +275,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                _logger.LogError(ex, "Something went wrong when fetching application metadata.");
                 return null;
             }
         }
@@ -966,10 +929,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
             string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
-            if (!UpdateModelMetadata(org, app, modelMetadata, fileName))
-            {
-                return false;
-            }
+            UpdateModelMetadata(org, app, modelMetadata, fileName);
 
             // Create the .cs file for the model
             try
@@ -978,8 +938,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception trying to write generated C# to disc.");
                 return false;
             }
 
@@ -994,8 +955,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception trying to write XSD to disc.");
                     return false;
                 }
 
@@ -1014,13 +976,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception while generating or writing JsonSchema to disc.");
                     return false;
                 }
             }
 
-            // Update the ServiceImplementation class with the correct model type name
             UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + root);
 
             return true;
@@ -1258,57 +1220,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Delete an app folder from disk.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>true if success, false otherwise</returns>
-        public bool DeleteService(string org, string app)
-        {
-            try
-            {
-                string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-
-                string directoryPath = null;
-
-                org = org.AsFileName();
-                app = app.AsFileName();
-
-                directoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}"
-                                : $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
-
-                if (!string.IsNullOrEmpty(app))
-                {
-                    directoryPath += "/" + app;
-                }
-                else
-                {
-                    directoryPath += "/" + org;
-                }
-
-                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-                foreach (FileInfo file in directoryInfo.GetFiles())
-                {
-                    file.Delete();
-                }
-
-                foreach (DirectoryInfo directory in directoryInfo.GetDirectories())
-                {
-                    directory.Delete(true);
-                }
-
-                Directory.Delete(directoryPath, true);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -1655,14 +1566,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateAppTitle(string org, string app, string languageId, string title)
+        public void UpdateAppTitle(string org, string app, string languageId, string title)
         {
             PlatformStorageModels.Application appMetadata = GetApplication(org, app);
-
-            if (appMetadata == null)
-            {
-                return false;
-            }
 
             Dictionary<string, string> titles = appMetadata.Title;
             if (titles.ContainsKey(languageId))
@@ -1676,7 +1582,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             appMetadata.Title = titles;
 
-            return UpdateApplication(org, app, appMetadata);
+            UpdateApplication(org, app, appMetadata);
         }
 
         /// <summary>

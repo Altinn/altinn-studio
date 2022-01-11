@@ -99,6 +99,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       routeParams.partyId,
       routeParams.instanceGuid,
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -124,6 +125,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       );
       setInstanceMetaObject(obj);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allOrgs, parties, instance, lastChangedDateTime]);
 
   React.useEffect(() => {

@@ -59,17 +59,20 @@ export default function Entrypoint() {
     if (action === 'select-instance' && partyValidation?.valid) {
       fetchExistingInstances();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [action, partyValidation]);
 
   React.useEffect(() => {
     if (selectedParty) {
       validatatePartySelection();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedParty]);
 
   React.useEffect(() => {
     // If user comes back to entrypoint from an active instance we need to clear validation messages
     dispatch(updateValidations({ validations: {} }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {

@@ -76,6 +76,7 @@ const ProcessWrapper = (props) => {
       return appName;
     };
     setAppHeader(getHeaderText());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceName, applicationMetadata]);
 
   React.useEffect(() => {
@@ -103,12 +104,14 @@ const ProcessWrapper = (props) => {
       default:
         break;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [process, applicationMetadata, instanceData]);
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
       InstanceDataActions.getInstanceData(partyId, instanceGuid);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instantiating, instanceId]);
 
   if (hasApiErrors) {

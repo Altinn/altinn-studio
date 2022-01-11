@@ -3,7 +3,7 @@ package altinn.platform.pdf.controllers;
 import altinn.platform.pdf.services.PDFGenerator;
 import altinn.platform.pdf.models.PdfContext;
 import altinn.platform.pdf.services.BasicLogger;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +20,7 @@ import java.util.logging.Level;
 public class PDFController {
 
   @PostMapping("api/v1/generate")
-  @ApiOperation(value = "Generates a receipt pdf")
+  @Operation(summary = "Generates a receipt pdf")
   public void generate(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid PdfContext pdfContext) {
     PDFGenerator generator = new PDFGenerator(pdfContext);
     try {
