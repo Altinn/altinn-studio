@@ -115,8 +115,8 @@ const RenderAttachmentGroupings = ({
 
   return (
     <>
-      {groups.map((element: JSX.Element) => {
-        return element;
+      {groups.map((element: JSX.Element, index) => {
+        return <React.Fragment key={index}>{element}</React.Fragment>;
       })}
     </>
   );
@@ -124,7 +124,6 @@ const RenderAttachmentGroupings = ({
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
   // renders attachment groups. Always shows default group first
-
   return (
     <div className={props.classes.wordBreak}>
       <MuiThemeProvider theme={theme}>

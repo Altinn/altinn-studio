@@ -8,7 +8,7 @@ export interface IAltinnContentLoaderProps {
   children?: React.ReactNode;
 }
 
-const AltinnContentLoader = ({
+export const AltinnContentLoader = ({
   width = 400,
   height = 200,
   children,

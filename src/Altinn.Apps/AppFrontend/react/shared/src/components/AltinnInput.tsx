@@ -92,7 +92,7 @@ function AltinnInput(props: IAltinnInputProps) {
         className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
       >
       {iconString ?
-        <i className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
+        <i data-testid="altinninput-iconString" className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
         null
       }
         <Input
