@@ -11,6 +11,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
@@ -166,9 +167,11 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Theory]
-        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd")]
-        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource)
+        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M")]
+        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName)
         {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
             var org = "yabbin";
             var app = "hvem-er-hvem";
 
@@ -177,6 +180,20 @@ namespace Designer.Tests.Factories.ModelFactory
 
             string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
             string classesOldWay = GenerateCSharpClasses(modelMetadataOld);
+
+            var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
+            var instanceOldWay = CreateCSharpInstance(modelName, classesOldWay);
+
+            instanceNewWay.Should().BeEquivalentTo(instanceOldWay);
+        }
+
+        private static object CreateCSharpInstance(string modelName, string classes)
+        {
+            Assembly assembly = Compiler.CompileToAssembly(classes);
+            Type type = assembly.GetType(modelName);
+            var modelInstance = assembly.CreateInstance(type.FullName);
+
+            return modelInstance;
         }
 
         private ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
