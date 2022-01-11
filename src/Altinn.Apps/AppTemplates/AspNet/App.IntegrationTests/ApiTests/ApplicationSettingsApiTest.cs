@@ -31,7 +31,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
 
             string requestUri = "/ttd/model-validation/api/v1/applicationsettings";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUri);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -56,7 +56,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
 
             string requestUri = "/ttd/model-validation/api/v1/applicationsettings";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUri);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -81,7 +81,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
 
             string requestUri = "/ttd/model-validation/api/v1/applicationsettings";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUri);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -108,7 +108,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "externalprefil");
 
             string requestUri = "/ttd/model-validation/api/v1/applicationsettings";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUri);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
