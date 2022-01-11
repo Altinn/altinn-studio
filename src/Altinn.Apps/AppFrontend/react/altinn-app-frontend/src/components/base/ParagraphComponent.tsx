@@ -60,7 +60,6 @@ export function ParagraphComponent(props: IParagraphProps) {
           {props.text}
         </Typography>
       </Grid>
-      {props.textResourceBindings?.help}
     </Grid>
   );
 }
