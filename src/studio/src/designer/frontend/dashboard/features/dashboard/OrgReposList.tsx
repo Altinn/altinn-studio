@@ -11,7 +11,7 @@ import { useGetUserStarredReposQuery } from 'services/userApi';
 import { useAugmentReposWithStarred } from './hooks';
 import { getUidFilter, getReposLabel } from './utils';
 
-const rowsPerPageOptions = [5, 10, 20]
+const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
 export const OrgReposList = () => {
   const [pageSize, setPageSize] = React.useState(rowsPerPageOptions[0]);
