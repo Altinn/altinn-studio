@@ -21,7 +21,7 @@ namespace Altinn.App.Common.Process.Elements
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the exclusive gateway.
+        /// Get or sets the default path of the exclusive gateway.
         /// </summary>
         [XmlAttribute("default")]
         public string Default { get; set; }

@@ -310,26 +310,19 @@ namespace Altinn.App.Core.Implementation
         {
             if (instance.Process != null)
             {
-                try
+                ProcessStateChange result = new ProcessStateChange
                 {
-                    ProcessStateChange result = new ProcessStateChange
+                    OldProcessState = new ProcessState()
                     {
-                        OldProcessState = new ProcessState()
-                        {
-                            Started = instance.Process.Started,
-                            CurrentTask = instance.Process.CurrentTask,
-                            StartEvent = instance.Process.StartEvent
-                        }
-                    };
+                        Started = instance.Process.Started,
+                        CurrentTask = instance.Process.CurrentTask,
+                        StartEvent = instance.Process.StartEvent
+                    }
+                };
 
-                    result.Events = MoveProcessToNext(instance, nextElementId, userContext);
-                    result.NewProcessState = instance.Process;
-                    return result;
-                }
-                catch
-                {
-                    _logger.LogError($"Unable to get next for {instance.Id}");
-                }
+                result.Events = MoveProcessToNext(instance, nextElementId, userContext);
+                result.NewProcessState = instance.Process;
+                return result;
             }
 
             return null;
@@ -345,7 +338,7 @@ namespace Altinn.App.Core.Implementation
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
-            ProcessState previousState = JsonConvert.DeserializeObject<ProcessState>(JsonConvert.SerializeObject(instance.Process));
+            ProcessState previousState = Copy(instance.Process);
             ProcessState currentState = instance.Process;
             string previousElementId = currentState.CurrentTask?.ElementId;
 
@@ -421,6 +414,31 @@ namespace Altinn.App.Core.Implementation
                     _logger.LogWarning(exception, "Exception when sending event with the Events component.");
                 }
             }
+        }
+
+        private ProcessState Copy(ProcessState original)
+        {
+            ProcessState processState = new ProcessState();
+
+            if (original.CurrentTask != null)
+            {
+                processState.CurrentTask = new ProcessElementInfo();
+                processState.CurrentTask.FlowType = original.CurrentTask.FlowType;
+                processState.CurrentTask.Name = original.CurrentTask.Name;
+                processState.CurrentTask.Validated = original.CurrentTask.Validated;
+                processState.CurrentTask.AltinnTaskType = original.CurrentTask.AltinnTaskType;
+                processState.CurrentTask.Flow = original.CurrentTask.Flow;
+                processState.CurrentTask.ElementId = original.CurrentTask.ElementId;
+                processState.CurrentTask.Started = original.CurrentTask.Started;
+                processState.CurrentTask.Ended = original.CurrentTask.Ended;
+            }
+
+            processState.EndEvent = original.EndEvent;
+            processState.Started = original.Started;
+            processState.Ended = original.Ended;
+            processState.StartEvent = original.StartEvent;
+
+            return processState;
         }
     }
 }
