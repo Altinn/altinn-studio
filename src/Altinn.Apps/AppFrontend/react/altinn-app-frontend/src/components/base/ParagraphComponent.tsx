@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { insertHelpIconInText } from '../../../src/utils/replaceIcon';
+import { insertHelpIconInNested } from '../../../src/utils/replaceIcon';
 export interface IParagraphProps {
   id: string;
   text: string;
@@ -41,10 +41,12 @@ const useStyles = makeStyles({
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
 
-  var textArr;
-
-  textArr = props.text;
-  insertHelpIconInText (textArr, props.language, props.id, props.getTextResource(props.textResourceBindings.help));
+  insertHelpIconInNested({
+    element: props.text,
+    language: props.language,
+    id: props.id,
+    text: props.getTextResource(props.textResourceBindings.help)
+  });
 
   return (
     <Grid

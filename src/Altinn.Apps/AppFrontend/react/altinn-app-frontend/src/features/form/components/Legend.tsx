@@ -4,7 +4,7 @@ import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
-import { insertHelpIconInText } from '../../../../src/utils/replaceIcon';
+import { insertHelpIconInNested } from '../../../../src/utils/replaceIcon';
 export interface IFormLegendProps {
   labelText: string;
   descriptionText: string;
@@ -20,10 +20,12 @@ export default function Legend(props: IFormLegendProps) {
     return null;
   }
 
-  var textArr;
-  textArr = props.labelText;
-  insertHelpIconInText (textArr, props.language, props.id, props.helpText);
-
+  insertHelpIconInNested({
+    element: props.labelText,
+    language: props.language,
+    id: props.id,
+    text: props.helpText
+  });
   return (
     <>
       <label

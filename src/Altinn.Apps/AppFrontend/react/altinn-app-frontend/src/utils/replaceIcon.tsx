@@ -1,79 +1,72 @@
 import React from 'react';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 
-export function insertHelpIconInText (element, language, id, text) {
-  const replacePattern = '{help}';
-  // const iconPos = element.indexOf(replacePattern);
-  if(text != null) {
-    for(var j=0; j < element.length; j++){
-      if(element[j]['props']) {
-        if(element[j]['props']['children']) {
-          insertHelpIconInText(element[j]['props']['children'], language, id, text)
+interface IInsertHelpIconInNested {
+  element: any;
+  language: any;
+  id: string;
+  text?: string;
+}
+
+export function insertHelpIconInNested({
+  element,
+  language,
+  id,
+  text,
+}: IInsertHelpIconInNested) {
+  if (text) {
+    for (var j = 0; j < element.length; j++) {
+      if (element[j]["props"]) {
+        if (element[j]["props"]["children"]) {
+          insertHelpIconInNested({
+            element: element[j]["props"]["children"],
+            language,
+            id,
+            text,
+          });
         }
       } else {
-        const iconPos = element[j].indexOf(replacePattern);
-        if(element[j].indexOf(replacePattern) !== -1) {
-            element[j] = 
-              <> 
-                {element[j].substring(0, iconPos)} 
-                  <HelpTextContainer
-                    language={language}
-                    id={id}
-                    helpText={text}
-                  /> 
-                {element[j].substring(iconPos + replacePattern.length)}
-              </>;
-        } else {
-            element[j] = 
-              <> 
-                {element[j]}
-                  <HelpTextContainer
-                    language={language}
-                    id={id}
-                    helpText={text}
-                  />
-              </>;
-        }
+        element[j] = replaceHelpWithIcon({
+          element: element[j],
+          language,
+          id,
+          text,
+        });
       }
     }
   }
-};
+}
 
-export function insertHelpIconInHeader (element, language, id, text) {
-  const replacePattern = '{help}';
-  const iconPos = element.indexOf(replacePattern);
-  if(text != null) {
-    if(element.indexOf(replacePattern) !== -1) {
-      return (
-        <> 
-          {element.substring(0, iconPos)} 
-            <HelpTextContainer
-              language={language}
-              id={id}
-              helpText={text}
-            />
-          {element.substring(iconPos + replacePattern.length)}
-        </>
-      ); 
-    } else {
-      return (
-        <> 
-          {element} 
-            <HelpTextContainer
-              language={language}
-              id={id}
-              helpText={text}
-            />
-        </>
-      ); 
+interface IReplaceHelpWithIcon {
+  element: string;
+  language: any;
+  id: string;
+  text?: string;
+}
+
+export function replaceHelpWithIcon({
+  element,
+  language,
+  id,
+  text,
+}: IReplaceHelpWithIcon) {
+  if (text) {
+    const replacePattern = "{help}";
+
+    // Backwards compat, add help text to end of string if its not present inline in the text
+    if (!element.includes(replacePattern)) {
+      element += ` ${replacePattern}`;
     }
-  } else {
+    const iconPos = element.indexOf(replacePattern);
+
     return (
-      <> 
-        {element} 
+      <>
+        {element.substring(0, iconPos)}
+        <HelpTextContainer language={language} id={id} helpText={text} />
+        {element.substring(iconPos + replacePattern.length)}
       </>
-    ); 
+    );
   }
-};
 
-
+  return element;
+}

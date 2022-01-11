@@ -2,7 +2,7 @@ import { Grid } from '@material-ui/core';
 import * as React from 'react';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { ITextResourceBindings } from 'src/types';
-import { insertHelpIconInHeader } from '../..//../src/utils/replaceIcon';
+import { replaceHelpWithIcon } from '../..//../src/utils/replaceIcon';
 export interface IHeaderProps {
   id: string;
   text: string;
@@ -18,10 +18,12 @@ export function HeaderComponent(props: IHeaderProps) {
     marginBottom: '0',
   };
 
-  var textArr;
-  textArr = props.text;
-
-  const header = insertHelpIconInHeader (textArr, props.language, props.id, props.getTextResource(props.textResourceBindings.help));
+  const header = replaceHelpWithIcon({
+    element: props.text,
+    language: props.language,
+    id: props.id,
+    text: props.getTextResource(props.textResourceBindings.help)
+  });
 
   const renderHeader = () => {
 
