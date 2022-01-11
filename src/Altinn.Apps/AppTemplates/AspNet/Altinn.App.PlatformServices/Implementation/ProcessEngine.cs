@@ -45,6 +45,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Instance does not have current task information!", Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
@@ -52,6 +53,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Requested process element {processChange.RequestedProcessElementId} is same as instance's current task. Cannot change process.", Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
@@ -61,6 +63,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = nextElementError.Text, Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
@@ -91,6 +94,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = "Process is already started. Use next.", Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
@@ -99,6 +103,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = "No matching startevent", Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
@@ -111,6 +116,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
                 processChange.ProcessMessages.Add(new ProcessChangeInfo() { Message = $"Unable to goto next element due to {nextElementError.Code}-{nextElementError.Text}", Type = "Conflict" });
+                processChange.FailedProcessChange = true;
                 return processChange;
             }
 
