@@ -348,7 +348,6 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
-    // eslint-disable-next-line no-restricted-syntax
     for (const group of groupsToRemoveValidations) {
       for (let i = 0; i <= currentGroups[group].count; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
