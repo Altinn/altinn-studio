@@ -451,6 +451,25 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             StepsBuilder steps = new StepsBuilder();
             PropertiesBuilder attributeDefinitions = new PropertiesBuilder();
 
+            foreach (XmlSchemaObject attribute in item.Attributes)
+            {
+                switch (attribute)
+                {
+                    case XmlSchemaAttribute x:
+                        string name = x.Name ?? x.RefName.Name;
+                        attributeDefinitions.Add(name, ConvertSchemaAttribute(x, false, false), x.Use == XmlSchemaUse.Required);
+                        break;
+                    case XmlSchemaAttributeGroupRef x:
+                        attributeDefinitions.AddCurrentPropertiesToStep(steps);
+                        steps.Add(b => HandleAttributeGroupRef(x, b));
+                        break;
+                    default:
+                        throw new XmlException("Expected attribute or attribute group reference", null, attribute.LineNumber, attribute.LinePosition);
+                }
+            }
+
+            attributeDefinitions.AddCurrentPropertiesToStep(steps);
+
             if (item.ContentModel != null)
             {
                 switch (item.ContentModel)
@@ -489,25 +508,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         break;
                 }
             }
-
-            foreach (XmlSchemaObject attribute in item.Attributes)
-            {
-                switch (attribute)
-                {
-                    case XmlSchemaAttribute x:
-                        string name = x.Name ?? x.RefName.Name; 
-                        attributeDefinitions.Add(name, ConvertSchemaAttribute(x, false, false), x.Use == XmlSchemaUse.Required);
-                        break;
-                    case XmlSchemaAttributeGroupRef x:
-                        attributeDefinitions.AddCurrentPropertiesToStep(steps);
-                        steps.Add(b => HandleAttributeGroupRef(x, b));
-                        break;
-                    default:
-                        throw new XmlException("Expected attribute or attribute group reference", null, attribute.LineNumber, attribute.LinePosition);
-                }
-            }
-
-            attributeDefinitions.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
 
