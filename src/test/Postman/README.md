@@ -13,3 +13,5 @@ Download and install postman from [here](https://www.postman.com/downloads/).
 - Some of the requests use attachments which has to be created and the request has to be updated with the same.
 
 Collections with api requests for localtest can be found [here](https://github.com/Altinn/altinn-studio/blob/master/src/test/Postman/collections/Altinn%20Studio%20App%20Local%20Testing.postman_collection.json).
+
+More details about tests with postman can be found [here](https://docs.altinn.studio/community/contributing/handbook/test/postman/).
