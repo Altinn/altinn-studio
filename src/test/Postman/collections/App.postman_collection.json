@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a9f66131-838c-43f6-9d62-38d7e2770a6c",
+		"_postman_id": "a4d55d0a-1630-4915-922d-13d81bf17935",
 		"name": "App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "23b471a5-fcac-4c95-b095-bb3ce2de545f",
 								"exec": [
 									"var current_timestamp = new Date();\r",
 									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
@@ -25,10 +24,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "99bcd88b-ee8c-4974-9713-13e502360074",
 								"exec": [
 									"const jar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"jar.clear(domain, function (error){",
 									"    if(error)",
 									"    {",
@@ -80,20 +78,11 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b4d6640e-658e-4e51-bf8d-790f1698fc1b",
 								"exec": [
-									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
-									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
-									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());",
 									"",
 									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"",
 									"cookieJar.clear(domain, function (error){",
 									"    if(error)",
@@ -108,7 +97,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "bf515784-db3a-4f7d-a91a-063c67aa4cf5",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -120,7 +108,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://platform.{{envUrl}}/authentication/api/v1/refresh",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -135,7 +123,7 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/"
+									"value": "https://platform.{{envUrl}}/authentication/api/v1/refresh"
 								}
 							]
 						}
@@ -143,12 +131,11 @@
 					"response": []
 				},
 				{
-					"name": "Get Party Id",
+					"name": "Get Party info",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "31358ee1-d5fa-41b1-8557-bf51828572d1",
 								"exec": [
 									"if(pm.response.code == 200)",
 									"{",
@@ -165,16 +152,8 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "383f5b55-a14f-477f-ad02-8deff1eb88b0",
 								"exec": [
-									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.clear(domain, function (error){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -219,7 +198,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dc5934b3-7615-45a4-b8d9-a5d8d5c9f199",
 								"exec": [
 									"if (pm.response.code == 200) {\r",
 									"    var jsonData = pm.response.json();\r",
@@ -274,8 +252,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Texts",
@@ -286,10 +263,9 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "124cf815-580a-4f59-932d-0fae2c574642",
 								"exec": [
 									"pm.test(\"App Api - Texts - Get app NB texts - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.have.status(200);     \r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -329,8 +305,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Instances",
@@ -341,7 +316,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "97c0777d-9ff6-41af-b0a0-b2e6dd86c7aa",
 								"exec": [
 									"pm.test(\"App Api - Instances - Add app instance - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -368,7 +342,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "53b0fe36-408b-4c80-b8aa-957aff01d2f1",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");",
@@ -400,7 +373,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" }\n}",
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2021-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2021-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"test\" }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -431,7 +404,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "483105a6-e728-4052-a6af-e5f36896c1b5",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -453,9 +425,6 @@
 							}
 						}
 					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -469,13 +438,6 @@
 						},
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [],
-							"options": {
-								"formdata": {}
-							}
-						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
 							"protocol": "https",
@@ -494,9 +456,246 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "GET active Instances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/active",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT substatus",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User cannot updated sub status - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"label\": \"abc\",\r\n  \"description\": \"teklls tests\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/substatus",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"substatus"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Simple instantiation with prefill",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if(pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwner.partyId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"        var dataId = jsonData.data[0].id;\r",
+									"        pm.environment.set('dataGuid',dataId);\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"instanceOwner\": {\r\n        \"partyId\": \"{{instanceOwnerId}}\"\r\n    },    \r\n    \"prefill\": {\r\n    \"email\": \"test@test.com\"\r\n  }    \r\n}"
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/create",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"create"
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Data",
@@ -507,7 +706,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cd0a6081-0996-478c-b1ad-62512a5933a7",
 								"exec": [
 									"pm.test(\"App Api - Data - Get Form Data by id - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -536,10 +734,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {}
-							}
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -568,7 +763,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "12854844-38fe-4714-843e-4a55abadc497",
 								"exec": [
 									"pm.test(\"App Api - Data - Edit Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -602,10 +796,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
-							"options": {
-								"raw": {}
-							}
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>"
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -634,7 +825,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "10906233-2caa-4be4-a9d7-2c2884c31c5d",
 								"exec": [
 									"pm.test(\"App Api - Data - Delete Form Data - Status - 400\", function () {\r",
 									"    pm.response.to.have.status(400);\r",
@@ -665,10 +855,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Enkeltpersonforetakregistrering xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <UserFirstName>45678</UserFirstName>\r\n</Enkeltpersonforetakregistrering>",
-							"options": {
-								"raw": {}
-							}
+							"raw": "<?xml version=\"1.0\"?>\r\n<Enkeltpersonforetakregistrering xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <UserFirstName>45678</UserFirstName>\r\n</Enkeltpersonforetakregistrering>"
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -697,7 +884,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b76c5f0e-0c21-4c53-813f-d540d0658ff6",
 								"exec": [
 									"pm.test(\"App Api - Data - Add attachment - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -715,7 +901,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "5dfc416a-462b-4ab7-b10d-11da491a93a8",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -751,10 +936,7 @@
 						"body": {
 							"mode": "file",
 							"file": {
-								"src": "test_file_pdf.pdf"
-							},
-							"options": {
-								"file": {}
+								"src": "/C:/Repos/altinn-studio/src/test/Postman/test_file_pdf.pdf"
 							}
 						},
 						"url": {
@@ -789,7 +971,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2c6f2b2d-e627-48dc-8513-e914252bfac5",
 								"exec": [
 									"pm.test(\"App Api - Data - Get Attachment Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -821,10 +1002,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {}
-							}
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -853,7 +1031,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2dc23eee-6f04-473a-9b7e-49d2be4cb010",
 								"exec": [
 									"pm.test(\"App Api - Data - Edit Attachment Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -894,9 +1071,6 @@
 							"mode": "file",
 							"file": {
 								"src": "test_file_pdf.pdf"
-							},
-							"options": {
-								"file": {}
 							}
 						},
 						"url": {
@@ -920,8 +1094,172 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
+		},
+		{
+			"name": "Datatags",
+			"item": [
+				{
+					"name": "Create data tags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"App Api - Data tags - create - status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\"åøæ\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/tags",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}",
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get data tags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"App Api - Data tags - get - status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/tags",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}",
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete data tags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"App Api - Data tags - delete - status - 204\", function () {\r",
+									"    pm.response.to.have.status(204);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/tags/åøæ",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}",
+								"tags",
+								"åøæ"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Process",
@@ -932,7 +1270,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f1d09c14-d920-484f-b521-07f17692a1eb",
 								"exec": [
 									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -1000,7 +1337,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2c3d72a0-d135-4021-bf34-40d12537d6c5",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1052,7 +1388,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2f535d4c-e4c7-4f27-b690-c5a6a34fe9fb",
 								"exec": [
 									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -1126,7 +1461,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a0774fab-c2b3-4f49-a6d2-08223b724777",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1199,7 +1533,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a5a85e3b-db5a-4fe8-a9e9-9f1abd734f5b",
 								"exec": [
 									"pm.test(\"App Api - Instances - Complete process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1239,7 +1572,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeprocess",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1253,7 +1586,7 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process",
-								"completeProcess"
+								"completeprocess"
 							]
 						}
 					},
@@ -1265,7 +1598,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cc672d38-ea4c-404f-8634-9527c4762370",
 								"exec": [
 									"pm.test(\"App Api - Instances - Complete process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -1332,7 +1664,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "de3c4fac-ea35-40c0-adb8-cb05d192b242",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Process History - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -1376,8 +1707,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Multipart",
@@ -1388,7 +1718,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "aa9567fa-7d99-4a0c-ab09-95c7361e76f3",
 								"exec": [
 									"pm.test(\"App Api - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -1418,7 +1747,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "6472e7c1-2f71-4430-8ee2-91d9369b6fcd",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");"
@@ -1427,6 +1755,9 @@
 							}
 						}
 					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1449,7 +1780,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": null,\r\n        \"personNumber\": \"{{SSN}}\",\r\n        \"organisationNumber\": null\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--",
+							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n        \"personNumber\": \"{{SSN}}\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--\r\n",
 							"options": {
 								"raw": {
 									"language": "text"
@@ -1480,7 +1811,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3d07add0-7408-4d53-b50c-1bd1454841c9",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get multipart app instance by ID - Status - 200\", function() {",
 									"    pm.response.to.have.status(200);",
@@ -1518,10 +1848,7 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": [],
-							"options": {
-								"formdata": {}
-							}
+							"formdata": []
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
@@ -1548,7 +1875,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "10132ca2-a4c5-4da3-98d6-47bdae2b8103",
 								"exec": [
 									"pm.test(\"App Api - Data - GET Form Data created by mulipart - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1577,10 +1903,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {}
-							}
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -1602,9 +1925,101 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Create instance with  multipart attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"App Api - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    if (pm.response.code == 201)\r",
+									"    {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"        {\r",
+									"            var instanceId = jsonData.id;\r",
+									"            instanceId = instanceId.toString();\r",
+									"            instanceId = instanceId.split('/');\r",
+									"            instanceId = instanceId[1];\r",
+									"            pm.environment.set('instanceId',instanceId);\r",
+									"        }\r",
+									"        if (pm.expect(jsonData.data[0].id).not.eql(null))\r",
+									"        {\r",
+									"            var dataId = jsonData.data[0].id;\r",
+									"            pm.environment.set('dataGuid',dataId);\r",
+									"        }\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"instanceId\",\"\");",
+									"pm.environment.set(\"dataGuid\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "multipart/form-data; boundary=\"abcdefg\"",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n        \"personNumber\": \"{{SSN}}\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg\r\nContent-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=\"test.xml\"; name=\"{{attachmentElementType}}\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--\r\n",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								""
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "End2End Test",
@@ -1615,7 +2030,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9326ee61-9dde-4fc9-b074-3000f7a07f3d",
 								"exec": [
 									"if(pm.response.code == 201)\r",
 									"{\r",
@@ -1639,7 +2053,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "0a5bce03-6447-4f7a-986c-23583333fbe5",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");",
@@ -1698,7 +2111,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "690fdee5-9b3c-41c7-8c13-9d5103bdf74a",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1751,7 +2163,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9973d484-6332-4c3b-ab9e-50a70a3c6b90",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1783,10 +2194,7 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": [],
-							"options": {
-								"formdata": {}
-							}
+							"formdata": []
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
@@ -1814,7 +2222,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "97822682-8720-4914-85fa-ea2f4251af92",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -1884,7 +2291,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bfc50707-4dc7-4019-90fc-ed0ff4945914",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -1901,7 +2307,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "7dabb5e9-c7a6-4ff6-a3af-89502034f2f0",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -1937,10 +2342,7 @@
 						"body": {
 							"mode": "file",
 							"file": {
-								"src": "test_file_morethan_1mb.txt"
-							},
-							"options": {
-								"file": {}
+								"src": "/C:/Repos/altinn-studio/src/test/Postman/test_file_morethan_1mb.txt"
 							}
 						},
 						"url": {
@@ -1975,7 +2377,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3aeecc6e-7c06-401d-9e78-0e8924745167",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance Data - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2030,7 +2431,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "2f2597b2-fdad-4abb-8c2b-55948c0185fc",
 								"exec": [
 									""
 								],
@@ -2084,7 +2484,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "681b5234-46ec-4361-b700-0d655c3164a8",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -2101,7 +2500,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "a32c1e38-d2c8-4b7a-8a39-bf109da51ccf",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -2126,21 +2524,24 @@
 								"key": "Content-Disposition",
 								"name": "Content-Type",
 								"type": "text",
-								"value": "attachment; filename=test.pdf"
+								"value": "attachment; filename=\"arq - Copy (20).pdf\""
 							},
 							{
 								"key": "Content-Type",
 								"type": "text",
 								"value": "application/pdf"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml",
+								"type": "text",
+								"disabled": true
 							}
 						],
 						"body": {
 							"mode": "file",
 							"file": {
-								"src": "test_file_pdf.pdf"
-							},
-							"options": {
-								"file": {}
+								"src": "attachment       ۝܏ ﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ Powerلُلُصّبُلُلصّبُررً ॣ.pdf"
 							}
 						},
 						"url": {
@@ -2175,7 +2576,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "283f1640-54c3-4a23-9089-6eec54280282",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance Data - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2207,10 +2607,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {}
-							}
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/validate",
@@ -2240,7 +2637,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "30cb1016-6d66-438e-8d23-4225df08afbf",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2272,10 +2668,7 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": [],
-							"options": {
-								"formdata": {}
-							}
+							"formdata": []
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
@@ -2303,7 +2696,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9040fbff-c4bf-465a-83f5-ec02f30a3604",
 								"exec": [
 									"pm.test(\"App Api - E2E Test - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2319,7 +2711,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "1ad36c89-dc18-4a87-9827-d0a914c41447",
 								"exec": [
 									"pm.environment.set(\"processElementId\",\"\");"
 								],
@@ -2386,7 +2777,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b2a7cff6-164d-4a86-ae23-48bc22c70a12",
 								"exec": [
 									"pm.test(\"App Api - Process - next process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2452,7 +2842,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9f06b63c-4c34-40c8-9132-9b37270098d4",
 								"exec": [
 									""
 								],
@@ -2478,10 +2867,7 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": [],
-							"options": {
-								"formdata": {}
-							}
+							"formdata": []
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
@@ -2501,95 +2887,36 @@
 						}
 					},
 					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "CleanUp",
-			"item": [
+				},
 				{
-					"name": "GET Instances by InstanceOwnerID",
+					"name": "Copy archived instance",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "cae6f057-ed18-4a90-9fda-025156c3d07e",
 								"exec": [
-									"if (pm.response.code == 200)",
-									"{",
-									"    var jsonData = pm.response.json();",
-									"    var instanceCount = jsonData.length;",
-									"    if (instanceCount !== 0)",
-									"    {",
-									"        var instanceId = jsonData[0].id;",
-									"        pm.environment.set('instanceId', instanceId);",
-									"    }",
-									"    else",
-									"    {",
-									"        postman.setNextRequest(\"DELETE App\");",
-									"    }",
+									"if(pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwner.partyId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"        var dataId = jsonData.data[0].id;\r",
+									"        pm.environment.set('dataGuid',dataId);\r",
+									"    }\r",
 									"}"
 								],
 								"type": "text/javascript"
 							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{AltinnStudioRuntime}}",
-									"type": "string"
-								}
-							]
 						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/hal+json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"sbl",
-								"instances",
-								"{{instanceOwnerId}}"
-							],
-							"query": [
-								{
-									"key": "state",
-									"value": "active"
-								},
-								{
-									"key": "language",
-									"value": "nb"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CleanUp App instances",
-					"event": [
 						{
-							"listen": "test",
+							"listen": "prerequest",
 							"script": {
-								"id": "e0d16fa7-6021-4c74-b70a-d10c8f1a5015",
 								"exec": [
 									""
 								],
@@ -2608,7 +2935,7 @@
 								}
 							]
 						},
-						"method": "DELETE",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -2617,25 +2944,148 @@
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"instanceOwner\": {\r\n        \"partyId\": \"{{instanceOwnerId}}\"\r\n    },\r\n    \"sourceInstanceId\": \"{{instanceOwnerId}}/{{instanceId}}\"\r\n}"
+						},
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/create",
 							"protocol": "https",
 							"host": [
-								"platform",
+								"{{org}}",
+								"apps",
 								"{{envUrl}}"
 							],
 							"path": [
-								"storage",
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Redirect",
+			"item": [
+				{
+					"name": "Validate redirect url",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/api/v1/redirect?url=https%3A%2F%2Fttd.apps.{{envUrl}}%2Fttd%2Fapps-test%2F%23%2Finstance%2F50013135%2Fde57cab8-4e46-49b8-8dcf-7c8d86ddeaeb",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
 								"api",
 								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}"
+								"redirect"
 							],
 							"query": [
 								{
-									"key": "hard",
-									"value": "true"
+									"key": "url",
+									"value": "https://altinn3local.no",
+									"disabled": true
+								},
+								{
+									"key": "url",
+									"value": "https://.apps.at21.altinn.cloud",
+									"disabled": true
+								},
+								{
+									"key": "url",
+									"value": "https%3A%2F%2Fttd.apps.{{envUrl}}%2Fttd%2Fapps-test%2F%23%2Finstance%2F50013135%2Fde57cab8-4e46-49b8-8dcf-7c8d86ddeaeb"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stateless",
+			"item": [
+				{
+					"name": "POST create stateless data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "party",
+								"value": "partyid:{{instanceOwnerId}}",
+								"type": "text"
+							},
+							{
+								"key": "party",
+								"value": "person:{{SSN}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "party",
+								"value": "org:{{orgNr}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n      <IdentifikasjonsnummerKrav-datadef-33317>1337</IdentifikasjonsnummerKrav-datadef-33317>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/v1/data?dataType=default",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"v1",
+								"data"
+							],
+							"query": [
+								{
+									"key": "dataType",
+									"value": "default"
 								}
 							]
 						}
@@ -2643,29 +3093,10 @@
 					"response": []
 				},
 				{
-					"name": "Check for more instances",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "538281ee-a99b-48dd-bd79-957289d3dcba",
-								"exec": [
-									"if (pm.response.code == 200)",
-									"    {",
-									"    var jsonData = pm.response.json();",
-									"    var instanceCount = jsonData.length;",
-									"    if (instanceCount !== 0)",
-									"    {",
-									"        var instanceId = jsonData[0].id;",
-									"        pm.environment.set('instanceId', instanceId);",
-									"        postman.setNextRequest(\"CleanUp App instances\");",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
+					"name": "GET stateless data",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -2680,71 +3111,166 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "Accept",
+								"key": "party",
+								"value": "person:{{SSN}}",
 								"type": "text",
-								"value": "application/hal+json"
+								"disabled": true
+							},
+							{
+								"key": "party",
+								"value": "org:{{orgNr}}",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "party",
+								"value": "partyid:{{instanceOwnerId}}",
+								"type": "text",
+								"disabled": true
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n      <IdentifikasjonsnummerKrav-datadef-33317>1337</IdentifikasjonsnummerKrav-datadef-33317>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/v1/data?dataType=default",
 							"protocol": "https",
 							"host": [
-								"platform",
+								"{{org}}",
+								"apps",
 								"{{envUrl}}"
 							],
 							"path": [
-								"storage",
-								"api",
+								"{{org}}",
+								"{{app}}",
 								"v1",
-								"sbl",
-								"instances",
-								"{{instanceOwnerId}}"
+								"data"
 							],
 							"query": [
 								{
-									"key": "state",
-									"value": "active"
-								},
-								{
-									"key": "language",
-									"value": "nb"
+									"key": "dataType",
+									"value": "default"
 								}
 							]
 						}
 					},
 					"response": []
 				}
-			],
-			"event": [
+			]
+		},
+		{
+			"name": "UI",
+			"item": [
 				{
-					"listen": "prerequest",
-					"script": {
-						"id": "7602db7a-9d97-4ebc-ad46-16a284e19a25",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
+					"name": "Authenticate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var current_timestamp = new Date();\r",
+									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const jar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"jar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/hal+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"UserName\": \"{{testUserName}}\",\r\n    \"UserPassword\": \"{{testUserPassword}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{envUrl}}/api/authentication/authenticatewithpassword",
+							"protocol": "https",
+							"host": [
+								"{{envUrl}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"authenticatewithpassword"
+							]
+						}
+					},
+					"response": []
 				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "25d66bf3-8997-4b69-88f5-4dbd76665e82",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
+					"name": "messagebox/search",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "ElementSearch.Title",
+									"value": "test appli",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://{{envUrl}}/ui/messagebox/search",
+							"protocol": "https",
+							"host": [
+								"{{envUrl}}"
+							],
+							"path": [
+								"ui",
+								"messagebox",
+								"search"
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
 	],
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "02bf89d9-c107-4e04-9f21-e19f82ee09df",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -2754,13 +3280,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "7d22006f-9dc7-41e1-9f35-9bd98acc3f1b",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
