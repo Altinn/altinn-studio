@@ -5,13 +5,18 @@ import { Typography } from '@material-ui/core';
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { useAppSelector } from 'common/hooks';
+import { useAppSelector, useAppDispatch } from 'common/hooks';
 import { useGetUserStarredReposQuery } from 'services/userApi';
+import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 
 import { useAugmentReposWithStarred } from './hooks';
 import { getUidFilter, getReposLabel } from './utils';
 
+const rowsPerPageOptions = [5, 10, 20, 50, 100];
+
 export const OrgReposList = () => {
+  const dispatch = useAppDispatch();
+  const pageSize = useAppSelector((state) => state.dashboard.repoRowsPerPage);
   const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
@@ -22,7 +27,7 @@ export const OrgReposList = () => {
   const uid = getUidFilter({ selectedContext, userId });
 
   const [sortModel, setSortModel] = React.useState<GridSortModel>([
-    { field: 'alpha', sort: 'asc' },
+    { field: 'name', sort: 'asc' },
   ]);
 
   const { data: starredRepos, isLoading: isLoadingStarred } =
@@ -33,7 +38,7 @@ export const OrgReposList = () => {
     page: page,
     sortby: sortModel?.[0]?.field,
     order: sortModel?.[0]?.sort,
-    limit: 5,
+    limit: pageSize,
   });
 
   const reposWithStarred = useAugmentReposWithStarred({
@@ -49,6 +54,14 @@ export const OrgReposList = () => {
     setSortModel(newSortModel);
   };
 
+  const handlePageSizeChange = (newPageSize: number) => {
+    dispatch(
+      DashboardActions.repoRowsPerPageChanged({
+        repoRowsPerPage: newPageSize,
+      }),
+    );
+  };
+
   return (
     <div>
       <Typography variant='h2'>
@@ -57,12 +70,14 @@ export const OrgReposList = () => {
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
+        onPageSizeChange={handlePageSizeChange}
         isServerSort={true}
         rowCount={repos?.totalCount}
         onPageChange={handlePageChange}
         onSortModelChange={handleSortModelChange}
         sortModel={sortModel}
-        pageSize={5}
+        rowsPerPageOptions={rowsPerPageOptions}
+        pageSize={pageSize}
       />
     </div>
   );
