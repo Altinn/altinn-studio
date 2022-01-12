@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
 import { useAppSelector } from 'src/common/hooks';
 import { ILanguage } from 'altinn-shared/types';
-import { renderAttachmentsCounter, renderFileName, renderFileUploadContent } from './shared/render';
+import { AttachmentsCounter, FileName, FileUploadContent } from './shared/render';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -230,7 +230,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
                   tabIndex={0}
                 >
                   <td>
-                    {renderFileName(attachment.name)}
+                    {FileName(attachment.name)}
                     {mobileView ? (
                       <div
                         style={{
@@ -432,7 +432,13 @@ export function FileUploadComponent(props: IFileUploadProps) {
                   role='button'
                 >
                   <input {...getInputProps()} id={props.id} />
-                  {renderFileUploadContent(props.id, isMobile, props.language, props.hasCustomFileEndings, props.validFileEndings)}
+                  {FileUploadContent({
+                    id: props.id,
+                    isMobile,
+                    language: props.language,
+                    hasCustomFileEndings: props.hasCustomFileEndings,
+                    validFileEndings: props.validFileEndings
+                  })}
                 </div>
               );
             }}
@@ -441,7 +447,13 @@ export function FileUploadComponent(props: IFileUploadProps) {
       )}
 
       {shouldShowFileUpload() &&
-      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
+        AttachmentsCounter({
+          language: props.language,
+          currentNumberOfAttachments: attachments.length,
+          minNumberOfAttachments: props.minNumberOfAttachments,
+          maxNumberOfAttachments: props.maxNumberOfAttachments
+        })
+      }
 
       {validationMessages.simpleBinding.errors.length > 0 &&
         showFileUpload &&
@@ -453,7 +465,13 @@ export function FileUploadComponent(props: IFileUploadProps) {
       {renderFileList()}
 
       {!shouldShowFileUpload() &&
-      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
+        AttachmentsCounter({
+          language: props.language,
+          currentNumberOfAttachments: attachments.length,
+          minNumberOfAttachments: props.minNumberOfAttachments,
+          maxNumberOfAttachments: props.maxNumberOfAttachments
+        })
+      }
 
       {validationMessages.simpleBinding.errors.length > 0 &&
         !showFileUpload &&

@@ -21,6 +21,7 @@ import { ImageComponent } from './ImageComponent';
 import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelect from './HeaderSizeSelect';
 import { ComponentTypes } from '../index';
+import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
 
 const styles = {
   gridItem: {
@@ -85,16 +86,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent = prevState.component;
       updatedComponent.textResourceBindings.title = e ? e.value : null;
-      return {
-        component: updatedComponent,
-      };
-    }, () => this.props.handleComponentUpdate(this.state.component));
-  }
-
-  public handleTagTitleChange = (e: any): void => {
-    this.setState((prevState: IEditModalContentState) => {
-      const updatedComponent = prevState.component;
-      updatedComponent.textResourceBindings.tagTitle = e ? e.value : null;
       return {
         component: updatedComponent,
       };
@@ -764,133 +755,23 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       }
 
       case ComponentTypes.FileUploadWithTag: {
-        const component = (this.props.component as IFormFileUploaderWithTagComponent);
         return (
           <Grid>
             {this.renderChangeId()}
-            <Grid item={true} xs={12}>
-              {renderSelectTextFromResources('modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.title,
-                this.props.component.textResourceBindings?.title)}
-              {renderSelectTextFromResources('modal_properties_description_helper',
-                this.handleDescriptionChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.description,
-                this.props.component.textResourceBindings?.description)}
-              {renderSelectTextFromResources('modal_properties_tag_helper',
-                this.handleTagTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.state.component.textResourceBindings?.tagTitle,
-                this.props.component.textResourceBindings?.tagTitle)}
-            </Grid>
-            <Grid item={true} xs={12}>
-              <AltinnInputField
-                id='modal-properties-code-list-id'
-                onChangeFunction={this.handleOptionsIdChange}
-                inputValue={component.optionsId}
-                inputDescription={getLanguageFromKey(
-                  'ux_editor.modal_properties_code_list_id', this.props.language,
-                )}
-                inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
+            <FileUploadWithTagComponent
+              component={this.props.component as IFormFileUploaderWithTagComponent}
+              stateComponent={this.state.component}
+              language={this.props.language}
+              textResources={this.props.textResources}
+              handleComponentUpdate={this.props.handleComponentUpdate}
+              handleTitleChange={this.handleTitleChange}
+              handleDescriptionChange={this.handleDescriptionChange}
+              handleOptionsIdChange={this.handleOptionsIdChange}
+              handleNumberOfAttachmentsChange={this.handleNumberOfAttachmentsChange}
+              handleMaxFileSizeInMBChange={this.handleMaxFileSizeInMBChange}
+              handleHasCustomFileEndingsChange={this.handleHasCustomFileEndingsChange}
+              handleValidFileEndingsChange={this.handleValidFileEndingsChange}
               />
-            </Grid>
-            <Typography>
-              <a
-                target='_blank'
-                rel='noopener noreferrer'
-                href='https://docs.altinn.studio/app/development/data/options/'
-              >
-                {getLanguageFromKey(
-                  'ux_editor.modal_properties_code_list_read_more', this.props.language,
-                )}
-              </a>
-            </Typography>
-            <Grid item={true} xs={12}>
-              <AltinnRadioGroup
-                row={true}
-                value={component.hasCustomFileEndings ? 'true' : 'false'}
-                onChange={this.handleHasCustomFileEndingsChange}
-              >
-                <AltinnRadio
-                  label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', this.props.language)}
-                  value='false'
-                />
-                <AltinnRadio
-                  label={getLanguageFromKey(
-                    'ux_editor.modal_properties_valid_file_endings_custom', this.props.language,
-                  )}
-                  value='true'
-                />
-              </AltinnRadioGroup>
-            </Grid>
-
-            {component.hasCustomFileEndings &&
-              <Grid item={true} xs={12}>
-                <AltinnInputField
-                  id='modal-properties-valid-file-endings'
-                  onChangeFunction={this.handleValidFileEndingsChange}
-                  inputValue={component.validFileEndings}
-                  inputDescription={getLanguageFromKey(
-                    'ux_editor.modal_properties_valid_file_endings_helper', this.props.language,
-                  )}
-                  inputFieldStyling={{ width: '100%' }}
-                  inputDescriptionStyling={{ marginTop: '24px' }}
-                />
-              </Grid>
-            }
-            <Grid item={true} xs={12}>
-              <AltinnInputField
-                id='modal-properties-minimum-files'
-                onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
-                inputValue={component.minNumberOfAttachments || 0}
-                inputDescription={getLanguageFromKey('ux_editor.modal_properties_minimum_files', this.props.language)}
-                inputFieldStyling={{ width: '60px' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
-                type='number'
-              />
-            </Grid>
-            <Grid item={true} xs={12}>
-              <AltinnInputField
-                id='modal-properties-maximum-files'
-                onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
-                inputValue={component.maxNumberOfAttachments || 1}
-                inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
-                inputFieldStyling={{ width: '60px' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
-                type='number'
-              />
-            </Grid>
-            <Grid item={true} xs={12}>
-              <AltinnInputField
-                id='modal-properties-file-size'
-                onChangeFunction={this.handleMaxFileSizeInMBChange}
-                inputValue={component.maxFileSizeInMB || 0}
-                inputDescription={getLanguageFromKey(
-                  'ux_editor.modal_properties_maximum_file_size', this.props.language,
-                )}
-                inputFieldStyling={{ width: '60px' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
-                type='number'
-              />
-              <Typography
-                style={{
-                  fontSize: '1.6rem',
-                  display: 'inline-block',
-                  marginTop: '23px',
-                  marginLeft: '6px',
-                }}
-              >
-                {getLanguageFromKey(
-                  'ux_editor.modal_properties_maximum_file_size_helper', this.props.language,
-                )}
-              </Typography>
-            </Grid>
           </Grid>
         );
       }

@@ -19,6 +19,7 @@ import {
   IOptions,
   IValidations,
 } from 'src/types';
+import { AsciiUnitSeparator } from './attachment';
 
 export const isSimpleComponent = (
   dataModelBindings: any,
@@ -290,7 +291,7 @@ export function getFileUploadComponentValidations(
       );
     } else {
       componentValidations.simpleBinding.errors.push( // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
-        attachmentId + String.fromCharCode(31) + getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
+        attachmentId + AsciiUnitSeparator + getLanguageFromKey('form_filler.file_uploader_validation_error_update', language),
       );
     }
   } else if (validationError === 'delete') {
@@ -335,7 +336,7 @@ export const parseFileUploadComponentWithTagValidationObject = (validationArray:
   }
   const obj: Array<{ id: string, message: string }> = [];
   validationArray.forEach((validation) => {
-    const val = validation.toString().split(String.fromCharCode(31));
+    const val = validation.toString().split(AsciiUnitSeparator);
     if (val.length === 2) {
       obj.push({ id: val[0], message: val[1] });
     } else {

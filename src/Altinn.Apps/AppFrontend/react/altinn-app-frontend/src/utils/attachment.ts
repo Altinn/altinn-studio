@@ -49,3 +49,5 @@ export function removeFileEnding(filename: string): string {
   }
   return filename.replace(`.${split[split.length - 1]}`, '');
 }
+
+export const AsciiUnitSeparator = String.fromCharCode(31); // Used to separate units within a string.

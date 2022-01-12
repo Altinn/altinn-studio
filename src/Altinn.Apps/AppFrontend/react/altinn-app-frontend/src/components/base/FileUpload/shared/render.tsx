@@ -2,7 +2,7 @@ import * as React from 'react';
 import { getFileEnding, removeFileEnding } from "src/utils/attachment";
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export const renderFileName = (filename: string): JSX.Element => {
+export const FileName = (filename: string) => {
   return (
     <div
       style={{
@@ -25,7 +25,13 @@ export const renderFileName = (filename: string): JSX.Element => {
   );
 };
 
-export const renderAttachmentsCounter = (language: any, currentNumberOfAttachments: number, minNumberOfAttachments: number, maxNumberOfAttachments: number): JSX.Element => {
+interface IAttachmentsCounterProps {
+  language: any;
+  currentNumberOfAttachments: number;
+  minNumberOfAttachments: number;
+  maxNumberOfAttachments: number;
+}
+export const AttachmentsCounter = ({ language, currentNumberOfAttachments, minNumberOfAttachments, maxNumberOfAttachments } : IAttachmentsCounterProps) => {
   return (
     <div
       className='file-upload-text-bold-small'
@@ -39,7 +45,14 @@ export const renderAttachmentsCounter = (language: any, currentNumberOfAttachmen
   );
 };
 
-export const renderFileUploadContent = (id: string, isMobile: boolean, language: any, hasCustomFileEndings?: boolean, validFileEndings?: string): JSX.Element => {
+interface IFileUploadContentProps {
+  id: string;
+  isMobile: boolean;
+  language: any;
+  hasCustomFileEndings?: boolean;
+  validFileEndings?: string;
+}
+export const FileUploadContent = ({id, isMobile, language, hasCustomFileEndings, validFileEndings}: IFileUploadContentProps ) => {
   return (
     <div className='container'>
       <div className='col text-center icon' style={{ marginTop: '3.5rem' }}>

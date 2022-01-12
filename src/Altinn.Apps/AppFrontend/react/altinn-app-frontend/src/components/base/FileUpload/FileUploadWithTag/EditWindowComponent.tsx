@@ -8,7 +8,7 @@ import { IOption } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import AttachmentDispatcher from 'src/shared/resources/attachments/attachmentActions';
 import { renderValidationMessages } from 'src/utils/render';
-import { renderFileName } from '../shared/render';
+import { FileName } from '../shared/render';
 import classNames from 'classnames';
 
 const useStyles = makeStyles({
@@ -89,7 +89,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           className={classes.textContainer}
           style={{ flexShrink: 1 }}
         >
-          {renderFileName(props.attachment.name)}
+          {FileName(props.attachment.name)}
         </Grid>
         <Grid
           className={classes.textContainer}

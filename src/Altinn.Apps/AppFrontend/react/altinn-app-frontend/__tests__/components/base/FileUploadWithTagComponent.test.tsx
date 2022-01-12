@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-/* eslint-disable indent */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -7,7 +5,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render } from '@testing-library/react';
 import { FileUploadWithTagComponent, IFileUploadWithTagProps } from '../../../src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
-import { getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
+import { AsciiUnitSeparator, getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations, parseFileUploadComponentWithTagValidationObject } from '../../../src/utils/formComponentUtils';
 import { ITextResourceBindings } from '../../../src/features/form/layout';
 
@@ -52,7 +50,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
         validationResults: {
           mockId: {
             simpleBinding: {
-              errors: ['mock error message', 'attachment-id-5' + String.fromCharCode(31) + 'mock error message'],
+              errors: ['mock error message', 'attachment-id-5' + AsciiUnitSeparator + 'mock error message'],
             },
           },
         },
@@ -240,7 +238,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
     expect(validation).toEqual({ simpleBinding: { errors: ['Noe gikk galt under oppdatering av filens merking, prøv igjen senere.'], warnings: [] } });
 
     validation = getFileUploadComponentValidations('update', mockLanguage.language, 'mock-attachment-id');
-    expect(validation).toEqual({ simpleBinding: { errors: ['mock-attachment-id' + String.fromCharCode(31) + 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.'], warnings: [] } });
+    expect(validation).toEqual({ simpleBinding: { errors: ['mock-attachment-id' + AsciiUnitSeparator + 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.'], warnings: [] } });
 
     validation = getFileUploadComponentValidations('delete', mockLanguage.language);
     expect(validation).toEqual({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
@@ -250,7 +248,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
     const mockValidations = [
       'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
       'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-      'mock-attachment-id' + String.fromCharCode(31) + 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
+      'mock-attachment-id' + AsciiUnitSeparator + 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
       'Noe gikk galt under slettingen av filen, prøv igjen senere.',
     ];
     const expectedResult = [

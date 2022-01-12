@@ -46,6 +46,7 @@ import { getFlagBasedDate } from './dateHelpers';
 import JsonPointer from 'jsonpointer';
 import { IAttachment } from 'src/shared/resources/attachments';
 import { ILanguage } from 'altinn-shared/types';
+import { AsciiUnitSeparator } from './attachment';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;
@@ -475,8 +476,8 @@ export function validateFormComponentsForLayout(
           }
           if (missingTagAttachments.length > 0) {
             missingTagAttachments.forEach((missingId) => {
-              componentValidations[fieldKey].errors.push( // Add attachment id to start of message and seperate using ASCII Universal Seperator.
-                `${missingId + String.fromCharCode(31) + getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
+              componentValidations[fieldKey].errors.push(
+                `${missingId + AsciiUnitSeparator + getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
               );
             });
           }

@@ -7,7 +7,7 @@ import { ILanguage } from 'altinn-shared/types';
 import { IOption } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
-import { renderFileName } from '../shared/render';
+import { FileName } from '../shared/render';
 import { EditWindowComponent } from './EditWindowComponent';
 
 const useStyles = makeStyles({
@@ -188,7 +188,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       className={classes.textContainer}
                     >
                       <div style={{ minWidth: '0px' }}>
-                        {renderFileName(props.attachments[index].name)}
+                        {FileName(props.attachments[index].name)}
                         {props.mobileView ?
                           <div style={{ color: AltinnAppTheme.altinnPalette.primary.grey }}>
                             {attachment.uploaded ?

@@ -30,7 +30,6 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         tmpAttachmentId,
       } = action as uploadActions.IUploadAttachmentAction;
       if (!state.attachments[attachmentType]) {
-        // eslint-disable-next-line no-param-reassign
         state = update<IAttachmentState>(state, {
           attachments: {
             [attachmentType]: { $set: [] },
@@ -90,7 +89,6 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         attachmentType,
       } = action as updateActions.IUpdateAttachmentAction;
       if (!state.attachments[attachmentType]) {
-        // eslint-disable-next-line no-param-reassign
         state = update<IAttachmentState>(state, {
           attachments: {
             [attachmentType]: { $set: [] },

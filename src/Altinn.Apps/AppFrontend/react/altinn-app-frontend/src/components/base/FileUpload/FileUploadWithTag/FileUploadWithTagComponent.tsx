@@ -12,7 +12,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
 import { getFileUploadWithTagComponentValidations, isAttachmentError, isNotAttachmentError, parseFileUploadComponentWithTagValidationObject } from 'src/utils/formComponentUtils';
 import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
-import { renderAttachmentsCounter, renderFileUploadContent } from '../shared/render';
+import { AttachmentsCounter, FileUploadContent } from '../shared/render';
 import { FileList } from './FileListComponent';
 
 export interface IFileUploadWithTagProps {
@@ -40,9 +40,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
-  // eslint-disable-next-line max-len
   const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.editIndex ?? -1);
-  // eslint-disable-next-line max-len
   const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.chosenOptions ?? {});
 
   const attachments: IAttachment[] = useSelector(
@@ -61,7 +59,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     }));
   };
 
-  const onClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     event.preventDefault();
   };
 
@@ -99,22 +97,23 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         dataDispatch(FormLayoutActions.updateFileUploaderWithTagChosenOptions({
           uploader: props.id, id, option
         }));
-      } else console.error(`Could not find option for ${value}`);
-    } else console.error('Should not be called');
+      } else {
+        console.error(`Could not find option for ${value}`);
+      }
+    }
   };
 
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
       AttachmentDispatcher.updateAttachment(attachment, props.id, option.value, props.id);
-    } else console.error(`Could not find option for ${optionValue}`);
+    } else {
+      console.error(`Could not find option for ${optionValue}`);
+    }
   };
 
   const shouldShowFileUpload = (): boolean => {
-    if (attachments.length < props.maxNumberOfAttachments) {
-      return true;
-    }
-    return false;
+    return attachments.length < props.maxNumberOfAttachments
   };
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -198,7 +197,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
               return (
                 <div
                   {...getRootProps({
-                    onClick,
+                    onClick: handleClick,
                   })}
                   style={styles}
                   id={`altinn-drop-zone-${props.id}`}
@@ -211,7 +210,13 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
                     {...getInputProps()}
                     id={props.id}
                   />
-                  {renderFileUploadContent(props.id, isMobile, props.language, props.hasCustomFileEndings, props.validFileEndings)}
+                  {FileUploadContent({
+                    id: props.id,
+                    isMobile,
+                    language: props.language,
+                    hasCustomFileEndings: props.hasCustomFileEndings,
+                    validFileEndings: props.validFileEndings
+                  })}
                 </div>
               );
             }}
@@ -220,7 +225,13 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       }
 
       {shouldShowFileUpload() &&
-      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
+        AttachmentsCounter({
+          language: props.language,
+          currentNumberOfAttachments: attachments.length,
+          minNumberOfAttachments: props.minNumberOfAttachments,
+          maxNumberOfAttachments: props.maxNumberOfAttachments
+        })
+      }
 
       {(hasValidationMessages && shouldShowFileUpload()) &&
         renderValidationMessagesForComponent(validationMessages, props.id)
@@ -245,7 +256,13 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       />
 
       {!shouldShowFileUpload() &&
-      renderAttachmentsCounter(props.language, attachments.length, props.minNumberOfAttachments, props.maxNumberOfAttachments)}
+        AttachmentsCounter({
+          language: props.language,
+          currentNumberOfAttachments: attachments.length,
+          minNumberOfAttachments: props.minNumberOfAttachments,
+          maxNumberOfAttachments: props.maxNumberOfAttachments
+        })
+      }
 
       {(hasValidationMessages && !shouldShowFileUpload()) &&
         renderValidationMessagesForComponent(validationMessages, props.id)

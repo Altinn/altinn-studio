@@ -1,4 +1,4 @@
-import { ILayoutSettings, INavigationConfig, ILayoutSets, IOption } from 'src/types';
+import { ILayoutSettings, INavigationConfig, ILayoutSets, IOption, IFileUploadersWithTag } from 'src/types';
 import { ILayouts } from '.';
 
 export interface IFormLayoutActionRejected {
@@ -77,7 +77,7 @@ export interface IUpdateRepeatingGroupsEditIndexFulfilled {
 }
 
 export interface IUpdateFileUploadersWithTagFulfilled {
-  uploaders: any;
+  uploaders: IFileUploadersWithTag;
 }
 
 export interface IUpdateFileUploaderWithTagEditIndex {
