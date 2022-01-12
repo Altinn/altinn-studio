@@ -338,7 +338,3 @@ export enum DateFlags {
 export interface IMapping {
   [source: string]: string;
 }
-
-export interface IApplicationSettings {
-  appOidcProvider: string;
-}

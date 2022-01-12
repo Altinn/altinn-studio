@@ -231,6 +231,11 @@ export interface IAttachmentGrouping {
 export interface IDataSource{
   [key: string]: any;
 }
+
 export interface IDataSources {
-     [key: string]: IDataSource;
+  [key: string]: IDataSource;
+}
+
+export interface IApplicationSettings {
+  [source: string]: string;
 }

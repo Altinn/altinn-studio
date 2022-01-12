@@ -1,29 +1,36 @@
 import 'jest';
-import { ITextResource, IDataSources, IDataSource } from '../../src/types';
+import { ITextResource, IDataSources, IDataSource, IApplicationSettings } from '../../src/types';
 import { getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
   let mockTextResources: ITextResource[];
   let mockDataSources: IDataSources;
   let mockDataSource: IDataSource;
+  let mockApplicationSettings: IApplicationSettings;
   let adjectiveValue: string;
   let colorValue: string;
   let animal0Value: string;
   let animal1Value: string;
+  let homeBaseUrl: string;
 
   beforeEach(() => {
     adjectiveValue = 'awesome';
     colorValue = 'yellow';
     animal0Value = 'dog';
     animal1Value = 'cat';
+    homeBaseUrl = 'https://www.testdirektoratet.no';
     mockDataSource = {
       'model.text.adjective': adjectiveValue,
       'model.text.color': colorValue,
       'model.group[0].animal': animal0Value,
       'model.group[1].animal': animal1Value,
     };
+    mockApplicationSettings = {
+      'homeBaseUrl': homeBaseUrl,
+    };
     mockDataSources = {
       dataModel: mockDataSource,
+      applicationSettings: mockApplicationSettings
     };
     mockTextResources = [];
   });
@@ -142,6 +149,44 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
     expect(textResource.value).toEqual(`This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`);
+  });
+
+  it('+++ should replace text based on appsettings', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a [link]({0}).',
+        unparsedValue: 'This is a [link]({0}).',
+        variables: [
+          { key: 'homeBaseUrl', dataSource: 'applicationSettings' },
+        ],
+      },
+    ];
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
+  });
+
+  it('+++ should replace text in a reapeating group based on appsettings', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a [link]({0}).',
+        unparsedValue: 'This is a [link]({0}).',
+        variables: [
+          { key: 'homeBaseUrl', dataSource: 'applicationSettings' },
+        ],
+      },
+    ];
+    const mockRepeatingGroups = {
+      group1: {
+        count: 1,
+        dataModelBinding: 'model.group',
+      },
+    };
+    replaceTextResourceParams(mockTextResources, mockDataSources, mockRepeatingGroups);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
   });
 
   describe('getParsedLanguageFromText', () => {
