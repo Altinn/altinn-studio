@@ -167,6 +167,22 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
   });
 
+  it('+++ should replace text with key when appsettings value is missing', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a [link]({0}).',
+        unparsedValue: 'This is a [link]({0}).',
+        variables: [
+          { key: 'doesnotexists', dataSource: 'applicationSettings' },
+        ],
+      },
+    ];
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual(`This is a [link](doesnotexists).`);
+  });
+
   it('+++ should replace text in a reapeating group based on appsettings', () => {
     mockTextResources = [
       {
