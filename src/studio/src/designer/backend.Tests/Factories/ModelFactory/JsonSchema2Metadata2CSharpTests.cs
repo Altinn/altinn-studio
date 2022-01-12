@@ -171,20 +171,31 @@ namespace Designer.Tests.Factories.ModelFactory
         public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
-
             var org = "yabbin";
             var app = "hvem-er-hvem";
 
-            ModelMetadata modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
+            var instanceOldWay = CreateCSharpInstanceOldWay(xsdResource, org, app, modelName);
+            var instanceNewWay = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+            
+            instanceNewWay.Should().BeEquivalentTo(instanceOldWay);
+        }
+
+        private static object CreateCSharpInstanceOldWay(string xsdResource, string org, string app, string modelName)
+        {
             ModelMetadata modelMetadataOld = CreateMetamodelOldWay(xsdResource, org, app);
-
-            string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
             string classesOldWay = GenerateCSharpClasses(modelMetadataOld);
-
-            var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
             var instanceOldWay = CreateCSharpInstance(modelName, classesOldWay);
 
-            instanceNewWay.Should().BeEquivalentTo(instanceOldWay);
+            return instanceOldWay;
+        }
+
+        private static object CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
+        {
+            ModelMetadata modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
+            string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
+            var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
+
+            return instanceNewWay;
         }
 
         private static object CreateCSharpInstance(string modelName, string classes)
@@ -196,7 +207,28 @@ namespace Designer.Tests.Factories.ModelFactory
             return modelInstance;
         }
 
-        private ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
+        /// <summary>
+        /// Parses the XSD, generates Json Schema and generates the meta model using
+        /// the old classes.
+        /// </summary>
+        private static ModelMetadata CreateMetamodelOldWay(string xsdResource, string org, string app)
+        {
+            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
+            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
+            JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
+
+            return modelMetadata;
+        }
+
+        /// <summary>
+        /// Parses the XSD, generates Json Schema and generates the meta model using
+        /// the new classes.
+        /// </summary>
+        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
         {
             Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
             XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
@@ -213,23 +245,6 @@ namespace Designer.Tests.Factories.ModelFactory
 
             ModelMetadata actualMetamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
             return actualMetamodel;
-        }
-
-        /// <summary>
-        /// Parses the XSD, generates Json Schema and generates the meta model using
-        /// the new classes.
-        /// </summary>        
-        private static ModelMetadata CreateMetamodelOldWay(string xsdResource, string org, string app)
-        {
-            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
-            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
-            JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-            ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
-
-            return modelMetadata;
         }
 
         private static async Task<JsonSchema> ParseJsonSchema(string jsonSchemaString)
