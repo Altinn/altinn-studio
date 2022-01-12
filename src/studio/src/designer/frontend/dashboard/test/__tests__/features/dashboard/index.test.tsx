@@ -22,6 +22,7 @@ const render = () => {
       dashboard: {
         services: [],
         selectedContext: SelectedContextType.Self,
+        repoRowsPerPage: 5,
         user: {
           id: 1,
           avatar_url: 'avatar_url',
