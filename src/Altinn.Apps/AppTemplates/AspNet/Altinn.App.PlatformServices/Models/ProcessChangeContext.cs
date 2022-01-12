@@ -12,6 +12,15 @@ namespace Altinn.App.Core.Models
     public class ProcessChangeContext
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="ProcessChangeContext"/> class.
+        /// </summary>
+        public ProcessChangeContext(Instance instance, ClaimsPrincipal user)
+        {
+            Instance = instance;
+            User = user;
+        }
+
+        /// <summary>
         /// The current instance
         /// </summary>
         public Instance Instance { get; set; }

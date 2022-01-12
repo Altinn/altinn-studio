@@ -274,13 +274,11 @@ namespace Altinn.App.Api.Controllers
 
             Instance instance;
             ProcessStateChange processResult;
-            ProcessChangeContext processChangeContext = new ProcessChangeContext();
+            instanceTemplate.Process = null;
+            ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
             try
             {
                 // start process and goto next task
-                instanceTemplate.Process = null;
-                processChangeContext.Instance = instanceTemplate;
-                processChangeContext.User = User;
                 processChangeContext.DontUpdateProcessAndDispatchEvents = true;
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);
                 processResult = processChangeContext.ProcessStateChange;
@@ -431,9 +429,7 @@ namespace Altinn.App.Api.Controllers
                 // start process and goto next task
                 instanceTemplate.Process = null;
 
-                ProcessChangeContext processChangeContext = new ProcessChangeContext();
-                processChangeContext.Instance = instanceTemplate;
-                processChangeContext.User = User;
+                ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
                 processChangeContext.Prefill = instansiationInstance.Prefill;
                 processChangeContext.DontUpdateProcessAndDispatchEvents = true;
                 processChangeContext = await _processEngine.StartProcess(processChangeContext);

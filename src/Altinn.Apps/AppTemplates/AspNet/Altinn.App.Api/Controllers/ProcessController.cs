@@ -139,10 +139,8 @@ namespace Altinn.App.Api.Controllers
             {
                 instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
-                ProcessChangeContext changeContext = new ProcessChangeContext();
+                ProcessChangeContext changeContext = new ProcessChangeContext(instance, User);
                 changeContext.RequestedProcessElementId = startEvent;
-                changeContext.Instance = instance;
-                changeContext.User = User;
                 changeContext = await _processEngine.StartProcess(changeContext);
                 if (changeContext.FailedProcessChange)
                 {
@@ -316,10 +314,8 @@ namespace Altinn.App.Api.Controllers
                     return Forbid();
                 }
 
-                ProcessChangeContext changeContext = new ProcessChangeContext();
+                ProcessChangeContext changeContext = new ProcessChangeContext(instance, User);
                 changeContext.RequestedProcessElementId = elementId;
-                changeContext.Instance = instance;
-                changeContext.User = User;
                 changeContext = await _processEngine.Next(changeContext);
                 if (changeContext.FailedProcessChange)
                 {
@@ -415,9 +411,7 @@ namespace Altinn.App.Api.Controllers
 
                 try
                 {
-                    ProcessChangeContext processChange = new ProcessChangeContext();
-                    processChange.Instance = instance;
-                    processChange.User = User;
+                    ProcessChangeContext processChange = new ProcessChangeContext(instance, User);
                     processChange.RequestedProcessElementId = nextElement;
                     processChange = await _processEngine.Next(processChange);
 
