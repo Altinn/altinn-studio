@@ -123,8 +123,8 @@ export interface FileListProps {
   options: IOption[];
   getTextResource: (key: string) => string;
   getTextResourceAsString: (key: string) => string;
-  onClickEdit: (index: any) => void;
-  onClickSave: (attachment: IAttachment) => void;
+  onEdit: (index: any) => void;
+  onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
   setEditIndex: (index: number) => void;
   attachmentValidations: {
@@ -254,7 +254,7 @@ export function FileList(props: FileListProps): JSX.Element {
                     >
                       <IconButton
                         style={{ color: 'black' }}
-                        onClick={() => props.onClickEdit(index)}
+                        onClick={() => props.onEdit(index)}
                         tabIndex={0}
                         className={classes.editTextContainer}
                       >
@@ -283,7 +283,7 @@ export function FileList(props: FileListProps): JSX.Element {
                         options={props.options}
                         getTextResource={props.getTextResource}
                         getTextResourceAsString={props.getTextResourceAsString}
-                        onClickSave={props.onClickSave}
+                        onSave={props.onSave}
                         onDropdownDataChange={props.onDropdownDataChange}
                         setEditIndex={props.setEditIndex}
                         textResourceBindings={props.textResourceBindings} />

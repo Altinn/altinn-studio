@@ -63,7 +63,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     event.preventDefault();
   };
 
-  const onClickEdit = (index) => {
+  const handleEdit = (index) => {
     if (editIndex === -1 || editIndex !== index) {
       setEditIndex(index);
     } else {
@@ -71,7 +71,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     }
   };
 
-  const onClickSave = (attachment: IAttachment) => {
+  const handleSave = (attachment: IAttachment) => {
     if (chosenOptions[attachment.id] !== undefined && chosenOptions[attachment.id].length !== 0) {
       setEditIndex(-1);
       if (attachment.tags === undefined || chosenOptions[attachment.id] !== attachment.tags[0]) {
@@ -90,7 +90,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     }
   };
 
-  const onDropdownDataChange = (id: string, value: string) => {
+  const handleDropdownDataChange = (id: string, value: string) => {
     if (value !== undefined) {
       const option = options?.find((o) => o.value === value);
       if (option !== undefined) {
@@ -116,7 +116,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
     return attachments.length < props.maxNumberOfAttachments
   };
 
-  const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = props.id;
     const tmpValidations: string[] = [];
@@ -181,7 +181,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
             }
           </div>
           <DropZone
-            onDrop={onDrop}
+            onDrop={handleDrop}
             maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
             disabled={props.readOnly}
             accept={(props.hasCustomFileEndings) ? props.validFileEndings : null}
@@ -248,9 +248,9 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         options={options}
         getTextResource={props.getTextResource}
         getTextResourceAsString={props.getTextResourceAsString}
-        onClickEdit={onClickEdit}
-        onClickSave={onClickSave}
-        onDropdownDataChange={onDropdownDataChange}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
         textResourceBindings={props.textResourceBindings}
       />

@@ -51,7 +51,7 @@ export interface EditWindowProps{
   options: IOption[];
   getTextResource: (key: string) => string;
   getTextResourceAsString: (key: string) => string;
-  onClickSave: (attachment: IAttachment) => void;
+  onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
   setEditIndex: (index: number) => void;
   textResourceBindings: any;
@@ -177,7 +177,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
               >
                 <AltinnButton
                   btnText={getLanguageFromKey('general.save', props.language)}
-                  onClickFunction={() => props.onClickSave(props.attachment)}
+                  onClickFunction={() => props.onSave(props.attachment)}
                   id={`attachment-save-tag-button-${props.attachment.id}`}
                   disabled={tagSaveIsDisabled(props.attachment) ? true : props.readOnly}
                 />
