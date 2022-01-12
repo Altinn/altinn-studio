@@ -1,5 +1,5 @@
 import * as React from 'react';
-import DropZone, { FileRejection } from 'react-dropzone';
+import { FileRejection } from 'react-dropzone';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnLoader } from 'altinn-shared/components';
@@ -11,10 +11,10 @@ import '../../../styles/FileUploadComponent.css';
 import { IComponentValidations } from '../../../types';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
-import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
 import { useAppSelector } from 'src/common/hooks';
 import { ILanguage } from 'altinn-shared/types';
-import { AttachmentsCounter, FileName, FileUploadContent } from './shared/render';
+import { AttachmentsCounter, FileName } from './shared/render';
+import { DropzoneComponent } from './shared/DropzoneComponent';
 
 export interface IFileUploadProps {
   displayMode: string;
@@ -86,7 +86,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return validationMessages;
   };
 
-  const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
     const tmpValidations: string[] = [];
@@ -379,7 +379,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return null;
   };
 
-  const onClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const handleClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
     event.preventDefault();
   };
 
@@ -393,57 +393,16 @@ export function FileUploadComponent(props: IFileUploadProps) {
       style={{ padding: '0px' }}
     >
       {shouldShowFileUpload() && (
-        <div>
-          <div className='file-upload-text-bold-small' id='max-size'>
-            {`${getLanguageFromKey(
-              'form_filler.file_uploader_max_size',
-              props.language,
-            )} ${props.maxFileSizeInMB} ${getLanguageFromKey(
-              'form_filler.file_uploader_mb',
-              props.language,
-            )}`}
-          </div>
-          <DropZone
-            onDrop={onDrop}
-            maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
-            disabled={props.readOnly}
-            accept={props.hasCustomFileEndings ? props.validFileEndings : null}
-          >
-            {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
-              let styles = { ...baseStyle };
-              styles = isDragActive ? { ...styles, ...activeStyle } : styles;
-              styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
-              styles = hasValidationMessages
-                ? { ...styles, ...validationErrorStyle }
-                : styles;
-
-              return (
-                <div
-                  {...getRootProps({
-                    onClick,
-                  })}
-                  style={styles}
-                  id={`altinn-drop-zone-${props.id}`}
-                  className={`file-upload${
-                    hasValidationMessages ? ' file-upload-invalid' : ''
-                  }`}
-                  aria-describedby={`description-${props.id} file-upload-description file-format-description max-size number-of-attachments`}
-                  aria-labelledby={`label-${props.id}`}
-                  role='button'
-                >
-                  <input {...getInputProps()} id={props.id} />
-                  {FileUploadContent({
-                    id: props.id,
-                    isMobile,
-                    language: props.language,
-                    hasCustomFileEndings: props.hasCustomFileEndings,
-                    validFileEndings: props.validFileEndings
-                  })}
-                </div>
-              );
-            }}
-          </DropZone>
-        </div>
+        <DropzoneComponent
+          id={props.id}
+          isMobile={isMobile}
+          language={props.language}
+          maxFileSizeInMB={props.maxFileSizeInMB}
+          readOnly={props.readOnly}
+          onClick={handleClick}
+          onDrop={handleDrop}
+          hasValidationMessages={hasValidationMessages}
+      />
       )}
 
       {shouldShowFileUpload() &&

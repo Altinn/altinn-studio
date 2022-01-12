@@ -1,5 +1,5 @@
 import * as React from 'react';
-import DropZone, { FileRejection } from 'react-dropzone';
+import { FileRejection } from 'react-dropzone';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -11,9 +11,9 @@ import { renderValidationMessagesForComponent } from '../../../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
 import { getFileUploadWithTagComponentValidations, isAttachmentError, isNotAttachmentError, parseFileUploadComponentWithTagValidationObject } from 'src/utils/formComponentUtils';
-import { baseStyle, activeStyle, rejectStyle, validationErrorStyle } from 'src/styles/Dropzone';
-import { AttachmentsCounter, FileUploadContent } from '../shared/render';
+import { AttachmentsCounter } from '../shared/render';
 import { FileList } from './FileListComponent';
+import { DropzoneComponent } from '../shared/DropzoneComponent';
 
 export interface IFileUploadWithTagProps {
   hasCustomFileEndings?: boolean;
@@ -170,58 +170,16 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       style={{ padding: '0px' }}
     >
       {shouldShowFileUpload() &&
-        <div>
-          <div
-            className='file-upload-text-bold-small'
-            id='max-size'
-          >
-            {
-              `${getLanguageFromKey('form_filler.file_uploader_max_size', props.language)
-              } ${props.maxFileSizeInMB} ${getLanguageFromKey('form_filler.file_uploader_mb', props.language)}`
-            }
-          </div>
-          <DropZone
-            onDrop={handleDrop}
-            maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
-            disabled={props.readOnly}
-            accept={(props.hasCustomFileEndings) ? props.validFileEndings : null}
-          >
-            {({
-              getRootProps, getInputProps, isDragActive, isDragReject,
-            }) => {
-              let styles = { ...baseStyle };
-              styles = isDragActive ? { ...styles, ...activeStyle } : styles;
-              styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
-              styles = (hasValidationMessages) ? { ...styles, ...validationErrorStyle } : styles;
-
-              return (
-                <div
-                  {...getRootProps({
-                    onClick: handleClick,
-                  })}
-                  style={styles}
-                  id={`altinn-drop-zone-${props.id}`}
-                  className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
-                  aria-describedby={`description-${props.id} file-upload-description file-format-description max-size number-of-attachments`}
-                  aria-labelledby={`label-${props.id}`}
-                  role='button'
-                >
-                  <input
-                    {...getInputProps()}
-                    id={props.id}
-                  />
-                  {FileUploadContent({
-                    id: props.id,
-                    isMobile,
-                    language: props.language,
-                    hasCustomFileEndings: props.hasCustomFileEndings,
-                    validFileEndings: props.validFileEndings
-                  })}
-                </div>
-              );
-            }}
-          </DropZone>
-        </div>
+        <DropzoneComponent
+          id={props.id}
+          isMobile={isMobile}
+          language={props.language}
+          maxFileSizeInMB={props.maxFileSizeInMB}
+          readOnly={props.readOnly}
+          onClick={handleClick}
+          onDrop={handleDrop}
+          hasValidationMessages={hasValidationMessages}
+        />
       }
 
       {shouldShowFileUpload() &&
