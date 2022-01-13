@@ -167,35 +167,49 @@ namespace Designer.Tests.Factories.ModelFactory
         }
 
         [Theory]
-        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M")]
-        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName)
+        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"Ronny\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
+        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName, string jsonModel, string xmlModel)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
             var org = "yabbin";
             var app = "hvem-er-hvem";
 
-            var instanceOldWay = CreateCSharpInstanceOldWay(xsdResource, org, app, modelName);
-            var instanceNewWay = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
-            
-            instanceNewWay.Should().BeEquivalentTo(instanceOldWay);
+            Assembly assemblyOld = CreateCSharpInstanceOldWay(xsdResource, org, app, modelName);
+            Assembly assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+
+            Type oldType = assemblyOld.GetType(modelName);
+            Type newType = assemblyNew.GetType(modelName);
+
+            object oldJsonObject = JsonSerializer.Deserialize(jsonModel, oldType);
+            object newJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
+
+            object oldXmlObject = SerializationHelper.Deserialize(xmlModel, oldType);
+            object newXmlObject = SerializationHelper.Deserialize(xmlModel, newType);
+
+            // They should all be the same, at least for the cases provided so far.
+            newJsonObject.Should().BeEquivalentTo(oldJsonObject);
+            newXmlObject.Should().BeEquivalentTo(oldXmlObject);
+            newJsonObject.Should().BeEquivalentTo(newXmlObject);
         }
 
-        private static object CreateCSharpInstanceOldWay(string xsdResource, string org, string app, string modelName)
+        private static Assembly CreateCSharpInstanceOldWay(string xsdResource, string org, string app, string modelName)
         {
             ModelMetadata modelMetadataOld = CreateMetamodelOldWay(xsdResource, org, app);
             string classesOldWay = GenerateCSharpClasses(modelMetadataOld);
             var instanceOldWay = CreateCSharpInstance(modelName, classesOldWay);
+            Assembly assembly = Compiler.CompileToAssembly(classesOldWay);
 
-            return instanceOldWay;
+            return assembly;
         }
 
-        private static object CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
+        private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
         {
             ModelMetadata modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
             string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
             var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
+            Assembly assembly = Compiler.CompileToAssembly(classesNewWay);
 
-            return instanceNewWay;
+            return assembly;
         }
 
         private static object CreateCSharpInstance(string modelName, string classes)
