@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { renderWithProviders, setupServer, handlers } from 'test/testUtils';
@@ -13,7 +17,9 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-const render = () => {
+const render = (
+  selectedContext: SelectedContextType | number = SelectedContextType.Self,
+) => {
   renderWithProviders(<Dashboard />, {
     preloadedState: {
       language: {
@@ -21,10 +27,10 @@ const render = () => {
       },
       dashboard: {
         services: [],
-        selectedContext: SelectedContextType.Self,
+        selectedContext,
         repoRowsPerPage: 5,
         user: {
-          id: 1,
+          id: 2,
           avatar_url: 'avatar_url',
           email: 'email',
           full_name: 'user_full_name',
@@ -36,6 +42,22 @@ const render = () => {
 };
 
 describe('Dashboard > index', () => {
+  it('displays FavoriteReposList and OrgReposList when selected context is an organization', async () => {
+    const organizationId = 1;
+    render(organizationId);
+
+    await waitFor(() => {
+      expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
+    expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
+    expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('dashboard.search_result'),
+    ).not.toBeInTheDocument();
+  });
+
   it('displays FavoriteReposList and OrgReposList, and not search results list by default', () => {
     render();
 
