@@ -740,6 +740,8 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // the exchange in OidcProviderMock simple
             List<Claim> issClaims = new List<Claim>();
             issClaims.Add(new Claim("sub", "XAWED"));
+            issClaims.Add(new Claim("urn:feide:role", "role1"));
+            issClaims.Add(new Claim("urn:feide:role", "role2"));
 
             string authorizationCode = CreateOidcCode(null, null, nonceParam, issClaims);
             string redirectFromOidcProviderUri = GetAuthenticationUrlWithToken(redirectUriParam, stateParam, authorizationCode, null);
@@ -761,6 +763,8 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.NotNull(claimPrincipal);
             Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")));
             Assert.Equal("234234",  claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")).Value);
+            Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:feide:role")));
+            Assert.Equal(2, claimPrincipal.Claims.Where(r => r.Type.Equals("urn:feide:role")).Count());
         }
 
         /// <summary>
@@ -1519,7 +1523,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.NotNull(responseTypeParam);
             Assert.NotNull(clientIdParam);
             Assert.Equal(HttpUtility.UrlDecode(expectedRedirectUri), redirectUriParam);
-            Assert.Equal("openid", scopeParam);
+            Assert.Contains("openid", scopeParam);
             Assert.Equal("code", responseTypeParam);
             Assert.Equal(expectedClientId, clientIdParam); // Correct ID from the OIDC configuration for the given provider
         }
