@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessToken" Version="1.1.0-alpha" />
+    <PackageReference Include="Altinn.Common.AccessToken" Version="1.1.0" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
     <PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.2.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
