@@ -95,13 +95,22 @@ export default function () {
   addErrorCount(success);
   stopIterationOnFail('Unable to get next element id', success, res);
 
-  //Test to call get instance details and verify the presence of archived date
-  res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
-  success = check(res, {
-    'E2E App Instance is archived': (r) => r.body.length > 0 && JSON.parse(r.body).status.archived != null,
-  });
-  addErrorCount(success);
-  stopIterationOnFail('E2E App Instance is not archived', success, res);
+    //Test to complete process of an app instance again and verify response code to be 200
+    res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+    success = check(res, {
+      'E2E App GET Next process element id': (r) => r.status === 200,
+    });
+    addErrorCount(success);
+    stopIterationOnFail('Unable to get next element id', success, res);
+
+    //Test to call get instance details and verify the presence of archived date
+    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
+    success = check(res, {
+      'E2E App Instance is archived': (r) => r.body.length > 0 && JSON.parse(r.body).status.archived != null,
+    });
+    addErrorCount(success);
+    stopIterationOnFail('E2E App Instance is not archived', success, res);
+
 
   //hard delete or soft delete an instance if delete flag is set
   if (toDelete == 'true') deleteSblInstance(runtimeToken, partyId, instanceId, hardDelete);
