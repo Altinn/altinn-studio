@@ -36,7 +36,7 @@
     "requirejs": "^2.3.6",
     "requirejs-text": "^2.0.16",
     "rivets": "^0.9.6",
-    "select2": "^4.1.0-rc.0",
+    "select2": "^4.0.13",
     "sightglass": "^0.2.6",
     "underscore": "^1.13.2"
   },
