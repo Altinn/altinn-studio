@@ -89,7 +89,7 @@ export default function () {
   res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
 
 
-    //Test to get next process of an app instance again and verify response code  to be 200
+    //Test to complete process of an app instance again and verify response code to be 200
     res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
       'E2E App GET Next process element id': (r) => r.status === 200,
