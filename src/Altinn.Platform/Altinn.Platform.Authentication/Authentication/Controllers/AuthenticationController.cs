@@ -121,6 +121,10 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
+        [Produces("text/plain")]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status503ServiceUnavailable)]
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
@@ -231,6 +235,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
+        [Produces("text/plain")]
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJwtCookie()
         {
@@ -252,6 +257,11 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The result of the action. Contains the new token if the old token was valid and could be exchanged.</returns>
         [AllowAnonymous]
+        [Produces("text/plain")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status424FailedDependency)]
         [HttpGet("exchange/{tokenProvider}")]
         public async Task<ActionResult> ExchangeExternalSystemToken(string tokenProvider, [FromQuery] bool test)
         {
