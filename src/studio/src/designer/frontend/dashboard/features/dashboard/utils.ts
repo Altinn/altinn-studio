@@ -46,9 +46,12 @@ export const getReposLabel = ({
     return getLanguageFromKey('dashboard.my_apps', language);
   }
 
-  return `${
-    orgs.find((org) => org.id === selectedContext).full_name
-  } ${getLanguageFromKey('dashboard.apps', language)}`;
+  const orgName =
+    orgs.length > 0
+      ? `${orgs.find((org) => org.id === selectedContext).full_name} `
+      : '';
+
+  return `${orgName}${getLanguageFromKey('dashboard.apps', language)}`;
 };
 
 export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
