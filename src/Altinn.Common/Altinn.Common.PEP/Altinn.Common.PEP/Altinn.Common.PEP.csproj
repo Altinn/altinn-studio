@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.4-alpha" />
+    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.5" />
     <!-- More about this dependency in issue #5706 -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.22" />
   </ItemGroup>
