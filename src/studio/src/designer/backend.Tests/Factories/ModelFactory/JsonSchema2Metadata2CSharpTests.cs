@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -129,6 +130,8 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Designer.Tests._TestData.Model.JsonSchema.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.schema.json", "Designer.Tests._TestData.Model.CSharp.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.csharp.txt")]
         public void SeresOrXmlSchema_ShouldSerializeToCSharp(string xsdResource, string modelName, string expectedJsonSchemaResource, string expectedCSharpResource)
         {
+            SchemaKeywordCatalog.Add<InfoKeyword>();
+
             var org = "yabbin";
             var app = "hvem-er-hvem";
 
@@ -138,10 +141,8 @@ namespace Designer.Tests.Factories.ModelFactory
             // Compare generated JSON Schema
             XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
             JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
             var expectedJsonSchema = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema(expectedJsonSchemaResource);
-
-            expectedJsonSchema.Should().Equals(jsonSchema);
+            jsonSchema.Should().BeEquivalentTo(expectedJsonSchema);
 
             // Compare generated C# classes
             ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
