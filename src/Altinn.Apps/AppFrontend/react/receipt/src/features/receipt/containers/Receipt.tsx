@@ -163,7 +163,7 @@ function Receipt(props: WithStyles<typeof styles>) {
 
     const fetchInitialData = async () => {
       try {
-        const [app, org, user] = await Promise.all([
+        const [appResponse, orgResponse, userResponse] = await Promise.all([
           Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
             cancelToken: appCancelToken.token,
           }),
@@ -175,11 +175,10 @@ function Receipt(props: WithStyles<typeof styles>) {
           }),
         ]);
 
-        setParty(app.data.party);
-        setInstance(app.data.instance);
-        setOrganisations(org.data);
-        setUser(user.data);
-
+        setParty(appResponse.data.party);
+        setInstance(appResponse.data.instance);
+        setOrganisations(orgResponse.data);
+        setUser(userResponse.data);
       } catch (error) {
         console.error(error);
       }
