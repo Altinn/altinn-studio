@@ -22,9 +22,9 @@ import * as platformInstances from '../../../api/platform/storage/instances.js';
 import { deleteSblInstance } from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 
-const appOwner = "ttd";
-const level2App = "eformidling-app";
-const environment = "tt02";
+const appOwner = 'ttd';
+const level2App = 'eformidling-app';
+const environment = 'tt02';
 const fileName = 'users_' + environment + '.json';
 const toDelete = __ENV.delete ? __ENV.delete.toLowerCase() : 'true';
 const hardDelete = __ENV.harddelete ? __ENV.harddelete.toLowerCase() : 'true';
@@ -47,7 +47,7 @@ export const options = {
 export default function () {
   var userNumber = (__VU - 1) % usersCount;
   var instanceId, dataId, res, success;
-  const attachmentDataType ="9dd34a1e-e9f5-4f64-ab47-3a1a4a362e92";
+  const attachmentDataType = '9dd34a1e-e9f5-4f64-ab47-3a1a4a362e92';
 
   try {
     var userSSN = users[userNumber].username;
@@ -84,27 +84,24 @@ export default function () {
   addErrorCount(success);
   stopIterationOnFail('E2E PUT Edit Data by Id', success, res);
 
-
   //upload a valid attachment to an instance with App API
   res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
 
+  //Test to complete process of an app instance again and verify response code to be 200
+  res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+  success = check(res, {
+    'E2E App GET Next process element id': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  stopIterationOnFail('Unable to get next element id', success, res);
 
-    //Test to get next process of an app instance again and verify response code  to be 200
-    res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-    success = check(res, {
-      'E2E App GET Next process element id': (r) => r.status === 200,
-    });
-    addErrorCount(success);
-    stopIterationOnFail('Unable to get next element id', success, res);
-
-    //Test to call get instance details and verify the presence of archived date
-    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
-    success = check(res, {
-      'E2E App Instance is archived': (r) => r.body.length > 0 && JSON.parse(r.body).status.archived != null,
-    });
-    addErrorCount(success);
-    stopIterationOnFail('E2E App Instance is not archived', success, res);
-
+  //Test to call get instance details and verify the presence of archived date
+  res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
+  success = check(res, {
+    'E2E App Instance is archived': (r) => r.body.length > 0 && JSON.parse(r.body).status.archived != null,
+  });
+  addErrorCount(success);
+  stopIterationOnFail('E2E App Instance is not archived', success, res);
 
   //hard delete or soft delete an instance if delete flag is set
   if (toDelete == 'true') deleteSblInstance(runtimeToken, partyId, instanceId, hardDelete);
