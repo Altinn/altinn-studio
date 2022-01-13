@@ -30,7 +30,9 @@ steps:
 
 - bash: |
    yarn --immutable
-
+   
+   yarn run cy:prunecache
+   
    yarn run cy:cachelist
 
    yarn run cy:version
