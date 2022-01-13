@@ -115,6 +115,7 @@ const Confirm = (props: IConfirmProps) => {
       routeParams.partyId,
       routeParams.instanceGuid,
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -129,6 +130,7 @@ const Confirm = (props: IConfirmProps) => {
       });
       setInstanceMetaObject(obj);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parties, instance, lastChangedDateTime, applicationMetadata]);
 
   React.useEffect(() => {

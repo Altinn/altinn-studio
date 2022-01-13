@@ -49,29 +49,27 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SendMessage(string id, Dictionary<string, string> requestHeaders)
+        public async Task SendMessage(string id, Dictionary<string, string> requestHeaders)
         {
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
+            string responseBody = null;
             try
             {
                 HttpResponseMessage res = await _client.PostAsync($"messages/out/{id}", null, requestHeaders);
-
-                if (!res.IsSuccessStatusCode)
-                {
-                    string contentString = await res.Content.ReadAsStringAsync();
-                    _logger.LogError($"// EformidlingClient // SendMessage // {contentString}");
-                    return false;
-                }
-
-                return true;
+                responseBody = await res.Content.ReadAsStringAsync();
+                res.EnsureSuccessStatusCode();
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException)
             {
-                _logger.LogError("Message :{Exception} ", e.Message);
+                throw new WebException($"The remote server returned an unexpcted error: {responseBody}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Message :{Exception} ", ex);
                 throw;
             }
         }

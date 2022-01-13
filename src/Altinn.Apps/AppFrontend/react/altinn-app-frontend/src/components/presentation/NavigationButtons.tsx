@@ -47,6 +47,7 @@ export function NavigationButtons(props: INavigationButtons) {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
     setDisableBack(!!returnToView || (!previous && currentViewIndex === 0));
     setDisableNext(!returnToView && !next && currentViewIndex === orderedLayoutKeys.length - 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, orderedLayoutKeys]);
 
   const onClickPrevious = () => {

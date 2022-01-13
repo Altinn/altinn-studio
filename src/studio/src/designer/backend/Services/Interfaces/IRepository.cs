@@ -139,8 +139,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="modelMetadata">The serviceMetadata.</param>
         /// <param name="modelName">The name of the data model.</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
+        void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
 
         /// <summary>
         /// Returns a list of all organisations present in the local repository
@@ -174,14 +173,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repositoryName">the name of the local repository to reset</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
         bool ResetLocalRepository(string org, string repositoryName);
-
-        /// <summary>
-        ///  Deletes an app folder from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>True if success, false otherwise</returns>
-        bool DeleteService(string org, string app);
 
         /// <summary>
         /// Returns the app texts
@@ -446,8 +437,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
-        /// <returns></returns>
-        bool AddMetadataForAttachment(string org, string app, string applicationMetadata);
+        void AddMetadataForAttachment(string org, string app, string applicationMetadata);
 
         /// <summary>
         /// update  metadata for attachment
@@ -455,8 +445,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
-        /// <returns></returns>
-        bool UpdateMetadataForAttachment(string org, string app, string applicationMetadata);
+        void UpdateMetadataForAttachment(string org, string app, string applicationMetadata);
 
         /// <summary>
         /// Delete metadata for attachment component
@@ -498,8 +487,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata to be updated</param>
-        /// <returns>true if the metadata is updated successfully</returns>
-        bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata);
+        void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata);
 
         /// <summary>
         /// Updates app title in application metadata
@@ -508,8 +496,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="languageId"> the language id</param>
         /// <param name="title"> new application title </param>
-        /// <returns>True if the title in application metadata is updated successfully</returns>
-        bool UpdateAppTitle(string org, string app, string languageId, string title);
+        void UpdateAppTitle(string org, string app, string languageId, string title);
 
         /// <summary>
         /// Gets the prefill json file

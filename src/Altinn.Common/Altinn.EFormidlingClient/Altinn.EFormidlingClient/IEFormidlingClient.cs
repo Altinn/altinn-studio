@@ -110,7 +110,6 @@ namespace Altinn.Common.EFormidlingClient
         /// </summary>
         /// <param name="id"> Message Id</param>
         /// <param name="requestHeaders">A dictionary of request headers to include in the request to the integration point.</param>
-        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        Task<bool> SendMessage(string id, Dictionary<string, string> requestHeaders);
+        Task SendMessage(string id, Dictionary<string, string> requestHeaders);
     }
 }
