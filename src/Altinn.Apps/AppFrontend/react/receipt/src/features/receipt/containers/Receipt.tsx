@@ -126,6 +126,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             user.profileSettingPreference.language,
           ),
         );
+
         setTextResources(response.data.resources);
       } catch (error) {
         console.error(error);
@@ -135,12 +136,12 @@ function Receipt(props: WithStyles<typeof styles>) {
 
     if (instance && application) {
       const appLogicDataTypes = application.dataTypes.filter(
-        (dataType) => !!dataType.appLogic,
+        (dataType: any) => !!dataType.appLogic,
       );
 
       const attachmentsResult = mapInstanceAttachments(
         instance.data,
-        appLogicDataTypes.map((type) => type.id),
+        appLogicDataTypes.map((type: any) => type.id),
         true,
       );
       setAttachments(attachmentsResult);
@@ -156,39 +157,41 @@ function Receipt(props: WithStyles<typeof styles>) {
   }, [instance, application, user, textResources]);
 
   React.useEffect(() => {
-    const fetchInstanceAndParty = async () => {
+    const appCancelToken = Axios.CancelToken.source();
+    const orgCancelToken = Axios.CancelToken.source();
+    const userCancelToken = Axios.CancelToken.source();
+
+    const fetchInitialData = async () => {
       try {
-        const response = await Axios.get<IExtendedInstance>(
-          getExtendedInstanceUrl(),
-        );
-        setParty(response.data.party);
-        setInstance(response.data.instance);
+        const [app, org, user] = await Promise.all([
+          Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
+            cancelToken: appCancelToken.token,
+          }),
+          Axios.get(altinnOrganisationsUrl, {
+            cancelToken: orgCancelToken.token,
+          }),
+          Axios.get<IProfile>(getUserUrl(), {
+            cancelToken: userCancelToken.token,
+          }),
+        ]);
+
+        setParty(app.data.party);
+        setInstance(app.data.instance);
+        setOrganisations(org.data);
+        setUser(user.data);
+
       } catch (error) {
         console.error(error);
       }
     };
 
-    const fetchOrganisations = async () => {
-      try {
-        const response = await Axios.get(altinnOrganisationsUrl);
-        setOrganisations(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    fetchInitialData();
 
-    const fetchUser = async () => {
-      try {
-        const response = await Axios.get<IProfile>(getUserUrl());
-        setUser(response.data);
-      } catch (error) {
-        console.error(error);
-      }
+    return () => {
+      appCancelToken.cancel();
+      orgCancelToken.cancel();
+      userCancelToken.cancel();
     };
-
-    fetchInstanceAndParty();
-    fetchOrganisations();
-    fetchUser();
   }, []);
 
   React.useEffect(() => {
@@ -216,7 +219,7 @@ function Receipt(props: WithStyles<typeof styles>) {
     <Grid
       container={true}
       direction='column'
-      justify='center'
+      justifyContent='center'
       alignItems='center'
     >
       <AltinnAppHeader
@@ -245,7 +248,7 @@ function Receipt(props: WithStyles<typeof styles>) {
         </Grid>
       )}
       <AltinnModal
-        classes={props.classes}
+        classes={{ body: props.classes.body }}
         isOpen={true}
         onClose={handleModalClose}
         hideBackdrop={true}

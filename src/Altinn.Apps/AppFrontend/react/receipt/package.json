@@ -13,9 +13,6 @@
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
-  "resolutions": {
-    "@types/react": "16.9.32"
-  },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
     "@material-ui/core": "^4.12.3",
@@ -28,6 +25,8 @@
     "@babel/core": "^7.16.7",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-react": "^7.16.7",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
     "@types/jest": "^27.4.0",
     "@types/react": "17.0.34",
     "@types/react-dom": "^17.0.11",
@@ -40,6 +39,7 @@
     "html-webpack-plugin": "^4.5.2",
     "jest": "^27.4.7",
     "mini-css-extract-plugin": "^1.6.2",
+    "msw": "^0.36.4",
     "rimraf": "^3.0.2",
     "terser-webpack-plugin": "^4.2.3",
     "ts-jest": "^27.1.2",
@@ -65,7 +65,7 @@
       "js"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.js"
+      "<rootDir>/setupTests.ts"
     ],
     "testURL": "http://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
     "testEnvironment": "jsdom"
