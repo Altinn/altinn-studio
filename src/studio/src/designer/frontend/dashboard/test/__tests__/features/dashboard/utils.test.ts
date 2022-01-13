@@ -83,6 +83,16 @@ describe('Dashboard utils', () => {
 
       expect(result).toEqual('org-id apps');
     });
+
+    it('should return "apps" when selectedContext is org.id, and orgs array is empty', () => {
+      const result = getReposLabel({
+        selectedContext: 1,
+        language,
+        orgs: [],
+      });
+
+      expect(result).toEqual('apps');
+    });
   });
 
   describe('mergeRepos', () => {
