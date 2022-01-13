@@ -357,7 +357,7 @@ __metadata:
     gulp: ^4.0.2
     gulp-run-command: ^0.0.10
     jquery: ^3.6.0
-    jquery-ui-dist: ^1.12.1
+    jquery-ui-dist: ^1.13.0
     jquery-validation: ^1.19.3
     jquery-validation-unobtrusive: ^3.2.12
     js-beautify: ^1.14.0
@@ -367,7 +367,7 @@ __metadata:
     requirejs: ^2.3.6
     requirejs-text: ^2.0.16
     rivets: ^0.9.6
-    select2: ^4.0.13
+    select2: ^4.1.0-rc.0
     sightglass: ^0.2.6
     underscore: ^1.13.2
     webpack: ^4.46.0
@@ -3117,10 +3117,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-ui-dist@npm:^1.12.1":
-  version: 1.12.1
-  resolution: "jquery-ui-dist@npm:1.12.1"
-  checksum: c75e2dd497eec6f796febada43aad18e5af35938f5802a1a9efc5818c0c194e2a13880914f331545fab272e543141c13090447d25e1d4ca7b883d7473bf30460
+"jquery-ui-dist@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "jquery-ui-dist@npm:1.13.0"
+  dependencies:
+    jquery: ">=1.8.0 <4.0.0"
+  checksum: 236358f8064b324b2793940d01a0dced5c77314f75d24cbcb604953cb070159b7b1ae7fe05a87d70f00736045b1f54539a562035c066a34c38651e13077bd737
   languageName: node
   linkType: hard
 
@@ -3143,7 +3145,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:*, jquery@npm:^3.5.1, jquery@npm:^3.6.0":
+"jquery@npm:*, jquery@npm:>=1.8.0 <4.0.0, jquery@npm:^3.5.1, jquery@npm:^3.6.0":
   version: 3.6.0
   resolution: "jquery@npm:3.6.0"
   checksum: 8fd5fef4aa48fd374ec716dd1c1df1af407814a228e15c1260ca140de3a697c2a77c30c54ff1d238b6a3ab4ddc445ddeef9adce6c6d28e4869d85eb9d3951c0e
@@ -4820,10 +4822,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"select2@npm:^4.0.13":
-  version: 4.0.13
-  resolution: "select2@npm:4.0.13"
-  checksum: f0e657861e0d135437d763dcfc0e1581ea55d08f4057212b1baf9da2d59406849cb54d6dca9853b5551abe2b5aa06ba2b1712dcadd1f5a42eca053658d13358e
+"select2@npm:^4.1.0-rc.0":
+  version: 4.1.0-rc.0
+  resolution: "select2@npm:4.1.0-rc.0"
+  checksum: c27cefc3967d2082b2887869e8379f6e8e0ec2e02a268b7abbaec87fbda20abe4d62ac008b87a14f17bfa46dd27aa0b33ee793ed30142e3bc30ba408e208ad20
   languageName: node
   linkType: hard
 
