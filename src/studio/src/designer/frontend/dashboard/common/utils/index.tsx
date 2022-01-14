@@ -22,9 +22,5 @@ export const userHasAccessToSelectedContext = ({
     return true;
   }
 
-  const selectedContextIsInOrgsList = Boolean(
-    orgs.find((org) => org.id === selectedContext),
-  );
-
-  return selectedContextIsInOrgsList;
+  return Boolean(orgs.find((org) => org.id === selectedContext));
 };
