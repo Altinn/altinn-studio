@@ -127,7 +127,7 @@ namespace Altinn.App.Common.Process
 
             foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == currentStepId))
             {
-                if (AddExlusiveGateways(ignoreGatewayDefaults, elementIds, sequenceFlow))
+                if (AddExclusiveGateways(ignoreGatewayDefaults, elementIds, sequenceFlow))
                 {
                     continue;
                 }
@@ -148,22 +148,6 @@ namespace Altinn.App.Common.Process
             }
 
             return elementIds;
-        }
-
-        private bool AddExlusiveGateways(bool ignoreGatewayDefaults, List<string> elementIds, SequenceFlow sequenceFlow)
-        {
-            ExclusiveGateway exclusiveGateway = definitions.Process.ExclusiveGateway.Find(g => g.Id == sequenceFlow.TargetRef);
-            if (exclusiveGateway != null)
-            {
-                List<string> gateWayElements = GetElementsFromGateway(exclusiveGateway.Id, exclusiveGateway.Default, ignoreGatewayDefaults);
-                if (gateWayElements != null)
-                {
-                    elementIds.AddRange(gateWayElements);
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
