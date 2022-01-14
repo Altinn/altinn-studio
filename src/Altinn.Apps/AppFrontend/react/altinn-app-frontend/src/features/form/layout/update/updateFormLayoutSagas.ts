@@ -5,10 +5,10 @@ import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/
 import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
-import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
-import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
+import { get, post } from 'altinn-shared/utils';
+import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
-import { createValidator, validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup } from 'src/utils/validation';
+import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
 import { updateValidations } from 'src/features/form/validation/validationSlice';
@@ -139,8 +139,7 @@ export function* updateCurrentViewSaga({ payload: {
         state.applicationMetadata.applicationMetadata.dataTypes,
       );
       const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
-      const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
-      const validator = createValidator(schema);
+      const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
       const model = convertDataBindingToModel(state.formData.formData);
       const validationResult = validateFormData(
         model, state.formLayout.layouts, layoutOrder,
@@ -349,7 +348,6 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
-    // eslint-disable-next-line no-restricted-syntax
     for (const group of groupsToRemoveValidations) {
       for (let i = 0; i <= currentGroups[group].count; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
@@ -359,7 +357,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   }
   // preserve current edit index if still valid
   currentGroupKeys.filter((key) => !groupsToRemoveValidations.includes(key)).forEach((key) => {
-    if (newGroups[key].count >= currentGroups[key].editIndex) {
+    if (newGroups[key]?.count >= currentGroups[key].editIndex) {
       newGroups[key].editIndex = currentGroups[key].editIndex;
     }
   });
@@ -369,5 +367,11 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
 export function* watchInitRepeatingGroupsSaga(): SagaIterator {
   yield take(FormLayoutActions.fetchLayoutFulfilled);
   yield call(initRepeatingGroupsSaga);
-  yield takeLatest([FormDataActions.fetchFormDataFulfilled, FormLayoutActions.initRepeatingGroups], initRepeatingGroupsSaga);
+  yield takeLatest([
+    FormDataActions.fetchFormDataFulfilled,
+    FormLayoutActions.initRepeatingGroups,
+    FormLayoutActions.fetchLayoutFulfilled
+    ],
+    initRepeatingGroupsSaga
+  );
 }

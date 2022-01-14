@@ -1,10 +1,17 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
+using Altinn.Studio.Designer.Configuration;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Designer.Tests.Utils
 {
@@ -32,14 +39,16 @@ namespace Designer.Tests.Utils
         public static Stream LoadDataFromEmbeddedResource(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            Stream resource = assembly.GetManifestResourceStream(resourceName);
+            Stream resourceStream = assembly.GetManifestResourceStream(resourceName);
 
-            if (resource == null)
+            if (resourceStream == null)
             {
                 throw new InvalidOperationException("Unable to find test data embedded in the test assembly.");
             }
 
-            return resource;
+            resourceStream.Seek(0, SeekOrigin.Begin);
+
+            return resourceStream;
         }
 
         public static Stream LoadTestDataFromFile(string resourceName)
@@ -48,6 +57,41 @@ namespace Designer.Tests.Utils
             string unitTestFolder = Path.GetDirectoryName(new Uri(assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
             Stream resource = File.OpenRead(unitTestFolder + resourceName);
+
+            if (resource == null)
+            {
+                throw new InvalidOperationException("Unable to find test data.");
+            }
+
+            return resource;
+        }
+
+        public static string LoadTestDataFromFileAsString(string resourceName)
+        {
+            var resourceStream = LoadTestDataFromFile(resourceName);
+
+            using StreamReader reader = new StreamReader(resourceStream);
+            string text = reader.ReadToEnd();
+
+            return text;
+        }
+
+        public static XmlSchema LoadXmlSchemaTestData(string resourceName)
+        {
+            using XmlReader xmlReader = XmlReader.Create(LoadTestData(resourceName));
+            var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
+
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(xmlSchema);
+            schemaSet.Compile();
+
+            return xmlSchema;
+        }
+
+        public static Stream LoadTestData(string resourceName)
+        {
+            string unitTestFolder = GetTestDataDirectory();
+            Stream resource = File.OpenRead(Path.Combine(unitTestFolder, resourceName));
 
             if (resource == null)
             {
@@ -71,11 +115,23 @@ namespace Designer.Tests.Utils
 
         public static string GetTestDataRepositoryDirectory(string org, string repository, string developer)
         {
-            var unitTestFolder = GetTestDataDirectory();
-            return Path.Combine(unitTestFolder, $"Repositories\\{developer}\\{org}\\{repository}");
+            var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
+            return Path.Combine(repositoriesRootDirectory, $"{developer}\\{org}\\{repository}");
         }
 
-        public async static Task<string> CopyAppRepositoryForTest(string org, string repository, string developer, string targetRepsository)
+        public static string GetTestDataRemoteRepositoryRootDirectory()
+        {
+            var unitTestFolder = GetTestDataDirectory();
+            return Path.Combine(unitTestFolder, $"Remote");
+        }
+
+        public static string GetTestDataRemoteRepository(string org, string repository)
+        {
+            var remoteRepositoryRootDirectory = GetTestDataRemoteRepositoryRootDirectory();
+            return Path.Combine(remoteRepositoryRootDirectory, $"{org}\\{repository}");
+        }
+
+        public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
@@ -105,7 +161,7 @@ namespace Designer.Tests.Utils
             FileInfo[] files = directoryToDeleteInfo.GetFiles();
             foreach (FileInfo file in files)
             {
-                File.Delete(file.FullName);
+                DeleteFileWithRetry(file.FullName);
             }
 
             if (deleteSubDirs)
@@ -117,6 +173,46 @@ namespace Designer.Tests.Utils
             }
 
             Directory.Delete(directoryToDeleteInfo.FullName);
+        }
+
+        private static void DeleteFileWithRetry(string filePath, int retries = 3, int waitTimeMs = 100)
+        {
+            int attempt = 1;
+            while (attempt <= retries)
+            {
+                try
+                {
+                    File.Delete(filePath);
+                }
+                catch (IOException)
+                {
+                    if (attempt == retries)
+                    {
+                        throw;
+                    }
+
+                    Thread.Sleep(waitTimeMs);
+                }
+
+                attempt++;
+            }
+        }
+
+        public static string CreateEmptyDirectory(string path)
+        {
+            string fullPath = $"{GetTestDataRepositoriesRootDirectory()}/{path}";
+            Directory.CreateDirectory(fullPath);
+
+            return fullPath;
+        }
+
+        public static string CreateEmptyRepositoryForTest(string org, string repository, string developer)
+        {
+            var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = Path.Combine(repositoriesRootDirectory, $"{developer}\\{org}\\{repository}");
+            Directory.CreateDirectory(repositoryDirectory);
+
+            return repositoryDirectory;
         }
 
         public async static Task CopyDirectory(string sourceDirectory, string targetDirectory, bool copySubDirs = true)
@@ -136,20 +232,96 @@ namespace Designer.Tests.Utils
             foreach (FileInfo file in files)
             {
                 string tempPath = Path.Combine(targetDirectory, file.Name);
-                
-                var sourceBytes = ReadAllBytesWithoutLocking(file.FullName);
+
+                var sourceBytes = ReadAllBytesWithoutLockingWithRetry(file.FullName);
                 await File.WriteAllBytesAsync(tempPath, sourceBytes);
+                File.SetAttributes(tempPath, FileAttributes.Normal);
             }
 
             if (copySubDirs)
             {
                 foreach (DirectoryInfo subdir in sourceSubDirectories)
                 {
-                    string tempPath = Path.Combine(targetDirectory, subdir.Name);                    
+                    string tempPath = Path.Combine(targetDirectory, subdir.Name);
                     await CopyDirectory(subdir.FullName, tempPath, copySubDirs);
                 }
             }
         }
+
+        public static void CleanUpRemoteRepository(string org, string repository)
+        {
+            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), $"{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_branch") || subDir.Equals(Path.Combine(dir, repository)))
+                {
+                    DeleteDirectory(subDir, true);
+                }
+            }
+        }
+
+        public static async Task CleanUpReplacedRepositories(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_REPLACED_BY_NEW_CLONE_"))
+                {
+                    // move data and delete copied folder
+                    string originalPath = GetTestDataRepositoryDirectory(org, repository, developer);
+                    await CopyDirectory(subDir, originalPath, true);
+                    Directory.Delete(subDir, true);
+                }
+            }            
+        }
+
+        public static void CleanUpLocalBranches(string org, string repository, string developer)
+        {
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+
+            foreach (string subDir in Directory.GetDirectories(dir))
+            {
+                if (subDir.Contains($"{repository}_complete_copy_of_app"))
+                {
+                    Directory.Delete(subDir, true);
+                }
+            }
+        }
+
+        public static string GetFileFromRepo(string org, string repository, string developer, string relativePath)
+        {
+            string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
+            if (File.Exists(filePath))
+            {
+                return File.ReadAllText(filePath);
+            }
+
+            return string.Empty;
+        }
+
+        public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
+
+        public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
+        {
+            builder.ClearProviders();
+            builder
+                .AddSimpleConsole(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.TimestampFormat = "hh:mm:ss ";
+                });
+        });
+
+        public static IOptions<ServiceRepositorySettings> GetServiceRepositorySettings()
+        {
+            IOptions<ServiceRepositorySettings> options = Options.Create(new ServiceRepositorySettings());
+            options.Value.RepositoryBaseURL = @"http://altinn3.no/repos";
+            return options;
+        }
+
+        public static IOptions<ServiceRepositorySettings> ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking
@@ -164,6 +336,35 @@ namespace Designer.Tests.Utils
                     return ms.ToArray();
                 }
             }
+        }
+
+        /// <summary>
+        /// Same method as <see cref="ReadAllBytesWithoutLocking(string, FileAccess, FileShare)"/> but with retries in case some other process has a lock on the file.
+        /// </summary>
+        private static byte[] ReadAllBytesWithoutLockingWithRetry(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite, int retries = 3, int waitTimeMs = 100)
+        {
+            byte[] bytes = Array.Empty<byte>();
+            int attempt = 1;
+            while (attempt <= retries)
+            {
+                try
+                {
+                    bytes = ReadAllBytesWithoutLocking(filePath, fileAccess, shareMode);
+                }
+                catch (IOException)
+                {
+                    if (attempt == retries)
+                    {
+                        throw;
+                    }
+
+                    Thread.Sleep(waitTimeMs);
+                }
+
+                attempt++;
+            }
+
+            return bytes;
         }
     }
 }

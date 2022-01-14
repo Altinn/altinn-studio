@@ -24,12 +24,12 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(7);
 
@@ -62,12 +62,12 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(6);
 
@@ -94,13 +94,13 @@ namespace Designer.Tests.Services
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
-            await TestDataHelper.CopyAppRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
                 // Act
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 
@@ -134,6 +134,133 @@ namespace Designer.Tests.Services
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        [Fact]
+        public async Task CreateSchemaFromXsd_AppRepo_ShouldCreateModels()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+                xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                await schemaModelService.CreateSchemaFromXsd(org, targetRepository, developer, relativeFilePath, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.metadata.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task CreateSchemaFromXsdWithTexts_AppRepo_ShouldCreateTextResourceFiles()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());                
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
+                xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var schemaName = "Skjema-1603-12392";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                await schemaModelService.CreateSchemaFromXsd(org, targetRepository, developer, relativeFilePath, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.metadata.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
+
+                var textResource = await altinnAppGitRepository.GetTextResources("nb");
+                textResource.Language.Should().Be("nb");
+                textResource.Resources.Should().HaveCount(9);
+                textResource.Resources.First(r => r.Id == "27688.KontaktpersonEPostdatadef27688.Label").Value.Should().Be("E-post");
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task CreateSchemaFromXsd_DatamodelsRepo_ShouldStoreModel()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-datamodels";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+                xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                await schemaModelService.CreateSchemaFromXsd(org, targetRepository, developer, relativeFilePath, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Theory]
+        [InlineData("ttd", "apprepo", "test", "", "http://altinn3.no/repos")]
+        [InlineData("ttd", "apprepo", "test", "/path/to/folder/", "http://altinn3.no/repos")]
+        public void GetSchemaUri_ValidNameProvided_ShouldReturnUri(string org, string repository, string schemaName, string relativePath, string repositoryBaseUrl)
+        {
+            var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            var schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+
+            var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName, relativePath);
+
+            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}{(string.IsNullOrEmpty(relativePath) ? "/" : relativePath)}{schemaName}.schema.json");            
         }
     }
 }

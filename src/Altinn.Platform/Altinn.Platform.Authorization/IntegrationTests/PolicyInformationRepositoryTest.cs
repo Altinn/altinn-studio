@@ -21,10 +21,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 {
     public class PolicyInformationRepositoryTest : IClassFixture<PolicyInformationPointFixture>, IDisposable
     {
-        Mock<IOptions<AzureCosmosSettings>> _dbConfigMock;
+        private Mock<IOptions<AzureCosmosSettings>> _dbConfigMock;
         private readonly PolicyInformationPointFixture _fixture;
         private static DocumentClient _client;
-        private readonly PolicyInformationRepository _pir;
+        private readonly InstanceMetadataRepository _pir;
         private const string INSTANCE_ID = "50013976/f3fc6233-1631-429d-8405-e1678f88dbd7";
         private const int INSTANCE_OWNER_ID = 50013976;
         private const string ORG = "tdd";
@@ -62,7 +62,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 connectionPolicy);
             _client.OpenAsync();
 
-            _pir = new PolicyInformationRepository(_dbConfigMock.Object, new Mock<ILogger<PolicyInformationRepository>>().Object);
+            _pir = new InstanceMetadataRepository(_dbConfigMock.Object, new Mock<ILogger<InstanceMetadataRepository>>().Object);
         }
 
         /// <summary>

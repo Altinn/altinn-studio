@@ -1,15 +1,41 @@
 import * as React from 'react';
-import SchemaEditor from '@altinn/schema-editor/SchemaEditorApp';
 import { IRouteProps } from 'config/routes';
 import { DataModelling } from 'app-shared/features';
+import { makeStyles, createStyles } from '@material-ui/core';
+import { useSelector } from 'react-redux';
 
 interface IDataModellingContainerProps extends IRouteProps {
   language: any;
 }
 
-export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
+const useStyles = makeStyles(
+  createStyles({
+    root: {
+      marginLeft: 80,
+      width: 'calc(100% - 80px)',
+      display: 'inline-flex',
+    },
+  }),
+);
+
+const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
+  const classes = useStyles();
+  const { org, repo } = useSelector((state: any) => {
+    return {
+      org: state.applicationMetadataState.applicationMetadata.org,
+      repo: state.serviceInformation.serviceNameObj.name,
+    };
+  });
+
   return (
-    // Importing the ShcemaEditor inside the app-development project so the alias in webpack works.
-    <DataModelling language={props.language} SchemaEditor={SchemaEditor} />
+    <div className={classes.root}>
+      <DataModelling
+        language={language}
+        org={org}
+        repo={repo}
+      />
+    </div>
   );
-}
+};
+
+export default DataModellingContainer;

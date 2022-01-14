@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using LibGit2Sharp;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,9 +23,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
-        private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
-        private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
         private readonly ILogger _logger;
@@ -45,9 +45,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IGitea gitea,
             ILogger<SourceControlSI> logger)
         {
-            _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
-            _generalSettings = generalSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _logger = logger;
@@ -65,6 +63,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CloneOptions cloneOptions = new CloneOptions();
             cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
             return LibGit2Sharp.Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
+        }
+
+        /// <inheritdoc />
+        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        {
+            string remoteRepo = FindRemoteRepoLocation(org, repository);
+            CloneOptions cloneOptions = new CloneOptions();
+            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+            if (!string.IsNullOrEmpty(branchName))
+            {
+                cloneOptions.BranchName = branchName;
+            }
+
+            return LibGit2Sharp.Repository.Clone(remoteRepo, destinationPath, cloneOptions);
         }
 
         /// <inheritdoc />
@@ -175,6 +188,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
+        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        {
+            CommitAndPushToBranch(org, repository, branchName, localPath, message);
+        }
+
         /// <summary>
         /// Add all changes in app repo and push to remote
         /// </summary>
@@ -182,36 +201,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
-            {
-                // Restrict users from empty commit
-                if (repo.RetrieveStatus().IsDirty)
-                {
-                    string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                    Remote remote = repo.Network.Remotes["origin"];
-
-                    if (!remote.PushUrl.Equals(remoteUrl))
-                    {
-                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                        // Requires adminstrator access to update files.
-                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                    }
-
-                    Commands.Stage(repo, "*");
-
-                    // Create the committer's signature and commit
-                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                    LibGit2Sharp.Signature committer = author;
-
-                    // Commit to the repository
-                    repo.Commit(commitInfo.Message, author, committer);
-
-                    PushOptions options = new PushOptions();
-                    options.CredentialsProvider = (_url, _user, _cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-                    repo.Network.Push(remote, @"refs/heads/master", options);
-                }
-            }
+            CommitAndPushToBranch(commitInfo.Org, commitInfo.Repository, "master", localServiceRepoFolder, commitInfo.Message);
         }
 
         /// <summary>
@@ -273,12 +263,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 Commands.Stage(repo, "*");
 
-                // Create the committer's signature and commit
-                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                LibGit2Sharp.Signature committer = author;
-
-                // Commit to the repository
-                repo.Commit(commitInfo.Message, author, committer);
+                LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                repo.Commit(commitInfo.Message, signature, signature);
             }
         }
 
@@ -398,39 +384,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <inheritdoc />
         public Designer.Models.Commit GetInitialCommit(string org, string repository)
-        {            
+        {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             Designer.Models.Commit commit = null;
 
-            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+            using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
+            if (repo.Commits.Any() && repo.Commits.Last() != null)
             {
-                if (repo.Commits.Last() != null)
-                {
-                    LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
-                    commit = new Designer.Models.Commit();
-                    commit.Message = firstCommit.Message;
-                    commit.MessageShort = firstCommit.MessageShort;
-                    commit.Encoding = firstCommit.Encoding;
-                    commit.Sha = firstCommit.Sha;
+                LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
+                commit = new Designer.Models.Commit();
+                commit.Message = firstCommit.Message;
+                commit.MessageShort = firstCommit.MessageShort;
+                commit.Encoding = firstCommit.Encoding;
+                commit.Sha = firstCommit.Sha;
 
-                    commit.Author = new Designer.Models.Signature();
-                    commit.Author.Email = firstCommit.Author.Email;
-                    commit.Author.Name = firstCommit.Author.Name;
-                    commit.Author.When = firstCommit.Author.When;
+                commit.Author = new Designer.Models.Signature();
+                commit.Author.Email = firstCommit.Author.Email;
+                commit.Author.Name = firstCommit.Author.Name;
+                commit.Author.When = firstCommit.Author.When;
 
-                    commit.Comitter = new Designer.Models.Signature();
-                    commit.Comitter.Name = firstCommit.Committer.Name;
-                    commit.Comitter.Email = firstCommit.Committer.Email;
-                    commit.Comitter.When = firstCommit.Committer.When;
-                }
-                else
-                {
-                    _logger.LogError($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
-                    return null;
-                }
-
-                return commit;
+                commit.Comitter = new Designer.Models.Signature();
+                commit.Comitter.Name = firstCommit.Committer.Name;
+                commit.Comitter.Email = firstCommit.Committer.Email;
+                commit.Comitter.When = firstCommit.Committer.When;
             }
+            else
+            {
+                _logger.LogWarning($" // SourceControlSI // GetInitialCommit // Did not find any commits in repo {localServiceRepoFolder}");
+            }
+
+            return commit;
         }
 
         /// <summary>
@@ -544,6 +527,44 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        private void CommitAndPushToBranch(string org, string repository, string branchName, string localPath, string message)
+        {
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localPath))
+            {
+                // Restrict users from empty commit
+                if (repo.RetrieveStatus().IsDirty)
+                {
+                    string remoteUrl = FindRemoteRepoLocation(org, repository);
+                    Remote remote = repo.Network.Remotes["origin"];
+
+                    if (!remote.PushUrl.Equals(remoteUrl))
+                    {
+                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                        // Requires adminstrator access to update files.
+                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                    }
+
+                    Commands.Stage(repo, "*");
+
+                    LibGit2Sharp.Signature signature = GetDeveloperSignature();
+                    repo.Commit(message, signature, signature);
+
+                    PushOptions options = new PushOptions();
+                    options.CredentialsProvider = (_url, _user, _cred) =>
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                    if (branchName == "master")
+                    {
+                        repo.Network.Push(remote, @"refs/heads/master", options);
+                        return;
+                    }
+
+                    Branch b = repo.Branches[branchName];
+                    repo.Network.Push(b, options);
+                }
+            }
+        }
+
         /// <summary>
         /// Returns the remote repo
         /// </summary>
@@ -635,6 +656,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repo.Reset(ResetMode.Hard, "heads/master");
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            return await _gitea.CreateBranch(org, repository, branchName);
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        {
+            CreatePullRequestOption option = new CreatePullRequestOption
+            {
+                Base = target,
+                Head = source,
+                Title = title
+            };
+
+            return await _gitea.CreatePullRequest(org, repository, option);
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteRepository(string org, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            if (Directory.Exists(localServiceRepoFolder))
+            {
+                DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
+            }
+
+            await _gitea.DeleteRepository(org, repository);
+        }
+
+        private LibGit2Sharp.Signature GetDeveloperSignature()
+        {
+            return new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
         }
     }
 }

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "http://altinn3.no",
+  "env": {
+    "autoTestUser": "testuser",
+    "autoTestUserPwd": "Studio@123",
+    "testEmail": "test1@test.com",
+    "deployApp": "ttd/deploy",
+    "designerApp": "ttd/designer",
+    "withoutDataModelApp": "ttd/appwithout-dm",
+    "appOwner": "ttd"
+  },
+  "defaultCommandTimeout": 20000,
+  "requestTimeout": 20000
+}

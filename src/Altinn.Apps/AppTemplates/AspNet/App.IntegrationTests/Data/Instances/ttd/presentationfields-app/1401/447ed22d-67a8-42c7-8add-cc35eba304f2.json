@@ -1,0 +1,40 @@
+{
+  "id": "1401/447ed22d-67a8-42c7-8add-cc35eba304f2",
+  "instanceOwner": {
+    "partyId": "1401",
+    "personNumber": "14015678901"
+  },
+  "appId": "ttd/presentationfields-app",
+  "org": "ttd",
+  "process": {
+    "started": "2019-12-11T09:34:35.5471442Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-11T09:34:37.6872728Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "lastChangedBy": "897069650",
+  "lastChanged": "2021-09-23T10:19:43",
+  "presentationTexts": {
+    "Title": "Sophie Salt"
+  },
+  "data": [
+    {
+      "id": "590ebc27-246e-4a0a-aea3-4296cb231d78",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    }
+  ]
+}

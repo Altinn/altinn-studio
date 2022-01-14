@@ -1,6 +1,6 @@
 /* eslint-disable react/no-access-state-in-setstate */
 /* eslint-disable react/no-unused-state */
-import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
@@ -9,7 +9,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   textDisabled: {
@@ -85,32 +85,19 @@ export class HandleMergeConflictDiscardChanges extends
       });
 
       const discardUrl = `${window.location.origin}/` +
-        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${app}`;
+        `/designer/api/v1/repos/${org}/${app}/discard`;
       const discardRes = await get(discardUrl);
 
-      if (discardRes.isSuccessStatusCode === true) {
-        this.setState({
-          networkingRes: discardRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            shouldShowDoneIcon: true,
-          },
-        });
+      this.setState({
+        networkingRes: discardRes,
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: false,
+          shouldShowDoneIcon: true,
+        },
+      });
 
-        window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
-      } else {
-        this.setState({
-          networkingRes: discardRes,
-          popoverState: {
-            ...this.state.popoverState,
-            isLoading: false,
-            shouldShowDoneIcon: false,
-          },
-        });
-
-        console.error('Discard merge error', discardRes);
-      }
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
     } catch (err) {
       this.setState({
         errorObj: err,

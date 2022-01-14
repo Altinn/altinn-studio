@@ -12,7 +12,9 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
+import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
+import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
 
 export interface IComponent {
   name: string;
@@ -26,6 +28,7 @@ export interface IComponent {
 export enum ComponentTypes {
   Header,
   Paragraph,
+  Image,
   Input,
   Datepicker,
   DropDown,
@@ -35,9 +38,9 @@ export enum ComponentTypes {
   FileUpload,
   Button,
   Group,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
+  InstantiationButton,
   AttachmentList,
 }
 
@@ -55,6 +58,11 @@ export const textComponents: IComponent[] = [
 ];
 
 export const schemaComponents: IComponent[] = [
+  {
+    name: 'Image',
+    Tag: ImageComponent,
+    Type: ComponentTypes.Image,
+  },
   {
     name: 'Input',
     Tag: InputComponent,
@@ -125,6 +133,11 @@ export const schemaComponents: IComponent[] = [
     name: 'NavigationButtons',
     Tag: NavigationButtonsComponent,
     Type: ComponentTypes.NavigationButtons,
+  },
+  {
+    name: 'InstantiationButton',
+    Tag: InstantiationButtonComponent,
+    Type: ComponentTypes.InstantiationButton,
   },
   {
     name: 'AttachmentList',

@@ -49,6 +49,7 @@ interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
   listDisableVerticalPadding?: boolean;
   /** Adds 2rem paddingLeft */
   nested?: boolean;
+  id?: string;
 }
 
 function ListItemLink(props: any) {
@@ -64,7 +65,7 @@ function ListItemLink(props: any) {
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
     <>
-      <List disablePadding={Boolean(props.listDisableVerticalPadding)}>
+      <List disablePadding={Boolean(props.listDisableVerticalPadding)} id={props.id}>
         {props.attachments && props.attachments.map((attachment, index) => (
           <ListItemLink
             className={classNames(

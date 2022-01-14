@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <OutputType>Library</OutputType>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{B72A146D-719D-4E2A-B931-C2ACBA72EF4F}</ProjectGuid>
   </PropertyGroup>
@@ -12,7 +12,7 @@
   <PropertyGroup>
     <!-- NuGet package properties -->
     <PackageId>Altinn.Platform.Models</PackageId>
-    <PackageVersion>1.1.0</PackageVersion>
+    <PackageVersion>1.1.1</PackageVersion>
     <PackageTags>Altinn;Studio;Platform;Models;Register;Profile;Authorization</PackageTags>
     <Description>
       Altinn.Platform.Models is a package for models used by platform register and profile.
@@ -25,7 +25,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
@@ -47,5 +47,6 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <Version>1.1.1-alpha</Version>
   </PropertyGroup>
 </Project>

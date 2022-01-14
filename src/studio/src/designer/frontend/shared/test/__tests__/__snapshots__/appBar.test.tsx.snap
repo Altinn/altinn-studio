@@ -11,7 +11,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
@@ -25,13 +25,13 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             >
               <img
                 alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
               />
             </a>
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
         </div>
@@ -52,7 +52,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
@@ -66,13 +66,13 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             >
               <img
                 alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
               />
             </a>
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
         </div>
@@ -93,7 +93,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
@@ -107,13 +107,13 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             >
               <img
                 alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
               />
             </a>
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
         </div>
@@ -134,7 +134,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
@@ -148,13 +148,13 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             >
               <img
                 alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
               />
             </a>
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
         </div>
@@ -175,7 +175,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
       className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
@@ -189,13 +189,13 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
             >
               <img
                 alt="Altinn logo"
-                src="https://altinncdn.no/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
               />
             </a>
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
+          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
         </div>

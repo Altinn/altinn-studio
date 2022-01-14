@@ -12,8 +12,10 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Manatee.Json.Schema;
@@ -32,7 +34,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
     /// </summary>
-    public class RepositorySI : Interfaces.IRepository
+    public class RepositorySI : IRepository
     {
         private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
@@ -42,6 +44,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ISourceControl _sourceControl;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -54,6 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="sourceControl">the source control</param>
         /// <param name="loggerFactory">the logger factory</param>
         /// <param name="logger">The logger</param>
+        /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -62,7 +66,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IGitea gitea,
             ISourceControl sourceControl,
             ILoggerFactory loggerFactory,
-            ILogger<RepositorySI> logger)
+            ILogger<RepositorySI> logger,
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -72,6 +77,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _sourceControl = sourceControl;
             _loggerFactory = loggerFactory;
             _logger = logger;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
@@ -97,7 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());            
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.DockerfileFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
@@ -144,103 +150,66 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
+        public void UpdateApplication(string org, string app, PlatformStorageModels.Application applicationMetadata)
         {
-            try
-            {
-                string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
-                string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when trying to update application metadata ", ex);
-                return false;
-            }
+            string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName)
+        public void UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName)
         {
-            try
-            {
-                string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
-                string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                string filePath = modelsFolderPath + $"{modelName}.metadata.json";
+            string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
+            string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filePath = modelsFolderPath + $"{modelName}.metadata.json";
 
-                Directory.CreateDirectory(modelsFolderPath);
-                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
-            }
-            catch (Exception e)
-            {
-                _logger.LogInformation($"An error occurred when trying to store model metadata: {e.GetType()} : {e.Message}");
-                return false;
-            }
-
-            return true;
+            Directory.CreateDirectory(modelsFolderPath);
+            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool AddMetadataForAttachment(string org, string app, string applicationMetadata)
+        public void AddMetadataForAttachment(string org, string app, string applicationMetadata)
         {
-            try
-            {
-                PlatformStorageModels.DataType formMetadata = JsonConvert.DeserializeObject<PlatformStorageModels.DataType>(applicationMetadata);
-                formMetadata.TaskId = "Task_1";
-                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
-                existingApplicationMetadata.DataTypes.Add(formMetadata);
+            PlatformStorageModels.DataType formMetadata = JsonConvert.DeserializeObject<PlatformStorageModels.DataType>(applicationMetadata);
+            formMetadata.TaskId = "Task_1";
+            PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+            existingApplicationMetadata.DataTypes.Add(formMetadata);
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
-                string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
+            string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
+            File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
-        public bool UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
+        public void UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
         {
-            try
-            {
-                dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
-                string attachmentId = attachmentMetadata.GetValue("id").Value;
-                PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
-                PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
-                applicationForm.AllowedContentTypes = new List<string>();
+            dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
+            string attachmentId = attachmentMetadata.GetValue("id").Value;
+            PlatformStorageModels.Application existingApplicationMetadata = GetApplication(org, app);
+            PlatformStorageModels.DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new PlatformStorageModels.DataType();
+            applicationForm.AllowedContentTypes = new List<string>();
 
-                if (attachmentMetadata.GetValue("fileType") != null)
+            if (attachmentMetadata.GetValue("fileType") != null)
+            {
+                string fileTypes = attachmentMetadata.GetValue("fileType").Value;
+                string[] fileType = fileTypes.Split(",");
+
+                foreach (string type in fileType)
                 {
-                    string fileTypes = attachmentMetadata.GetValue("fileType").Value;
-                    string[] fileType = fileTypes.Split(",");
-
-                    foreach (string type in fileType)
-                    {
-                        applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
-                    }
+                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
                 }
-
-                applicationForm.Id = attachmentMetadata.GetValue("id").Value;
-                applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
-                applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
-                applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
-
-                DeleteMetadataForAttachment(org, app, attachmentId);
-                string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
-                AddMetadataForAttachment(org, app, metadataAsJson);
-            }
-            catch (Exception)
-            {
-                return false;
             }
 
-            return true;
+            applicationForm.Id = attachmentMetadata.GetValue("id").Value;
+            applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
+            applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
+            applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+
+            DeleteMetadataForAttachment(org, app, attachmentId);
+            string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
+            AddMetadataForAttachment(org, app, metadataAsJson);
         }
 
         /// <inheritdoc/>
@@ -306,7 +275,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                _logger.LogError(ex, "Something went wrong when fetching application metadata.");
                 return null;
             }
         }
@@ -588,7 +557,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // If FormLayout.json exists in app/ui => move it to app/ui/layouts (for backwards comp)
             string filedata = string.Empty;
-            string formLayoutPath = _settings.GetFormLayoutPath(org, app, developer);
+            string formLayoutPath = _settings.GetOldFormLayoutPath(org, app, developer);
             if (File.Exists(formLayoutPath))
             {
                 filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
@@ -929,7 +898,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>A boolean indicating if the delete was a success</returns>
         public bool DeleteLanguage(string org, string app, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
+            string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             bool deleted = false;
 
             if (File.Exists(filename))
@@ -960,10 +929,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
             string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
-            if (!UpdateModelMetadata(org, app, modelMetadata, fileName))
-            {
-                return false;
-            }
+            UpdateModelMetadata(org, app, modelMetadata, fileName);
 
             // Create the .cs file for the model
             try
@@ -972,8 +938,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception trying to write generated C# to disc.");
                 return false;
             }
 
@@ -988,8 +955,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception trying to write XSD to disc.");
                     return false;
                 }
 
@@ -1008,13 +976,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Exception while generating or writing JsonSchema to disc.");
                     return false;
                 }
             }
 
-            // Update the ServiceImplementation class with the correct model type name
             UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + root);
 
             return true;
@@ -1037,7 +1005,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             PlatformStorageModels.DataType existingLogicElement = application.DataTypes.FirstOrDefault((d) => d.AppLogic != null);
             PlatformStorageModels.DataType logicElement = application.DataTypes.SingleOrDefault(d => d.Id == dataTypeId);
-            
+
             if (logicElement == null)
             {
                 logicElement = new PlatformStorageModels.DataType
@@ -1114,9 +1082,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
-            var options = new RepositoryClient.Model.CreateRepoOption(serviceConfig.RepositoryName);
+            var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
-            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
@@ -1139,26 +1107,94 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-
-                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
-                {
-                    // This creates the language resources file for nb
-                    JObject json = JObject.FromObject(new
-                    {
-                        language = "nb",
-                        resources = new[]
-                        {
-                            new { id = "ServiceName", value = serviceConfig.ServiceName }
-                        },
-                    });
-
-                    SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
-                }
+                CreateLanguageResources(org, serviceConfig);
+                await CreateRepositorySettings(org, serviceConfig.RepositoryName, userName, serviceConfig.DatamodellingPreference);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
+
+            return repository;
+        }
+
+        private async Task CreateRepositorySettings(string org, string repository, string developer, DatamodellingPreference datamodellingPreference)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            var settings = new AltinnStudioSettings() { DatamodellingPreference = datamodellingPreference, RepoType = AltinnRepositoryType.App };
+            await altinnGitRepository.SaveAltinnStudioSettings(settings);
+        }
+
+        private void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
+        {
+            if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
+            {
+                // This creates the language resources file for nb
+                JObject json = JObject.FromObject(new
+                {
+                    language = "nb",
+                    resources = new[]
+                    {
+                        new { id = "ServiceName", value = serviceConfig.ServiceName }
+                    },
+                });
+
+                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer)
+        {
+            var options = new CreateRepoOption(targetRepository);
+
+            RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
+
+            if (repository == null || repository.RepositoryCreatedStatus != System.Net.HttpStatusCode.Created)
+            {
+                return repository;
+            }
+
+            string targetRepositoryPath = _settings.GetServicePath(org, targetRepository, developer);
+
+            if (Directory.Exists(targetRepositoryPath))
+            {
+                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                string backupPath = _settings.GetServicePath(org, $"{targetRepository}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
+                Directory.Move(targetRepositoryPath, backupPath);
+            }
+
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
+            var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+
+            await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
+
+            PlatformStorageModels.Application appMetadata = await targetAppRepository.GetApplicationMetadata();
+            appMetadata.Id = $"{org}/{targetRepository}";
+            appMetadata.CreatedBy = developer;
+            appMetadata.LastChangedBy = developer;
+            appMetadata.Created = DateTime.UtcNow;
+            appMetadata.LastChanged = appMetadata.Created;
+            await targetAppRepository.UpdateApplicationMetadata(appMetadata);
+
+            CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
+            _sourceControl.PushChangesForRepository(commitInfo);
+
+            // Final changes are made in a seperate branch to be reviewed by developer
+            string branchName = "complete_copy_of_app";
+            string branchCloneName = $"{targetRepository}_{branchName}_{Guid.NewGuid()}";
+
+            await _sourceControl.CreateBranch(org, targetRepository, branchName);
+            _sourceControl.CloneRemoteRepository(org, targetRepository, _settings.GetServicePath(org, branchCloneName, developer), branchName);
+
+            var branchAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, branchCloneName, developer);
+
+            await branchAppRepository.SearchAndReplaceInFile("App/config/authorization/policy.xml", $"{sourceRepository}", $"{targetRepository}");
+
+            _sourceControl.CommitAndPushChanges(org, targetRepository, branchName, branchAppRepository.RepositoryDirectory, "Updated policy.xml");
+            await _sourceControl.CreatePullRequest(org, targetRepository, "master", branchName, "Auto-generated: Final changes for cloning app.");
+
+            DirectoryHelper.DeleteFilesAndDirectory(branchAppRepository.RepositoryDirectory);
 
             return repository;
         }
@@ -1187,63 +1223,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Delete an app folder from disk.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>true if success, false otherwise</returns>
-        public bool DeleteService(string org, string app)
-        {
-            try
-            {
-                string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-
-                string directoryPath = null;
-
-                org = org.AsFileName();
-                app = app.AsFileName();
-
-                directoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}"
-                                : $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
-
-                if (!string.IsNullOrEmpty(app))
-                {
-                    directoryPath += "/" + app;
-                }
-                else
-                {
-                    directoryPath += "/" + org;
-                }
-
-                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
-                foreach (FileInfo file in directoryInfo.GetFiles())
-                {
-                    file.Delete();
-                }
-
-                foreach (DirectoryInfo directory in directoryInfo.GetDirectories())
-                {
-                    directory.Delete(true);
-                }
-
-                Directory.Delete(directoryPath, true);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// create a repository in gitea for the given org and options
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRemoteRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return await _gitea.CreateRepository(org, options);
         }
@@ -1581,14 +1566,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateAppTitle(string org, string app, string languageId, string title)
+        public void UpdateAppTitle(string org, string app, string languageId, string title)
         {
             PlatformStorageModels.Application appMetadata = GetApplication(org, app);
-
-            if (appMetadata == null)
-            {
-                return false;
-            }
 
             Dictionary<string, string> titles = appMetadata.Title;
             if (titles.ContainsKey(languageId))
@@ -1602,7 +1582,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             appMetadata.Title = titles;
 
-            return UpdateApplication(org, app, appMetadata);
+            UpdateApplication(org, app, appMetadata);
         }
 
         /// <summary>
@@ -1812,8 +1792,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private string GetModelName(string org, string app)
         {
             PlatformStorageModels.Application application = GetApplication(org, app);
-
             string dataTypeId = string.Empty;
+
+            if (application == null)
+            {
+                return dataTypeId;
+            }
+
             foreach (PlatformStorageModels.DataType data in application.DataTypes)
             {
                 if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
@@ -1827,11 +1812,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void DeleteOldFormLayoutJson(string org, string app, string developer)
         {
-            string path = _settings.GetFormLayoutPath(org, app, developer);
+            string path = _settings.GetOldFormLayoutPath(org, app, developer);
             if (File.Exists(path))
             {
                 File.Delete(path);
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteRepository(string org, string repository)
+        {
+            await _sourceControl.DeleteRepository(org, repository);
         }
 
         private class ResourceWrapper

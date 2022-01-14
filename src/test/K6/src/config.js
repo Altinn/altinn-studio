@@ -156,6 +156,12 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
     case 'completeprocess':
       value = '/instances/' + instanceOwnerId + '/' + instanceId + '/process/completeprocess';
       break;
+    case 'active':
+      value = `/instances/${instanceOwnerId}/active`;
+      break;
+    case 'datatags':
+      value = `/instances/${instanceOwnerId}/${instanceId}/data/${dataId}/tags`;
+      break;
   }
   return value;
 }
@@ -203,4 +209,11 @@ export var altinnCdn = {
     'altinn-logo-black': 'https://altinncdn.no/img/Altinn-logo-black.svg',
   },
   orgs: 'https://altinncdn.no/orgs/altinn-orgs.json',
+};
+
+export var altinnUi = {
+  inbox: `https://${baseUrl}/ui/messagebox`,
+  archive: `https://${baseUrl}/ui/messagebox/archive`,
+  deleted: `https://${baseUrl}/ui/messagebox/trash`,
+  search: `https://${baseUrl}/ui/messagebox/search`,
 };

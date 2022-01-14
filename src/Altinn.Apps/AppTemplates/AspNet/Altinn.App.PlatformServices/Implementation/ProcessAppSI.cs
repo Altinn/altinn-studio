@@ -31,7 +31,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessAppSI> _logger;
-        private readonly IInstanceEvent _eventService;
+        private readonly IInstanceEvent _instanceEventClient;
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -46,13 +46,13 @@ namespace Altinn.App.Services.Implementation
         public ProcessAppSI(
             IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
-            IInstanceEvent eventService,
+            IInstanceEvent instanceEventClient,
             ILogger<ProcessAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
             _appSettings = appSettings.Value;
-            _eventService = eventService;
+            _instanceEventClient = instanceEventClient;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
@@ -251,7 +251,7 @@ namespace Altinn.App.Services.Implementation
             foreach (InstanceEvent instanceEvent in events)
             {
                 instanceEvent.InstanceId = instance.Id;
-                await _eventService.SaveInstanceEvent(instanceEvent, org, app);
+                await _instanceEventClient.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
 

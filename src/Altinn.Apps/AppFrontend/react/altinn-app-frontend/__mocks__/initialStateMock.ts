@@ -3,6 +3,7 @@ import { IRuntimeState } from '../src/types';
 import { getFormLayoutStateMock } from './formLayoutStateMock';
 import { getFormDataStateMock } from './formDataStateMock';
 import { applicationMetadataMock } from './applicationMetadataMock';
+import { applicationSettingsMock } from './applicationSettingsMock';
 import { IParty } from '../../shared/src';
 import { getInstanceDataStateMock } from './instanceDataStateMock';
 import { getProfileStateMock } from './profileStateMock';
@@ -60,7 +61,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
     },
     isLoading: {
       dataTask: false,
-      stateless: false,
+      stateless: null,
     },
     language: {
       language: getLanguageFromCode('nb'),
@@ -113,6 +114,10 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       options: {},
       error: null,
     },
+    applicationSettings: {
+      applicationSettings: applicationSettingsMock,
+      error: null,
+    }
   };
 
   return {

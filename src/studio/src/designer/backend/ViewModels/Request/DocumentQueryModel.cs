@@ -18,13 +18,6 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         public int? Top { get; set; }
 
         /// <summary>
-        /// The property to order by
-        /// Properties: created
-        /// </summary>
-        [FromQuery(Name = "sortBy")]
-        public string SortBy { get; set; }
-
-        /// <summary>
         /// The sort direction
         /// Ascending | Descending
         /// </summary>

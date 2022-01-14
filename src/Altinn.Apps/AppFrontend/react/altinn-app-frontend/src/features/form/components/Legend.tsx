@@ -4,11 +4,12 @@ import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
-import { insertHelpIconInNested } from '../../../../src/utils/replaceIcon';
+import { ILanguage } from 'altinn-shared/types';
+
 export interface IFormLegendProps {
   labelText: string;
   descriptionText: string;
-  language: any;
+  language: ILanguage;
   required?: boolean;
   labelSettings?: ILabelSettings;
   helpText: string;
@@ -37,7 +38,7 @@ export default function Legend(props: IFormLegendProps) {
           null
           :
           <span className='label-optional'>
-            ({getLanguageFromKey('general.optional', props.language)})
+            {` (${getLanguageFromKey('general.optional', props.language)})`}
           </span>
         }
       </label>

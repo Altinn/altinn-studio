@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Security.Claims;
 
@@ -21,12 +22,13 @@ using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.Localtest.Interface;
+using LocalTest.Services.LocalApp.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Text;
 using Newtonsoft.Json;
-using LocalTest.Services.Localtest.Interface;
 
 namespace LocalTest.Controllers
 {
@@ -34,51 +36,50 @@ namespace LocalTest.Controllers
     {
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
-        private readonly ILocalTestAppSelection _appSelectionService;
+        private readonly ILocalApp _localApp;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
-            ILocalTestAppSelection appSelectionService)
+            ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
-            _applicationRepository = applicationRepository;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
-            _appSelectionService = appSelectionService;
+            _localApp = localApp;
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
-            model.TestApps = await GetAppsList();
-            Application app = await _applicationRepository.FindOne("", "");
+            try
+            {
+                model.TestApps = await GetAppsList();
+            }
+            catch(HttpRequestException e)
+            {
+                model.HttpException = e;
+            }
+
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
+            model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
 
-            if (!model.TestApps.Any())
+            if (!model.TestApps?.Any() ?? true)
             {
                 model.InvalidAppPath = true;
             }
 
-            if (!model.TestUsers.Any())
+            if (!model.TestUsers?.Any() ?? true)
             {
                 model.InvalidTestDataPath = true;
-            }
-
-            if (app != null)
-            {
-                model.Org = app.Org;
-                model.App = app.Id.Split("/")[1];
             }
 
             return View(model);
@@ -120,9 +121,7 @@ namespace LocalTest.Controllers
             string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
             CreateJwtCookieAndAppendToResponse(token);
 
-            Application app = GetAppItem(startAppModel.AppPathSelection + "/config");
-
-            _appSelectionService.SetAppPath(startAppModel.AppPathSelection);
+            Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
@@ -168,6 +167,7 @@ namespace LocalTest.Controllers
             string issuer = "altinn3local.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
             if (!string.IsNullOrEmpty(orgNumber))
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
@@ -230,38 +230,8 @@ namespace LocalTest.Controllers
 
         private async Task<IEnumerable<SelectListItem>> GetAppsList()
         {
-            List<SelectListItem> apps = new List<SelectListItem>();
-
-            string path = this._localPlatformSettings.AppRepositoryBasePath;
-
-            if (!Directory.Exists(path))
-            {
-                return apps;
-            }
-
-            string configPath = path + "config";
-            if (Directory.Exists(configPath))
-            {
-                Application app = GetAppItem(configPath);
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, path));
-                }
-            }
-
-            string[] directories =  Directory.GetDirectories(path);
-
-            foreach(string directory in directories)
-            {
-
-                Application app = GetAppItem(directory + "/App/config");
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, directory + "/App/"));
-                }
-            }
-
-            return apps;
+            var applications = await _localApp.GetApplications();
+            return applications.Select((kv)=> GetSelectItem(kv.Value, kv.Key)).ToList();
         }
 
         private SelectListItem GetSelectItem(Application app, string path)

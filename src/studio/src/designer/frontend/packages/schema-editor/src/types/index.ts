@@ -3,37 +3,32 @@ export interface ISchemaState {
   uiSchema: UiSchemaItem[];
   name: string;
   saveSchemaUrl: string;
-  selectedId?: string;
-  selectedTreeNodeId?: string;
+  selectedDefinitionNodeId: string;
+  selectedPropertyNodeId: string;
   focusNameField?: string; // used to trigger focus of name field in inspector.
   navigate?: string; // used to trigger navigation in tree, the value is not used.
+  selectedEditorTab: 'definitions' | 'properties';
 }
 export interface ILanguage {
-  [key: string]: string;
+  [key: string]: string | ILanguage;
 }
-export interface ISetValueAction {
-  path: string,
-  value: any,
-  key?: string,
-}
-export interface ISetTypeAction {
-  path: string;
-  value: string;
-}
-export interface ISetRefAction {
-  path: string,
-  ref: string,
-}
-export type Field = {
+
+export type FieldType = 'string' | 'integer' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+
+export type ObjectKind = 'combination' | 'reference' | 'field';
+
+export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
+
+export type Restriction = {
   key: string;
   value: any;
 }
 
 export interface UiSchemaItem {
   path: string;
-  type?: string;
+  type?: FieldType;
   $ref?: string;
-  restrictions?: Field[];
+  restrictions?: Restriction[];
   properties?: UiSchemaItem[];
   value?: any;
   displayName: string;
@@ -42,6 +37,9 @@ export interface UiSchemaItem {
   description?: string;
   items?: { type?: string, $ref?: string };
   enum?: string[];
+  combination?: UiSchemaItem[];
+  combinationKind?: CombinationKind;
+  combinationItem?: boolean,
 }
 
 export interface ISchema {

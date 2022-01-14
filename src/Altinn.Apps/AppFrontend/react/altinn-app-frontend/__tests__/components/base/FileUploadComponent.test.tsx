@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 /* eslint-disable indent */
-// /* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -54,11 +53,11 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     mockIsValid = true;
     mockReadOnly = false;
     mockFileList = [
-      { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null },
-      { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null },
-      { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null },
-      { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null, arrayBuffer: null, stream: null, text: null },
-      { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null, arrayBuffer: null, stream: null, text: null },
+      { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null, webkitRelativePath: null },
+      { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null, webkitRelativePath: null },
+      { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null, arrayBuffer: null, stream: null, text: null, webkitRelativePath: null },
+      { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null, arrayBuffer: null, stream: null, text: null, webkitRelativePath: null },
+      { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null, arrayBuffer: null, stream: null, text: null, webkitRelativePath: null },
     ];
     mockStore = createStore(mockInitialState);
   });
@@ -169,7 +168,6 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
 //     instance.onDrop([], mockFileList);
 //     const call = spy.mock.calls[0][0] as any;
 //     expect(call.validations.length).toBe(mockFileList.length);
-//     // tslint:disable-next-line: max-line-length
 //     expect(call.validations[0]).toBe('form_filler.file_uploader_validation_error_general_1 mock-name-1.txt form_filler.file_uploader_validation_error_general_2');
 //     expect(call.validations[3]).toBe('mock-name-4.txt form_filler.file_uploader_validation_error_file_size');
 //   });

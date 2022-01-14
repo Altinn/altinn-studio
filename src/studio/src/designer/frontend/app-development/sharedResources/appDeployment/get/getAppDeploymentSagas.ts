@@ -8,7 +8,7 @@ import { AppDeploymentActions } from '../appDeploymentSlice';
 function* getAppDeploymentIntervalSaga(): SagaIterator {
   while (true) {
     try {
-      const deployments = yield call(get, `${appDeploymentsUrl}?sortDirection=descending&sortBy=created`);
+      const deployments = yield call(get, `${appDeploymentsUrl}?sortDirection=descending`);
 
       yield put(AppDeploymentActions.getAppDeploymentsFulfilled({ deployments }));
       yield delay(10000);

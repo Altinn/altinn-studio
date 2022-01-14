@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, FormControlLabel, FormGroup, Switch } from '@material-ui/core';
+import { createTheme, createStyles, FormControlLabel, FormGroup, Switch } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -17,7 +17,7 @@ export interface IAltinnSwitchComponentProvidedProps {
 export interface IAltinnSwitchComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   switchLabel: {
@@ -38,7 +38,7 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
+
 export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
   public render() {
     const { classes } = this.props;

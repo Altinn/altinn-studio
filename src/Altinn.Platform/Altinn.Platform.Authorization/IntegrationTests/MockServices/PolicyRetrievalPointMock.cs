@@ -7,6 +7,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Services.Interface;
+using Azure;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
@@ -29,17 +30,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))
             {
-                if (File.Exists(Path.Combine(GetPolicyPath(request),"policy.xml")))
+                if (File.Exists(Path.Combine(GetPolicyPath(request), "policy.xml")))
                 {
-                    return ParsePolicy("policy.xml", GetPolicyPath(request));
+                    return await Task.FromResult(ParsePolicy("policy.xml", GetPolicyPath(request)));
                 }
 
-                return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
-              
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath()));
             }
             else
             {
-                return ParsePolicy(testID + "Policy.xml", GetConformancePath());
+                return await Task.FromResult(ParsePolicy(testID + "Policy.xml", GetConformancePath()));
             }
         }
 
@@ -48,6 +48,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             if (File.Exists(Path.Combine(GetAltinnAppsPolicyPath(org, app), "policy.xml")))
             {
                 return await Task.FromResult(ParsePolicy("policy.xml", GetAltinnAppsPolicyPath(org, app)));
+            }
+
+            return null;
+        }
+
+        public async Task<XacmlPolicy> GetPolicyVersionAsync(string policyPath, string version)
+        {
+            string path = GetAltinnAppsDelegationPolicyPath(policyPath);
+            if (File.Exists(path))
+            {
+                return await Task.FromResult(ParsePolicy(string.Empty, path));
             }
 
             return null;
@@ -89,8 +100,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../Data/Xacml/3.0/AltinnApps/{org}/{app}/");
+        }
+
+        private static string GetAltinnAppsDelegationPolicyPath(string policyPath)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, $"../../../Data/blobs/input/{policyPath}");
         }
 
         private string GetTestId(HttpContext context)
@@ -100,19 +117,20 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetAltinnAppsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/AltinnApps");
         }
 
         private string GetConformancePath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/ConformanceTests");
         }
 
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {
             XmlDocument policyDocument = new XmlDocument();
+            
             policyDocument.Load(Path.Combine(policyPath, policyDocumentTitle));
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
@@ -121,11 +139,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             }
 
             return policy;
-        }
-
-        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
-        {
-            return await Task.FromResult(true);
         }
     }
 }

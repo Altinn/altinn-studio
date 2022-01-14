@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export enum HttpStatusCodes {
+  Ok = 200,
+  BadRequest = 400,
   Forbidden = 403,
 }
 
@@ -12,8 +14,8 @@ export async function get(url: string, options?: AxiosRequestConfig): Promise<an
   const response: AxiosResponse = await axios.get(
     url,
     {
-      headers: { Pragma: 'no-cache' },
       ...options,
+      headers: { Pragma: 'no-cache', ...options?.headers },
     },
   );
   return response.data ? response.data : null;
@@ -58,5 +60,5 @@ export async function putWithoutConfig<ReturnType>(
 }
 
 export function checkIfAxiosError(error: Error): boolean {
-  return (error as AxiosError).config !== undefined;
+  return (error as AxiosError)?.config !== undefined;
 }

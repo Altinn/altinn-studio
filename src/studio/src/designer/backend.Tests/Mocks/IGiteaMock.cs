@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
+using Designer.Tests.Utils;
 
 namespace Designer.Tests.Mocks
 {
@@ -17,7 +18,30 @@ namespace Designer.Tests.Mocks
 
         public Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            throw new NotImplementedException();
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, options.Name);
+            Repository repo = new Repository
+            {
+                Name = options.Name
+            };
+
+            if (Directory.Exists(remotePath))
+            {
+                repo.RepositoryCreatedStatus = System.Net.HttpStatusCode.Conflict;
+                return Task.FromResult(repo);
+            }
+
+            Directory.CreateDirectory(remotePath);
+            repo.RepositoryCreatedStatus = System.Net.HttpStatusCode.Created;
+
+            return Task.FromResult(repo);
+        }
+
+        public Task<bool> DeleteRepository(string org, string repository)
+        {
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
+            TestDataHelper.DeleteDirectory(remotePath, true);
+
+            return Task.FromResult(true);
         }
 
         public Task<Branch> GetBranch(string org, string repository, string branch)
@@ -74,7 +98,19 @@ namespace Designer.Tests.Mocks
 
         public Task<Repository> GetRepository(string org, string repository)
         {
-            throw new NotImplementedException();
+            Repository returnRepository = null;
+
+            string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
+
+            if (Directory.Exists(remotePath))
+            {
+                returnRepository = new Repository
+                {
+                    FullName = repository
+                };
+            }
+
+            return Task.FromResult(returnRepository);
         }
 
         public Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
@@ -113,6 +149,42 @@ namespace Designer.Tests.Mocks
             string[] pathArray = filePath.Split("/");
 
             return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
+        }
+
+        public async Task<bool> CreatePullRequest(string org, string app, CreatePullRequestOption createPullRequestOption)
+        {
+            return await Task.FromResult(true);
+        }
+
+        public async Task<Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            Branch branch = new Branch { Name = branchName };
+            return await Task.FromResult(branch);
+        }
+
+        public Task<IList<Repository>> GetOrgRepos(string org)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<Repository>> GetStarred()
+        {
+            return await Task.FromResult(new List<Repository> { new Repository() { Name = "repoName" } });
+        }
+
+        public Task<bool> PutStarred(string org, string repository)
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteStarred(string org, string repository)
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<SearchResults> SearchRepo(SearchOptions searchOption)
+        {
+            throw new NotImplementedException();
         }
     }
 }

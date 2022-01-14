@@ -26,7 +26,6 @@ services:
       - NGINX_PORT=80
     depends_on:
       - altinn_repositories
-      - altinn_designer
     build:
       context: ./src/load-balancer
 
@@ -71,13 +70,34 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "gitea-git-data:/data/git"
-      - "gitea-db-data:/data/gitea/db"
-      - "gitea-avatars-data:/data/gitea/avatars"
-      - "gitea-attachments-data:/data/gitea/attachments"
+      - "gitea-git-data:/var/lib/gitea/git"
+      - "gitea-db-data:/var/lib/gitea/db"
+      - "gitea-avatars-data:/var/lib/gitea/avatars"
+      - "gitea-attachments-data:/var/lib/gitea/attachments"
+    environment:
+      - GITEA____RUN_MODE=prod
+      - GITEA__server__SSH_DOMAIN=altinn3.no
+      - GITEA__server__DOMAIN=altinn3.no
+      - GITEA__server__ROOT_URL=http://altinn3.no/repos
+      - GITEA__session__COOKIE_SECURE=false
+      - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__database__PATH=/var/lib/gitea/db/gitea.db
+      - GITEA__database__HOST=172.18.0.2:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=root
+      - GITEA__database__PASSWD=gitea
+      - GITEA__database__SSL_MODE=
+      - GITEA__security__SECRET_KEY=VCOEYZOz3vPZrm1vGBOL6paxSePtLUHc85LsK7QIqbPHRcohw72p5K8EQQJ7YrgA
+      - GITEA__security__INTERNAL_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE1MjMyNjM2NTR9.nxb5jknOl-LnVxOvyu0McHglWoixrfOD0mLZ8Druerw
+      - GITEA__mailer__ENABLED=false
+      - GITEA__mailer__HOST=none
+      - GITEA__mailer__SKIP_VERIFY=false
+      - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
+      - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
     ports:
       - "3000:3000"
       - "222:22"
     build:
       context: ./src/repositories/
-      dockerfile: Dockerfile.local
+      dockerfile: Dockerfile

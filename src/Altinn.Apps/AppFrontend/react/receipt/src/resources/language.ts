@@ -1,4 +1,3 @@
-/* tslint:disable:max-line-length */
 export const nb = () => (
   {
     receipt_platform: {
@@ -11,6 +10,8 @@ export const nb = () => (
       reference_number: 'Referansenummer',
       sender: 'Avsender',
       sent_content: 'Følgende er sendt inn:',
+      log_out: 'Logg ut',
+      profile_icon_aria_label: 'Profil ikon knapp',
     },
   }
 );

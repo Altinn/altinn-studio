@@ -8,7 +8,7 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
-  entry: [
+  entry: [ 
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",
     "core-js/modules/es.array.find",
@@ -25,6 +25,7 @@ module.exports = {
       "app-shared": path.resolve(__dirname, "../shared/"),
       "@altinn/schema-editor": path.resolve(__dirname, "../packages/schema-editor/src/"),
       //"ux-editor": path.resolve(__dirname, "../ux-editor/")
+      "utils": path.resolve(__dirname, "utils/"),
     }
   },
   performance: {
@@ -32,58 +33,58 @@ module.exports = {
   },
   module: {
     rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.html$/,
-        use: [{
-          loader: "html-loader",
-          options: {
-            minimize: true
-          }
-        }]
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
-      {
-        test: /\.svg$/,
-        use: {
-          loader: "svg-inline-loader",
-        }
-      },
-      {
-        test: /\.css$/,
-        use: [{
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: "css-loader",
-            options: {
-              url: false
-            }
-          },
-        ]
-      },
-      {
-        test: /\.tsx?/,
-        use: [
-          {loader: "ts-loader", options: { transpileOnly: true } }
-        ]
-      },
-      {
-        enforce: "pre",
-        test: /\.js$/,
-        loader: "source-map-loader",
+      test: /\.jsx?/,
+      exclude: /node_modules/,
+      use: {
+        loader: "babel-loader",
       }
+    },
+    {
+      test: /\.html$/,
+      use: [{
+        loader: "html-loader",
+        options: {
+          minimize: true
+        }
+      }]
+    },
+    {
+      test: /\.scss$/,
+      use: [
+        "style-loader",
+        "css-loader"
+      ]
+    },
+    {
+      test: /\.svg$/,
+      use: {
+        loader: "svg-inline-loader",
+      }
+    },
+    {
+      test: /\.css$/,
+      use: [{
+        loader: MiniCssExtractPlugin.loader,
+      },
+      {
+        loader: "css-loader",
+        options: {
+          url: false
+        }
+      },
+      ]
+    },
+    {
+      test: /\.tsx?/,
+      use: [
+        { loader: "ts-loader", options: { transpileOnly: true } }
+      ]
+    },
+    {
+      enforce: "pre",
+      test: /\.js$/,
+      loader: "source-map-loader",
+    }
     ],
   },
   plugins: [

@@ -10,6 +10,7 @@ describe('Message', () => {
   let instanceMetadata, instanceId;
   before(() => {
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
+    cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));
     cy.get(appFrontend.closeButton).should('be.visible');
   });
@@ -37,6 +38,13 @@ describe('Message', () => {
         cy.get(attachments).should('have.length', 1);
         cy.get(attachments).first().should('contain.text', texts.downloadAttachment);
         cy.get(appFrontend.attachmentIcon).should('be.visible');
+      });
+    cy.get(appFrontend.sendinButton)
+      .should('be.visible')
+      .invoke('outerWidth')
+      .then((width) => {
+        width = Math.round(width);
+        expect(width).to.equal(112);
       });
   });
 });

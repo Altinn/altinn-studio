@@ -1,0 +1,52 @@
+{
+  "id": "ttd/externalprefil",
+  "org": "ttd",
+  "title": {
+    "nb": "externalprefil"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "Brønnøysundregistrene_ReelleRettighetshavere_M_2021-04-13_6900_46449_SERES",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil.ReelleRettighetshavere_M"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "copyInstanceSettings": {
+    "enabled": true,
+    "excludedDataFields": [ "Skjemainnhold.reelleRettigheter.rettighetId" ]
+  },
+  "dataFields": [
+    {
+      "id": "harIkkeReelleRettighetshavere",
+      "path": "Skjemainnhold.reelleRettigheter.harIkkeReelleRettighetshavere",
+      "dataTypeId": "Brønnøysundregistrene_ReelleRettighetshavere_M_2021-04-13_6900_46449_SERES"
+    }
+  ],
+  "autoDeleteOnProcessEnd": false,
+  "created": "2021-10-19T13:05:38.7523183Z",
+  "createdBy": "TheTechArch",
+  "lastChanged": "2021-10-19T13:05:38.7523232Z",
+  "lastChangedBy": "TheTechArch"
+}

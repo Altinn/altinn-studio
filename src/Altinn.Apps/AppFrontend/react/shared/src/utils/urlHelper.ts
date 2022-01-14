@@ -1,4 +1,4 @@
-/* tslint:disable: max-line-length */
+
 const altinnWindow = window as any;
 const { org, app } = altinnWindow;
 const origin = window.location.origin;
@@ -28,7 +28,7 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (url: string, partyId?: string | undefined) : string => {
+export const returnUrlToMessagebox = (url: string, partyId?: string | undefined): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -41,13 +41,18 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
 };
 
-export const returnUrlToArchive = (url: string) : string => {
+export const returnUrlFromQueryParameter = (): string => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('returnUrl');
+}
+
+export const returnUrlToArchive = (url: string): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
 
-    return baseUrl + pathToArchive;
+  return baseUrl + pathToArchive;
 };
 
 export const returnUrlToProfile = (url: string, partyId?: string | undefined): string => {
@@ -93,9 +98,13 @@ export const returnBaseUrlToAltinn = (url: string): string => {
   return result;
 };
 
-export function customEncodeURI(uri:string): string {
+export function customEncodeURI(uri: string): string {
   let result: string;
   result = encodeURIComponent(uri);
   result = result.replace(/[/(]/gi, '%28').replace(/[/)]/gi, '%29');
   return result;
 }
+
+export const logoutUrlAltinn = (url: string): string => {
+  return `${returnBaseUrlToAltinn(url)}ui/authentication/LogOut`;
+};

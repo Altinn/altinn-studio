@@ -1,30 +1,29 @@
 # base image
-FROM node:14.17.3-alpine3.13 AS generate-dashboard
+FROM node:16.13.1-alpine3.14 AS generate-dashboard
 
-# Copy and install Lerna
-COPY ./src/designer/frontend/lerna.json .
+WORKDIR /build
+
 COPY ./src/designer/frontend/package.json .
-COPY ./src/designer/frontend/package-lock.json .
-RUN npm ci
+COPY ./src/designer/frontend/yarn.lock .
+COPY ./src/designer/frontend/.yarn/ ./.yarn/
+COPY ./src/designer/frontend/.yarnrc.yml .
 
-# Copy and install npm dependencies
+# Copy and install dependencies
 COPY ./src/designer/frontend/shared/package.json ./shared/
-COPY ./src/designer/frontend/shared/package-lock.json ./shared/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
-COPY ./src/designer/frontend/dashboard/package-lock.json ./dashboard/
 
-RUN npm run install-deps
+RUN corepack enable
+RUN yarn --immutable
 
 # Copy and build Shared + Dashboard
-WORKDIR /
 COPY ./src/designer/frontend/shared/ ./shared/
 COPY ./src/designer/frontend/dashboard/ ./dashboard/
-RUN npm run build --prefix ./dashboard
+RUN yarn workspace dashboard run build
 
 # Create Dashboard base image
 FROM alpine
 WORKDIR /dist
-COPY --from=generate-dashboard ./dist/dashboard/dashboard.js .
-COPY --from=generate-dashboard ./dist/dashboard/dashboard.css .
+COPY --from=generate-dashboard /build/dist/dashboard/dashboard.js .
+COPY --from=generate-dashboard /build/dist/dashboard/dashboard.css .
 
 CMD ["echo", "done"]

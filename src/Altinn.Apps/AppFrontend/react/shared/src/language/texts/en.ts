@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 // eslint-disable-next-line import/prefer-default-export
 export function en() {
   return {
@@ -75,31 +75,33 @@ export function en() {
     },
     general: {
       action: 'Action',
-      add: 'Add',
       add_connection: 'Add connection',
       add_new: 'Add new',
+      add: 'Add',
       back: 'Back',
       cancel: 'Cancel',
-      choose: 'Choose',
       choose_label: 'Choose label',
       choose_method: 'Choose method',
-      close: 'Close',
+      choose: 'Choose',
       close_schema: 'Close schema',
+      close: 'Close',
       contains: 'Contains{0}',
       control_submit: 'Control and submit',
-      create: 'Create',
       create_new: 'Create new',
+      create: 'Create',
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Delete',
       disabled: 'Disabled',
-      edit: 'Edit',
-      edit_alt: 'Edit',
       edit_alt_error: 'Fix error here',
+      edit_alt: 'Edit',
+      edit: 'Edit',
       enabled: 'Enabled',
       error_message_with_colon: 'Error message:',
       for: 'for',
+      header_profile_icon_label: 'Profile icon button',
       label: 'Label',
       loading: 'Loading content',
+      log_out: 'Log out',
       next: 'Next',
       no_options: 'No options available',
       optional: 'Optional',
@@ -118,6 +120,15 @@ export function en() {
     },
     group: {
       row_error: 'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
+    },
+    instance_selection: {
+      changed_by: 'Changed by',
+      continue: 'Continue here',
+      description: 'Choose if you want to continue on an existing form, or if you want to start on a new one.',
+      header: 'You have already started filling out this form.',
+      last_changed: 'Last changed',
+      left_of: 'Continue where you left of',
+      new_instance: 'Start over',
     },
     instantiate: {
       all_forms: 'all forms',

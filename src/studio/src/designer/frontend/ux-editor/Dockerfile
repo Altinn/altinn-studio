@@ -1,14 +1,18 @@
 # base image
-FROM node:14.17.3-alpine3.13
+FROM node:16.13.1-alpine3.14
 
 # set working directory
-RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 
 # install and cache app dependencies
-COPY package.json /usr/src/app/package.json
-COPY package-lock.json /usr/src/app/package-lock.json
-RUN npm ci
+COPY package.json .
+COPY yarn.lock .
+COPY .yarn/ ./.yarn/
+COPY .yarnrc.yml .
+
+
+RUN corepack enable
+RUN yarn --immutable
 
 # start app
-CMD ["npm", "start"]
+CMD ["yarn", "start"]

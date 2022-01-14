@@ -1,0 +1,180 @@
+version: 2
+updates:
+## Altinn.Platform
+  ## Authentication
+  - directory: "src/Altinn.Platform/Altinn.Platform.Authentication"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Authorization
+  - directory: "src/Altinn.Platform/Altinn.Platform.Authorization"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Events
+  - directory: "src/Altinn.Platform/Altinn.Platform.Events"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Models
+  - directory: "src/Altinn.Platform/Altinn.Platform.Models"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Profile
+  - directory: "src/Altinn.Platform/Altinn.Platform.Profile"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Receipt
+  - directory: "src/Altinn.Platform/Altinn.Platform.Receipt"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Register
+  - directory: "src/Altinn.Platform/Altinn.Platform.Register"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Storage
+  - directory: "src/Altinn.Platform/Altinn.Platform.Storage"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+## Altinn.Common
+  ## AccessToken
+  - directory: "src/Altinn.Common/Altinn.Common.AccessToken"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## PEP
+  - directory: "src/Altinn.Common/Altinn.Common.PEP"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## EFormidlingClient
+  - directory: "src/Altinn.Common/Altinn.EFormidlingClient"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+  ## Authentication
+  - directory: "src/Altinn.Common/Authentication"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+## Altinn Apps
+  - directory: "src/Altinn.Apps"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+## Altinn Apps Template
+  - directory: "src/Altinn.Apps/AppTemplates/AspNet"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+## Altinn Apps Template Designer
+  - directory: "src/studio/AppTemplates/AspNet"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"
+## LocalTest
+  - directory: "src/development"
+    package-ecosystem: "nuget"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "07:00"
+      timezone: "Europe/Oslo"

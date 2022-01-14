@@ -1,4 +1,4 @@
-import { Button, createMuiTheme } from '@material-ui/core';
+import { Button, createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -16,7 +16,7 @@ export interface IAltinnIconButtonComponentProvidedProps {
 export interface IAltinnIconButtonComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   dottedBtn: {
@@ -48,7 +48,7 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
+
 export class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvidedProps, IAltinnIconButtonComponentState> {
   public render() {
     const { classes } = this.props;

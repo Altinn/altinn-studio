@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 namespace Altinn.Studio.Designer
 {
@@ -69,7 +72,6 @@ namespace Altinn.Studio.Designer
             });
 
             services.RegisterServiceImplementations(Configuration);
-            services.RegisterIntegrations(Configuration);
 
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
@@ -82,15 +84,27 @@ namespace Altinn.Studio.Designer
             services.ConfigureDataProtection(Configuration, _logger);
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
+            
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication(Configuration, CurrentEnvironment);
-
+            
             Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
 
             // Add application insight telemetry
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.ConfigureTelemetryModule<EventCounterCollectionModule>(
+                    (module, o) =>
+                    {
+                        module.Counters.Clear();
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
+                        module.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
+                    });
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
                 Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");
@@ -131,6 +145,27 @@ namespace Altinn.Studio.Designer
                 appBuilder.UseExceptionHandler("/error");
             }
 
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+            {
+                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+                string connectionString = string.Format(
+                    Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                    Configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
+
+                appBuilder.UseYuniql(
+                    new PostgreSqlDataService(traceService),
+                    new PostgreSqlBulkImportService(traceService),
+                    traceService,
+                    new Yuniql.AspNetCore.Configuration
+                    {
+                        Workspace = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                        ConnectionString = connectionString,
+                        IsAutoCreateDatabase = false,
+                        IsDebug = true
+                    });
+            }
+            
             Console.WriteLine($"// Program.cs // Configure // Trying to use static files.");
 
             appBuilder.UseStaticFiles(new StaticFileOptions

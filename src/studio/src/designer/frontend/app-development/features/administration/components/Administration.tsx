@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 
-import { createMuiTheme, createStyles, Grid, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -43,7 +43,7 @@ export interface IAdministrationComponentState {
   serviceNameAnchorEl: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   avatar: {
@@ -135,10 +135,10 @@ export class AdministrationComponent extends
     const { org, app } = altinnWindow;
 
     this.props.dispatch(HandleServiceInformationActions.fetchService(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchInitialCommit(
-      { url: `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}` },
+      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit` },
     ));
     this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
       { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },

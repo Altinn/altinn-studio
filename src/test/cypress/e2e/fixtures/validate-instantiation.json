@@ -1,0 +1,5 @@
+{
+  "valid": false,
+  "message": "The supplied party is not allowed to instantiate the application",
+  "validParties": []
+}

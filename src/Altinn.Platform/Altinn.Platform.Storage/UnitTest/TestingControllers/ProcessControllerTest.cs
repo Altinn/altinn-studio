@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
@@ -24,7 +25,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Moq;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
@@ -117,7 +120,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
 
             ProcessState state = new ProcessState();
-            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 1);
@@ -141,7 +144,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
 
             ProcessState state = new ProcessState();
-            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(-1, 1);
@@ -164,7 +167,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Arrange 
             string requestUri = $"storage/api/v1/instances/1337/20a1353e-91cf-44d6-8ff7-f68993638ffe/process/";
             ProcessState state = new ProcessState();
-            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetToken(3, 1337, 3);
@@ -196,7 +199,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 EndEvent = "EndEvent_1"
             };
 
-            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
 
             Mock<IInstanceRepository> repositoryMock = new Mock<IInstanceRepository>();
             repositoryMock.Setup(ir => ir.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(testInstance);
@@ -210,7 +213,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
             string responseContent = await response.Content.ReadAsStringAsync();
             Instance actual = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
-     
+
             // Assert
             Assert.True(actual.Status.IsArchived);
         }

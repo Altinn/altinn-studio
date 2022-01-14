@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-max-props-per-line */
-import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as moment from 'moment';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +14,7 @@ import { ConfigurationActions } from '../../../sharedResources/configuration/con
 import { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 
-const theme = createMuiTheme(StudioTheme);
+const theme = createTheme(StudioTheme);
 
 const styles = createStyles({
   deployContainer: {

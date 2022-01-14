@@ -1,6 +1,6 @@
 /* 
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/register/register.js 
+    Command: docker-compose run k6 run /src/tests/platform/negativetests/register.js 
     -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
 */
 

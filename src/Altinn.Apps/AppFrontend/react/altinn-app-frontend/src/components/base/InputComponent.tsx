@@ -15,11 +15,12 @@ export interface IInputBaseProps {
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
+  align?: 'right' | 'center' | 'left';
 }
 
 export interface IInputProps extends IInputBaseProps {
   formData: any;
-  isValid?: boolean
+  isValid?: boolean;
 }
 
 export interface IBasicInputProps extends IInputBaseProps {
@@ -35,12 +36,7 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
 }
 
 function NumberFormatCustom(props: IFormattedNumberInputProps) {
-  const {
-    inputRef,
-    onChange,
-    formatting,
-    ...rest
-  } = props;
+  const { inputRef, onChange, formatting, ...rest } = props;
 
   return (
     <NumberFormat
@@ -64,16 +60,15 @@ function NumberFormatCustom(props: IFormattedNumberInputProps) {
 export function BasicInputComponent(props: IBasicInputProps) {
   return (
     <>
-      <input
-        data-testid={props.id}
-        {...props}
-      />
+      <input data-testid={props.id} {...props} />
     </>
   );
 }
 
 export function InputComponent(props: IInputProps) {
-  const [value, setValue] = React.useState(props.formData ? props.formData : '');
+  const [value, setValue] = React.useState(
+    props.formData ? props.formData : '',
+  );
   const {
     id,
     readOnly,
@@ -104,13 +99,23 @@ export function InputComponent(props: IInputProps) {
       onChange={onDataChanged}
       readOnly={readOnly}
       required={required}
+      fullWidth={true}
       disableUnderline={true}
-      className={classNames('form-control',
-        { 'validation-error': !isValid, disabled: readOnly })}
       value={value}
       aria-describedby={`description-${props.id}`}
-      inputComponent={formatting?.number ? NumberFormatCustom : BasicInputComponent}
-      inputProps={{ formatting }}
+      inputComponent={
+        formatting?.number ? NumberFormatCustom : BasicInputComponent
+      }
+      inputProps={{
+        formatting,
+        className: classNames('form-control', {
+          'validation-error': !isValid,
+          disabled: readOnly,
+        }),
+        style: {
+          textAlign: formatting?.align,
+        },
+      }}
     />
   );
 }

@@ -25,4 +25,21 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.name).clear().type('abc').blur();
     cy.get(appFrontend.stateless.idnummer2).should('not.exist');
   });
+
+  it('Logout from appfrontend', () => {
+    cy.get(appFrontend.profileIconButton).should('be.visible').click();
+    cy.get(appFrontend.logOut).should('be.visible');
+    cy.get(appFrontend.logOutLink).should('exist').and('be.visible');
+  });
+
+  it('is possible to start app instance from stateless app', () => {
+    cy.intercept('POST', '**/instances/create').as('createInstance');
+    cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
+    cy.get(appFrontend.instantiationButton).should('be.visible').click();
+    cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
+    cy.wait('@getLayoutSettings');
+    cy.get(appFrontend.stateless.name).should('have.value', Cypress.env('firstName'));
+    cy.get(appFrontend.stateless.idnumber).should('have.value', '1364');
+    cy.get(appFrontend.sendinButton).should('be.visible');
+  });
 });

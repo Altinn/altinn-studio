@@ -1,140 +1,122 @@
 import * as React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button, createStyles, Grid, makeStyles } from '@material-ui/core';
-import { ISchemaEditor } from '@altinn/schema-editor/components/schemaEditor';
-import { ArchiveOutlined } from '@material-ui/icons';
+import { SchemaEditor } from '@altinn/schema-editor/index';
+import { ILanguage } from '@altinn/schema-editor/types';
 import { getLanguageFromKey } from '../../utils/language';
-import { deleteDataModel, fetchDataModel, createNewDataModel, saveDataModel } from './sagas';
-import { Create, Delete, SchemaSelect } from './components';
+import { deleteDataModel, fetchDataModel, createDataModel, saveDataModel } from './sagas';
+import { Create, Delete, SchemaSelect, XSDUpload } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
-import { sharedUrls } from '../../utils/urlHelper';
+import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
+import schemaPathIsSame from './functions/schemaPathIsSame';
+import { AltinnSpinner } from '../../components';
+import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
+import { IMetadataOption } from './functions/types';
 
-const useStyles = makeStyles(
-  createStyles({
-    root: {
-      marginLeft: 80,
-    },
-    schema: {
-      marginTop: 4,
-    },
-    button: {
-      margin: 4,
-    },
-    toolbar: {
-      background: '#fff',
-      padding: 8,
-      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      '& button': {
-        background: '#fff',
-      },
-    },
-  }),
-);
-
-interface IDataModellingContainerProps {
-  language: any;
-  SchemaEditor: (props: any) => JSX.Element;
+interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
+  language: ILanguage;
+  org: string;
+  repo: string;
+  createPathOption?: boolean;
 }
 
-function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const { SchemaEditor, language } = props;
+type shouldSelectFirstEntryProps = {
+  metadataOptions?: IMetadataOption[];
+  selectedOption?: any;
+  metadataLoadingState: LoadingState;
+};
+
+export const shouldSelectFirstEntry = ({
+  metadataOptions,
+  selectedOption,
+  metadataLoadingState,
+}: shouldSelectFirstEntryProps) => {
+  return (
+    metadataOptions?.length > 0 && selectedOption === undefined && metadataLoadingState === LoadingState.ModelsLoaded
+  );
+};
+
+function DataModelling({ language, org, repo, createPathOption }: IDataModellingContainerProps): JSX.Element {
   const dispatch = useDispatch();
-  const classes = useStyles();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
+  const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
+  const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
+  const [selectedOption, setSelectedOption] = React.useState(undefined);
 
-  const dataModelsMetadata = useSelector(createDataModelMetadataOptions, shallowEqual);
+  const uploadedOrCreatedFileName = React.useRef(null);
+  const prevFetchedOption = React.useRef(null);
 
-  const [selectedModelMetadata, setSelectedModelMetadata] = React.useState(null);
-  const schemaEditorRef = React.useRef<ISchemaEditor>(null);
+  const modelNames = metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
 
   React.useEffect(() => {
-    if (selectedModelMetadata?.value) {
-      const fetchModel = () => {
-        dispatch(fetchDataModel({ metadata: selectedModelMetadata }));
-      };
-      fetchModel();
+    if (metadataLoadingState === LoadingState.LoadingModels) {
+      setSelectedOption(undefined);
+    } else if (shouldSelectFirstEntry({ metadataOptions, selectedOption, metadataLoadingState })) {
+      setSelectedOption(metadataOptions[0]);
+    } else {
+      const option = findPreferredMetadataOption(metadataOptions, uploadedOrCreatedFileName.current);
+      if (option) {
+        setSelectedOption(option);
+        uploadedOrCreatedFileName.current = null;
+      }
     }
-  }, [selectedModelMetadata, dispatch]);
+  }, [metadataOptions, selectedOption, metadataLoadingState]);
 
-  React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!dataModelsMetadata?.length) { // no dataModels
-      return;
+  React.useEffect(() => {
+    if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
+      dispatch(fetchDataModel({ metadata: selectedOption }));
+      prevFetchedOption.current = selectedOption;
     }
-    if (!selectedModelMetadata?.label) { // automatically select if no label (on initial load)
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    }
-    if (!selectedModelMetadata) {
-      return;
-    }
-    const option = dataModelsMetadata.find(({ label }: { label: string }) => selectedModelMetadata.label === label);
-    if (selectedModelMetadata.label && selectedModelMetadata.value && !option) { // if the dataModel has been deleted
-      setSelectedModelMetadata(dataModelsMetadata[0]);
-    } else if (!selectedModelMetadata.value && option) { // if the model was recently created and saved
-      setSelectedModelMetadata(option);
-    }
-  }, [dataModelsMetadata, selectedModelMetadata]);
+  }, [selectedOption, dispatch]);
 
-  const onSchemaSelected = setSelectedModelMetadata;
-
-  const onSaveSchema = (schema: any) => {
-    const $id = sharedUrls().dataModelsApi + (selectedModelMetadata?.value?.repositoryRelativeUrl || `/App/models/${selectedModelMetadata.label}.schema.json`);
-    dispatch(saveDataModel({ schema: { ...schema, $id }, metadata: selectedModelMetadata }));
+  const handleSaveSchema = (schema: any) => {
+    dispatch(saveDataModel({ schema, metadata: selectedOption }));
   };
 
-  const createAction = (modelName: string) => {
-    dispatch(createNewDataModel({
-      modelName,
-      onNewNameCreated: (label: string) => {
-        setSelectedModelMetadata({ label });
-      },
-    }));
-  };
-  const getModelNames = () => {
-    return dataModelsMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+  const handleDeleteSchema = () => {
+    dispatch(deleteDataModel({ metadata: selectedOption }));
   };
 
-  const onSaveButtonClicked = () => {
-    schemaEditorRef.current?.onClickSaveJsonSchema();
+  const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
+    dispatch(createDataModel(model));
+    uploadedOrCreatedFileName.current = model.name;
+  };
+
+  const handleXSDUploaded = (filename: string) => {
+    const lowerCaseFileName = filename.toLowerCase();
+    const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
+    const schemaName = filename.substr(0, filenameWithoutXsd.length);
+
+    uploadedOrCreatedFileName.current = schemaName;
+    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
   return (
-    <div className={classes.root}>
-      <Grid container className={classes.toolbar}>
-        <Create
-          language={language}
-          buttonClass={classes.button}
-          createAction={createAction}
-          dataModelNames={getModelNames()}
-        />
-        <SchemaSelect
-          selectedOption={selectedModelMetadata}
-          onChange={onSchemaSelected}
-          options={dataModelsMetadata || []}
-        />
-        <Delete
-          schemaName={selectedModelMetadata?.value && selectedModelMetadata?.label}
-          deleteAction={() => dispatch(deleteDataModel({ metadata: selectedModelMetadata }))}
-          buttonClass={classes.button}
-          language={language}
-        />
-        <Button
-          onClick={onSaveButtonClicked}
-          type='button'
-          variant='contained'
-          startIcon={<ArchiveOutlined />}
-          className={classes.button}
-        >{getLanguageFromKey('schema_editor.save_data_model', language)}
-        </Button>
-      </Grid>
-      {jsonSchema && selectedModelMetadata?.label &&
-        <SchemaEditor
-          editorRef={schemaEditorRef}
-          language={language}
-          schema={jsonSchema}
-          onSaveSchema={onSaveSchema}
-          name={selectedModelMetadata.label}
-        />}
-    </div>
+    <SchemaEditor
+      language={language}
+      schema={jsonSchema}
+      onSaveSchema={handleSaveSchema}
+      name={selectedOption?.label}
+      LoadingComponent={<AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />}
+    >
+      <XSDUpload language={language} onXSDUploaded={handleXSDUploaded} org={org} repo={repo} />
+
+      <Create
+        language={language}
+        createAction={handleCreateSchema}
+        dataModelNames={modelNames}
+        createPathOption={createPathOption}
+      />
+      <SchemaSelect selectedOption={selectedOption} onChange={setSelectedOption} options={metadataOptions} />
+      <Delete
+        schemaName={selectedOption?.value && selectedOption?.label}
+        deleteAction={handleDeleteSchema}
+        language={language}
+      />
+    </SchemaEditor>
   );
 }
 export default DataModelling;
+
+DataModelling.defaultProps = {
+  createPathOption: false,
+};

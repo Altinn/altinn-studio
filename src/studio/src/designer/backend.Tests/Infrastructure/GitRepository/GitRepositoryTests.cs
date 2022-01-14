@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+
 using Designer.Tests.Utils;
+
 using Xunit;
 
 namespace Designer.Tests.Infrastructure.GitRepository
@@ -13,9 +15,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData(@"This should be read back with the same formatting!\n")]
         [InlineData(@"{""some"":""random"", ""json"":""value""}")]
         public async Task WriteTextByRelativePathAsync_ValidText_ShouldReadBackEqual(string expectedContent)
-        {   
+        {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
+            string repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", Guid.NewGuid().ToString(), "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var filename = $"{Guid.NewGuid()}.json";
@@ -28,7 +30,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             }
             finally
             {
-                gitRepository.DeleteFileByRelativePath(filename);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
             }
         }
 
@@ -39,8 +41,15 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [InlineData(@"app/models/HvemErHvem_SERES.schema.json")]
         [InlineData(@"/app/models/HvemErHvem_SERES.schema.json")]
         public async Task WriteTextByRelativePathAsync_ReadWriteRoundtrip_ShouldReadBackEqual(string expectedFilePath)
-        {            
-            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+        {
+            var org = "ttd";
+            var sourceRepository = "hvem-er-hvem";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var expectedContent = await gitRepository.ReadTextByRelativePathAsync(expectedFilePath);
 
@@ -48,13 +57,13 @@ namespace Designer.Tests.Infrastructure.GitRepository
             try
             {
                 await gitRepository.WriteTextByRelativePathAsync(filename, expectedContent);
-                var actualContent = await gitRepository.ReadTextByRelativePathAsync(filename); 
+                var actualContent = await gitRepository.ReadTextByRelativePathAsync(filename);
 
                 Assert.Equal(expectedContent, actualContent);
             }
             finally
             {
-                gitRepository.DeleteFileByRelativePath(filename);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
             }
         }
 
@@ -79,25 +88,33 @@ namespace Designer.Tests.Infrastructure.GitRepository
         [Fact]
         public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldCreateDirectory()
         {
-            Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+            var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", Guid.NewGuid().ToString(), "testUser");
+            var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var relativeFileUrl = "test_directory/should/be/created/deleteme.txt";
-
             Assert.False(gitRepository.FileExistsByRelativePath(relativeFileUrl));
 
-            await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should be here", true);
+            try
+            {
+                await gitRepository.WriteTextByRelativePathAsync(relativeFileUrl, "this file should be here", true);
 
-            Assert.True(gitRepository.FileExistsByRelativePath(relativeFileUrl));
-
-            TestDataHelper.DeleteDirectory(Path.Join(gitRepository.RepositoryDirectory, "test_directory"));            
+                Assert.True(gitRepository.FileExistsByRelativePath(relativeFileUrl));
+            }
+            finally
+            {
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+            }
         }
 
-        [Fact]
-        public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse()
+        [Theory]
+        [InlineData(@"this.dont.exists.schema.json")]
+        [InlineData(@"c:/this/should/not/exist/HvemErHvem.json")]
+        public void FileExistsByRelativePath_FileDontExits_ShouldReturnFalse(string relativePath)
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            Assert.False(gitRepository.FileExistsByRelativePath("this.dont.exists.schema.json"));
+            Assert.False(gitRepository.FileExistsByRelativePath(relativePath));
         }
 
         [Theory]
@@ -110,6 +127,63 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             Assert.True(gitRepository.FileExistsByRelativePath(relativePath));
+        }
+
+        [Fact]
+        public void DirectoryExistsByRelativePath_Directory_ShouldReturnFalse()
+        {
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            Assert.False(gitRepository.DirectoryExitsByRelativePath("c:/this/does/not/exists"));
+        }
+
+        [Fact]
+        public void CopyRepository_DirectoryAlreadyExists_AllFilesSuccessfullyCopied()
+        {
+            // Arrange
+            string targetPath = TestDataHelper.CreateEmptyDirectory("cloneDirectory");
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            try
+            {
+                // Act
+                gitRepository.CopyRepository(targetPath);
+                int actualFileCount = Directory.GetFiles(targetPath, "*", SearchOption.AllDirectories).Length;
+
+                // Assert
+                int expectedFileCount = Directory.GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories).Length;
+
+                Assert.Equal(expectedFileCount, actualFileCount);
+            }
+            finally
+            {
+                Directory.Delete(targetPath, true);
+            }
+        }
+
+        [Fact]
+        public void CopyRepository_DirDoestNotExists_DirCreatedAndFilesCopied()
+        {
+            // Arrange
+            string targetPath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}/newClonedApp";
+            var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
+
+            try
+            {
+                // Act
+                gitRepository.CopyRepository(targetPath);
+                int actualFileCount = Directory.GetFiles(targetPath, "*", SearchOption.AllDirectories).Length;
+
+                // Assert
+                int expectedFileCount = Directory.GetFiles(gitRepository.RepositoryDirectory, "*", SearchOption.AllDirectories).Length;
+
+                Assert.True(Directory.Exists(targetPath));
+                Assert.Equal(expectedFileCount, actualFileCount);
+            }
+            finally
+            {
+                Directory.Delete(targetPath, true);
+            }
         }
 
         private static Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository GetTestRepository(string org, string repository, string developer)

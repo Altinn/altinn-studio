@@ -3,10 +3,10 @@ import { createStyles,
   WithStyles,
   withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import { AltinnInput } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useAppSelector } from 'src/common/hooks';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({
   partySearchContainer: {
@@ -20,34 +20,26 @@ export interface IAltinnPartySearchProps extends WithStyles<typeof styles> {
 }
 
 function AltinnPartySearch(props: IAltinnPartySearchProps) {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
+  const language = useAppSelector(state => state.language.language);
 
   const [searchString, setSearchString] = React.useState('');
   const { classes, onSearchUpdated } = props;
 
   React.useEffect(() => {
     onSearchUpdated(searchString);
-  }, [searchString]);
+  }, [onSearchUpdated, searchString]);
 
-  function onChangeSearchString(e: any) {
+  const onChangeSearchString = (e: any) => {
     setSearchString(e.target.value);
-  }
+  };
 
   return (
     <Grid container={true} className={classes.partySearchContainer}>
       <AltinnInput
-        label={
-          !language.party_selection ?
-            'party_selection.search_placeholder' :
-            language.party_selection.search_placeholder
-        }
+        label={getLanguageFromKey('party_selection.search_placeholder', language)}
         showLabel={false}
         onChange={onChangeSearchString}
-        placeholder={
-          !language.party_selection ?
-            'party_selection.search_placeholder' :
-            language.party_selection.search_placeholder
-        }
+        placeholder={getLanguageFromKey('party_selection.search_placeholder', language)}
         iconString='fa fa-others'
       />
     </Grid>

@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
@@ -23,7 +23,7 @@ export interface IAltinnInformationCardComponentProvidedProps {
 export interface IAltinnInformationCardComponentState {
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createInformationCardStyles(theme, {
   subText1: {
@@ -43,14 +43,14 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
       direction='column'
       className={classes.root}
       spacing={0}
-      justify='center'
+      justifyContent='center'
       alignContent='center'
     >
       <Grid
         container={true}
         item={true}
         spacing={0}
-        justify='center'
+        justifyContent='center'
         alignContent='center'
         className={classNames(classes.scrollable)}
       >
@@ -93,7 +93,7 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
             <Grid
               container={true} sm={12}
               md={5} item={true}
-              spacing={0} justify='center'
+              spacing={0} justifyContent='center'
               alignContent='center'
             >
               <img alt='information' src={props.imageSource} />

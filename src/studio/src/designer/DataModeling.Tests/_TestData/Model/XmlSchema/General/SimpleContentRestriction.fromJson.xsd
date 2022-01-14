@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="Root">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="title" type="title" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:complexType name="title">
+    <xsd:simpleContent>
+      <xsd:restriction base="tokenWithLangAndNote">
+        <xsd:maxLength value="255" />
+        <xsd:attribute name="lang" type="xsd:language" />
+        <xsd:attribute name="note" type="xsd:token" />
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:complexType name="tokenWithLangAndNote">
+    <xsd:simpleContent>
+      <xsd:extension base="xsd:token">
+        <xsd:attribute name="lang" type="xsd:language" />
+        <xsd:attribute name="note" type="xsd:token" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+</xsd:schema>

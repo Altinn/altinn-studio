@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
@@ -7,7 +7,7 @@ export interface IIFrameComponentProvidedProps {
   classes: any;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   iFrameLayout: {

@@ -11,6 +11,7 @@ import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import classNames from 'classnames';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IAddressComponentProps {
   id: string;
@@ -23,7 +24,7 @@ export interface IAddressComponentProps {
   readOnly: boolean;
   required: boolean;
   labelSettings?: ILabelSettings;
-  language: any;
+  language: ILanguage;
   textResourceBindings: ITextResourceBindings;
   componentValidations?: IComponentValidations;
 }
@@ -103,12 +104,19 @@ export function AddressComponent(props: IAddressComponentProps) {
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData.zipCode]);
 
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {
     const validationErrors: IAddressValidationErrors = validate();
-    props.handleDataChange(value, key);
     setValidations(validationErrors);
+    if (!validationErrors[key]) {
+      props.handleDataChange(value, key);
+      if (key === AddressKeys.zipCode && !value) {
+        // if we are removing a zip code, also remove post place from form data
+        onBlurField(AddressKeys.postPlace, '');
+      }
+    }
   };
 
   const validate: () => IAddressValidationErrors = () => {
@@ -173,9 +181,12 @@ export function AddressComponent(props: IAddressComponentProps) {
 
     Object.keys(AddressKeys).forEach((fieldKey: string) => {
       if (!validationMessages[fieldKey]) {
-        validationMessages[fieldKey] = {
-          errors: [],
-          warnings: [],
+        validationMessages = {
+          ...validationMessages,
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          }
         };
       }
     });
@@ -189,9 +200,12 @@ export function AddressComponent(props: IAddressComponentProps) {
             validationMessages[fieldKey].errors.push(validations[fieldKey]);
           }
         } else {
-          validationMessages[fieldKey] = {
-            errors: [],
-            warnings: [],
+          validationMessages = {
+            ...validationMessages,
+            [fieldKey]: {
+              errors: [],
+              warnings: [],
+            }
           };
           validationMessages[fieldKey].errors = [validations[fieldKey]];
         }
@@ -209,7 +223,7 @@ export function AddressComponent(props: IAddressComponentProps) {
         {props.required || props.readOnly || props.labelSettings?.optionalIndicator === false || hideOptional ?
           null :
           <span className='label-optional'>
-            ({getLanguageFromKey('general.optional', props.language)})
+            {` (${getLanguageFromKey('general.optional', props.language)})`}
           </span>
         }
       </label>

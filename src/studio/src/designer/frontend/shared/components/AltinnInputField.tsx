@@ -1,4 +1,11 @@
-import { createMuiTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
+import {
+  createTheme,
+  createStyles,
+  FormControl,
+  TextField,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -27,13 +34,10 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
   error?: string;
   clearError?: () => void;
-  onReturn?: (e: KeyboardEventInit) => void;
+  onReturn?: React.KeyboardEventHandler;
 }
 
-export interface IAltinnInputFieldComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   inputHeader: {
@@ -70,8 +74,7 @@ const styles = createStyles({
   },
 });
 
-class AltinnInputFieldComponent extends
-  React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldComponentProvidedProps> {
   public textInput: any;
 
   public errorRef: any;
@@ -88,8 +91,9 @@ class AltinnInputFieldComponent extends
     }
   }
 
-  private onKeyDown(e: KeyboardEventInit) {
+  private onKeyDown(e: React.KeyboardEvent) {
     if (this.props.onReturn && e.key === 'Enter' && !this.props.error) {
+      e.preventDefault();
       this.props.onReturn(e);
     }
   }
@@ -97,31 +101,34 @@ class AltinnInputFieldComponent extends
   public render() {
     const { classes } = this.props;
     return (
-      <React.Fragment>
-        {this.props.inputHeader &&
+      <>
+        {this.props.inputHeader && (
           <Typography
-            style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)}
+            style={this.props.inputHeaderStyling}
+            className={classNames(classes.inputHeader)}
             variant='h2'
           >
             {this.props.inputHeader}
           </Typography>
-        }
-        {this.props.inputDescription &&
+        )}
+        {this.props.inputDescription && (
           <Typography
             style={this.props.inputDescriptionStyling}
-            className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}
+            className={classNames(classes.descriptionInput, {
+              [classes.marginTop_10]: this.props.inputHeader,
+            })}
           >
             {this.props.inputDescription}
           </Typography>
-        }
+        )}
         <FormControl
           classes={{
-            root: classNames(
-              classes.inputField,
-              { [classes.disabled]: this.props.isDisabled },
-              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader },
-              { [classes.fullWidth]: this.props.fullWidth },
-            ),
+            root: classNames(classes.inputField, {
+              [classes.disabled]: this.props.isDisabled,
+              [classes.marginTop_10]:
+                this.props.inputDescription || this.props.inputHeader,
+              [classes.fullWidth]: this.props.fullWidth,
+            }),
           }}
           style={this.props.inputFieldStyling}
           fullWidth={true}
@@ -142,17 +149,13 @@ class AltinnInputFieldComponent extends
             }}
             type={this.props.type}
             id={this.props.textFieldId}
-            onKeyDown={this.props.onReturn && ((e: KeyboardEventInit) => this.onKeyDown(e))}
+            onKeyDown={
+              this.props.onReturn &&
+              ((e: React.KeyboardEvent<HTMLDivElement>) => this.onKeyDown(e))
+            }
           />
-          <div ref={this.errorRef} />
-          <ErrorPopover
-            anchorEl={this.props.error ? this.errorRef.current : null}
-            onClose={this.props.clearError}
-            errorMessage={this.props.error}
-          />
-
         </FormControl>
-        {this.props.btnText &&
+        {this.props.btnText && (
           <AltinnButton
             btnText={this.props.btnText}
             secondaryButton={true}
@@ -160,8 +163,14 @@ class AltinnInputFieldComponent extends
             className={classNames(classes.btn)}
             disabled={!!this.props.error}
           />
-        }
-      </React.Fragment>
+        )}
+        <div ref={this.errorRef} />
+        <ErrorPopover
+          anchorEl={this.props.error ? this.errorRef.current : null}
+          onClose={this.props.clearError}
+          errorMessage={this.props.error}
+        />
+      </>
     );
   }
 }

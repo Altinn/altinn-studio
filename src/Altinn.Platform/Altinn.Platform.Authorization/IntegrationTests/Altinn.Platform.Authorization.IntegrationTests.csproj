@@ -6,10 +6,10 @@
   </PropertyGroup>
 
 <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.8" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.13" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.5" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -41,37 +41,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="Data\blobs\ttd\repository-test-app\policy.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\blobs\ttd\rf-0002\policy.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Policies\policy.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Roles\user_1\party_1000\roles.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0027Request.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0021EnrichedRequest.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0021Request.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\PolicyRepository\IIA003Policy.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\skd\taxreport\policy.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0009Request.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0001Request.xml">
+    <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="selfSignedTestCertificate.pfx">
@@ -83,8 +53,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\blobs\ttd\rf-0002\" />
-    <Folder Include="Data\Xacml\3.0\AltinnApps\testorg\testapp\" />
+    <Content Include="Data\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Data\blobs\input\skd\taxreport\1000\u20001337\delegationpolicy.xml" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App1Request.json" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App2Request.json" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationRequest.xml" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationResponse.xml" />
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@ export function* getMasterRepoStatusSaga({ payload: {
 } }: PayloadAction<IRepoStatusAction>): SagaIterator {
   try {
     const result = yield call(get,
-      `/designerapi/Repository/Branch?org=${org}&repository=${repo}&branch=master`);
+      `/designer/api/v1/repos/${org}/${repo}/branches/branch?branch=master`);
 
     yield put(RepoStatusActions.getMasterRepoStatusFulfilled({ result }));
   } catch (error) {

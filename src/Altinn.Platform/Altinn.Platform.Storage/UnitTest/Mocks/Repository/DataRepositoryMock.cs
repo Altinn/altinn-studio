@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 
 using Microsoft.Azure.Documents;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
@@ -92,13 +93,13 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return memoryStream.Length;
         }
 
-        private string GetDataElementsPath()
+        private static string GetDataElementsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements\");
         }
 
-        private string GetDataBlobPath()
+        private static string GetDataBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");

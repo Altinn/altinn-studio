@@ -2,21 +2,22 @@
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
 import React from 'react';
-import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
+import { Grid, makeStyles, createTheme } from '@material-ui/core';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayoutGroup } from '../layout';
 import { ITextResource } from '../../../types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupAddButton {
   container: ILayoutGroup;
-  language: any;
+  language: ILanguage;
   textResources: ITextResource[];
   onClickAdd: () => void;
   onKeypressAdd: (event: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
-const theme = createMuiTheme(altinnAppTheme);
+const theme = createTheme(altinnAppTheme);
 
 const useStyles = makeStyles({
   addButton: {
@@ -60,7 +61,7 @@ export function RepeatingGroupAddButton({
     <Grid
       container={true}
       direction='row'
-      justify='center'
+      justifyContent='center'
     >
       <Grid
         item={true}
@@ -72,7 +73,7 @@ export function RepeatingGroupAddButton({
         tabIndex={0}
         onClick={onClickAdd}
         onKeyPress={(event) => onKeypressAdd(event)}
-        justify='center'
+        justifyContent='center'
         alignItems='center'
       >
         <Grid item={true}>

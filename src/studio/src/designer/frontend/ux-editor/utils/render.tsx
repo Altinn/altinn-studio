@@ -23,7 +23,7 @@ export const styles = {
   },
 };
 
-const selectStyles = {
+export const selectStyles = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
@@ -89,11 +89,9 @@ export function renderSelectGroupDataModelBinding(
       {renderPropertyLabel(language.ux_editor.modal_properties_data_model_helper)}
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
-        // tslint:disable-next-line:jsx-no-lambda
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         language={language}
         selectGroup={true}
-        // tslint:disable-next-line:jsx-no-lambda
         noOptionsMessage={() => noOptionsMessage(language)}
       />
     </div>

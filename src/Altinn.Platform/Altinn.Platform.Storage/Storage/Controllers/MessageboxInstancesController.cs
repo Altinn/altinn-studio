@@ -149,8 +149,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<Instance> allInstances = queryResponse.Instances;
+            await RemoveHiddenInstances(allInstances);
 
-            allInstances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
+            if (!allInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
 
             allInstances.ForEach(i =>
             {
@@ -162,6 +166,12 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<MessageBoxInstance> authorizedInstances =
                     await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+
+            if (!authorizedInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
             List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
@@ -419,7 +429,7 @@ namespace Altinn.Platform.Storage.Controllers
             return new StringValues(appIds.ToArray());
         }
 
-        private void GetStatusFromQueryParams(
+        private static void GetStatusFromQueryParams(
            bool includeActive,
            bool includeArchived,
            bool includeDeleted,
@@ -459,6 +469,21 @@ namespace Altinn.Platform.Storage.Controllers
             queryParams.Remove(nameof(includeActive));
             queryParams.Remove(nameof(includeArchived));
             queryParams.Remove(nameof(includeDeleted));
+        }
+
+        private async Task RemoveHiddenInstances(List<Instance> instances)
+        {
+            List<string> appIds = instances.Select(i => i.AppId).Distinct().ToList();
+            Dictionary<string, Application> apps = new();
+
+            foreach (string id in appIds)
+            {
+                apps.Add(id, await _applicationRepository.FindOne(id, id.Split("/")[0]));
+            }
+
+            instances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
+
+            InstanceHelper.RemoveHiddenInstances(apps, instances);
         }
     }
 }
