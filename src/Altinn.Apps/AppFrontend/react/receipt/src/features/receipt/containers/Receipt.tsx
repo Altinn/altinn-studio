@@ -65,6 +65,14 @@ const styles = () =>
     },
   });
 
+const cancelSignalMessage = 'canceled';
+
+const logFetchError = (error: any) => {
+  if (error?.message !== cancelSignalMessage) {
+    console.error(error);
+  }
+};
+
 function Receipt(props: WithStyles<typeof styles>) {
   const [party, setParty] = React.useState<IParty>(null);
   const [instance, setInstance] = React.useState<IInstance>(null);
@@ -104,15 +112,21 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   React.useEffect(() => {
+    const appAbortController = new AbortController();
+    const textAbortController = new AbortController();
+
     const fetchApplication = async () => {
       try {
         const app = instance.appId.split('/')[1];
         const response = await Axios.get<IApplication>(
           getApplicationMetadataUrl(instance.org, app),
+          {
+            signal: appAbortController.signal,
+          },
         );
         setApplication(response.data);
       } catch (error) {
-        console.error(error);
+        logFetchError(error);
       }
     };
 
@@ -125,11 +139,14 @@ function Receipt(props: WithStyles<typeof styles>) {
             app,
             user.profileSettingPreference.language,
           ),
+          {
+            signal: textAbortController.signal,
+          },
         );
 
         setTextResources(response.data.resources);
       } catch (error) {
-        console.error(error);
+        logFetchError(error);
         setTextResources([]);
       }
     };
@@ -154,42 +171,49 @@ function Receipt(props: WithStyles<typeof styles>) {
     if (!textResources && instance && user) {
       fetchTextResources();
     }
+
+    return () => {
+      appAbortController.abort();
+      textAbortController.abort();
+    };
   }, [instance, application, user, textResources]);
 
   React.useEffect(() => {
-    const appCancelToken = Axios.CancelToken.source();
-    const orgCancelToken = Axios.CancelToken.source();
-    const userCancelToken = Axios.CancelToken.source();
+    const instanceAbortController = new AbortController();
+    const orgAbortController = new AbortController();
+    const userAbortController = new AbortController();
 
     const fetchInitialData = async () => {
       try {
-        const [appResponse, orgResponse, userResponse] = await Promise.all([
-          Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
-            cancelToken: appCancelToken.token,
-          }),
-          Axios.get(altinnOrganisationsUrl, {
-            cancelToken: orgCancelToken.token,
-          }),
-          Axios.get<IProfile>(getUserUrl(), {
-            cancelToken: userCancelToken.token,
-          }),
-        ]);
+        const [instanceResponse, orgResponse, userResponse] = await Promise.all(
+          [
+            Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
+              signal: instanceAbortController.signal,
+            }),
+            Axios.get(altinnOrganisationsUrl, {
+              signal: orgAbortController.signal,
+            }),
+            Axios.get<IProfile>(getUserUrl(), {
+              signal: userAbortController.signal,
+            }),
+          ],
+        );
 
-        setParty(appResponse.data.party);
-        setInstance(appResponse.data.instance);
+        setParty(instanceResponse.data.party);
+        setInstance(instanceResponse.data.instance);
         setOrganisations(orgResponse.data);
         setUser(userResponse.data);
       } catch (error) {
-        console.error(error);
+        logFetchError(error);
       }
     };
 
     fetchInitialData();
 
     return () => {
-      appCancelToken.cancel();
-      orgCancelToken.cancel();
-      userCancelToken.cancel();
+      instanceAbortController.abort();
+      orgAbortController.abort();
+      userAbortController.abort();
     };
   }, []);
 
