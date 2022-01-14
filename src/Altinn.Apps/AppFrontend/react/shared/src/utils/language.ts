@@ -137,6 +137,9 @@ export function replaceTextResourceParams(
         else if (variable.dataSource === 'applicationSettings') {
           replaceValues.push(dataSources.applicationSettings[variable.key] || variable.key);
         }
+        else if (variable.dataSource === 'appContext') {
+          replaceValues.push(dataSources.appContext[variable.key] || variable.key);
+        }
       });
 
       const newValue = replaceParameters(resource.unparsedValue, replaceValues);

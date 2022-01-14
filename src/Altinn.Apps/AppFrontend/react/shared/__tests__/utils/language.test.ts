@@ -7,11 +7,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   let mockDataSources: IDataSources;
   let mockDataSource: IDataSource;
   let mockApplicationSettings: IApplicationSettings;
+  let mockAppContext: IDataSource;
   let adjectiveValue: string;
   let colorValue: string;
   let animal0Value: string;
   let animal1Value: string;
   let homeBaseUrl: string;
+  let instanceOwnerPartyId: number;
 
   beforeEach(() => {
     adjectiveValue = 'awesome';
@@ -19,6 +21,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     animal0Value = 'dog';
     animal1Value = 'cat';
     homeBaseUrl = 'https://www.testdirektoratet.no';
+    instanceOwnerPartyId = 234323;
     mockDataSource = {
       'model.text.adjective': adjectiveValue,
       'model.text.color': colorValue,
@@ -28,9 +31,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     mockApplicationSettings = {
       'homeBaseUrl': homeBaseUrl,
     };
+    mockAppContext = {
+      'instanceOwnerPartyId': instanceOwnerPartyId,
+    };
     mockDataSources = {
       dataModel: mockDataSource,
-      applicationSettings: mockApplicationSettings
+      applicationSettings: mockApplicationSettings,
+      appContext: mockAppContext,
     };
     mockTextResources = [];
   });
@@ -181,6 +188,22 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
     expect(textResource.value).toEqual(`This is a [link](doesnotexists).`);
+  });
+
+  it('+++ should replace text from app context', () => {
+    mockTextResources = [
+      {
+        id: 'mockId',
+        value: 'This is a [link]({0}).',
+        unparsedValue: 'This is a [link]({0}).',
+        variables: [
+          { key: 'instanceOwnerPartyId', dataSource: 'appContext' },
+        ],
+      },
+    ];
+    replaceTextResourceParams(mockTextResources, mockDataSources);
+    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    expect(textResource.value).toEqual(`This is a [link](${instanceOwnerPartyId}).`);
   });
 
   it('+++ should replace text in a reapeating group based on appsettings', () => {
