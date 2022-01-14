@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
@@ -177,6 +178,49 @@ namespace App.IntegrationTests.ApiTests
 
         [Fact]
         public async Task Proceess_End_AfterNext_OK()
+        {
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            string token = PrincipalUtil.GetToken(1337);
+
+            string instancePath = "/tdd/endring-av-navn/instances/1337/26233fb5-a9f2-45d4-90b1-f6d93ad40713";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            ProcessState status = JsonConvert.DeserializeObject<ProcessState>(responseContent);
+
+            Assert.NotNull(status.Ended);
+            Assert.Null(status.CurrentTask);
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}");
+            response = await client.SendAsync(httpRequestMessage);
+
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance resultInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal(2, resultInstance.Data.Count);
+
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+        }
+
+        [Fact]
+        public async Task Proceess_End_AfterNextV2_OK()
         {
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));

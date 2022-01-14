@@ -17,12 +17,14 @@ export interface IDashboardState {
   user?: User;
   /* all, self or org-id*/
   selectedContext: SelectedContext;
+  repoRowsPerPage: number;
 }
 
-const initialState: IDashboardState = {
+export const initialState: IDashboardState = {
   services: [],
   user: null,
   selectedContext: SelectedContextType.Self,
+  repoRowsPerPage: 5,
 };
 
 export interface IFetchDashboardInfoAction {
@@ -39,6 +41,10 @@ export interface IFetchDashboardInfoActionRejected {
 
 export interface ISetSelectedContext {
   selectedContext: SelectedContext;
+}
+
+export interface IRepoRowsPerPageChanged {
+  repoRowsPerPage: number;
 }
 
 const moduleName = 'dashboard';
@@ -64,6 +70,10 @@ const dashboardSlice = createSlice({
       const { selectedContext } = action.payload;
       state.selectedContext = selectedContext;
     },
+    repoRowsPerPageChanged: (state, action: PayloadAction<IRepoRowsPerPageChanged>) => {
+      const { repoRowsPerPage } = action.payload;
+      state.repoRowsPerPage = repoRowsPerPage;
+    }
   },
 });
 
