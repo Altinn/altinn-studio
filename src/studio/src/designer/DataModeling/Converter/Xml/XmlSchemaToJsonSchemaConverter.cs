@@ -64,7 +64,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 builder.XsdUnhandledAttributes(schema.UnhandledAttributes.Select(a => (a.Name, a.Value)));
             }
 
-            List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)> items = new List<(string name, JsonSchemaBuilder schema, bool potentialRootElement)>();
+            List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)> items = new List<(string Name, JsonSchemaBuilder Schema, bool PotentialRootElement)>();
 
             foreach (XmlSchemaObject item in schema.Items.Cast<XmlSchemaObject>())
             {
@@ -100,11 +100,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
             }
 
-            var potentialRoots = items.Where(item => item.potentialRootElement).ToList();
-            (string name, JsonSchema schema)? root = null;
+            var potentialRoots = items.Where(item => item.PotentialRootElement).ToList();
+            (string Name, JsonSchema Schema)? root = null;
             if (potentialRoots.Count > 0)
             {
-                root = (potentialRoots[0].name, potentialRoots[0].schema);
+                root = (potentialRoots[0].Name, potentialRoots[0].Schema);
             }
 
             if (root.HasValue)
@@ -128,8 +128,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             var definitions = items
-                .Where(def => def.name != root?.name)
-                .Select(def => (def.name, def.schema.Build()))
+                .Where(def => def.Name != root?.Name)
+                .Select(def => (def.Name, def.Schema.Build()))
                 .ToArray();
 
             if (definitions.Any())
@@ -1256,7 +1256,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
         private class PropertiesBuilder
         {
-            private readonly List<(string name, JsonSchema schema, bool required)> _properties = new List<(string name, JsonSchema schema, bool required)>();
+            private readonly List<(string Name, JsonSchema Schema, bool Required)> _properties = new List<(string Name, JsonSchema Schema, bool Required)>();
 
             public void Add(string name, JsonSchema schema, bool required)
             {
@@ -1267,8 +1267,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 if (_properties.Count > 0)
                 {
-                    (string name, JsonSchema schema)[] currentProperties = _properties.Select(prop => (prop.name, prop.schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.required).Select(prop => prop.name).ToArray();
+                    (string Name, JsonSchema Schema)[] currentProperties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
+                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
                     steps.Add(b =>
                     {
                         b.Properties(currentProperties);
@@ -1285,8 +1285,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 if (_properties.Count > 0)
                 {
-                    (string name, JsonSchema schema)[] properties = _properties.Select(prop => (prop.name, prop.schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.required).Select(prop => prop.name).ToArray();
+                    (string Name, JsonSchema Schema)[] properties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
+                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
 
                     builder.Properties(properties);
                     if (required.Length > 0)
