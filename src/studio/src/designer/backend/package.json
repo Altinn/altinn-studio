@@ -26,7 +26,7 @@
     "bootstrap": "^4.6.1",
     "bootstrap-list-filter": "^0.3.4",
     "jquery": "^3.6.0",
-    "jquery-ui-dist": "^1.12.1",
+    "jquery-ui-dist": "^1.13.0",
     "jquery-validation": "^1.19.3",
     "jquery-validation-unobtrusive": "^3.2.12",
     "js-beautify": "^1.14.0",

@@ -195,7 +195,8 @@ namespace Altinn.Authorization.ABAC.Utils
                             isRequired: true);
                         reader.ReadEndElement();
                         return new XacmlContextRequestReference(refer);
-                    }, reader,
+                    },
+                    reader,
                     isRequired: true);
 
                 reader.ReadEndElement();
@@ -962,7 +963,8 @@ namespace Altinn.Authorization.ABAC.Utils
                         true);
                     a.ReadEndElement();
                     return new XacmlAnyOf(am);
-                }, reader,
+                },
+                reader,
                 false);
 
             reader.ReadEndElement();
