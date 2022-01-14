@@ -22,7 +22,7 @@ export const OrgReposList = () => {
     (state) => state.dashboard.selectedContext,
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
-  const { data: orgs } = useGetOrganizationsQuery();
+  const { data: orgs = [] } = useGetOrganizationsQuery()
   const [page, setPage] = React.useState(0);
   const uid = getUidFilter({ selectedContext, userId });
 
