@@ -96,7 +96,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
         {
-            StringBuilder apiUrl = new ($"instances?");
+            StringBuilder apiUrl = new($"instances?");
 
             foreach (var queryParameter in queryParams)
             {
@@ -114,7 +114,7 @@ namespace Altinn.App.Services.Implementation
                 return new List<Instance>();
             }
 
-            List<Instance> instances = new ();
+            List<Instance> instances = new();
 
             instances.AddRange(queryResponse.Instances);
 

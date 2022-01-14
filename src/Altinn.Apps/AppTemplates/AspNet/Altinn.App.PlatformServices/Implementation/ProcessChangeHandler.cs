@@ -416,7 +416,7 @@ namespace Altinn.App.Core.Implementation
             }
         }
 
-        private ProcessState Copy(ProcessState original)
+        private static ProcessState Copy(ProcessState original)
         {
             ProcessState processState = new ProcessState();
 
