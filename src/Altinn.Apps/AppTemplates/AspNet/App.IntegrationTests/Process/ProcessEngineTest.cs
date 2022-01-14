@@ -80,6 +80,44 @@ namespace App.IntegrationTestsRef.Process
             Assert.Contains("The proposed next element id 'Task_10' is", processChangeContext.ProcessMessages[0].Message);
         }
 
+        [Fact]
+        public async void StartStartedTask()
+        {
+            ProcessAppSI processAppSI = GetProcessService();
+
+            ProcessEngine processEngine = new ProcessEngine(null, processAppSI);
+
+            Instance instance = new Instance();
+            instance.Process = new ProcessState();
+            instance.Process.CurrentTask = new ProcessElementInfo() { ElementId = "Task_1" };
+
+            ProcessChangeContext processChangeContext = new ProcessChangeContext(instance, null);
+            processChangeContext.RequestedProcessElementId = "Task_10";
+
+            processChangeContext = await processEngine.StartProcess(processChangeContext);
+
+            Assert.True(processChangeContext.FailedProcessChange);
+            Assert.Contains("Process is already started. Use next.", processChangeContext.ProcessMessages[0].Message);
+        }
+
+        [Fact]
+        public async void InvalidStartEvent()
+        {
+            ProcessAppSI processAppSI = GetProcessService();
+
+            ProcessEngine processEngine = new ProcessEngine(null, processAppSI);
+
+            Instance instance = new Instance();
+            
+            ProcessChangeContext processChangeContext = new ProcessChangeContext(instance, null);
+            processChangeContext.RequestedProcessElementId = "Task_10";
+
+            processChangeContext = await processEngine.StartProcess(processChangeContext);
+
+            Assert.True(processChangeContext.FailedProcessChange);
+            Assert.Contains("No matching startevent", processChangeContext.ProcessMessages[0].Message);
+        }
+
         private static ProcessAppSI GetProcessService()
         {
             AppSettings appSettings = new AppSettings();
@@ -93,7 +131,6 @@ namespace App.IntegrationTestsRef.Process
             ProcessAppSI processAppSI = new ProcessAppSI(plattformSettings0, appSettingsO, null, null, null, new System.Net.Http.HttpClient());
             return processAppSI;
         }
-
 
         private static string GetAppPath(string org, string app)
         {
