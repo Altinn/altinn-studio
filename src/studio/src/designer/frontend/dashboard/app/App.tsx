@@ -18,8 +18,10 @@ import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import Header, {
   IHeaderContext,
   HeaderContext,
+  SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
 
+import { userHasAccessToSelectedContext } from 'common/utils';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import { CenterContainer } from 'common/components/CenterContainer';
@@ -44,7 +46,7 @@ export const App = () => {
   const selectedContext = useAppSelector(
     (state) => state.dashboard.selectedContext,
   );
-  const { data, isLoading: isLoadingOrganizations } =
+  const { data: orgs = [], isLoading: isLoadingOrganizations } =
     useGetOrganizationsQuery();
 
   const setSelectedContext = (newSelectedContext: SelectedContext) => {
@@ -55,8 +57,15 @@ export const App = () => {
     );
   };
 
+  if (
+    !isLoadingOrganizations &&
+    !userHasAccessToSelectedContext({ selectedContext, orgs })
+  ) {
+    setSelectedContext(SelectedContextType.Self);
+  }
+
   const headerContextValue: IHeaderContext = {
-    selectableOrgs: data,
+    selectableOrgs: orgs,
     selectedContext,
     setSelectedContext,
     user,
