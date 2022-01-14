@@ -95,13 +95,17 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   }
 
   if (domainSplitted.length === 5) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
+    );
   }
 
   if (domainSplitted.length === 4) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
+    );
   }
 
   // TODO: what if altinn3?
@@ -191,3 +195,12 @@ export function getActiveInstancesUrl(partyId: string) {
 export function getInstanceUiUrl(instanceId: string) {
   return `${appPath}#/instance/${instanceId}`;
 }
+
+export const jsonToQueryParams = (json) => {
+  const str = [];
+  Object.keys(json).forEach((key) => {
+    str.push(`${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`);
+  });
+
+  return `?${str.join('&')}`;
+};
