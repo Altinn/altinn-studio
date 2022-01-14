@@ -17,18 +17,26 @@
     </bpmn:task>
     <bpmn:task id="Task_2" name="Utfylling" altinn:tasktype="data">
       <bpmn:incoming>SequenceFlow_2</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_6</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
     </bpmn:task>
     <bpmn:task id="Task_3" name="Bekreft" altinn:tasktype="confirm">
       <bpmn:incoming>SequenceFlow_3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
     </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1" default="SequenceFlow_5">
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
     <bpmn:endEvent id="EndEvent_1">
       <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
     <bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
     <bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="Task_3" />
-    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="Gateway_1" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="Gateway_1" targetRef="Task_2" altinn:flowtype="AbandonCurrentReturnToNext" />
   </bpmn:process>
 </bpmn:definitions>

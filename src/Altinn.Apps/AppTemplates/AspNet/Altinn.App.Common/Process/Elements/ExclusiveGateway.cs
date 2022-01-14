@@ -4,38 +4,38 @@ using System.Xml.Serialization;
 namespace Altinn.App.Common.Process.Elements
 {
     /// <summary>
-    /// Class representing the task of a process
+    /// Represents an exclusive gateway from a BPMN process definition.
     /// </summary>
-    public class ProcessTask
+    public class ExclusiveGateway
     {
         /// <summary>
-        /// Gets or sets the ID of a task
+        /// Gets or sets the id of the exclusive gateway.
         /// </summary>
         [XmlAttribute("id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of a task
+        /// Gets or sets the name of the exclusive gateway.
         /// </summary>
         [XmlAttribute("name")]
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the incoming id of a task
+        /// Get or sets the default path of the exclusive gateway.
+        /// </summary>
+        [XmlAttribute("default")]
+        public string Default { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of sequence flows that leads to this exclusive gateway.
         /// </summary>
         [XmlElement("incoming")]
         public List<string> Incoming { get; set; }
 
         /// <summary>
-        /// Gets or sets the outgoing id of a task
+        /// Gets or sets the list of sequence flows that leads out of this exclusive gateway.
         /// </summary>
         [XmlElement("outgoing")]
         public List<string> Outgoing { get; set; }
-
-        /// <summary>
-        /// Gets or sets the outgoing id of a task
-        /// </summary>
-        [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
-        public string TaskType { get; set; }
     }
 }
