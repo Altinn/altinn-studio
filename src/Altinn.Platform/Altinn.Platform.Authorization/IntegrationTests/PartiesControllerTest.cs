@@ -1,17 +1,9 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Platform.Authorization.Constants;
-using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
-using Altinn.Platform.Authorization.Models;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
