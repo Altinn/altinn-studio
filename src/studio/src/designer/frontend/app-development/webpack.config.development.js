@@ -31,11 +31,19 @@ module.exports = {
           loader: 'svg-inline-loader',
         },
       },
-
       {
         enforce: 'pre',
         test: /\.js$/,
         loader: 'source-map-loader',
+      },
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: true },
+          },
+        ],
       },
     ],
   },

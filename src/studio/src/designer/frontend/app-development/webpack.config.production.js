@@ -20,7 +20,17 @@ module.exports = {
     ],
   },
   module: {
-    rules: [...commonConfig.module.rules],
+    rules: [
+      ...commonConfig.module.rules,
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+          },
+        ],
+      },
+    ],
   },
   plugins: [
     ...commonConfig.plugins,
