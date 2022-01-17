@@ -3,11 +3,7 @@
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
-    "lib": [
-      "es6",
-      "dom",
-      "es2019.Array"
-    ],
+    "lib": ["es6", "dom", "es2019.Array"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -18,31 +14,14 @@
     "noImplicitAny": true,
     "strictNullChecks": false,
     "noUnusedLocals": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "app-shared/*": [
-        "../shared/*"
-      ],
-      "@altinn/schema-editor/*": [
-        "../packages/schema-editor/src/*"
-      ]
-    },
-    "resolveJsonModule": true
+      "app-shared/*": ["../shared/*"],
+      "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
+      "services/*": ["./src/services/*"]
+    }
   },
-  "include": [
-    "./**/*",
-    "../shared/**/*",
-    "../ux-editor/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "public",
-    "build",
-    "test",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "setupTests.ts"
-  ],
+  "include": ["./**/*", "../shared/**/*", "../ux-editor/**/*"],
+  "exclude": ["node_modules"]
 }

@@ -253,11 +253,6 @@ namespace Altinn.Platform.Authorization.Helpers
                 }
             }
 
-            foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
-            {
-                delegationPolicy.ObligationExpressions.Add(obligation);
-            }
-
             return delegationPolicy;
         }
 
@@ -276,13 +271,12 @@ namespace Altinn.Platform.Authorization.Helpers
             rule.RuleId = Guid.NewGuid().ToString();
             
             string coveredBy = coveredByPartyId.HasValue ? coveredByPartyId.Value.ToString() : coveredByUserId.Value.ToString();
-            XacmlRule delegationRule = new XacmlRule($"{AltinnXacmlConstants.Prefixes.RuleId}{rule.RuleId}", XacmlEffectType.Permit)
+            XacmlRule delegationRule = new XacmlRule(rule.RuleId, XacmlEffectType.Permit)
             {
-                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}"
+                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}",
+                Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy)
             };
 
-            delegationRule.Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy);
-            
             return delegationRule;
         }
 
@@ -384,8 +378,13 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 if (rule.Effect.Equals(XacmlEffectType.Permit) && rule.Target != null)
                 {
-                    List<string> policyKeys = GetResourcePoliciesFromRule(resourcePolicies, rule);
                     List<RoleGrant> roles = GetRolesFromRule(rule);
+                    if (roles.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    List<string> policyKeys = GetResourcePoliciesFromRule(resourcePolicies, rule);
                     List<ResourceAction> actions = GetActionsFromRule(rule, roles);
 
                     foreach (string policyKey in policyKeys)
@@ -403,6 +402,29 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return resourcePolicies.Values.ToList();
+        }
+
+        /// <summary>
+        /// Gets the authentication level requirement from the obligation expression of the XacmlPolicy if specified 
+        /// </summary>
+        /// <param name="policy">The policy</param>
+        /// <returns>Minimum authentication level requirement</returns>
+        public static int GetMinimumAuthenticationLevelFromXacmlPolicy(XacmlPolicy policy)
+        {
+            foreach (XacmlObligationExpression oblExpr in policy.ObligationExpressions)
+            {
+                foreach (XacmlAttributeAssignmentExpression attrExpr in oblExpr.AttributeAssignmentExpressions)
+                {
+                    if (attrExpr.Category.OriginalString == AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel &&
+                        attrExpr.Property is XacmlAttributeValue attrValue &&
+                        int.TryParse(attrValue.Value, out int minAuthLevel))
+                    {
+                        return minAuthLevel;
+                    }
+                }
+            }
+
+            return 0;
         }
 
         private static void AddActionsToResourcePolicy(List<ResourceAction> actions, ResourcePolicy resourcePolicy)

@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.20.0</Version>
-    <AssemblyVersion>4.20.0.0</AssemblyVersion>
+    <Version>4.23.0</Version>
+    <AssemblyVersion>4.23.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.0" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

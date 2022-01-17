@@ -8,7 +8,7 @@ import * as React from 'react';
 import { AltinnLogo } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
-import { IProfile } from 'altinn-shared/types';
+import { ILanguage, IProfile } from 'altinn-shared/types';
 import {
   returnUrlToAllSchemas,
   returnUrlToProfile,
@@ -17,7 +17,7 @@ import { renderParty } from '../resources/utils/party';
 
 export interface IHeaderProps {
   classes: any;
-  language: any;
+  language: ILanguage;
   profile: IProfile;
   type?: string;
 }

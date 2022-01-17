@@ -69,11 +69,13 @@ docker-compose down
 ##### Setting up local platform services for test
 
 1. Navigate to the `development` folder in the altinn-studio repo
+
    ```bash
    cd src/development
    ```
 
 2. Start the loadbalancer container that routes between the local platform services and the app
+
    ```bash
    docker-compose up -d --build
    ```
@@ -129,10 +131,9 @@ docker-compose down
      - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
 
      ```bash
-     npm install # only needed first time, or when dependencies are updated
-     npm run install-deps # only needed first time, or when dependencies are updated
+     yarn --immutable # only needed first time, or when dependencies are updated
      cd altinn-app-frontend
-     npm start
+     yarn start
      ```
 
 6. Start the app locally
@@ -148,13 +149,13 @@ Log in with a test user, using your app name and org name. This will redirect yo
 
 #### Building other react apps
 
-If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/react-apps/applications/dashboard` and then run the following build script
+If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/stc/designer/frontend/dashboard` and then run the following build script
 
 ```bash
-npm run build
+yarn run build
 ```
 
-Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/react-apps/applications/dashboard/package.json`
+Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/stc/designer/frontend/dashboard/package.json`
 
 #### Platform Receipt
 
@@ -163,10 +164,10 @@ The platform receipt component can run locally, both in docker and manually.
 ##### Manual
 
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
-- run `npm install`
-- run `npm run gulp` (if running for the first time, otherwise this can be skipped)
-- run `npm run gulp-install-deps`
-- run `npm run gulp-develop`
+- run `yarn --immutable`
+- run `yarn run gulp-install-deps`
+- run `yarn run gulp` (if running for the first time, otherwise this can be skipped)
+- run `yarn run gulp-develop`
 
 This will build and run receipt back end, and build and copy the receipt frontend to the `wwwroot` folder.
 The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
@@ -184,7 +185,7 @@ The script wil also listen to changes in the receipt react app, rebuild and copy
 
 [Integration tests](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress) for local studio.
 
-### Frontent lint and unit tests
+### Frontend lint and unit tests
 
 See readme in [studio](/src/studio/README.md#running-the-tests) and [Altinn.Apps AppFrontend](/src/Altinn.Apps/AppFrontend/react/README.md#running-the-tests) projects for details on how to run these tests.
 
@@ -198,7 +199,7 @@ Automated build/deploy process is being developed.
 
 - [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
-- [npm](https://www.npmjs.com/) - Package management
+- [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 

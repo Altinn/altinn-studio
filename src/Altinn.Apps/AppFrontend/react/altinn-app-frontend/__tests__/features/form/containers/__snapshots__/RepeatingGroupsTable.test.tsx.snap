@@ -1,0 +1,216 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`features > form > containers > RepeatingGroupTable.tsx should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root MuiGrid-container MuiGrid-item"
+    data-testid="group-mock-container-id"
+    id="group-mock-container-id"
+  >
+    <div
+      class="MuiGrid-root MuiTableContainer-root"
+      id="group-mock-container-id-table-container"
+    >
+      <table
+        class="MuiTable-root makeStyles-table-3"
+        id="group-mock-container-id-table"
+      >
+        <thead
+          class="MuiTableHead-root makeStyles-tableHeader-5"
+          id="group-mock-container-id-table-header"
+        >
+          <tr
+            class="MuiTableRow-root MuiTableRow-head"
+          >
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft"
+              scope="col"
+            >
+              Title1
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft"
+              scope="col"
+            >
+              Title2
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft"
+              scope="col"
+            >
+              Title3
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft"
+              scope="col"
+            >
+              Title4
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            />
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root makeStyles-tableBody-6"
+          id="group-mock-container-id-table-body"
+        >
+          <tr
+            class="MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root"
+                style="color: rgb(0, 98, 186); font-weight: 700;"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  general.edit_alt
+                  <i
+                    class="fa fa-edit makeStyles-editIcon-2"
+                  />
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root"
+                style="color: rgb(0, 98, 186); font-weight: 700;"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  general.edit_alt
+                  <i
+                    class="fa fa-edit makeStyles-editIcon-2"
+                  />
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root"
+                style="color: rgb(0, 98, 186); font-weight: 700;"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  general.edit_alt
+                  <i
+                    class="fa fa-edit makeStyles-editIcon-2"
+                  />
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root"
+                style="color: rgb(0, 98, 186); font-weight: 700;"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  general.edit_alt
+                  <i
+                    class="fa fa-edit makeStyles-editIcon-2"
+                  />
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</DocumentFragment>
+`;

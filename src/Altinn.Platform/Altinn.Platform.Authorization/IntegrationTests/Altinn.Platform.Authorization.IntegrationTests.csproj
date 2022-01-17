@@ -6,10 +6,10 @@
   </PropertyGroup>
 
 <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.12" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="5.0.13" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.7" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -56,6 +56,14 @@
     <Content Include="Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Data\blobs\input\skd\taxreport\1000\u20001337\delegationpolicy.xml" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App1Request.json" />
+    <None Remove="Data\Json\GetResourcePolicies\Org2App2Request.json" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationRequest.xml" />
+    <None Remove="Data\Xacml\3.0\AltinnApps\AltinnApps0001DelegationResponse.xml" />
   </ItemGroup>
 
 </Project>

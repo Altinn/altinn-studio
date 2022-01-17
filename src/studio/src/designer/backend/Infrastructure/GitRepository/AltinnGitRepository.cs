@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -24,7 +25,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
-        private AltinnRepositoryType _repositoryType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -38,7 +38,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             Guard.AssertNotNullOrEmpty(org, nameof(org));
             Guard.AssertNotNullOrEmpty(repository, nameof(repository));
-            Guard.AssertNotNullOrEmpty(developer, nameof(developer));            
+            Guard.AssertNotNullOrEmpty(developer, nameof(developer));
 
             Org = org;
             Repository = repository;
@@ -63,33 +63,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        internal AltinnStudioSettings AltinnStudioSettings
+        public async Task<AltinnRepositoryType> GetRepositoryType()
         {
-            get
-            {
-                if (_altinnStudioSettings == null)
-                {
-                    _altinnStudioSettings = GetAltinnStudioSettings();
-                }
-
-                return _altinnStudioSettings;
-            }
+            var settings = await GetAltinnStudioSettings();
+            return settings.RepoType;
         }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        public AltinnRepositoryType RepositoryType
+        public async Task<DatamodellingPreference> GetDatamodellingPreference()
         {
-            get
-            {
-                if (_repositoryType == AltinnRepositoryType.Unknown)
-                {
-                    _repositoryType = GetRepositoryType();
-                }
+            var settings = await GetAltinnStudioSettings();
+            return settings.DatamodellingPreference;
+        }
 
-                return _repositoryType;
-            }
+        /// <summary>
+        /// Saves the AltinnStudioSettings to disk.
+        /// </summary>
+        /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
+        public async Task SaveAltinnStudioSettings(AltinnStudioSettings altinnStudioSettings)
+        {
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings, true);
         }
 
         /// <summary>
@@ -115,26 +110,84 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return AltinnCoreFile.CreateFromPath(absoluteFilepath, RepositoryDirectory);
         }
 
-        private AltinnStudioSettings GetAltinnStudioSettings()
+        /// <summary>
+        /// Gets the settings for this repository. This is the same as what can be found in .altinnstudio\settings.json
+        /// </summary>
+        public async Task<AltinnStudioSettings> GetAltinnStudioSettings()
         {
-            var studioSettingsFilePath = Path.Combine(RepositoryDirectory, STUDIO_SETTINGS_FILEPATH);
-
-            // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
-            // for these we return a default which assumes that it is an app repo.
-            if (!File.Exists(studioSettingsFilePath))
+            if (_altinnStudioSettings != null)
             {
-                return new AltinnStudioSettings() { RepoType = "app" };
+                return _altinnStudioSettings;
             }
 
-            var altinnStudioSettingsJson = ReadTextByAbsolutePathAsync(studioSettingsFilePath).Result;
-            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            // AltinnStudioSettings doesn't always exists (earlier versions of the app template), so
+            // need some reasonable defaults.
+            if (!FileExistsByRelativePath(STUDIO_SETTINGS_FILEPATH))
+            {
+                _altinnStudioSettings = await CreateNewAltinnStudioSettings();
+            }
+            else
+            {
+                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
 
-            return altinnStudioSettings;
+                if (needsSaving)
+                {
+                    await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, altinnStudioSettings);
+                }
+
+                _altinnStudioSettings = altinnStudioSettings;
+            }
+
+            return _altinnStudioSettings;
         }
 
-        private AltinnRepositoryType GetRepositoryType()
-        {            
-            return Enum.Parse<AltinnRepositoryType>(AltinnStudioSettings.RepoType, true);
+        private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
+        {
+            AltinnStudioSettings newAltinnStudioSettings;
+            if (IsDatamodelsRepo())
+            {
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
+            }
+            else
+            {
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
+            }
+
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
+
+            return newAltinnStudioSettings;
+        }
+
+        private async Task<(AltinnStudioSettings, bool)> MigrateExistingAltinnStudioSettings()
+        {
+            var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
+            var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+
+            var needsSaving = false;
+
+            if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
+            {
+                altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
+                needsSaving = true;
+            }
+
+            if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
+            {
+                altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
+                needsSaving = true;
+            }
+
+            return (altinnStudioSettings, needsSaving);
+        }
+
+        // Ideally this class should not know anything about app or datamodel differences.
+        // The Altinn Studio settings is shared between the repository types and is in fact
+        // where this knowledge is placed (RepoType), but in the case of a missing settings
+        // file we either need this "hack" or migrate old repositories when it's opened to
+        // include new files and/or settings added after the repository was crated.
+        private bool IsDatamodelsRepo()
+        {
+            return Repository.Contains("-datamodels");
         }
 
         private List<AltinnCoreFile> MapFilesToAltinnCoreFiles(IEnumerable<string> schemaFiles)

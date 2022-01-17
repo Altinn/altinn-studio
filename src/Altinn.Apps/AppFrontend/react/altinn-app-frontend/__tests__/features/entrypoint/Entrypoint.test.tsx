@@ -2,16 +2,17 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { render, waitFor } from '@testing-library/react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { createStore } from 'redux';
 import { IRuntimeState } from '../../../src/types';
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import Entrypoint from '../../../src/features/entrypoint/Entrypoint';
 import { IApplicationMetadata } from '../../../src/shared/resources/applicationMetadata';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('axios');
 
-describe('>>> features/entrypoint/Entrypoint.tsx', () => {
+describe('features > entrypoint > Entrypoint.tsx', () => {
   let mockInitialState: IRuntimeState;
   let mockStore: any;
   let mockReducer: any;
@@ -40,7 +41,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     mockStore = createStore(mockReducer, mockInitialState);
   });
 
-  it('+++ should show invalid party error if user has no valid parties', async () => {
+  it('should show invalid party error if user has no valid parties', async () => {
     (axios.post as jest.Mock).mockResolvedValue({
       data: {
         valid: false,
@@ -62,7 +63,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     expect(invalidPartyText).not.toBeNull();
   });
 
-  it('+++ should show loader while fetching data then start instantiation by default ', async () => {
+  it('should show loader while fetching data then start instantiation by default ', async () => {
     const rendered = render(
       <Provider store={mockStore}>
         <Entrypoint />
@@ -76,7 +77,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     expect(instantiationText).not.toBeNull();
   });
 
-  it('+++ should show loader while fetching data then start statelessQueue if stateless app', async () => {
+  it('should show loader while fetching data then start statelessQueue if stateless app', async () => {
     const statelessApplication: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,
       onEntry: {
@@ -105,7 +106,7 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     });
   });
 
-  it('+++ should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
+  it('should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
     const application: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,
       onEntry: {
@@ -150,4 +151,25 @@ describe('>>> features/entrypoint/Entrypoint.tsx', () => {
     const selectInstnaceText = await rendered.findByText('Du har allerede startet å fylle ut dette skjemaet.');
     expect(selectInstnaceText).not.toBeNull();
   });
+
+  it('should display MissingRolesError if getFormData has returned 403', async () => {
+    const mockState: IRuntimeState = {
+      ...mockInitialState,
+      formData: {
+        ...mockInitialState.formData,
+        error: { config: {}, response: { status: 403 } } as AxiosError,
+      },
+    }
+    mockStore = createStore(mockReducer, mockState);
+    const rendered = render(
+      <Provider store={mockStore}>
+        <MemoryRouter>
+          <Entrypoint />
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    const missingRolesText = await rendered.findByText('Du mangler rettigheter for å se denne tjenesten.');
+    expect(missingRolesText).not.toBeNull();
+  })
 });

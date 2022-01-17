@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace Altinn.App.Common.Process.Elements
@@ -23,13 +24,13 @@ namespace Altinn.App.Common.Process.Elements
         /// Gets or sets the incoming id of a task
         /// </summary>
         [XmlElement("incoming")]
-        public string Incoming { get; set; }
+        public List<string> Incoming { get; set; }
 
         /// <summary>
         /// Gets or sets the outgoing id of a task
         /// </summary>
         [XmlElement("outgoing")]
-        public string Outgoing { get; set; }
+        public List<string> Outgoing { get; set; }
 
         /// <summary>
         /// Gets or sets the outgoing id of a task

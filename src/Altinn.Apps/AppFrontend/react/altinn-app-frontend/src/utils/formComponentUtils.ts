@@ -1,3 +1,4 @@
+import { ILanguage } from 'altinn-shared/types';
 import {
   getLanguageFromKey,
   getParsedLanguageFromText,
@@ -200,7 +201,8 @@ export const getFormDataForComponentInRepeatingGroup = (
     component.type === 'Group' ||
     component.type === 'Header' ||
     component.type === 'Paragraph' ||
-    component.type === 'Image'
+    component.type === 'Image' ||
+    component.type === 'InstantiationButton'
   ) {
     return '';
   }
@@ -264,7 +266,7 @@ export function selectComponentTexts(
 
 export function getFileUploadComponentValidations(
   validationError: string,
-  language: any,
+  language: ILanguage,
 ): IComponentValidations {
   const componentValidations: any = {
     simpleBinding: {

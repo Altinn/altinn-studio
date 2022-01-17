@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -250,7 +251,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetResourcePoliciesFromXacmlPolicies_TC05()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDTaxReport2Request.json");
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDTaxReport2Request.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -258,12 +259,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" },
                    },
-                   ResourcePolicies = GetResourcePoliciesForSKDTaxReport()
+                   ResourcePolicies = GetResourcePoliciesForSKDTaxReport(),
+                   MinimumAuthenticationLevel = 2
                }
             };
 
@@ -285,7 +287,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetResourcePoliciesFromXacmlPolicies_InvalidApp_TC06()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDInvalidAppRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDInvalidAppRequest.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -293,7 +295,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "InvalidApp" },
@@ -320,7 +322,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetResourcePoliciesFromXacmlPolicies_NoApp_TC07()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDMissingAppRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDMissingAppRequest.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -328,7 +330,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" }
                    },
@@ -354,7 +356,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetResourcePoliciesFromXacmlPolicies_NoOrg_TC08()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/SKDMissingOrgRequest.json");
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDMissingOrgRequest.json");
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -362,7 +364,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                new ResourcePolicyResponse
                {
-                   OrgApp = new List<AttributeMatch>
+                   AppId = new List<AttributeMatch>
                    {
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "TaxReport2" }
                    },
@@ -378,6 +380,28 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
+        /// <summary>
+        /// Test case: Try GetResourcePolicies for app with rule for Org subject in XACML app policy
+        /// Expected: Rules not associated with a RoleCode should be ignored in the Resource Policy
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_IgnoresXacmlRules_WithOrgSubject()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/Org2App2Request.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.True(!actualResourcePolicyResponses.Any(rpr => rpr.ResourcePolicies.Any(rp => rp.Actions.Any(action => action.Title == "appownerread" || action.RoleGrants.Count == 0))));
         }
 
         private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()

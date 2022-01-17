@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import {
   AltinnContentLoader,
   AltinnContentIconFormData,
@@ -7,7 +6,7 @@ import {
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
-import { IRuntimeState, ProcessTaskType, IAltinnWindow } from '../../types';
+import { ProcessTaskType, IAltinnWindow } from '../../types';
 import Presentation from './Presentation';
 import { Form } from '../../features/form/containers/Form';
 import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
@@ -19,8 +18,8 @@ import {
 } from '../resources/queue/queueSlice';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
-import { IProcessState } from '../resources/process/processReducer';
 import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 const style = {
   marginTop: '2.5rem',
@@ -35,34 +34,26 @@ const ProcessWrapper = (props) => {
     },
   } = props;
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [userLanguage, setUserLanguage] = React.useState('nb');
   const [appHeader, setAppHeader] = React.useState('');
 
-  const instantiating = useSelector(
-    (state: IRuntimeState) => state.instantiation.instantiating,
+  const instantiating = useAppSelector(
+    (state) => state.instantiation.instantiating,
   );
-  const instanceId = useSelector(
-    (state: IRuntimeState) => state.instantiation.instanceId,
+  const instanceId = useAppSelector((state) => state.instantiation.instanceId);
+  const instanceData = useAppSelector((state) => state.instanceData.instance);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
   );
-  const instanceData = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance,
-  );
-  const applicationMetadata: any = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
-  );
-  const isLoading: boolean = useSelector(
-    (state: IRuntimeState) => state.isLoading.dataTask,
-  );
-  const serviceName: string = useSelector((state: IRuntimeState) =>
+  const isLoading = useAppSelector((state) => state.isLoading.dataTask);
+  const serviceName = useAppSelector((state) =>
     getTextResourceByKey('ServiceName', state.textResources.resources),
   );
-  const process: IProcessState = useSelector(
-    (state: IRuntimeState) => state.process,
-  );
+  const process = useAppSelector((state) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
-  const hasApiErrors = useSelector(hasErrorSelector);
-  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
+  const hasApiErrors = useAppSelector(hasErrorSelector);
+  const profile = useAppSelector((state) => state.profile.profile);
 
   (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
 
@@ -91,7 +82,7 @@ const ProcessWrapper = (props) => {
       return appName;
     };
     setAppHeader(getHeaderText());
-  }, [serviceName, applicationMetadata]);
+  }, [serviceName, applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
@@ -118,13 +109,13 @@ const ProcessWrapper = (props) => {
       default:
         break;
     }
-  }, [process, applicationMetadata, instanceData]);
+  }, [process, applicationMetadata, instanceData, dispatch]);
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
       InstanceDataActions.getInstanceData(partyId, instanceGuid);
     }
-  }, [instantiating, instanceId]);
+  }, [instantiating, instanceId, instanceGuid, partyId]);
 
   if (hasApiErrors) {
     return <UnknownError />;

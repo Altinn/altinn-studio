@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> DeleteWrapper.tsx +++ Should match snapshot with the least amount of params 1`] = `
+exports[`DeleteWrapper.tsx Should match snapshot with the least amount of params 1`] = `
 <button
   aria-label="general.delete"
   className="MuiButtonBase-root MuiIconButton-root makeStyles-toolbarButton-1 makeStyles-iconButton-2 warn MuiIconButton-colorPrimary"

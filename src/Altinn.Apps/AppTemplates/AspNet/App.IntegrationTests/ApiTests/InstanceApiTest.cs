@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace App.IntegrationTests
+namespace App.IntegrationTests.ApiTests
 {
     public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
@@ -141,6 +141,28 @@ namespace App.IntegrationTests
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
+        [Fact]
+        public async Task Instance_Post_SelfIdentifiedUser()
+        {
+            string token = PrincipalUtil.GetSelfIdentifiedUserToken("selfIdentified", "1003", "3");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "datafields-app");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/ttd/datafields-app/instances?instanceOwnerPartyId=1003");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal("1003", createdInstance.InstanceOwner.PartyId);
+            Assert.Equal("selfIdentified", createdInstance.InstanceOwner.Username);
+            TestDataUtil.DeleteInstanceAndData("ttd", "datafields-app", 1003, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         /// <summary>

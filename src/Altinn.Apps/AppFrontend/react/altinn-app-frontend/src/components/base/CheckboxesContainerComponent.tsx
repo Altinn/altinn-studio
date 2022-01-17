@@ -1,4 +1,3 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
@@ -6,9 +5,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -89,9 +87,7 @@ function usePrevious(value) {
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-  const apiOptions = useSelector(
-    (state: IRuntimeState) => state.optionState.options[props.optionsId],
-  );
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
   const options = apiOptions || props.options || [];
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
@@ -99,10 +95,12 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData]);
 
   const returnState = () => {

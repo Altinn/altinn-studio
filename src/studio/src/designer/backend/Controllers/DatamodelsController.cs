@@ -149,6 +149,34 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Upload an XSD.
+        /// </summary>
+        /// <remarks>
+        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema,
+        /// metadata model and C# class.
+        /// </remarks>
+        /// <param name="org">The short name of the application owner.</param>
+        /// <param name="repository">The name of the repository to which the file is being added.</param>
+        /// <param name="thefile">The XSD file being uploaded.</param>
+        [Authorize]
+        [HttpPost("upload")]
+        public async Task<IActionResult> AddXsd(
+            string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        {
+            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+
+            string fileName = GetFileNameFromUploadedFile(thefile);
+            Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
+                org, repository, developer, fileName, thefile.OpenReadStream());
+
+            return Created(fileName, jsonSchema);
+        }
+
+        /// <summary>
         /// Creates a new model in the repository.
         /// </summary>
         /// <param name="org">The org owning the repository.</param>

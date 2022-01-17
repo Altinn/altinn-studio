@@ -10,6 +10,13 @@ namespace Altinn.Studio.Designer.Models
     public class Signature
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="Signature"/> class.
+        /// </summary>
+        public Signature()
+        {
+        }
+
+        /// <summary>
         /// The email adress to the user
         /// </summary>
         public string Email { get; set; }
@@ -22,6 +29,6 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// When signture was created
         /// </summary>
-        public DateTimeOffset When { get; internal set; }
+        public DateTimeOffset When { get; set; }
     }
 }

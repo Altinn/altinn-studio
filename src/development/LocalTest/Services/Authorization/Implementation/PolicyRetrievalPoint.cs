@@ -1,11 +1,14 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Constants;
 using LocalTest.Configuration;
 using LocalTest.Services.Authorization.Interface;
+using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Options;
 
@@ -18,24 +21,27 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
+        private readonly ILocalApp _localApp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
-        public PolicyRetrievalPoint(IOptions<LocalPlatformSettings> localPlatformSettings, ILocalTestAppSelection localTestAppSelectionService)
+        public PolicyRetrievalPoint(
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            ILocalApp localApp)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
-
+            _localApp = localApp;
         }
 
         /// <inheritdoc/>
-        public Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
+        public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            string policyPath = GetPolicyPath(request);
-            return Task.FromResult(ParsePolicy(policyPath));
+            var app = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.AppAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
+            var org = request.GetResourceAttributes().Attributes.Where(a => a.AttributeId.ToString() == XacmlRequestAttribute.OrgAttribute).Select(a => a.AttributeValues.FirstOrDefault()).FirstOrDefault().Value;
+            string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
+            return ParsePolicyContent(policyString);
         }
 
         /// <inheritdoc/>
@@ -43,18 +49,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             throw new NotImplementedException();
         }
-
-        private string GetPolicyPath(XacmlContextRequest request)
-        {
-            return _localTestAppSelectionService.GetAppPath(request) + $"config/authorization/policy.xml";
-        }
               
-        public static XacmlPolicy ParsePolicy(string policyPath)
+        public static XacmlPolicy ParsePolicyContent(string policyContent)
         {
-            XmlDocument policyDocument = new XmlDocument();
-            policyDocument.Load(policyPath);
             XacmlPolicy policy;
-            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyContent)))
             {
                 policy = XacmlParser.ParseXacmlPolicy(reader);
             }

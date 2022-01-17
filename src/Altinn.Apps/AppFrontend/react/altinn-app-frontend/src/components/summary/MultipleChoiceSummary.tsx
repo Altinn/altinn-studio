@@ -57,8 +57,7 @@ export default function MultipleChoiceSummary({
 
   const RenderListItem = (value: string, displayText: string) => {
     return (
-      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
-      <ListItem classes={{ root: classes.list }}>
+      <ListItem key={value} classes={{ root: classes.list }}>
         <ListItemText id={value} primary={displayText} />
       </ListItem>
     );
