@@ -57,7 +57,7 @@ export default function MultipleChoiceSummary({
 
   const RenderListItem = (value: string, displayText: string) => {
     return (
-      <ListItem classes={{ root: classes.list }}>
+      <ListItem key={value} classes={{ root: classes.list }}>
         <ListItemText id={value} primary={displayText} />
       </ListItem>
     );
