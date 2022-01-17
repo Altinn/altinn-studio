@@ -239,3 +239,10 @@ export interface IDataSources {
 export interface IApplicationSettings {
   [source: string]: string;
 }
+
+/** Describes an object with key values from current instance to be used in texts. */
+export interface IInstanceContext {
+  instanceId: string;
+  appId: string;
+  instanceOwnerPartyId: string;
+}
