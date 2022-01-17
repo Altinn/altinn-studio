@@ -908,7 +908,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             List<Rule> expectedRules = new List<Rule>();
-            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunit));
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001338, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunit));
 
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);

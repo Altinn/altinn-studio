@@ -138,9 +138,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001338, isDeleted: false, coveredByPartyId: 50001340, performedByUserId: 20001338));
             }
 
-            if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001339) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
+            if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001338) && (coveredByPartyIds != null && coveredByPartyIds.Contains(50001336)))
             {
-                result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001337, isDeleted: false, coveredByPartyId: 50001336, performedByUserId: 20001339));
+                result.Add(TestDataHelper.GetDelegationChange("SKD/TaxReport", 50001338, isDeleted: false, coveredByPartyId: 50001336, performedByUserId: 20001339));
             }
 
             if (altinnAppIds.Contains("SKD/TaxReport") && offeredByPartyIds.Contains(50001339) && (coveredByPartyIds != null && coveredByUserIds.Contains(20001336)))
