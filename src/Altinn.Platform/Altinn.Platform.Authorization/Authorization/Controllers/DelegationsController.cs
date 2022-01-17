@@ -99,7 +99,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (ruleQuery.ParentPartyId != 0)
             {
-                coveredByPartyIds.Add(ruleQuery.ParentPartyId);
+                offeredByPartyIds.Add(ruleQuery.ParentPartyId);
             }
 
             foreach (List<AttributeMatch> resource in ruleQuery.Resources)

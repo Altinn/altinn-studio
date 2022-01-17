@@ -299,20 +299,18 @@ namespace Altinn.Platform.Authorization.Helpers
             if (((isUserId && coveredByUserIdFromRequest == coveredByUserId) || (isPartyId && coveredByPartyIdFromRequest == coveredByPartyId))
                 && rule.OfferedByPartyId == offeredByPartyId)
             {
-                if (parentPartyId != 0 && parentPartyId == rule.OfferedByPartyId && rule.OfferedByPartyId == offeredByPartyId)
-                {
-                    rule.Type = RuleType.InheritedAsSubunit;
-                }
-                else
-                {
-                    rule.Type = RuleType.DirectlyDelegated;
-                }
+                rule.Type = RuleType.DirectlyDelegated;
             }
             else if (isUserId && keyRolePartyIds.Any(id => id == coveredByPartyId) && rule.OfferedByPartyId == offeredByPartyId)
             {
                 rule.Type = RuleType.InheritedViaKeyRole;
             }
-            else if (isPartyId && keyRolePartyIds.Any(id => id == coveredByPartyId) && rule.OfferedByPartyId == offeredByPartyId)
+            else if (((isUserId && coveredByUserIdFromRequest == coveredByUserId) || (isPartyId && coveredByPartyIdFromRequest == coveredByPartyId))
+                && parentPartyId != 0 && rule.OfferedByPartyId == parentPartyId)
+            {
+                rule.Type = RuleType.InheritedAsSubunit;
+            }
+            else if (isUserId && keyRolePartyIds.Any(id => id == coveredByPartyId) && parentPartyId != 0 && rule.OfferedByPartyId == parentPartyId)
             {
                 rule.Type = RuleType.InheritedAsSubunitViaKeyrole;
             }
