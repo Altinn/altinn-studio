@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Reflection;
 
 using KubernetesWrapper.Services.Implementation;
@@ -10,9 +8,13 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
+
 RegisterServices(builder.Services);
+
 var app = builder.Build();
+
 ConfigureApp(app);
+
 app.Run();
 
 static void ConfigureApp(WebApplication app)
