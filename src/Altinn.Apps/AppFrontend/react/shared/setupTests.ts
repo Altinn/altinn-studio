@@ -1,12 +1,14 @@
 import { JSDOM } from 'jsdom';
-const Enzyme = require('enzyme');
-require('core-js/es/string/replace-all');
+import Enzyme from 'enzyme';
 import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import 'jest';
 
-const {
-  document
-} = (new JSDOM('<!doctype html><html><body>Bodytext<div id="root"></div></body></html>')).window;
+import 'core-js/es/string/replace-all';
+import 'jest';
+import '@testing-library/jest-dom';
+
+const { document } = new JSDOM(
+  '<!doctype html><html><body>Bodytext<div id="root"></div></body></html>',
+).window;
 
 global.document = document;
 global.window = document.defaultView;

@@ -12,9 +12,6 @@ export interface IAltinnRadioGroupComponentProvidedProps extends WithStyles<type
   description?: string;
 }
 
-export interface IAltinnRadioGroupComponentState {
-}
-
 const styles = () => createStyles({
   altinnRadioGroup: {
     marginTop: '0rem',
@@ -29,7 +26,7 @@ const styles = () => createStyles({
 });
 
 export class AltinnRadioGroup extends
-  React.Component<IAltinnRadioGroupComponentProvidedProps, IAltinnRadioGroupComponentState> {
+  React.Component<IAltinnRadioGroupComponentProvidedProps> {
 
   public render() {
     return (

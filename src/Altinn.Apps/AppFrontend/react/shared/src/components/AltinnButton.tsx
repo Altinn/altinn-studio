@@ -33,7 +33,7 @@ const useStyles = makeStyles(() => createStyles({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
-    textTransform: 'none' as 'none',
+    textTransform: 'none',
     transition: 'none',
     fontWeight: 400,
     fontFamily: 'Altinn-DIN',
@@ -81,6 +81,7 @@ const useStyles = makeStyles(() => createStyles({
 
 export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
   const classes = useStyles(props);
+
   return (
     <Button
       id={props.id}
@@ -107,5 +108,7 @@ export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvi
     </Button>
   );
 });
+
+AltinnButton.displayName = 'AltinnButton';
 
 export default AltinnButton;

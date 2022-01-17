@@ -11,9 +11,6 @@ export interface IAltinnPopperComponentProvidedProps {
   anchorEl: any;
 }
 
-export interface IAltinnPopperComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
@@ -29,7 +26,7 @@ const styles = createStyles({
   },
 });
 
-export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
+export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     const open = Boolean(this.props.anchorEl);
