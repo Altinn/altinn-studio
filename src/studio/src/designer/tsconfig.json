@@ -3,22 +3,16 @@
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
-    "lib": ["es6", "dom", "es2019.Array"],
+    "lib": ["es6", "dom"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "../",
+    "rootDir": "./",
     "noImplicitReturns": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true,
-    "baseUrl": ".",
-    "paths": {
-      "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
-      "app-shared/*": ["./*"]
-    }
+    "noUnusedLocals": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
