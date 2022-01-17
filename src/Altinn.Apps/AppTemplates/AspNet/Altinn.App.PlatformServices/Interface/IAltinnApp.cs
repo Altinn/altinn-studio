@@ -70,6 +70,13 @@ namespace Altinn.App.Services.Interface
         Task OnEndProcessTask(string taskId, Instance instance);
 
         /// <summary>
+        /// Is called after the process task is abonded. Method can update instance and data element metadata. 
+        /// </summary>
+        /// <param name="taskId">task id task to end</param>
+        /// <param name="instance">instance data</param>
+        Task OnAbandonProcessTask(string taskId, Instance instance);
+
+        /// <summary>
         /// Is called when the process for an instance is ended.
         /// </summary>
         Task OnEndProcess(string endEvent, Instance instance);

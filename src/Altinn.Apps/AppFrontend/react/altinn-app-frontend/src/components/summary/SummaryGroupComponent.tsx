@@ -253,7 +253,7 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
         },
       );
       componentArray.push(
-        <div style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
+        <div key={i} style={{ paddingBottom: 24 }}>{childSummaryComponents}</div>,
       );
     }
 
