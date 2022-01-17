@@ -43,5 +43,11 @@ namespace Altinn.App.Common.Process.Elements
         /// </summary>
         [XmlElement("sequenceFlow")]
         public List<SequenceFlow> SequenceFlow { get; set; }
+
+        /// <summary>
+        /// Gets or sets the exclusiveGateways of the process of a workflow
+        /// </summary>
+        [XmlElement("exclusiveGateway")]
+        public List<ExclusiveGateway> ExclusiveGateway { get; set; }
     }
 }

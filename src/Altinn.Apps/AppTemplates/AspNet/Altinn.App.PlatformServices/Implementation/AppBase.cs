@@ -200,6 +200,19 @@ namespace Altinn.App.Services.Implementation
         {
             _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
+            // If this is a revisit to a previous task we need to unlock data 
+            foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
+            {
+                DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
+
+                if (dataElement != null && dataElement.Locked)
+                {
+                    dataElement.Locked = false;
+                    _logger.LogInformation($"Unlocking data element {dataElement.Id} of dataType {dataType.Id}.");
+                    await _dataClient.Update(instance, dataElement);
+                }
+            }
+
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"Auto create data element: {dataType.Id}");
@@ -310,6 +323,15 @@ namespace Altinn.App.Services.Implementation
                 await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
             }
 
+            await Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public async Task OnAbandonProcessTask(string taskId, Instance instance)
+        {
+            await RunProcessTaskEnd(taskId, instance);
+
+            _logger.LogInformation($"OnAbandonProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
             await Task.CompletedTask;
         }
 

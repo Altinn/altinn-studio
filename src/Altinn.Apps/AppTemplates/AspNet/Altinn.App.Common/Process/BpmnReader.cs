@@ -93,8 +93,9 @@ namespace Altinn.App.Common.Process
         /// Identifies the step to follow the given step.
         /// </summary>
         /// <param name="elementId">The id of the current process element. Usually a task.</param>
+        /// <param name="ignoreGatewayDefaults">Tell if code should ignore default sequence</param>
         /// <returns>The id of the next step.</returns>
-        public List<string> NextElements(string elementId)
+        public List<string> NextElements(string elementId, bool ignoreGatewayDefaults = false)
         {
             if (elementId == null)
             {
@@ -126,6 +127,11 @@ namespace Altinn.App.Common.Process
 
             foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == currentStepId))
             {
+                if (AddExclusiveGateways(ignoreGatewayDefaults, elementIds, sequenceFlow))
+                {
+                    continue;
+                }
+
                 ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
                 if (task != null)
                 {
@@ -142,6 +148,84 @@ namespace Altinn.App.Common.Process
             }
 
             return elementIds;
+        }
+
+        /// <summary>
+        /// Returns a list of sequence flow to be followed between current step and next element
+        /// </summary>
+        public List<SequenceFlow> GetSequenceFlowsBetween(string currentStepId, string nextElementId)
+        {
+            List<SequenceFlow> flowsToReachTarget = new List<SequenceFlow>();
+            foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == currentStepId))
+            {
+                if (sequenceFlow.TargetRef.Equals(nextElementId))
+                {
+                    flowsToReachTarget.Add(sequenceFlow);
+                    return flowsToReachTarget;
+                }
+
+                if (definitions.Process.ExclusiveGateway != null && definitions.Process.ExclusiveGateway.FirstOrDefault(g => g.Id == sequenceFlow.TargetRef) != null)
+                {
+                    List<SequenceFlow> subGatewayFlows = GetSequenceFlowsBetween(sequenceFlow.TargetRef, nextElementId);
+                    if (subGatewayFlows.Any())
+                    {
+                        flowsToReachTarget.Add(sequenceFlow);
+                        flowsToReachTarget.AddRange(subGatewayFlows);
+                        return flowsToReachTarget;
+                    }
+                }
+            }
+
+            return flowsToReachTarget;
+        }
+
+        private List<string> GetElementsFromGateway(string gatewayId, string defaultSequence, bool ignoreGatewayDefaults)
+        {
+            List<string> elementIds = new List<string>();
+
+            foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == gatewayId))
+            {
+                if (!ignoreGatewayDefaults && !string.IsNullOrEmpty(defaultSequence) && !defaultSequence.Equals(sequenceFlow.Id))
+                {
+                    continue;
+                }
+
+                if (AddExclusiveGateways(ignoreGatewayDefaults, elementIds, sequenceFlow))
+                {
+                    continue;
+                }
+
+                ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
+                if (task != null)
+                {
+                    elementIds.Add(task.Id);
+                    continue;
+                }
+
+                EndEvent endEvent = definitions.Process.EndEvents.Find(e => e.Id == sequenceFlow.TargetRef);
+                if (endEvent != null)
+                {
+                    elementIds.Add(endEvent.Id);
+                }
+            }
+
+            return elementIds;
+        }
+
+        private bool AddExclusiveGateways(bool ignoreGatewayDefaults, List<string> elementIds, SequenceFlow sequenceFlow)
+        {
+            ExclusiveGateway exclusiveGateway = definitions.Process.ExclusiveGateway.Find(g => g.Id == sequenceFlow.TargetRef);
+            if (exclusiveGateway != null)
+            {
+                List<string> gateWayElements = GetElementsFromGateway(exclusiveGateway.Id, exclusiveGateway.Default, ignoreGatewayDefaults);
+                if (gateWayElements != null)
+                {
+                    elementIds.AddRange(gateWayElements);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

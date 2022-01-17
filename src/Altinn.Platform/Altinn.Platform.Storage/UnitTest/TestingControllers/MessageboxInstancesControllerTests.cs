@@ -855,7 +855,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
                 .ReturnsAsync((InstanceQueryResponse)null);
-            int expectedCount = 2;
+            int expectedCount = 3;
 
             HttpClient client = GetTestClient(instanceRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));

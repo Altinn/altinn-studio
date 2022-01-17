@@ -24,7 +24,7 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace App.IntegrationTests
+namespace App.IntegrationTests.ApiTests
 {
     public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
