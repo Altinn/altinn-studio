@@ -3,16 +3,16 @@ import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
 
 //Request to get parties that an user can represent and return response
-export function getParties(userId) {
+export function getParties(altinnToken, userId) {
   var endpoint = config.platformAuthorization['parties'] + '?userId=' + userId;
-  var params = header.buildHeaderWithSubsKey('platform');
+  var params = header.buildHearderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 
 //Request to get roles of an user
-export function getRoles(userId, partyId) {
+export function getRoles(altinnToken, userId, partyId) {
   var endpoint = config.platformAuthorization['roles'] + '?coveredbyuserid=' + userId + '&offeredbypartyid=' + partyId;
-  var params = header.buildHeaderWithSubsKey('platform');
+  var params = header.buildHearderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 

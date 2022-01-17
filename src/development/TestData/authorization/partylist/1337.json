@@ -96,12 +96,25 @@
     "person": null,
     "organisation": null,
     "childParties": null
-  }, {
+  },
+  {
     "partyId": "500801",
     "partyTypeName": 2,
     "OrgNumber": "910471120",
     "unitType": "AS",
     "name": "EAS Health Consulting Stokmarknes",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500802",
+    "partyTypeName": 2,
+    "OrgNumber": "910423185",
+    "unitType": "AS",
+    "name": "EAS Health Consulting Svolvær",
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,

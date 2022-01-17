@@ -41,7 +41,7 @@ export default function (data) {
   var res, success;
 
   //Test Platform: Authorization: Get parties of an user and validate response
-  res = authz.getParties(userId);
+  res = authz.getParties(runtimeToken, userId);
   success = check(res, {
     'GET Parties Status is 200': (r) => r.status === 200,
     'GET Parties Parties list is not empty': (r) => JSON.parse(r.body).length != null,
@@ -49,7 +49,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test Platform: Authorization: Get roles of the user self
-  res = authz.getRoles(userId, partyId);
+  res = authz.getRoles(runtimeToken, userId, partyId);
   success = check(res, {
     'GET Roles Status is 200': (r) => r.status === 200,
     'GET Roles Roles list is not empty': (r) => JSON.parse(r.body).length != null,
