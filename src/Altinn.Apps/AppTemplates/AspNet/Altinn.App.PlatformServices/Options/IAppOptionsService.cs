@@ -13,8 +13,9 @@ namespace Altinn.App.PlatformServices.Options
         /// Get the list of options for a specific options list by its id and key/value pairs.
         /// </summary>
         /// <param name="optionId">The id of the options list to retrieve</param>
+        /// <param name="language">The language code requested.</param>
         /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
         /// <returns>The list of options</returns>
-        Task<AppOptions> GetOptionsAsync(string optionId, Dictionary<string, string> keyValuePairs);
+        Task<AppOptions> GetOptionsAsync(string optionId, string language, Dictionary<string, string> keyValuePairs);
     }
 }

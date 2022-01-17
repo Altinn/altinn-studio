@@ -74,7 +74,7 @@ namespace Altinn.App.PlatformServices.Tests.Options
         {
             public string Id { get; set; } = "country";
 
-            public Task<AppOptions> GetAppOptionsAsync(Dictionary<string, string> keyValuePairs)
+            public Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
             {
                 var options = new AppOptions
                 {

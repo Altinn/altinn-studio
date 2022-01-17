@@ -26,7 +26,7 @@ namespace Altinn.App.PlatformServices.Options
         public string Id { get; internal set; } = "default";
 
         /// <inheritdoc/>
-        public async Task<AppOptions> GetAppOptionsAsync(Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
         {
             // This will get static options if it exists
             var appOptions = new AppOptions

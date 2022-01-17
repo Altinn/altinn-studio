@@ -299,7 +299,7 @@ namespace Altinn.App.Services.Implementation
         [Obsolete("GetOptions method is obsolete and will be removed in the future. Use the corresponding method in IAppOptions interface instead.", false)]
         public List<AppOption> GetOptions(string optionId)
         {
-            return _appOptionsService.GetOptionsAsync(optionId, new Dictionary<string, string>()).Result.Options;
+            return _appOptionsService.GetOptionsAsync(optionId, string.Empty, new Dictionary<string, string>()).Result.Options;
         }
 
         /// <inheritdoc />
