@@ -10,7 +10,7 @@
 
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessToken</PackageId>
-    <PackageVersion>1.1.0-alpha</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <PackageTags>Altinn;AccessToken</PackageTags>
     <Description>
       Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault.
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

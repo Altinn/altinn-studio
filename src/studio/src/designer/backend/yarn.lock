@@ -357,7 +357,7 @@ __metadata:
     gulp: ^4.0.2
     gulp-run-command: ^0.0.10
     jquery: ^3.6.0
-    jquery-ui-dist: ^1.12.1
+    jquery-ui-dist: ^1.13.0
     jquery-validation: ^1.19.3
     jquery-validation-unobtrusive: ^3.2.12
     js-beautify: ^1.14.0
@@ -369,7 +369,7 @@ __metadata:
     rivets: ^0.9.6
     select2: ^4.0.13
     sightglass: ^0.2.6
-    underscore: ^1.13.1
+    underscore: ^1.13.2
     webpack: ^4.46.0
     webpack-cli: ^3.3.12
   languageName: unknown
@@ -3117,10 +3117,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-ui-dist@npm:^1.12.1":
-  version: 1.12.1
-  resolution: "jquery-ui-dist@npm:1.12.1"
-  checksum: c75e2dd497eec6f796febada43aad18e5af35938f5802a1a9efc5818c0c194e2a13880914f331545fab272e543141c13090447d25e1d4ca7b883d7473bf30460
+"jquery-ui-dist@npm:^1.13.0":
+  version: 1.13.0
+  resolution: "jquery-ui-dist@npm:1.13.0"
+  dependencies:
+    jquery: ">=1.8.0 <4.0.0"
+  checksum: 236358f8064b324b2793940d01a0dced5c77314f75d24cbcb604953cb070159b7b1ae7fe05a87d70f00736045b1f54539a562035c066a34c38651e13077bd737
   languageName: node
   linkType: hard
 
@@ -3143,7 +3145,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:*, jquery@npm:^3.5.1, jquery@npm:^3.6.0":
+"jquery@npm:*, jquery@npm:>=1.8.0 <4.0.0, jquery@npm:^3.5.1, jquery@npm:^3.6.0":
   version: 3.6.0
   resolution: "jquery@npm:3.6.0"
   checksum: 8fd5fef4aa48fd374ec716dd1c1df1af407814a228e15c1260ca140de3a697c2a77c30c54ff1d238b6a3ab4ddc445ddeef9adce6c6d28e4869d85eb9d3951c0e
@@ -5529,10 +5531,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.1":
-  version: 1.13.1
-  resolution: "underscore@npm:1.13.1"
-  checksum: 69bb4e6dd92c387ad322dd5b105f496fa64896d92ff1eea987610920d452667a12bca0938def4c4d60acd12da62410540fd268e7ca4f2480d89324498382fcac
+"underscore@npm:^1.13.2":
+  version: 1.13.2
+  resolution: "underscore@npm:1.13.2"
+  checksum: 6ab156c845ccc757fd01d8b9eb28be18ba89ac68993370dd7397a66a95b124f2ba26947fd53e687c084d334429914fc3dd1620d5123b6e0a7cf112cdcf4e859f
   languageName: node
   linkType: hard
 

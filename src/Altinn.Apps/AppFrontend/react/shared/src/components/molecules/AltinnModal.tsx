@@ -79,7 +79,7 @@ const styles = createStyles({
     },
   },
   iconBtn: {
-    float: 'right' as 'right',
+    float: 'right',
     marginRight: '-11px',
     marginTop: '-27px',
   },

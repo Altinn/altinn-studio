@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fe89ec60-b3cf-42be-8e9b-23b1f94ff6a2",
+		"_postman_id": "fd64497c-a3c2-4fc6-81bf-86309e747ee8",
 		"name": "Negative_Tests_Storage_and_App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
 									"var current_timestamp = new Date();\r",
 									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
@@ -25,10 +24,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
 								"exec": [
 									"const jar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"jar.clear(domain, function (error){",
 									"    if(error)",
 									"    {",
@@ -80,20 +78,11 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
 								"exec": [
-									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
-									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
-									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());",
 									"",
 									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"",
 									"cookieJar.clear(domain, function (error){",
 									"    if(error)",
@@ -108,7 +97,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "e2e69b4a-b07a-48bb-b8a7-736a954aa30d",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -120,7 +108,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://platform.{{envUrl}}/authentication/api/v1/refresh",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -135,7 +123,7 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/"
+									"value": "https://platform.{{envUrl}}/authentication/api/v1/refresh"
 								}
 							]
 						}
@@ -143,18 +131,22 @@
 					"response": []
 				},
 				{
-					"name": "Get Party Id",
+					"name": "Get Party info",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
 									"if(pm.response.code == 200)",
 									"{",
 									"    var jsonData = pm.response.json();",
 									"    var partyId = jsonData.partyId;",
+									"    var ssn = jsonData.party.ssn;",
+									"    var userId = jsonData.userId;",
+									"    pm.environment.set(\"partyID\",partyId);",
 									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"    pm.environment.set(\"SSN\",ssn);",
+									"    pm.environment.set(\"userID\",userId);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -163,16 +155,8 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "5a8073fb-c692-41da-9b4c-d65247522491",
 								"exec": [
-									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.clear(domain, function (error){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -217,7 +201,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"if(pm.response.code == 201)\r",
 									"{\r",
@@ -241,7 +224,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");",
@@ -308,7 +290,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "147b7979-a781-4be9-870e-cc9349a6419d",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -318,15 +299,13 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f54a269-3647-4af6-b1e9-2d15d187ff32",
 						"type": "text/javascript",
 						"exec": [
 							""
 						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Without Authentication",
@@ -337,7 +316,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - App - Create App Instance - Status - Unauthorized\", function () {\r",
 									"    pm.response.to.have.status(401);\r",
@@ -349,7 +327,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "f6eb3baa-0d7d-4224-b967-4fa09e1e8570",
 								"exec": [
 									""
 								],
@@ -403,7 +380,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - App - Edit App Data - Status - Unauthorized\", function () {\r",
 									"    pm.response.to.have.status(401);\r",
@@ -462,7 +438,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - App - GET Current Process - Status - Unauthorized\", function () {\r",
 									"    pm.response.to.have.status(401);\r",
@@ -504,7 +479,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - Storage - GET Instance by ID - Status - Unauthorized\", function () {\r",
 									"    pm.response.to.have.status(401);\r",
@@ -559,7 +533,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b7a4e821-33f0-4c30-b93b-d8b0b0a2b53a",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - Storage - GET Instance Data - Status - Unauthorized\", function () {",
 									"    pm.response.to.have.status(401);",
@@ -596,58 +569,11 @@
 					"response": []
 				},
 				{
-					"name": "DELETE events - 401",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "686160fc-c6de-4c3f-904a-fe9528f346a7",
-								"exec": [
-									"pm.test(\"Negative Tests - Without Authentication - Storage - DELETE Instance events - Status - Unauthorized\", function () {",
-									"    pm.response.to.have.status(401);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "GET All instances - 401",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "86592b19-cde0-42f1-8b7c-297eaee24071",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - Storage - GET SBL Instance - Status - Unauthorized\", function () {",
 									"    pm.response.to.have.status(401);",
@@ -709,7 +635,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Authentication - Storage - DELETE Instance - Status - Unauthorized\", function () {",
 									"    pm.response.to.have.status(401);",
@@ -761,60 +686,8 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "GET App by name - 401",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
-								"exec": [
-									"pm.test(\"Negative Tests - Without Authentication - Storage - GET App info - Status - Unauthorized\", function () {\r",
-									"    pm.response.to.have.status(401);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "8d8e1d9b-b806-4e08-9253-38e5c2b62658",
-								"exec": [
-									"pm.environment.set(\"attachmentElementType\",\"\");"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"applications",
-								"{{org}}",
-								"{{app}}"
-							]
-						}
-					},
-					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Create Instances - User with Lower Security Level Login",
@@ -825,7 +698,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"pm.test(\"Negative Tests - User with Lower Security Level Login - App - Create App Instance - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -837,7 +709,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
 								"exec": [
 									""
 								],
@@ -903,7 +774,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 								"exec": [
 									"pm.test(\"Negative Tests - User with Lower Security Level Login - Storage - Create App Instance - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -915,7 +785,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "d7b24a19-9093-462e-9b6f-a6fd1d7df287",
 								"exec": [
 									""
 								],
@@ -941,6 +810,11 @@
 								"name": "Content-Type",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
@@ -975,7 +849,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "231d202d-4e2f-42fd-89ba-286250e4dead",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -985,15 +858,13 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "7d5be3f5-bd4a-4dd4-aa25-b9a4d215b019",
 						"type": "text/javascript",
 						"exec": [
 							""
 						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Access instances without required roles",
@@ -1004,7 +875,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"if(pm.response.code == 201)\r",
 									"{\r",
@@ -1028,7 +898,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");"
@@ -1095,7 +964,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
 									""
 								],
@@ -1105,10 +973,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
 								"exec": [
 									"const jar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"jar.clear(domain, function (error){",
 									"    if(error)",
 									"    {",
@@ -1160,20 +1027,11 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
 								"exec": [
-									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
-									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
-									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());",
 									"",
 									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"",
 									"cookieJar.clear(domain, function (error){",
 									"    if(error)",
@@ -1188,7 +1046,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "e2e69b4a-b07a-48bb-b8a7-736a954aa30d",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -1200,7 +1057,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{level1-app}}/",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://platform.{{envUrl}}/authentication/api/v1/refresh",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -1215,7 +1072,7 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{level1-app}}/"
+									"value": "https://platform.{{envUrl}}/authentication/api/v1/refresh"
 								}
 							]
 						}
@@ -1228,7 +1085,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Roles - Storage - GET Instance by ID - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -1290,7 +1146,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 								"exec": [
 									"pm.test(\"Negative Tests - Without Roles - App - GET Instance by ID - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -1352,7 +1207,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"pm.test(\"Negative Tests - User Without Roles - App - Create App Instance - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -1364,7 +1218,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
 								"exec": [
 									""
 								],
@@ -1421,7 +1274,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
 									"pm.test(\"Negative Tests - User Without Roles - Storage - Create App Instance - Status - Forbidden\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -1433,7 +1285,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
 								"exec": [
 									""
 								],
@@ -1459,6 +1310,11 @@
 								"name": "Content-Type",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
@@ -1498,7 +1354,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "72a6bf18-23f3-4687-9a29-da4aaa903724",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -1508,15 +1363,13 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "dacf3f89-08b5-46d0-a1d1-ff346236ab78",
 						"type": "text/javascript",
 						"exec": [
 							""
 						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Access Instances - User with Lower Security Level Login",
@@ -1527,7 +1380,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
 									"if(pm.response.code == 200)",
 									"{",
@@ -1579,7 +1431,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "86592b19-cde0-42f1-8b7c-297eaee24071",
 								"exec": [
 									"function checkForHighSecLevelInstances() {\r",
 									"    if (pm.response.code == 200)\r",
@@ -1630,10 +1481,15 @@
 								"key": "Accept",
 								"value": "application/json",
 								"type": "text"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{sblaccesskey}}",
+								"type": "default"
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/search?instanceOwner.partyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -1645,100 +1501,11 @@
 								"v1",
 								"sbl",
 								"instances",
-								"{{instanceOwnerId}}"
+								"search"
 							],
 							"query": [
 								{
-									"key": "state",
-									"value": "active"
-								},
-								{
-									"key": "language",
-									"value": "nb"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "App instantion only by App Owner",
-			"item": [
-				{
-					"name": "Apps instantiation only for App Owner",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
-								"exec": [
-									"pm.test(\"Negative Tests - Apps instantiation only for App Owner - App - Create App Instance for InstanceOwner - Status - Forbidden\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
-								"exec": [
-									"pm.environment.set(\"instanceId\",\"\");",
-									"pm.environment.set(\"dataGuid\",\"\");"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{AltinnStudioRuntime}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{appOwner-only-app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{appOwner-only-app}}",
-								"instances"
-							],
-							"query": [
-								{
-									"key": "instanceOwnerPartyId",
+									"key": "instanceOwner.partyId",
 									"value": "{{instanceOwnerId}}"
 								}
 							]
@@ -1746,15 +1513,13 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
 	],
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "e4bdd868-bf3b-4ed4-8bb2-c435f10f0304",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1764,13 +1529,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "d9dffbea-520e-4b21-a7ce-d1456a7b5e99",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

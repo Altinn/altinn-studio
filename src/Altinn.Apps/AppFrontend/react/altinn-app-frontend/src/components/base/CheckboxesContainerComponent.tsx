@@ -86,10 +86,12 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData?.simpleBinding]);
 
   const returnState = () => {

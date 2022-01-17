@@ -345,7 +345,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 3;
+            int expectedNoInstances = 4;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -371,7 +371,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 3;
+            int expectedNoInstances = 4;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -397,7 +397,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 10;
+            int expectedNoInstances = 11;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
