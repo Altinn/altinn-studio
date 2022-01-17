@@ -15,19 +15,29 @@ export function insertHelpIconInNested({
   text,
 }: IInsertHelpIconInNested) {
   if (text) {
-    for (var j = 0; j < element.length; j++) {
-      if (element[j]["props"]) {
-        if (element[j]["props"]["children"]) {
+
+    let arr;
+    
+    if(!element.length) {
+      arr = element["props"]["children"];
+    } else {
+      arr = element;
+    }
+
+    for (let j = 0; j < arr.length; j++) {
+
+      if (arr[j]["props"]) {
+        if (arr[j]["props"]["children"]) {
           insertHelpIconInNested({
-            element: element[j]["props"]["children"],
+            element: arr[j]["props"]["children"],
             language,
             id,
             text,
           });
         }
-      } else {
-        element[j] = replaceHelpWithIcon({
-          element: element[j],
+      } else {    
+        arr[j] = replaceHelpWithIcon({
+          element: arr[j],
           language,
           id,
           text,

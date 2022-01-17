@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
-import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { insertHelpIconInNested } from '../../../src/utils/replaceIcon';
 import { ILanguage } from 'altinn-shared/types';
 
 export interface IParagraphProps {

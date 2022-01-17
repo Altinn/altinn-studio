@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
-import { HelpTextContainer } from './HelpTextContainer';
+import { insertHelpIconInNested } from '../../../../src/utils/replaceIcon';
 import { ILanguage } from 'altinn-shared/types';
 
 export interface IFormLegendProps {

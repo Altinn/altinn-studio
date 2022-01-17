@@ -1,7 +1,6 @@
 import { Grid } from '@material-ui/core';
 import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
-import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { ITextResourceBindings } from 'src/types';
 import { replaceHelpWithIcon } from '../..//../src/utils/replaceIcon';
 export interface IHeaderProps {
@@ -18,48 +17,27 @@ const marginStyling = {
   marginBottom: '0',
 };
 
-<<<<<<< HEAD
-  const header = replaceHelpWithIcon({
-    element: props.text,
-    language: props.language,
-    id: props.id,
-    text: props.getTextResource(props.textResourceBindings.help)
-  });
-
-  const renderHeader = () => {
-
-
-
-    switch (props.size) {
-      case ('S'): {
-        return <h4 id={props.id} style={marginStyling}>{header}</h4>;
-      }
-
-      case ('M'): {
-        return <h3 id={props.id} style={marginStyling}>{header}</h3>;
-      }
-
-      case ('L'): {
-        return <h2 id={props.id} style={marginStyling}>{header}</h2>;
-      }
-
-      default: {
-        return <h4 id={props.id} style={marginStyling}>{header}</h4>;
-      }
-=======
 interface IHeaderSizeProps {
   id: string;
   text: string;
   size?: string;
+  language: any;
+  helpText: string;
 }
 
-const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
+const HeaderSize = ({ id, size, text, language, helpText }: IHeaderSizeProps) => {
+  const header = replaceHelpWithIcon({
+    element: text,
+    language: language,
+    id: id,
+    text: helpText
+  });
   switch (size) {
     case 'L':
     case 'h2': {
       return (
         <h2 id={id} style={marginStyling}>
-          {text}
+          {header}
         </h2>
       );
     }
@@ -68,7 +46,7 @@ const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
     case 'h3': {
       return (
         <h3 id={id} style={marginStyling}>
-          {text}
+          {header}
         </h3>
       );
     }
@@ -78,10 +56,9 @@ const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
     default: {
       return (
         <h4 id={id} style={marginStyling}>
-          {text}
+          {header}
         </h4>
       );
->>>>>>> master
     }
   }
 };
@@ -97,15 +74,10 @@ export const HeaderComponent = ({
   return (
     <Grid container={true} direction='row' alignItems='center'>
       <Grid item={true}>
-        <HeaderSize id={id} size={size} text={text} />
+        <HeaderSize id={id} size={size} text={text} language={language} helpText={getTextResource(textResourceBindings.help)} />
       </Grid>
       {textResourceBindings?.help && (
         <Grid item={true} style={marginStyling}>
-          <HelpTextContainer
-            language={language}
-            id={id}
-            helpText={getTextResource(textResourceBindings.help)}
-          />
         </Grid>
       )}
     </Grid>
