@@ -13,9 +13,6 @@
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
-  "resolutions": {
-    "@types/react": "16.9.32"
-  },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
     "@material-ui/core": "^4.12.3",
@@ -25,26 +22,29 @@
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.0",
-    "@babel/preset-react": "^7.16.0",
-    "@types/jest": "^27.0.2",
-    "@types/react": "^17.0.34",
+    "@babel/core": "^7.16.7",
+    "@babel/preset-env": "^7.16.8",
+    "@babel/preset-react": "^7.16.7",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@types/jest": "^27.4.0",
+    "@types/react": "17.0.38",
     "@types/react-dom": "^17.0.11",
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.5",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.6",
     "cross-env": "^7.0.3",
     "css-loader": "^5.2.7",
     "enzyme": "^3.11.0",
     "fork-ts-checker-notifier-webpack-plugin": "3.0.0",
-    "fork-ts-checker-webpack-plugin": "^6.4.0",
+    "fork-ts-checker-webpack-plugin": "^6.5.0",
     "html-webpack-plugin": "^4.5.2",
-    "jest": "^27.3.1",
+    "jest": "^27.4.7",
     "mini-css-extract-plugin": "^1.6.2",
+    "msw": "^0.36.4",
     "rimraf": "^3.0.2",
     "terser-webpack-plugin": "^4.2.3",
-    "ts-jest": "^27.0.7",
+    "ts-jest": "^27.1.2",
     "ts-loader": "^8.3.0",
-    "typescript": "^4.4.4",
+    "typescript": "^4.5.4",
     "webpack": "^4.46.0",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.3"
@@ -65,7 +65,7 @@
       "js"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.js"
+      "<rootDir>/setupTests.ts"
     ],
     "testURL": "http://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
     "testEnvironment": "jsdom"

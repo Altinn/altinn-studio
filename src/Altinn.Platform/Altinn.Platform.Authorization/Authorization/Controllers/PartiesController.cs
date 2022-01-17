@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Authenticaiton.Extensions;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Register.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -28,9 +30,16 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="userId">the user id</param>
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult> GetPartyList(int userId)
         {
             List<Party> partyList = null;
+            int? authnUserId = User.GetUserIdAsInt();
+
+            if (userId != authnUserId)
+            {
+                return Forbid();
+            }
 
             if (userId != 0)
             {

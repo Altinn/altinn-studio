@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
 import { createTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -10,17 +9,16 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
+import { IAttachment, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import {
   mapInstanceAttachments,
   getTextResourceByKey,
 } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow } from '../../../types';
 import { get } from '../../../utils/networking';
 import { getValidationUrl } from '../../../utils/urlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
@@ -30,6 +28,7 @@ import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import moment from 'moment';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export type IConfirmProps = RouteChildrenProps;
 
@@ -39,7 +38,7 @@ const useStyles = makeStyles({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
-    textTransform: 'none' as const,
+    textTransform: 'none',
     fontWeight: 400,
     height: 36,
     borderRadius: '0',
@@ -84,34 +83,28 @@ export const returnConfirmSummaryObject = (data: ISummaryData) => {
 
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  const applicationMetadata: IApplicationMetadata = useSelector(
-    (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
+  const applicationMetadata: IApplicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
   );
-  const instance: IInstance = useSelector(
-    (state: IRuntimeState) => state.instanceData.instance,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const parties: IParty[] = useSelector(
-    (state: IRuntimeState) => state.party.parties,
-  );
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const language = useAppSelector((state) => state.language.language);
+  const parties = useAppSelector((state) => state.party.parties);
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
   );
 
   const routeParams: any = props.match.params;
 
   const { instanceId } = window as Window as IAltinnWindow;
-  const textResources = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
   );
 
   const isLoading = (): boolean =>
@@ -128,6 +121,7 @@ const Confirm = (props: IConfirmProps) => {
       routeParams.partyId,
       routeParams.instanceGuid,
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -142,7 +136,7 @@ const Confirm = (props: IConfirmProps) => {
       });
       setInstanceMetaObject(obj);
     }
-  }, [parties, instance, lastChangedDateTime, applicationMetadata]);
+  }, [parties, instance, lastChangedDateTime, applicationMetadata, language]);
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {

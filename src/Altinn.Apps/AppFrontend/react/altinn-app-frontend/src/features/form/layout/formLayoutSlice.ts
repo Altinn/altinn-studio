@@ -11,7 +11,7 @@ export interface ILayoutState {
   layoutsets: ILayoutSets;
 }
 
-const initialState: ILayoutState = {
+export const initialState: ILayoutState = {
   layouts: null,
   error: null,
   uiConfig: {
@@ -39,6 +39,7 @@ const formLayoutSlice = createSlice({
       state.uiConfig.navigationConfig = navigationConfig;
       state.uiConfig.layoutOrder = Object.keys(layouts);
       state.error = null;
+      state.uiConfig.repeatingGroups = {};
     },
     fetchLayoutRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
       const { error } = action.payload;

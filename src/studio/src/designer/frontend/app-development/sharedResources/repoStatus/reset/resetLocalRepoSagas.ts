@@ -13,7 +13,7 @@ export function* resetLocalRepoSaga({ payload: {
 } }: PayloadAction<IRepoStatusAction>): SagaIterator {
   try {
     const result = yield call(get,
-      `/designerapi/Repository/ResetLocalRepository?org=${org}&repository=${repo}`);
+      `/designer/api/v1/repos/${org}/${repo}/reset`);
 
     yield put(fetchRepoStatus({
       url: repoStatusUrl,

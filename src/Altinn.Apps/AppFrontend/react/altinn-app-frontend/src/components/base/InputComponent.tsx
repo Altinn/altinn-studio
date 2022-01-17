@@ -106,7 +106,6 @@ export function InputComponent(props: IInputProps) {
       inputComponent={
         formatting?.number ? NumberFormatCustom : BasicInputComponent
       }
-      // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
       inputProps={{
         formatting,
         className: classNames('form-control', {

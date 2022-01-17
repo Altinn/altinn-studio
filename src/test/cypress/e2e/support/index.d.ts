@@ -128,5 +128,11 @@ declare namespace Cypress {
        * check visibility of an element whose parent is found hidden by cypress 
        */
         isVisible(): Chainable<Element>;
+
+      /**
+      * Custom command to search and open an app
+      * @example cy.searchAndOpenApp('ttd/app')
+      */
+       searchAndOpenApp(appId: string): Chainable<Element>;
   }
 }

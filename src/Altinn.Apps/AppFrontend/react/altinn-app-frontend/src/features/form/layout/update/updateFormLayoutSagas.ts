@@ -5,8 +5,8 @@ import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/
 import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
-import { get, getCurrentTaskDataElementId, post } from 'altinn-shared/utils';
-import { getDataTaskDataTypeId } from 'src/utils/appMetadata';
+import { get, post } from 'altinn-shared/utils';
+import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
 import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
@@ -348,7 +348,6 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
-    // eslint-disable-next-line no-restricted-syntax
     for (const group of groupsToRemoveValidations) {
       for (let i = 0; i <= currentGroups[group].count; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
@@ -368,5 +367,11 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
 export function* watchInitRepeatingGroupsSaga(): SagaIterator {
   yield take(FormLayoutActions.fetchLayoutFulfilled);
   yield call(initRepeatingGroupsSaga);
-  yield takeLatest([FormDataActions.fetchFormDataFulfilled, FormLayoutActions.initRepeatingGroups], initRepeatingGroupsSaga);
+  yield takeLatest([
+    FormDataActions.fetchFormDataFulfilled,
+    FormLayoutActions.initRepeatingGroups,
+    FormLayoutActions.fetchLayoutFulfilled
+    ],
+    initRepeatingGroupsSaga
+  );
 }

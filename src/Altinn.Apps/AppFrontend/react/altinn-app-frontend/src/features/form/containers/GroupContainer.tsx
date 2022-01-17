@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Grid } from '@material-ui/core';
-import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -8,19 +7,13 @@ import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import { ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import {
-  IRuntimeState,
-  ITextResource,
-  IRepeatingGroups,
-  IValidations,
-  Triggers,
-} from '../../../types';
-import { IFormData } from '../data/formDataReducer';
+import { Triggers } from '../../../types';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IGroupProps {
   id: string;
@@ -38,51 +31,29 @@ export function GroupContainer({
   container,
   components,
 }: IGroupProps): JSX.Element {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(
     JSON.stringify(components),
   );
 
-  const editIndex: number = useSelector(
-    (state: IRuntimeState) =>
-      state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
-  );
+  const editIndex = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
-  const currentView: string = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.currentView,
-  );
-  const language: any = useSelector(
-    (state: IRuntimeState) => state.language.language,
-  );
-  const repeatingGroups: IRepeatingGroups = useSelector(
-    (state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups,
-  );
-  const hiddenFields: string[] = useSelector((state: IRuntimeState) =>
+  const validations = useAppSelector(state => state.formValidations.validations);
+  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
+  const language = useAppSelector(state => state.language.language);
+  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
+  const hiddenFields = useAppSelector(state =>
     getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components),
   );
   const GetHiddenSelector = makeGetHidden();
-  const hidden: boolean = useSelector((state: IRuntimeState) =>
-    GetHiddenSelector(state, { id }),
-  );
-  const formData: IFormData = useSelector(
-    (state: IRuntimeState) => state.formData.formData,
-  );
-  const layout: ILayout = useSelector(
-    (state: IRuntimeState) =>
-      state.formLayout.layouts[state.formLayout.uiConfig.currentView],
-  );
-  const options = useSelector(
-    (state: IRuntimeState) => state.optionState.options,
-  );
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
+  const hidden = useAppSelector(state => GetHiddenSelector(state, { id }));
+  const formData = useAppSelector(state => state.formData.formData);
+  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
+  const options = useAppSelector(state => state.optionState.options);
+  const textResources = useAppSelector(state => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
       return repeatingGroups[containerId].count;
@@ -90,21 +61,22 @@ export function GroupContainer({
     return -1;
   };
   const repeatingGroupIndex = getRepeatingGroupIndex(id);
-  const repeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
+  const repeatingGroupDeepCopyComponents = useMemo(() => createRepeatingGroupComponents(
     container,
     renderComponents,
     repeatingGroupIndex,
     textResources,
     hiddenFields,
-  );
-  const tableHasErrors = repeatingGroupHasValidations(
+  ), [container, renderComponents, repeatingGroupIndex, textResources, hiddenFields]);
+
+  const tableHasErrors = useMemo(() => repeatingGroupHasValidations(
     container,
     repeatingGroupDeepCopyComponents,
     validations,
     currentView,
     repeatingGroups,
     layout,
-  );
+  ), [container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout]);
 
   React.useEffect(() => {
     if (container.edit?.filter && container.edit.filter.length > 0) {
@@ -128,6 +100,18 @@ export function GroupContainer({
     }
   }, [formData, container]);
 
+  const onClickAdd = useCallback(() => {
+    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
+    if (container.edit?.mode !== 'showAll') {
+      dispatch(
+        FormLayoutActions.updateRepeatingGroupsEditIndex({
+          group: id,
+          index: repeatingGroupIndex + 1,
+        }),
+      );
+    }
+  }, [container.edit?.mode, dispatch, id, repeatingGroupIndex]);
+
   React.useEffect(() => {
     const { edit } = container;
     if (!edit) {
@@ -141,19 +125,7 @@ export function GroupContainer({
     if (edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
-  }, [container]);
-
-  const onClickAdd = () => {
-    dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    if (container.edit?.mode !== 'showAll') {
-      dispatch(
-        FormLayoutActions.updateRepeatingGroupsEditIndex({
-          group: id,
-          index: repeatingGroupIndex + 1,
-        }),
-      );
-    }
-  };
+  }, [container, onClickAdd, repeatingGroupIndex]);
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (
@@ -241,6 +213,7 @@ export function GroupContainer({
           language={language}
           layout={layout}
           options={options}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           repeatingGroupIndex={repeatingGroupIndex}
           repeatingGroups={repeatingGroups}
           setEditIndex={setEditIndex}
@@ -251,6 +224,7 @@ export function GroupContainer({
       )}
       <Grid container={true} justifyContent='flex-end' />
       {container.edit?.mode !== 'showAll' &&
+        container.edit?.addButton !== false &&
         editIndex < 0 &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
@@ -263,17 +237,15 @@ export function GroupContainer({
         )}
       {editIndex >= 0 && (
         <RepeatingGroupsEditContainer
-          components={components}
           container={container}
           editIndex={editIndex}
-          hiddenFields={hiddenFields}
           id={id}
           language={language}
+          textResources={textResources}
           layout={layout}
           onClickRemove={onClickRemove}
           onClickSave={onClickSave}
-          repeatingGroupIndex={repeatingGroupIndex}
-          textResources={textResources}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           hideSaveButton={container.edit?.saveButton === false}
           hideDeleteButton={container.edit?.deleteButton === false}
           multiPageIndex={multiPageIndex}
@@ -296,23 +268,22 @@ export function GroupContainer({
             return (
               <RepeatingGroupsEditContainer
                 key={index}
-                components={components}
-                container={container}
                 editIndex={index}
-                hiddenFields={hiddenFields}
+                container={container}
                 id={id}
                 language={language}
+                textResources={textResources}
                 layout={layout}
                 onClickRemove={onClickRemove}
                 onClickSave={onClickSave}
-                repeatingGroupIndex={repeatingGroupIndex}
-                textResources={textResources}
+                repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
                 hideSaveButton={true}
                 hideDeleteButton={container.edit?.deleteButton === false}
               />
             );
           })}
       {container.edit?.mode === 'showAll' &&
+        container.edit?.addButton !== false &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
             container={container}

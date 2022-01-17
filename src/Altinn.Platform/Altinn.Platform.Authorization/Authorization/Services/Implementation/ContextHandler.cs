@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class ContextHandler : IContextHandler
     {
-        private readonly IPolicyInformationRepository _policyInformationRepository;
+        private readonly IInstanceMetadataRepository _policyInformationRepository;
         private readonly IRoles _rolesWrapper;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
         public ContextHandler(
-            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+            IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _policyInformationRepository = policyInformationRepository;
             _rolesWrapper = rolesWrapper;

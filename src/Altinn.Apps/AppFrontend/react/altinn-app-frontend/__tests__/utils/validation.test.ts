@@ -15,8 +15,7 @@ import * as oneOfOnRootSchema from '../../__mocks__/json-schema/one-of-on-root.j
 import * as refOnRootSchema from '../../__mocks__/json-schema/ref-on-root.json';
 import * as complexSchema from '../../__mocks__/json-schema/complex.json';
 
-describe('>>> utils/validations.ts', () => {
-  let mockApiResponse: any;
+describe('utils > validation', () => {
   let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
@@ -30,25 +29,6 @@ describe('>>> utils/validations.ts', () => {
   let mockDataElementValidations: IValidationIssue[];
 
   beforeEach(() => {
-    mockApiResponse = {
-      default: {
-        messages: {
-          dataModelField_1: {
-            errors: ['Error message 1', 'Error message 2'],
-            warnings: [],
-          },
-          dataModelField_2: {
-            errors: [],
-            warnings: ['Warning message 1', 'Warning message 2'],
-          },
-          random_key: {
-            errors: ['test error'],
-            warnings: ['test warning'],
-          },
-        },
-      },
-    };
-
     mockLanguage = {
       language: {
         form_filler: {
@@ -980,14 +960,67 @@ describe('>>> utils/validations.ts', () => {
     expect(validations).toEqual(expectedResult);
   });
 
-  it('+++ getNumberOfComponentsWithErrors should return correct number of components with error', () => {
-    const componentsWithErrors = validation.getNumberOfComponentsWithErrors(mockApiResponse);
-    expect(componentsWithErrors).toEqual(1);
-  });
 
-  it('+++ getNumberOfComponentsWithEWarnings should return correct number of components with warnings', () => {
-    const componentsWithWarnings = validation.getNumberOfComponentsWithWarnings(mockApiResponse);
-    expect(componentsWithWarnings).toEqual(1);
+  describe('hasValidationsOfSeverity', () => {
+    const validationsWithFixed: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            fixed: ['some error'],
+          },
+        },
+      },
+    };
+
+    const validationsWithWarnings: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            warnings: ['some warning'],
+          },
+        },
+      },
+    };
+
+    const validationsWithErrors: IValidations = {
+      page1: {
+        component1: {
+          simpleBinding: {
+            errors: ['some error'],
+          },
+        },
+      },
+    };
+
+    it('should return true when validations have errors and checking for Severity.Error', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithErrors, Severity.Error);
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when validations have warnings and checking for Severity.Error', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithWarnings, Severity.Error);
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when validations have no warnings and no errors and checking for Severity.Error', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Error);
+      expect(result).toBeFalsy();
+    });
+
+    it('should return true when validations have warnings and checking for Severity.Warning', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithWarnings, Severity.Warning);
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when validations have errors and checking for Severity.Warning', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithErrors, Severity.Warning);
+      expect(result).toBeFalsy();
+    });
+
+    it('should return false when validations have no warnings and no errors and checking for Severity.Warning', () => {
+      const result = validation.hasValidationsOfSeverity(validationsWithFixed, Severity.Warning);
+      expect(result).toBeFalsy();
+    });
   });
 
   it('+++ mergeValidationObjects should merge validation objects successfully', () => {
@@ -1616,5 +1649,20 @@ describe('>>> utils/validations.ts', () => {
         maximum: 100,
       },
     );
+  });
+
+  it('getUnmappedErrors should return unmapped errors', () => {
+    const validations: IValidations = {
+      unmapped: {
+        unmapped: {
+          unmapped: {
+            errors: ['unmapped1', 'unmapped2'],
+          },
+        },
+      },
+    };
+    const result = validation.getUnmappedErrors(validations);
+    const expected = ['unmapped1', 'unmapped2'];
+    expect(result).toEqual(expected);
   });
 });

@@ -1,32 +1,18 @@
-/* eslint-disable react-perf/jsx-no-new-object-as-prop */
 /* eslint-disable no-prototype-builtins */
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { ITextResource, IValidations, IRuntimeState } from 'src/types';
-import { useSelector } from 'react-redux';
-import { getTextFromAppOrDefault } from '../../utils/textResource';
+import { IValidations } from 'src/types';
 import { getUnmappedErrors } from '../../utils/validation';
+import { useAppSelector } from 'src/common/hooks';
 
-export interface IErrorProps {
-  language: any;
-}
-
-const ErrorReport = (props: IErrorProps) => {
-  const validations: IValidations = useSelector(
-    (state: IRuntimeState) => state.formValidations.validations,
-  );
+const ErrorReport = () => {
+  const validations = useAppSelector(state => state.formValidations.validations,);
   const unmappedErrors = getUnmappedErrors(validations);
-  const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
-  const textResources: ITextResource[] = useSelector(
-    (state: IRuntimeState) => state.textResources.resources,
-  );
-  const formHasErrors: boolean = useSelector((state: IRuntimeState) =>
-    getFormHasErrors(state.formValidations.validations),
-  );
-  const hasSubmitted = useSelector(
-    (state: IRuntimeState) => state.formData.hasSubmitted,
-  );
+  const hasUnmappedErrors = unmappedErrors.length > 0;
+  const language = useAppSelector(state => state.language.language);
+  const formHasErrors = useAppSelector(state => getFormHasErrors(state.formValidations.validations));
+  const hasSubmitted = useAppSelector(state => state.formData.hasSubmitted);
   const errorRef = useRef(null);
 
   useEffect(() => {
@@ -71,7 +57,7 @@ const ErrorReport = (props: IErrorProps) => {
                   <span className='a-iconText-text-large'>
                     {getLanguageFromKey(
                       'form_filler.error_report_header',
-                      props.language,
+                      language,
                     )}
                   </span>
                 </h2>
@@ -82,33 +68,22 @@ const ErrorReport = (props: IErrorProps) => {
               style={{ paddingTop: '0px', paddingBottom: '24px' }}
             >
               {hasUnmappedErrors &&
-                unmappedErrors.map((key: string) => {
-                  // List unmapped errors
-                  return (
-                    <h4
-                      className='a-fontReg'
-                      style={{ marginBottom: '12px' }}
-                      key={key}
-                    >
-                      <span>
-                        {getTextFromAppOrDefault(
-                          key,
-                          textResources,
-                          props.language,
-                          undefined,
-                          false,
-                        )}
-                      </span>
-                    </h4>
-                  );
-                })}
+                <div>
+                  <ul style={{ listStylePosition: 'inside'}}>
+                    {unmappedErrors.map((error: React.ReactNode, index: number) => {
+                      return (
+                        <li key={index}>{error}</li>
+                      );
+                    })}
+                  </ul>
+                </div>}
               {!hasUnmappedErrors && (
                 // No errors to list, show a generic error message
                 <h4 className='a-fontReg' style={{ marginBottom: '12px' }}>
                   <span>
                     {getLanguageFromKey(
                       'form_filler.error_report_description',
-                      props.language,
+                      language,
                     )}
                   </span>
                 </h4>

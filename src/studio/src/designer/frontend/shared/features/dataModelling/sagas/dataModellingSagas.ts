@@ -3,7 +3,8 @@ import { call, takeLatest, put } from 'redux-saga/effects';
 import { ISchema } from '@altinn/schema-editor/types';
 import * as net from '../../../utils/networking';
 import { sharedUrls } from '../../../utils/urlHelper';
-import { fetchDataModel,
+import {
+  fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
   saveDataModel,
@@ -15,7 +16,8 @@ import { fetchDataModel,
   IDataModelAction,
   deleteDataModel,
   deleteDataModelFulfilled,
-  deleteDataModelRejected } from './dataModellingSlice';
+  deleteDataModelRejected,
+} from './dataModellingSlice';
 import { DataModelsMetadataActions } from './metadata';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
@@ -53,8 +55,8 @@ function* createDataModelSaga(action: IDataModelAction) {
   const body = { modelName: name, relativeDirectory: relativePath };
   try {
     const schema: ISchema = yield call(net.post, sharedUrls().createDataModelUrl, body);
-    yield put(createDataModelFulfilled({ schema }));
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    yield put(createDataModelFulfilled({ schema }));
   } catch (err) {
     yield put(createDataModelRejected({ error: err }));
   }
@@ -69,8 +71,8 @@ function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     yield call(net.del, sharedUrls().saveDataModelUrl(modelPath));
-    yield put(deleteDataModelFulfilled());
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    yield put(deleteDataModelFulfilled());
   } catch (err) {
     yield put(deleteDataModelRejected({ error: err }));
   }

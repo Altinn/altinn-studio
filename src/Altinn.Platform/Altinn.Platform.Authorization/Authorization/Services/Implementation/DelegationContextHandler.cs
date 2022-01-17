@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="rolesWrapper">the roles handler</param>
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
-        public DelegationContextHandler(IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+        public DelegationContextHandler(IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
             : base(policyInformationRepository, rolesWrapper, memoryCache, settings)
         {
         }
