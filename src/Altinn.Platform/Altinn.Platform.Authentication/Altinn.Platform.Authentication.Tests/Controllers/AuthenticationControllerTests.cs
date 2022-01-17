@@ -764,7 +764,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")));
             Assert.Equal("234234",  claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:altinn:userid")).Value);
             Assert.NotNull(claimPrincipal.Claims.FirstOrDefault(r => r.Type.Equals("urn:feide:role")));
-            Assert.Equal(2, claimPrincipal.Claims.Where(r => r.Type.Equals("urn:feide:role")).Count());
+            Assert.Equal(2, claimPrincipal.Claims.Count(r => r.Type.Equals("urn:feide:role")));
         }
 
         /// <summary>
