@@ -44,7 +44,6 @@ namespace Altinn.Platform.Register.UnitTest
 
         private HttpClient GetTestClient()
         {
-            // ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
