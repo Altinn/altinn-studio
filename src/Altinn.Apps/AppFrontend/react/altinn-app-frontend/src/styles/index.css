@@ -316,14 +316,6 @@ select.disabled {
   }
 }
 
-.modal-content {
-  margin-bottom: 60px;
-}
-
-#errorReport .modal-content {
-  margin-bottom: 24px;
-}
-
 /* Button */
 .a-btn-sm-fullwidth {
   width: 100%;
