@@ -231,7 +231,7 @@ namespace LocalTest.Services.Storage.Implementation
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.InstanceCollectionFolder;
         }
 
-        private void PreProcess(Instance instance)
+        private static void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
             instance.Data = new List<DataElement>();
@@ -262,7 +262,7 @@ namespace LocalTest.Services.Storage.Implementation
         /// </summary>
         /// <param name="instanceId">the id to convert to cosmos</param>
         /// <returns>the guid of the instance</returns>
-        private string InstanceIdToCosmosId(string instanceId)
+        private static string InstanceIdToCosmosId(string instanceId)
         {
             string cosmosId = instanceId;
 
@@ -274,7 +274,7 @@ namespace LocalTest.Services.Storage.Implementation
             return cosmosId;
         }
 
-        private void SetReadStatus(Instance instance)
+        private static void SetReadStatus(Instance instance)
         {
             if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
             {
@@ -291,32 +291,32 @@ namespace LocalTest.Services.Storage.Implementation
             if (queryValue.StartsWith("gt:"))
             {
                 var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                instances.RemoveAll(i => !(getDateTimeValue(i, property) > query));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) > query));
             }
             else if (queryValue.StartsWith("gte:"))
             {
                 var query = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                instances.RemoveAll(i => !(getDateTimeValue(i, property) >= query));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) >= query));
             }
             else if (queryValue.StartsWith("lt:"))
             {
                 var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                instances.RemoveAll(i => !(getDateTimeValue(i, property) < query));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) < query));
             }
             else if (queryValue.StartsWith("lte:"))
             {
                 var query = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                instances.RemoveAll(i => !(getDateTimeValue(i, property) <= query));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) <= query));
             }
             else if (queryValue.StartsWith("eq:"))
             {
                 var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                instances.RemoveAll(i => getDateTimeValue(i, property) != query);
+                instances.RemoveAll(i => GetDateTimeValue(i, property) != query);
             }
             else
             {
                 var query = ParseDateTimeIntoUtc(queryValue);
-                instances.RemoveAll(i => getDateTimeValue(i, property) != query);
+                instances.RemoveAll(i => GetDateTimeValue(i, property) != query);
             }
         }
 
@@ -325,7 +325,7 @@ namespace LocalTest.Services.Storage.Implementation
             return DateTimeHelper.ParseAndConvertToUniversalTime(queryValue);
         }
 
-        public static DateTime? getDateTimeValue(object source, string property)
+        public static DateTime? GetDateTimeValue(object source, string property)
         {
             string[] props = property.Split('.');
 

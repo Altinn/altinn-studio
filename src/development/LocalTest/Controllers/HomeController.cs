@@ -62,7 +62,7 @@ namespace LocalTest.Controllers
             {
                 model.TestApps = await GetAppsList();
             }
-            catch(HttpRequestException e)
+            catch (HttpRequestException e)
             {
                 model.HttpException = e;
             }
@@ -197,9 +197,7 @@ namespace LocalTest.Controllers
 
             foreach (string file in files)
             {
-                int userId;
-
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
+                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int userId))
                 {
                     users.Add(await _userProfileService.GetUser(userId));
                 }
@@ -231,12 +229,12 @@ namespace LocalTest.Controllers
         private async Task<IEnumerable<SelectListItem>> GetAppsList()
         {
             var applications = await _localApp.GetApplications();
-            return applications.Select((kv)=> GetSelectItem(kv.Value, kv.Key)).ToList();
+            return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
         }
 
         private SelectListItem GetSelectItem(Application app, string path)
         {
-            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb")};
+            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb") };
             return item;
         }
 
@@ -258,7 +256,7 @@ namespace LocalTest.Controllers
                     filedata = System.IO.File.ReadAllText(filename, Encoding.UTF8);
                     app = JsonConvert.DeserializeObject<Application>(filedata);
                 }
-              
+
                 return app;
             }
             catch (Exception)

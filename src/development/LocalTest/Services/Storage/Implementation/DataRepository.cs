@@ -132,7 +132,7 @@ namespace LocalTest.Services.Storage.Implementation
             return await reader.ReadToEndAsync();
         }
 
-        private async Task<Stream> ReadFileAsStream(string path)
+        private static async Task<Stream> ReadFileAsStream(string path)
         {
             try
             {
@@ -150,7 +150,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private Stream ReadFileAsStreamInternal(string path)
+        private static Stream ReadFileAsStreamInternal(string path)
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
@@ -165,7 +165,7 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteToFile(path, stream);
         }
 
-        private async Task<long> WriteToFile(string path, Stream stream)
+        private static async Task<long> WriteToFile(string path, Stream stream)
         {
             if (!(stream is MemoryStream memStream))
             {
@@ -195,7 +195,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private async Task<long> WriteToFileInternal(string path, MemoryStream stream)
+        private static async Task<long> WriteToFileInternal(string path, MemoryStream stream)
         {
             long fileSize;
             await using (FileStream streamToWriteTo = File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
