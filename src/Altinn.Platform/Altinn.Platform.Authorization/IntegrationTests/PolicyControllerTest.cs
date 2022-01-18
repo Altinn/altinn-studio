@@ -383,6 +383,42 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Try GetResourcepolicies where a ResourcePolicy exists in blobstorage, but does not match the Org/App in the request
+        /// Expected: GetResourcepolicies returns a list of 
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_TC09()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDUndefinedRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   AppId = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
+                      new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "undefined" },
+                   },
+                   ResourcePolicies = new List<ResourcePolicy>(),
+                   MinimumAuthenticationLevel = 2
+               }
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
+        /// <summary>
         /// Test case: Try GetResourcePolicies for app with rule for Org subject in XACML app policy
         /// Expected: Rules not associated with a RoleCode should be ignored in the Resource Policy
         /// </summary>
@@ -404,7 +440,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(!actualResourcePolicyResponses.Any(rpr => rpr.ResourcePolicies.Any(rp => rp.Actions.Any(action => action.Title == "appownerread" || action.RoleGrants.Count == 0))));
         }
 
-        private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
+            private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             string policyDesc = "Eksempel på en policy";
             ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");
