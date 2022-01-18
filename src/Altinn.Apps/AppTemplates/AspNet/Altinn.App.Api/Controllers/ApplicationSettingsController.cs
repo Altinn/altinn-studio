@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-using Altinn.App.Api.Models;
 using Altinn.App.Services.Configuration;
 
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +13,7 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ApplicationSettingsController : ControllerBase
     {
-        private JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
         {
             DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
         };
