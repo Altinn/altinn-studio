@@ -28,10 +28,6 @@
     </AdditionalFiles>
   </ItemGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="..\Altinn.Platform.Register.Test\Altinn.Platform.Register.Test.csproj" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
