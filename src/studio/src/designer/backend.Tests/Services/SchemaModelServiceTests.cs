@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -109,7 +110,7 @@ namespace Designer.Tests.Services
 
                 var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
                 updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
-                
+
                 var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
 
                 // Generated XSD included for reference
@@ -185,7 +186,7 @@ namespace Designer.Tests.Services
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
-                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());                
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
                 ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
@@ -260,7 +261,36 @@ namespace Designer.Tests.Services
 
             var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName, relativePath);
 
-            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}{(string.IsNullOrEmpty(relativePath) ? "/" : relativePath)}{schemaName}.schema.json");            
+            schemaUri.AbsoluteUri.Should().Be($"{repositoryBaseUrl}/{org}/{repository}{(string.IsNullOrEmpty(relativePath) ? "/" : relativePath)}{schemaName}.schema.json");
+        }
+
+        [Fact]
+        public async Task UploadSchemaFromXsd_InvalidXsd_ThrowsException()
+        {
+            // Arrange
+            var org = "ttd";
+            var sourceRepository = "empty-app-pref-json";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleInvalidNonSeresSchema.xsd");
+                var schemaName = "SimpleInvalidNonSeresSchema";
+                var fileName = $"{schemaName}.xsd";
+
+                Func<Task> action = () => schemaModelService.BuildSchemaFromXsd(org, targetRepository, developer, fileName, xsdStream);
+
+                // Act/assert
+                await action.Should().ThrowAsync<XmlSchemaException>();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
         }
     }
 }
