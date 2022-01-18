@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "111b1429-65c4-4491-949f-52d1ba0ffdb3",
+		"_postman_id": "1ec7fbd8-a9d1-4317-9edf-ef5c4153467c",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -15,7 +15,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
 									""
 								],
@@ -25,10 +24,9 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
 								"exec": [
 									"const jar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"jar.clear(domain, function (error){",
 									"    if(error)",
 									"    {",
@@ -75,20 +73,11 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
 								"exec": [
-									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
-									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
-									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());",
 									"",
 									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});",
+									"const domain = `https://${pm.environment.get(\"envUrl\")}`;",
 									"",
 									"cookieJar.clear(domain, function (error){",
 									"    if(error)",
@@ -103,7 +92,6 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "e2e69b4a-b07a-48bb-b8a7-736a954aa30d",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -115,7 +103,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://platform.{{envUrl}}/authentication/api/v1/refresh",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -130,7 +118,7 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/"
+									"value": "https://platform.{{envUrl}}/authentication/api/v1/refresh"
 								}
 							]
 						}
@@ -138,12 +126,11 @@
 					"response": []
 				},
 				{
-					"name": "Get Party Id",
+					"name": "Get Party info",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
 									"if(pm.response.code == 200)",
 									"{",
@@ -152,6 +139,7 @@
 									"    var ssn = jsonData.party.ssn;",
 									"    var userId = jsonData.userId;",
 									"    pm.environment.set(\"partyID\",partyId);",
+									"    pm.environment.set(\"instanceOwnerId\",partyId);",
 									"    pm.environment.set(\"SSN\",ssn);",
 									"    pm.environment.set(\"userID\",userId);",
 									"}"
@@ -162,16 +150,8 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "5a8073fb-c692-41da-9b4c-d65247522491",
 								"exec": [
-									"const cookieJar = pm.cookies.jar();",
-									"var domain = pm.environment.get(\"envUrl\");",
-									"cookieJar.clear(domain, function (error){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
-									"    }",
-									"});"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -215,7 +195,6 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "147b7979-a781-4be9-870e-cc9349a6419d",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -225,15 +204,13 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f54a269-3647-4af6-b1e9-2d15d187ff32",
 						"type": "text/javascript",
 						"exec": [
 							""
 						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Register",
@@ -244,7 +221,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8129a9e2-4653-4bf7-81c8-f5834064c30f",
 								"exec": [
 									"pm.test(\"Platform - Register - GET Organizations - Status - 403\", function () {",
 									"    pm.response.to.have.status(403);",
@@ -266,7 +242,13 @@
 							]
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "https://platform.{{envUrl}}/register/api/v1/organizations/{{orgNr}}",
 							"protocol": "https",
@@ -291,7 +273,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3dc27b90-5c04-4fc8-a5d4-8157c75b8842",
 								"exec": [
 									"pm.test(\"Platform - Register - GET Parties - Status - 403\", function () {",
 									"    pm.response.to.have.status(403);",
@@ -313,7 +294,13 @@
 							]
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/{{partyID}}",
 							"protocol": "https",
@@ -327,6 +314,13 @@
 								"v1",
 								"parties",
 								"{{partyID}}"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -338,7 +332,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "db2a3525-6d7c-447c-8254-497db124f622",
 								"exec": [
 									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -365,6 +358,11 @@
 								"key": "Content-Type",
 								"name": "Content-Type",
 								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
 								"type": "text"
 							}
 						],
@@ -396,7 +394,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "db2a3525-6d7c-447c-8254-497db124f622",
 								"exec": [
 									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -424,6 +421,11 @@
 								"name": "Content-Type",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
 							}
 						],
 						"body": {
@@ -448,8 +450,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Profile",
@@ -460,7 +461,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bc718f86-1415-44c2-8911-124c1461456b",
 								"exec": [
 									"pm.test(\"Platform - Profile - GET Profile - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -483,7 +483,13 @@
 							]
 						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
+							}
+						],
 						"url": {
 							"raw": "https://platform.{{envUrl}}/profile/api/v1/users/{{userID}}",
 							"protocol": "https",
@@ -509,7 +515,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bc718f86-1415-44c2-8911-124c1461456b",
 								"exec": [
 									"pm.test(\"Platform - Profile - GET Profile by SSN - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -532,7 +537,13 @@
 							]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "\"{{SSN}}\"",
@@ -561,8 +572,478 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
+		},
+		{
+			"name": "Events",
+			"item": [
+				{
+					"name": "POST Event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Platform Api - events - create - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"id\": \"24f6554b-6e23-4132-9a72-0ac3c91478d3\",\r\n        \"source\": \"https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}\",\r\n        \"specversion\": \"1.0\",\r\n        \"type\": \"app.test.event\",\r\n        \"subject\": \"/party/{{instanceOwnerId}}\",\r\n        \"time\": \"2020-10-23T09:10:10.455896Z\",\r\n        \"alternativesubject\": \"/person/{{SSN}}\"\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/app",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"app"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Events",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/app/ttd/events-app?from=2020-11-05T11:00:53.3917",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"app",
+								"ttd",
+								"events-app"
+							],
+							"query": [
+								{
+									"key": "party",
+									"value": "{{instanceOwnerId}}",
+									"disabled": true
+								},
+								{
+									"key": "unit",
+									"value": "{{orgNr}}",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "app.test.event",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "app.instance.process.completed",
+									"disabled": true
+								},
+								{
+									"key": "source",
+									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"disabled": true
+								},
+								{
+									"key": "from",
+									"value": "2020-11-05T11:00:53.3917"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Events by party",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "person",
+								"type": "text",
+								"value": "27124902369",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/app/party?party={{instanceOwnerId}}&from=2021-05-05T13:00:53.3917",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"app",
+								"party"
+							],
+							"query": [
+								{
+									"key": "unit",
+									"value": "{{orgNr}}",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "app.instance.created",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "app.instance.process.completed",
+									"disabled": true
+								},
+								{
+									"key": "source",
+									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"disabled": true
+								},
+								{
+									"key": "party",
+									"value": "{{instanceOwnerId}}"
+								},
+								{
+									"key": "size",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "to",
+									"value": "2020-10-27T11:20:53.3917",
+									"disabled": true
+								},
+								{
+									"key": "app",
+									"value": "events-app",
+									"disabled": true
+								},
+								{
+									"key": "org",
+									"value": "ttd",
+									"disabled": true
+								},
+								{
+									"key": "from",
+									"value": "2021-05-05T13:00:53.3917"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Subscriptions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"endPoint\": \"\",\r\n  \"sourceFilter\": \"https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}\",\r\n  \"alternativeSubjectFilter\": \"/person/{{SSN}}\",\r\n  \"typeFilter\": \"app.instance.created\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Subscriptions Org",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"endPoint\": \"\",\r\n  \"sourceFilter\": \"https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}\",\r\n  \"alternativeSubjectFilter\": \"/org/991825827\",\r\n  \"typeFilter\": \"app.instance.substatus.changed\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Subscriptions app owner",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"endPoint\": \"\",\r\n    \"sourceFilter\": \"https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}\",\r\n    \"typeFilter\": \"app.instance.substatus.changed\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Subscriptions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions/22",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions",
+								"22"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate subscription",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions/validate/18",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions",
+								"validate",
+								"18"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Subscriptions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/events/api/v1/subscriptions/67",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"events",
+								"api",
+								"v1",
+								"subscriptions",
+								"67"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Authentication",
@@ -573,7 +1054,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "13151bbe-93ff-4e54-88f2-9a04f9d996b4",
 								"exec": [
 									"pm.test(\"Platform - Authentication - GET Tickets - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -623,9 +1103,107 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Introspect",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Platform - Authentication - Introspection - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "token_type_hint",
+									"value": "asd",
+									"type": "text"
+								},
+								{
+									"key": "token",
+									"value": "asdad",
+									"type": "default"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/introspection",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"introspection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "openid-configuration",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/openid/.well-known/openid-configuration",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"openid",
+								".well-known",
+								"openid-configuration"
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "Authorization",
@@ -636,7 +1214,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e45aaeae-96e7-42ef-9429-c224609f299d",
 								"exec": [
 									"pm.test(\"Platform - Authorization - GET Actors - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -649,7 +1226,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							}
+						],
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/parties?userid={{userID}}",
 							"protocol": "https",
@@ -679,7 +1262,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0b884ff1-f754-4671-a1eb-13bd734e88b5",
 								"exec": [
 									"pm.test(\"Platform - Authorization - GET Roles - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -692,7 +1274,13 @@
 					],
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
+							}
+						],
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
 							"protocol": "https",
@@ -726,7 +1314,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "72982299-cf05-46fd-bda1-7c358d148ded",
 								"exec": [
 									"pm.test(\"Platform - Authorization - Post Upload Policy xacml - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -754,15 +1341,17 @@
 								"name": "Content-Type",
 								"value": "application/json",
 								"type": "text"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
 							"mode": "file",
 							"file": {
 								"src": "policy.xml"
-							},
-							"options": {
-								"file": {}
 							}
 						},
 						"url": {
@@ -798,7 +1387,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
 								"exec": [
 									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -825,11 +1413,16 @@
 								"key": "Accept",
 								"value": "application/xml",
 								"type": "text"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{testApp}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_1</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>"
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_1</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
@@ -854,7 +1447,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
 								"exec": [
 									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -881,11 +1473,16 @@
 								"key": "Accept",
 								"type": "text",
 								"value": "application/xml"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{testApp}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>"
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
@@ -910,7 +1507,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
 								"exec": [
 									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -938,11 +1534,77 @@
 								"key": "Accept",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": false,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}"
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": false,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:userid\",\r\n            \"Value\": \"{{userID}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:partyid\",\r\n            \"Value\": \"{{partyID}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:task\",\r\n            \"Value\": \"Task_1\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - Events - Permit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Content - Permit\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.response[0].decision).to.equal(\"Permit\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Request\": {\r\n        \"ReturnPolicyIdList\": false,\r\n        \"AccessSubject\": [\r\n            {\r\n                \"Attribute\": [\r\n                    {\r\n                        \"AttributeId\": \"urn:altinn:userid\",\r\n                        \"Value\": {{userID}}\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"Action\": [\r\n            {\r\n                \"Attribute\": [\r\n                    {\r\n                        \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n                        \"Value\": \"read\",\r\n                        \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n                    }\r\n                ]\r\n            }\r\n        ],\r\n        \"Resource\": [\r\n            {\r\n                \"Attribute\": [\r\n                    {\r\n                        \"AttributeId\": \"urn:altinn:app\",\r\n                        \"Value\": \"{{app}}\"\r\n                    },\r\n                    {\r\n                        \"AttributeId\": \"urn:altinn:org\",\r\n                        \"Value\": \"{{org}}\"\r\n                    },\r\n                    {\r\n                        \"AttributeId\": \"urn:altinn:partyid\",\r\n                        \"Value\": {{partyID}}\r\n                    },\r\n                    {\r\n                        \"AttributeId\": \"urn:altinn:appresource\",\r\n                        \"Value\": \"events\"\r\n                    }\r\n                ]\r\n            }\r\n        ]\r\n    }\r\n}"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
@@ -967,7 +1629,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
 								"exec": [
 									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -995,11 +1656,16 @@
 								"key": "Accept",
 								"type": "text",
 								"value": "application/json"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "default"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n"
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
@@ -1017,9 +1683,263 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "GetPolicies",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[  \r\n  [\r\n    {\r\n        \"id\": \"urn:altinn:org\",\r\n        \"value\": \"ttd\"\r\n    },\r\n    {\r\n        \"id\": \"urn:altinn:app\",\r\n        \"value\": \"apps-test\"\r\n    }\r\n  ]  \r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/policies/GetPolicies",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"policies",
+								"GetPolicies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add rules",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n  {\r\n    \"delegatedByUserId\": 111,\r\n    \"offeredByPartyId\": 123,\r\n    \"coveredBy\": [\r\n      {\r\n        \"id\": \"urn:altinn:userid\",\r\n        \"value\": \"456\"\r\n      }\r\n    ],\r\n    \"resource\": [\r\n      {\r\n        \"id\": \"urn:altinn:org\",\r\n        \"value\": \"ttd\"\r\n      },\r\n\t  {\r\n        \"id\": \"urn:altinn:app\",\r\n        \"value\": \"apps-test\"\r\n      },\r\n      {\r\n        \"id\": \"urn:altinn:task\",\r\n        \"value\": \"Task_1\"\r\n      }\r\n    ],\r\n    \"action\": {\r\n      \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n      \"value\": \"read\"\r\n    }\r\n  }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/delegations/AddRules",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"delegations",
+								"AddRules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rules",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{  \r\n  \"policyMatches\": [\r\n    {\r\n      \"offeredByPartyId\": 123,\r\n      \"delegatedByUserId\": null,\r\n      \"resource\": [\r\n        {\r\n          \"id\": \"urn:altinn:org\",\r\n          \"value\": \"ttd\"\r\n        },\r\n\t\t{\r\n\t\t\"id\": \"urn:altinn:app\",\r\n\t\t\"value\": \"apps-test\"\r\n\t\t}\r\n      ],\r\n      \"coveredBy\": [\r\n        {\r\n          \"id\": \"urn:altinn:userid\",\r\n          \"value\": \"456\"\r\n        }\r\n      ]\r\n    }\r\n  ],\r\n  \"keyRolePartyIds\": [\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/delegations/GetRules",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"delegations",
+								"GetRules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Rules",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"ruleIds\": [\r\n            \"8006da1d-312a-4a9c-ae00-8cc57d65b33b\"\r\n        ],\r\n        \"deletedByUserId\": 111,\r\n        \"policyMatch\": {\r\n            \"offeredByPartyId\": 123,\r\n            \"resource\": [\r\n                {\r\n                    \"id\": \"urn:altinn:org\",\r\n                    \"value\": \"ttd\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:app\",\r\n                    \"value\": \"apps-test\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:task\",\r\n                    \"value\": \"Task_1\"\r\n                }\r\n            ],\r\n            \"coveredBy\": [\r\n                {\r\n                    \"id\": \"urn:altinn:userid\",\r\n                    \"value\": \"456\"\r\n                }\r\n            ],\r\n            \"action\": {\r\n                \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n                \"value\": \"read\"\r\n            }\r\n        }\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/delegations/DeleteRules",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"delegations",
+								"DeleteRules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Policy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"deletedByUserId\": 111,\r\n        \"policyMatch\": {\r\n            \"offeredByPartyId\": 123,\r\n            \"resource\": [\r\n                {\r\n                    \"id\": \"urn:altinn:org\",\r\n                    \"value\": \"ttd\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:app\",\r\n                    \"value\": \"apps-test\"\r\n                }\r\n            ],\r\n            \"coveredBy\": [\r\n                {\r\n                    \"id\": \"urn:altinn:userid\",\r\n                    \"value\": \"456\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/delegations/DeletePolicy",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"delegations",
+								"DeletePolicy"
+							]
+						}
+					},
+					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "PDF",
@@ -1030,7 +1950,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8193fe76-6379-4222-9bb9-55f751c9fd8e",
 								"exec": [
 									"pm.test(\"Platform - PDF - Generate - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1054,11 +1973,16 @@
 								"name": "Content-Type",
 								"value": "application/json",
 								"type": "text"
+							},
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{appsaccesskey}}",
+								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n\t\"textResources\": {\r\n\t  \"language\": \"nn-NO\",\r\n\t  \"resources\": [\r\n\t    {\r\n\t      \"id\": \"25795.OppgavegiverNavnPreutfyltdatadef25795.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25796.OppgavegiverAdressePreutfyltdatadef25796.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25797.OppgavegiverPostnummerPreutfyltdatadef25797.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25798.OppgavegiverPoststedPreutfyltdatadef25798.Label\",\r\n\t      \"value\": \"Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da \"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"26.OppgavegiverFodselsnummerdatadef26.Label\",\r\n\t      \"value\": \"Fødselsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"18.EnhetOrganisasjonsnummerdatadef18.Label\",\r\n\t      \"value\": \"Organisasjonsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.Label\",\r\n\t      \"value\": \"Kommune\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.PlaceHolder\",\r\n\t      \"value\": \"Kontorkommuna til selskapet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2.KontaktpersonNavndatadef2.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2751.KontaktpersonAdressedatadef2751.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10441.KontaktpersonPostnummerdatadef10441.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10442.KontaktpersonPoststeddatadef10442.Label\",\r\n\t      \"value\": \"Poststed\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"27688.KontaktpersonEPostdatadef27688.Label\",\r\n\t      \"value\": \"Epostadresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t      \"value\": \"Telefonnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t      \"value\": \"Klaga/oppmodninga om endring gjeld inntektsåret:\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\",\r\n\t      \"value\": \"Gjeld klaga andre inntektsår enn siste år er klagefristen utløypt og  du har ikkje rett til å få ho behandla. Klaga blir i staden behandla  som ei oppmoding om å endre likninga.  Gjeld klaga/oppmoding fleire inntektsår treng du berre å oppgi det  siste av inntektsåra. Det må imidlertid gå klart fram av grunngivinga  kva inntektsår klaga/oppmodinga gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.PlaceHolder\",\r\n\t      \"value\": \"NB! Klageskjemaet skal du bare bruke for å klage på feil/endringar i  skatteoppgjeret du har mottatt.  Gi opp kva år klaga/oppmodninga om endring gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\",\r\n\t      \"value\": \"Klaga er sendt innan fristen\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Help\",\r\n\t      \"value\": \"Leveres klaga innan klagefristen?  For å klage over ligninga må du levere klaga innan seks veker etter at  skatteoppgjeret er sendt skattytar. Klagefristen går likevel ikkje ut  tidlegare enn før 10.august.  Se lignl. § 9-2 nr 4 og 5.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Label\",\r\n\t      \"value\": \"Grunngiving for at likninga skal tas opp til endring sjølv om  klagefristen er utløypt.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Help\",\r\n\t      \"value\": \"Er klagefristen oversittet har du ikkje rett til å få klaga behandla.  Det same gjeld om likninga er fastsett ved skjønn etter ligningslova  § 8-2.  Du kan oppmode skattekontoret om å behandle klaga. Ei slik oppmoding  må grunngivast. Ved vurderinga av om klaga skal behandlast skal det  mellom anna takast omsyn til spørsmålet si betydning, skattytaren  sine\\n                                    forhold, opplysning av saka og den tida som er gått.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder\",\r\n\t      \"value\": \"Grunngi kvifor skattekontoret skal behandle klaga sjølv om  klagefristen er utløypt.  NB! Inneheld grunngivinga sensitive opplysningar (t.d. om sjukdom) må  du sende klaga i brev til skattekontoret.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25457.KlageSpesifiseringdatadef25457.Label\",\r\n\t      \"value\": \"123456789123456789123456789123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789 test test 123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"12345.KlageSpesifiseringgdatadef12345.Label\",\r\n\t      \"value\": \"Noe annet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"23456.KlageSpesifiseringggdatadef23456.Label\",\r\n\t      \"value\": \"Og en tulleting til slutt\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Label\",\r\n\t      \"value\": \"RF-1117 Klage på likninga\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Help\",\r\n\t      \"value\": \"Klageskjemaet gjeld for alle grupper av skattytarar. NB! Inneheld  klaga sensitive opplysningar (t.d om sjukdom) kan du ikkje levere  klaga elektronisk. Ho må sendast i brev til skattekontoret.\"\r\n\t    }\r\n\t  ]\r\n\t},\r\n\t\"formLayout\": {\r\n\t  \"data\": {\r\n\t    \"layout\": [\r\n\t      {\r\n\t        \"id\": \"0d292a83-fe66-4f20-a40a-8b5d42520ccb\",\r\n\t        \"type\": \"Input\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Skjema.Label\",\r\n\t          \"description\": \"Skjema.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5801.info-grp-5802.OppgavegiverNavnPreutfylt-datadef-25795.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"componentType\": 8,\r\n\t        \"dataModelBindings\": {},\r\n\t        \"displayMode\": \"list\",\r\n\t        \"id\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t        \"maxFileSizeInMB\": 25,\r\n\t        \"maxNumberOfAttachments\": \"15\",\r\n\t        \"minNumberOfAttachments\": 1,\r\n\t        \"required\": true,\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Vedlegg\",\r\n\t          \"description\": \"Vennligst last opp de vedleggene du mener beskriver situasjonen din best.\"},\r\n\t        \"title\": \"Vedlegg\",\r\n\t        \"type\": \"FileUpload\"\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77fbb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"28ff99b3-0d48-484a-8a6d-123123123\",\r\n\t        \"type\": \"CheckBoxes\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t          \"description\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5803.info-grp-5804.OppgavegiverNavnPreutfylt-datadef-25797.value\"\r\n\t        },\r\n\t        \"textResourceId\": \"Standard.Button.Button\",\r\n\t        \"customType\": \"Standard\",\r\n\t        \"options\": [{\"label\": \"Valg 1\", \"value\": \"Verdi\"}, {\"label\": \"Valg 2\", \"value\": \"Verdi 2\"}]\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebc\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebd\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebf\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ecb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77edb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      }\r\n\t    ]\r\n\t  }\r\n\t},\r\n\t\"data\": \"PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxTa2plbWEgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgc2tqZW1hbnVtbWVyPSIxMjQzIiBzcGVzaWZpa2Fzam9uc251bW1lcj0iMTA3MDIiIGJsYW5rZXR0bnVtbWVyPSJSRi0xMTE3IiB0aXR0ZWw9IktsYWdlIHDDpSBsaWtuaW5nZW4iIGdydXBwZWlkPSI1ODAwIj4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAxIGdydXBwZWlkPSI1ODAxIj4KICA8aW5mby1ncnAtNTgwMiBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1IG9yaWQ9IjI1Nzk1Ij5Ob2UgZGF0YTwvT3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1PgogIDwvaW5mby1ncnAtNTgwMj4KPC9Ta2F0dHl0ZXJpbmZvci1ncnAtNTgwMT4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAyIGdydXBwZWlkPSI1ODAyIj4KICA8aW5mby1ncnAtNTgwMyBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk2IG9yaWQ9IjI1Nzk2Ij5EZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIGZha3Rpc2sgZW5kYSBsaXR0IGxlbmdlciBtZW4gc2xpayBlciBkZXQgbsOlIGJhcmUuIFPDpW5uIGthbiBkZXQgZ8OlIGthbiBtYW4gc2kuPC9PcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTY+CiAgPC9pbmZvLWdycC01ODAzPgo8L1NrYXR0eXRlcmluZm9yLWdycC01ODAyPgo8U2thdHR5dGVyaW5mb3ItZ3JwLTU4MDMgZ3J1cHBlaWQ9IjU4MDMiPgogIDxpbmZvLWdycC01ODA0IGdydXBwZWlkPSI1ODAyIj4KICAgIDxPcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTcgb3JpZD0iMjU3OTciPkRldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci48L09wcGdhdmVnaXZlck5hdm5QcmV1dGZ5bHQtZGF0YWRlZi0yNTc5Nz4KICA8L2luZm8tZ3JwLTU4MDQ+CjwvU2thdHR5dGVyaW5mb3ItZ3JwLTU4MDM+CjwvU2tqZW1hPgo=\",\r\n\t\"instance\": {\r\n\t  \"id\": \"ef417f14-65b6-4504-b082-14b40bd2bb74\",\r\n\t  \"instanceOwnerId\": \"50002121\",\r\n\t  \"appId\": \"tdd/sefiiler\",\r\n\t  \"org\": \"tdd\",\r\n\t  \"createdDateTime\": \"2019-10-14T10:09:04.2558408Z\",\r\n\t  \"lastChangedDateTime\": \"2019-10-14T10:12:27.7933369Z\",\r\n\t  \"presentationField\": {\r\n\t    \"nb\": \"sefiiler\"\r\n\t  },\r\n\t  \"process\": {\r\n\t    \"started\": \"2019-10-14T10:12:25.4503562Z\",\r\n\t    \"currentTask\": {\r\n\t      \"elementId\": \"Archived\"\r\n\t    },\r\n\t    \"ended\": \"2019-10-14T10:12:27.7835428Z\"\r\n\t  },\r\n\t  \"instanceState\": {\r\n\t    \"isDeleted\": false,\r\n\t    \"isMarkedForHardDelete\": false,\r\n\t    \"isArchived\": true,\r\n\t    \"archivedDateTime\": \"2019-10-14T10:12:27.7835455Z\"\r\n\t  },\r\n\t  \"data\": [\r\n\t    {\r\n\t      \"id\": \"021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"elementType\": \"default\",\r\n\t      \"contentType\": \"application/xml\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"fileSize\": 250,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:09:04.5363251Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:25.2930356Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"scorereport.pdf\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"fileSize\": 21099,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:11:54.2414985Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:11:54.2414985Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"IMG_2034_2333.jpeg\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"fileSize\": 22021,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:12:15.7301267Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:15.7301267Z\"\r\n\t    }\r\n\t  ],\r\n\t  \"_rid\": \"HQQcAPp2ENibAQAAAAAAAA==\",\r\n\t  \"_self\": \"dbs/HQQcAA==/colls/HQQcAPp2ENg=/docs/HQQcAPp2ENibAQAAAAAAAA==/\",\r\n\t  \"_etag\": \"\\\"0800bba6-0000-0d00-0000-5da44a0b0000\\\"\",\r\n\t  \"_attachments\": \"attachments/\",\r\n\t  \"_ts\": 1571047947\r\n\t},\r\n\t\"party\": {\"name\": \"Ola Nordmann\", \"ssn\": \"1234\"},\r\n\t\"userParty\": {\"name\": \"Kari Nordmann\", \"ssn\": \"123224\"}\r\n}"
+							"raw": "{\r\n\t\"textResources\": {\r\n\t  \"language\": \"nn-NO\",\r\n\t  \"resources\": [\r\n\t    {\r\n\t      \"id\": \"25795.OppgavegiverNavnPreutfyltdatadef25795.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25796.OppgavegiverAdressePreutfyltdatadef25796.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25797.OppgavegiverPostnummerPreutfyltdatadef25797.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25798.OppgavegiverPoststedPreutfyltdatadef25798.Label\",\r\n\t      \"value\": \"Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da \"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"26.OppgavegiverFodselsnummerdatadef26.Label\",\r\n\t      \"value\": \"Fødselsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"18.EnhetOrganisasjonsnummerdatadef18.Label\",\r\n\t      \"value\": \"Organisasjonsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.Label\",\r\n\t      \"value\": \"Kommune\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.PlaceHolder\",\r\n\t      \"value\": \"Kontorkommuna til selskapet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2.KontaktpersonNavndatadef2.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2751.KontaktpersonAdressedatadef2751.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10441.KontaktpersonPostnummerdatadef10441.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10442.KontaktpersonPoststeddatadef10442.Label\",\r\n\t      \"value\": \"Poststed\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"27688.KontaktpersonEPostdatadef27688.Label\",\r\n\t      \"value\": \"Epostadresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t      \"value\": \"Telefonnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t      \"value\": \"Klaga/oppmodninga om endring gjeld inntektsåret:\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\",\r\n\t      \"value\": \"Gjeld klaga andre inntektsår enn siste år er klagefristen utløypt og  du har ikkje rett til å få ho behandla. Klaga blir i staden behandla  som ei oppmoding om å endre likninga.  Gjeld klaga/oppmoding fleire inntektsår treng du berre å oppgi det  siste av inntektsåra. Det må imidlertid gå klart fram av grunngivinga  kva inntektsår klaga/oppmodinga gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.PlaceHolder\",\r\n\t      \"value\": \"NB! Klageskjemaet skal du bare bruke for å klage på feil/endringar i  skatteoppgjeret du har mottatt.  Gi opp kva år klaga/oppmodninga om endring gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\",\r\n\t      \"value\": \"Klaga er sendt innan fristen\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Help\",\r\n\t      \"value\": \"Leveres klaga innan klagefristen?  For å klage over ligninga må du levere klaga innan seks veker etter at  skatteoppgjeret er sendt skattytar. Klagefristen går likevel ikkje ut  tidlegare enn før 10.august.  Se lignl. § 9-2 nr 4 og 5.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Label\",\r\n\t      \"value\": \"Grunngiving for at likninga skal tas opp til endring sjølv om  klagefristen er utløypt.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Help\",\r\n\t      \"value\": \"Er klagefristen oversittet har du ikkje rett til å få klaga behandla.  Det same gjeld om likninga er fastsett ved skjønn etter ligningslova  § 8-2.  Du kan oppmode skattekontoret om å behandle klaga. Ei slik oppmoding  må grunngivast. Ved vurderinga av om klaga skal behandlast skal det  mellom anna takast omsyn til spørsmålet si betydning, skattytaren  sine\\n                                    forhold, opplysning av saka og den tida som er gått.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder\",\r\n\t      \"value\": \"Grunngi kvifor skattekontoret skal behandle klaga sjølv om  klagefristen er utløypt.  NB! Inneheld grunngivinga sensitive opplysningar (t.d. om sjukdom) må  du sende klaga i brev til skattekontoret.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25457.KlageSpesifiseringdatadef25457.Label\",\r\n\t      \"value\": \"123456789123456789123456789123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789 test test 123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"12345.KlageSpesifiseringgdatadef12345.Label\",\r\n\t      \"value\": \"Noe annet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"23456.KlageSpesifiseringggdatadef23456.Label\",\r\n\t      \"value\": \"Og en tulleting til slutt\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Label\",\r\n\t      \"value\": \"RF-1117 Klage på likninga\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Help\",\r\n\t      \"value\": \"Klageskjemaet gjeld for alle grupper av skattytarar. NB! Inneheld  klaga sensitive opplysningar (t.d om sjukdom) kan du ikkje levere  klaga elektronisk. Ho må sendast i brev til skattekontoret.\"\r\n\t    }\r\n\t  ]\r\n\t},\r\n\t\"formLayout\": {\r\n\t  \"data\": {\r\n\t    \"layout\": [\r\n\t      {\r\n\t        \"id\": \"0d292a83-fe66-4f20-a40a-8b5d42520ccb\",\r\n\t        \"type\": \"Input\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Skjema.Label\",\r\n\t          \"description\": \"Skjema.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5801.info-grp-5802.OppgavegiverNavnPreutfylt-datadef-25795.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"componentType\": 8,\r\n\t        \"dataModelBindings\": {},\r\n\t        \"displayMode\": \"list\",\r\n\t        \"id\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t        \"maxFileSizeInMB\": 25,\r\n\t        \"maxNumberOfAttachments\": \"15\",\r\n\t        \"minNumberOfAttachments\": 1,\r\n\t        \"required\": true,\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Vedlegg\",\r\n\t          \"description\": \"Vennligst last opp de vedleggene du mener beskriver situasjonen din best.\"},\r\n\t        \"title\": \"Vedlegg\",\r\n\t        \"type\": \"FileUpload\"\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77fbb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"28ff99b3-0d48-484a-8a6d-123123123\",\r\n\t        \"type\": \"CheckBoxes\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t          \"description\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5803.info-grp-5804.OppgavegiverNavnPreutfylt-datadef-25797.value\"\r\n\t        },\r\n\t        \"textResourceId\": \"Standard.Button.Button\",\r\n\t        \"customType\": \"Standard\",\r\n\t        \"options\": [{\"label\": \"Valg 1\", \"value\": \"Verdi\"}, {\"label\": \"Valg 2\", \"value\": \"Verdi 2\"}]\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebc\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebd\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebf\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ecb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77edb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      }\r\n\t    ]\r\n\t  }\r\n\t},\r\n\t\"data\": \"PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxTa2plbWEgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgc2tqZW1hbnVtbWVyPSIxMjQzIiBzcGVzaWZpa2Fzam9uc251bW1lcj0iMTA3MDIiIGJsYW5rZXR0bnVtbWVyPSJSRi0xMTE3IiB0aXR0ZWw9IktsYWdlIHDDpSBsaWtuaW5nZW4iIGdydXBwZWlkPSI1ODAwIj4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAxIGdydXBwZWlkPSI1ODAxIj4KICA8aW5mby1ncnAtNTgwMiBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1IG9yaWQ9IjI1Nzk1Ij5Ob2UgZGF0YTwvT3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1PgogIDwvaW5mby1ncnAtNTgwMj4KPC9Ta2F0dHl0ZXJpbmZvci1ncnAtNTgwMT4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAyIGdydXBwZWlkPSI1ODAyIj4KICA8aW5mby1ncnAtNTgwMyBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk2IG9yaWQ9IjI1Nzk2Ij5EZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIGZha3Rpc2sgZW5kYSBsaXR0IGxlbmdlciBtZW4gc2xpayBlciBkZXQgbsOlIGJhcmUuIFPDpW5uIGthbiBkZXQgZ8OlIGthbiBtYW4gc2kuPC9PcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTY+CiAgPC9pbmZvLWdycC01ODAzPgo8L1NrYXR0eXRlcmluZm9yLWdycC01ODAyPgo8U2thdHR5dGVyaW5mb3ItZ3JwLTU4MDMgZ3J1cHBlaWQ9IjU4MDMiPgogIDxpbmZvLWdycC01ODA0IGdydXBwZWlkPSI1ODAyIj4KICAgIDxPcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTcgb3JpZD0iMjU3OTciPkRldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci48L09wcGdhdmVnaXZlck5hdm5QcmV1dGZ5bHQtZGF0YWRlZi0yNTc5Nz4KICA8L2luZm8tZ3JwLTU4MDQ+CjwvU2thdHR5dGVyaW5mb3ItZ3JwLTU4MDM+CjwvU2tqZW1hPgo=\",\r\n\t\"instance\": {\r\n\t  \"id\": \"ef417f14-65b6-4504-b082-14b40bd2bb74\",\r\n\t  \"instanceOwnerId\": \"50002121\",\r\n\t  \"appId\": \"tdd/sefiiler\",\r\n\t  \"org\": \"nkr\",\r\n\t  \"createdDateTime\": \"2019-10-14T10:09:04.2558408Z\",\r\n\t  \"lastChangedDateTime\": \"2019-10-14T10:12:27.7933369Z\",\r\n\t  \"presentationField\": {\r\n\t    \"nb\": \"sefiiler\"\r\n\t  },\r\n\t  \"process\": {\r\n\t    \"started\": \"2019-10-14T10:12:25.4503562Z\",\r\n\t    \"currentTask\": {\r\n\t      \"elementId\": \"Archived\"\r\n\t    },\r\n\t    \"ended\": \"2019-10-14T10:12:27.7835428Z\"\r\n\t  },\r\n\t  \"instanceState\": {\r\n\t    \"isDeleted\": false,\r\n\t    \"isMarkedForHardDelete\": false,\r\n\t    \"isArchived\": true,\r\n\t    \"archivedDateTime\": \"2019-10-14T10:12:27.7835455Z\"\r\n\t  },\r\n\t  \"data\": [\r\n\t    {\r\n\t      \"id\": \"021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"elementType\": \"default\",\r\n\t      \"contentType\": \"application/xml\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"fileSize\": 250,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:09:04.5363251Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:25.2930356Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"scorereport.pdf\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"fileSize\": 21099,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:11:54.2414985Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:11:54.2414985Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"IMG_2034_2333.jpeg\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"fileSize\": 22021,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:12:15.7301267Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:15.7301267Z\"\r\n\t    }\r\n\t  ],\r\n\t  \"_rid\": \"HQQcAPp2ENibAQAAAAAAAA==\",\r\n\t  \"_self\": \"dbs/HQQcAA==/colls/HQQcAPp2ENg=/docs/HQQcAPp2ENibAQAAAAAAAA==/\",\r\n\t  \"_etag\": \"\\\"0800bba6-0000-0d00-0000-5da44a0b0000\\\"\",\r\n\t  \"_attachments\": \"attachments/\",\r\n\t  \"_ts\": 1571047947\r\n\t},\r\n\t\"party\": {\"name\": \"Ola Nordmann\", \"ssn\": \"1234\"},\r\n\t\"userParty\": {\"name\": \"Kari Nordmann\", \"ssn\": \"123224\"}\r\n}"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/pdf/api/v1/generate",
@@ -1078,9 +2002,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

@@ -12,6 +12,13 @@ namespace App.IntegrationTests.Utils
     {
         public static string GetToken(int userId, int authenticationLevel = 2)
         {
+            ClaimsPrincipal principal = GetUserPrincipal(userId, authenticationLevel);
+            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
+            return token;
+        }
+
+        public static ClaimsPrincipal GetUserPrincipal(int userId, int authenticationLevel = 2)
+        {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
             claims.Add(new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.String, issuer));
@@ -24,9 +31,7 @@ namespace App.IntegrationTests.Utils
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
-
-            return token;
+            return principal;
         }
 
         public static string GetOrgToken(string org, int authenticationLevel = 3)
