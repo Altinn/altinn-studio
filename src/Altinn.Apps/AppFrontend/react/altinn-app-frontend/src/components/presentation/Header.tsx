@@ -1,4 +1,3 @@
-/* eslint-disable import/first */
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import classNames from 'classnames';
@@ -10,10 +9,6 @@ export interface IHeaderProps {
   language: ILanguage;
   header?: string;
 }
-
-const mobileStyle = {
-  fontSize: '2em',
-};
 
 const Header = (props: IHeaderProps) => {
   return (
