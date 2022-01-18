@@ -7,6 +7,7 @@ import {
   GridActionsCellItem,
   GridValueGetterParams,
   GridValueFormatterParams,
+  GridRenderCellParams,
   GridColDef,
   GridOverlay,
 } from '@mui/x-data-grid';
@@ -35,11 +36,14 @@ interface IRepoListProps {
   rowCount?: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
+  onPageSizeChange?: (newPageSize: number) => void;
+  rowsPerPageOptions?: Array<number>;
   sortModel?: GridSortModel;
   disableVirtualization?: boolean;
 }
 
-const defaultPageSize = 8;
+const defaultPageSize = 5;
+const defaultRowsPerPageOptions = [5];
 
 const isRowSelectable = () => false;
 
@@ -83,6 +87,10 @@ const useStyles = makeStyles({
     fontSize: 26,
     color: '#000000',
   },
+  textWithTooltip: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
 });
 
 const gridStyleOverride = {
@@ -97,12 +105,24 @@ const gridStyleOverride = {
 
 export const NoResults = () => {
   const language = useAppSelector((state) => state.language.language);
+
   return (
     <GridOverlay>
       <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
     </GridOverlay>
   );
 };
+
+const TextWithTooltip = (params: GridRenderCellParams) => {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.textWithTooltip} title={params.value}>
+      {params.value}
+    </div>
+  );
+};
+
 
 export const RepoList = ({
   repos = defaultArray,
@@ -112,6 +132,8 @@ export const RepoList = ({
   rowCount,
   onPageChange,
   onSortModelChange,
+  onPageSizeChange,
+  rowsPerPageOptions = defaultRowsPerPageOptions,
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
@@ -166,13 +188,15 @@ export const RepoList = ({
       {
         field: 'name',
         headerName: getLanguageFromKey('dashboard.application', language),
-        width: 150,
+        width: 200,
+        renderCell: TextWithTooltip,
       },
       {
         field: 'owner.created_by',
         headerName: getLanguageFromKey('dashboard.created_by', language),
         sortable: false,
-        width: 160,
+        width: 180,
+        renderCell: TextWithTooltip,
         valueGetter: (params: GridValueGetterParams) => {
           const owner = params.row.owner as User;
           return owner.full_name || owner.login;
@@ -181,19 +205,26 @@ export const RepoList = ({
       {
         field: 'updated_at',
         headerName: getLanguageFromKey('dashboard.last_modified', language),
-        width: 150,
+        width: 120,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
           return new Date(date).toLocaleDateString('nb');
         },
       },
+      {
+        field: 'description',
+        headerName: getLanguageFromKey('dashboard.description', language),
+        flex: 1,
+        minWidth: 120,
+        renderCell: TextWithTooltip,
+      },
     ];
 
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        flex: 1,
+        width: 320,
         renderHeader: (): null => null,
         type: 'actions',
         align: 'right',
@@ -272,13 +303,20 @@ export const RepoList = ({
     unsetStarredRepo,
   ]);
 
-  const rowsPerPage = React.useMemo(() => {
-    return [pageSize];
-  }, [pageSize]);
-
   const handleCloseCopyModal = () => {
     setCopyCurrentRepoName(null);
   };
+
+  const componentPropsLabelOverrides = React.useMemo(() => {
+    return {
+      pagination: {
+        labelRowsPerPage: getLanguageFromKey(
+          'dashboard.rows_per_page',
+          language,
+        ),
+      },
+    };
+  }, [language]);
 
   return (
     <div ref={copyModalAnchorRef}>
@@ -287,25 +325,28 @@ export const RepoList = ({
           components={{
             NoRowsOverlay: NoResults,
           }}
+          componentsProps={componentPropsLabelOverrides}
           autoHeight={true}
           loading={isLoading}
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={rowsPerPage}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sortModel={sortModel}
           paginationMode='server'
           sortingMode='server'
           onSortModelChange={onSortModelChange}
+          onPageSizeChange={onPageSizeChange}
           rowCount={rowCount}
+          rowsPerPageOptions={rowsPerPageOptions}
           onPageChange={onPageChange}
           sx={gridStyleOverride}
           disableVirtualization={disableVirtualization}
         />
       ) : (
         <DataGrid
+          componentsProps={componentPropsLabelOverrides}
           components={{
             NoRowsOverlay: NoResults,
           }}
@@ -314,7 +355,7 @@ export const RepoList = ({
           rows={repos}
           columns={cols}
           pageSize={pageSize}
-          rowsPerPageOptions={rowsPerPage}
+          rowsPerPageOptions={rowsPerPageOptions}
           disableColumnMenu={true}
           isRowSelectable={isRowSelectable}
           sx={gridStyleOverride}

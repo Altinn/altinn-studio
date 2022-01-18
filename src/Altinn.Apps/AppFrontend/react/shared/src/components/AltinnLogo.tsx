@@ -24,7 +24,7 @@ function getLogoColor(color: string) {
 
 export const altinnLogo = (props: IAltinnLogoProps) => {
   const logoColor = getLogoColor(props.color);
-  let filterClass: string = '';
+  let filterClass = '';
   if (logoColor === 'black') {
     filterClass = ` logo-filter-${props.color.replace('#', '')}`;
   }

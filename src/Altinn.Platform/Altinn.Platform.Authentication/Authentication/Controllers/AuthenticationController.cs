@@ -719,7 +719,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>(), Iss = provider.IssuerKey };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, List<string>>(), Iss = provider.IssuerKey };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -782,7 +782,12 @@ namespace Altinn.Platform.Authentication.Controllers
                 // General claims handling
                 if (provider.ProviderClaims != null && provider.ProviderClaims.Contains(claim.Type))
                 {
-                    userAuthenticationModel.ProviderClaims.Add(claim.Type, claim.Value);
+                    if (!userAuthenticationModel.ProviderClaims.ContainsKey(claim.Type))
+                    {
+                        userAuthenticationModel.ProviderClaims.Add(claim.Type, new List<string>());
+                    }
+                       
+                    userAuthenticationModel.ProviderClaims[claim.Type].Add(claim.Value);
                 }
             }
 
@@ -1024,9 +1029,12 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (userAuthentication.ProviderClaims != null && userAuthentication.ProviderClaims.Count > 0)
             {
-                foreach (KeyValuePair<string, string> kvp in userAuthentication.ProviderClaims)
+                foreach (KeyValuePair<string, List<string>> kvp in userAuthentication.ProviderClaims)
                 {
-                    claims.Add(new Claim(kvp.Key, kvp.Value, ClaimValueTypes.String, issuer));
+                    foreach (string claimvalue in kvp.Value)
+                    {
+                        claims.Add(new Claim(kvp.Key, claimvalue, ClaimValueTypes.String, issuer));
+                    }
                 }
             }
 
