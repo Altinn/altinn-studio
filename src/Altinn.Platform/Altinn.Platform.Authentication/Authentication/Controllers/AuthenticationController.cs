@@ -261,7 +261,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(void), StatusCodes.Status424FailedDependency)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status429TooManyRequests)]
         [HttpGet("exchange/{tokenProvider}")]
         public async Task<ActionResult> ExchangeExternalSystemToken(string tokenProvider, [FromQuery] bool test)
         {
