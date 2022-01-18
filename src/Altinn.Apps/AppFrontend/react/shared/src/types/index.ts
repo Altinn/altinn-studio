@@ -91,8 +91,8 @@ export interface ISubstatus {
 
 export interface IInstanceOwner {
   partyId: string;
-  personNumber: string;
-  organisationNumber: string;
+  personNumber?: string;
+  organisationNumber?: string;
 }
 
 export interface IInstanceState {

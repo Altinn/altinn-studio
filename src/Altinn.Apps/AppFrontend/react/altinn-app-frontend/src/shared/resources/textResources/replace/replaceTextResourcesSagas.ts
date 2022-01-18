@@ -10,7 +10,7 @@ import { FETCH_TEXT_RESOURCES_FULFILLED } from '../fetch/fetchTextResourcesActio
 import TextResourceActions from '../textResourcesActions';
 import { ITextResourcesState } from '../textResourcesReducer';
 import { REPLACE_TEXT_RESOURCES } from './replaceTextResourcesActionTypes';
-import { buildInstanceContext } from '../../utils/instanceContext';
+import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
 
 export const InstanceSelector: (state: IRuntimeState) => IInstance = 
   (store) => store.instanceData.instance;
