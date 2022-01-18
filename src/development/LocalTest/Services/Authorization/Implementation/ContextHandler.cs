@@ -98,7 +98,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -133,7 +133,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return resourceAttributes;
         }
 
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
