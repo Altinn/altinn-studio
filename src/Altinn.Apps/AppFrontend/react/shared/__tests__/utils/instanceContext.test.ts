@@ -33,4 +33,16 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/instanceContext
 
     expect(actual).toEqual(expected);
   });
+
+  it('+++ should handle null input gracefully', () => {
+    let actual = buildInstanceContext(null);
+
+    expect(actual).toBeNull();
+  });
+
+  it('+++ should handle undefined input gracefully', () => {
+    let actual = buildInstanceContext(undefined);
+
+    expect(actual).toBeNull();
+  });
 });

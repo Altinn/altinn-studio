@@ -13,13 +13,13 @@ import { REPLACE_TEXT_RESOURCES } from './replaceTextResourcesActionTypes';
 import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
 
 export const InstanceSelector: (state: IRuntimeState) => IInstance = 
-  (store) => store.instanceData.instance;
-export const FormDataSelector: (store: IRuntimeState) => IFormData = 
-  (store) => store.formData.formData;
-export const ApplicationSettingsSelector: (store: IRuntimeState) => IApplicationSettings = 
-  (store) => store.applicationSettings?.applicationSettings;
-export const TextResourcesSelector: (store: IRuntimeState) => ITextResourcesState = 
-  (store) => store.textResources;
+  (state) => state.instanceData?.instance;
+export const FormDataSelector: (state: IRuntimeState) => IFormData = 
+  (state) => state.formData?.formData;
+export const ApplicationSettingsSelector: (state: IRuntimeState) => IApplicationSettings = 
+  (state) => state.applicationSettings?.applicationSettings;
+export const TextResourcesSelector: (state: IRuntimeState) => ITextResourcesState = 
+  (state) => state.textResources;
 export const RepeatingGroupsSelector: (state: IRuntimeState) => IRepeatingGroups =
   (state) => state.formLayout.uiConfig.repeatingGroups;
 

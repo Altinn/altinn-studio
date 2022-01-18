@@ -137,8 +137,8 @@ export function replaceTextResourceParams(
         else if (variable.dataSource === 'applicationSettings') {
           replaceValues.push(dataSources.applicationSettings[variable.key] || variable.key);
         }
-        else if (variable.dataSource === 'appContext') {
-          replaceValues.push(dataSources.appContext[variable.key] || variable.key);
+        else if (variable.dataSource === 'instanceContext') {
+          replaceValues.push(dataSources.instanceContext[variable.key] || variable.key);
         }
       });
 
