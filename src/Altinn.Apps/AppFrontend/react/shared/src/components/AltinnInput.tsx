@@ -75,7 +75,7 @@ function AltinnInput(props: IAltinnInputProps) {
       aria-label={label}
       className={classes.altinnInputWrapper}
       style={{
-        width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+        width: widthPercentage ? `${widthPercentage}%` : '100%',
       }}
     >
       {showLabel ?
@@ -91,8 +91,8 @@ function AltinnInput(props: IAltinnInputProps) {
         direction={'row'}
         className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
       >
-      {!!iconString ?
-        <i className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
+      {iconString ?
+        <i data-testid="altinninput-iconString" className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
         null
       }
         <Input

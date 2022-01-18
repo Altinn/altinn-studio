@@ -35,7 +35,7 @@ const styles = createStyles({
   },
   iconStyling: {
     fontSize: 35,
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   sidebarServiceOwner: {
     marginTop: 10,
