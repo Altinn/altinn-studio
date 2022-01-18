@@ -45,11 +45,17 @@ string applicationInsightsKey = string.Empty;
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigureSetupLogging();
+
 SetConfigurationProviders(builder.Configuration);
+
 ConfigureLogging(builder.Logging);
+
 ConfigureServices(builder.Services, builder.Configuration);
+
 builder.WebHost.UseUrls("http://*:5020");
+
 var app = builder.Build();
+
 Configure();
 
 app.Run();

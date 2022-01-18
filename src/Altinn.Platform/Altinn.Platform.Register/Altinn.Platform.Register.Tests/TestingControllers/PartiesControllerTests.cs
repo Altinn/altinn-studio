@@ -12,6 +12,7 @@ using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Register.Tests.Mocks;
 using Altinn.Platform.Register.Tests.Mocks.Authentication;
 using Altinn.Platform.Register.Tests.Utils;
+
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -19,20 +20,22 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Moq;
+
 using Xunit;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
-    public class PartiesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class PartiesControllerTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<Program> _factory;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="PartiesControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public PartiesControllerTests(WebApplicationFactory<Startup> factory)
+        public PartiesControllerTests(WebApplicationFactory<Program> factory)
         {
             _factory = factory;
         }
@@ -55,12 +58,12 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-           
+
             // Assert
             partiesService.VerifyAll();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             Party actual = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
 
             Assert.NotNull(actual);
@@ -107,7 +110,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-           
+
             // Assert
             partiesService.VerifyAll();
 
@@ -173,7 +176,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            PartyLookup lookUp = new PartyLookup { Ssn = ssn }; 
+            PartyLookup lookUp = new PartyLookup { Ssn = ssn };
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
@@ -209,7 +212,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo }; 
+            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo };
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
@@ -224,7 +227,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             partiesService.VerifyAll();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             Party actual = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
 
             Assert.NotNull(actual);
@@ -243,7 +246,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo }; 
+            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo };
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
@@ -279,7 +282,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
         private HttpClient GetTestClient(IParties partiesService)
         {
             // ConfigureSetupLogging();
-
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 

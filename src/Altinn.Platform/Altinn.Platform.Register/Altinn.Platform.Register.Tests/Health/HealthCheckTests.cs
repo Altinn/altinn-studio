@@ -12,15 +12,15 @@ namespace Altinn.Platform.Register.UnitTest
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Program>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<Program> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="factory">The web applicaiton factory</param>
-        public HealthCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<Program> factory)
         {
             _factory = factory;
         }
@@ -44,7 +44,7 @@ namespace Altinn.Platform.Register.UnitTest
 
         private HttpClient GetTestClient()
         {
-            //ConfigureSetupLogging();
+            // ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
