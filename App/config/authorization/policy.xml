@@ -320,7 +320,7 @@
   <xacml:ObligationExpressions>
     <xacml:ObligationExpression FulfillOn="Permit" ObligationId="urn:altinn:obligation:authenticationLevel1">
       <xacml:AttributeAssignmentExpression AttributeId="urn:altinn:obligation1-assignment1" Category="urn:altinn:minimum-authenticationlevel">
-        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">2</xacml:AttributeValue>
+        <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">1</xacml:AttributeValue>
       </xacml:AttributeAssignmentExpression>
     </xacml:ObligationExpression>
   </xacml:ObligationExpressions>
