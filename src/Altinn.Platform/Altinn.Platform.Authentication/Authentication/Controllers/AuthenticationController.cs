@@ -237,6 +237,8 @@ namespace Altinn.Platform.Authentication.Controllers
         [Authorize]
         [Produces("text/plain")]
         [HttpGet("refresh")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> RefreshJwtCookie()
         {
             _logger.LogInformation("Starting to refresh token...");
