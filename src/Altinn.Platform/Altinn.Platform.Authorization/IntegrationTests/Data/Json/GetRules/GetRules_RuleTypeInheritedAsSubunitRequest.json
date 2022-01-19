@@ -1,9 +1,9 @@
 {
-  "parentPartyId": 50001336,
+  "parentPartyId": 50001338,
   "keyRolePartyIds": [
     
   ],
-  "offeredByPartyId": 50001337,
+  "offeredByPartyId": 50001399,
   "resources": [
     [
         {
@@ -12,14 +12,14 @@
         },
 	{
 	"id": "urn:altinn:app",
-	"value": ""
+	"value": "TaxReport"
 	}
     ]
   ],
   "coveredBy": [
     {
       "id": "urn:altinn:partyid",
-      "value": "50001341"
+      "value": "50001336"
     }
   ]
 }

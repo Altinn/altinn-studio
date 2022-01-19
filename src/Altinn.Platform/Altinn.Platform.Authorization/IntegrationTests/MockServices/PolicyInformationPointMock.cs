@@ -33,6 +33,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 {
                     rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
                 }
+
+                if (change.AltinnAppId == "SKD/TaxReport" && change.OfferedByPartyId == 50001337 && change.CoveredByPartyId == 50001337)
+                {
+                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
+                }
             }
 
             return rulesList;
