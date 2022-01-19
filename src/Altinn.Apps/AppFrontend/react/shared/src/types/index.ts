@@ -203,7 +203,7 @@ export interface ITask {
 }
 
 export interface ITitle {
-  nb: string;
+  [key: string]: string;
 }
 
 export interface IValidated {
@@ -232,5 +232,5 @@ export interface IDataSource{
   [key: string]: any;
 }
 export interface IDataSources {
-     [key: string]: IDataSource;
+  [key: string]: IDataSource;
 }

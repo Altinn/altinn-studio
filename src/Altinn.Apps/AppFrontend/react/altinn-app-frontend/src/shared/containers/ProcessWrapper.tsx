@@ -3,7 +3,6 @@ import {
   AltinnContentLoader,
   AltinnContentIconFormData,
 } from 'altinn-shared/components';
-import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { ProcessTaskType, IAltinnWindow } from '../../types';
@@ -20,6 +19,7 @@ import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { getAppName, getAppOwner } from 'altinn-shared/utils';
 
 const style = {
   marginTop: '2.5rem',
@@ -35,8 +35,6 @@ const ProcessWrapper = (props) => {
   } = props;
 
   const dispatch = useAppDispatch();
-  const [userLanguage, setUserLanguage] = React.useState('nb');
-  const [appHeader, setAppHeader] = React.useState('');
 
   const instantiating = useAppSelector(
     (state) => state.instantiation.instantiating,
@@ -47,42 +45,19 @@ const ProcessWrapper = (props) => {
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
-  const serviceName = useAppSelector((state) =>
-    getTextResourceByKey('ServiceName', state.textResources.resources),
+  const appName = useAppSelector(
+    (state) => getAppName(
+      state.textResources.resources,
+      state.applicationMetadata.applicationMetadata,
+      state.profile.profile.profileSettingPreference?.language
+    )
   );
+  const appOwner = useAppSelector ((state) => getAppOwner(state.textResources.resources));
   const process = useAppSelector((state) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useAppSelector(hasErrorSelector);
-  const profile = useAppSelector((state) => state.profile.profile);
 
   (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
-
-  React.useEffect(() => {
-    if (profile && profile.profileSettingPreference) {
-      setUserLanguage(profile.profileSettingPreference.language);
-    }
-  }, [profile]);
-
-  React.useEffect(() => {
-    const getHeaderText = () => {
-      const appNameKey = 'ServiceName';
-      let appName;
-      if (serviceName) {
-        appName = serviceName;
-      }
-
-      if (appName && appName === appNameKey) {
-        if (applicationMetadata) {
-          return (
-            applicationMetadata.title[userLanguage] ||
-            applicationMetadata.title.nb
-          );
-        }
-      }
-      return appName;
-    };
-    setAppHeader(getHeaderText());
-  }, [serviceName, applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
@@ -126,7 +101,11 @@ const ProcessWrapper = (props) => {
   }
 
   return (
-    <Presentation header={appHeader} type={process.taskType}>
+    <Presentation
+      header={appName}
+      appOwner={appOwner}
+      type={process.taskType}
+    >
       <div>
         {isLoading === false ? (
           <>

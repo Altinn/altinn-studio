@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
 import * as React from 'react';
-import { ITextResource, IDataSources, ILanguage } from '../types';
+import { ITextResource, IDataSources, ILanguage, IApplication } from '../types';
 import marked from 'marked';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
@@ -140,3 +140,36 @@ export function replaceTextResourceParams(
   });
   return textResources;
 }
+
+export function getAppOwner(textResources: ITextResource[]) {
+  const appOwner = getTextResourceByKey('appOwner', textResources);
+  if (appOwner === 'appOwner') {
+    return undefined;
+  }
+  return appOwner;
+}
+
+const appNameKey = 'appName';
+const oldAppNameKey = 'ServiceName';
+
+export function getAppName(
+  textResources: ITextResource[],
+  applicationMetadata: IApplication,
+  userLanguage: string
+  ) {
+    let appName = getTextResourceByKey(appNameKey, textResources);
+    if (appName === appNameKey) {
+      appName = getTextResourceByKey(oldAppNameKey, textResources);
+    }
+
+    if (appName !== appName && appName !== oldAppNameKey) {
+      return appName;
+    }
+
+    // if no text resource key is set, fetch from app metadata
+    if (applicationMetadata) {
+        return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+    }
+
+    return '';
+};

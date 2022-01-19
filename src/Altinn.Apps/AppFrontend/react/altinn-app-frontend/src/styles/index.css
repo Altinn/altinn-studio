@@ -191,6 +191,21 @@ select.disabled {
   background-size: 8px 10px, cover !important;
 }
 
+.a-iconText.a-iconText-background {
+  padding-left: 24px;
+}
+
+@media only screen and (min-width: 753px) {
+  .a-iconText.a-iconText-background {
+    padding-left: 84px;
+  }
+}
+
+@media only screen and (min-width: 977px) {
+  .a-iconText.a-iconText-background {
+    padding-left: 96px;
+  }
+}
 
 /* Container */
 .container {

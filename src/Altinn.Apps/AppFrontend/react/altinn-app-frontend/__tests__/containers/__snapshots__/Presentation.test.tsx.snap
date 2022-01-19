@@ -241,23 +241,27 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
                     className="a-iconText a-iconText-background a-iconText-large"
                   >
                     <div
-                      className="a-iconText-icon"
+                      className="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
                     >
-                      <i
-                        aria-hidden="true"
-                        className="fa fa-corp a-icon"
-                        style={null}
-                      />
-                    </div>
-                    <h1
-                      className="a-iconText-text mb-0"
-                    >
-                      <span
-                        className="a-iconText-text-large"
+                      <div
+                        className="MuiGrid-root MuiGrid-item"
                       >
-                        mock-service-name
-                      </span>
-                    </h1>
+                        <span />
+                      </div>
+                      <div
+                        className="MuiGrid-root MuiGrid-item"
+                      >
+                        <h1
+                          className="a-iconText-text mb-0"
+                        >
+                          <span
+                            className="a-iconText-text-large"
+                          >
+                            mock-service-name
+                          </span>
+                        </h1>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div

@@ -16,8 +16,8 @@ import {
 import {
   mapInstanceAttachments,
   getLanguageFromKey,
-  getTextResourceByKey,
   returnUrlToArchive,
+  getAppName,
 } from 'altinn-shared/utils';
 import {
   getAttachmentGroupings,
@@ -93,6 +93,8 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !instance ||
     !parties;
 
+  const appName = getAppName(textResources, applicationMetadata, userLanguage);
+
   React.useEffect(() => {
     OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(
@@ -165,10 +167,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           instanceMetaDataObject={instanceMetaObject}
           subtitle={getLanguageFromKey('receipt.subtitle', language)}
           subtitleurl={returnUrlToArchive(origin)}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
+          title={`${appName} ${getLanguageFromKey(
             'receipt.title_part_is_submitted',
             language,
           )}`}
@@ -188,10 +187,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
             null,
             false,
           )}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
+          title={`${appName} ${getLanguageFromKey(
             'receipt.title_part_is_submitted',
             language,
           )}`}

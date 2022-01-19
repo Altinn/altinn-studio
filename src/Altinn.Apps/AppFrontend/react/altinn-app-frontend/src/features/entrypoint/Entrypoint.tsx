@@ -2,6 +2,7 @@ import {
   AltinnContentIconFormData,
   AltinnContentLoader,
 } from 'altinn-shared/components';
+import { getAppName, getAppOwner } from 'altinn-shared/utils';
 import { AxiosError } from 'axios';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
@@ -39,6 +40,14 @@ export default function Entrypoint() {
     React.useState<ISimpleInstance[]>(null);
   const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
+  const appName = useAppSelector(
+    (state) => getAppName(
+      state.textResources.resources,
+      state.applicationMetadata.applicationMetadata,
+      state.profile.profile?.profileSettingPreference?.language
+    )
+  );
+  const appOwner = useAppSelector ((state) => getAppOwner(state.textResources.resources));
   const dispatch = useAppDispatch();
 
   const handleNewInstance = () => {
@@ -151,7 +160,8 @@ export default function Entrypoint() {
     if (statelessLoading === false) {
       return (
         <Presentation
-          header={applicationMetadata?.title?.nb}
+          header={appName}
+          appOwner={appOwner}
           type={PresentationType.Stateless}
         >
           <div>
