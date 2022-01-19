@@ -404,7 +404,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                       new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "undefined" },
                    },
                    ResourcePolicies = new List<ResourcePolicy>(),
-                   MinimumAuthenticationLevel = 2
+                   MinimumAuthenticationLevel = 4
                }
             };
 
@@ -443,19 +443,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             string policyDesc = "Eksempel på en policy";
-            ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");
+            ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", task: "Instansiate");
             instantiatePolicy.Actions = new List<ResourceAction>();
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
             instantiatePolicy.Description = policyDesc;
 
-            ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "FormFilling");
+            ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", task: "FormFilling");
             formFillingPolicy.Actions = new List<ResourceAction>();
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
             formFillingPolicy.Description = policyDesc;
 
-            ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", endEvent: "Signing");
+            ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", endEvent: "Signing");
             signingPolicy.Actions = new List<ResourceAction>();
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
