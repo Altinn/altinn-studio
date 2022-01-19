@@ -162,7 +162,7 @@ export function getAppName(
       appName = getTextResourceByKey(oldAppNameKey, textResources);
     }
 
-    if (appName !== appName && appName !== oldAppNameKey) {
+    if (appName !== appNameKey && appName !== oldAppNameKey) {
       return appName;
     }
 

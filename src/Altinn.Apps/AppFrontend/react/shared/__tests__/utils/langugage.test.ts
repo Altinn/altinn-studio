@@ -1,6 +1,6 @@
 import 'jest';
-import { ITextResource, IDataSources, IDataSource } from '../../src/types';
-import { getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
+import { ITextResource, IDataSources, IDataSource, IApplication } from '../../src/types';
+import { getAppName, getAppOwner, getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
   let mockTextResources: ITextResource[];
@@ -153,6 +153,78 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     it('should return array of nodes for more complex markdown', () => {
       const result = getParsedLanguageFromText('# Header \n With some text');
       expect(result instanceof Array).toBeTruthy();
+    });
+  });
+
+  describe('getAppName', () => {
+    it('should return app name if defined by appName key', () => {
+        const textResources: ITextResource[] = [{
+          value: 'SomeAppName',
+          id: 'appName',
+        }];
+
+        const result = getAppName(textResources, {} as IApplication, 'nb');
+        const expectedResult = 'SomeAppName';
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('should return app name if defined by ServiceName key', () => {
+      const textResources: ITextResource[] = [{
+        value: 'SomeAppName',
+        id: 'ServiceName',
+      }];
+
+      const result = getAppName(textResources, {} as IApplication, 'nb');
+      const expectedResult = 'SomeAppName';
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return appName if defined in applicationMetadata and not by text resource keys', () => {
+      const textResources: ITextResource[] = [];
+      const applicationMetadata = {
+        title: {
+          nb: 'SomeAppName',
+        }
+      } as unknown as IApplication;
+
+      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const expectedResult = 'SomeAppName';
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return app name defined by appName key even if applicationMetadata definition exist', () => {
+      const textResources: ITextResource[] = [{
+        value: 'AppNameFromTextResource',
+        id: 'appName',
+      }];
+      const applicationMetadata = {
+        title: {
+          nb: 'AppNameFromMetadata',
+        }
+      } as unknown as IApplication;
+
+      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const expectedResult = 'AppNameFromTextResource';
+      expect(result).toEqual(expectedResult);
+    });
+
+  });
+
+  describe('getAppOwner', () => {
+    it('should return app owner if defined by appOwner key', () => {
+      const textResources: ITextResource[] = [{
+        value: 'AppOwnerName',
+        id: 'appOwner',
+      }];
+      const result = getAppOwner(textResources);
+      const expectedResult = 'AppOwnerName';
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return undefined value is not set by appOwner key', () => {
+      const textResources: ITextResource[] = [];
+      const result = getAppOwner(textResources);
+      expect(result).toEqual(undefined);
     });
   });
 });
