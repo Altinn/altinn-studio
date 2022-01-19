@@ -440,7 +440,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Assert.True(!actualResourcePolicyResponses.Any(rpr => rpr.ResourcePolicies.Any(rp => rp.Actions.Any(action => action.Title == "appownerread" || action.RoleGrants.Count == 0))));
         }
 
-            private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
+        private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             string policyDesc = "Eksempel på en policy";
             ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", task: "Instansiate");
