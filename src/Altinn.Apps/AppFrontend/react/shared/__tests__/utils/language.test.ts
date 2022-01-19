@@ -1,5 +1,5 @@
 import 'jest';
-import { ITextResource, IDataSources, IDataSource, IApplicationSettings } from '../../src/types';
+import { ITextResource, IDataSources, IDataSource, IApplicationSettings, IInstanceContext } from '../../src/types';
 import { getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
@@ -7,13 +7,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   let mockDataSources: IDataSources;
   let mockDataSource: IDataSource;
   let mockApplicationSettings: IApplicationSettings;
-  let mockAppContext: IDataSource;
+  let mockInstanceContext: IInstanceContext;
   let adjectiveValue: string;
   let colorValue: string;
   let animal0Value: string;
   let animal1Value: string;
   let homeBaseUrl: string;
-  let instanceOwnerPartyId: number;
+  let instanceOwnerPartyId: string;
 
   beforeEach(() => {
     adjectiveValue = 'awesome';
@@ -21,7 +21,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     animal0Value = 'dog';
     animal1Value = 'cat';
     homeBaseUrl = 'https://www.testdirektoratet.no';
-    instanceOwnerPartyId = 234323;
+    instanceOwnerPartyId = '234323';
     mockDataSource = {
       'model.text.adjective': adjectiveValue,
       'model.text.color': colorValue,
@@ -31,13 +31,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     mockApplicationSettings = {
       'homeBaseUrl': homeBaseUrl,
     };
-    mockAppContext = {
-      'instanceOwnerPartyId': instanceOwnerPartyId,
-    };
+    mockInstanceContext = {
+      instanceOwnerPartyId: instanceOwnerPartyId,
+    } as IInstanceContext;
     mockDataSources = {
       dataModel: mockDataSource,
       applicationSettings: mockApplicationSettings,
-      appContext: mockAppContext,
+      instanceContext: mockInstanceContext,
     };
     mockTextResources = [];
   });
@@ -74,7 +74,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   it('+++ should replace parameter for previously parsed value', () => {
     mockTextResources = [
       {
-        id: 'mockId', value: 'This is a green apple.', unparsedValue: 'This is a {0} apple.', variables: [{ key: 'model.text.color', dataSource: 'dataModel.test' }],
+        id: 'mockId', 
+        value: 'This is a green apple.', 
+        unparsedValue: 'This is a {0} apple.', 
+        variables: [
+          { key: 'model.text.color', dataSource: 'dataModel.test' }
+        ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
@@ -85,7 +90,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   it('+++ should replace parameter with text key', () => {
     mockTextResources = [
       {
-        id: 'mockId', value: 'This is a text with a missing param: {0}.', unparsedValue: 'This is a text with a missing param: {0}.', variables: [{ key: 'model.text.param', dataSource: 'dataModel.test' }],
+        id: 'mockId', 
+        value: 'This is a text with a missing param: {0}.', 
+        unparsedValue: 'This is a text with a missing param: {0}.', 
+        variables: [
+          { key: 'model.text.param', dataSource: 'dataModel.test' }
+        ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
@@ -96,7 +106,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   it('+++ should not replace the texts from invalid source', () => {
     mockTextResources = [
       {
-        id: 'mockId', value: 'This: {0} depends on an invalid source.', unparsedValue: 'This: {0} depends on an invalid source.', variables: [{ key: 'model.text.adjective', dataSource: 'api.invalidSource' }],
+        id: 'mockId', 
+        value: 'This: {0} depends on an invalid source.', 
+        unparsedValue: 'This: {0} depends on an invalid source.', 
+        variables: [
+          { key: 'model.text.adjective', dataSource: 'api.invalidSource' }
+        ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
@@ -107,7 +122,10 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   it('+++ should not replace texts when no variable is defined', () => {
     mockTextResources = [
       {
-        id: 'mockId', value: 'mock value', unparsedValue: 'mock value', variables: undefined,
+        id: 'mockId', 
+        value: 'mock value', 
+        unparsedValue: 'mock value', 
+        variables: undefined,
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
@@ -190,20 +208,20 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a [link](doesnotexists).`);
   });
 
-  it('+++ should replace text from app context', () => {
+  it('+++ should replace text from instance context', () => {
     mockTextResources = [
       {
         id: 'mockId',
-        value: 'This is a [link]({0}).',
-        unparsedValue: 'This is a [link]({0}).',
+        value: 'The instance owner party id is {0}',
+        unparsedValue: 'The instance owner party id is {0}',
         variables: [
-          { key: 'instanceOwnerPartyId', dataSource: 'appContext' },
+          { key: 'instanceOwnerPartyId', dataSource: 'instanceContext' },
         ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
     const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual(`This is a [link](${instanceOwnerPartyId}).`);
+    expect(textResource.value).toEqual(`The instance owner party id is ${instanceOwnerPartyId}`);
   });
 
   it('+++ should replace text in a reapeating group based on appsettings', () => {
