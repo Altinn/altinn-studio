@@ -208,6 +208,22 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       expect(result).toEqual(expectedResult);
     });
 
+    it('should return app name defined by ServiceName key even if applicationMetadata definition exist', () => {
+      const textResources: ITextResource[] = [{
+        value: 'AppNameFromTextResource',
+        id: 'ServiceName',
+      }];
+      const applicationMetadata = {
+        title: {
+          nb: 'AppNameFromMetadata',
+        }
+      } as unknown as IApplication;
+
+      const result = getAppName(textResources, applicationMetadata, 'nb');
+      const expectedResult = 'AppNameFromTextResource';
+      expect(result).toEqual(expectedResult);
+    });
+
   });
 
   describe('getAppOwner', () => {
