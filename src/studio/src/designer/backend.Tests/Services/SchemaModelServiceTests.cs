@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Implementation;
@@ -286,6 +287,82 @@ namespace Designer.Tests.Services
 
                 // Act/assert
                 await action.Should().ThrowAsync<XmlSchemaException>();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task UploadSchemaFromXsd_ValidNonSeresXsd_ModelsCreated()
+        {
+            // Arrange
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var org = "ttd";
+            var sourceRepository = "empty-app-pref-json";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleValidNonSeresSchema.xsd");
+                var schemaName = "SimpleValidNonSeresSchema";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                var jsonSchema = await schemaModelService.BuildSchemaFromXsd(org, targetRepository, developer, fileName, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.metadata.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+            }
+        }
+
+        [Fact]
+        public async Task UploadSchemaFromXsd_OED_ModelsCreated()
+        {
+            // Arrange
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var org = "ttd";
+            var sourceRepository = "empty-app";
+            var developer = "testUser";
+            var targetRepository = Guid.NewGuid().ToString();
+
+            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+            try
+            {
+                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.OED.xsd");
+                var schemaName = "OED_M";
+                var fileName = $"{schemaName}.xsd";
+                var relativeDirectory = "App/models";
+                var relativeFilePath = $"{relativeDirectory}/{fileName}";
+
+                // Act
+                var jsonSchema = await schemaModelService.BuildSchemaFromXsd(org, targetRepository, developer, fileName, xsdStream);
+
+                // Assert
+                var altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.metadata.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.schema.json").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.xsd").Should().BeTrue();
+                altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
             }
             finally
             {
