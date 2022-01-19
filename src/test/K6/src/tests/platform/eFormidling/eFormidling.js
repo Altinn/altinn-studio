@@ -18,8 +18,8 @@ export const options = {
 export default function () {
   var res = eFormidling.getStatuses('');
   var success = check(res, {
-    'Get Statuses without messageId Status is 400': (r) => r.status === 400,
-    'Response body informs what is missing': (r) => r.json('message').includes('Query parameter messageId is required'),
+    'Get Statuses without messageId Status is 400':(r) => r.status === 400,
+    'Validation of Get Statuses reponse body content': (r) => r.json("message").includes('Query parameter messageId is required')
   });
 
   addErrorCount(success);
