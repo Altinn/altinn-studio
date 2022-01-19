@@ -27,7 +27,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             // Arrange
             HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/api/v1/error");
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, "/profile/api/v1/error");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

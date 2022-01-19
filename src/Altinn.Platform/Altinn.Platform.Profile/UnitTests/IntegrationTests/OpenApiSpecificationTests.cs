@@ -26,7 +26,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             // Arrange
             HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/swagger/v1/swagger.json");
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, "/profile/swagger/v1/swagger.json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

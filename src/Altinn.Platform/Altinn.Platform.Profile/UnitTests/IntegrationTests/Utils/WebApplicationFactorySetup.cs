@@ -28,9 +28,9 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
             _webApplicationFactory = webApplicationFactory;
         }
 
-        public Mock<ILogger<UserProfilesWrapper>> UserProfilesWrapperLogger { get; set; } = new ();
+        public Mock<ILogger<UserProfilesWrapper>> UserProfilesWrapperLogger { get; set; } = new();
 
-        public Mock<IOptions<GeneralSettings>> GeneralSettingsOptions { get; set; } = new ();
+        public Mock<IOptions<GeneralSettings>> GeneralSettingsOptions { get; set; } = new();
 
         public HttpMessageHandler SblBridgeHttpMessageHandler { get; set; } = new DelegatingHandlerStub();
 

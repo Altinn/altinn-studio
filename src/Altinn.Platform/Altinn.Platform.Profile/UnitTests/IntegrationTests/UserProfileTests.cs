@@ -23,7 +23,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
     {
         private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
 
-        private readonly JsonSerializerOptions serializerOptionsCamelCase = new ()
+        private readonly JsonSerializerOptions serializerOptionsCamelCase = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
@@ -32,7 +32,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
 
-            GeneralSettings generalSettings = new () { BridgeApiEndpoint = "http://localhost/" };
+            GeneralSettings generalSettings = new() { BridgeApiEndpoint = "http://localhost/" };
             _webApplicationFactorySetup.GeneralSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
         }
 
@@ -43,7 +43,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             const int UserId = 2516356;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -107,7 +107,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             const int UserId = 2516356;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -150,7 +150,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             const int UserId = 2222222;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -182,7 +182,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             const int UserId = 2222222;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -212,7 +212,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             // Arrange
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -221,7 +221,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             });
             _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
-            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
+            StringContent content = new("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
@@ -258,7 +258,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             // Arrange
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -266,7 +266,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             });
             _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
-            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
+            StringContent content = new("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
@@ -293,7 +293,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
         {
             // Arrange
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -301,7 +301,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             });
             _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
 
-            StringContent content = new ("\"01017512345\"", Encoding.UTF8, "application/json");
+            StringContent content = new("\"01017512345\"", Encoding.UTF8, "application/json");
             HttpRequestMessage httpRequestMessage = CreatePostRequest(2222222, $"/profile/api/v1/users/", content);
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
@@ -325,7 +325,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
         private static HttpRequestMessage CreateGetRequest(int userId, string requestUri)
         {
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, requestUri);
             string token = PrincipalUtil.GetToken(userId);
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             return httpRequestMessage;
@@ -333,7 +333,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
 
         private static HttpRequestMessage CreatePostRequest(int userId, string requestUri, StringContent content)
         {
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Post, requestUri);
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, requestUri);
             string token = PrincipalUtil.GetToken(userId);
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             httpRequestMessage.Content = content;
