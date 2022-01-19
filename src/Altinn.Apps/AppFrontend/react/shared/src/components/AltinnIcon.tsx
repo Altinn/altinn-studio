@@ -15,8 +15,6 @@ export interface IAltinnIconCompontentProvidedProps {
   weight?: number;
 }
 
-export interface IAltinnIconComponentState {
-}
 const theme = createTheme(altinnTheme);
 
 const styles = {
@@ -25,7 +23,7 @@ const styles = {
   },
 };
 
-export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
+export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps> {
   public render() {
     return (
       <i

@@ -9,7 +9,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
 {
     public static class TestDataHelper
     {
-        public static Rule GetRuleModel(int delegatedByUserId, int offeredByPartyId, string coveredBy, string coveredByAttributeType, string action, string org, string app, string task = null, string appresource = null, bool createdSuccessfully = false)
+        public static Rule GetRuleModel(int delegatedByUserId, int offeredByPartyId, string coveredBy, string coveredByAttributeType, string action, string org, string app, string task = null, string appresource = null, bool createdSuccessfully = false, RuleType ruleType = RuleType.None)
         {
             Rule rule = new Rule
             {
@@ -18,7 +18,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
                 CoveredBy = new List<AttributeMatch> { new AttributeMatch { Id = coveredByAttributeType, Value = coveredBy } },
                 Resource = new List<AttributeMatch> { new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.OrgAttribute, Value = org }, new AttributeMatch { Id = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute, Value = app } },
                 Action = new AttributeMatch { Id = XacmlConstants.MatchAttributeIdentifiers.ActionId, Value = action },
-                CreatedSuccessfully = createdSuccessfully
+                CreatedSuccessfully = createdSuccessfully,
+                Type = ruleType
             };
 
             if (task != null)
