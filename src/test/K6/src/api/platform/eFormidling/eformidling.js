@@ -26,4 +26,3 @@ export function checkHealth() {
   let params = header.addSubscriptionKey({}, __ENV.operatoraccesskey, 'platform');
   return http.get(endpoint, params);
 }
-

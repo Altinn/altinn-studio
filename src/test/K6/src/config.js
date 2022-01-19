@@ -79,7 +79,7 @@ export var eFormidling = {
   conversations: 'https://platform.' + baseUrl + '/eformidling/api/conversations',
   statuses: 'https://platform.' + baseUrl + '/eformidling/api/statuses',
   health: 'https://platform.' + baseUrl + '/eformidling/api/manage/health',
-  capabilities:'https://platform.' + baseUrl + '/eformidling/api/capabilities',
+  capabilities: 'https://platform.' + baseUrl + '/eformidling/api/capabilities',
 };
 
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
