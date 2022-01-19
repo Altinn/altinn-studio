@@ -138,7 +138,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    if (formData[key] === value) {
+    if (formData[key] && formData[key] === value) {
       // data unchanged, do nothing
       return;
     }
