@@ -85,7 +85,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             await Task.CompletedTask;
         }
 
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             if (string.IsNullOrEmpty(id))
             {
