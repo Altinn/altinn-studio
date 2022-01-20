@@ -199,30 +199,22 @@ export const getOptionsUrl = ({
   language,
   dataMapping,
 }: IFetchSpecificOptionSaga) => {
-  let url = `${appPath}/api/options/${optionsId}`;
-
-  if (language || dataMapping) {
-    url += '?';
-  }
+  const url = new URL(`${appPath}/api/options/${optionsId}`);
+  let params: Record<string, string> = {};
 
   if (language) {
-    const languageParam = new URLSearchParams({
-      language,
-    });
-
-    url += languageParam;
+    params.language = language;
   }
 
-  if (language && dataMapping) {
-    url += '&';
-  }
-
-  if (dataMapping) {
+  if (formData && dataMapping) {
     const mapped = mapFormData(formData, dataMapping);
-    const queryParams = new URLSearchParams(mapped);
 
-    url += queryParams;
+    params = {
+      ...params,
+      ...mapped,
+    };
   }
 
-  return url;
+  url.search = new URLSearchParams(params).toString();
+  return url.toString();
 };
