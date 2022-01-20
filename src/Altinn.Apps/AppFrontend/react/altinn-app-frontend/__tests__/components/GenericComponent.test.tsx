@@ -51,9 +51,7 @@ describe('>>> components/GenericComponent.tsx', () => {
 
     const formData = getFormDataStateMock({
       formData: {
-        mockId: {
-          mockDataBinding: 'value',
-        },
+        mockDataBinding: 'value',
       },
     });
 

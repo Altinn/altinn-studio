@@ -3,14 +3,14 @@ import { all, call, put, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../types';
 import { checkIfRuleShouldRun } from '../../../../utils/rules';
 import FormDataActions from '../../data/formDataActions';
-import { IFormData } from '../../data/formDataReducer';
+import { IFormDataState } from '../../data/formDataReducer';
 import { IRuleConnections } from '../../dynamics';
 import { ILayoutState } from '../../layout/formLayoutSlice';
 import * as RuleActions from './checkRulesActions';
 import * as ActionTypes from '../rulesActionTypes';
 
 const selectRuleConnection = (state: IRuntimeState): IRuleConnections => state.formDynamics.ruleConnection;
-const selectFormDataConnection = (state: IRuntimeState): IFormData => state.formData;
+const selectFormDataConnection = (state: IRuntimeState): IFormDataState => state.formData;
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 
 export interface IResponse {
@@ -25,7 +25,7 @@ function* checkIfRuleShouldRunSaga({
 }: RuleActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
     const ruleConnectionState: IRuleConnections = yield select(selectRuleConnection);
-    const formDataState: IFormData = yield select(selectFormDataConnection);
+    const formDataState: IFormDataState = yield select(selectFormDataConnection);
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
 
     // const currentLayout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];

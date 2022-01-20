@@ -7,12 +7,12 @@ import { HelpTextContainer } from './HelpTextContainer';
 import { ILanguage } from 'altinn-shared/types';
 
 export interface IFormLegendProps {
-  labelText: string;
-  descriptionText: string;
+  labelText: React.ReactNode;
+  descriptionText: React.ReactNode;
   language: ILanguage;
   required?: boolean;
   labelSettings?: ILabelSettings;
-  helpText: string;
+  helpText: React.ReactNode;
   id: string;
 }
 

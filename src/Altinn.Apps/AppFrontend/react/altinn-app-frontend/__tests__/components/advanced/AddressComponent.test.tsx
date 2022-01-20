@@ -2,12 +2,13 @@
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
+import { IComponentProps } from 'src/components';
 import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
 
 describe('components > advanced > AddressComponent', () => {
   const mockId = 'mock-id';
   const mockFormData = { address: 'adresse 1' };
-  const mockHandleDataChange = (data: any) => '';
+  const mockHandleDataChange = (data: string) => '';
   const mockGetTextResource = (resourceKey: string) => 'test';
   const mockIsValid = true;
   const mockSimplified = true;
@@ -48,6 +49,7 @@ describe('components > advanced > AddressComponent', () => {
         required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     expect(shallowAddressComponent.find('input').length).toBe(3);
@@ -68,6 +70,7 @@ describe('components > advanced > AddressComponent', () => {
         required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     expect(shallowAddressComponent.find('.address-component-small-inputs').hasClass('disabled')).toBe(false);
@@ -88,6 +91,7 @@ describe('components > advanced > AddressComponent', () => {
         required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -110,6 +114,7 @@ describe('components > advanced > AddressComponent', () => {
         required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -133,6 +138,7 @@ describe('components > advanced > AddressComponent', () => {
         required={false}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     expect(shallowAddressComponent.find('span.label-optional')).toHaveLength(2);
@@ -154,6 +160,7 @@ describe('components > advanced > AddressComponent', () => {
         labelSettings={{ optionalIndicator: false }}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     expect(shallowAddressComponent.find('.label-optional')).toHaveLength(0);
@@ -175,6 +182,7 @@ describe('components > advanced > AddressComponent', () => {
         required={false}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />);
     const input = component.find(`#address_zip_code_${mockId}`);
     input.simulate('change', { target: { value: '123'}})
@@ -198,6 +206,7 @@ describe('components > advanced > AddressComponent', () => {
         required={false}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
+        {...({} as IComponentProps)}
       />);
     const input = component.find(`#address_zip_code_${mockId}`);
     input.simulate('change', { target: { value: ''}})
