@@ -73,10 +73,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             classBuilder.AppendLine("  public class " + parentElement.TypeName);
             classBuilder.AppendLine("  {");
 
+            int elementorder = 1;
+
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
                 string nullableString = element.Value.MinOccurs == 0 ? "?" : string.Empty;
-
+                
                 if (element.Value.Type == ElementType.Field)
                 {
                     string dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
@@ -88,7 +90,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     }
                     else
                     {
-                        classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+                        classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementorder + ")]");
+                        elementorder = elementorder + 1;
 
                         // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                         // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -108,7 +111,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 else if (element.Value.Type == ElementType.Group)
                 {
                     WriteRestrictionAnnotations(classBuilder, element.Value);
-                    classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+                    classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementorder + ")]");
+                    elementorder = elementorder + 1;
 
                     // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                     // deserialization, we need both JsonProperty and JsonPropertyName annotations.
