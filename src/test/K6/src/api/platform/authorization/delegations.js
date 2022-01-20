@@ -54,18 +54,32 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
  * @param {*} policyMatchKeys keys to be populated in the request
  * @param {*} offeredByPartyId party id of the user who offers the rule
  * @param {*} coveredById user id or party id of whom that receives the rule
- * @param {*} appOwner
- * @param {*} appName
- * @param {*} altinnTask Task_1, EndEvent_1
+ * @param {Array} resources [{ appOwner: ttd, appName: apps-test }]
  * @returns response of the POST request
  */
-export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredById, appOwner, appName, altinnTask) {
+export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredById, resources) {
   var endpoint = config.platformAuthorization.getRules;
   var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
-  var body = {};
-  body.policyMatches = [];
-  body.policyMatches.push(generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, null));
+
+  var body = { coveredBy: [], resources: [] };
+  if (offeredByPartyId) body.offeredByPartyId = offeredByPartyId;
+
+  var coveredBy = policyMatchKeys['coveredBy'];
+  if (coveredById && coveredBy) {
+    body.coveredBy.push({});
+    body.coveredBy[0].id = coveredBy;
+    body.coveredBy[0].value = coveredById.toString();
+  }
+
+  resources.forEach((resource) => {
+    var appOwner = resource.appOwner ? resource.appOwner : null;
+    var appName = resource.appName ? resource.appName : null;
+    var altinnTask = resource.altinnTask ? resource.altinnTask : null;
+    body.resources.push(buildResourcesArray(policyMatchKeys['resource'], appOwner, appName, altinnTask));
+  });
+
   body.keyRolePartyIds = [];
+
   return http.post(endpoint, JSON.stringify(body), params);
 }
 
@@ -111,8 +125,8 @@ export function deleteRules(
  * @param {*} deletedByUserId user who deletes the policy
  * @param {*} offeredByPartyId party id of the user who offers the rule
  * @param {*} coveredById user id or party id of whom that receives the rule
- * @param {*} appOwner 
- * @param {*} appName 
+ * @param {*} appOwner
+ * @param {*} appName
  * @param {*} altinnTask Task_1, EndEvent_1
  * @returns response of the POST request
  */
@@ -120,7 +134,7 @@ export function deletePolicy(altinnToken, policyMatchKeys, deletedByUserId, offe
   var endpoint = config.platformAuthorization.deletePolicy;
   var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
   var body = [{}];
-  body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, null);  
+  body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, null);
   body[0].deletedByUserId = deletedByUserId;
   return http.post(endpoint, JSON.stringify(body), params);
 }
@@ -141,10 +155,9 @@ export function deletePolicy(altinnToken, policyMatchKeys, deletedByUserId, offe
 function generatePolicyMatch(policyMatchKeys, delegatedByUserId, offeredByPartyId, coveredById, appOwner, appName, altinnTask, altinnAction) {
   var policyMatch = {
     coveredBy: [],
-    resource: [],
   };
   var coveredBy = policyMatchKeys['coveredBy'];
-  var resources = policyMatchKeys['resource'];
+  var resourceKeys = policyMatchKeys['resource'];
 
   if (coveredById && coveredBy) {
     policyMatch.coveredBy.push({});
@@ -161,10 +174,25 @@ function generatePolicyMatch(policyMatchKeys, delegatedByUserId, offeredByPartyI
   if (delegatedByUserId) policyMatch.delegatedByUserId = delegatedByUserId;
   if (offeredByPartyId) policyMatch.offeredByPartyId = offeredByPartyId;
 
-  for (var i = 0; i < resources.length; i++) {
+  policyMatch.resource = buildResourcesArray(resourceKeys, appOwner, appName, altinnTask);
+
+  return policyMatch;
+}
+
+/**
+ * build an array with resource key and value
+ * @param {*} resourceKeys ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
+ * @param {*} appOwner
+ * @param {*} appName
+ * @param {*} altinnTask
+ * @returns an array of resource
+ */
+function buildResourcesArray(resourceKeys, appOwner, appName, altinnTask) {
+  var resource = [];
+  for (var i = 0; i < resourceKeys.length; i++) {
     var value = '';
-    policyMatch.resource.push({});
-    switch (resources[i]) {
+    resource.push({});
+    switch (resourceKeys[i]) {
       case 'urn:altinn:org':
         value = appOwner;
         break;
@@ -178,9 +206,8 @@ function generatePolicyMatch(policyMatchKeys, delegatedByUserId, offeredByPartyI
         value = 'events';
         break;
     }
-    policyMatch.resource[i].id = resources[i];
-    policyMatch.resource[i].value = value;
+    resource[i].id = resourceKeys[i];
+    resource[i].value = value;
   }
-
-  return policyMatch;
+  return resource;
 }

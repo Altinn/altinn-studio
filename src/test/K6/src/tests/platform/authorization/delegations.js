@@ -37,7 +37,7 @@ export function setup() {
 //Tests for platform Authorization:Delegations
 export default function (data) {
   const altinnToken = data;
-  var res, success, policyMatchKeys, ruleId, jsonPermitData;
+  var res, success, policyMatchKeys, ruleId, jsonPermitData, resources;
 
   //Retrieve policy of an app
   res = delegation.getPolicies(appOwner, appName);
@@ -98,13 +98,15 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, appOwner, appName, null);
+  resources = [{ appOwner: appOwner, appName: appName }];
+  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources);
   success = check(res, {
     'Get delegated rule - status is 200': (r) => r.status === 200,
     'Get delegated rule - rule id matches': (r) => r.json('0.ruleId') === ruleId,
     'Get delegated rule - createdSuccessfully is false': (r) => r.json('0.createdSuccessfully') === false,
     'Get delegated rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === 123,
     'Get delegated rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === '456',
+    'Get delegated rule - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
 
@@ -128,6 +130,14 @@ export default function (data) {
   });
   addErrorCount(success);
   sleep(3);
+
+  //Get rules that are deleted where response should be an empty array
+  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources);
+  success = check(res, {
+    'Get deleted rules - status is 200': (r) => r.status === 200,
+    'Get deleted rules - response is empty': (r) => r.json().length === 0,
+  });
+  addErrorCount(success);
 
   //User can no longer write to app instance after delegate policy is deleted
   res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 456, 123, 'Task_1');
