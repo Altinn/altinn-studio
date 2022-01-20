@@ -813,7 +813,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             HandleSimpleContentRestrictionAttributeProperties(restriction, path, attributePropertiesSchemas, propertiesSchemaIndex);
         }
 
-        private void HandleSimpleContentRestrictionAttributeProperties(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, List<(string name, JsonSchema)> attributePropertiesSchemas, int propertiesSchemaIndex)
+        private void HandleSimpleContentRestrictionAttributeProperties(XmlSchemaSimpleContentRestriction restriction, JsonPointer path, List<(string Name, JsonSchema JsonSchema)> attributePropertiesSchemas, int propertiesSchemaIndex)
         {
             foreach (var (name, schema) in attributePropertiesSchemas)
             {
@@ -872,7 +872,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             propertiesSchema = allOf.Schemas[propertiesSchemaIndex];
         }
 
-        private static void DeconstructSimpleContentRestrictionProperties(PropertiesKeyword propertiesKeyword, out JsonSchema valuePropertySchema, out List<(string name, JsonSchema)> attributeSchemas)
+        private static void DeconstructSimpleContentRestrictionProperties(PropertiesKeyword propertiesKeyword, out JsonSchema valuePropertySchema, out List<(string Name, JsonSchema Schema)> attributeSchemas)
         {
             var properties = propertiesKeyword.Properties;
             valuePropertySchema = properties.GetValueOrDefault("value");

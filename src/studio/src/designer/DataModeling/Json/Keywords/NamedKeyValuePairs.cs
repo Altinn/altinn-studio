@@ -10,7 +10,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     /// </summary>
     public sealed class NamedKeyValuePairs : IEquatable<NamedKeyValuePairs>
     {
-        private readonly List<(string key, string value)> _properties;
+        private readonly List<(string Key, string Value)> _properties;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NamedKeyValuePairs"/> class.
@@ -29,7 +29,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <summary>
         /// A list of key/value pairs belonging to this name/identifier.
         /// </summary>
-        public IReadOnlyList<(string key, string value)> Properties
+        public IReadOnlyList<(string Key, string Value)> Properties
         {
             get { return _properties; }
         }
