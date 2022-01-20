@@ -92,7 +92,7 @@ steps:
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
 - script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/eformidling/eformidling.js -e env=$(environment) -e operatoraccesskey=$(operatoraccesskey) -e messageId=$(operatoraccesskey) -e orgNo=$(orgNo)
+   k6 run  --quiet $(pwd)/src/tests/platform/eFormidling/eFormidling.js -e env=$(environment) -e operatoraccesskey=$(operatoraccesskey) -e messageId=$(operatoraccesskey) -e orgNo=$(orgNo)
 
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'eFormidling Integration point'
