@@ -3,8 +3,10 @@ import * as React from 'react';
 import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
-import { insertHelpIconInNested } from '../../../../src/utils/replaceIcon';
+import { insertHelpIconInNested, checkIfIcon } from '../../../../src/utils/replaceIcon';
 import { ILanguage } from 'altinn-shared/types';
+import { ITextResourceBindings } from 'src/features/form/layout';
+
 
 export interface IFormLegendProps {
   labelText: string;
@@ -14,19 +16,31 @@ export interface IFormLegendProps {
   labelSettings?: ILabelSettings;
   helpText: string;
   id: string;
+  // getTextResourceAsString: (resourceKey: string) => string;
 }
 
 export default function Legend(props: IFormLegendProps) {
   if (!props.labelText) {
     return null;
   }
+  // let found = false
 
-  insertHelpIconInNested({
-    element: props.labelText,
-    language: props.language,
-    id: props.id,
-    text: props.helpText
-  });
+  // found= checkArray({
+  //   element: props.labelText,
+  //   language: props.language,
+  //   id: props.id,
+  //   text: props.helpText
+  // });
+  // let hasPattern = false;
+  // hasPattern = checkIfIcon(props.getTextResourceAsString("herp"));
+
+  // insertHelpIconInNested({
+  //   element: props.labelText,
+  //   language: props.language,
+  //   id: props.id,
+  //   text: props.helpText,
+  //   hasPattern
+  // });
   return (
     <>
       <label

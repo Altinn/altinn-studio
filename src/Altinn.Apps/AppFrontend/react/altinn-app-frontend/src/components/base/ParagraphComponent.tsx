@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { ITextResourceBindings } from 'src/features/form/layout';
-import { insertHelpIconInNested } from '../../../src/utils/replaceIcon';
+import { insertHelpIconInNested, checkIfIcon } from '../../../src/utils/replaceIcon';
 import { ILanguage } from 'altinn-shared/types';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 
 export interface IParagraphProps {
   id: string;
@@ -10,6 +11,7 @@ export interface IParagraphProps {
   textResourceBindings: ITextResourceBindings;
   language: ILanguage;
   getTextResource: (key: string) => string;
+  getTextResourceAsString: (resourceKey: string) => string;
 }
 
 const useStyles = makeStyles({
@@ -43,13 +45,29 @@ const useStyles = makeStyles({
 
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
+  let hasPattern = false;
+  
+  /* eslint-disable no-console */
+  console.log(props.textResourceBindings.title);
+  /* eslint-enable no-console */
+
+  hasPattern = checkIfIcon(props.getTextResourceAsString(props.textResourceBindings.title));
+
+  /* eslint-disable no-console */
+  console.log(hasPattern);
+  /* eslint-enable no-console */
 
   insertHelpIconInNested({
     element: props.text,
     language: props.language,
     id: props.id,
-    text: props.getTextResource(props.textResourceBindings.help)
+    text: props.getTextResource(props.textResourceBindings.help),
+    hasPattern
   });
+
+  /* eslint-disable no-console */
+  // console.log(props.getTextResource("herp"));
+  /* eslint-enable no-console */
 
   return (
     <Grid
@@ -63,6 +81,7 @@ export function ParagraphComponent(props: IParagraphProps) {
           className={`${classes.spacing} ${classes.typography}`}
         >
           {props.text}
+          {!hasPattern && <HelpTextContainer language={props.language} id={props.id} helpText={props.getTextResource(props.textResourceBindings.help)} />}
         </Typography>
       </Grid>
     </Grid>

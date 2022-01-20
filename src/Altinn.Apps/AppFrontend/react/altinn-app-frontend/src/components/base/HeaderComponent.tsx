@@ -2,7 +2,7 @@ import { Grid } from '@material-ui/core';
 import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
 import { ITextResourceBindings } from 'src/types';
-import { replaceHelpWithIcon } from '../..//../src/utils/replaceIcon';
+import { replaceHelpWithIcon, checkIfIcon } from '../..//../src/utils/replaceIcon';
 export interface IHeaderProps {
   id: string;
   text: string;
@@ -10,6 +10,7 @@ export interface IHeaderProps {
   textResourceBindings: ITextResourceBindings;
   language: ILanguage;
   getTextResource: (key: string) => string;
+  getTextResourceAsString: (resourceKey: string) => string;
 }
 
 const marginStyling = {
@@ -23,15 +24,19 @@ interface IHeaderSizeProps {
   size?: string;
   language: any;
   helpText: string;
+  hasPattern: boolean;
 }
 
-const HeaderSize = ({ id, size, text, language, helpText }: IHeaderSizeProps) => {
+const HeaderSize = ({ id, size, text, language, helpText, hasPattern }: IHeaderSizeProps) => {
+
   const header = replaceHelpWithIcon({
     element: text,
     language: language,
     id: id,
-    text: helpText
+    text: helpText,
+    hasPattern
   });
+
   switch (size) {
     case 'L':
     case 'h2': {
@@ -70,11 +75,15 @@ export const HeaderComponent = ({
   textResourceBindings,
   language,
   getTextResource,
+  getTextResourceAsString
 }: IHeaderProps) => {
+    let hasPattern = false;
+    hasPattern = checkIfIcon(getTextResourceAsString(textResourceBindings.title));
+
   return (
     <Grid container={true} direction='row' alignItems='center'>
       <Grid item={true}>
-        <HeaderSize id={id} size={size} text={text} language={language} helpText={getTextResource(textResourceBindings.help)} />
+        <HeaderSize id={id} size={size} text={text} language={language} helpText={getTextResource(textResourceBindings.help)} hasPattern={hasPattern} />
       </Grid>
       {textResourceBindings?.help && (
         <Grid item={true} style={marginStyling}>
