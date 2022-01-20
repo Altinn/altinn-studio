@@ -383,8 +383,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Try GetResourcepolicies where a ResourcePolicy exists in blobstorage, but does not match the Org/App in the request
-        /// Expected: GetResourcepolicies returns a list of 
+        /// Test case: Try GetResourcepolicies where a ResourcePolicy exists in blobstorage, but resource specification in the xacml policy does not match the Org/App in the request
+        /// Expected: GetResourcepolicies returns a MinimumAuthenticationLevel and an empty ResourcePolicies list
         /// </summary>
         [Fact]
         public async Task GetResourcePoliciesFromXacmlPolicies_TC09()
