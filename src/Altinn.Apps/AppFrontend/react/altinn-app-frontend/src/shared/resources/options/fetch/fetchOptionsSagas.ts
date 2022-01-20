@@ -1,23 +1,24 @@
 import { SagaIterator } from 'redux-saga';
 import { fork, call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState, IOption, IMapping } from 'src/types';
+import { IRuntimeState, IOption, IFetchSpecificOptionSaga } from 'src/types';
 import { ILayouts } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
-import { getOptionsUrl, jsonToQueryParams } from '../../../../utils/urlHelper';
+import { getOptionsUrl } from '../../../../utils/urlHelper';
 import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
-import { IFormData } from 'src/features/form/data/formDataReducer';
-import { mapFormData } from 'src/utils/databindings';
 
 const formLayoutSelector = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;
 const formDataSelector = (state: IRuntimeState) => state.formData.formData;
+const languageSelector = (state: IRuntimeState) =>
+  state.profile.profile.profileSettingPreference.language;
 
 export function* fetchOptionsSaga(): SagaIterator {
   try {
     const layouts: ILayouts = yield select(formLayoutSelector);
     const formData = yield select(formDataSelector);
+    const language = yield select(languageSelector);
 
     const fetchedOptions: string[] = [];
     for (const layoutId of Object.keys(layouts)) {
@@ -32,6 +33,7 @@ export function* fetchOptionsSaga(): SagaIterator {
             optionsId: component.optionsId,
             formData,
             dataMapping: component?.mapping,
+            language,
           });
           fetchedOptions.push(component.optionsId);
         }
@@ -42,27 +44,14 @@ export function* fetchOptionsSaga(): SagaIterator {
   }
 }
 
-interface IfetchSpecificOptionSaga {
-  optionsId: string;
-  formData: IFormData;
-  dataMapping?: IMapping;
-}
-
 export function* fetchSpecificOptionSaga({
   optionsId,
   formData,
+  language,
   dataMapping,
-}: IfetchSpecificOptionSaga): SagaIterator {
+}: IFetchSpecificOptionSaga): SagaIterator {
   try {
-    let url = getOptionsUrl(optionsId);
-
-    if (dataMapping) {
-      const mapped = mapFormData(formData, dataMapping);
-      const queryParams = jsonToQueryParams(mapped);
-
-      url += queryParams;
-    }
-
+    const url = getOptionsUrl({ optionsId, formData, language, dataMapping });
     const options: IOption[] = yield call(get, url);
     yield call(OptionsActions.fetchOptionsFulfilled, optionsId, options);
   } catch (error) {

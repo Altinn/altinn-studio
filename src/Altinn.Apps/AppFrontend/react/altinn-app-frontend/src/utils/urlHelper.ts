@@ -1,4 +1,5 @@
-import { IAltinnWindow } from 'src/types';
+import { IAltinnWindow, IFetchSpecificOptionSaga } from 'src/types';
+import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
 const { org, app, reportee } = altinnWindow;
@@ -132,10 +133,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
-export const getOptionsUrl = (optionsId: string) => {
-  return `${appPath}/api/options/${optionsId}`;
-};
-
 export function getJsonSchemaUrl() {
   return `${appPath}/api/jsonschema/`;
 }
@@ -196,11 +193,36 @@ export function getInstanceUiUrl(instanceId: string) {
   return `${appPath}#/instance/${instanceId}`;
 }
 
-export const jsonToQueryParams = (json) => {
-  const str = [];
-  Object.keys(json).forEach((key) => {
-    str.push(`${encodeURIComponent(key)}=${encodeURIComponent(json[key])}`);
-  });
+export const getOptionsUrl = ({
+  optionsId,
+  formData,
+  language,
+  dataMapping,
+}: IFetchSpecificOptionSaga) => {
+  let url = `${appPath}/api/options/${optionsId}`;
 
-  return `?${str.join('&')}`;
+  if (language || dataMapping) {
+    url += '?';
+  }
+
+  if (language) {
+    const languageParam = new URLSearchParams({
+      language,
+    });
+
+    url += languageParam;
+  }
+
+  if (language && dataMapping) {
+    url += '&';
+  }
+
+  if (dataMapping) {
+    const mapped = mapFormData(formData, dataMapping);
+    const queryParams = new URLSearchParams(mapped);
+
+    url += queryParams;
+  }
+
+  return url;
 };
