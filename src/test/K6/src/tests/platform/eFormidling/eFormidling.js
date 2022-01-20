@@ -1,4 +1,4 @@
-/*
+re/*
     Command: docker-compose run k6 run /src/tests/platform/eformidling/eformidling.js -e env=*** -e operatoraccesskey=*** -e messageId=*** -e orgNo=***
 */
 import { check } from 'k6';
@@ -33,7 +33,7 @@ export default function () {
   var res = eFormidling.getConversation('');
   var success = check(res, {
     'Get Conversations without messageId Status is 400': (r) => r.status === 400,
-    'Response body informs what is missing': (r) => r.json('message').includes('Query parameter messageId is required'),
+    'Get Conversations response body informs what is missing': (r) => r.json('message').includes('Query parameter messageId is required'),
   });
 
   addErrorCount(success);
