@@ -96,7 +96,7 @@ const Confirm = (props: IConfirmProps) => {
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
   );
-  const userLanguage = useAppSelector((state) => state.profile.profile?.profileSettingPreference?.language);
+  const userLanguage = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language);
 
   const routeParams: any = props.match.params;
 
