@@ -171,5 +171,5 @@ export function getAppName(
         return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
     }
 
-    return '';
+    return undefined;
 }

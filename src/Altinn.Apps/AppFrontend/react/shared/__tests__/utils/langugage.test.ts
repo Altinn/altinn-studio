@@ -224,6 +224,24 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       expect(result).toEqual(expectedResult);
     });
 
+    it('should fall back to nb-key from appMetadata if userLanguage is not present in application.title and no text resources exist', () => {
+      const textResources: ITextResource[] = [];
+      const applicationMetadata = {
+        title: {
+          nb: 'NorwegianName',
+        }
+      } as unknown as IApplication;
+
+      const result = getAppName(textResources, applicationMetadata, 'en');
+      const expectedResult = 'NorwegianName';
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return undefined string if neither defined in textResources and applicationMetadata not set', () => {
+      const result = getAppName([], null, 'nb');
+      const expectedResult: string = undefined;
+      expect(result).toEqual(expectedResult);
+    });
   });
 
   describe('getAppOwner', () => {
