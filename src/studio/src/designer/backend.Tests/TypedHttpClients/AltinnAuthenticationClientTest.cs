@@ -1,13 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 
 using Microsoft.Extensions.Logging;
@@ -73,10 +72,29 @@ namespace Designer.Tests.TypedHttpClients
             var sut = new AltinnAuthenticationClient(new HttpClient(_handlerMock.Object), _platformSettingsOptions.Object, _logger.Object);
 
             // Act
-            await sut.ConvertTokenAsync("this is a random token", new Uri("https://platform.at22.altinn.cloud/storage/api/v1/instances"));
+            await sut.ConvertTokenAsync("this is a random token", new Uri("https://platform.tt02.altinn.cloud/storage/api/v1/instances"));
 
             Assert.NotNull(actualRequest);
             Assert.Equal(HttpMethod.Get, actualRequest.Method);
+        }
+
+        [Fact]
+        public async Task ConvertTokenAsync_InternalServerError()
+        {
+            // Arrange
+            HttpRequestMessage actualRequest = null;
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError
+            };
+
+            void SetRequest(HttpRequestMessage request) => actualRequest = request;
+            InitializeMocks(httpResponseMessage, SetRequest);
+            var sut = new AltinnAuthenticationClient(new HttpClient(_handlerMock.Object), _platformSettingsOptions.Object, _logger.Object);
+
+            // Act
+            await Assert.ThrowsAsync<ApiException>(async () => await sut.ConvertTokenAsync("this is a random token", new Uri("https://platform.tt02.altinn.cloud/storage/api/v1/instances")));
         }
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, Action<HttpRequestMessage> callback)
@@ -88,11 +106,6 @@ namespace Designer.Tests.TypedHttpClients
             };
 
             _platformSettingsOptions.Setup(s => s.CurrentValue).Returns(platformSettings);
-
-            GeneralSettings generalSettings = new GeneralSettings
-            {
-                HostName = "at22.altinn.cloud"
-            };
 
             _handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
