@@ -2,7 +2,7 @@ import React from 'react';
 import { MemoryRouter} from 'react-router-dom';
 import Confirm from 'src/features/confirm/containers/Confirm';
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
-import { renderWithProviders } from '../../testUtils';
+import { renderWithProviders } from '../../../testUtils';
 import { screen } from '@testing-library/react';
 
 describe('features > confirm > Confirm.tsx', () => {
