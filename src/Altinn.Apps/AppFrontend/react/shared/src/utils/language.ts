@@ -148,7 +148,6 @@ export function getAppOwner(
   userLanguage: string,
   ) {
 
-  // console.log('appOwner is called');
   const appOwner = getTextResourceByKey('appOwner', textResources);
   if (appOwner !== 'appOwner') {
     return appOwner;
@@ -170,7 +169,6 @@ export function getAppName(
   applicationMetadata: IApplication,
   userLanguage: string
   ) {
-    console.log('getAppName is called');
     let appName = getTextResourceByKey(appNameKey, textResources);
     if (appName === appNameKey) {
       appName = getTextResourceByKey(oldAppNameKey, textResources);
