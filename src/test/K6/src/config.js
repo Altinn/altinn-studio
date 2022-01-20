@@ -74,6 +74,14 @@ export var platformEvents = {
   subscriptions: 'https://platform.' + baseUrl + '/events/api/v1/subscriptions',
 };
 
+//eFormidling
+export var eFormidling = {
+  conversations: 'https://platform.' + baseUrl + '/eformidling/api/conversations',
+  statuses: 'https://platform.' + baseUrl + '/eformidling/api/statuses',
+  health: 'https://platform.' + baseUrl + '/eformidling/api/manage/health',
+  capabilities: 'https://platform.' + baseUrl + '/eformidling/api/capabilities',
+};
+
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
 export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type) {
