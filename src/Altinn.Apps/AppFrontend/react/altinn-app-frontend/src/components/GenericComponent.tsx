@@ -3,14 +3,13 @@ import { shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import {
   ILabelSettings,
-  ITextResource,
   Triggers,
-  IComponentValidations,
+  IComponentValidations
 } from 'src/types';
 
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
-import components from '.';
+import components, { IComponentProps } from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import {
   IDataModelBindings,
@@ -26,7 +25,7 @@ import Legend from '../features/form/components/Legend';
 import { renderValidationMessagesForComponent } from '../utils/render';
 import {
   getFormDataForComponent,
-  isSimpleComponent,
+  componentValidationsHandledByGenericComponent,
   componentHasValidationMessages,
   getTextResource,
   isComponentValid,
@@ -88,7 +87,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const classes = useStyles(props);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
-  const [isSimple, setIsSimple] = React.useState(true);
   const [hasValidationMessages, setHasValidationMessages] =
     React.useState(false);
 
@@ -97,7 +95,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       getFormDataForComponent(state.formData.formData, props.dataModelBindings),
     shallowEqual,
   );
-  const currentView: string = useAppSelector(
+  const currentView = useAppSelector(
     state => state.formLayout.uiConfig.currentView,
   );
   const isValid = useAppSelector(state =>
@@ -106,8 +104,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     ),
   );
   const language = useAppSelector(state => state.language.language);
-  const textResources: ITextResource[] = useAppSelector(state => state.textResources.resources);
-  const texts: any = useAppSelector(state =>
+  const textResources = useAppSelector(state => state.textResources.resources);
+  const texts = useAppSelector(state =>
     selectComponentTexts(
       state.textResources.resources,
       props.textResourceBindings,
@@ -122,11 +120,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   );
 
   React.useEffect(() => {
-    setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  React.useEffect(() => {
     setHasValidationMessages(
       componentHasValidationMessages(componentValidations),
     );
@@ -136,7 +129,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
-  const handleDataUpdate = (value: any, key = 'simpleBinding') => {
+  const handleDataUpdate = (value: string, key = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
     }
@@ -145,12 +138,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       return;
     }
 
-    if (formData instanceof Object) {
-      if (formData[key] && formData[key] === value) {
-        // data unchanged, do nothing
-        return;
-      }
-    } else if (formData && formData === value) {
+    if (formData[key] && formData[key] === value) {
       // data unchanged, do nothing
       return;
     }
@@ -279,7 +267,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return getTextResourceByKey(key, textResources);
   };
 
-  const componentProps = {
+  const componentProps:IComponentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
     getTextResource: getTextResourceWrapper,
@@ -354,7 +342,7 @@ export function GenericComponent(props: IGenericComponentProps) {
       >
         <RenderComponent.Tag {...componentProps} />
 
-        {isSimple &&
+        {componentValidationsHandledByGenericComponent(props.dataModelBindings, props.type) &&
           hasValidationMessages &&
           renderValidationMessagesForComponent(
             componentValidations?.simpleBinding,

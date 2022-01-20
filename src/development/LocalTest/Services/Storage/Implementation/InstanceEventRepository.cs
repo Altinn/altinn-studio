@@ -14,12 +14,10 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceEventRepository : IInstanceEventRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILogger _logger;
 
-        public InstanceEventRepository(IOptions<LocalPlatformSettings> localPlatformSettings, ILogger<InstanceEventRepository> logger)
+        public InstanceEventRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _logger = logger;
         }
 
         public Task<int> DeleteAllInstanceEvents(string instanceId)

@@ -3,10 +3,9 @@ import { AltinnAttachment } from 'altinn-shared/components';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { Grid, Typography } from '@material-ui/core';
 import { useAppSelector } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface IAttachmentListProps {
-  id: string;
-  text: string;
+export interface IAttachmentListProps extends IComponentProps {
   dataTypeIds?: string[];
 }
 

@@ -29,7 +29,7 @@ const transformOrigin = {
 export interface IHelpTextPopoverProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
-  helpText: string;
+  helpText: React.ReactNode;
   language: ILanguage;
   id: string;
   closePopover: () => void;

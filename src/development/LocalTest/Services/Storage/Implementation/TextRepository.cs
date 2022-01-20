@@ -73,7 +73,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Validates that org and app are not null, checks that language is two letter ISO string
         /// </summary>
-        private void ValidateArguments(string org, string app, string language)
+        private static void ValidateArguments(string org, string app, string language)
         {
             if (string.IsNullOrEmpty(org))
             {

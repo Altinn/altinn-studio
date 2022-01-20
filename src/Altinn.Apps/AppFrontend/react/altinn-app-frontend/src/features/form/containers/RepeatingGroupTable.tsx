@@ -285,6 +285,7 @@ export function RepeatingGroupTable({
                     (component as any).baseComponentId || component.id;
                   if (tableHeaderComponents.includes(childId)) {
                     items.push({
+                      key: component.id,
                       label: getTextResource(
                         component?.textResourceBindings?.title,
                         textResources,

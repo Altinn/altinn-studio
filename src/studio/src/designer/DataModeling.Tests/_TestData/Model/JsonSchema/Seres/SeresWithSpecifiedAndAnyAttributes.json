@@ -48,17 +48,6 @@
       "allOf": [
         {
           "properties": {
-            "e1": {
-              "type": "string",
-              "@xsdType": "string"
-            }
-          },
-          "required": [
-            "e1"
-          ]
-        },
-        {
-          "properties": {
             "a1": {
               "type": "string",
               "@xsdType": "string",
@@ -71,6 +60,17 @@
               "@xsdAttribute": true
             }
           }
+        },
+        {
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string"
+            }
+          },
+          "required": [
+            "e1"
+          ]
         }
       ],
       "@xsdAnyAttribute": {

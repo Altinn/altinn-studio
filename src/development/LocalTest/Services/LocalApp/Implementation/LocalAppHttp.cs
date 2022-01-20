@@ -16,8 +16,8 @@ namespace LocalTest.Services.LocalApp.Implementation
 {
     public class LocalAppHttp : ILocalApp
     {
-        public static string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
-        public static string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
+        public const string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
+        public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
         public LocalAppHttp(IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache)

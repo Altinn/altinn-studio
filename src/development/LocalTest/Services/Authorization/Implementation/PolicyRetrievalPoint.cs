@@ -9,7 +9,6 @@ using Altinn.Platform.Authorization.Constants;
 using LocalTest.Configuration;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -20,7 +19,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly ILocalApp _localApp;
 
         /// <summary>
@@ -28,10 +26,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(
-            IOptions<LocalPlatformSettings> localPlatformSettings,
             ILocalApp localApp)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
             _localApp = localApp;
         }
 
