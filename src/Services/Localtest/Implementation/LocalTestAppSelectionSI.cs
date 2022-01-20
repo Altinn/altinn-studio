@@ -10,7 +10,7 @@ namespace LocalTest.Services.Localtest.Implementation
 {
     public class LocalTestAppSelectionSI : ILocalTestAppSelection
     {
-        private string _appRepsitoryBasePath;
+        private readonly string _appRepsitoryBasePath;
 
         public LocalTestAppSelectionSI(IConfiguration configuration)
         {
