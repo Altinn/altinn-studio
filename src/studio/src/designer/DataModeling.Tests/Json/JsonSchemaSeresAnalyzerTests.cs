@@ -82,10 +82,10 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a1", "Schema has complex type with attributes. Property a1 is an attribute.")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a2", "Schema has complex type with attributes. Property a2 is an attribute.")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a3", "Schema has complex type with attributes. Property a3 is an attribute.")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[1]/properties/a4", "Schema has complex type with attributes. Property a4 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[0]/properties/a1", "Schema has complex type with attributes. Property a1 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[0]/properties/a2", "Schema has complex type with attributes. Property a2 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[0]/properties/a3", "Schema has complex type with attributes. Property a3 is an attribute.")]
+        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", "#/$defs/melding-modell/allOf/[0]/properties/a4", "Schema has complex type with attributes. Property a4 is an attribute.")]
         public async Task IsValidAttribute_Attribute_ShouldReturnTrue(string path, string jsonPointer, string testCase)
         {
             _testOutputHelper.WriteLine($"{testCase}");
