@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IDescriptionProps {
-  description: string;
+  description: React.ReactNode;
   id: string;
 }
 
