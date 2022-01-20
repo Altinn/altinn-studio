@@ -1,5 +1,5 @@
 import 'jest';
-import { ITextResource, IDataSources, IDataSource, IApplication } from '../../src/types';
+import { ITextResource, IDataSources, IDataSource, IApplication, IAltinnOrgs, IAltinnOrg } from '../../src/types';
 import { getAppName, getAppOwner, getParsedLanguageFromText, replaceTextResourceParams } from '../../src/utils/language';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
@@ -247,17 +247,34 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   describe('getAppOwner', () => {
     it('should return app owner if defined by appOwner key', () => {
       const textResources: ITextResource[] = [{
-        value: 'AppOwnerName',
+        value: 'NameFromResources',
         id: 'appOwner',
       }];
-      const result = getAppOwner(textResources);
-      const expectedResult = 'AppOwnerName';
+      const orgs: IAltinnOrgs = {
+        ttd: {
+          name: { nb: 'NameFromOrg' },
+        } as unknown as IAltinnOrg,
+      };
+      const result = getAppOwner(textResources, orgs, 'ttd', 'nb');
+      const expectedResult = 'NameFromResources';
       expect(result).toEqual(expectedResult);
     });
 
-    it('should return undefined value is not set by appOwner key', () => {
+    it('should fall back on altinn-orgs if no text resource is defined', () => {
       const textResources: ITextResource[] = [];
-      const result = getAppOwner(textResources);
+      const orgs: IAltinnOrgs = {
+        ttd: {
+          name: { nb: 'NameFromOrg' },
+        } as unknown as IAltinnOrg,
+      };
+      const result = getAppOwner(textResources, orgs, 'ttd', 'nb');
+      const expectedResult = 'NameFromOrg';
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return undefined value is not set by appOwner key and no text defined in org', () => {
+      const textResources: ITextResource[] = [];
+      const result = getAppOwner(textResources, {}, 'ttd', 'nb');
       expect(result).toEqual(undefined);
     });
   });
