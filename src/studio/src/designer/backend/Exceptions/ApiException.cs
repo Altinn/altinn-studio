@@ -10,7 +10,7 @@
 
 using System;
 
-namespace Altinn.Studio.Designer.RepositoryClient.Client
+namespace Altinn.Studio.Designer.Exceptions
 {
     /// <summary>
     /// API Exception
