@@ -1,9 +1,9 @@
-re/*
+/*
     Command: docker-compose run k6 run /src/tests/platform/eformidling/eformidling.js -e env=*** -e operatoraccesskey=*** -e messageId=*** -e orgNo=***
 */
 import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
-import * as eFormidling from '../../../api/platform/eFormidling/eformidling.js';
+import * as eFormidling from '../../../api/platform/eFormidling/eFormidling.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
 
 const messageId = __ENV.messageId;
@@ -18,8 +18,8 @@ export const options = {
 export default function () {
   var res = eFormidling.getStatuses('');
   var success = check(res, {
-    'Get Statuses without messageId Status is 400':(r) => r.status === 400,
-    'Validation of Get Statuses reponse body content': (r) => r.json("message").includes('Query parameter messageId is required')
+    'Get Statuses without messageId Status is 400': (r) => r.status === 400,
+    'Validation of Get Statuses reponse body content': (r) => r.json('message').includes('Query parameter messageId is required'),
   });
 
   addErrorCount(success);
