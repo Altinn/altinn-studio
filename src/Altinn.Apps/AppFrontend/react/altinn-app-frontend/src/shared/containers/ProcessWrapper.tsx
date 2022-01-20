@@ -19,7 +19,7 @@ import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { getAppName, getAppOwner } from 'altinn-shared/utils';
+import { selectAppName, selectAppOwner } from 'src/selectors/language';
 
 const style = {
   marginTop: '2.5rem',
@@ -45,21 +45,8 @@ const ProcessWrapper = (props) => {
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
-  const appName = useAppSelector(
-    (state) => getAppName(
-      state.textResources.resources,
-      state.applicationMetadata.applicationMetadata,
-      state.profile.profile?.profileSettingPreference.language
-    )
-  );
-  const appOwner = useAppSelector (
-    (state) => getAppOwner(
-      state.textResources.resources,
-      state.organisationMetaData.allOrgs,
-      state.applicationMetadata.applicationMetadata?.org,
-      state.profile.profile?.profileSettingPreference.language
-    )
-  );
+  const appName = useAppSelector(selectAppName);
+  const appOwner = useAppSelector (selectAppOwner);
   const process = useAppSelector((state) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useAppSelector(hasErrorSelector);

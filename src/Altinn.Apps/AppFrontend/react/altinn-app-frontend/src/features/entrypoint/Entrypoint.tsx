@@ -2,11 +2,11 @@ import {
   AltinnContentIconFormData,
   AltinnContentLoader,
 } from 'altinn-shared/components';
-import { getAppName, getAppOwner } from 'altinn-shared/utils';
 import { AxiosError } from 'axios';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import Presentation from 'src/shared/containers/Presentation';
 import { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
@@ -40,21 +40,8 @@ export default function Entrypoint() {
     React.useState<ISimpleInstance[]>(null);
   const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
-  const appName = useAppSelector(
-    (state) => getAppName(
-      state.textResources.resources,
-      state.applicationMetadata.applicationMetadata,
-      state.profile.profile?.profileSettingPreference.language
-    )
-  );
-  const appOwner = useAppSelector (
-    (state) => getAppOwner(
-      state.textResources.resources,
-      state.organisationMetaData.allOrgs,
-      state.applicationMetadata.applicationMetadata?.org,
-      state.profile.profile?.profileSettingPreference.language
-    )
-  );
+  const appName = useAppSelector(selectAppName);
+  const appOwner = useAppSelector (selectAppOwner);
   const dispatch = useAppDispatch();
 
   const handleNewInstance = () => {

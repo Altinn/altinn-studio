@@ -10,7 +10,7 @@ import {
   AltinnLoader,
 } from 'altinn-shared/components';
 import { IAttachment, IParty } from 'altinn-shared/types';
-import { getAppName, getLanguageFromKey } from 'altinn-shared/utils/language';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
@@ -25,6 +25,7 @@ import { IApplicationMetadata } from '../../../shared/resources/applicationMetad
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import moment from 'moment';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
 
 export type IConfirmProps = RouteChildrenProps;
 
@@ -95,7 +96,7 @@ const Confirm = (props: IConfirmProps) => {
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
   );
-  const userLanguage = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language);
+  const appName = useAppSelector(selectAppName);
 
   const routeParams: any = props.match.params;
 
@@ -192,7 +193,7 @@ const Confirm = (props: IConfirmProps) => {
               'confirm.body',
               textResources,
               language,
-              [getAppName(textResources, applicationMetadata, userLanguage)],
+              [appName],
             )}
             collapsibleTitle={getTextFromAppOrDefault(
               'confirm.attachments',

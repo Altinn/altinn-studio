@@ -17,7 +17,6 @@ import {
   mapInstanceAttachments,
   getLanguageFromKey,
   returnUrlToArchive,
-  getAppName,
 } from 'altinn-shared/utils';
 import {
   getAttachmentGroupings,
@@ -26,6 +25,7 @@ import {
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
 
 export type IReceiptContainerProps = RouteChildrenProps;
 
@@ -80,6 +80,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const parties = useAppSelector(state => state.party.parties);
   const textResources = useAppSelector(state => state.textResources.resources);
   const profile = useAppSelector(state => state.profile.profile);
+  const appName = useAppSelector(selectAppName);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
@@ -91,8 +92,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !allOrgs ||
     !instance ||
     !parties;
-
-  const appName = getAppName(textResources, applicationMetadata, userLanguage);
 
   React.useEffect(() => {
     InstanceDataActions.getInstanceData(
