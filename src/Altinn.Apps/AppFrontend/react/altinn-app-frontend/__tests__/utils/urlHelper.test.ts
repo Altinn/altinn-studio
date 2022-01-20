@@ -64,7 +64,7 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual(
-        'http://altinn3local.no/undefined/undefined/api/options/county',
+        'https://altinn3local.no/ttd/test/api/options/county',
       );
     });
 
@@ -75,7 +75,7 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual(
-        'http://altinn3local.no/undefined/undefined/api/options/county?language=en',
+        'https://altinn3local.no/ttd/test/api/options/county?language=en',
       );
     });
 
@@ -91,7 +91,7 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual(
-        'http://altinn3local.no/undefined/undefined/api/options/county?selectedCountry=Norway',
+        'https://altinn3local.no/ttd/test/api/options/county?selectedCountry=Norway',
       );
     });
 
@@ -110,7 +110,7 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual(
-        'http://altinn3local.no/undefined/undefined/api/options/county?language=en&selectedCountry=Norway&selectedPostCode=0123',
+        'https://altinn3local.no/ttd/test/api/options/county?language=en&selectedCountry=Norway&selectedPostCode=0123',
       );
     });
   });
