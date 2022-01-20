@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import * as config from '../../config.js';
 import * as header from '../../buildrequestheaders.js';
+import { httpPost } from '../../wrapper.js';
 
 //Api call to App Api:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
@@ -92,5 +93,34 @@ export function postInstanceWithMultipartData(altinnStudioRuntimeCookie, partyId
     `Content-Disposition: form-data; name=\"default\"\r\n\r\n${formDataXml}\r\n\r\n` +
     `--abcdefg--`;
 
-  return http.post(endpoint, requestBody, params);
+  return httpPost(endpoint, requestBody, params);
+}
+
+/**
+ * Get an array on active instances of an app for a party id
+ * @param {*} altinnToken token to authenticate the api request
+ * @param {*} partyId partyid of an user
+ * @param {*} appOwner name of the app owner
+ * @param {*} appName name of the app
+ * @returns response of the http get request
+ */
+export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
+  var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, null, null, 'active');
+  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  return http.get(endpoint, params);
+}
+
+/**
+ * Api call for simplified app instantiation with prefill or copy from an archived instances
+ * @param {*} altinnToken token to authenticate the api request
+ * @param {*} appOwner name of the app owner
+ * @param {*} appName name of the app
+ * @param {*} instanceInfo request body with instanceOwner, prefill/sourceInstanceId/dueBefore
+ * @returns response of the http post request
+ */
+export function postSimplifiedInstantiation(altinnToken, appOwner, appName, instanceInfo) {
+  var endpoint = `${config.appApiBaseUrl(appOwner, appName)}/instances/create`;
+  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'app');
+  var body = JSON.stringify(instanceInfo);
+  return http.post(endpoint, body, params);
 }

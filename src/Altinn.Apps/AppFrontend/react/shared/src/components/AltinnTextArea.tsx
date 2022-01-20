@@ -1,5 +1,5 @@
 import {
-  createMuiTheme,
+  createTheme,
   createStyles,
   Grid,
   InputLabel,
@@ -9,7 +9,7 @@ import {
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 const styles = createStyles({
   altinnTextAreaLabel: {
     color: theme.altinnPalette.primary.black,
@@ -60,7 +60,7 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
         container={true}
         direction={'row'}
         style={{
-          width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+          width: widthPercentage ? `${widthPercentage}%` : '100%',
         }}
       >
         <textarea

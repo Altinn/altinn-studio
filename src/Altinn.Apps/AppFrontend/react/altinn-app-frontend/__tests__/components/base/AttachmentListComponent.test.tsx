@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 /* eslint-disable indent */
-// /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -72,7 +71,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       id: mockId,
       text: 'Attachments',
       dataTypeIds: ['test-data-type-1'],
-    };
+    } as IAttachmentListProps;
 
     return render(
       <Provider store={mockStore}>

@@ -1,22 +1,18 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import { shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
+import { IComponentProps } from 'src/components';
 import { ParagraphComponent } from '../../../src/components/base/ParagraphComponent';
 import { ITextResourceBindings } from '../../../src/features/form/layout';
 
 describe('>>> components/base/ParagraphComponent.tsx --- Snapshot', () => {
-  let mockId: string;
-  let mockText: string;
-  let mockGetTextResource: (key: string) => string;
-  let mockLanguage: any;
-  let mockTextResourceBindings: ITextResourceBindings;
-  mockId = 'mock-id';
-  mockText = 'Here goes a paragraph';
-  mockGetTextResource = (key: string) => key;
-  mockLanguage = {};
-  mockTextResourceBindings = {
+  const mockId = 'mock-id';
+  const mockText = 'Here goes a paragraph';
+  const mockGetTextResource = (key: string) => key;
+  const mockLanguage: any = {};
+  const mockTextResourceBindings: ITextResourceBindings = {
     tile: mockText,
   }
 
@@ -28,6 +24,7 @@ describe('>>> components/base/ParagraphComponent.tsx --- Snapshot', () => {
         language={mockLanguage}
         getTextResource={mockGetTextResource}
         textResourceBindings={mockTextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -40,6 +37,7 @@ describe('>>> components/base/ParagraphComponent.tsx --- Snapshot', () => {
         language={mockLanguage}
         getTextResource={mockGetTextResource}
         textResourceBindings={mockTextResourceBindings}
+        {...({} as IComponentProps)}
       />,
     );
 
@@ -53,7 +51,8 @@ describe('>>> components/base/ParagraphComponent.tsx --- Snapshot', () => {
         text={mockText}
         language={mockLanguage}
         getTextResource={mockGetTextResource}
-        textResourceBindings={{ help: 'this is the help text'}}
+        textResourceBindings={{ help: 'this is the help text' }}
+        {...({} as IComponentProps)}
       />,
     );
 

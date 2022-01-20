@@ -1,1 +1,0 @@
-export { getLanguageFromCode } from './languages';

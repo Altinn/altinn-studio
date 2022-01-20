@@ -1,7 +1,7 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import { createStyles } from '@material-ui/core/styles';
-import { makeStyles } from '@material-ui/core/styles';
+import { createStyles , makeStyles } from '@material-ui/core/styles';
+
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from './../../theme/altinnStudioTheme';
@@ -12,10 +12,7 @@ export interface IAltinnInformationCardComponentProvidedProps {
   shadow: boolean;
 }
 
-export interface IAltinnInformationCardComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() =>
   createStyles({

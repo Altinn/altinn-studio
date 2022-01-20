@@ -1,8 +1,8 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import AltinnIcon from './AltinnIcon';
+import AltinnIconComponent from './AltinnIcon';
 
 export interface IAltinnLinkCompontentProvidedProps {
   classes: any;
@@ -12,9 +12,7 @@ export interface IAltinnLinkCompontentProvidedProps {
   shouldShowIcon: boolean;
 }
 
-export interface IAltinnLinkComponentState {
-}
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   link: {
@@ -29,15 +27,14 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
-export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps, IAltinnLinkComponentState> {
+export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps> {
   public render() {
     const { classes, openInNewTab } = this.props;
     return (
-      <a href={this.props.url} className={classes.link} target={openInNewTab ? '_blank' : ''}>
+      <a href={this.props.url} className={classes.link} target={openInNewTab ? '_blank' : ''} rel="noreferrer">
         {this.props.linkTxt}
         {this.props.shouldShowIcon &&
-          <AltinnIcon
+          <AltinnIconComponent
             isActive={false}
             iconClass='ai ai-arrowrightup'
             iconColor={theme.altinnPalette.primary.black}

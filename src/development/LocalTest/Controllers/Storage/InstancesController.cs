@@ -664,7 +664,7 @@ namespace Altinn.Platform.Storage.Controllers
             return updatedInstance;
         }
 
-        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
+        private static Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
             {
@@ -679,7 +679,8 @@ namespace Altinn.Platform.Storage.Controllers
                 Status = instanceTemplate.Status ?? new InstanceStatus(),
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 Data = new List<DataElement>(),
-                Process = instanceTemplate.Process
+                Process = instanceTemplate.Process,
+                DataValues = instanceTemplate.DataValues,
             };
 
             return createdInstance;

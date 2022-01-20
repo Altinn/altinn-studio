@@ -8,7 +8,7 @@ using Altinn.Authorization.ABAC.Xacml;
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Parser Responsible for parsing.
+    /// Parser Responsible for parsing XACML XML documents to XACML models.
     /// </summary>
     public static class XacmlParser
     {
@@ -195,7 +195,8 @@ namespace Altinn.Authorization.ABAC.Utils
                             isRequired: true);
                         reader.ReadEndElement();
                         return new XacmlContextRequestReference(refer);
-                    }, reader,
+                    },
+                    reader,
                     isRequired: true);
 
                 reader.ReadEndElement();
@@ -962,7 +963,8 @@ namespace Altinn.Authorization.ABAC.Utils
                         true);
                     a.ReadEndElement();
                     return new XacmlAnyOf(am);
-                }, reader,
+                },
+                reader,
                 false);
 
             reader.ReadEndElement();

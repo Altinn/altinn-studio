@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             ValidateArguments(org, app, language);
             TextResource textResource = null;
-            string path = GetTextPath(language);
+            string path = GetTextPath(language, app);
 
             if (File.Exists(path))
             {
@@ -47,9 +47,9 @@ namespace Altinn.Platform.Storage.Repository
             return textResource;
         }
 
-        private string GetTextPath(string language)
+        private string GetTextPath(string language, string app)
         {
-            return _localTestAppSelectionService.GetAppPath() + $"config/texts/resource.{language.AsFileName()}.json";
+            return _localTestAppSelectionService.GetAppPath(app) + $"config/texts/resource.{language.AsFileName()}.json";
         }
 
         /// <inheritdoc/>
@@ -73,7 +73,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Validates that org and app are not null, checks that language is two letter ISO string
         /// </summary>
-        private void ValidateArguments(string org, string app, string language)
+        private static void ValidateArguments(string org, string app, string language)
         {
             if (string.IsNullOrEmpty(org))
             {

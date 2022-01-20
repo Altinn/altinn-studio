@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 export interface IAltinnWindow extends Window {
   org: string;
   app?: string;
@@ -168,9 +169,27 @@ export interface IRepository {
   name: string;
   full_name: string;
   owner: IUser
+  description: string;
+  is_cloned_to_local: boolean;
+  updated_at: string;
+  html_url: string;
+  clone_url: string;
+  id: number;
+  user_has_starred: boolean;
 }
 
 export interface IUser {
   avatar_url: string;
   login: string;
+  full_name: string;
+}
+
+export interface IGiteaOrganisation {
+  avatar_url: string;
+  description?: string;
+  id: number;
+  location?: string;
+  username: string;
+  website?: string;
+  full_name?: string;
 }

@@ -1,0 +1,25 @@
+{
+  "parentPartyId": 50001336,
+  "keyRolePartyIds": [
+    
+  ],
+  "offeredByPartyId": 50001337,
+  "resources": [
+    [
+        {
+          "id": "urn:altinn:org",
+          "value": "SKD"
+        },
+	{
+	"id": "urn:altinn:app",
+	"value": ""
+	}
+    ]
+  ],
+  "coveredBy": [
+    {
+      "id": "urn:altinn:partyid",
+      "value": "50001341"
+    }
+  ]
+}

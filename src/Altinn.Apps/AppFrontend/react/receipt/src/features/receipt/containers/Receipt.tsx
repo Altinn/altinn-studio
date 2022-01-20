@@ -1,35 +1,77 @@
-import { createStyles, WithStyles, Grid, withStyles, createMuiTheme } from '@material-ui/core';
+import {
+  createStyles,
+  WithStyles,
+  Grid,
+  withStyles,
+  createTheme,
+} from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromCode } from 'altinn-shared/language';
-import { AltinnContentLoader, AltinnModal, AltinnAppHeader, AltinnReceipt, AltinnSubstatusPaper } from 'altinn-shared/components';
-import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource } from 'altinn-shared/types';
-import { mapInstanceAttachments, getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
-import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils/language';
+import {
+  AltinnContentLoader,
+  AltinnModal,
+  AltinnAppHeader,
+  AltinnReceipt,
+  AltinnSubstatusPaper,
+} from 'altinn-shared/components';
+import {
+  IApplication,
+  IAttachment,
+  IInstance,
+  IParty,
+  IProfile,
+  IExtendedInstance,
+  ITextResource,
+} from 'altinn-shared/types';
+import {
+  mapInstanceAttachments,
+  getAttachmentGroupings,
+  getInstancePdf,
+} from 'altinn-shared/utils/attachmentsUtils';
+import {
+  getLanguageFromKey,
+  getTextResourceByKey,
+} from 'altinn-shared/utils/language';
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
 import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
-import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl, getTextResourceUrl } from '../../../utils/urlHelper';
+import {
+  altinnOrganisationsUrl,
+  getApplicationMetadataUrl,
+  getUserUrl,
+  getExtendedInstanceUrl,
+  getTextResourceUrl,
+} from '../../../utils/urlHelper';
 
-const theme = createMuiTheme(AltinnReceiptTheme);
+const theme = createTheme(AltinnReceiptTheme);
 
-const styles = () => createStyles({
-  body: {
-    '@media only print': {
-      paddingLeft: '48px !important',
+const styles = () =>
+  createStyles({
+    body: {
+      '@media only print': {
+        paddingLeft: '48px !important',
+      },
     },
-  },
-  substatus: {
-    maxWidth: '875px',
-    [theme.breakpoints.down('sm')]: {
-      width: '95%',
+    substatus: {
+      maxWidth: '875px',
+      [theme.breakpoints.down('sm')]: {
+        width: '95%',
+      },
+      [theme.breakpoints.up('md')]: {
+        width: '80%',
+      },
     },
-    [theme.breakpoints.up('md')]: {
-      width: '80%',
-    },
-  },
-});
+  });
+
+const cancelSignalMessage = 'canceled';
+
+const logFetchError = (error: any) => {
+  if (error?.message !== cancelSignalMessage) {
+    console.error(error);
+  }
+};
 
 function Receipt(props: WithStyles<typeof styles>) {
   const [party, setParty] = React.useState<IParty>(null);
@@ -39,72 +81,18 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [user, setUser] = React.useState<IProfile>(null);
   const [language, setLanguage] = React.useState(null);
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
-  const [textResources, setTextResources] = React.useState<ITextResource[]>(null);
+  const [textResources, setTextResources] =
+    React.useState<ITextResource[]>(null);
   const [pdf, setPdf] = React.useState<IAttachment[]>(null);
 
   const isPrint = useMediaQuery('print');
 
-  const fetchInstanceAndParty = async () => {
-    try {
-      const response = await Axios.get<IExtendedInstance>(getExtendedInstanceUrl());
-      setParty(response.data.party);
-      setInstance(response.data.instance);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchApplication = async () => {
-    try {
-      const app = instance.appId.split('/')[1];
-      const response = await Axios.get<IApplication>(getApplicationMetadataUrl(instance.org, app));
-      setApplication(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchOrganisations = async () => {
-    try {
-      const response = await Axios.get(altinnOrganisationsUrl);
-      setOrganisations(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchUser = async () => {
-    try {
-      const response = await Axios.get<IProfile>(getUserUrl());
-      setUser(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchLanguage = async (languageCode: string) => {
-    try {
-      const fetchedLanguage = getLanguageFromCode(languageCode);
-      setLanguage({ receipt_platform: { ...fetchedLanguage.receipt_platform } });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchTextResources = async () => {
-    try {
-      const app = instance.appId.split('/')[1];
-      const response = await Axios.get(getTextResourceUrl(instance.org, app, user.profileSettingPreference.language));
-      setTextResources(response.data.resources);
-    } catch (error) {
-      console.error(error);
-      setTextResources([]);
-    }
-  };
-
   const getTitle = (): string => {
     const applicationTitle = getTextResourceByKey('ServiceName', textResources);
-    return `${applicationTitle} ${getLanguageFromKey('receipt_platform.is_sent', language)}`;
+    return `${applicationTitle} ${getLanguageFromKey(
+      'receipt_platform.is_sent',
+      language,
+    )}`;
   };
 
   const handleModalClose = () => {
@@ -112,14 +100,67 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   const isLoading = (): boolean => {
-    return (!party || !instance || !organisations || !application || !language || !user || !textResources);
+    return (
+      !party ||
+      !instance ||
+      !organisations ||
+      !application ||
+      !language ||
+      !user ||
+      !textResources
+    );
   };
 
   React.useEffect(() => {
-    if (instance && application) {
-      const appLogicDataTypes = application.dataTypes.filter((dataType) => !!dataType.appLogic);
+    const appAbortController = new AbortController();
+    const textAbortController = new AbortController();
 
-      const attachmentsResult = mapInstanceAttachments(instance.data, appLogicDataTypes.map((type) => type.id), true);
+    const fetchApplication = async () => {
+      try {
+        const app = instance.appId.split('/')[1];
+        const response = await Axios.get<IApplication>(
+          getApplicationMetadataUrl(instance.org, app),
+          {
+            signal: appAbortController.signal,
+          },
+        );
+        setApplication(response.data);
+      } catch (error) {
+        logFetchError(error);
+      }
+    };
+
+    const fetchTextResources = async () => {
+      try {
+        const app = instance.appId.split('/')[1];
+        const response = await Axios.get(
+          getTextResourceUrl(
+            instance.org,
+            app,
+            user.profileSettingPreference.language,
+          ),
+          {
+            signal: textAbortController.signal,
+          },
+        );
+
+        setTextResources(response.data.resources);
+      } catch (error) {
+        logFetchError(error);
+        setTextResources([]);
+      }
+    };
+
+    if (instance && application) {
+      const appLogicDataTypes = application.dataTypes.filter(
+        (dataType: any) => !!dataType.appLogic,
+      );
+
+      const attachmentsResult = mapInstanceAttachments(
+        instance.data,
+        appLogicDataTypes.map((type: any) => type.id),
+        true,
+      );
       setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data, true));
     }
@@ -130,15 +171,64 @@ function Receipt(props: WithStyles<typeof styles>) {
     if (!textResources && instance && user) {
       fetchTextResources();
     }
-  }, [instance, application, user]);
+
+    return () => {
+      appAbortController.abort();
+      textAbortController.abort();
+    };
+  }, [instance, application, user, textResources]);
 
   React.useEffect(() => {
-    fetchInstanceAndParty();
-    fetchOrganisations();
-    fetchUser();
+    const instanceAbortController = new AbortController();
+    const orgAbortController = new AbortController();
+    const userAbortController = new AbortController();
+
+    const fetchInitialData = async () => {
+      try {
+        const [instanceResponse, orgResponse, userResponse] = await Promise.all(
+          [
+            Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
+              signal: instanceAbortController.signal,
+            }),
+            Axios.get(altinnOrganisationsUrl, {
+              signal: orgAbortController.signal,
+            }),
+            Axios.get<IProfile>(getUserUrl(), {
+              signal: userAbortController.signal,
+            }),
+          ],
+        );
+
+        setParty(instanceResponse.data.party);
+        setInstance(instanceResponse.data.instance);
+        setOrganisations(orgResponse.data);
+        setUser(userResponse.data);
+      } catch (error) {
+        logFetchError(error);
+      }
+    };
+
+    fetchInitialData();
+
+    return () => {
+      instanceAbortController.abort();
+      orgAbortController.abort();
+      userAbortController.abort();
+    };
   }, []);
 
   React.useEffect(() => {
+    const fetchLanguage = async (languageCode: string) => {
+      try {
+        const fetchedLanguage = getLanguageFromCode(languageCode);
+        setLanguage({
+          receipt_platform: { ...fetchedLanguage.receipt_platform },
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     if (user) {
       if (user.profileSettingPreference?.language) {
         fetchLanguage(user.profileSettingPreference.language);
@@ -152,25 +242,36 @@ function Receipt(props: WithStyles<typeof styles>) {
     <Grid
       container={true}
       direction='column'
-      justify='center'
+      justifyContent='center'
       alignItems='center'
     >
       <AltinnAppHeader
         logoColor={theme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={theme.altinnPalette.primary.blue}
-        party={party || {} as IParty}
-        userParty={user ? user.party : {} as IParty}
+        party={party || ({} as IParty)}
+        userParty={user ? user.party : ({} as IParty)}
+        logoutText={getLanguageFromKey('receipt_platform.log_out', language)}
+        ariaLabelIcon={getLanguageFromKey(
+          'receipt_platform.profile_icon_aria_label',
+          language,
+        )}
       />
-      {instance?.status?.substatus &&
+      {instance?.status?.substatus && (
         <Grid item={true} className={props.classes.substatus}>
           <AltinnSubstatusPaper
-            label={getTextResourceByKey(instance.status.substatus.label, textResources)}
-            description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+            label={getTextResourceByKey(
+              instance.status.substatus.label,
+              textResources,
+            )}
+            description={getTextResourceByKey(
+              instance.status.substatus.description,
+              textResources,
+            )}
           />
         </Grid>
-      }
+      )}
       <AltinnModal
-        classes={props.classes}
+        classes={{ body: props.classes.body }}
         isOpen={true}
         onClose={handleModalClose}
         hideBackdrop={true}
@@ -179,20 +280,34 @@ function Receipt(props: WithStyles<typeof styles>) {
         closeButtonOutsideModal={true}
         headerText={getLanguageFromKey('receipt_platform.receipt', language)}
       >
-        {isLoading() &&
-          <AltinnContentLoader/>
-        }
-        {!isLoading() &&
+        {isLoading() && <AltinnContentLoader />}
+        {!isLoading() && (
           <AltinnReceipt
             title={getTitle()}
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
-            collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
-            attachmentGroupings={getAttachmentGroupings(attachments, application, textResources)}
-            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations, application)}
-            titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
+            collapsibleTitle={getLanguageFromKey(
+              'receipt_platform.attachments',
+              language,
+            )}
+            attachmentGroupings={getAttachmentGroupings(
+              attachments,
+              application,
+              textResources,
+            )}
+            instanceMetaDataObject={getInstanceMetaDataObject(
+              instance,
+              party,
+              language,
+              organisations,
+              application,
+            )}
+            titleSubmitted={getLanguageFromKey(
+              'receipt_platform.sent_content',
+              language,
+            )}
             pdf={pdf || null}
           />
-        }
+        )}
       </AltinnModal>
     </Grid>
   );

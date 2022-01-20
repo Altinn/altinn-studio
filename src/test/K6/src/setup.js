@@ -40,6 +40,7 @@ export function authenticateUser(userName, userPassword) {
 
 //Request to Authenticate an user and returns AltinnStudioRuntime Token
 export function getAltinnStudioRuntimeToken(aspxauthCookie) {
+  clearCookies();
   var endpoint = config.platformAuthentication['authentication'] + '?goto=' + config.platformAuthentication['refresh'];
   var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, 'platform');
   var res = http.get(endpoint, params);
@@ -53,6 +54,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
 
 //Request to get user data and returns partyId, ssn, userId, orgNr
 export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
+  clearCookies();
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.appProfile['user'];
   var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
   var res = http.get(endpoint, params);
@@ -70,7 +72,7 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
   };
 
   //get parties and find an Org that an user can represent
-  res = getParties(userData['userId']);
+  res = getParties(altinnStudioRuntimeCookie, userData['userId']);
   success = check(res, {
     'Get User data': (r) => r.status === 200,
   });

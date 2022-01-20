@@ -1,28 +1,24 @@
 # studio frontend
-FROM node:14.17.3-alpine3.13 AS generate-studio-frontend
+FROM node:16.13.1-alpine3.14 AS generate-studio-frontend
 
-# Copy and install Lerna
-COPY ./src/designer/frontend/lerna.json .
+WORKDIR /build
+
 COPY ./src/designer/frontend/package.json .
-COPY ./src/designer/frontend/package-lock.json .
-RUN npm ci
+COPY ./src/designer/frontend/yarn.lock .
+COPY ./src/designer/frontend/.yarn/ ./.yarn/
+COPY ./src/designer/frontend/.yarnrc.yml .
 
-# Copy and install npm dependencies
-COPY ./src/designer/frontend/shared/package.json /shared/
-COPY ./src/designer/frontend/shared/package-lock.json /shared/
-COPY ./src/designer/frontend/app-development/package.json /app-development/
-COPY ./src/designer/frontend/app-development/package-lock.json /app-development/
-COPY ./src/designer/frontend/ux-editor/package.json /ux-editor/
-COPY ./src/designer/frontend/ux-editor/package-lock.json /ux-editor/
+# Copy and install dependencies
+COPY ./src/designer/frontend/shared/package.json ./shared/
+COPY ./src/designer/frontend/app-development/package.json ./app-development/
+COPY ./src/designer/frontend/ux-editor/package.json ./ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
-COPY ./src/designer/frontend/dashboard/package-lock.json ./dashboard/
-COPY ./src/designer/frontend/packages/schema-editor/package.json /packages/schema-editor/
-COPY ./src/designer/frontend/packages/schema-editor/package-lock.json /packages/schema-editor/
+COPY ./src/designer/frontend/packages/schema-editor/package.json ./packages/schema-editor/
 
-RUN npm run install-deps
+RUN corepack enable
+RUN yarn --immutable
 
 # Copy shared, app-development, ux-editor and dashboard
-WORKDIR /
 COPY ./src/designer/frontend/shared/ ./shared/
 COPY ./src/designer/frontend/app-development/ ./app-development/
 COPY ./src/designer/frontend/ux-editor ./ux-editor/
@@ -30,45 +26,49 @@ COPY ./src/designer/frontend/dashboard/ ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/ ./packages/schema-editor/
 
 # Build app-development
-RUN npm run build --prefix /app-development
+RUN yarn workspace app-development run build
 
 # Build dashboard
-RUN npm run build --prefix /dashboard
+RUN yarn workspace dashboard run build
 
 # Create altinn-studio-frontend base image
 FROM alpine as altinn-studio-frontend
 WORKDIR /dist/
-COPY --from=generate-studio-frontend /dist/app-development/app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/1.app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/2.app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/3.app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/4.app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/editor.worker.js .
-COPY --from=generate-studio-frontend /dist/app-development/ts.worker.js .
-COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
-COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
-COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
+COPY --from=generate-studio-frontend /build/dist/app-development/app-development.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/1.app-development.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/2.app-development.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/3.app-development.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/4.app-development.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/editor.worker.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/ts.worker.js .
+COPY --from=generate-studio-frontend /build/dist/app-development/app-development.css .
+COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.js .
+COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.css .
 
-FROM node:14.17.3-alpine3.13 AS generate-designer-js
+FROM node:16.13.1-alpine3.14 AS generate-designer-js
+WORKDIR /app
 COPY src/designer/backend/package.json .
-COPY src/designer/backend/package-lock.json .
-RUN npm ci
-COPY src/designer/backend .
-RUN npm run gulp build
+COPY src/designer/backend/yarn.lock .
+COPY src/designer/backend/.yarn ./.yarn
+COPY src/designer/backend/.yarnrc.yml .
 
-# We experienced a hard crash in Altinn Studio Designer when updating to Alpine 3.13 ref GitHub issue 5992
-# Verify that this is resolved before updating to a newer version of Alpine.
-# sdk:5.0.301-alpine3.12 causing issues with libgit2sharp
-FROM mcr.microsoft.com/dotnet/sdk:5.0.300-alpine3.12 AS build
+RUN corepack enable
+RUN yarn --immutable
+
+COPY src/designer/backend .
+RUN yarn run gulp build
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0.404-alpine3.14 AS build
+WORKDIR /build
+COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
-COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
+COPY src/designer/DataModeling ./DataModeling/
+COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-# Ref. comment above on upgrading Alpine.
-# aspnet:5.0.7-alpine3.12 appears to be causing issues with libgit2sharp
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.6-alpine3.12 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.13-alpine3.14 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
@@ -81,7 +81,7 @@ COPY --from=altinn-studio-frontend /dist/editor.worker.js ./wwwroot/designer/js/
 COPY --from=altinn-studio-frontend /dist/ts.worker.js ./wwwroot/designer/js/react/ts.worker.js
 COPY --from=altinn-studio-frontend /dist/app-development.css ./wwwroot/designer/css/react/app-development.css
 COPY --from=altinn-studio-frontend /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
-COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
+COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/react/dashboard.css
 
 ## Copying app template
 ## TODO: find out how to reference files outside docker context
@@ -89,5 +89,6 @@ COPY /AppTemplates/AspNet ./Templates/AspNet
 
 COPY src/designer/backend/Languages/ini ./Languages
 
+COPY src/designer/backend/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

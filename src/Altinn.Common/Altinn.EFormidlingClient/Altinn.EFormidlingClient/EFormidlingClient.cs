@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -6,10 +7,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Common.EFormidlingClient.Models.SBD;
+using Altinn.EFormidlingClient.Extensions;
 using Altinn.EFormidlingClient.Models;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -22,7 +26,7 @@ namespace Altinn.Common.EFormidlingClient
     {
         private readonly HttpClient _client;
         private readonly ILogger<EFormidlingClient> _logger;
-        private readonly IOptions<EFormidlingClientSettings> _eformidlingSettings;
+        private readonly EFormidlingClientSettings _eformidlingSettings;
 
         /// <summary>
         /// Initializes a new instance of the IFormidlingClient class with the given HttpClient, lSettings and Logger.
@@ -30,50 +34,56 @@ namespace Altinn.Common.EFormidlingClient
         /// <param name="httpClient">A HttpClient provided by a HttpClientFactory.</param>
         /// <param name="eformidlingSettings">The settings configured for eFormidling package</param>
         /// <param name="logger">Logging</param>
-        public EFormidlingClient(HttpClient httpClient, IOptions<EFormidlingClientSettings> eformidlingSettings, ILogger<EFormidlingClient> logger = null)
+        public EFormidlingClient(
+            HttpClient httpClient,
+            IOptions<EFormidlingClientSettings> eformidlingSettings,
+            ILogger<EFormidlingClient> logger)
         {
             _client = httpClient ?? throw new ArgumentNullException("httpClient");
-            _eformidlingSettings = eformidlingSettings ?? throw new ArgumentNullException("eformidlingSettings");
+            _eformidlingSettings = eformidlingSettings?.Value ?? throw new ArgumentNullException("eformidlingSettings");
             _logger = logger ?? throw new ArgumentNullException("logger");
 
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.BaseAddress = new Uri(_eformidlingSettings.Value.BaseUrl);
+            _client.BaseAddress = new Uri(_eformidlingSettings.BaseUrl);
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SendMessage(string id)
-        {         
+        public async Task SendMessage(string id, Dictionary<string, string> requestHeaders)
+        {
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentNullException(nameof(id));
             }
-           
+
+            string responseBody = null;
             try
             {
-                await _client.PostAsync($"messages/out/{id}", null);
-                return true;
+                HttpResponseMessage res = await _client.PostAsync($"messages/out/{id}", null, requestHeaders);
+                responseBody = await res.Content.ReadAsStringAsync();
+                res.EnsureSuccessStatusCode();
             }
-            catch (HttpRequestException e)
+            catch (HttpRequestException)
             {
-                _logger.LogError("Message :{Exception} ", e.Message);
+                throw new WebException($"The remote server returned an unexpcted error: {responseBody}.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Message :{Exception} ", ex);
                 throw;
-            }    
+            }
         }
 
         /// <inheritdoc/>
-        public async Task FindOutGoingMessages(string serviceIdentifier)
+        public async Task FindOutGoingMessages(string serviceIdentifier, Dictionary<string, string> requestHeaders)
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(serviceIdentifier))
-            {
-                throw new ArgumentNullException(nameof(serviceIdentifier));
-            }
+            AssertNotNullOrEmpty(serviceIdentifier, nameof(serviceIdentifier));
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"messages/out/?serviceIdentifier={serviceIdentifier}");
+                HttpResponseMessage response = await _client.GetAsync($"messages/out/?serviceIdentifier={serviceIdentifier}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 _logger.LogDebug(responseBody);
             }
@@ -85,12 +95,12 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Statuses> GetAllMessageStatuses()
+        public async Task<Statuses> GetAllMessageStatuses(Dictionary<string, string> requestHeaders)
         {
             string responseBody;
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"statuses");
+                HttpResponseMessage response = await _client.GetAsync($"statuses", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Statuses allMessageStatuses = JsonSerializer.Deserialize<Statuses>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -105,18 +115,15 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Capabilities> GetCapabilities(string orgId)
+        public async Task<Capabilities> GetCapabilities(string orgId, Dictionary<string, string> requestHeaders)
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(orgId))
-            {
-                throw new ArgumentNullException(nameof(orgId));
-            }
+            AssertNotNullOrEmpty(orgId, nameof(orgId));
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"capabilities/{orgId}");
+                HttpResponseMessage response = await _client.GetAsync($"capabilities/{orgId}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Capabilities capabilities = JsonSerializer.Deserialize<Capabilities>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -131,12 +138,12 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Conversation> GetAllConversations()
+        public async Task<Conversation> GetAllConversations(Dictionary<string, string> requestHeaders)
         {
             string responseBody;
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"conversations");
+                HttpResponseMessage response = await _client.GetAsync($"conversations", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Conversation conversations = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -151,18 +158,15 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Conversation> GetConversationById(string id)
+        public async Task<Conversation> GetConversationById(string id, Dictionary<string, string> requestHeaders)
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"conversations/{id}");
+                HttpResponseMessage response = await _client.GetAsync($"conversations/{id}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Conversation conversation = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -177,18 +181,15 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Conversation> GetConversationByMessageId(string id)
+        public async Task<Conversation> GetConversationByMessageId(string id, Dictionary<string, string> requestHeaders)
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"conversations/messageId/{id}");
+                HttpResponseMessage response = await _client.GetAsync($"conversations/messageId/{id}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Conversation conversation = JsonSerializer.Deserialize<Conversation>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -203,18 +204,15 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<Statuses> GetMessageStatusById(string id)
+        public async Task<Statuses> GetMessageStatusById(string id, Dictionary<string, string> requestHeaders)
         {
             string responseBody;
 
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
 
             try
             {
-                HttpResponseMessage response = await _client.GetAsync($"statuses?messageId={id}");            
+                HttpResponseMessage response = await _client.GetAsync($"statuses?messageId={id}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 Statuses status = JsonSerializer.Deserialize<Statuses>(responseBody);
                 _logger.LogDebug(responseBody);
@@ -225,26 +223,15 @@ namespace Altinn.Common.EFormidlingClient
             {
                 _logger.LogError("Message :{Exception} ", e.Message);
                 throw;
-            }       
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<bool> UploadAttachment(Stream stream, string id, string filename)
+        public async Task<bool> UploadAttachment(Stream stream, string id, string filename, Dictionary<string, string> requestHeaders)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (string.IsNullOrEmpty(filename))
-            {
-                throw new ArgumentNullException(nameof(filename));
-            }
-
-            if (stream == null)
-            {
-                throw new ArgumentNullException(nameof(stream));
-            }
+            AssertNotNullOrEmpty(id, nameof(id));
+            AssertNotNullOrEmpty(filename, nameof(filename));
+            AssertNotNull(stream, nameof(stream));
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
@@ -253,17 +240,17 @@ namespace Altinn.Common.EFormidlingClient
                 FileName = filename
             };
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-          
-            HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent);
+
+            HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent, requestHeaders);
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                
+
             if (response.Content == null)
-                {
-                    response.Content = new StringContent(string.Empty);
-                }
+            {
+                response.Content = new StringContent(string.Empty);
+            }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-      
+
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -272,16 +259,13 @@ namespace Altinn.Common.EFormidlingClient
             {
                 _logger.LogError($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
                 throw new WebException($"The remote server returned unexpcted status code: {response.StatusCode} - {responseBody}.");
-            }       
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd)
-        {   
-            if (sbd == null)
-            {
-                throw new ArgumentNullException(nameof(sbd));
-            }
+        public async Task<StandardBusinessDocument> CreateMessage(StandardBusinessDocument sbd, Dictionary<string, string> requestHeaders)
+        {
+            AssertNotNull(sbd, nameof(sbd));
 
             var jsonContent = JsonSerializer.Serialize(sbd);
             byte[] buffer = Encoding.UTF8.GetBytes(jsonContent);
@@ -294,7 +278,7 @@ namespace Altinn.Common.EFormidlingClient
             string responseBody = null;
             try
             {
-                HttpResponseMessage response = await _client.PostAsync("messages/out", byteContent);
+                HttpResponseMessage response = await _client.PostAsync("messages/out", byteContent, requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
                 StandardBusinessDocument sbdVerified = JsonSerializer.Deserialize<StandardBusinessDocument>(responseBody);
@@ -314,12 +298,9 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<bool> SubscribeeFormidling(CreateSubscription subscription)
-        {         
-            if (subscription == null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
+        public async Task<bool> SubscribeeFormidling(CreateSubscription subscription, Dictionary<string, string> requestHeaders)
+        {
+            AssertNotNull(subscription, nameof(subscription));
 
             string responseBody = null;
             try
@@ -327,7 +308,7 @@ namespace Altinn.Common.EFormidlingClient
                 var jsonString = JsonSerializer.Serialize(subscription);
                 var stringContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await _client.PostAsync($"subscriptions", stringContent);
+                HttpResponseMessage response = await _client.PostAsync($"subscriptions", stringContent, requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
 
@@ -346,18 +327,15 @@ namespace Altinn.Common.EFormidlingClient
         }
 
         /// <inheritdoc/>
-        public async Task<bool> UnSubscribeeFormidling(int id)
+        public async Task<bool> UnSubscribeeFormidling(int id, Dictionary<string, string> requestHeaders)
         {
-            if (id <= 0)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
+            AssertNotNull(id, nameof(id));
 
             string responseBody;
 
             try
             {
-                HttpResponseMessage response = await _client.DeleteAsync($"subscriptions/{id}");
+                HttpResponseMessage response = await _client.DeleteAsync($"subscriptions/{id}", requestHeaders);
                 responseBody = await response.Content.ReadAsStringAsync();
                 _logger.LogDebug(responseBody);
 
@@ -373,6 +351,22 @@ namespace Altinn.Common.EFormidlingClient
             }
 
             return false;
+        }
+
+        private static void AssertNotNullOrEmpty(string paramValue, string paramName)
+        {
+            if (string.IsNullOrEmpty(paramValue))
+            {
+                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
+        }
+
+        private static void AssertNotNull(object paramValue, string paramName)
+        {
+            if (paramValue == null)
+            {
+                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
         }
     }
 }

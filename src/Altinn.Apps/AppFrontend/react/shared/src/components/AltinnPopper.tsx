@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, Popper } from '@material-ui/core';
+import { createTheme, createStyles, Popper } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -11,10 +11,7 @@ export interface IAltinnPopperComponentProvidedProps {
   anchorEl: any;
 }
 
-export interface IAltinnPopperComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   snackbar_error: {
@@ -29,7 +26,7 @@ const styles = createStyles({
   },
 });
 
-export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
+export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     const open = Boolean(this.props.anchorEl);

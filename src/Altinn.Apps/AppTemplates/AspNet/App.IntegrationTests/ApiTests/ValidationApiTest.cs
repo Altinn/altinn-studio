@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 
+using Newtonsoft.Json;
 using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests

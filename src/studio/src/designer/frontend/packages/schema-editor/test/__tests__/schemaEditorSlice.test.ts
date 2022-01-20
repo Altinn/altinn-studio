@@ -1,10 +1,10 @@
-import reducer, { addRestriction, addProperty, deleteField, deleteProperty, initialState,
+import reducer, {
+  addRestriction, addProperty, deleteField, deleteProperty, initialState,
   setRestriction, setJsonSchema, setRestrictionKey, setPropertyName, setRef, setSelectedId, setUiSchema,
   updateJsonSchema, addEnum, setTitle, setDescription, setType, setRequired, deleteEnum,
-  setItems,
-  promoteProperty,
-  addRootItem } from '../../src/features/editor/schemaEditorSlice';
-import { ISchemaState, UiSchemaItem } from '../../src/types';
+  setItems, promoteProperty, addRootItem, navigateToType, setSelectedTab, setCombinationType, addCombinationItem, deleteCombinationItem,
+} from '../../src/features/editor/schemaEditorSlice';
+import { CombinationKind, FieldType, ISchemaState, UiSchemaItem } from '../../src/types';
 import { dataMock } from '../../src/mockData';
 import { getUiSchemaItem, resetUniqueNumber } from '../../src/utils';
 
@@ -13,7 +13,7 @@ describe('SchemaEditorSlice', () => {
   beforeEach(() => {
     // setup state
     const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
-    state = reducer(state1, setUiSchema({ rootElementPath: '#/definitions/RA-0678_M' }));
+    state = reducer(state1, setUiSchema({ name: '#/definitions/RA-0678_M' }));
     resetUniqueNumber();
   });
 
@@ -82,6 +82,15 @@ describe('SchemaEditorSlice', () => {
     });
   });
 
+  it('renames combination and children when renaming a combination', () => {
+    const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(anyOfItem?.combination?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
+
+    const nextState = reducer(state, setPropertyName({ path: '#/definitions/anyOfTestSeveralItems', name: 'tullballeee', }));
+    const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/tullballeee');
+    expect(updatedAnyOfItem?.combination?.[1].path).toBe('#/definitions/tullballeee/anyOf/1');
+  });
+
   it('handles setRef', () => {
     const payload = {
       ref: '#/definitions/Adresse',
@@ -101,8 +110,33 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/definitions/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(state, setSelectedId(payload));
-    expect(nextState.selectedId).toEqual('#/definitions/Kommentar2000Restriksjon');
+    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/Kommentar2000Restriksjon');
+  });
+
+  it('handles setSelectedId by properties tab', () => {
+    const payload = {
+      id: '#/properties/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
+  });
+
+  it('handles navigateToType', () => {
+    const payload = {
+      id: '#/definitions/someField',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/definitions/someField');
+  });
+
+  it('handles setSelectedTab', () => {
+    const payload: { selectedTab: 'definitions' | 'properties' } = {
+      selectedTab: 'definitions',
+    };
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
+    expect(nextState.selectedEditorTab).toEqual('definitions');
   });
 
   it('handles deleteField', () => {
@@ -134,6 +168,32 @@ describe('SchemaEditorSlice', () => {
     expect(item.properties).not.toContainEqual({ path: '#/definitions/Kontaktperson/properties/navn' });
   });
 
+  it('resets selected id when deleting selected definition', () => {
+    const payload = {
+      path: '#/definitions/someField',
+    };
+    const mockState = {
+      ...state,
+      selectedEditorTab: 'definitions',
+      selectedDefinitionNodeId: '#/definitions/someField',
+    } as ISchemaState;
+    const nextState = reducer(mockState, deleteProperty(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('');
+  });
+
+  it('resets selected id when deleting selected property', () => {
+    const payload = {
+      path: '#/properties/someField',
+    };
+    const mockState = {
+      ...state,
+      selectedEditorTab: 'properties',
+      selectedPropertyNodeId: '#/properties/someField',
+    } as ISchemaState;
+    const nextState = reducer(mockState, deleteProperty(payload));
+    expect(nextState.selectedPropertyNodeId).toEqual('');
+  });
+
   it('handles deleteProperty (root definition)', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
@@ -147,6 +207,9 @@ describe('SchemaEditorSlice', () => {
   it('handles addProperty', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
+      props: {
+        type: 'object',
+      } as Partial<UiSchemaItem>,
     };
     const nextState = reducer(state, addProperty(payload));
 
@@ -160,6 +223,9 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       name: 'superman',
       location: 'definitions',
+      props: {
+        type: 'object',
+      } as Partial<UiSchemaItem>
     };
     let nextState = reducer(state, addRootItem(payload));
     expect(nextState.uiSchema).toContainEqual({
@@ -169,7 +235,7 @@ describe('SchemaEditorSlice', () => {
     expect(nextState.uiSchema).toContainEqual({
       path: '#/definitions/superman0', displayName: 'superman0', type: 'object',
     });
-    expect(nextState.selectedId).toBe('#/definitions/superman0');
+    expect(nextState.selectedDefinitionNodeId).toBe('#/definitions/superman0');
   });
 
   it('handles addEnum & deleteEnum', () => {
@@ -247,7 +313,7 @@ describe('SchemaEditorSlice', () => {
   it('handles setType', () => {
     const payload = {
       path: '#/definitions/Kontaktperson',
-      value: 'string',
+      type: 'string' as FieldType,
     };
     const nextState = reducer(state, setType(payload));
 
@@ -318,5 +384,105 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, promoteProperty(payload2));
     const item2 = getUiSchemaItem(nextState.uiSchema, '#/properties/melding');
     expect(item2 && item2.$ref).toBe('#/definitions/melding');
+  });
+
+  it('handles setting combination type', () => {
+    const combinationItemChild = {
+      $ref: '#/definitions/Tekst_50',
+      displayName: 'ref',
+      path: '#/definitions/allOfTest/allOf/0',
+      combinationItem: true,
+    };
+
+    // verify initial state => type is allOf
+    let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
+    expect(item?.combinationKind).toEqual('allOf');
+
+    const payload = {
+      path: '#/definitions/allOfTest',
+      type: 'oneOf' as CombinationKind,
+    };
+
+    // change to oneOf => verify changed state
+    let nextState = reducer(state, setCombinationType(payload));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/oneOf/0' }]);
+    expect(item?.combinationKind).toEqual('oneOf');
+
+    // change to anyOf => verify changed state
+    nextState = reducer(state, setCombinationType({
+      ...payload,
+      type: 'anyOf',
+    }));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' }]);
+    expect(item?.combinationKind).toEqual('anyOf');
+
+    // change back to allOf => verify state
+    nextState = reducer(nextState, setCombinationType({
+      ...payload,
+      type: 'allOf'
+    }));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(item?.combination).toEqual([{ ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' }]);
+    expect(item?.combinationKind).toEqual('allOf');
+  });
+
+  it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
+    let item = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(item?.combination?.length).toBe(4);
+    const nextState = reducer(state, deleteCombinationItem({ path: '#/definitions/anyOfTestSeveralItems/anyOf/1' }));
+    item = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(item?.combination?.length).toBe(3);
+    expect(item?.combination?.[0].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/0');
+    expect(item?.combination?.[1].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/1');
+    expect(item?.combination?.[2].path).toBe('#/definitions/anyOfTestSeveralItems/anyOf/2');
+  });
+
+  it('resets selectedDefinitionNodeId when deleting a combination child that is currently selected', () => {
+    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const mockState: ISchemaState = {
+      ...state,
+      selectedDefinitionNodeId: path,
+    };
+    const nextState = reducer(mockState, deleteCombinationItem({ path }));
+    expect(nextState.selectedDefinitionNodeId).toBe('');
+  });
+
+  it('resets selectedPropertiesNodeId when deleting a combination child that is currently selected', () => {
+    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const mockState: ISchemaState = {
+      ...state,
+      selectedPropertyNodeId: path,
+    };
+    const nextState = reducer(mockState, deleteCombinationItem({ path }));
+    expect(nextState.selectedDefinitionNodeId).toBe('');
+  });
+
+  it('handles adding child items to a combination', () => {
+    // anyOf
+    const anyOfItem = state.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(anyOfItem?.combination?.length).toBe(4);
+    let nextState = reducer(state, addCombinationItem({ path: '#/definitions/anyOfTestSeveralItems', props: { type: 'string', displayName: '' }}));
+    const updatedAnyOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/anyOfTestSeveralItems');
+    expect(updatedAnyOfItem?.combination?.length).toBe(5);
+    expect(updatedAnyOfItem?.combination?.[4].type).toBe('string');
+
+    // allOf
+    const allOfItem = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(allOfItem?.combination?.length).toBe(1);
+    nextState = reducer(state, addCombinationItem({ path: '#/definitions/allOfTest', props: { type: 'string', displayName: '' }}));
+    const updatedAllOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
+    expect(updatedAllOfItem?.combination?.length).toBe(2);
+    expect(updatedAllOfItem?.combination?.[1].type).toBe('string');
+
+    // oneOf
+    const oneOfItem = state.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    expect(oneOfItem?.combination?.length).toBe(2);
+    nextState = reducer(state, addCombinationItem({ path: '#/definitions/oneOfTestNullable', props: { type: 'string', displayName: '' }}));
+    const updatedOneOfItem = nextState.uiSchema.find((f) => f.path === '#/definitions/oneOfTestNullable');
+    expect(updatedOneOfItem?.combination?.length).toBe(3);
+    expect(updatedOneOfItem?.combination?.[2].type).toBe('string');
   });
 });

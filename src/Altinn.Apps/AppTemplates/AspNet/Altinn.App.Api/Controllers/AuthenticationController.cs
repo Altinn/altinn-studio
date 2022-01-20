@@ -15,18 +15,16 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class AuthenticationController : ControllerBase
     {
-        private readonly IAuthentication _authentication;
+        private readonly IAuthentication _authenticationClient;
         private readonly GeneralSettings _settings;
-        private readonly ILogger<AuthenticationController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationController"/> class
         /// </summary>
-        public AuthenticationController(IAuthentication authentication, IOptions<GeneralSettings> settings, ILogger<AuthenticationController> logger)
+        public AuthenticationController(IAuthentication authenticationClient, IOptions<GeneralSettings> settings)
         {
-            _authentication = authentication;
+            _authenticationClient = authenticationClient;
             _settings = settings.Value;
-            _logger = logger;
         }
 
         /// <summary>
@@ -37,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{org}/{app}/api/[controller]/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
-            string token = await _authentication.RefreshToken();
+            string token = await _authenticationClient.RefreshToken();
 
             CookieOptions runtimeCookieSetting = new CookieOptions
             {

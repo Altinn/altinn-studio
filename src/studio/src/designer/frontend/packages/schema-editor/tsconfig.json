@@ -20,7 +20,12 @@
     "declarationDir": "dist",
     "outDir": "./dist/",
     "sourceMap": true,
-    "rootDir": "../.."
+    "rootDir": "../..",
+    "paths": {
+      "app-shared/*": [
+        "../../shared/*"
+      ],
+    },
   },
   "include": [
     "src"

@@ -64,8 +64,18 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
+
                 XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
-                return CreateResponse(xacmlContextResponse);
+
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    XacmlJsonResponse jsonResult = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
+                    return Ok(jsonResult);
+                }
+                else
+                {
+                    return CreateResponse(xacmlContextResponse);
+                }
             }
         }
 
@@ -95,7 +105,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     {
                         IEnumerable<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer));
 
-                        if (resourceCategoriesPart != null && resourceCategoriesPart.Count() > 0)
+                        if (resourceCategoriesPart != null && resourceCategoriesPart.Any())
                         {
                             if (jsonMultiRequestPart.Resource == null)
                             {
@@ -107,7 +117,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
                         IEnumerable<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer));
 
-                        if (subjectCategoriesPart != null && subjectCategoriesPart.Count() > 0)
+                        if (subjectCategoriesPart != null && subjectCategoriesPart.Any())
                         {
                             if (jsonMultiRequestPart.AccessSubject == null)
                             {
@@ -119,7 +129,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
                         IEnumerable<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer));
 
-                        if (actionCategoriesPart != null && actionCategoriesPart.Count() > 0)
+                        if (actionCategoriesPart != null && actionCategoriesPart.Any())
                         {
                             if (jsonMultiRequestPart.Action == null)
                             {
@@ -159,8 +169,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
         {
-            XacmlJsonRequestRoot jsonRequest = null;
-            jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
+            XacmlJsonRequestRoot jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
 

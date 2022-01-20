@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 // eslint-disable-next-line import/prefer-default-export
 export function nb() {
   return {
@@ -76,15 +76,15 @@ export function nb() {
     general: {
       action: 'Handling',
       add_connection: 'Legg til tilkobling',
-      add: 'Legg til',
       add_new: 'Legg til ny',
+      add: 'Legg til',
       back: 'Tilbake',
       cancel: 'Avbryt',
       choose_label: 'Velg navn',
       choose_method: 'Velg metode',
       choose: 'Velg',
-      close: 'Lukk',
       close_schema: 'Lukk skjema',
+      close: 'Lukk',
       contains: 'Inneholder',
       control_submit: 'Kontroller og send inn',
       create_new: 'Opprett ny',
@@ -92,14 +92,16 @@ export function nb() {
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Slett',
       disabled: 'Deaktivert',
-      edit: 'Endre',
-      edit_alt: 'Rediger',
       edit_alt_error: 'Rett feil her',
+      edit_alt: 'Rediger',
+      edit: 'Endre',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
       for: 'for',
+      header_profile_icon_label: 'Profil ikon knapp',
       label: 'Navn',
       loading: 'Laster innhold',
+      log_out: 'Logg ut',
       next: 'Neste',
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
@@ -118,6 +120,15 @@ export function nb() {
     },
     group: {
       row_error: 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
+    },
+    instance_selection: {
+      changed_by: 'Endret av',
+      continue: 'Fortsett her',
+      description: 'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
+      header: 'Du har allerede startet å fylle ut dette skjemaet.',
+      last_changed: 'Sist endret',
+      left_of: 'Fortsett der du slapp',
+      new_instance: 'Start på nytt',
     },
     instantiate: {
       all_forms: 'alle skjema',

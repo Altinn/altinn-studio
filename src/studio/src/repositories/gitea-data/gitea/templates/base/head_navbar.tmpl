@@ -1,7 +1,7 @@
 <div class="ui container" id="navbar">
 	<div class="item brand" style="justify-content: space-between;">
 		<a href="/" title="Altinn Studio {{.i18n.Tr "home"}}">
-			<img class="ui mini image" src="{{StaticUrlPrefix}}/img/favicon.png" alt="Altinn logo">
+			<img class="ui mini image" src="{{AssetUrlPrefix}}/img/favicon.png" alt="Altinn logo">
 		</a>
 		<div class="ui basic icon button mobile-only" id="navbar-expand-toggle">
 			<i class="sidebar icon"></i>
@@ -147,7 +147,7 @@
 			</div><!-- end dropdown avatar menu -->
 		</div><!-- end signed user right menu -->
 	{{else}}
-		<a class="item" target="_blank" rel="noopener noreferrer" href="https://altinn.github.io/docs/altinn-studio/first-time-setup/">{{.i18n.Tr "help"}}</a>
+		<a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.altinn.studio/nb/app/getting-started/intro/">{{.i18n.Tr "help"}}</a>
 		<div class="right stackable menu">
 			{{if .ShowRegistrationButton}}
 				<a class="item{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">

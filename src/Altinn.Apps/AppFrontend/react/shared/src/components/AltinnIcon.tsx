@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -15,9 +15,7 @@ export interface IAltinnIconCompontentProvidedProps {
   weight?: number;
 }
 
-export interface IAltinnIconComponentState {
-}
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   activeIcon: {
@@ -25,7 +23,7 @@ const styles = {
   },
 };
 
-export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
+export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps> {
   public render() {
     return (
       <i

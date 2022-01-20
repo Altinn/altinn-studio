@@ -6,11 +6,13 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Formatting', () => {
-  before(() => {
-    cy.navigateToChangeName();
-  });
-
   it('Number formatting', () => {
+    cy.navigateToChangeName();
+    cy.get('#form-content-newFirstName').siblings().should('have.class', 'MuiGrid-grid-md-6');
+    cy.get('#form-content-newFirstName')
+      .siblings()
+      .parent()
+      .should('have.css', 'border-bottom', '1px dashed rgb(148, 148, 148)');
     cy.get(appFrontend.changeOfName.mobilenummer)
       .should('be.visible')
       .type('44444444')
@@ -24,7 +26,14 @@ describe('Formatting', () => {
       cy.get(checkbox).should('be.visible').find('input').check();
     });
     cy.get(appFrontend.group.addNewItem).should('be.visible').click();
-    cy.get(appFrontend.group.currentValue).should('be.visible').type('1').should('have.value', 'NOK 1');
-    cy.get(appFrontend.group.newValue).type('-2').should('not.contain.value', '-');
+    cy.get(appFrontend.group.currentValue)
+      .should('be.visible')
+      .type('1')
+      .should('have.value', 'NOK 1')
+      .and('have.css', 'text-align', 'right');
+    cy.get(appFrontend.group.newValue)
+      .type('-2')
+      .should('not.contain.value', '-')
+      .and('have.css', 'text-align', 'right');
   });
 });

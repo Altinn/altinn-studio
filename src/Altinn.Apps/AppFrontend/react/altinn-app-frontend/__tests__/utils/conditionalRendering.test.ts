@@ -156,7 +156,7 @@ describe('>>> utils/conditionalRendering.ts', () => {
     };
 
     const formData = {
-      'mockGroup[0].mockField': 8,
+      'mockGroup[0].mockField': '8',
     };
 
     const result = runConditionalRenderingRules(showRules, formData, repeatingGroups);

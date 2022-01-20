@@ -1,19 +1,14 @@
 import * as React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
-import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { IComponentProps } from '..';
 
-export interface IParagraphProps {
-  id: string;
-  text: string;
-  textResourceBindings: ITextResourceBindings;
-  language: any;
-  getTextResource: (key: string) => string;
-}
 
 const useStyles = makeStyles({
   spacing: {
     letterSpacing: '0.3px',
+    maxWidth: '684px',
+    marginTop: '-12px',
   },
   // Class to override default stylings for headers created by markdown parsing. Done to align help text icon.
   typography: {
@@ -38,7 +33,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function ParagraphComponent(props: IParagraphProps) {
+export function ParagraphComponent(props: IComponentProps) {
   const classes = useStyles();
   return (
     <Grid

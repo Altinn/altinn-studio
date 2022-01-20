@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:seres="http://seres.no/xsd/forvaltningsdata"
+            attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2016-12-14T13:28:58.147+01:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/altinn/test/basic" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="altinn-test" />
+      <xsd:attribute name="modellnavn" fixed="main" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="main" />
+
+  <xsd:complexType name="main">
+    <xsd:sequence>
+      <xsd:element name="p1" type="xsd:string" nillable="true" />
+      <xsd:element name="p2" type="simpleType" nillable="true" />
+      <xsd:element name="p3" type="complexType" nillable="true" />
+      <xsd:element name="p4" nillable="true">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="fish" type="xsd:string" />
+            <xsd:element name="stew" type="xsd:string" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="p5" nillable="true" type="veryComplexType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:simpleType name="simpleType">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+
+  <xsd:complexType name="complexType">
+    <xsd:sequence>
+      <xsd:element name="fish" type="xsd:string" />
+      <xsd:element name="stew" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="veryComplexType">
+    <xsd:sequence>
+      <xsd:element name="value" nillable="true" minOccurs="0" maxOccurs="unbounded">
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="toBeExtended">
+              <xsd:anyAttribute />
+            </xsd:extension>
+          </xsd:complexContent>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="code" type="xsd:string" nillable="true" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="toBeExtended">
+    <xsd:sequence>
+      <xsd:element name="name" type="xsd:string" nillable="true" minOccurs="0" />
+      <xsd:element name="email" type="xsd:string" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  
+</xsd:schema>

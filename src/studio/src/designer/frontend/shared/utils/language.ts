@@ -7,16 +7,14 @@ export function getLanguageFromKey(key: string, language: any) {
     return key;
   }
   const name = getNestedObject(language, key.split('.'));
-  if (!name) {
-    return key;
-  } else {
-    return name;
-  }
+  return name || key;
 }
 
 export function getNestedObject(nestedObj: any, pathArr: string[]) {
-  return pathArr.reduce((obj, key) =>
-    (obj && obj[key] !== 'undefined') ? obj[key] : undefined, nestedObj);
+  return pathArr.reduce(
+    (obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined),
+    nestedObj,
+  );
 }
 
 export function getUserLanguage() {
@@ -30,11 +28,10 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
 
   if (stringOutput) {
     return paramParsed;
-  } else {
-    const dirty = marked(paramParsed);
-    const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target', 'rel']});
-    return ReactHtmlParser(clean);
   }
+  const dirty = marked.parse(paramParsed);
+  const clean = DOMPurify.sanitize(dirty, { ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target', 'rel'] });
+  return ReactHtmlParser(clean);
 };
 
 const replaceParameters = (nameString: any, params: any[]) => {

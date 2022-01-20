@@ -13,7 +13,7 @@ using Altinn.Platform.Authorization.IntegrationTests.Util;
 
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
-
+using Azure;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -141,57 +141,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(org, app));
-        }
-
-        /// <summary>
-        /// Test case: Write to storage a file.
-        /// Expected: WritePolicyAsync returns true.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC01()
-        {
-            // Arrange
-            Stream dataStream = File.OpenRead("Data/Policies/policy.xml");
-
-            // Act
-            bool successfullyStored = await _prp.WritePolicyAsync("org", "app", dataStream);
-            TestSetupUtil.DeleteAppBlobData("org", "app");
-
-            // Assert
-            Assert.True(successfullyStored);
-        }
-
-        /// <summary>
-        /// Test case: Write a file to storage where the org parameter arguments is empty.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC02()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync(string.Empty, "app", new MemoryStream()));
-        }
-
-        /// <summary>
-        /// Test case: Write a file to storage where the app parameter arguments is empty.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC03()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", string.Empty, new MemoryStream()));
-        }
-
-        /// <summary>
-        /// Test case: Write to storage a file that is null.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC04()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", "app", null));
         }
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp(bool existingApp = true)

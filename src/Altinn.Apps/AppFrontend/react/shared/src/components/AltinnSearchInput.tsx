@@ -1,4 +1,4 @@
-import { createMuiTheme, FormControl, InputAdornment, TextField } from '@material-ui/core';
+import { createTheme, FormControl, InputAdornment, TextField } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -12,10 +12,7 @@ export interface IAltinnSearchInputComponentProvidedProps {
   ariaLabel: string;
 }
 
-export interface IAltinnSearchInputComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   searchBox: {
@@ -37,8 +34,8 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
-export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps, IAltinnSearchInputComponentState> {
+
+export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (

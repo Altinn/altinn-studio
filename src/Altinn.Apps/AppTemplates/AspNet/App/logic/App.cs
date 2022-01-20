@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.DataProcessing;
@@ -168,12 +169,14 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="instance">The data to perform data creation on</param>
         /// <param name="data">The data object being created</param>
-        public override async Task RunDataCreation(Instance instance, object data)
+        /// <param name="prefill">External prefill available under instansiation</param>
+        public override async Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
-           await _instantiationHandler.DataCreation(instance, data);
+           await _instantiationHandler.DataCreation(instance, data, prefill);
         }
 
         /// <inheritdoc />
+        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
         {
             return Task.FromResult(options);
@@ -193,7 +196,7 @@ namespace Altinn.App.AppLogic
         /// <summary>
         /// Hook to run logic to hide pages or components when generatring PDF
         /// </summary>
-        /// <param name="layoutSettings">The layoutsettings. Can be null and need to be created in method</param>
+        /// <param name="layoutSettings">The layoutsettings.</param>
         /// <param name="data">The data that there is generated PDF from</param>
         /// <returns>Layoutsetting with possible hidden fields or pages</returns>
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

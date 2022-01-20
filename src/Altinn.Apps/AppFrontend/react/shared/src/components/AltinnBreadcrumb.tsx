@@ -1,4 +1,4 @@
-import { createMuiTheme, Grid, Typography } from '@material-ui/core';
+import { createTheme, Grid, Typography } from '@material-ui/core';
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -15,10 +15,7 @@ export interface IAltinnBreadcrumbComponentProvidedProps extends WithStyles<type
   className?: any;
 }
 
-export interface IAltinnBreadcrumbComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   link: {
@@ -45,7 +42,7 @@ const styles = () => createStyles({
 });
 
 export class AltinnBreadcrumb extends
-  React.Component<IAltinnBreadcrumbComponentProvidedProps, IAltinnBreadcrumbComponentState> {
+  React.Component<IAltinnBreadcrumbComponentProvidedProps> {
 
   public render() {
     const { classes } = this.props;

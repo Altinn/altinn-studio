@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -28,6 +29,7 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
+        private readonly IAppOptionsService _appOptionsService;
         private Application _application;
 
         /// <summary>
@@ -36,14 +38,17 @@ namespace Altinn.App.Services.Implementation
         /// <param name="settings">The app repository settings.</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
+        /// <param name="appOptionsService">Service for working with app options.</param>
         public AppResourcesSI(
             IOptions<AppSettings> settings,
             IWebHostEnvironment hostingEnvironment,
-            ILogger<AppResourcesSI> logger)
+            ILogger<AppResourcesSI> logger,
+            IAppOptionsService appOptionsService)
         {
             _settings = settings.Value;
             _hostingEnvironment = hostingEnvironment;
             _logger = logger;
+            _appOptionsService = appOptionsService;
         }
 
         /// <inheritdoc/>
@@ -133,6 +138,44 @@ namespace Altinn.App.Services.Implementation
                 _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
                 return null;
             }
+        }
+
+        /// <inheritdoc/>
+        public string GetApplicationXACMLPolicy()
+        {
+            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.AuthorizationFolder + _settings.ApplicationXACMLPolicyFileName;
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    return File.ReadAllText(filename, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching XACML Policy. {0}", ex);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public string GetApplicationBPMNProcess()
+        {
+            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ProcessFolder + _settings.ProcessFileName;
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    return File.ReadAllText(filename, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching BPMNProcess. {0}", ex);
+            }
+            
+            return null;
         }
 
         /// <inheritdoc/>
@@ -253,28 +296,10 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("GetOptions method is obsolete and will be removed in the future. Use the corresponding method in IAppOptions interface instead.", false)]
         public List<AppOption> GetOptions(string optionId)
         {
-            string legalPath = _settings.AppBasePath + _settings.OptionsFolder;
-            string filename = legalPath + optionId + ".json";
-            PathHelper.EnsureLegalPath(legalPath, filename);
-
-            try
-            {
-                if (File.Exists(filename))
-                {
-                    string fileData = File.ReadAllText(filename, Encoding.UTF8);
-                    List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(fileData);
-                    return options;
-                }
-
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
-                return null;
-            }
+            return _appOptionsService.GetOptionsAsync(optionId, string.Empty, new Dictionary<string, string>()).Result.Options;
         }
 
         /// <inheritdoc />

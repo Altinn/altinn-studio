@@ -12,12 +12,16 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
+import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
 import { NavigationBarComponent } from './base/NavigationBar';
+import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
+import { IGenericComponentProps } from './GenericComponent';
+import { IComponentFormData } from 'src/utils/formComponentUtils';
 
 export interface IComponent {
   name: string;
-  Tag: any;
+  Tag: (props: IComponentProps) => JSX.Element;
   Type: ComponentTypes;
   customProperties?: any;
 }
@@ -27,6 +31,7 @@ export interface IComponent {
 export enum ComponentTypes {
   Header,
   Paragraph,
+  Image,
   Input,
   Datepicker,
   DropDown,
@@ -36,9 +41,9 @@ export enum ComponentTypes {
   FileUpload,
   Button,
   Group,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
+  InstantiationButton,
   AttachmentList,
   NavigationBar,
 }
@@ -57,6 +62,11 @@ export const textComponents: IComponent[] = [
 ];
 
 export const schemaComponents: IComponent[] = [
+  {
+    name: 'Image',
+    Tag: ImageComponent,
+    Type: ComponentTypes.Image,
+  },
   {
     name: 'Input',
     Tag: InputComponent,
@@ -129,6 +139,11 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.NavigationButtons,
   },
   {
+    name: 'InstantiationButton',
+    Tag: InstantiationButtonComponent,
+    Type: ComponentTypes.InstantiationButton,
+  },
+  {
     name: 'AttachmentList',
     Tag: AttachmentListComponent,
     Type: ComponentTypes.AttachmentList,
@@ -151,6 +166,20 @@ export const advancedComponents: IComponent[] = [
     },
   },
 ];
+
+export interface  IComponentProps extends IGenericComponentProps {
+  handleDataChange: (value: string, key?: string) => void,
+  handleFocusUpdate: (componentId: string, step?: number) => void,
+  getTextResource: (key: string) => React.ReactNode,
+  getTextResourceAsString: (key: string) => string,
+  formData: IComponentFormData,
+  isValid: boolean,
+  language: any,
+  shouldFocus: boolean,
+  text: React.ReactNode,
+  label: () => JSX.Element,
+  legend: () => JSX.Element,
+};
 
 const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
 

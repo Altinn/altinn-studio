@@ -10,209 +10,209 @@ namespace Altinn.Platform.Storage.UnitTest
     /// </summary>
     public class MessageBoxTestData
     {
-        private static string instanceOwnerPartyId_1 = "50000000";
-        private static string userId_1 = "20000000";
+        private static readonly string InstanceOwnerPartyId_1 = "50000000";
+        private static readonly string UserId_1 = "20000000";
 
-        private static string org_1 = "tdd";
-        private static string org_2 = "spf";
+        private static readonly string Org_1 = "tdd";
+        private static readonly string Org_2 = "spf";
 
         private static readonly string App_1 = "test-applikasjon-1";
         private static readonly string App_2 = "test-applikasjon-2";
         private static readonly string App_3 = "test-applikasjon-3";
 
-        private static readonly string AppId_1 = $"{org_1.ToLower()}/{App_1}";
-        private static readonly string AppId_2 = $"{org_1.ToLower()}/{App_2}";
-        private static readonly string AppId_3 = $"{org_2.ToLower()}/{App_3}";
+        private static readonly string AppId_1 = $"{Org_1.ToLower()}/{App_1}";
+        private static readonly string AppId_2 = $"{Org_1.ToLower()}/{App_2}";
+        private static readonly string AppId_3 = $"{Org_2.ToLower()}/{App_3}";
 
-        private static Dictionary<string, string> appTitles_App1 = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> AppTitles_App1 = new Dictionary<string, string>()
         {
             { "nb", "Test applikasjon 1 bokmål" },
             { "en", "Test application 1 english" },
             { "nn", "Test applikasjon 1 nynorsk" }
         };
 
-        private static Dictionary<string, string> appTitles_App2 = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> AppTitles_App2 = new Dictionary<string, string>()
         {
              { "nb", "Test applikasjon 2 bokmål" },
              { "en", "Test application 2 english" }
         };
 
-        private static Dictionary<string, string> appTitles_App3 = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> AppTitles_App3 = new Dictionary<string, string>()
         {
             { "nb", "Test applikasjon 3 bokmål" },
             { "nn", "Test applikasjon 3 nynorsk" }
         };
 
-        private static Application application_1 = new Application()
+        private static readonly Application Application_1 = new Application()
         {
             Id = AppId_1,
             Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
-            Org = org_1,
-            Title = appTitles_App1
+            Org = Org_1,
+            Title = AppTitles_App1
         };
 
-        private static Application application_2 = new Application()
+        private static readonly Application Application_2 = new Application()
         {
             Id = AppId_2,
             Created = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
-            Org = org_1,
-            Title = appTitles_App2
+            Org = Org_1,
+            Title = AppTitles_App2
         };
 
-        private static Application application_3 = new Application()
+        private static readonly Application Application_3 = new Application()
         {
             Id = AppId_3,
             Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
-            Org = org_2,
-            Title = appTitles_App3
+            Org = Org_2,
+            Title = AppTitles_App3
         };
 
         // Active instance of app 1
         private static readonly Instance Instance_1_1 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_1,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus(),
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState()
         };
 
         // Archived instance of app 1
         private static readonly Instance Instance_1_2 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_1,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
             },
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState(),
         };
 
         // Soft deleted instance of app 1
         private static readonly Instance Instance_1_3 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_1,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
                 SoftDeleted = DateTime.UtcNow,
             },
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState(),
         };
 
         // Hard deleted instance of app 1
         private static readonly Instance Instance_1_4 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_1,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
                 SoftDeleted = DateTime.UtcNow,
                 HardDeleted = DateTime.UtcNow,
             },
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState(),
         };
 
         // 1st instance of application 2
         private static readonly Instance Instance_2_1 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_2,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus(),
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState(),
         };
 
         // 2nd instance of application 2
         private static readonly Instance Instance_2_2 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_2,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus(),
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = CreateProcessState(),
         };
 
         // 1st instance of application 3
         private static readonly Instance Instance_3_1 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_3,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus(),
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
-            Org = org_2,
+            Org = Org_2,
             Process = CreateProcessState(),
         };
 
         private static readonly Instance Instance_3_2 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_3,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus(),
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
-            Org = org_2,
+            Org = Org_2,
             Process = CreateProcessState(),
         };
 
         // Archived instance of app 4
         private static readonly Instance Instance_4_1 = new Instance()
         {
-            Id = instanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
+            Id = InstanceOwnerPartyId_1 + "/" + Guid.NewGuid().ToString(),
             AppId = AppId_1,
-            CreatedBy = userId_1,
+            CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
             },
-            LastChangedBy = userId_1,
+            LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
-            Org = org_1,
+            Org = Org_1,
             Process = new ProcessState { EndEvent = "EndTask" }
         };
 
@@ -235,20 +235,13 @@ namespace Altinn.Platform.Storage.UnitTest
         private static readonly List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_1_4, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
 
         public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>
-            { { application_1.Id, appTitles_App1 } };
+            { { Application_1.Id, AppTitles_App1 } };
 
         public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>
-            { { application_2.Id, appTitles_App2 } };
+            { { Application_2.Id, AppTitles_App2 } };
 
         public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>
-            { { application_3.Id, appTitles_App3 } };
-
-        private static readonly Dictionary<string, Dictionary<string, string>> AppTitles_InstanceList_InstanceOwner1 = new Dictionary<string, Dictionary<string, string>>()
-        {
-            { application_1.Id, appTitles_App1 },
-            { application_2.Id, appTitles_App2 },
-            { application_3.Id, appTitles_App3 },
-        };
+            { { Application_3.Id, AppTitles_App3 } };
 
         /// <summary>
         /// Gets instance owner id for all test instances
@@ -256,7 +249,7 @@ namespace Altinn.Platform.Storage.UnitTest
         /// <returns></returns>
         public string GetInstanceOwnerPartyId()
         {
-            return instanceOwnerPartyId_1.ToString();
+            return InstanceOwnerPartyId_1.ToString();
         }
 
         /// <summary>
@@ -273,7 +266,7 @@ namespace Altinn.Platform.Storage.UnitTest
         /// </summary>
         public List<Application> GetApps()
         {
-            return new List<Application> { application_1, application_2, application_3 };
+            return new List<Application> { Application_1, Application_2, Application_3 };
         }
 
         /// <summary>

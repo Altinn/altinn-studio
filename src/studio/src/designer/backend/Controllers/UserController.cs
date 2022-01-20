@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -13,6 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// API controller for User functionality
     /// </summary>
     [Authorize]
+    [Route("designer/api/v1/user")]
     public class UserController : ControllerBase
     {
         private readonly IGitea _giteaApi;
@@ -37,7 +39,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The user object</returns>
         [HttpGet]
-        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.User> Current()
+        [Route("current")]
+        public async Task<RepositoryClient.Model.User> Current()
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
@@ -47,6 +50,39 @@ namespace Altinn.Studio.Designer.Controllers
             });
 
             return await _giteaApi.GetCurrentUser();
+        }
+
+        /// <summary>
+        /// Gets all starred repositories for the logged in user.
+        /// </summary>
+        /// <returns>An array of repositores that the user has starred</returns>
+        [HttpGet]
+        [Route("starred")]
+        public async Task<IList<RepositoryClient.Model.Repository>> GetStarredRepos()
+        {
+            return await _giteaApi.GetStarred();
+        }
+
+        /// <summary>
+        /// Adds the repository to the users list of starred repositories.
+        /// </summary>
+        [HttpPut]
+        [Route("starred/{org}/{repository}")]
+        public async Task<IActionResult> PutStarred(string org, string repository)
+        {
+            var success = await _giteaApi.PutStarred(org, repository);
+            return success ? NoContent() : StatusCode(418);
+        }
+
+        /// <summary>
+        /// Removes the star marking on the specified repository.
+        /// </summary>
+        [HttpDelete]
+        [Route("starred/{org}/{repository}")]
+        public async Task<IActionResult> DeleteStarred(string org, string repository)
+        {
+            var success = await _giteaApi.DeleteStarred(org, repository);
+            return success ? NoContent() : StatusCode(418);
         }
     }
 }

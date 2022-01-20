@@ -90,14 +90,16 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             _instantiationHandler.DataCreation(instance, data);
         }
 
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             return Task.FromResult(options);
         }
 
-        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

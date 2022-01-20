@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
@@ -12,7 +12,7 @@ import VersionControlHeader from 'app-shared/version-control/versionControlHeade
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   sectionHeader: {
@@ -107,7 +107,7 @@ export class AccessControlContainerClass extends React.Component<
     if (state.partyTypesAllowed !== partyTypesAllowed) {
       return {
         partyTypesAllowed,
-        // tslint:disable-next-line: max-line-length
+
       };
     }
     return null;

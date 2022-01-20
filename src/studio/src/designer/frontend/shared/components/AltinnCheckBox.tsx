@@ -1,4 +1,4 @@
-import { Checkbox, createMuiTheme, createStyles, WithStyles, withStyles } from '@material-ui/core';
+import { Checkbox, createTheme, createStyles, WithStyles, withStyles } from '@material-ui/core';
 import React = require('react');
 import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof styles> {
@@ -18,7 +18,7 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
 
 export interface IAltinnCheckBoxComponentState { }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
   altinnCheckBox: {

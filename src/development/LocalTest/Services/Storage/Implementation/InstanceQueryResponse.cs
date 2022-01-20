@@ -11,12 +11,6 @@ namespace Altinn.Platform.Storage.Repository
     public class InstanceQueryResponse
     {
         /// <summary>
-        /// The total number of instances that matched the query. May be removed for performance issues.
-        /// </summary>
-        [JsonProperty(PropertyName = "totalHits")]
-        public int? TotalHits { get; set; }
-
-        /// <summary>
         /// The number of instances returned in this response.
         /// </summary>
         [JsonProperty(PropertyName = "count")]
@@ -29,7 +23,7 @@ namespace Altinn.Platform.Storage.Repository
         public string Next { get; set; }
 
         /// <summary>
-        /// The url to the query that created this page. 
+        /// The url to the query that created this page.
         /// </summary>
         [JsonProperty(PropertyName = "self")]
         public string Self { get; set; }

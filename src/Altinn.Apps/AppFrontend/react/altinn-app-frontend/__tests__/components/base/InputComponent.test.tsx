@@ -1,9 +1,10 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import '@testing-library/jest-dom/extend-expect';
 import 'jest';
 import * as React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { InputComponent, IInputProps } from '../../../src/components/base/InputComponent';
+import { IComponentProps } from 'src/components';
 
 describe('components/base/InputComponent.tsx', () => {
   let mockId: string;
@@ -35,7 +36,7 @@ describe('components/base/InputComponent.tsx', () => {
   });
 
   test('components/base/InputComponent.tsx -- should have correct value with specified form data', async () => {
-    const customProps = { formData: 'Test123' };
+    const customProps:Partial<IComponentProps> = { formData: {simpleBinding:'Test123'} };
     const { findByTestId } = renderInputComponent(customProps);
     const inputComponent: any = await findByTestId(mockId);
 
@@ -69,7 +70,7 @@ describe('components/base/InputComponent.tsx', () => {
           prefix: '$',
         },
       },
-      formData: '1234',
+      formData: {simpleBinding:'1234'},
     });
     const inputComponent: any = await findByTestId(`${mockId}-formatted-number`);
     expect(inputComponent.value).toEqual('$1,234');
@@ -83,7 +84,7 @@ describe('components/base/InputComponent.tsx', () => {
       isValid: mockIsValid,
       readOnly: mockReadOnly,
       required: mockRequired,
-    };
+    } as unknown as IInputProps;
 
     return render(<InputComponent {...defaultProps} {...props}/>);
   }

@@ -1,18 +1,35 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
+
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Templates;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+
+using Json.Schema;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -25,14 +42,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class SchemaModelService : ISchemaModelService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
         /// </summary>
-        /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
-        public SchemaModelService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        /// <param name="altinnGitRepositoryFactory">
+        /// Factory class that knows how to create types of <see cref="AltinnGitRepository"/>
+        /// </param>
+        /// <param name="loggerFactory">
+        /// Factory class that knows how to create an instance of <see cref="ILogger"/>.
+        /// </param>
+        /// <param name="serviceRepositorySettings">
+        /// Settings for the ServiceRepository. Service is the old name on Apps. This settings class contains
+        /// alot, only use the parts related to SchemaModels to make it easier to separate out later.
+        /// </param>
+        public SchemaModelService(
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            ILoggerFactory loggerFactory,
+            IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _loggerFactory = loggerFactory;
+            _serviceRepositorySettings = serviceRepositorySettings;
         }
 
         /// <inheritdoc/>
@@ -56,27 +89,297 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
-            {              
-                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent);
-            }
-            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
+            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
             {
-                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
-
-                var schemaName = GetSchemaName(relativeFilePath);
-                var jsonSchema = await DeserializeJson(jsonContent);
-                var rootName = GetRootName(jsonSchema);
-
-                await UpdateJsonSchema(altinnAppGitRepository, relativeFilePath, jsonContent);
-                await UpdateXsd(altinnAppGitRepository, jsonSchema, schemaName);
-                var modelMetadata = await UpdateModelMetadata(altinnAppGitRepository, jsonSchema, schemaName);
-                await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, rootName);
-                await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
+                await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, jsonContent);
+            }
+            else 
+            {
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
             }
         }
 
-        private static string GetRootName(JsonSchema jsonSchema)
+        /// <summary>
+        /// Builds a JSON schema based on the uploaded XSD.
+        /// </summary>
+        /// <remarks>
+        /// This operation is using the new data modelling library.
+        /// </remarks>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="fileName">The name of the file being uploaded.</param>
+        /// <param name="xsdStream">Stream representing the XSD.</param>
+        public async Task<string> BuildSchemaFromXsd(
+            string org, string repository, string developer, string fileName, Stream xsdStream)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org, repository, developer);
+
+            MemoryStream xsdMemoryStream = new MemoryStream();
+            xsdStream.CopyTo(xsdMemoryStream);
+
+            AltinnRepositoryType altinnRepositoryType = await altinnAppGitRepository.GetRepositoryType();
+
+            if (altinnRepositoryType == AltinnRepositoryType.Datamodels)
+            {
+                xsdMemoryStream.Position = 0;
+                Json.Schema.JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
+                var jsonContent = SerializeJson(jsonSchema);
+
+                await altinnAppGitRepository.WriteTextByRelativePathAsync(
+                    Path.ChangeExtension(fileName, "schema.json"), jsonContent, true);
+
+                return jsonContent;
+            }
+
+            /* From here repository is assumed to be for an app. Validate with a Directory.Exist check? */
+
+            string filePath = Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), fileName);
+
+            DatamodellingPreference datamodellingPreference =
+                await altinnAppGitRepository.GetDatamodellingPreference();
+            switch (datamodellingPreference)
+            {
+                case DatamodellingPreference.JsonSchema:
+                    /* Using the NEW model processing. */
+
+                    xsdMemoryStream.Position = 0;
+                    await SaveOriginalXsd(org, repository, developer, filePath, xsdMemoryStream);
+
+                    xsdMemoryStream.Position = 0;
+                    string jsonContent = await ProcessNewXsd(altinnAppGitRepository, xsdMemoryStream, filePath);
+
+                    return jsonContent;
+                case DatamodellingPreference.Xsd:
+                default:
+                    /* Using the OLD model processing. */ 
+
+                    xsdMemoryStream.Position = 0;
+                    Manatee.Json.Schema.JsonSchema schemaJsonSchema = GenerateJsonSchema(xsdMemoryStream);
+                    string jsonSerialized = SerializeJson(schemaJsonSchema);
+                    await UpdateAllAppModelFiles(org, repository, developer, filePath, jsonSerialized);
+
+                    return jsonSerialized;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
+            {
+                await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
+
+                Manatee.Json.Schema.JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
+
+                var jsonContent = SerializeJson(jsonSchema);
+                await UpdateAllAppModelFiles(org, repository, developer, Path.ChangeExtension(relativeFilePath, "schema.json"), jsonContent);
+
+                await UpdateAppTexts(org, repository, developer, jsonSchema);
+
+                return jsonContent;
+            }
+            else
+            {
+                await SaveOriginalXsd(org, repository, developer, relativeFilePath, xsdStream);
+
+                Manatee.Json.Schema.JsonSchema jsonSchema = GenerateJsonSchema(xsdStream);
+
+                var jsonContent = SerializeJson(jsonSchema);
+                await altinnGitRepository.WriteTextByRelativePathAsync(Path.ChangeExtension(relativeFilePath, "schema.json"), jsonContent, true);
+
+                return jsonContent;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<(string RelativePath, string JsonSchema)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            // In case of null being passed in we default it to an empty string as the default value
+            // on the parameter does not apply if null is actually passed in.
+            relativeDirectory ??= string.Empty;
+
+            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.Datamodels)
+            {
+                var uri = GetSchemaUri(org, repository, schemaName, relativeDirectory);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
+                var relativeFilePath = Path.ChangeExtension(Path.Combine(relativeDirectory, schemaName), ".schema.json");
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+                return (relativeFilePath, jsonSchema);
+            }
+            else
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+                var modelFolder = altinnAppGitRepository.GetRelativeModelFolder();
+                var uri = GetSchemaUri(org, repository, schemaName, modelFolder);
+                JsonTemplate jsonTemplate = altinn2Compatible ? new SeresJsonTemplate(uri, schemaName) : new GeneralJsonTemplate(uri, schemaName);
+
+                var jsonSchema = jsonTemplate.GetJsonString();
+
+                var relativePath = await altinnAppGitRepository.SaveJsonSchema(jsonSchema, schemaName);
+
+                return (relativePath, jsonSchema);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
+        {
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+
+            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
+            {
+                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
+                var schemaName = GetSchemaName(relativeFilePath);
+
+                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
+                DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
+            }
+            else
+            {
+                altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Uri"/> to the schema within the repository.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="schemaName">The logical name of the schema ie. filename without extention.</param>
+        /// <param name="relativePath">The relative path (from repository root) to where the schema should be stored.</param>
+        /// <returns>Returns a resolvable uri to the location of the schema.</returns>
+        public Uri GetSchemaUri(string org, string repository, string schemaName, string relativePath = "")
+        {
+            var baseUrl = _serviceRepositorySettings.Value.RepositoryBaseURL;
+            baseUrl = baseUrl.TrimEnd("/".ToCharArray());
+
+            Uri schemaUri;
+
+            if (string.IsNullOrEmpty(relativePath))
+            {
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{schemaName}.schema.json");
+            }
+            else
+            {
+                relativePath = relativePath.TrimEnd('/');
+                relativePath = relativePath.TrimStart('/');
+                schemaUri = new Uri($"{baseUrl}/{org}/{repository}/{relativePath}/{schemaName}.schema.json");
+            }
+
+            return schemaUri;
+        }
+
+        private async Task UpdateAllAppModelFiles(string org, string repository, string developer, string relativeFilePath, string jsonContent)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+            var schemaName = GetSchemaName(relativeFilePath);
+            var jsonSchema = await DeserializeJson(jsonContent);
+            var rootName = GetRootName(jsonSchema);
+
+            await UpdateJsonSchema(altinnAppGitRepository, relativeFilePath, jsonContent);
+            await UpdateXsd(altinnAppGitRepository, jsonSchema, schemaName);
+            var modelMetadata = await UpdateModelMetadata(altinnAppGitRepository, jsonSchema, schemaName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, rootName);
+            await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
+        }
+
+        private async Task UpdateAppTexts(
+            string org, string repository, string developer, Manatee.Json.Schema.JsonSchema jsonSchema)
+        {
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, repository, jsonSchema);
+            var newTexts = converter.GetTexts();
+
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+            var existingTexts = await altinnAppGitRepository.GetTextResourcesForAllLanguages();
+
+            MergeTexts(newTexts, existingTexts);
+
+            await altinnAppGitRepository.SaveServiceTexts(existingTexts);
+        }
+
+        private Manatee.Json.Schema.JsonSchema GenerateJsonSchema(Stream xsdStream)
+        {
+            var xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            var xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+            var jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            return jsonSchema;
+        }
+
+        private Json.Schema.JsonSchema GenerateJsonSchemaFromXsd(Stream xsdStream)
+        {
+            XmlSchema originalXsd = XmlSchema.Read(xsdStream, (_, _) => { });
+
+            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
+            Json.Schema.JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
+
+            return convertedJsonSchema;
+        }
+
+        private async Task SaveOriginalXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream)
+        {
+            AssertValidXsd(xsdStream);
+
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            var fileNameWithOriginal = GetFileNameWithOrignal(relativeFilePath);
+            await altinnGitRepository.WriteStreamByRelativePathAsync(fileNameWithOriginal, xsdStream, true);
+
+            xsdStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        private static void AssertValidXsd(Stream xsdStream)
+        {
+            XmlReader reader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            XDocument.Load(reader, LoadOptions.None);
+            xsdStream.Seek(0, SeekOrigin.Begin);
+        }
+
+        private static string GetFileNameWithOrignal(string relativeFilePath)
+        {
+            var fileExtension = Path.GetExtension(relativeFilePath);
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(relativeFilePath);
+            var fileNameWithOriginal = $"{fileNameWithoutExtension}.original{fileExtension}";
+
+            return Path.Combine(Path.GetDirectoryName(relativeFilePath), fileNameWithOriginal);
+        }
+
+        private static void MergeTexts(Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> newTexts, Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>> existingTexts)
+        {
+            foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> textResourceElementDict in newTexts)
+            {
+                string textResourceElementId = textResourceElementDict.Key;
+
+                if (!existingTexts.ContainsKey(textResourceElementId))
+                {
+                    existingTexts.Add(textResourceElementId, new Dictionary<string, Designer.Models.TextResourceElement>());
+                }
+
+                foreach (KeyValuePair<string, Designer.Models.TextResourceElement> localizedString in textResourceElementDict.Value)
+                {
+                    string language = localizedString.Key;
+                    Designer.Models.TextResourceElement textResourceElement = localizedString.Value;
+                    if (!existingTexts[textResourceElementId].ContainsKey(language))
+                    {
+                        existingTexts[textResourceElementId].Add(language, textResourceElement);
+                    }
+                }
+            }
+        }
+
+        private static string GetRootName(Manatee.Json.Schema.JsonSchema jsonSchema)
         {
             Guard.AssertArgumentNotNull(jsonSchema.Properties(), nameof(jsonSchema));
 
@@ -90,11 +393,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.UpdateCSharpClasses(classes, schemaName);
         }
 
-        private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string rootName)
+        private async static Task UpdateApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string typeName)
         {
             Application application = await altinnAppGitRepository.GetApplicationMetadata();
 
-            UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + rootName);
+            UpdateApplicationWithAppLogicModel(application, schemaName, "Altinn.App.Models." + typeName);
 
             await altinnAppGitRepository.UpdateApplicationMetadata(application);
         }
@@ -132,38 +435,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
         }
 
-        /// <inheritdoc/>
-        public async Task DeleteSchema(string org, string repository, string developer, string relativeFilePath)
-        {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-
-            if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.Datamodels)
-            {
-                altinnGitRepository.DeleteFileByRelativePath(relativeFilePath);
-            }
-            else if (altinnGitRepository.RepositoryType == Enums.AltinnRepositoryType.App)
-            {
-                var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
-                var altinnCoreFile = altinnGitRepository.GetAltinnCoreFileByRealtivePath(relativeFilePath);
-                var schemaName = GetSchemaName(relativeFilePath);
-
-                await DeleteDatatypeFromApplicationMetadata(altinnAppGitRepository, schemaName);
-                DeleteRelatedSchemaFiles(altinnAppGitRepository, schemaName, altinnCoreFile.Directory);
-            }
-        }
-
         private static async Task UpdateJsonSchema(AltinnAppGitRepository altinnAppGitRepository, string relativeFilePath, string jsonContent)
         {
             await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
         }
 
-        private async static Task UpdateXsd(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
+        private async static Task UpdateXsd(
+            AltinnAppGitRepository altinnAppGitRepository,
+            Manatee.Json.Schema.JsonSchema jsonSchema,
+            string schemaName)
         {
             using Stream xsdMemoryStream = ConvertJsonSchemaToXsd(jsonSchema);
-            await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream);
+            await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream, true);
         }
 
-        private async static Task<ModelMetadata> UpdateModelMetadata(AltinnAppGitRepository altinnAppGitRepository, JsonSchema jsonSchema, string schemaName)
+        private async static Task<ModelMetadata> UpdateModelMetadata(
+            AltinnAppGitRepository altinnAppGitRepository,
+            Manatee.Json.Schema.JsonSchema jsonSchema,
+            string schemaName)
         {
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(altinnAppGitRepository.Org, altinnAppGitRepository.Repository, jsonSchema);
             ModelMetadata modelMetadata = converter.GetModelMetadata();
@@ -173,7 +462,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return modelMetadata;
         }
 
-        private static Stream ConvertJsonSchemaToXsd(JsonSchema jsonSchema)
+        private static Stream ConvertJsonSchemaToXsd(Manatee.Json.Schema.JsonSchema jsonSchema)
         {
             JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
             XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(jsonSchema);
@@ -189,13 +478,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return xsdMemoryStream;
         }
 
-        private static async Task<JsonSchema> DeserializeJson(string content)
+        private static async Task<Manatee.Json.Schema.JsonSchema> DeserializeJson(string content)
         {
             TextReader textReader = new StringReader(content);
             JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-            JsonSchema jsonSchema = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+            Manatee.Json.Schema.JsonSchema jsonSchema =
+                new Manatee.Json.Serialization.JsonSerializer().Deserialize<Manatee.Json.Schema.JsonSchema>(jsonValue);
 
             return jsonSchema;
+        }
+
+        private static string SerializeJson(Manatee.Json.Schema.JsonSchema jsonSchema)
+        {
+            return new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0);
+        }
+
+        private static string SerializeJson(Json.Schema.JsonSchema jsonSchema)
+        {
+            return JsonSerializer.Serialize(
+                jsonSchema,
+                new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+                    WriteIndented = true
+                });
         }
 
         private static void DeleteRelatedSchemaFiles(AltinnAppGitRepository altinnAppGitRepository, string schemaName, string directory)
@@ -242,6 +548,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             await altinnAppGitRepository.UpdateApplicationMetadata(applicationMetadata);
+        }
+
+        private async Task<string> ProcessNewXsd(
+            AltinnAppGitRepository altinnAppGitRepository,
+            MemoryStream xsdMemoryStream,
+            string filePath)
+        {
+            Json.Schema.JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
+            var jsonContent = SerializeJson(jsonSchema);
+
+            await altinnAppGitRepository.WriteTextByRelativePathAsync(
+                Path.ChangeExtension(filePath, "schema.json"), jsonContent, true);
+
+            var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
+            var metamodelConverter =
+                new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
+            var schemaName = GetSchemaName(filePath);
+            var modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
+            await altinnAppGitRepository.UpdateModelMetadata(modelMetadata, schemaName);
+
+            await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
+
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
+            return jsonContent;
         }
     }
 }

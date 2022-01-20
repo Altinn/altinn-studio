@@ -1,5 +1,5 @@
-const moduleName: string = 'TEXT_RESOURCES';
+const moduleName = 'TEXT_RESOURCES';
 
-export const FETCH_TEXT_RESOURCES: string = `${moduleName}.FETCH_TEXT_RESOURCES`;
-export const FETCH_TEXT_RESOURCES_FULFILLED: string = `${moduleName}.FETCH_TEXT_RESOURCES_FULFILLED`;
-export const FETCH_TEXT_RESOURCES_REJECTED: string = `${moduleName}.FETCH_TEXT_RESOURCES_REJECTED`;
+export const FETCH_TEXT_RESOURCES = `${moduleName}.FETCH_TEXT_RESOURCES`;
+export const FETCH_TEXT_RESOURCES_FULFILLED = `${moduleName}.FETCH_TEXT_RESOURCES_FULFILLED`;
+export const FETCH_TEXT_RESOURCES_REJECTED = `${moduleName}.FETCH_TEXT_RESOURCES_REJECTED`;

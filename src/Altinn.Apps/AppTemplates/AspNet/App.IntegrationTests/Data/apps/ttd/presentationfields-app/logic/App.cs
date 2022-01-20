@@ -37,7 +37,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         /// <param name="instanceService">A service with access to instances</param>
         /// <param name="settings">General settings</param>
         /// <param name="textService">A service with access to text</param>
-        /// <param name="altinnAppContext">The app context service</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
@@ -163,7 +162,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
         }
 
         /// <inheritdoc />
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             return Task.FromResult(options);
         }

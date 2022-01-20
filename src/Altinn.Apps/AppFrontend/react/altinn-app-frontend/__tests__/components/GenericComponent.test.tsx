@@ -1,4 +1,4 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -51,9 +51,7 @@ describe('>>> components/GenericComponent.tsx', () => {
 
     const formData = getFormDataStateMock({
       formData: {
-        mockId: {
-          mockDataBinding: 'value',
-        },
+        mockDataBinding: 'value',
       },
     });
 
@@ -96,4 +94,21 @@ describe('>>> components/GenericComponent.tsx', () => {
     expect(valid).toBe(true);
     expect(invalid).toBe(false);
   });
+
+  it('+++ should not crash on Unknown component', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <GenericComponent
+          id='mockId'
+          type='UnknownComponent-DOES_NOT_EXIST'
+          textResourceBindings={{}}
+          dataModelBindings={{}}
+          readOnly={false}
+          required={false}
+          triggers={[]}
+        />
+      </Provider>,
+    );
+    expect(wrapper.text()).toMatch('Unknown component type');
+  })
 });

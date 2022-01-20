@@ -1,21 +1,24 @@
 # base image
-FROM node:14.17.3-alpine3.13 AS generate-receipt-app
+FROM node:16.13.1-alpine3.14 AS generate-receipt-app
 
-# Copy and install Lerna
+WORKDIR /build
+
 # Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
-COPY Altinn.Apps/AppFrontend/react/lerna.json .
 COPY Altinn.Apps/AppFrontend/react/package.json .
-COPY Altinn.Apps/AppFrontend/react/package-lock.json .
-RUN npm ci
+COPY Altinn.Apps/AppFrontend/react/yarn.lock .
+COPY Altinn.Apps/AppFrontend/react/.yarn/ ./.yarn/
+COPY Altinn.Apps/AppFrontend/react/.yarnrc.yml .
 
-# Copy shared and receipt
-COPY Altinn.Apps/AppFrontend/react/shared/ /shared/
-COPY Altinn.Apps/AppFrontend/react/receipt/ /receipt/
+# Copy shared, receipt, and app-frontend. App-frontend is needed because they all share the same yarn.lock file. Without this copy, the lockfile will be modified, and install will fail
+COPY Altinn.Apps/AppFrontend/react/altinn-app-frontend/ ./altinn-app-frontend/
+COPY Altinn.Apps/AppFrontend/react/shared/ ./shared/
+COPY Altinn.Apps/AppFrontend/react/receipt/ ./receipt/
 
 # Install
-RUN npm run install-deps
+RUN corepack enable
+RUN yarn --immutable
 
 # Build runtime
-RUN npm run build --prefix /receipt; exit 0
+RUN yarn workspace receipt-react-app run build; exit 0
 
 CMD ["echo", "done"]

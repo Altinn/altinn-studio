@@ -3,12 +3,7 @@
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
-    "lib": [
-      "es6",
-      "dom",
-      "es7",
-      "esnext"
-    ],
+    "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -20,10 +15,7 @@
     "strictNullChecks": false,
     "noUnusedLocals": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-  ],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "node_modules",
     "build",
@@ -31,8 +23,6 @@
     "acceptance-tests",
     "webpack",
     "jest",
-    "setupTests.ts",
-    "templates",
-    "**/setupTests.ts"
-  ],
+    "templates"
+  ]
 }

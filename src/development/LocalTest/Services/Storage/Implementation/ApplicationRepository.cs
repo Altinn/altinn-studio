@@ -2,6 +2,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using LocalTest.Services.Localtest.Interface;
+using LocalTest.Services.LocalApp.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -15,13 +16,11 @@ namespace LocalTest.Services.Storage.Implementation
 {
     public class ApplicationRepository : IApplicationRepository
     {
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
-        private readonly ILogger _logger;
+        private readonly ILocalApp _localApp;
 
-        public ApplicationRepository(ILocalTestAppSelection localTestAppSelectionService, ILogger<ApplicationRepository> logger)
+        public ApplicationRepository( ILocalApp localApp)
         {
-            _localTestAppSelectionService = localTestAppSelectionService;
-            _logger = logger;
+            _localApp = localApp;
         }
 
         public Task<Application> Create(Application item)
@@ -34,25 +33,15 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<Application> FindOne(string appId, string org)
+        public async Task<Application> FindOne(string appId, string org)
         {
-            string filedata = string.Empty;
-            string filename = GetApplicationPath();
-
-            try
+            var application = await _localApp.GetApplicationMetadata(appId);
+            if (application == null)
             {
-                if (File.Exists(filename))
-                {
-                    filedata = File.ReadAllText(filename, Encoding.UTF8);
-                }
-
-                return Task.FromResult(JsonConvert.DeserializeObject<Application>(filedata));
+                throw new Exception($"applicationmetadata for '{appId} not found'");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
-                return null;
-            }
+            
+            return application;
         }
 
         public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
@@ -68,11 +57,6 @@ namespace LocalTest.Services.Storage.Implementation
         public Task<Application> Update(Application item)
         {
             throw new NotImplementedException();
-        }
-
-        private string GetApplicationPath()
-        {
-           return  _localTestAppSelectionService.GetAppPath() + "config/applicationmetadata.json";
         }
 
         public Task<List<Application>> FindAll()

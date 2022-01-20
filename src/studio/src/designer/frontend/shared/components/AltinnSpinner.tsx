@@ -1,4 +1,4 @@
-import { CircularProgress, createMuiTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
+import { CircularProgress, createTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -9,7 +9,7 @@ export interface IAltinnSpinnerComponentProvidedProps {
   styleObj?: object;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -37,7 +37,7 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
     <div className={classNames(props.styleObj)}>
       <CircularProgress
         className={classNames(classes.spinner)}
-        id={props.id ? props.id : null}
+        id={props.id ? props.id : undefined}
       />
       {props.spinnerText &&
         <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>

@@ -1,20 +1,15 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
 import '../../styles/shared.css';
 import classNames from 'classnames';
 import { makeStyles } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useAppSelector } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface IDropdownProps {
-  formData: string;
-  getTextResourceAsString: (resourceKey: string) => string;
-  handleDataChange: (value: string) => void;
-  id: string;
-  isValid?: boolean;
+export interface IDropdownProps extends IComponentProps {
   optionsId: string;
-  readOnly: boolean;
+  preselectedOptionIndex?: number;
 }
 
 export interface IDropdownState {
@@ -32,9 +27,29 @@ const useStyles = makeStyles({
   },
 });
 
+const optionStyle = {
+  display: 'none',
+};
+
 function DropdownComponent(props: IDropdownProps) {
   const classes = useStyles();
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = useAppSelector(state => state.optionState.options[props.optionsId]);
+
+  React.useEffect(() => {
+    returnState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
+  const returnState = () => {
+    if (
+      !props.formData?.simpleBinding &&
+      props.preselectedOptionIndex >= 0 &&
+      options &&
+      props.preselectedOptionIndex < options.length
+    ) {
+      props.handleDataChange(options[props.preselectedOptionIndex].value);
+    }
+  };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     props.handleDataChange(event.target.value);
@@ -47,19 +62,18 @@ function DropdownComponent(props: IDropdownProps) {
   return (
     <select
       id={props.id}
-      value={props.formData}
+      value={props.formData?.simpleBinding}
       disabled={props.readOnly}
-      className={classNames(classes.select, 'custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
+      className={classNames(classes.select, 'custom-select a-custom-select', {
+        'validation-error': !props.isValid,
+        'disabled !important': props.readOnly,
+      })}
       onChange={handleOnChange}
       onBlur={handleOnBlur}
     >
-      <option style={{ display: 'none' }}/>
+      <option style={optionStyle} />
       {options?.map((option, index) => (
-        <option
-          // eslint-disable-next-line react/no-array-index-key
-          key={index}
-          value={option.value}
-        >
+        <option key={index} value={option.value}>
           {props.getTextResourceAsString(option.label)}
         </option>
       ))}

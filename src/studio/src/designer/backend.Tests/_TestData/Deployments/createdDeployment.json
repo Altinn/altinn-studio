@@ -1,0 +1,17 @@
+[
+  {
+    "tagName": "1",
+    "envName": "at23",
+    "build": {
+      "id": "25737",
+      "status": "notStarted",
+      "result": "none",
+      "started": "2020-01-29T09:37:11.8271443Z",
+      "finished": "2020-01-29T09:37:56.7556417Z"
+    },
+    "created": "2020-01-29T10:36:57.6877853+01:00",
+    "createdBy": "thomabak",
+    "app": "apps-test-tba",
+    "org": "ttd"
+  }
+]

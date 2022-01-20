@@ -1,9 +1,11 @@
-import { createMuiTheme, makeStyles } from '@material-ui/core';
+import { createTheme, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
+import { useSelector } from 'react-redux';
+import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 
 export interface IMainContentProps {
   service: any;
@@ -22,7 +24,7 @@ export interface IMainContentProps {
   onBlurServiceDescription: () => void;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const setupClasses = makeStyles({
   marginBottom_24: {
@@ -32,9 +34,25 @@ const setupClasses = makeStyles({
 
 const MainContent = (props: IMainContentProps): JSX.Element => {
   const classes = setupClasses();
+  const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
+  const copiedApp = Boolean(urlParams.get('copiedApp'));
+  const language = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
+
   return (
     <>
       <div className={classes.marginBottom_24}>
+        {copiedApp &&
+          <div className={classes.marginBottom_24} style={{ maxWidth: '750px' }}>
+            <AltinnInformationPaper>
+              <Typography variant='h2' style={{ marginBottom: '12px' }}>
+                {getParsedLanguageFromKey('administration.copied_app_header', language, [])}
+              </Typography>
+              <Typography variant='body1'>
+                {getParsedLanguageFromKey('administration.copied_app_information', language, [])}
+              </Typography>
+            </AltinnInformationPaper>
+          </div>
+        }
         <AltinnInputField
           id='administrationInputServicename'
           textFieldId='administrationInputServicename_textField'

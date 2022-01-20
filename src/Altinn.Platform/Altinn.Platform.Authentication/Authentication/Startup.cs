@@ -1,13 +1,18 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Extensions;
+using Altinn.Platform.Authentication.Filters;
 using Altinn.Platform.Authentication.Health;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -78,6 +83,8 @@ namespace Altinn.Platform.Authentication
             services.Configure<AltinnCore.Authentication.Constants.CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+            services.ConfigureOidcProviders(Configuration.GetSection("OidcProviders"));
+            services.ConfigureDataProtection(_env.IsDevelopment(), Configuration.GetSection("AzureStorageConfiguration").Get<AzureStorageConfiguration>());
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
@@ -109,16 +116,34 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
+            services.AddSingleton<Common.AccessToken.Services.IAccessTokenValidator, Common.AccessToken.Services.AccessTokenValidator>();
+            services.AddSingleton<IEFormidlingAccessValidator, EFormidlingAccessValidator>();
+            services.AddHttpClient<IOidcProvider, OidcProviderService>();
+            services.AddSingleton<IAuthentication, AuthenticationCore>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
+
+            services.AddAntiforgery(options =>
+            {
+                // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
+                // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
+
+                // We use this for OIDC state validation. See authentication controller. 
+                // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
+                // https://github.com/axios/axios/blob/master/lib/defaults.js
+                options.Cookie.Name = "AS-XSRF-TOKEN";
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                options.HeaderName = "X-XSRF-TOKEN";
+            });
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>

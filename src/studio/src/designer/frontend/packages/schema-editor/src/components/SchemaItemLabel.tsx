@@ -1,16 +1,21 @@
 import * as React from 'react';
-import { IconButton, Menu, MenuItem, makeStyles } from '@material-ui/core';
+import { IconButton, Divider, makeStyles } from '@material-ui/core';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { getTranslation } from '../utils';
-import { ILanguage } from '../types';
+import { ILanguage, ObjectKind } from '../types';
 
 export interface SchemaItemLabelProps {
   icon: string;
   label: string;
   language: ILanguage;
-  onAddProperty: () => void;
+  limitedItem?: boolean,
+  onAddProperty?: (type: ObjectKind) => void;
+  onAddReference?: (type: ObjectKind) => void;
+  onAddCombination?: (type: ObjectKind) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
+  onGoToType?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -43,27 +48,42 @@ const useStyles = makeStyles({
 export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
   const classes = useStyles();
-  const handleContextMenuClick = (e: React.MouseEvent) => {
+  const handleContextMenuClick = (e: React.SyntheticEvent) => {
     setContextAnchor(e.currentTarget);
     e.stopPropagation();
   };
-  const handleAddPropertyClick = (e: React.MouseEvent) => {
+  const handleAddNode = (e: React.SyntheticEvent, type: ObjectKind) => {
     setContextAnchor(null);
     e.stopPropagation();
-    props.onAddProperty();
+    switch (type) {
+      case 'combination':
+        props?.onAddCombination?.(type);
+        break;
+      case 'reference':
+        props?.onAddReference?.(type);
+        break;
+      case 'field':
+      default:
+        props?.onAddProperty?.(type);
+    }
   };
-  const handlePromoteClick = (e: React.MouseEvent) => {
+  const handlePromoteClick = (e: React.SyntheticEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
     props.onPromote?.();
   };
-  const handleDeleteClick = (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.SyntheticEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
     props.onDelete?.();
   };
+  const handleGoToType = (event: React.SyntheticEvent) => {
+    setContextAnchor(null);
+    event.stopPropagation();
+    props.onGoToType?.();
+  };
 
-  const handleCloseContextMenu = (e: React.MouseEvent) => {
+  const handleCloseContextMenu = (e: React.SyntheticEvent) => {
     setContextAnchor(null);
     e.stopPropagation();
   };
@@ -80,18 +100,61 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         aria-haspopup='true'
         id='open-context-menu-button'
         onClick={handleContextMenuClick}
-      ><i className='fa fa-ellipsismenu'/>
+      ><i className='fa fa-ellipsismenu' />
       </IconButton>
-      <Menu
+      <AltinnMenu
         id='root-properties-context-menu'
         anchorEl={contextAnchor}
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        <MenuItem onClick={handleAddPropertyClick}><i className='fa fa-plus'/>{getTranslation('add_property', props.language)}</MenuItem>
-        {props.onImport && <MenuItem><i className='fa fa-clone'/> Import</MenuItem>}
-        {props.onDelete && <MenuItem onClick={handleDeleteClick}><i className='fa fa-trash'/> Delete</MenuItem> }
-        {props.onPromote && <MenuItem onClick={handlePromoteClick}><i className='fa fa-arrowup'/> Promote</MenuItem> }
-      </Menu>
+        {props.onAddReference && !props.limitedItem &&
+          <AltinnMenuItem
+            id='add-reference-to-node-button'
+            key='add_reference'
+            onClick={(event) => handleAddNode(event, 'reference')} text={getTranslation('add_reference', props.language)}
+            iconClass='fa fa-datamodel-ref'
+          />
+        }
+        {props.onAddProperty && !props.limitedItem &&
+          <AltinnMenuItem
+            id='add-field-to-node-button'
+            key='add_field'
+            onClick={(event) => handleAddNode(event, 'field')} text={getTranslation('add_field', props.language)}
+            iconClass='fa fa-datamodel-properties'
+          />
+        }
+        {props.onAddCombination && !props.limitedItem &&
+          <AltinnMenuItem
+            id='add-combination-to-node-button'
+            key='add_combination'
+            onClick={(event) => handleAddNode(event, 'combination')} text={getTranslation('add_combination', props.language)}
+            iconClass='fa fa-group'
+          />
+        }
+        {props.onPromote && !props.limitedItem && <AltinnMenuItem
+          id='promote-item-button'
+          key='promote'
+          onClick={handlePromoteClick} text={getTranslation('promote', props.language)}
+          iconClass='fa fa-arrowup'
+        />}
+        {props.onGoToType && <AltinnMenuItem
+          id='go-to-type-button'
+          key='go_to_type'
+          onClick={handleGoToType} text={getTranslation('go_to_type', props.language)}
+          iconClass='fa fa-datamodel-ref'
+        />}
+        {props.onDelete &&
+          [
+            <Divider key='delete-divider' />,
+            <AltinnMenuItem
+              id='delete-node-button'
+              key='delete'
+              onClick={handleDeleteClick} text={getTranslation('delete', props.language)}
+              iconClass='fa fa-trash'
+            />,
+          ]
+        }
+      </AltinnMenu>
     </div>);
 };

@@ -1,1 +1,27 @@
-{"id":"1337/a4d5c456-a154-44da-b5da-8d37640635bd","instanceOwner":{"partyId":"1337","personNumber":"01039012345"},"appId":"tdd/endring-av-navn","org":"tdd","process":{"started":"2020-02-06T21:19:22.0230012Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2020-02-06T21:19:22.0427241Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data"}},"data":[]}
+{
+  "id": "1337/a4d5c456-a154-44da-b5da-8d37640635bd",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "01039012345"
+  },
+  "appId": "tdd/endring-av-navn",
+  "org": "tdd",
+  "process": {
+    "started": "2020-02-06T21:19:22.0230012Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2020-02-06T21:19:22.0427241Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": []
+}

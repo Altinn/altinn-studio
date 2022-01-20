@@ -1,5 +1,4 @@
-import { Button, Grid } from '@material-ui/core';
-import { DeleteOutline } from '@material-ui/icons';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import * as React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
@@ -8,7 +7,6 @@ interface IDeleteWrapper {
   language: any;
   deleteAction: () => void;
   schemaName: string;
-  buttonClass: string;
 }
 
 export default function DeleteWrapper(props: IDeleteWrapper) {
@@ -26,25 +24,23 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
 
   return (
     <>
-      <Grid item>
-        <Button
-          disabled={!props.schemaName}
-          id='delete-button'
-          variant='contained'
-          className={props.buttonClass}
-          startIcon={<DeleteOutline />}
-          onClick={onDeleteClick}
-        >
-          {getLanguageFromKey('general.delete', props.language)}
-        </Button>
-      </Grid>
-      { deleteButtonAnchor && <DeleteDialog
+      <TopToolbarButton
+        disabled={!props.schemaName}
+        faIcon='ai ai-trash'
+        iconSize={24}
+        onClick={onDeleteClick}
+        hideText
+        warning
+      >
+        {getLanguageFromKey('general.delete', props.language)}
+      </TopToolbarButton>
+      {deleteButtonAnchor && <DeleteDialog
         anchor={deleteButtonAnchor}
         language={props.language}
         schemaName={props.schemaName}
         onConfirm={onDeleteConfirmClick}
         onCancel={onCancelDelete}
-      /> }
+      />}
     </>
   );
 }

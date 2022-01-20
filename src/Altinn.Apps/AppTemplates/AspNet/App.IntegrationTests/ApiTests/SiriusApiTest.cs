@@ -14,12 +14,11 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Mocks.Apps.tdd.sirius;
 using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
 
 using Newtonsoft.Json;
 using Xunit;
 
-namespace App.IntegrationTests
+namespace App.IntegrationTests.ApiTests
 {
     public class SiriusApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://at21.altinn.cloud",
+  "env": {
+    "userFullName": "RIBE AMUND",
+    "firstName": "AMUND"
+  }
+}

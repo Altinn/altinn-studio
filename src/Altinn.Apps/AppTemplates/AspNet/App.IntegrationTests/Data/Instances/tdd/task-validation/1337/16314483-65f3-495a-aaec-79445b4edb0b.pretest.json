@@ -17,6 +17,12 @@
       "altinnTaskType": "data"
     }
   },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
   "data": [
     {
       "id": "1727a8be-ca09-4030-a27c-1fc3498c3c9b",

@@ -4,14 +4,15 @@ import { ILabelSettings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IFormLegendProps {
-  labelText: string;
-  descriptionText: string;
-  language: any;
+  labelText: React.ReactNode;
+  descriptionText: React.ReactNode;
+  language: ILanguage;
   required?: boolean;
   labelSettings?: ILabelSettings;
-  helpText: string;
+  helpText: React.ReactNode;
   id: string;
 }
 
@@ -31,7 +32,7 @@ export default function Legend(props: IFormLegendProps) {
           null
           :
           <span className='label-optional'>
-            ({getLanguageFromKey('general.optional', props.language)})
+            {` (${getLanguageFromKey('general.optional', props.language)})`}
           </span>
         }
         {props.helpText &&

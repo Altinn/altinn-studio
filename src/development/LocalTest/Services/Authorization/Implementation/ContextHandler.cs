@@ -98,7 +98,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -133,7 +133,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return resourceAttributes;
         }
 
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
@@ -141,7 +141,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
         }
 
-        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        private static XacmlAttribute GetAttribute(string attributeId, string attributeValue)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
             if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
@@ -185,7 +185,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlAttribute GetRoleAttribute(List<Role> roles)
+        private static XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(XacmlRequestAttribute.RoleAttribute), false);
             foreach (Role role in roles)

@@ -1,4 +1,4 @@
-import { Chip, createMuiTheme } from '@material-ui/core';
+import { Chip, createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -16,10 +16,7 @@ export interface IAltinnFilterChipComponentProvidedProps {
   sortIcon?: boolean;
 }
 
-export interface IAltinnFilterChipComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = {
   chip: {
@@ -64,8 +61,8 @@ const styles = {
   },
 };
 
-// tslint:disable-next-line:max-line-length
-export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps, IAltinnFilterChipComponentState> {
+
+export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (

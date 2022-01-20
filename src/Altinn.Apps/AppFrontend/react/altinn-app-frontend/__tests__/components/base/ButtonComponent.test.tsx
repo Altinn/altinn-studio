@@ -1,10 +1,11 @@
-/* tslint:disable:jsx-wrap-multiline */
+
 import 'jest';
 import * as React from 'react';
 import configureStore from 'redux-mock-store';
 import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import { ButtonComponent } from '../../../src/components/base/ButtonComponent';
+import { IComponentProps } from 'src/components';
 
 describe('components/base/ButtonComponent.tsx', () => {
   let mockId: string;
@@ -61,6 +62,7 @@ describe('components/base/ButtonComponent.tsx', () => {
           disabled={mockDisabled}
           formDataCount={formDataCount}
           language={mockLanguage}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -78,6 +80,7 @@ describe('components/base/ButtonComponent.tsx', () => {
           disabled={mockDisabled}
           formDataCount={formDataCount}
           language={mockLanguage}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );

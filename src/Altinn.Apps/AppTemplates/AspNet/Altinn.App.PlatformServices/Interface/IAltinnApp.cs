@@ -54,7 +54,7 @@ namespace Altinn.App.Services.Interface
         /// Callback to app after task has been started.
         /// </summary>
         /// <returns></returns>
-        Task OnStartProcessTask(string taskId, Instance instance);
+        Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill);
 
         /// <summary>
         ///  Called before a process task is ended. App can do extra validation logic and add validation issues to collection which will be returned by the controller.
@@ -68,6 +68,13 @@ namespace Altinn.App.Services.Interface
         /// <param name="taskId">task id task to end</param>
         /// <param name="instance">instance data</param>
         Task OnEndProcessTask(string taskId, Instance instance);
+
+        /// <summary>
+        /// Is called after the process task is abonded. Method can update instance and data element metadata. 
+        /// </summary>
+        /// <param name="taskId">task id task to end</param>
+        /// <param name="instance">instance data</param>
+        Task OnAbandonProcessTask(string taskId, Instance instance);
 
         /// <summary>
         /// Is called when the process for an instance is ended.
@@ -126,11 +133,17 @@ namespace Altinn.App.Services.Interface
         Task RunDataCreation(Instance instance, object data);
 
         /// <summary>
+        /// Is called to run data creation (custom prefill) defined by app developer. Includes external prefill
+        /// </summary>
+        Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill);
+
+        /// <summary>
         /// Gets the App Options
         /// </summary>
         /// <param name="id">The option id</param>
         /// <param name="options">Possible option found by the platform itself</param>
         /// <returns>The app options</returns>
+        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
         Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <summary>

@@ -85,7 +85,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             await Task.CompletedTask;
         }
 
+#pragma warning disable CS0672 // Member overrides obsolete member
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
+#pragma warning restore CS0672 // Member overrides obsolete member
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -133,9 +135,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             return Task.FromResult(options);
         }
 
-        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)

@@ -1,16 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.10.2</Version>
-    <AssemblyVersion>4.10.2.0</AssemblyVersion>
+    <Version>4.24.0-alpha.1</Version>
+    <AssemblyVersion>4.23.0.0</AssemblyVersion>
     <PackageId>Altinn.App.PlatformServices</PackageId>
     <PackageTags>Altinn;Studio;App;Services;Platform</PackageTags>
     <Description>
       This class library holds most of the Altinn App business logic and clients for communication with the platform.
     </Description>
-    <PackageReleaseNotes>https://docs.altinn.studio/teknologi/altinnstudio/changelog/app-nuget/</PackageReleaseNotes>
+    <PackageReleaseNotes>https://docs.altinn.studio/community/changelog/app-nuget/</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
@@ -28,15 +28,15 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.4" />
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.38-alpha" />
-    <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.0.0-alpha" />
-    <PackageReference Include="Altinn.Platform.Models" Version="1.1.0" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
-    <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
+    <PackageReference Include="Altinn.Common.EFormidlingClient" Version="1.1.2" />
+    <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.39" />
+    <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
@@ -60,6 +60,7 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <FileVersion>4.20.0.0</FileVersion>
   </PropertyGroup>
 
 </Project>

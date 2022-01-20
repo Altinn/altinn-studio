@@ -1,9 +1,8 @@
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
 import * as React from 'react';
-import { ITextResource, IDataSources } from '../types';
-
-const marked = require('marked');
+import { ITextResource, IDataSources, ILanguage } from '../types';
+import marked from 'marked';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
@@ -12,7 +11,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export function getLanguageFromKey(key: string, language: any) {
+export function getLanguageFromKey(key: string, language: ILanguage) {
   if (!key) {
     return key;
   }
@@ -28,7 +27,7 @@ export function getNestedObject(nestedObj: any, pathArr: string[]) {
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-export const getParsedLanguageFromKey = (key: string, language: any, params?: any[], stringOutput?: boolean) => {
+export const getParsedLanguageFromKey = (key: string, language: ILanguage, params?: any[], stringOutput?: boolean) => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
 
@@ -50,10 +49,12 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
   }
   const clean = DOMPurify.sanitize(dirty, options);
   const parsedText = ReactHtmlParser(clean.toString(), { transform: removeStyling });
+  if (parsedText.length === 1) {
+    return parsedText[0];
+  }
   return parsedText;
 };
 
-// eslint-disable-next-line consistent-return
 const removeStyling = (node: any): React.ReactElement | void | null => {
   // all this does is remove the default styling of the <p> element, which is causing styling issues
   if (node.name === 'p') {
@@ -99,7 +100,6 @@ export function replaceTextResourceParams(
 
       for (let i = 0; i <= repeatingGroupCount; ++i) {
         replaceValues = [];
-        // eslint-disable-next-line no-loop-func
         resource.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
             if (variable.key.indexOf('[{0}]') > -1) {
@@ -113,7 +113,6 @@ export function replaceTextResourceParams(
         const newValue = replaceParameters(resource.unparsedValue, replaceValues);
 
         if (resource.repeating && resource.id.endsWith(`-${i}`)) {
-          // eslint-disable-next-line no-param-reassign
           resource.value = newValue;
         } else if (!resource.repeating && textResources.findIndex((r) => r.id === `${resource.id}-${i}`) === -1) {
           const newId = `${resource.id}-${i}`;
@@ -135,7 +134,6 @@ export function replaceTextResourceParams(
 
       const newValue = replaceParameters(resource.unparsedValue, replaceValues);
       if (resource.value !== newValue) {
-        // eslint-disable-next-line no-param-reassign
         resource.value = newValue;
       }
     }

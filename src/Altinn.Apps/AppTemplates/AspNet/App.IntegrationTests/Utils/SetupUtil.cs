@@ -8,6 +8,7 @@ using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -25,7 +26,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace App.IntegrationTestsRef.Utils
+namespace App.IntegrationTests.Utils
 {
     public static class SetupUtil
     {
@@ -75,6 +76,11 @@ namespace App.IntegrationTestsRef.Utils
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                    var defaultProviderService = services.Where(s => s.ServiceType == typeof(IAppOptionsProvider)).FirstOrDefault();
+                    if (defaultProviderService == null)
+                    {
+                        services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                    }
 
                     switch (app)
                     {
@@ -130,6 +136,9 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "dayplanner":
                             services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner.App>();
+                            break;
+                        case "externalprefil":
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.Externalprefil.App>();
                             break;
                         default:
                             services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

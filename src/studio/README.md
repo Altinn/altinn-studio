@@ -14,39 +14,31 @@ These instructions will get you a copy of Altinn Studio up and running on your l
 
 ### Prerequisites
 
-1. Latest [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
-2. [Node.js](https://nodejs.org) (Version 14.*)
+1. Newest [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
+2. [Node.js](https://nodejs.org) (version 16.\*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
-    - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
+   - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
 6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values as an local administrator:
-
    ```txt
    localhost altinn3.no
    127.0.0.1 altinn3.no
    127.0.0.1 altinn3local.no
    ```
-
    _On MacOS add the same values to values `/private/etc/hosts` with `sudo nano /private/etc/hosts` in treminal._
-
 7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives
-   The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows container mode all files are automatically shared by Windows.
-
+   The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows container mode all files are automatically shared by Windows.  
    On MacOS: Change docker-compose.yml (both)
-
-    ```yaml
-    volumes:
-      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
-
-    to:
-
-    ```yaml
-    volumes:
-      - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
-
+   ```yaml
+   volumes:
+     - 'C:/AltinnCore/Repos:/AltinnCore/Repos'
+   ```
+   to:
+   ```yaml
+   volumes:
+     - '/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos'
+   ```
 8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
@@ -64,7 +56,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [altinn3.no](http://altinn3.no)
+The solution is now available locally at [altinn3.no](http://altinn3.no). (Just create a new user for testing. No email verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
 
@@ -94,40 +86,46 @@ Navigate to the designer backend folder. The first time running, or after any pa
 
 ```bash
 cd src/studio/src/designer/backend
-npm ci
-npm run gulp-install-deps
+yarn --immutable
+yarn run gulp-install-deps
 ```
 
 On MacOS you need two extra steps:
 
-  1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
+1. change the RepositoryLocation in src/studio/src/designer/backend/appsettings.json to
 
-      ```json
-      "ServiceRepositorySettings": {
-        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
-      }
-      ```
+   ```json
+   "ServiceRepositorySettings": {
+     "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
+   }
+   ```
 
-  2. Change location where the application stores the DataProtectionKeys
+2. Change location where the application stores the DataProtectionKeys
 
-      ```bash
-      export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
-      ```
+   ```bash
+   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
+   ```
 
-Build and run the code.
+Build and prepare for running the application
 
 ```bash
 dotnet build
-npm run gulp # first time only
-npm run gulp-develop
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
+```
+
+There are multiple ways to start the applications
+
+```bash
+yarn run gulp-develop # Run the front end watching app-development
+yarn run gulp-develop-dashboard # Run the front end watching dashboard
 ```
 
 If you are not going to edit the designer react app (frontend) you can use
 
 ```bash
 cd src/studio/src/designer/backend
-npm ci
-npm run gulp # first time only
+yarn --immutable
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
 dotnet run
 ```
 
@@ -138,10 +136,10 @@ Which will build the Designer .net backend and the designer react app, but not l
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```bash
-npm run build
+yarn run build
 ```
 
-Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example  `src/studio/src/designer/frontend/dashboard`.
+Some of the react projects also have various other predefined scripts, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
 
@@ -149,16 +147,17 @@ Some of the react projects also have various other predefined npm tasks, which c
 
 Automated end to end tests are currently being developed.
 
-### Coding style tests
+### Lint checks
 
-Coding style tests are available for the React front end application, using _tslint_.
+1. Navigate to the folder `src/studio/src/designer/frontend`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run lint`.
 
-Navigate to the React front end applications and run linting.
+### Unit tests
 
-```bash
-cd src/studio/src/designer/frontend
-npm run lint
-```
+1. Navigate to the folder `src/studio/src/designer/frontend`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run test`.
 
 ## Deployment
 
@@ -168,7 +167,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 - [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
-- [npm](https://www.npmjs.com/) - Package management
+- [yarn](https://yarnpkg.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
 - [Kubernetes](https://kubernetes.io/) - Container orchestration
 

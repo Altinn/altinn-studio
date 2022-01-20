@@ -36,8 +36,8 @@ namespace Altinn.App.Api.Controllers
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> _logger;
-        private readonly IData _dataService;
-        private readonly IInstance _instanceService;
+        private readonly IData _dataClient;
+        private readonly IInstance _instanceClient;
         private readonly IAltinnApp _altinnApp;
         private readonly IAppResources _appResourcesService;
         private readonly IPrefill _prefillService;
@@ -48,23 +48,23 @@ namespace Altinn.App.Api.Controllers
         /// The data controller is responsible for adding business logic to the data elements.
         /// </summary>
         /// <param name="logger">logger</param>
-        /// <param name="instanceService">instance service to store instances</param>
-        /// <param name="dataService">A service with access to data storage.</param>
+        /// <param name="instanceClient">instance service to store instances</param>
+        /// <param name="dataClient">A service with access to data storage.</param>
         /// <param name="altinnApp">The app logic for current service</param>
         /// <param name="appResourcesService">The apps resource service</param>
         /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
-            IInstance instanceService,
-            IData dataService,
+            IInstance instanceClient,
+            IData dataClient,
             IAltinnApp altinnApp,
             IAppResources appResourcesService,
             IPrefill prefillService)
         {
             _logger = logger;
 
-            _instanceService = instanceService;
-            _dataService = dataService;
+            _instanceClient = instanceClient;
+            _dataClient = dataClient;
             _altinnApp = altinnApp;
             _appResourcesService = appResourcesService;
             _prefillService = prefillService;
@@ -120,7 +120,7 @@ namespace Altinn.App.Api.Controllers
 
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
 
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 if (instance == null)
                 {
                     return NotFound($"Did not find instance {instance}");
@@ -161,7 +161,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-        [HttpGet("{dataGuid:guid?}")]
+        [HttpGet("{dataGuid:guid}")]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -171,7 +171,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 if (instance == null)
                 {
                     return NotFound($"Did not find instance {instance}");
@@ -231,7 +231,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
                 if (!InstanceIsActive(instance))
                 {
@@ -293,7 +293,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 if (instance == null)
                 {
                     return NotFound("Did not find instance");
@@ -358,7 +358,7 @@ namespace Altinn.App.Api.Controllers
             int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0]);
             Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
 
-            DataElement dataElement = await _dataService.InsertBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataType, Request);
+            DataElement dataElement = await _dataClient.InsertBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataType, Request);
 
             if (Guid.Parse(dataElement.Id) == Guid.Empty)
             {
@@ -400,14 +400,22 @@ namespace Altinn.App.Api.Controllers
             await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType, appModel);
 
             // send events to trigger application business logic
-            await _altinnApp.RunDataCreation(instance, appModel);
+            try
+            {
+                await _altinnApp.RunDataCreation(instance, appModel, null);
+            }
+            catch (NotImplementedException)
+            {
+                // Trigger application business logic the old way. DEPRICATED
+                await _altinnApp.RunDataCreation(instance, appModel);
+            }
 
             await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
             await UpdateDataValuesOnInstance(instance, dataType, appModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
-            DataElement dataElement = await _dataService.InsertFormData(appModel, instanceGuid, _altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
+            DataElement dataElement = await _dataClient.InsertFormData(appModel, instanceGuid, _altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
@@ -425,14 +433,14 @@ namespace Altinn.App.Api.Controllers
             Guid dataGuid,
             DataElement dataElement)
         {
-            Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+            Stream dataStream = await _dataClient.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
             if (dataStream != null)
             {
                 string userOrgClaim = User.GetOrg();
                 if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                    await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
                 }
 
                 return File(dataStream, dataElement.ContentType, dataElement.Filename);
@@ -445,7 +453,7 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
-            bool successfullyDeleted = await _dataService.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            bool successfullyDeleted = await _dataClient.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
 
             if (successfullyDeleted)
             {
@@ -492,7 +500,7 @@ namespace Altinn.App.Api.Controllers
             string appModelclassRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             // Get Form Data from data service. Assumes that the data element is form data.
-            object appModel = await _dataService.GetFormData(
+            object appModel = await _dataClient.GetFormData(
                 instanceGuid,
                 _altinnApp.GetAppModelType(appModelclassRef),
                 org,
@@ -512,13 +520,15 @@ namespace Altinn.App.Api.Controllers
             catch (NotImplementedException)
             {
                 // Trigger application business logic the old way. DEPRICATED
+#pragma warning disable CS0612 // Type or member is obsolete
                 await _altinnApp.RunCalculation(appModel);
+#pragma warning restore CS0612 // Type or member is obsolete
             }
 
             string userOrgClaim = User.GetOrg();
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
             {
-                await _instanceService.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
+                await _instanceClient.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
             }
 
             return Ok(appModel);
@@ -526,7 +536,7 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
-            DataElement dataElement = await _dataService.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+            DataElement dataElement = await _dataClient.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
@@ -562,14 +572,16 @@ namespace Altinn.App.Api.Controllers
             catch (NotImplementedException)
             {
                 // Trigger application business logic the old way. DEPRICATED
-                 changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+#pragma warning disable CS0612 // Type or member is obsolete
+                changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+#pragma warning restore CS0612 // Type or member is obsolete
             }
 
             await UpdatePresentationTextsOnInstance(instance, dataType, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType, serviceModel);
 
             // Save Formdata to database
-            DataElement updatedDataElement = await _dataService.UpdateData(
+            DataElement updatedDataElement = await _dataClient.UpdateData(
                 serviceModel,
                 instanceGuid,
                 _altinnApp.GetAppModelType(classRef),
@@ -612,7 +624,7 @@ namespace Altinn.App.Api.Controllers
 
             if (updatedValues.Count > 0)
             {
-                await _instanceService.UpdatePresentationTexts(
+                await _instanceClient.UpdatePresentationTexts(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     new PresentationTexts { Texts = updatedValues });
@@ -629,7 +641,7 @@ namespace Altinn.App.Api.Controllers
 
             if (updatedValues.Count > 0)
             {
-                await _instanceService.UpdateDataValues(
+                await _instanceClient.UpdateDataValues(
                     int.Parse(instance.Id.Split("/")[0]),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     new DataValues { Values = updatedValues });

@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 import { Typography } from '@material-ui/core';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
@@ -11,7 +11,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
-import AltinnAttachment from '../atoms/AltinnAttachment';
+import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 
 const styles = createStyles({
   listItemTextPadding: {
@@ -51,6 +51,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       {props.collapsible ? (
         <List
           component='nav'
+          id='attachment-collapsible-list'
         >
           <ListItem button={true} onClick={handleOpenClose} disableGutters={true}>
             <ListItemIcon
@@ -76,7 +77,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
             />
           </ListItem>
           <Collapse in={open} timeout='auto' unmountOnExit={true}>
-            <AltinnAttachment
+            <AltinnAttachmentComponent
               attachments={props.attachments}
               nested={true}
               listDisableVerticalPadding={true}
@@ -88,10 +89,11 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
           <Typography style={{ fontSize: 18, fontWeight: 600 }}>
             {`${props.title} ${attachmentCount}`}
           </Typography>
-          <AltinnAttachment
+          <AltinnAttachmentComponent
             attachments={props.attachments}
             nested={false}
             listDisableVerticalPadding={false}
+            id='attachment-list'
           />
         </>
 

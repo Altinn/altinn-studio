@@ -23,6 +23,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
+        /// List an organization's repos
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org);
+
+        /// <summary>
+        /// List the repos that the authenticated user has starred
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetStarred();
+
+        /// <summary>
+        /// Adds a star to the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository to star</param>
+        /// <param name="repository">The repository to star</param>
+        Task<bool> PutStarred(string org, string repository);
+
+        /// <summary>
+        /// Deletes the star marking from the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository</param>
+        /// <param name="repository">The repository to remove the star from</param>
+        Task<bool> DeleteStarred(string org, string repository);
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -38,6 +64,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="page">the page to search</param>
         /// <returns>The repositories matching the search</returns>
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
+
+        /// <summary>
+        /// Search the repository for the given searchOptions
+        /// </summary>
+        /// <param name="searchOption">the search options</param>
+        Task<SearchResults> SearchRepo(SearchOptions searchOption);
 
         /// <summary>
         /// Fetch the repository information of a given org and repository.
@@ -69,6 +101,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         Task<Branch> GetBranch(string org, string repository, string branch);
+
+        /// <summary>
+        /// Creates a new branch in the given repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branchName">Name of branch</param>
+        /// <returns>Information about the created branch</returns>
+        Task<Branch> CreateBranch(string org, string repository, string branchName);
 
         /// <summary>
         /// This method screen scrapes the user from the profile ui in GITEA.
@@ -112,5 +153,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<List<Team>> GetTeams();
+
+        /// <summary>
+        /// Creates a pull request for the repository based on the provided create pull request option.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="createPullRequestOption">The createPullRequestOption.</param>
+        /// <returns></returns>
+        Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption);
+
+        /// <summary>
+        /// Deletes the repository.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the repository.</param>
+        /// <param name="repository">The name of repository.</param>
+        Task<bool> DeleteRepository(string org, string repository);
     }
 }

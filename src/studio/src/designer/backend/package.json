@@ -9,35 +9,36 @@
     "gulp-install-deps": "gulp install-react-app-dependencies",
     "gulp-copy-files": "gulp copy-files",
     "gulp-build-ux-editor": "gulp build-ux-editor",
-    "gulp-develop-dashboard": "gulp develop-dashboard"
+    "gulp-develop-dashboard": "gulp develop-dashboard",
+    "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
   },
   "devDependencies": {
-    "chokidar": "3.5.2",
-    "cross-env": "7.0.3",
-    "del": "6.0.0",
-    "gulp": "4.0.2",
-    "gulp-run-command": "0.0.10",
-    "lerna": "4.0.0",
-    "webpack": "4.44.2",
-    "webpack-cli": "3.3.12"
+    "chokidar": "^3.5.2",
+    "cross-env": "^7.0.3",
+    "del": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-run-command": "^0.0.10",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "altinn-designsystem": "2.7.12",
-    "bootstrap": "4.6.0",
-    "bootstrap-list-filter": "0.3.3",
-    "jquery": "3.6.0",
-    "jquery-ui-dist": "1.12.1",
-    "jquery-validation": "1.19.3",
-    "jquery-validation-unobtrusive": "3.2.12",
-    "js-beautify": "1.14.0",
-    "json-editor": "0.7.28",
-    "monaco-editor": "0.25.2",
-    "popper.js": "1.16.1",
-    "requirejs": "2.3.6",
-    "requirejs-text": "2.0.16",
-    "rivets": "0.9.6",
-    "select2": "4.0.13",
-    "sightglass": "0.2.6",
-    "underscore": "1.13.1"
-  }
+    "altinn-designsystem": "^2.7.12",
+    "bootstrap": "^4.6.1",
+    "bootstrap-list-filter": "^0.3.4",
+    "jquery": "^3.6.0",
+    "jquery-ui-dist": "^1.13.0",
+    "jquery-validation": "^1.19.3",
+    "jquery-validation-unobtrusive": "^3.2.12",
+    "js-beautify": "^1.14.0",
+    "json-editor": "^0.7.28",
+    "monaco-editor": "^0.28.1",
+    "popper.js": "^1.16.1",
+    "requirejs": "^2.3.6",
+    "requirejs-text": "^2.0.16",
+    "rivets": "^0.9.6",
+    "select2": "^4.0.13",
+    "sightglass": "^0.2.6",
+    "underscore": "^1.13.2"
+  },
+  "packageManager": "yarn@3.1.0"
 }

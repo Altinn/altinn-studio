@@ -1,7 +1,14 @@
-import { Checkbox, createMuiTheme, createStyles, WithStyles, withStyles } from '@material-ui/core';
+import {
+  Checkbox,
+  createTheme,
+  createStyles,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core';
 import React = require('react');
 import altinnTheme from '../theme/altinnStudioTheme';
-export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof styles> {
+export interface IAltinnCheckBoxComponentProvidedProps
+  extends WithStyles<typeof styles> {
   /** If the component is checked */
   checked: boolean;
   /** If the component should be disabeld */
@@ -12,35 +19,40 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
   onChangeFunction?: any;
   /** Called when onKeyPress is triggered */
   onKeyPressFunction?: any;
-   /** @ignore */
+  /** @ignore */
   classes: any;
 }
 
-export interface IAltinnCheckBoxComponentState { }
+const theme = createTheme(altinnTheme);
 
-const theme = createMuiTheme(altinnTheme);
-
-const styles = () => createStyles({
-  altinnCheckBox: {
-    'color': theme.altinnPalette.primary.blueDark + ' !important',
-    '& span': {
-      '& svg': {
-        fontSize: '2.5rem',
+const styles = () =>
+  createStyles({
+    altinnCheckBox: {
+      color: theme.altinnPalette.primary.blueDark + ' !important',
+      '& span': {
+        '& svg': {
+          fontSize: '2.5rem',
+        },
       },
     },
-  },
-});
+  });
 
-export const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
-  const { classes } = props;
+export const AltinnCheckBox = ({
+  classes,
+  id,
+  checked,
+  onChangeFunction,
+  disabled,
+  onKeyPressFunction,
+}: IAltinnCheckBoxComponentProvidedProps) => {
   return (
     <Checkbox
-      id={props.id}
+      id={id}
       className={classes.altinnCheckBox}
-      checked={props.checked}
-      onChange={props.onChangeFunction}
-      disabled={props.disabled ? props.disabled : false}
-      onKeyPress={props.onKeyPressFunction}
+      checked={checked}
+      onChange={onChangeFunction}
+      disabled={disabled ? disabled : false}
+      onKeyPress={onKeyPressFunction}
       tabIndex={0}
       disableRipple={false}
     />

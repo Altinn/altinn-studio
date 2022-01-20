@@ -36,7 +36,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-6"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-6"
       >
         <div
           className="MuiGrid-root MuiGrid-item"
@@ -50,18 +50,44 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
         <div
           className="MuiGrid-root MuiGrid-item"
         >
-          <i
-            className="fa fa-private-circle-big"
-            style={
-              Object {
-                "color": "#022F51",
-                "fontSize": 31,
-                "fontWeight": null,
-                "margin": "0px 0px 0px 5px",
-                "padding": null,
-              }
-            }
-          />
+          <button
+            aria-haspopup="true"
+            aria-label="Profil ikon knapp"
+            className="MuiButtonBase-root MuiIconButton-root makeStyles-iconButton-6"
+            disabled={false}
+            id="profile-icon-button"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragLeave={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiIconButton-label"
+            >
+              <i
+                className="fa fa-private-circle-big"
+                style={
+                  Object {
+                    "color": "#022F51",
+                    "fontSize": 31,
+                    "fontWeight": null,
+                    "margin": "0px 0px 0px 5px",
+                    "padding": null,
+                  }
+                }
+              />
+            </span>
+          </button>
         </div>
       </div>
     </div>
@@ -73,7 +99,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
       className="row"
     >
       <div
-        className="col-xl-10 offset-xl-1 a-p-static"
+        className="col-xl-12 a-p-static"
       >
         <div
           className="a-modal-content-target"

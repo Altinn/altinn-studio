@@ -119,7 +119,7 @@ public class PDFGenerator {
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     form.setDefaultAppearance(defaultAppearance);
     catalog.setAcroForm(form);
-    catalog.setLanguage("Norwegian"); // hardcoded for now, will be solved by issue #1253
+    catalog.setLanguage(getLanguage());
     catalog.setMarkInfo(new PDMarkInfo());
     catalog.getMarkInfo().setMarked(true);
     catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));

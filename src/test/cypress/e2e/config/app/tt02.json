@@ -1,0 +1,10 @@
+{
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "baseUrl": "https://tt02.altinn.no",
+  "env": {
+    "userFullName": "FAGERLAND MAIKEN",
+    "firstName": "MAIKEN",
+    "externalUserFullName": "RISHAUG JULIUS",
+    "externalFistName": "JULIUS"
+  }
+}

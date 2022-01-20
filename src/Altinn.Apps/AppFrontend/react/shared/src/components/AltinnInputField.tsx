@@ -1,8 +1,8 @@
-import { createMuiTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
+import { createTheme, createStyles, FormControl, TextField, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import AltinnButton from './AltinnButton';
+import { AltinnButton } from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -26,10 +26,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   fullWidth?: boolean;
 }
 
-export interface IAltinnInputFieldComponentState {
-}
-
-const theme = createMuiTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
   inputHeader: {
@@ -65,8 +62,8 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
-export class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+
+export class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps> {
   public textInput: any;
   constructor(props: any) {
     super(props);

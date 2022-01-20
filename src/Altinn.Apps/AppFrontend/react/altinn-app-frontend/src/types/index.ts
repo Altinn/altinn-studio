@@ -1,9 +1,9 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
-import Ajv from 'ajv';
 import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
-import { JSXElementConstructor, ReactElement } from 'react';
+import { ReactNode } from 'react';
+import Ajv from 'ajv/dist/core';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/formLayoutSlice';
@@ -19,6 +19,7 @@ import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 
 export type FormComponentType =
   | IFormAddressComponent
@@ -41,9 +42,18 @@ export interface IAltinnWindow extends Window {
 }
 
 export interface IComponentBindingValidation {
-  errors?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
-  warnings?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
-  fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  errors?: (
+    | string
+    | ReactNode
+  )[];
+  warnings?: (
+    | string
+    | ReactNode
+  )[];
+  fixed?: (
+    | string
+    | ReactNode
+  )[];
 }
 
 export interface IComponentValidations {
@@ -132,13 +142,13 @@ export interface IFormRadioButtonComponent extends IFormComponent {
   preselectedOptionIndex?: number;
 }
 
-export interface IFormTextAreaComponent extends IFormComponent { }
+export type IFormTextAreaComponent = IFormComponent;
 
 export interface ILayoutSets {
-   sets: ILayoutSet[];
+  sets: ILayoutSet[];
 }
 
-export interface ILayoutSet{
+export interface ILayoutSet {
   id: string;
   dataType: string;
   tasks: string[];
@@ -198,6 +208,7 @@ export interface IRuntimeStore {
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
+  applicationSettings: IApplicationSettingsState;
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
@@ -219,17 +230,22 @@ export interface IRuntimeState {
 }
 
 export interface ISchemaValidator {
-  rootElement: any;
   rootElementPath: string;
   schema: any;
   validator: Ajv;
+}
+
+export interface ISimpleInstance {
+  id: string;
+  lastChanged: string;
+  lastChangedBy: string;
 }
 
 export interface ITextResource {
   id: string;
   value: string;
   unparsedValue?: string;
-  variables?:IVariable[];
+  variables?: IVariable[];
 }
 
 export interface ITextResourceBindings {
@@ -307,9 +323,22 @@ export enum Triggers {
   Validation = 'validation',
   CalculatePageOrder = 'calculatePageOrder',
   ValidatePage = 'validatePage',
-  ValidateAllPages = 'validateAllPages'
+  ValidateAllPages = 'validateAllPages',
 }
 
 export interface ILabelSettings {
   optionalIndicator?: boolean;
+}
+
+export enum DateFlags {
+  Today = 'today',
+}
+
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
+}
+
+export interface IApplicationSettings {
+  appOidcProvider: string;
 }

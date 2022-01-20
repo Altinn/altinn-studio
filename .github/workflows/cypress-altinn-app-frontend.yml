@@ -1,0 +1,94 @@
+name: Cypress altinn-app-frontend Test
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/**'
+      - 'src/Altinn.Apps/AppFrontend/react/shared/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/**'
+      - 'src/Altinn.Apps/AppFrontend/react/shared/**'
+
+  workflow_dispatch:
+
+jobs:
+  altinn-app-frontend-test:
+    if: |
+     github.repository_owner == 'Altinn' && 
+     (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+    
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        machines: [1, 2, 3]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install altinn-app-frontend dependencies
+        run: yarn --immutable
+        working-directory: src/Altinn.Apps/AppFrontend/react
+
+      - name: Install cypress and test dependencies
+        run: yarn --immutable
+        working-directory: src/test/cypress
+
+      - name: Create test files
+        run: |
+          truncate -s 1K test.png
+          truncate -s 1K test.pdf
+        working-directory: src/test/cypress/e2e/fixtures
+
+      - name: Verify cypress and run tests
+        run: |
+          yarn run cy:verify
+          export CYPRESS_PROJECT_ID=y2jhp6
+          export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend && yarn start' 8080 'yarn run test:appfrontend:headless --env component=appfrontend,environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }} --record --parallel --tag "altinn-app-frontend" --group altinn-app-frontend'
+        working-directory: src/test/cypress
+  
+  altinn-app-frontend-test-on-fork-pr:
+    if: |
+     github.repository_owner == 'Altinn' &&
+     (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
+    
+    runs-on: ubuntu-latest    
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install altinn-app-frontend dependencies
+        run: yarn --immutable
+        working-directory: src/Altinn.Apps/AppFrontend/react
+
+      - name: Install cypress and test dependencies
+        run: yarn --immutable
+        working-directory: src/test/cypress
+
+      - name: Create test files
+        run: |
+          truncate -s 1K test.png
+          truncate -s 1K test.pdf
+        working-directory: src/test/cypress/e2e/fixtures
+      
+      - name: Verify cypress and run tests
+        run: |
+          yarn run cy:verify
+          ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend && yarn start' 8080 'yarn run test:appfrontend:headless --env component=appfrontend,environment=tt02,testUserName=testuserexternal,testUserPwd=r@h74Rz7XYQJ'
+        working-directory: src/test/cypress
