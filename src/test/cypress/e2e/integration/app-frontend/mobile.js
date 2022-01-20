@@ -37,9 +37,7 @@ describe('Mobile', () => {
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.get(appFrontend.confirmContainer).should('be.visible');
-    cy.intercept('GET', '**/orgs/altinn-orgs.json').as('getAltinnOrgs');
     cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
-    cy.wait('@getAltinnOrgs');
     cy.get(appFrontend.receiptContainer).should('be.visible');
     cy.get(appFrontend.linkToArchive).should('be.visible');
   });
