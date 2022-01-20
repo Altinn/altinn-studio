@@ -21,7 +21,6 @@ import { getValidationUrl } from '../../../utils/urlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import moment from 'moment';
@@ -114,7 +113,6 @@ const Confirm = (props: IConfirmProps) => {
     !parties;
 
   React.useEffect(() => {
-    OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(
       routeParams.partyId,
       routeParams.instanceGuid,

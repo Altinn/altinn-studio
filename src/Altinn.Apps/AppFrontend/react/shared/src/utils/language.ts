@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
 import * as React from 'react';
-import { ITextResource, IDataSources, ILanguage, IApplication } from '../types';
+import { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from '../types';
 import marked from 'marked';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
@@ -141,12 +141,25 @@ export function replaceTextResourceParams(
   return textResources;
 }
 
-export function getAppOwner(textResources: ITextResource[]) {
+export function getAppOwner(
+  textResources: ITextResource[],
+  orgs: IAltinnOrgs,
+  org: string,
+  userLanguage: string,
+  ) {
+
+  // console.log('appOwner is called');
   const appOwner = getTextResourceByKey('appOwner', textResources);
-  if (appOwner === 'appOwner') {
-    return undefined;
+  if (appOwner !== 'appOwner') {
+    return appOwner;
   }
-  return appOwner;
+
+  // if no text resource key is set, fetch from orgs
+  if (orgs && orgs[org]) {
+    return orgs[org].name[userLanguage] || orgs[org].name.nb;
+  }
+
+  return undefined;
 }
 
 const appNameKey = 'appName';
@@ -157,6 +170,7 @@ export function getAppName(
   applicationMetadata: IApplication,
   userLanguage: string
   ) {
+    console.log('getAppName is called');
     let appName = getTextResourceByKey(appNameKey, textResources);
     if (appName === appNameKey) {
       appName = getTextResourceByKey(oldAppNameKey, textResources);

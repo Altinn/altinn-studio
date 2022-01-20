@@ -49,10 +49,17 @@ const ProcessWrapper = (props) => {
     (state) => getAppName(
       state.textResources.resources,
       state.applicationMetadata.applicationMetadata,
-      state.profile.profile.profileSettingPreference?.language
+      state.profile.profile?.profileSettingPreference.language
     )
   );
-  const appOwner = useAppSelector ((state) => getAppOwner(state.textResources.resources));
+  const appOwner = useAppSelector (
+    (state) => getAppOwner(
+      state.textResources.resources,
+      state.organisationMetaData.allOrgs,
+      state.applicationMetadata.applicationMetadata?.org,
+      state.profile.profile?.profileSettingPreference.language
+    )
+  );
   const process = useAppSelector((state) => state.process);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useAppSelector(hasErrorSelector);

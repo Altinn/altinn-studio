@@ -47,7 +47,14 @@ export default function Entrypoint() {
       state.profile.profile?.profileSettingPreference.language
     )
   );
-  const appOwner = useAppSelector ((state) => getAppOwner(state.textResources.resources));
+  const appOwner = useAppSelector (
+    (state) => getAppOwner(
+      state.textResources.resources,
+      state.organisationMetaData.allOrgs,
+      state.applicationMetadata.applicationMetadata?.org,
+      state.profile.profile?.profileSettingPreference.language
+    )
+  );
   const dispatch = useAppDispatch();
 
   const handleNewInstance = () => {
@@ -141,7 +148,8 @@ export default function Entrypoint() {
     return (
       // let user decide if continuing on existing or starting new
       <Presentation
-        header={applicationMetadata?.title?.nb}
+        header={appName}
+        appOwner={appOwner}
         type={ProcessTaskType.Unknown}
       >
         <InstanceSelection

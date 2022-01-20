@@ -24,7 +24,6 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
 
@@ -96,7 +95,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const appName = getAppName(textResources, applicationMetadata, userLanguage);
 
   React.useEffect(() => {
-    OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(
       routeParams.partyId,
       routeParams.instanceGuid,
