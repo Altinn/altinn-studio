@@ -8,6 +8,7 @@ using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -75,6 +76,11 @@ namespace App.IntegrationTests.Utils
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                    var defaultProviderService = services.Where(s => s.ServiceType == typeof(IAppOptionsProvider)).FirstOrDefault();
+                    if (defaultProviderService == null)
+                    {
+                        services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                    }
 
                     switch (app)
                     {
