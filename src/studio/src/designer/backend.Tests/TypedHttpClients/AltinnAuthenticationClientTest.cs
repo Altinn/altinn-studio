@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,7 +34,7 @@ namespace Designer.Tests.TypedHttpClients
         }
 
         [Fact]
-        public async Task TC01()
+        public async Task ConvertTokenAsync_ResponseIsPlainText_ParsingResponseSuccessfully()
         {
             // Arrange
             HttpRequestMessage actualRequest = null;
@@ -40,7 +42,7 @@ namespace Designer.Tests.TypedHttpClients
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("this is an exchanged token")
+                Content = new StringContent("this is an exchanged token", Encoding.UTF8, "plain/text")
             };
 
             void SetRequest(HttpRequestMessage request) => actualRequest = request;
@@ -51,8 +53,30 @@ namespace Designer.Tests.TypedHttpClients
             await sut.ConvertTokenAsync("this is a random token", new Uri("https://platform.at22.altinn.cloud/storage/api/v1/instances"));
 
             Assert.NotNull(actualRequest);
-            Assert.Equal(HttpMethod.Post, actualRequest.Method);
-            Assert.EndsWith("app", actualRequest.RequestUri.OriginalString);
+            Assert.Equal(HttpMethod.Get, actualRequest.Method);
+        }
+
+        [Fact]
+        public async Task ConvertTokenAsync_ResponseIsApplicationJson_ParsingResponseSuccessfully()
+        {
+            // Arrange
+            HttpRequestMessage actualRequest = null;
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent("this is an exchanged token", Encoding.UTF8, "application/json")
+            };
+
+            void SetRequest(HttpRequestMessage request) => actualRequest = request;
+            InitializeMocks(httpResponseMessage, SetRequest);
+            var sut = new AltinnAuthenticationClient(new HttpClient(_handlerMock.Object), _platformSettingsOptions.Object, _logger.Object);
+
+            // Act
+            await sut.ConvertTokenAsync("this is a random token", new Uri("https://platform.at22.altinn.cloud/storage/api/v1/instances"));
+
+            Assert.NotNull(actualRequest);
+            Assert.Equal(HttpMethod.Get, actualRequest.Method);
         }
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, Action<HttpRequestMessage> callback)
