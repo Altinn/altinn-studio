@@ -1,27 +1,25 @@
 {
   "parentPartyId": 0,
-  "policyMatches": [
-    {
-      "offeredByPartyId": 50001337,
-      "resource": [
+  "keyRolePartyIds": [
+    0
+  ],
+  "offeredByPartyId": 50001337,
+  "resources": [
+    [
         {
           "id": "urn:altinn:org",
           "value": "SKD"
         },
-		{
-		"id": "urn:altinn:app",
-		"value": "TaxReport"
-		}
-      ],
-      "coveredBy": [
-        {
-          "id": "urn:altinn:userid",
-          "value": "20001336"
-        }
-      ]
-    }
+	{
+	"id": "urn:altinn:app",
+	"value": "TaxReport"
+	}
+    ]
   ],
-  "keyRolePartyIds": [
-    0
+  "coveredBy": [
+    {
+      "id": "urn:altinn:userid",
+      "value": "20001336"
+    }
   ]
 }

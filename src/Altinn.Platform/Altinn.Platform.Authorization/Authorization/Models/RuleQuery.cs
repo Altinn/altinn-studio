@@ -16,15 +16,25 @@ namespace Altinn.Platform.Authorization.Models
         public int ParentPartyId { get; set; }
 
         /// <summary>
-        /// Gets or sets the list of PolicyMatches
-        /// </summary>
-        [Required]
-        public List<PolicyMatch> PolicyMatches { get; set; }
-
-        /// <summary>
         /// Gets or sets the list of key role party ids
         /// </summary>
         [Required]
         public List<int> KeyRolePartyIds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique identifier for a specific party for which the requested rule in the policy applies
+        /// </summary>
+        public int OfferedByPartyId { get; set; }
+
+        /// <summary>
+        /// Gets or sets resource match which uniquely identifies the resource this policy applies to.
+        /// </summary>
+        public List<List<AttributeMatch>> Resources { get; set; }
+
+        /// <summary>
+        /// Gets or sets the set of Attribute Id and Attribute Value for the coveredby id
+        /// </summary>
+        [Required]
+        public List<AttributeMatch> CoveredBy { get; set; }
     }
 }

@@ -3,6 +3,8 @@
   "baseUrl": "https://tt02.altinn.no",
   "env": {
     "userFullName": "FAGERLAND MAIKEN",
-    "firstName": "MAIKEN"   
+    "firstName": "MAIKEN",
+    "externalUserFullName": "RISHAUG JULIUS",
+    "externalFistName": "JULIUS"
   }
 }
