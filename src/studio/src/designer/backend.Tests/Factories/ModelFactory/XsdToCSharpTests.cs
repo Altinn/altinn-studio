@@ -1,16 +1,14 @@
-using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.ModelMetadatalModels;
-using Designer.Tests.Utils;
-using Manatee.Json.Schema;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.ModelMetadatalModels;
+using Designer.Tests.Utils;
+using Manatee.Json.Schema;
 using Xunit;
 
 namespace Designer.Tests.Factories.ModelFactory
