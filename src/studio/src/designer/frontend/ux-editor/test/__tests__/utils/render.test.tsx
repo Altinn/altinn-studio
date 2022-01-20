@@ -12,7 +12,7 @@ describe('>>> utils/render', () => {
     mockLabelText = 'modal_properties_label_helper';
     mockTextResources = [
       {
-        id: 'ServiceName',
+        id: 'appName',
         value: 'fiskesløying',
       },
       {

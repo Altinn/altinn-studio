@@ -111,7 +111,8 @@ namespace Altinn.Studio.Designer.Controllers
             json["resources"].Replace(sorted);
 
             // updating application metadata with appTitle.
-            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "ServiceName");
+            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
+
             if (!(appTitleToken == null))
             {
                 string appTitle = appTitleToken.Value<string>("value");
@@ -192,7 +193,7 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
                     ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "ServiceName")?.Value ?? string.Empty);
+                    return Content(textResourceObject?.Resources?.FirstOrDefault(r => r.Id == "appName" || r.Id == "ServiceName")?.Value ?? string.Empty);
                 }
 
                 return Problem($"Working directory does not exist for {org}/{app}");
@@ -223,7 +224,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (textResourceObject != null)
                 {
-                    textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
+                    textResourceObject.Add("appName", serviceName.serviceName.ToString());
                 }
 
                 string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
@@ -235,7 +236,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ResourceCollection resourceCollection = new ResourceCollection
                 {
                     Language = "nb",
-                    Resources = new List<Resource> { new Resource { Id = "ServiceName", Value = serviceName.serviceName.ToString() } }
+                    Resources = new List<Resource> { new Resource { Id = "appName", Value = serviceName.serviceName.ToString() } }
                 };
 
                 _repository.SaveLanguageResource(org, app, "nb", JsonConvert.SerializeObject(resourceCollection, _serializerSettings));
