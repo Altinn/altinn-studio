@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, put } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
-import { applicationSettingsApiUrl } from '../../../../utils/urlHelper';
+import { applicationSettingsApiUrl } from '../../../../utils/urlHelper2';
 import { ApplicationSettingsActions as Actions } from '../applicationSettingsSlice';
 
 export function* getApplicationSettings(): SagaIterator {

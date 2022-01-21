@@ -7,7 +7,7 @@ import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
 import { startInitialAppTaskQueue } from './shared/resources/queue/queueSlice';
 import { get } from './utils/networking';
-import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
+import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper2';
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
 import Entrypoint from './features/entrypoint/Entrypoint';
 import { useAppDispatch, useAppSelector } from './common/hooks';

@@ -7,7 +7,7 @@ import FormDataActions from 'src/features/form/data/formDataActions';
 import { startInitialInfoTaskQueue, startInitialInfoTaskQueueFulfilled } from '../queueSlice';
 import TextResourceActions from '../../textResources/textResourcesActions';
 import { IApplicationMetadata } from '../../applicationMetadata';
-import { getFetchFormDataUrl } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl } from '../../../../utils/urlHelper2';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import { finishDataTaskIsLoading, startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
 

@@ -20,7 +20,7 @@ import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow } from '../../../types';
 import { get } from '../../../utils/networking';
-import { getValidationUrl } from '../../../utils/urlHelper';
+import { getValidationUrl } from '../../../utils/urlHelper2';
 import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';

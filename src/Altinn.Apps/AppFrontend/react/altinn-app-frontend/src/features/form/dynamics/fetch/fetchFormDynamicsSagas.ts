@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, select, put } from 'redux-saga/effects';
 import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
-import { getFetchFormDynamicsUrl } from 'src/utils/urlHelper';
+import { getFetchFormDynamicsUrl } from 'src/utils/urlHelper2';
 import { get } from '../../../../utils/networking';
 import FormDynamicsActions from '../formDynamicsActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';

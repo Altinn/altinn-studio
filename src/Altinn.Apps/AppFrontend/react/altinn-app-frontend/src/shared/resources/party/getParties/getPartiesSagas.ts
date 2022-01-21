@@ -3,7 +3,7 @@ import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { IParty } from 'altinn-shared/types';
 import { get } from '../../../../utils/networking';
-import { currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper';
+import { currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper2';
 import PartyActions from '../partyActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
 import { appTaskQueueError } from '../../queue/queueSlice';

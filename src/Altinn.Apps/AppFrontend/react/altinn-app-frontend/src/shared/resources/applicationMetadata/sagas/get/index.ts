@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../../utils/networking';
-import { applicationMetadataApiUrl } from '../../../../../utils/urlHelper';
+import { applicationMetadataApiUrl } from '../../../../../utils/urlHelper2';
 import ApplicationMetadataActions from '../../actions';
 import { FETCH_APPLICATION_METADATA } from '../../actions/types';
 import { appTaskQueueError } from '../../../queue/queueSlice';

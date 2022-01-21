@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { IProfile } from 'altinn-shared/types';
 import { all, call, put, select, take } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
-import { textResourcesUrl, oldTextResourcesUrl } from '../../../../utils/urlHelper';
+import { textResourcesUrl, oldTextResourcesUrl } from '../../../../utils/urlHelper2';
 import TextResourcesActions from '../textResourcesActions';
 import { appTaskQueueError } from '../../queue/queueSlice';
 import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';

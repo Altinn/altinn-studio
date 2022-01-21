@@ -20,7 +20,7 @@ import {
 import {
   getActiveInstancesUrl,
   getPartyValidationUrl,
-} from 'src/utils/urlHelper';
+} from 'src/utils/urlHelper2';
 import { Form } from '../form/containers/Form';
 import { updateValidations } from '../form/validation/validationSlice';
 import Instantiate from '../instantiate/containers';

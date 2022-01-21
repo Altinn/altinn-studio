@@ -4,7 +4,7 @@ import { updateComponentValidations } from 'src/features/form/validation/validat
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import { IRuntimeState } from '../../../../types';
 import { httpDelete } from '../../../../utils/networking';
-import { dataElementUrl } from '../../../../utils/urlHelper';
+import { dataElementUrl } from '../../../../utils/urlHelper2';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as deleteActions from './deleteAttachmentActions';
