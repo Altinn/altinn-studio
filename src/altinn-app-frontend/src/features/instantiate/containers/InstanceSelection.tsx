@@ -18,7 +18,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import { ISimpleInstance } from 'src/types';
-import { getInstanceUiUrl } from '../../../utils/urlHelper';
+import { getInstanceUiUrl } from '../../../utils/appUrlHelper';
 
 export interface IInstanceSelectionProps {
   instances: ISimpleInstance[];

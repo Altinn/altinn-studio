@@ -1,4 +1,5 @@
-import { IAltinnWindow } from 'src/types';
+import { IAltinnWindow, IFetchSpecificOptionSaga } from 'src/types';
+import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
 const { org, app, reportee } = altinnWindow;
@@ -95,13 +96,17 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   }
 
   if (domainSplitted.length === 5) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
+    );
   }
 
   if (domainSplitted.length === 4) {
-    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`;
+    return (
+      `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}${issParam}`
+    );
   }
 
   // TODO: what if altinn3?
@@ -126,10 +131,6 @@ export const getHostname: () => string = () => {
 
 export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
-};
-
-export const getOptionsUrl = (optionsId: string) => {
-  return `${appPath}/api/options/${optionsId}`;
 };
 
 export function getJsonSchemaUrl() {
@@ -191,3 +192,29 @@ export function getActiveInstancesUrl(partyId: string) {
 export function getInstanceUiUrl(instanceId: string) {
   return `${appPath}#/instance/${instanceId}`;
 }
+
+export const getOptionsUrl = ({
+  optionsId,
+  formData,
+  language,
+  dataMapping,
+}: IFetchSpecificOptionSaga) => {
+  const url = new URL(`${appPath}/api/options/${optionsId}`);
+  let params: Record<string, string> = {};
+
+  if (language) {
+    params.language = language;
+  }
+
+  if (formData && dataMapping) {
+    const mapped = mapFormData(formData, dataMapping);
+
+    params = {
+      ...params,
+      ...mapped,
+    };
+  }
+
+  url.search = new URLSearchParams(params).toString();
+  return url.toString();
+};
