@@ -8,7 +8,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from 'src/utils/networking';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
 import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
-import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/urlHelper';
+import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/appUrlHelper';
 import { canFormBeSaved,
   hasValidationsOfSeverity,
   getValidator,
