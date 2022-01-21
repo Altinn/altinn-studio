@@ -12,8 +12,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-
-using Altinn.Studio.Designer.Exceptions;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
@@ -212,7 +213,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
             int timeout = 100000,
             string userAgent = "Swagger-Codegen/1.0.0/csharp")
 
-        // ReSharper restore UnusedParameter.Local
+            // ReSharper restore UnusedParameter.Local
         {
         }
 

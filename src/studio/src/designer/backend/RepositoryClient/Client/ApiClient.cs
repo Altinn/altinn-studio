@@ -11,15 +11,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-
-using Altinn.Studio.Designer.Exceptions;
-
+using System.Web;
 using Newtonsoft.Json;
-
 using RestSharp;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Client
@@ -143,7 +142,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
             // add file parameter, if any
             foreach (var param in fileParams)
             {
-                // request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentType);
+               // request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentType);
             }
 
             // http body (model or byte[]) parameter
@@ -361,7 +360,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
             // return a datetime object
             if (type.Name.StartsWith("System.Nullable`1[[System.DateTime"))
             {
-                return DateTime.Parse(response.Content, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                return DateTime.Parse(response.Content,  null, System.Globalization.DateTimeStyles.RoundtripKind);
             }
 
             // return primitive type
