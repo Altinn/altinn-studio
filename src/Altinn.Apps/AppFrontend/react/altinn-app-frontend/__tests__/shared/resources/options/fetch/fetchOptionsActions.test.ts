@@ -3,7 +3,7 @@ import {
   fetchOptionsRejected,
 } from '../../../../../src/shared/resources/options/fetch/fetchOptionsActions';
 
-describe('resources > options > fetch > fetchOptionsSagas', () => {
+describe('resources > options > fetch > fetchOptionsActions', () => {
   it('should create an action with correct type: OPTIONS.FETCH_OPTIONS_FULFILLED', () => {
     const expectedAction = {
       type: 'OPTIONS.FETCH_OPTIONS_FULFILLED',
