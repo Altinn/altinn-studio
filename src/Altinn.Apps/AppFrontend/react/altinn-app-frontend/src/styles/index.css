@@ -10,7 +10,7 @@ a[href$=".pdf"]::after {
 
 body {
   margin: 0;
-  background-color: #1eaef7;
+  background-color: #EFEFEF;
 }
 
 input:checked + .slider {
