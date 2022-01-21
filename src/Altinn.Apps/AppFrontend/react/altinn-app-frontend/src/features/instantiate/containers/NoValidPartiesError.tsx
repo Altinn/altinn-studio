@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { getHostname } from '../../../utils/urlHelper';
+import { getHostname } from '../../../utils/appUrlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
 import { useAppSelector } from 'src/common/hooks';
 

@@ -19,7 +19,7 @@ import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
-import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/urlHelper';
+import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/appUrlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
 
 const appMetaDataSelector =

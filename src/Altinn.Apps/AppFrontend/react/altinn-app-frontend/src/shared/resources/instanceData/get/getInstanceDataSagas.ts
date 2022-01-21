@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { get, putWithoutConfig } from '../../../../utils/networking';
-import { instancesControllerUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../utils/urlHelper';
+import { instancesControllerUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../utils/appUrlHelper';
 import AttachmentActions from '../../attachments/attachmentActions';
 import InstanceDataActions from '../instanceDataActions';
 import * as getInstanceDataActions from './getInstanceDataActions';
