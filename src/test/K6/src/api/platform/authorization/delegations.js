@@ -5,25 +5,18 @@ import * as header from '../../../buildrequestheaders.js';
 /**
  * Retrieve policy of an app in json format
  * @param {*} altinnToken authorization token
- * @param {*} appOwner
- * @param {*} appName
+ * @param {Array} resources [{ appOwner: ttd, appName: apps-test }]
  * @returns return response of GET request
  */
-export function getPolicies(appOwner, appName) {
+export function getPolicies(resources) {
   var endpoint = config.platformAuthorization.getPolicies;
   var params = header.buildHeaderWithJson('platform');
-  var body = [
-    [
-      {
-        id: 'urn:altinn:org',
-        value: appOwner,
-      },
-      {
-        id: 'urn:altinn:app',
-        value: appName,
-      },
-    ],
-  ];
+  var body = [];
+  resources.forEach((resource) => {
+    var appOwner = resource.appOwner ? resource.appOwner : null;
+    var appName = resource.appName ? resource.appName : null;
+    body.push(buildResourcesArray(['urn:altinn:app', 'urn:altinn:org'], appOwner, appName, null));
+  });
   return http.post(endpoint, JSON.stringify(body), params);
 }
 

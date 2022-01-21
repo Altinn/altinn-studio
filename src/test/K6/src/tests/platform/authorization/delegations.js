@@ -40,7 +40,8 @@ export default function (data) {
   var res, success, policyMatchKeys, ruleId, jsonPermitData, resources;
 
   //Retrieve policy of an app
-  res = delegation.getPolicies(appOwner, appName);
+  resources = [{ appOwner: appOwner, appName: appName }];
+  res = delegation.getPolicies(resources);
   success = check(res, {
     'GET app policy - status is 200': (r) => r.status === 200,
   });
@@ -98,7 +99,6 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  resources = [{ appOwner: appOwner, appName: appName }];
   res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources);
   success = check(res, {
     'Get delegated rule - status is 200': (r) => r.status === 200,
