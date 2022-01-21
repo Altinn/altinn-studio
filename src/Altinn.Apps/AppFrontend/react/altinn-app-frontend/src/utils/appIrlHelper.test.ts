@@ -6,7 +6,7 @@ import {
   getFetchFormDynamicsUrl,
   getLayoutSettingsUrl,
   getHostname,
-} from './urlHelper';
+} from './appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('getEnvironmentLoginUrl', () => {

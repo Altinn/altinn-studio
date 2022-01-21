@@ -3,7 +3,7 @@ import { fork, call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState, IOption, IFetchSpecificOptionSaga } from 'src/types';
 import { ILayouts } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
-import { getOptionsUrl } from '../../../../utils/urlHelper';
+import { getOptionsUrl } from '../../../../utils/appUrlHelper';
 import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';

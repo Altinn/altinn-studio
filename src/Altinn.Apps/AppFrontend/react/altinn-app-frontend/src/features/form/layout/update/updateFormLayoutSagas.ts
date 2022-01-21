@@ -7,7 +7,7 @@ import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
