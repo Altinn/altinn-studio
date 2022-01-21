@@ -103,7 +103,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return classes;
         }
 
-        private Stream LoadTestData(string resourceName)
+        private static Stream LoadTestData(string resourceName)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(XsdToJsonSchemaTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
@@ -117,7 +117,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return resource;
         }
 
-        private async Task<object> DeserializeXmlAsync(Stream stream, Type type)
+        private static async Task<object> DeserializeXmlAsync(Stream stream, Type type)
         {
             string streamContent = null;
             using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
