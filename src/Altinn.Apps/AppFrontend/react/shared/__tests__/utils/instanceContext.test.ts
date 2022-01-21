@@ -3,25 +3,16 @@ import { IInstanceContext, IInstance } from '../../src/types';
 import { buildInstanceContext } from '../../src/utils/instanceContext';
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/instanceContext.ts', () => {
-  let partyId: string;
-  let appId: string;
-  let instaceId: string;
-
-  let mockInstance: IInstance;
-
-  beforeEach(() => {
-    partyId = '1337';
-    instaceId = `${partyId}/super-secret-uuid-000`;
-    appId = 'tdd/enapp';
-
-    mockInstance = {
-      id: instaceId,
-      appId: appId,
-      instanceOwner: {
-        partyId: partyId,
-      }
-    } as IInstance;
-  });
+  const partyId = '1337';
+  const appId =  'tdd/enapp';
+  const instaceId = `${partyId}/super-secret-uuid-000`;
+  const mockInstance: IInstance = {
+    id: instaceId,
+    appId: appId,
+    instanceOwner: {
+      partyId: partyId,
+    }
+  } as IInstance;
 
   it('+++ should build a valid instance context', () => {
     let expected: IInstanceContext = {
