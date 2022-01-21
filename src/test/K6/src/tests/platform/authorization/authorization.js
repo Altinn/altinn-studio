@@ -5,7 +5,7 @@
 */
 import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
-import * as authz from '../../../api/platform/authorization.js';
+import * as authz from '../../../api/platform/authorization/authorization.js';
 import * as setUpData from '../../../setup.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
 
