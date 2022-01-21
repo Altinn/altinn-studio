@@ -17,12 +17,10 @@ namespace LocalTest.Services.Storage.Implementation
     public class ApplicationRepository : IApplicationRepository
     {
         private readonly ILocalApp _localApp;
-        private readonly ILogger _logger;
 
-        public ApplicationRepository( ILocalApp localApp, ILogger<ApplicationRepository> logger)
+        public ApplicationRepository( ILocalApp localApp)
         {
             _localApp = localApp;
-            _logger = logger;
         }
 
         public Task<Application> Create(Application item)

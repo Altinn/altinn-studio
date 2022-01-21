@@ -158,7 +158,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return newAltinnStudioSettings;
         }
 
-        private async Task<(AltinnStudioSettings, bool)> MigrateExistingAltinnStudioSettings()
+        private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()
         {
             var altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
             var altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });

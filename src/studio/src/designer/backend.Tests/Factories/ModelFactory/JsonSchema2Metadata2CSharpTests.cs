@@ -2,11 +2,16 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Converter.Xml;
+
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.ModelMetadatalModels;
@@ -160,6 +165,101 @@ namespace Designer.Tests.Factories.ModelFactory
 
             modelInstance.Should().BeEquivalentTo(expectedModelInstance);
             type.Should().BeDecoratedWith<XmlRootAttribute>();            
+        }
+
+        [Theory]
+        [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"Ronny\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
+        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName, string jsonModel, string xmlModel)
+        {
+            Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.RegisterXsdKeywords();
+            var org = "yabbin";
+            var app = "hvem-er-hvem";
+
+            Assembly assemblyOld = CreateCSharpInstanceOldWay(xsdResource, org, app, modelName);
+            Assembly assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+
+            Type oldType = assemblyOld.GetType(modelName);
+            Type newType = assemblyNew.GetType(modelName);
+
+            object oldJsonObject = JsonSerializer.Deserialize(jsonModel, oldType);
+            object newJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
+
+            object oldXmlObject = SerializationHelper.Deserialize(xmlModel, oldType);
+            object newXmlObject = SerializationHelper.Deserialize(xmlModel, newType);
+
+            // They should all be the same, at least for the cases provided so far.
+            newJsonObject.Should().BeEquivalentTo(oldJsonObject);
+            newXmlObject.Should().BeEquivalentTo(oldXmlObject);
+            newJsonObject.Should().BeEquivalentTo(newXmlObject);
+        }
+
+        private static Assembly CreateCSharpInstanceOldWay(string xsdResource, string org, string app, string modelName)
+        {
+            ModelMetadata modelMetadataOld = CreateMetamodelOldWay(xsdResource, org, app);
+            string classesOldWay = GenerateCSharpClasses(modelMetadataOld);
+            var instanceOldWay = CreateCSharpInstance(modelName, classesOldWay);
+            Assembly assembly = Compiler.CompileToAssembly(classesOldWay);
+
+            return assembly;
+        }
+
+        private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
+        {
+            ModelMetadata modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
+            string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
+            var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
+            Assembly assembly = Compiler.CompileToAssembly(classesNewWay);
+
+            return assembly;
+        }
+
+        private static object CreateCSharpInstance(string modelName, string classes)
+        {
+            Assembly assembly = Compiler.CompileToAssembly(classes);
+            Type type = assembly.GetType(modelName);
+            var modelInstance = assembly.CreateInstance(type.FullName);
+
+            return modelInstance;
+        }
+
+        /// <summary>
+        /// Parses the XSD, generates Json Schema and generates the meta model using
+        /// the old classes.
+        /// </summary>
+        private static ModelMetadata CreateMetamodelOldWay(string xsdResource, string org, string app)
+        {
+            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
+            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
+            JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
+
+            return modelMetadata;
+        }
+
+        /// <summary>
+        /// Parses the XSD, generates Json Schema and generates the meta model using
+        /// the new classes.
+        /// </summary>
+        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
+        {
+            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
+            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
+            var schemaSet = new XmlSchemaSet();
+            schemaSet.Add(xmlSchema);
+            schemaSet.Compile();
+
+            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
+            Json.Schema.JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(xmlSchema);
+            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
+
+            var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
+
+            ModelMetadata actualMetamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
+            return actualMetamodel;
         }
 
         private static async Task<JsonSchema> ParseJsonSchema(string jsonSchemaString)

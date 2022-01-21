@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react';
 
 import { HeaderComponent } from '../../../src/components/base/HeaderComponent';
+import { IComponentProps } from 'src/components';
 
 const render = (props = {}) => {
   const allProps = {
@@ -16,7 +17,7 @@ const render = (props = {}) => {
     language: {},
     textResourceBindings: {},
     ...props,
-  };
+  } as IComponentProps;
 
   rtlRender(<HeaderComponent {...allProps} />);
 };

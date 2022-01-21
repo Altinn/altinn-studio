@@ -1,13 +1,14 @@
 import { AltinnLoader } from 'altinn-shared/components';
 import * as React from 'react';
 import { useAppSelector } from 'src/common/hooks';
-import { IInstantiationButtonProps } from 'src/features/form/layout';
 import InstantiationActions from 'src/features/instantiate/instantiation/actions';
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
 import InstanceDataActions from 'src/shared/resources/instanceData/instanceDataActions';
 import AttachmentActions from 'src/shared/resources/attachments/attachmentActions';
 import { mapFormData } from 'src/utils/databindings';
 import { Redirect } from 'react-router';
+import { IMapping } from 'src/types';
+import { IComponentProps } from '..';
 
 const buttonStyle = {
   marginBottom: '0',
@@ -29,6 +30,9 @@ const altinnLoaderStyle = {
   height: '45px',
 };
 
+export interface IInstantiationButtonProps extends IComponentProps {
+  mapping: IMapping;
+}
 
 export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
   const [instantiateWithPrefill, {isSuccess, data, isLoading, isError}] = useInstantiateWithPrefillMutation();

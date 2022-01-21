@@ -4,8 +4,9 @@ import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
-import { TextAreaComponent, ITextAreaComponentProps } from '../../../src/components/base/TextAreaComponent';
+import { TextAreaComponent } from '../../../src/components/base/TextAreaComponent';
 import { render, fireEvent } from '@testing-library/react';
+import { IComponentProps } from 'src/components';
 
 describe('>>> components/base/TextAreaComponent.tsx', () => {
   let mockId: string;
@@ -30,6 +31,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
         readOnly={mockReadOnly}
+        {...({} as IComponentProps)}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -52,6 +54,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
         readOnly={mockReadOnly}
+        {...({} as IComponentProps)}
       />,
     );
     expect(wrapper.find('textarea').hasClass('disabled')).toBe(false);
@@ -66,20 +69,21 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
         readOnly={true}
+        {...({} as IComponentProps)}
       />,
     );
     expect(wrapper.find('textarea').hasClass('disabled')).toBe(true);
     expect(wrapper.find('textarea').prop('readOnly')).toBe(true);
   });
 
-  function renderTextAreaComponent(props: Partial<ITextAreaComponentProps> = {}) {
-    const defaultProps: ITextAreaComponentProps = {
+  function renderTextAreaComponent(props: Partial<IComponentProps> = {}) {
+    const defaultProps: IComponentProps = {
       id: mockId,
       formData: mockFormData,
       handleDataChange: mockHandleDataChange,
       isValid: mockIsValid,
       readOnly: mockReadOnly,
-    };
+    } as IComponentProps;
 
     return render(<TextAreaComponent {...defaultProps} {...props}/>);
   }

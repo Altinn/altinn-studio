@@ -538,9 +538,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return hasValueProperty;
         }
 
-        private static List<(string propertyName, JsonSchema propertySchema)> FindSimpleContentProperties(JsonSchema schema)
+        private static List<(string PropertyName, JsonSchema PropertySchema)> FindSimpleContentProperties(JsonSchema schema)
         {
-            var properties = new List<(string propertyName, JsonSchema propertySchema)>();
+            var properties = new List<(string PropertyName, JsonSchema PropertySchema)>();
 
             if (HasSingleAllOf(schema))
             {

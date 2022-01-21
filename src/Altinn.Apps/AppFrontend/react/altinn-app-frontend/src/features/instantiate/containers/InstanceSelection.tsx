@@ -82,6 +82,7 @@ export default function InstanceSelection({
               <AltinnMobileTableItem
                 items={[
                   {
+                    key: 1,
                     label: getLanguageFromKey(
                       'instance_selection.last_changed',
                       language,
@@ -89,6 +90,7 @@ export default function InstanceSelection({
                     value: getDateDisplayString(instance.lastChanged),
                   },
                   {
+                    key: 2,
                     label: getLanguageFromKey(
                       'instance_selection.changed_by',
                       language,
