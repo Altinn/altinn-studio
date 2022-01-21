@@ -3,6 +3,8 @@ import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
 import { ITextResourceBindings } from 'src/types';
 import { replaceHelpWithIcon, checkIfIcon } from '../..//../src/utils/replaceIcon';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+
 export interface IHeaderProps {
   id: string;
   text: string;
@@ -85,10 +87,7 @@ export const HeaderComponent = ({
       <Grid item={true}>
         <HeaderSize id={id} size={size} text={text} language={language} helpText={getTextResource(textResourceBindings.help)} hasPattern={hasPattern} />
       </Grid>
-      {textResourceBindings?.help && (
-        <Grid item={true} style={marginStyling}>
-        </Grid>
-      )}
+      {textResourceBindings.help && !hasPattern && <HelpTextContainer language={language} id={id} helpText={getTextResource(textResourceBindings.help)} />}
     </Grid>
   );
 };

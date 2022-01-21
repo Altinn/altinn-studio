@@ -8,7 +8,6 @@ interface IInsertHelpIconInNested {
   text?: string;
   hasPattern: boolean;
 }
-// let hasPattern = false;
 
 export function insertHelpIconInNested({
   element,
@@ -31,9 +30,6 @@ export function insertHelpIconInNested({
 
       if (arr[j]["props"]) {
         if (arr[j]["props"]["children"]) {
-          /* eslint-disable no-console */
-          // console.log("kjører rekursiv");
-          /* eslint-enable no-console */
           insertHelpIconInNested({
             element: arr[j]["props"]["children"],
             language,
@@ -82,30 +78,23 @@ export function replaceHelpWithIcon({
   if (text) {
     const replacePattern = "{help}";
 
-    // Backwards compat, add help text to end of string if its not present inline in the text
-    if (!hasPattern) {
-      element += ` ${replacePattern}`;
-    }
-    const iconPos = element.indexOf(replacePattern);
-    /* eslint-disable no-console */
-    // console.log(iconPos);
-    /* eslint-enable no-console */
+    if (typeof element === 'string') {
+      const iconPos = element.indexOf(replacePattern);
 
-    // if(!hasPattern && iconPos != -1) {
-    //   hasPattern = true
-    // }
-
-    if(iconPos == -1) {
-      return element;
-    } else {
-      return (
-        <>
-          {element.substring(0, iconPos)}
-          <HelpTextContainer language={language} id={id} helpText={text} />
-          {element.substring(iconPos + replacePattern.length)}
-        </>
-      );
+      if(iconPos == -1) {
+        return element;
+      } else {
+        return (
+          <>
+            {element.substring(0, iconPos)}
+            <HelpTextContainer language={language} id={id} helpText={text} />
+            {element.substring(iconPos + replacePattern.length)}
+          </>
+        );
+      }
     }
+
+
   }
 
   return element;

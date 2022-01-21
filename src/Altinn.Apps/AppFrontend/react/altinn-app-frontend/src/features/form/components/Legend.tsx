@@ -6,6 +6,7 @@ import Description from './Description';
 import { insertHelpIconInNested, checkIfIcon } from '../../../../src/utils/replaceIcon';
 import { ILanguage } from 'altinn-shared/types';
 import { ITextResourceBindings } from 'src/features/form/layout';
+import { HelpTextContainer } from './HelpTextContainer';
 
 
 export interface IFormLegendProps {
@@ -16,31 +17,26 @@ export interface IFormLegendProps {
   labelSettings?: ILabelSettings;
   helpText: string;
   id: string;
-  // getTextResourceAsString: (resourceKey: string) => string;
+  getTextResource: (key: string) => string;
+  getTextResourceAsString: (resourceKey: string) => string;
+  textResourceBindings: ITextResourceBindings;
 }
 
 export default function Legend(props: IFormLegendProps) {
   if (!props.labelText) {
     return null;
   }
-  // let found = false
 
-  // found= checkArray({
-  //   element: props.labelText,
-  //   language: props.language,
-  //   id: props.id,
-  //   text: props.helpText
-  // });
-  // let hasPattern = false;
-  // hasPattern = checkIfIcon(props.getTextResourceAsString("herp"));
+  let hasPattern = false;
+  hasPattern = checkIfIcon(props.getTextResourceAsString(props.textResourceBindings.title));
 
-  // insertHelpIconInNested({
-  //   element: props.labelText,
-  //   language: props.language,
-  //   id: props.id,
-  //   text: props.helpText,
-  //   hasPattern
-  // });
+  insertHelpIconInNested({
+    element: props.labelText,
+    language: props.language,
+    id: props.id,
+    text: props.helpText,
+    hasPattern
+  });
   return (
     <>
       <label
@@ -48,6 +44,7 @@ export default function Legend(props: IFormLegendProps) {
         htmlFor={props.id}
       >
         {props.labelText}
+        {props.textResourceBindings.help && !hasPattern && <HelpTextContainer language={props.language} id={props.id} helpText={props.getTextResource(props.textResourceBindings.help)} />}
         {(props.labelSettings?.optionalIndicator === false || props.required) ?
           null
           :

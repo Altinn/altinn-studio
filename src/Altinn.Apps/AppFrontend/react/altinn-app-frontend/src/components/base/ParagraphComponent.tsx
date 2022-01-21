@@ -46,16 +46,7 @@ const useStyles = makeStyles({
 export function ParagraphComponent(props: IParagraphProps) {
   const classes = useStyles();
   let hasPattern = false;
-  
-  /* eslint-disable no-console */
-  console.log(props.textResourceBindings.title);
-  /* eslint-enable no-console */
-
   hasPattern = checkIfIcon(props.getTextResourceAsString(props.textResourceBindings.title));
-
-  /* eslint-disable no-console */
-  console.log(hasPattern);
-  /* eslint-enable no-console */
 
   insertHelpIconInNested({
     element: props.text,
@@ -64,10 +55,6 @@ export function ParagraphComponent(props: IParagraphProps) {
     text: props.getTextResource(props.textResourceBindings.help),
     hasPattern
   });
-
-  /* eslint-disable no-console */
-  // console.log(props.getTextResource("herp"));
-  /* eslint-enable no-console */
 
   return (
     <Grid
@@ -81,7 +68,7 @@ export function ParagraphComponent(props: IParagraphProps) {
           className={`${classes.spacing} ${classes.typography}`}
         >
           {props.text}
-          {!hasPattern && <HelpTextContainer language={props.language} id={props.id} helpText={props.getTextResource(props.textResourceBindings.help)} />}
+          {props.textResourceBindings.help && !hasPattern && <HelpTextContainer language={props.language} id={props.id} helpText={props.getTextResource(props.textResourceBindings.help)} />}
         </Typography>
       </Grid>
     </Grid>

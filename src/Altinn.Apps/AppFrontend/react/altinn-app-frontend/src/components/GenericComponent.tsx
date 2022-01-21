@@ -253,6 +253,8 @@ export function GenericComponent(props: IGenericComponentProps) {
         descriptionText={texts.description}
         helpText={texts.help}
         language={language}
+        getTextResource={getTextResourceWrapper}
+        getTextResourceAsString={getTextResourceAsString}
         {...props}
         {...passThroughProps}
       />
