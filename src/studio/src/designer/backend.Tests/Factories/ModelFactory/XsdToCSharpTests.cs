@@ -16,7 +16,7 @@ namespace Designer.Tests.Factories.ModelFactory
     public class XsdToCSharpTests
     {
         [Fact]
-        public async void ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
+        public async void ConvertXsdToJsonSchema_CorrectXMLParsed()
         {
             // Arrange
             using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.xsd"));
@@ -52,7 +52,6 @@ namespace Designer.Tests.Factories.ModelFactory
             // Assert
             Assert.NotNull(modelMetadata);
             Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
-
             Assert.Equal(text, textOrgXml);
         }
 
