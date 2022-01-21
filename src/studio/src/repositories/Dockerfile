@@ -1,4 +1,4 @@
-FROM gitea/gitea:1.15.9-rootless
+FROM gitea/gitea:1.15.10-rootless
 
 RUN mkdir -p /var/lib/gitea/git && mkdir -p /var/lib/gitea/db && mkdir -p /var/lib/gitea/avatars && mkdir -p /var/lib/gitea/attachments
 
