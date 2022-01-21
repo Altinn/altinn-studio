@@ -163,6 +163,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
         public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <inheritdoc />
@@ -436,12 +437,12 @@ namespace Altinn.App.Services.Implementation
             }
 
             // Ensure layoutsettings are initialized in FormatPdf
-            layoutSettings ??= new();
-            layoutSettings.Pages ??= new();
-            layoutSettings.Pages.Order ??= new();
-            layoutSettings.Pages.ExcludeFromPdf ??= new();
-            layoutSettings.Components ??= new();
-            layoutSettings.Components.ExcludeFromPdf ??= new();
+            layoutSettings ??= new ();
+            layoutSettings.Pages ??= new ();
+            layoutSettings.Pages.Order ??= new ();
+            layoutSettings.Pages.ExcludeFromPdf ??= new ();
+            layoutSettings.Components ??= new ();
+            layoutSettings.Components.ExcludeFromPdf ??= new ();
 
             object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
@@ -569,7 +570,9 @@ namespace Altinn.App.Services.Implementation
                 AppOptions appOptions = new AppOptions();
 
                 appOptions.Options = _resourceService.GetOptions(optionsId);
+#pragma warning disable CS0618 // Type or member is obsolete
                 appOptions = await GetOptions(optionsId, appOptions);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (appOptions.Options != null && !dictionary.ContainsKey(optionsId))
                 {

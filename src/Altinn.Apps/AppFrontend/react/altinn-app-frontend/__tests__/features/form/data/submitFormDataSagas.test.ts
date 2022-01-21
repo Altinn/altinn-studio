@@ -53,7 +53,7 @@ describe('submitFormDataSagas', () => {
       formData: getFormDataStateMock({
         formData: {
           field1: 'value1',
-          field2: 123,
+          field2: '123',
         },
       }),
     };
@@ -89,9 +89,7 @@ describe('submitFormDataSagas', () => {
       },
       formData: {
         ...stateMock.formData,
-        formData: {
-          formData,
-        },
+        formData: formData,
       },
       formLayout: {
         ...stateMock.formLayout,
@@ -125,11 +123,13 @@ describe('submitFormDataSagas', () => {
         }],
       ])
       .call(saveStatelessData, state, model)
-      .put(FormDataActions.fetchFormDataFulfilled({ formData:
+      .put(FormDataActions.fetchFormDataFulfilled({
+        formData:
         {
           ...formData,
           'group.field1': 'value1',
-        } }))
+        }
+      }))
       .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
       .put(FormDataActions.submitFormDataFulfilled())
       .run();

@@ -101,7 +101,7 @@ namespace Designer.Tests.Services
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<EnvironmentModel>()),
-                    Times.Once);
+                Times.Once);
             azureDevOpsBuildClient.Verify(
                 b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);

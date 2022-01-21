@@ -1,18 +1,12 @@
 import * as React from 'react';
 import { Grid, GridJustification, makeStyles } from '@material-ui/core';
-import { ITextResourceBindings } from 'src/features/form/layout';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import { IAltinnWindow } from '../../types';
 import { useAppSelector } from 'src/common/hooks';
-import { ILanguage } from 'altinn-shared/types';
+import { IComponentProps } from '..';
 
-export interface IImageProps {
-  id: string;
+export interface IImageProps extends IComponentProps {
   image: IImage;
-  textResourceBindings: ITextResourceBindings;
-  language: ILanguage;
-  getTextResource: (key: string) => string;
-  getTextResourceAsString: (key: string) => string;
 }
 
 export interface IImage {

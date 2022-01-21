@@ -166,7 +166,16 @@ namespace Altinn.Platform.Authorization.Controllers
                 }
 
                 response.MinimumAuthenticationLevel = PolicyHelper.GetMinimumAuthenticationLevelFromXacmlPolicy(policy);
-                response.ResourcePolicies = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
+                response.ResourcePolicies = new List<ResourcePolicy>();
+                List<ResourcePolicy> list = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
+                foreach (ResourcePolicy resourcePolicy in list)
+                {
+                    if (resourcePolicy.Resource.First(a => a.Id == XacmlRequestAttribute.OrgAttribute).Value == org
+                        && resourcePolicy.Resource.First(a => a.Id == XacmlRequestAttribute.AppAttribute).Value == app)
+                    {
+                        response.ResourcePolicies.Add(resourcePolicy);
+                    }
+                }
             }
 
             return Ok(resourcePolicyResponses);

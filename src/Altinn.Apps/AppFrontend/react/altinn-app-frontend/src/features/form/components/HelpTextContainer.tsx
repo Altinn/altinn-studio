@@ -6,7 +6,7 @@ import { ILanguage } from 'altinn-shared/types';
 export interface IHelpTextContainerProps {
   language: ILanguage;
   id: string;
-  helpText: string;
+  helpText: React.ReactNode;
 }
 
 export function HelpTextContainer(props: IHelpTextContainerProps) {

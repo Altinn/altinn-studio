@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,42 +15,38 @@ namespace Altinn.App.Api.Controllers
     public class OptionsController : ControllerBase
     {
         private readonly IAltinnApp _altinnApp;
-        private readonly IAppResources _appResourceService;
+        private readonly IAppOptionsService _appOptionsService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OptionsController"/> class.
         /// </summary>
         /// <param name="altinnApp">The current App Core used to interface with custom logic</param>
-        /// <param name="appResourcesService">A service with access to local resources.</param>
-        public OptionsController(IAltinnApp altinnApp, IAppResources appResourcesService)
+        /// <param name="appOptionsService">Service for handling app options</param>
+        public OptionsController(IAltinnApp altinnApp, IAppOptionsService appOptionsService)
         {
             _altinnApp = altinnApp;
-            _appResourceService = appResourcesService;
+            _appOptionsService = appOptionsService;
         }
 
         /// <summary>
         /// Api that exposes app related options
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
         /// <param name="optionsId">The optionsId</param>
+        /// <param name="language">The language selected by the user.</param>
+        /// <param name="queryParams">Query parameteres supplied</param>
         /// <returns>The options list</returns>
         [HttpGet("{optionsId}")]
         public async Task<IActionResult> Get(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] string optionsId)
+            [FromRoute] string optionsId,
+            [FromQuery] string language,
+            [FromQuery] Dictionary<string, string> queryParams)
         {
-            // Create containers 
-            AppOptions appOptions = new AppOptions();
+            AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, queryParams);
 
-            // TODO
-            // Add code to identify standard options that can be retrieved from platform.
-
-            // Get options from configuration 
-            appOptions.Options = _appResourceService.GetOptions(optionsId);
-
+            // Kept for backwards compatibility, but should use the IAppOptionsProvider instead.
+#pragma warning disable CS0618 // Type or member is obsolete
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             if (appOptions.Options == null || appOptions.Options.Count == 0)
             {

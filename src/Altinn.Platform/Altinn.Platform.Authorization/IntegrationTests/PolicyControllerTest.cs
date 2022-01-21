@@ -383,6 +383,42 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Try GetResourcepolicies where a ResourcePolicy exists in blobstorage, but resource specification in the xacml policy does not match the Org/App in the request
+        /// Expected: GetResourcepolicies returns a MinimumAuthenticationLevel and an empty ResourcePolicies list
+        /// </summary>
+        [Fact]
+        public async Task GetResourcePoliciesFromXacmlPolicies_TC09()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetResourcePolicies/SKDUndefinedRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<ResourcePolicyResponse> expectedResourcePolicyResponses = new List<ResourcePolicyResponse>
+            {
+               new ResourcePolicyResponse
+               {
+                   AppId = new List<AttributeMatch>
+                   {
+                      new AttributeMatch { Id = XacmlRequestAttribute.OrgAttribute, Value = "SKD" },
+                      new AttributeMatch { Id = XacmlRequestAttribute.AppAttribute, Value = "undefined" },
+                   },
+                   ResourcePolicies = new List<ResourcePolicy>(),
+                   MinimumAuthenticationLevel = 4
+               }
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/GetPolicies", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ResourcePolicyResponse> actualResourcePolicyResponses = JsonConvert.DeserializeObject<List<ResourcePolicyResponse>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            AssertionUtil.AssertCollections(expectedResourcePolicyResponses, actualResourcePolicyResponses, AssertionUtil.AssertResourcePolicyResponseEqual);
+        }
+
+        /// <summary>
         /// Test case: Try GetResourcePolicies for app with rule for Org subject in XACML app policy
         /// Expected: Rules not associated with a RoleCode should be ignored in the Resource Policy
         /// </summary>
@@ -407,19 +443,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private static List<ResourcePolicy> GetResourcePoliciesForSKDTaxReport()
         {
             string policyDesc = "Eksempel på en policy";
-            ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "Instansiate");
+            ResourcePolicy instantiatePolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", task: "Instansiate");
             instantiatePolicy.Actions = new List<ResourceAction>();
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             instantiatePolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
             instantiatePolicy.Description = policyDesc;
 
-            ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", task: "FormFilling");
+            ResourcePolicy formFillingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", task: "FormFilling");
             formFillingPolicy.Actions = new List<ResourceAction>();
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             formFillingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));
             formFillingPolicy.Description = policyDesc;
 
-            ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport", endEvent: "Signing");
+            ResourcePolicy signingPolicy = TestDataHelper.GetResourcePolicyModel("SKD", "TaxReport2", endEvent: "Signing");
             signingPolicy.Actions = new List<ResourceAction>();
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Read", new string[] { "REGNA", "DAGL" }));
             signingPolicy.Actions.Add(TestDataHelper.GetResourceActionModel("Write", new string[] { "REGNA", "DAGL" }));

@@ -4,6 +4,7 @@ using Altinn.App.Core.Interface;
 using Altinn.App.PlatformServices.Filters;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -82,6 +83,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
             services.Configure<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
             services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
+            AddAppOptions(services);
 
             if (!env.IsDevelopment())
             {
@@ -104,6 +106,14 @@ namespace Altinn.App.PlatformServices.Extensions
                 services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
+        }
+
+        private static void AddAppOptions(IServiceCollection services)
+        {
+            services.AddTransient<IAppOptionsService, AppOptionsService>();
+            services.AddTransient<AppOptionsFactory>();
+            services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+            services.AddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
         }
     }
 }

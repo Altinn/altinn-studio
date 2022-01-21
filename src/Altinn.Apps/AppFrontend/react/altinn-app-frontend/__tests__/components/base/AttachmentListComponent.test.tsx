@@ -71,7 +71,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       id: mockId,
       text: 'Attachments',
       dataTypeIds: ['test-data-type-1'],
-    };
+    } as IAttachmentListProps;
 
     return render(
       <Provider store={mockStore}>

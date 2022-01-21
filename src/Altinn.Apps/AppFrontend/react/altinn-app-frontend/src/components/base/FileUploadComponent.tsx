@@ -13,19 +13,14 @@ import { IComponentValidations } from '../../types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppSelector } from 'src/common/hooks';
-import { ILanguage } from 'altinn-shared/types';
+import { IComponentProps } from '..';
 
-export interface IFileUploadProps {
+export interface IFileUploadProps extends IComponentProps {
   displayMode: string;
   hasCustomFileEndings?: boolean;
-  id: string;
-  isValid?: boolean;
-  componentValidations?: IComponentValidations;
-  language: ILanguage;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;
   minNumberOfAttachments: number;
-  readOnly: boolean;
   validFileEndings?: string;
 }
 
