@@ -1,5 +1,5 @@
 # base image
-FROM node:16.13.1-alpine3.14 AS generate-dashboard
+FROM node:16.13.2-alpine3.15 AS generate-dashboard
 
 WORKDIR /build
 
