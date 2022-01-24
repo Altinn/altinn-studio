@@ -340,10 +340,6 @@ export interface IMapping {
   [source: string]: string;
 }
 
-export interface IApplicationSettings {
-  appOidcProvider: string;
-}
-
 export interface IFetchSpecificOptionSaga {
   optionsId: string;
   formData?: IFormData;
