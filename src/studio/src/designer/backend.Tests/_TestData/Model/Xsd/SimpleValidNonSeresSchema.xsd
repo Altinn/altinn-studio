@@ -1,0 +1,18 @@
+<xsd:schema
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified"
+  targetNamespace="urn:no.altinn.message"
+  xmlns:co ="urn:no.altinn.message"
+  >
+    <xsd:element name="Message" type="co:MessageV1" />
+    <xsd:complexType name="MessageV1">
+        <xsd:sequence>
+            <xsd:element name="ProcessTask" nillable="true" type="xsd:string" />
+            <xsd:element name="Title" nillable="true" type="xsd:string" />
+            <xsd:element name="Body" nillable="true" type="xsd:string" />
+            <xsd:element name="Reference" nillable="true" type="xsd:string" />
+            <xsd:element name="Sender" nillable="true" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
