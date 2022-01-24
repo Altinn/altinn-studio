@@ -174,7 +174,7 @@ describe('>>> containers/Presentation.tsx', () => {
     expect(wrapper.exists('#mockFormFiller')).toEqual(true);
   });
 
-  it('+++ the background color should be blue if step is "FormFiller"', () => {
+  it('+++ the background color should be greyLight if step is "data"', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
@@ -189,7 +189,7 @@ describe('>>> containers/Presentation.tsx', () => {
     expect(
       wrapper
         .find('AltinnAppHeader').prop('headerBackgroundColor'),
-    ).toBe(AltinnAppTheme.altinnPalette.primary.blue);
+    ).toBe(AltinnAppTheme.altinnPalette.primary.greyLight);
   });
 
   it('+++ the background color should be lightGreen if step is "Archive"', () => {
