@@ -96,6 +96,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
 
+            if (processState?.CurrentTask?.FlowType != null && !processState.CurrentTask.FlowType.Equals("CompleteCurrentMoveToNext"))
+            {
+                altinnTaskType = processState.CurrentTask.AltinnTaskType;
+            }
+
             string action;
 
             switch (altinnTaskType)
