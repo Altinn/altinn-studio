@@ -13,11 +13,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-
-using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.RepositoryClient.Client;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-
 using RestSharp;
 
 namespace Altinn.Studio.Designer.RepositoryClient.Api
@@ -1337,8 +1334,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Repository</returns>
         public Model.Repository CreateCurrentUserRepo(CreateRepoOption body = null)
         {
-            ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = CreateCurrentUserRepoWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = CreateCurrentUserRepoWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -1446,8 +1443,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of Repository</returns>
         public async System.Threading.Tasks.Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null)
         {
-            ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = await CreateCurrentUserRepoAsyncWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = await CreateCurrentUserRepoAsyncWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -1555,8 +1552,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Email&gt;</returns>
         public List<Email> UserAddEmail(CreateEmailOption body = null)
         {
-            ApiResponse<List<Email>> localVarResponse = UserAddEmailWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<List<Email>> localVarResponse = UserAddEmailWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -1665,8 +1662,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Email&gt;</returns>
         public async System.Threading.Tasks.Task<List<Email>> UserAddEmailAsync(CreateEmailOption body = null)
         {
-            ApiResponse<List<Email>> localVarResponse = await UserAddEmailAsyncWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<List<Email>> localVarResponse = await UserAddEmailAsyncWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -1775,7 +1772,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         public void UserCheckFollowing(string follower, string followee)
         {
-            UserCheckFollowingWithHttpInfo(follower, followee);
+             UserCheckFollowingWithHttpInfo(follower, followee);
         }
 
         /// <summary>
@@ -1900,7 +1897,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCheckFollowingAsync(string follower, string followee)
         {
-            await UserCheckFollowingAsyncWithHttpInfo(follower, followee);
+             await UserCheckFollowingAsyncWithHttpInfo(follower, followee);
         }
 
         /// <summary>
@@ -2023,7 +2020,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="name"> (optional)</param>
         public void UserCreateToken(string name = null)
         {
-            UserCreateTokenWithHttpInfo(name);
+             UserCreateTokenWithHttpInfo(name);
         }
 
         /// <summary>
@@ -2127,7 +2124,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCreateTokenAsync(string name = null)
         {
-            await UserCreateTokenAsyncWithHttpInfo(name);
+             await UserCreateTokenAsyncWithHttpInfo(name);
         }
 
         /// <summary>
@@ -2230,7 +2227,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         public void UserCurrentCheckFollowing(string followee)
         {
-            UserCurrentCheckFollowingWithHttpInfo(followee);
+             UserCurrentCheckFollowingWithHttpInfo(followee);
         }
 
         /// <summary>
@@ -2342,7 +2339,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentCheckFollowingAsync(string followee)
         {
-            await UserCurrentCheckFollowingAsyncWithHttpInfo(followee);
+             await UserCurrentCheckFollowingAsyncWithHttpInfo(followee);
         }
 
         /// <summary>
@@ -2454,7 +2451,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="repo">name of the repo</param>
         public void UserCurrentCheckStarring(string owner, string repo)
         {
-            UserCurrentCheckStarringWithHttpInfo(owner, repo);
+             UserCurrentCheckStarringWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -2579,7 +2576,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentCheckStarringAsync(string owner, string repo)
         {
-            await UserCurrentCheckStarringAsyncWithHttpInfo(owner, repo);
+             await UserCurrentCheckStarringAsyncWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -2702,7 +2699,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="username">username of user to unfollow</param>
         public void UserCurrentDeleteFollow(string username)
         {
-            UserCurrentDeleteFollowWithHttpInfo(username);
+             UserCurrentDeleteFollowWithHttpInfo(username);
         }
 
         /// <summary>
@@ -2814,7 +2811,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteFollowAsync(string username)
         {
-            await UserCurrentDeleteFollowAsyncWithHttpInfo(username);
+             await UserCurrentDeleteFollowAsyncWithHttpInfo(username);
         }
 
         /// <summary>
@@ -2925,7 +2922,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         public void UserCurrentDeleteGPGKey(int? id)
         {
-            UserCurrentDeleteGPGKeyWithHttpInfo(id);
+             UserCurrentDeleteGPGKeyWithHttpInfo(id);
         }
 
         /// <summary>
@@ -3036,7 +3033,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteGPGKeyAsync(int? id)
         {
-            await UserCurrentDeleteGPGKeyAsyncWithHttpInfo(id);
+             await UserCurrentDeleteGPGKeyAsyncWithHttpInfo(id);
         }
 
         /// <summary>
@@ -3146,7 +3143,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         public void UserCurrentDeleteKey(int? id)
         {
-            UserCurrentDeleteKeyWithHttpInfo(id);
+             UserCurrentDeleteKeyWithHttpInfo(id);
         }
 
         /// <summary>
@@ -3257,7 +3254,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteKeyAsync(int? id)
         {
-            await UserCurrentDeleteKeyAsyncWithHttpInfo(id);
+             await UserCurrentDeleteKeyAsyncWithHttpInfo(id);
         }
 
         /// <summary>
@@ -3368,7 +3365,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="repo">name of the repo to unstar</param>
         public void UserCurrentDeleteStar(string owner, string repo)
         {
-            UserCurrentDeleteStarWithHttpInfo(owner, repo);
+             UserCurrentDeleteStarWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -3493,7 +3490,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteStarAsync(string owner, string repo)
         {
-            await UserCurrentDeleteStarAsyncWithHttpInfo(owner, repo);
+             await UserCurrentDeleteStarAsyncWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -3617,8 +3614,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>GPGKey</returns>
         public GPGKey UserCurrentGetGPGKey(int? id)
         {
-            ApiResponse<GPGKey> localVarResponse = UserCurrentGetGPGKeyWithHttpInfo(id);
-            return localVarResponse.Data;
+             ApiResponse<GPGKey> localVarResponse = UserCurrentGetGPGKeyWithHttpInfo(id);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -3729,8 +3726,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of GPGKey</returns>
         public async System.Threading.Tasks.Task<GPGKey> UserCurrentGetGPGKeyAsync(int? id)
         {
-            ApiResponse<GPGKey> localVarResponse = await UserCurrentGetGPGKeyAsyncWithHttpInfo(id);
-            return localVarResponse.Data;
+             ApiResponse<GPGKey> localVarResponse = await UserCurrentGetGPGKeyAsyncWithHttpInfo(id);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -3841,8 +3838,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>PublicKey</returns>
         public PublicKey UserCurrentGetKey(int? id)
         {
-            ApiResponse<PublicKey> localVarResponse = UserCurrentGetKeyWithHttpInfo(id);
-            return localVarResponse.Data;
+             ApiResponse<PublicKey> localVarResponse = UserCurrentGetKeyWithHttpInfo(id);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -3953,8 +3950,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of PublicKey</returns>
         public async System.Threading.Tasks.Task<PublicKey> UserCurrentGetKeyAsync(int? id)
         {
-            ApiResponse<PublicKey> localVarResponse = await UserCurrentGetKeyAsyncWithHttpInfo(id);
-            return localVarResponse.Data;
+             ApiResponse<PublicKey> localVarResponse = await UserCurrentGetKeyAsyncWithHttpInfo(id);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4064,8 +4061,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserCurrentListFollowers()
         {
-            ApiResponse<List<User>> localVarResponse = UserCurrentListFollowersWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = UserCurrentListFollowersWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4163,8 +4160,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserCurrentListFollowersAsync()
         {
-            ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowersAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowersAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4262,8 +4259,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserCurrentListFollowing()
         {
-            ApiResponse<List<User>> localVarResponse = UserCurrentListFollowingWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = UserCurrentListFollowingWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4361,8 +4358,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserCurrentListFollowingAsync()
         {
-            ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowingAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowingAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4460,8 +4457,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;GPGKey&gt;</returns>
         public List<GPGKey> UserCurrentListGPGKeys()
         {
-            ApiResponse<List<GPGKey>> localVarResponse = UserCurrentListGPGKeysWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<GPGKey>> localVarResponse = UserCurrentListGPGKeysWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4559,8 +4556,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<GPGKey>> UserCurrentListGPGKeysAsync()
         {
-            ApiResponse<List<GPGKey>> localVarResponse = await UserCurrentListGPGKeysAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<GPGKey>> localVarResponse = await UserCurrentListGPGKeysAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4658,8 +4655,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;PublicKey&gt;</returns>
         public List<PublicKey> UserCurrentListKeys()
         {
-            ApiResponse<List<PublicKey>> localVarResponse = UserCurrentListKeysWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<PublicKey>> localVarResponse = UserCurrentListKeysWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4757,8 +4754,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<PublicKey>> UserCurrentListKeysAsync()
         {
-            ApiResponse<List<PublicKey>> localVarResponse = await UserCurrentListKeysAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<PublicKey>> localVarResponse = await UserCurrentListKeysAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4856,8 +4853,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListRepos()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListReposWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListReposWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -4955,8 +4952,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListReposAsync()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListReposAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListReposAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5054,8 +5051,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListStarred()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListStarredWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListStarredWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5153,8 +5150,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListStarredAsync()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListStarredAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListStarredAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5252,8 +5249,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListSubscriptions()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListSubscriptionsWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListSubscriptionsWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5351,8 +5348,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListSubscriptionsAsync()
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListSubscriptionsAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListSubscriptionsAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5451,8 +5448,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>GPGKey</returns>
         public GPGKey UserCurrentPostGPGKey(CreateGPGKeyOption form = null)
         {
-            ApiResponse<GPGKey> localVarResponse = UserCurrentPostGPGKeyWithHttpInfo(form);
-            return localVarResponse.Data;
+             ApiResponse<GPGKey> localVarResponse = UserCurrentPostGPGKeyWithHttpInfo(form);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5560,8 +5557,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of GPGKey</returns>
         public async System.Threading.Tasks.Task<GPGKey> UserCurrentPostGPGKeyAsync(CreateGPGKeyOption form = null)
         {
-            ApiResponse<GPGKey> localVarResponse = await UserCurrentPostGPGKeyAsyncWithHttpInfo(form);
-            return localVarResponse.Data;
+             ApiResponse<GPGKey> localVarResponse = await UserCurrentPostGPGKeyAsyncWithHttpInfo(form);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5669,8 +5666,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>PublicKey</returns>
         public PublicKey UserCurrentPostKey(CreateKeyOption body = null)
         {
-            ApiResponse<PublicKey> localVarResponse = UserCurrentPostKeyWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<PublicKey> localVarResponse = UserCurrentPostKeyWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5778,8 +5775,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of PublicKey</returns>
         public async System.Threading.Tasks.Task<PublicKey> UserCurrentPostKeyAsync(CreateKeyOption body = null)
         {
-            ApiResponse<PublicKey> localVarResponse = await UserCurrentPostKeyAsyncWithHttpInfo(body);
-            return localVarResponse.Data;
+             ApiResponse<PublicKey> localVarResponse = await UserCurrentPostKeyAsyncWithHttpInfo(body);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -5886,7 +5883,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="username">username of user to follow</param>
         public void UserCurrentPutFollow(string username)
         {
-            UserCurrentPutFollowWithHttpInfo(username);
+             UserCurrentPutFollowWithHttpInfo(username);
         }
 
         /// <summary>
@@ -5998,7 +5995,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentPutFollowAsync(string username)
         {
-            await UserCurrentPutFollowAsyncWithHttpInfo(username);
+             await UserCurrentPutFollowAsyncWithHttpInfo(username);
         }
 
         /// <summary>
@@ -6110,7 +6107,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="repo">name of the repo to star</param>
         public void UserCurrentPutStar(string owner, string repo)
         {
-            UserCurrentPutStarWithHttpInfo(owner, repo);
+             UserCurrentPutStarWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -6235,7 +6232,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentPutStarAsync(string owner, string repo)
         {
-            await UserCurrentPutStarAsyncWithHttpInfo(owner, repo);
+             await UserCurrentPutStarAsyncWithHttpInfo(owner, repo);
         }
 
         /// <summary>
@@ -6358,8 +6355,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;TrackedTime&gt;</returns>
         public List<TrackedTime> UserCurrentTrackedTimes()
         {
-            ApiResponse<List<TrackedTime>> localVarResponse = UserCurrentTrackedTimesWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<TrackedTime>> localVarResponse = UserCurrentTrackedTimesWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -6457,8 +6454,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;TrackedTime&gt;</returns>
         public async System.Threading.Tasks.Task<List<TrackedTime>> UserCurrentTrackedTimesAsync()
         {
-            ApiResponse<List<TrackedTime>> localVarResponse = await UserCurrentTrackedTimesAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<TrackedTime>> localVarResponse = await UserCurrentTrackedTimesAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -6556,7 +6553,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         public void UserDeleteEmail(DeleteEmailOption body = null)
         {
-            UserDeleteEmailWithHttpInfo(body);
+             UserDeleteEmailWithHttpInfo(body);
         }
 
         /// <summary>
@@ -6665,7 +6662,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserDeleteEmailAsync(DeleteEmailOption body = null)
         {
-            await UserDeleteEmailAsyncWithHttpInfo(body);
+             await UserDeleteEmailAsyncWithHttpInfo(body);
         }
 
         /// <summary>
@@ -6774,8 +6771,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>User</returns>
         public User UserGet(string username)
         {
-            ApiResponse<User> localVarResponse = UserGetWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<User> localVarResponse = UserGetWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -6886,8 +6883,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of User</returns>
         public async System.Threading.Tasks.Task<User> UserGetAsync(string username)
         {
-            ApiResponse<User> localVarResponse = await UserGetAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<User> localVarResponse = await UserGetAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -6997,8 +6994,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>User</returns>
         public User UserGetCurrent()
         {
-            ApiResponse<User> localVarResponse = UserGetCurrentWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<User> localVarResponse = UserGetCurrentWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7096,8 +7093,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of User</returns>
         public async System.Threading.Tasks.Task<User> UserGetCurrentAsync()
         {
-            ApiResponse<User> localVarResponse = await UserGetCurrentAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<User> localVarResponse = await UserGetCurrentAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7194,7 +7191,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         public void UserGetTokens()
         {
-            UserGetTokensWithHttpInfo();
+             UserGetTokensWithHttpInfo();
         }
 
         /// <summary>
@@ -7292,7 +7289,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserGetTokensAsync()
         {
-            await UserGetTokensAsyncWithHttpInfo();
+             await UserGetTokensAsyncWithHttpInfo();
         }
 
         /// <summary>
@@ -7390,8 +7387,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Email&gt;</returns>
         public List<Email> UserListEmails()
         {
-            ApiResponse<List<Email>> localVarResponse = UserListEmailsWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Email>> localVarResponse = UserListEmailsWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7489,8 +7486,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Email&gt;</returns>
         public async System.Threading.Tasks.Task<List<Email>> UserListEmailsAsync()
         {
-            ApiResponse<List<Email>> localVarResponse = await UserListEmailsAsyncWithHttpInfo();
-            return localVarResponse.Data;
+             ApiResponse<List<Email>> localVarResponse = await UserListEmailsAsyncWithHttpInfo();
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7589,8 +7586,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserListFollowers(string username)
         {
-            ApiResponse<List<User>> localVarResponse = UserListFollowersWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = UserListFollowersWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7701,8 +7698,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserListFollowersAsync(string username)
         {
-            ApiResponse<List<User>> localVarResponse = await UserListFollowersAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = await UserListFollowersAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7813,8 +7810,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserListFollowing(string username)
         {
-            ApiResponse<List<User>> localVarResponse = UserListFollowingWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = UserListFollowingWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -7925,8 +7922,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserListFollowingAsync(string username)
         {
-            ApiResponse<List<User>> localVarResponse = await UserListFollowingAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = await UserListFollowingAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8037,8 +8034,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;GPGKey&gt;</returns>
         public List<GPGKey> UserListGPGKeys(string username)
         {
-            ApiResponse<List<GPGKey>> localVarResponse = UserListGPGKeysWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<GPGKey>> localVarResponse = UserListGPGKeysWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8149,8 +8146,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<GPGKey>> UserListGPGKeysAsync(string username)
         {
-            ApiResponse<List<GPGKey>> localVarResponse = await UserListGPGKeysAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<GPGKey>> localVarResponse = await UserListGPGKeysAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8261,8 +8258,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;PublicKey&gt;</returns>
         public List<PublicKey> UserListKeys(string username)
         {
-            ApiResponse<List<PublicKey>> localVarResponse = UserListKeysWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<PublicKey>> localVarResponse = UserListKeysWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8373,8 +8370,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<PublicKey>> UserListKeysAsync(string username)
         {
-            ApiResponse<List<PublicKey>> localVarResponse = await UserListKeysAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<PublicKey>> localVarResponse = await UserListKeysAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8485,8 +8482,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListRepos(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListReposWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListReposWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8597,8 +8594,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListReposAsync(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListReposAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListReposAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8709,8 +8706,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListStarred(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListStarredWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListStarredWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8821,8 +8818,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListStarredAsync(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListStarredAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListStarredAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -8933,8 +8930,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListSubscriptions(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListSubscriptionsWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListSubscriptionsWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -9045,8 +9042,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListSubscriptionsAsync(string username)
         {
-            ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListSubscriptionsAsyncWithHttpInfo(username);
-            return localVarResponse.Data;
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListSubscriptionsAsyncWithHttpInfo(username);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -9158,8 +9155,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserSearch(string q = null, int? limit = null)
         {
-            ApiResponse<List<User>> localVarResponse = UserSearchWithHttpInfo(q, limit);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = UserSearchWithHttpInfo(q, limit);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -9271,8 +9268,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserSearchAsync(string q = null, int? limit = null)
         {
-            ApiResponse<List<User>> localVarResponse = await UserSearchAsyncWithHttpInfo(q, limit);
-            return localVarResponse.Data;
+             ApiResponse<List<User>> localVarResponse = await UserSearchAsyncWithHttpInfo(q, limit);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -9385,8 +9382,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>List&lt;TrackedTime&gt;</returns>
         public List<TrackedTime> UserTrackedTimes(string owner, string repo, string user)
         {
-            ApiResponse<List<TrackedTime>> localVarResponse = UserTrackedTimesWithHttpInfo(owner, repo, user);
-            return localVarResponse.Data;
+             ApiResponse<List<TrackedTime>> localVarResponse = UserTrackedTimesWithHttpInfo(owner, repo, user);
+             return localVarResponse.Data;
         }
 
         /// <summary>
@@ -9523,8 +9520,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>Task of List&lt;TrackedTime&gt;</returns>
         public async System.Threading.Tasks.Task<List<TrackedTime>> UserTrackedTimesAsync(string owner, string repo, string user)
         {
-            ApiResponse<List<TrackedTime>> localVarResponse = await UserTrackedTimesAsyncWithHttpInfo(owner, repo, user);
-            return localVarResponse.Data;
+             ApiResponse<List<TrackedTime>> localVarResponse = await UserTrackedTimesAsyncWithHttpInfo(owner, repo, user);
+             return localVarResponse.Data;
         }
 
         /// <summary>

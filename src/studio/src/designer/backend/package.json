@@ -13,7 +13,7 @@
     "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
   },
   "devDependencies": {
-    "chokidar": "^3.5.2",
+    "chokidar": "^3.5.3",
     "cross-env": "^7.0.3",
     "del": "^6.0.0",
     "gulp": "^4.0.2",
