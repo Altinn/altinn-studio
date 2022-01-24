@@ -9,17 +9,18 @@
           "altTextImg": "Altinn logo",
           "help": "Altinn logo"
         },
-        "image":{
-          "src":{
-            "nb": "/ttd/frontend-test/images/altinn-logo.svg"            
+        "image": {
+          "src": {
+            "nb": "/ttd/frontend-test/images/altinn-logo.svg"
           },
           "width": "100%",
-          "align": "center"          
+          "align": "center"
         },
         "grid": {
           "xs": 12
         }
-      }, {
+      },
+      {
         "id": "messageTitle",
         "type": "Paragraph",
         "textResourceBindings": {
@@ -31,7 +32,7 @@
         "id": "messageBody",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "messageBody"          
+          "title": "messageBody"
         }
       },
       {
@@ -40,9 +41,14 @@
         "textResourceBindings": {
           "title": "messageAttachments"
         },
-        "dataTypeIds": [
-          "fileUpload-message"
-        ]
+        "dataTypeIds": ["fileUpload-message"]
+      },
+      {
+        "id": "startAgain",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "startAgain"
+        }
       },
       {
         "id": "sendInButton",

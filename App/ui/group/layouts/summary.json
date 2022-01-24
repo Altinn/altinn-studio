@@ -30,6 +30,13 @@
         }
       },
       {
+        "id": "startAgain",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "startAgain"          
+        }
+      },
+      {
         "id": "sendInButton",
         "type": "Button",
         "textResourceBindings": {

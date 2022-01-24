@@ -137,7 +137,7 @@
     },
     {
       "id": "confirm.body",
-      "value": "Vennligst vent, endrer navn til {1}.",
+      "value": "Vennligst vent, endrer navn til {1}. <br/> <br/> Du har startet instance: {2} for app: {3}. <br/> <br/>Trykk [her]({4}) for å starte på nytt.",
       "variables": [
         {
           "key": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderFultnavn.value",
@@ -168,7 +168,7 @@
     },
     {
       "id": "messageBody",
-      "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe",
+      "value": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe <br/> 4. Bekreftelse side",
       "variables": null
     },
     {
@@ -180,7 +180,7 @@
       "id": "messageTitleHelp",
       "value": "Bruk dette appen for test av app frontend",
       "variables": null
-    },    
+    },
     {
       "id": "summaryTitle",
       "value": "## Oppsummering"
@@ -188,6 +188,15 @@
     {
       "id": "vedlegg",
       "value": "Last opp eventuell dokumentasjon for ditt nye navn"
+    },
+    {
+      "id": "startAgain",
+      "value": "Du har startet instance: {0} for app: {1}.<br/> <br/> Trykk [her]({2}) for å starte på nytt.",
+      "variables": [
+        { "key": "instanceId", "dataSource": "instanceContext" },
+        { "key": "appId", "dataSource": "instanceContext" },
+        { "key": "appUrl", "dataSource": "applicationSettings" }
+      ]
     }
   ]
 }
