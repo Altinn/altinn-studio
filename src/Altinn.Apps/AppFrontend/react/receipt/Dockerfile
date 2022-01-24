@@ -1,5 +1,5 @@
 # base image
-FROM node:16.13.1-alpine3.14 AS generate-receipt-app
+FROM node:16.13.2-alpine3.15 AS generate-receipt-app
 
 WORKDIR /build
 
