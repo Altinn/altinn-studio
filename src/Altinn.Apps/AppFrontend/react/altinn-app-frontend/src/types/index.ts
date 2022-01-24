@@ -20,6 +20,7 @@ import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
+import { IFormData } from 'src/features/form/data/formDataReducer';
 
 export type FormComponentType =
   | IFormAddressComponent
@@ -337,4 +338,11 @@ export enum DateFlags {
 // source, target dict
 export interface IMapping {
   [source: string]: string;
+}
+
+export interface IFetchSpecificOptionSaga {
+  optionsId: string;
+  formData?: IFormData;
+  language?: string;
+  dataMapping?: IMapping;
 }

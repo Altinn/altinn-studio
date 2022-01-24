@@ -8,7 +8,7 @@ import FormDataActions from '../../../../src/features/form/data/formDataActions'
 import FormDynamicsActions from '../../../../src/features/form/dynamics/formDynamicsActions';
 import { put } from '../../../../../shared/src/utils/networking';
 import { post } from '../../../../src/utils/networking';
-import { dataElementUrl, getStatelessFormDataUrl } from '../../../../src/utils/urlHelper';
+import { dataElementUrl, getStatelessFormDataUrl } from '../../../../src/utils/appUrlHelper';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from '../../../../src/utils/appMetadata';
 import { IInstanceDataState } from '../../../../src/shared/resources/instanceData/instanceDataReducers';
 import { IData } from '../../../../../shared/src';

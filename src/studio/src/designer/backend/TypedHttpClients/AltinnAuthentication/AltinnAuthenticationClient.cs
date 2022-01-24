@@ -2,10 +2,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Exceptions;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -64,16 +61,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
             };
 
             HttpResponseMessage response = await _httpClient.SendAsync(message);
+
             _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsStringAsync();
-            }
-
-            _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Token exchange failed with status code {response.StatusCode}");
-
-            throw new ApiException((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+            return await response.Content.ReadAsAsync<string>();
         }
     }
 }
