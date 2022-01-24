@@ -11,15 +11,19 @@ using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
+using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -51,6 +55,8 @@ namespace Altinn.App.Services.Implementation
         private readonly IRegister _registerClient;
         private readonly IProfile _profileClient;
         private readonly IText _textClient;
+        private readonly IAccessTokenGenerator _tokenGenerator;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
@@ -69,6 +75,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">the httpContextAccessor</param>
         /// <param name="eFormidlingClient">The eFormidling client</param>
         /// <param name="appSettings">The appsettings</param>
+        /// <param name="platformSettings">The platform settings</param>
+        /// <param name="tokenGenerator">The access token generator</param>
         protected AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
@@ -83,7 +91,9 @@ namespace Altinn.App.Services.Implementation
             IText textClient,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient eFormidlingClient = null,
-            IOptions<AppSettings> appSettings = null)
+            IOptions<AppSettings> appSettings = null,
+            IOptions<PlatformSettings> platformSettings = null,
+            IAccessTokenGenerator tokenGenerator = null)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -100,6 +110,8 @@ namespace Altinn.App.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _appSettings = appSettings?.Value;
             _eFormidlingClient = eFormidlingClient;
+            _tokenGenerator = tokenGenerator;
+            _platformSettings = platformSettings?.Value;
         }
 
         /// <inheritdoc />
@@ -151,6 +163,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
         public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <inheritdoc />
@@ -187,6 +200,19 @@ namespace Altinn.App.Services.Implementation
         {
             _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
+            // If this is a revisit to a previous task we need to unlock data 
+            foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
+            {
+                DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
+
+                if (dataElement != null && dataElement.Locked)
+                {
+                    dataElement.Locked = false;
+                    _logger.LogInformation($"Unlocking data element {dataElement.Id} of dataType {dataType.Id}.");
+                    await _dataClient.Update(instance, dataElement);
+                }
+            }
+
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"Auto create data element: {dataType.Id}");
@@ -208,7 +234,7 @@ namespace Altinn.App.Services.Implementation
                         // Trigger application business logic the old way. DEPRICATED
                         await RunDataCreation(instance, data);
                     }
-                    
+
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
                     DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data, type);
@@ -278,8 +304,14 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            if (_appSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
+            if (_appSettings != null && _platformSettings != null && _appSettings.EnableEFormidling && _appMetadata.EFormidling.SendAfterTaskId == taskId)
             {
+                if (_eFormidlingClient == null || _tokenGenerator == null)
+                {
+                    throw new ArgumentNullException("eFormidling support has not been correctly configured in App.cs. " +
+                        "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor.");
+                }
+
                 await SendEFormidlingShipment(instance);
             }
 
@@ -291,6 +323,15 @@ namespace Altinn.App.Services.Implementation
                 await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
             }
 
+            await Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public async Task OnAbandonProcessTask(string taskId, Instance instance)
+        {
+            await RunProcessTaskEnd(taskId, instance);
+
+            _logger.LogInformation($"OnAbandonProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
             await Task.CompletedTask;
         }
 
@@ -396,12 +437,12 @@ namespace Altinn.App.Services.Implementation
             }
 
             // Ensure layoutsettings are initialized in FormatPdf
-            layoutSettings ??= new();
-            layoutSettings.Pages ??= new();
-            layoutSettings.Pages.Order ??= new();
-            layoutSettings.Pages.ExcludeFromPdf ??= new();
-            layoutSettings.Components ??= new();
-            layoutSettings.Components.ExcludeFromPdf ??= new();
+            layoutSettings ??= new ();
+            layoutSettings.Pages ??= new ();
+            layoutSettings.Pages.Order ??= new ();
+            layoutSettings.Pages.ExcludeFromPdf ??= new ();
+            layoutSettings.Components ??= new ();
+            layoutSettings.Components.ExcludeFromPdf ??= new ();
 
             object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 
@@ -529,7 +570,9 @@ namespace Altinn.App.Services.Implementation
                 AppOptions appOptions = new AppOptions();
 
                 appOptions.Options = _resourceService.GetOptions(optionsId);
+#pragma warning disable CS0618 // Type or member is obsolete
                 appOptions = await GetOptions(optionsId, appOptions);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 if (appOptions.Options != null && !dictionary.ContainsKey(optionsId))
                 {
@@ -549,7 +592,7 @@ namespace Altinn.App.Services.Implementation
             return dictionary;
         }
 
-        private async Task SendInstanceData(Instance instance)
+        private async Task SendInstanceData(Instance instance, Dictionary<string, string> requestHeaders)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
@@ -567,7 +610,7 @@ namespace Altinn.App.Services.Implementation
 
                 using Stream stream = await _dataClient.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
 
-                bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName);
+                bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName, requestHeaders);
 
                 if (!successful)
                 {
@@ -641,25 +684,38 @@ namespace Altinn.App.Services.Implementation
 
         private async Task SendEFormidlingShipment(Instance instance)
         {
+            string accessToken = _tokenGenerator.GenerateAccessToken(_appMetadata.Org, _appMetadata.Id.Split("/")[1]);
+            string authzToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { "Authorization", $"Bearer {authzToken}" },
+                { General.EFormidlingAccessTokenHeaderName, accessToken },
+                { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey }
+            };
+
             string instanceGuid = instance.Id.Split("/")[1];
 
             StandardBusinessDocument sbd = await ConstructStandardBusinessDocument(instanceGuid, instance);
-            await _eFormidlingClient.CreateMessage(sbd);
+            await _eFormidlingClient.CreateMessage(sbd, requestHeaders);
 
             (string metadataName, Stream stream) = await GenerateEFormidlingMetadata(instance);
 
             using (stream)
             {
-                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName);
+                await _eFormidlingClient.UploadAttachment(stream, instanceGuid, metadataName, requestHeaders);
             }
 
-            await SendInstanceData(instance);
+            await SendInstanceData(instance, requestHeaders);
 
-            bool shipmentResult = await _eFormidlingClient.SendMessage(instanceGuid);
-
-            if (!shipmentResult)
+            try
+            {
+                await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
+            }
+            catch
             {
                 _logger.LogError("// AppBase // SendEFormidlingShipment // Shipment of instance {InstanceId} failed.", instance.Id);
+                throw;
             }
         }
     }

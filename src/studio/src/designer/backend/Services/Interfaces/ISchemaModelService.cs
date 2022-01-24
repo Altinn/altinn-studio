@@ -55,6 +55,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<string> CreateSchemaFromXsd(string org, string repository, string developer, string relativeFilePath, Stream xsdStream);
 
         /// <summary>
+        /// Builds a JSON schema based on the uploaded XSD.
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to search for schema files.</param>
+        /// <param name="developer">Developers short name</param>
+        /// <param name="modelName">The name of the new model.</param>
+        /// <param name="xsdStream">Stream representing the XSD.</param>
+        Task<string> BuildSchemaFromXsd(string org, string repository, string developer, string modelName, Stream xsdStream);
+
+        /// <summary>
         /// Creates a JSON schema based on a template.
         /// </summary>
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
@@ -65,7 +75,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// created in a data models repository. For app repositories the directory is determined by the app and the parameter is ignored.</param>
         /// <param name="altinn2Compatible">True if the schema should be Altinn 2 compatible when generating XSD. False (default) creates a Altinn 3 schema.</param>
         /// <returns>Returns a tuple where the first string is the relative path to the file and the second is the Json Schema created.</returns>
-        Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false);
+        Task<(string RelativePath, string JsonSchema)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false);
 
         /// <summary>
         /// Deletes a schema based on the relative path to the JSON Schema within the repository.

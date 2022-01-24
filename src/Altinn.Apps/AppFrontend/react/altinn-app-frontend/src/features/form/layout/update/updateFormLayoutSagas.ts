@@ -7,7 +7,7 @@ import { getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUI
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
@@ -350,7 +350,6 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
-    // eslint-disable-next-line no-restricted-syntax
     for (const group of groupsToRemoveValidations) {
       for (let i = 0; i <= currentGroups[group].count; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);

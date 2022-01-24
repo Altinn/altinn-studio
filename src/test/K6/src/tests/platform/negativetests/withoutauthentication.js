@@ -7,7 +7,7 @@
 import { check } from 'k6';
 import { addErrorCount } from '../../../errorcounter.js';
 import * as profile from '../../../api/platform/profile.js';
-import * as authz from '../../../api/platform/authorization.js';
+import * as authz from '../../../api/platform/authorization/authorization.js';
 import * as register from '../../../api/platform/register.js';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';

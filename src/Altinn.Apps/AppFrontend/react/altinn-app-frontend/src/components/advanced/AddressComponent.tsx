@@ -6,27 +6,15 @@ import axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
 import { IComponentValidations, ILabelSettings } from 'src/types';
-import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import classNames from 'classnames';
-import { ILanguage } from 'altinn-shared/types';
+import { IComponentProps } from '..';
 
-export interface IAddressComponentProps {
-  id: string;
-  formData: { [id: string]: string };
-  handleDataChange: (value: any, key: string) => void;
-  getTextResource: (key: string) => string;
-  isValid?: boolean;
+export interface IAddressComponentProps extends IComponentProps {
   simplified: boolean;
-  dataModelBindings: IDataModelBindings;
-  readOnly: boolean;
-  required: boolean;
   labelSettings?: ILabelSettings;
-  language: ILanguage;
-  textResourceBindings: ITextResourceBindings;
-  componentValidations?: IComponentValidations;
 }
 
 interface IAddressValidationErrors {
@@ -104,6 +92,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.formData.zipCode]);
 
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {

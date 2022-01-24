@@ -28,7 +28,7 @@ steps:
 
 - script: |
    mkdir -p $(pwd)/src/reports
-   
+
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Create reports folder'
   continueOnError: true
@@ -37,17 +37,17 @@ steps:
    echo k6 version:`k6 version`
 
    k6 run --quiet --logformat raw --console-output=$(Build.SourcesDirectory)/result.txt $(Build.SourcesDirectory)/src/test/K6/src/availability.js -e env=$(environment)
-   
+
    cat result.txt
-   
+
    echo "##vso[task.setvariable variable=availability;]`cat result.txt`"
-  
-  workingDirectory: '$(Build.SourcesDirectory)'   
+
+  workingDirectory: '$(Build.SourcesDirectory)'
   displayName: 'Check availability'
 
-- script: |   
+- script: |
    k6 run  --quiet $(pwd)/src/tests/platform/authentication/authentication.js -e env=$(environment) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
-   
+
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Authentication'
   continueOnError: false
@@ -57,17 +57,17 @@ steps:
    k6 run  --quiet $(pwd)/src/tests/app/portalsimulation.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/app/multipartdata.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
-   
+
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'App'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
-- script: |   
+- script: |
    k6 run  --quiet $(pwd)/src/tests/altinn-ui/messagebox.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/platform/events/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd)  -e appsaccesskey=$(appsAccessSubsKey)
-   
+
    k6 run  --quiet $(pwd)/src/tests/platform/register/register.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/platform/receipt/receipt.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)
@@ -75,21 +75,29 @@ steps:
    k6 run  --quiet $(pwd)/src/tests/platform/storage/messageboxinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
    k6 run  --quiet $(pwd)/src/tests/platform/storage/events.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey)  -e sblaccesskey=$(sblAccessSubsKey)
-   
+
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Platform'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
 
-- script: |   
+- script: |
    k6 run  --quiet $(pwd)/src/tests/platform/storage/deleteinstances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e username=$(level2user) -e userpwd=$(userpwd) -e appsaccesskey=$(appsAccessSubsKey) -e sblaccesskey=$(sblAccessSubsKey)
 
    k6 run --quiet $(pwd)/src/tests/app/appowner/complete-instances.js -e env=$(environment) -e org=$(org) -e level2app=$(level2app) -e tokengenuser=$(tokengenuser) -e tokengenuserpwd=$(tokengenuserpwd) -e scopes=altinn:serviceowner/instances.read,altinn:serviceowner/instances.write
-   
+
   workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
   displayName: 'Cleanup'
   continueOnError: true
   condition: and(succeeded(), eq(variables['availability'], 'up'))
+
+- script: |
+   k6 run  --quiet $(pwd)/src/tests/platform/eFormidling/eFormidling.js -e env=$(environment) -e operatoraccesskey=$(operatoraccesskey) -e messageId=$(operatoraccesskey) -e orgNo=$(orgNo)
+
+  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
+  displayName: 'eFormidling Integration point'
+  continueOnError: true
+  condition: and(always(), eq(variables['environment'], 'tt02'))
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'

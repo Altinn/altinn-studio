@@ -16,10 +16,12 @@ import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
 import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
+import { IGenericComponentProps } from './GenericComponent';
+import { IComponentFormData } from 'src/utils/formComponentUtils';
 
 export interface IComponent {
   name: string;
-  Tag: any;
+  Tag: (props: IComponentProps) => JSX.Element;
   Type: ComponentTypes;
   customProperties?: any;
 }
@@ -164,6 +166,20 @@ export const advancedComponents: IComponent[] = [
     },
   },
 ];
+
+export interface  IComponentProps extends IGenericComponentProps {
+  handleDataChange: (value: string, key?: string) => void,
+  handleFocusUpdate: (componentId: string, step?: number) => void,
+  getTextResource: (key: string) => React.ReactNode,
+  getTextResourceAsString: (key: string) => string,
+  formData: IComponentFormData,
+  isValid: boolean,
+  language: any,
+  shouldFocus: boolean,
+  text: React.ReactNode,
+  label: () => JSX.Element,
+  legend: () => JSX.Element,
+};
 
 const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
 

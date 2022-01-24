@@ -1,5 +1,8 @@
+using System.Linq;
+using Altinn.App.PlatformServices.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.IntegrationTests
 {
@@ -10,6 +13,11 @@ namespace Altinn.App.IntegrationTests
         {
             builder.ConfigureServices(services =>
             {
+                var defaultProviderService = services.Where(s => s.ServiceType == typeof(IAppOptionsProvider)).FirstOrDefault();
+                if (defaultProviderService == null)
+                {
+                    services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
+                }                
             });
         }
     }

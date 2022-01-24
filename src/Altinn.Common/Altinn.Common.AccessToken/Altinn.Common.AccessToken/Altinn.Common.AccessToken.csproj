@@ -10,7 +10,7 @@
 
     <!-- NuGet package properties -->
     <PackageId>Altinn.Common.AccessToken</PackageId>
-    <PackageVersion>1.1.0-alpha</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <PackageTags>Altinn;AccessToken</PackageTags>
     <Description>
       Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault.
@@ -29,11 +29,11 @@
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.15.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.15.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

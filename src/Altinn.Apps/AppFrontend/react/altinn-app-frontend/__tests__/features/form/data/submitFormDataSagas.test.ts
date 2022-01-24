@@ -8,7 +8,7 @@ import FormDataActions from '../../../../src/features/form/data/formDataActions'
 import FormDynamicsActions from '../../../../src/features/form/dynamics/formDynamicsActions';
 import { put } from '../../../../../shared/src/utils/networking';
 import { post } from '../../../../src/utils/networking';
-import { dataElementUrl, getStatelessFormDataUrl } from '../../../../src/utils/urlHelper';
+import { dataElementUrl, getStatelessFormDataUrl } from '../../../../src/utils/appUrlHelper';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from '../../../../src/utils/appMetadata';
 import { IInstanceDataState } from '../../../../src/shared/resources/instanceData/instanceDataReducers';
 import { IData } from '../../../../../shared/src';
@@ -53,7 +53,7 @@ describe('submitFormDataSagas', () => {
       formData: getFormDataStateMock({
         formData: {
           field1: 'value1',
-          field2: 123,
+          field2: '123',
         },
       }),
     };
@@ -89,9 +89,7 @@ describe('submitFormDataSagas', () => {
       },
       formData: {
         ...stateMock.formData,
-        formData: {
-          formData,
-        },
+        formData: formData,
       },
       formLayout: {
         ...stateMock.formLayout,
@@ -125,11 +123,13 @@ describe('submitFormDataSagas', () => {
         }],
       ])
       .call(saveStatelessData, state, model)
-      .put(FormDataActions.fetchFormDataFulfilled({ formData:
+      .put(FormDataActions.fetchFormDataFulfilled({
+        formData:
         {
           ...formData,
           'group.field1': 'value1',
-        } }))
+        }
+      }))
       .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
       .put(FormDataActions.submitFormDataFulfilled())
       .run();

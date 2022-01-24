@@ -70,6 +70,13 @@ namespace Altinn.App.Services.Interface
         Task OnEndProcessTask(string taskId, Instance instance);
 
         /// <summary>
+        /// Is called after the process task is abonded. Method can update instance and data element metadata. 
+        /// </summary>
+        /// <param name="taskId">task id task to end</param>
+        /// <param name="instance">instance data</param>
+        Task OnAbandonProcessTask(string taskId, Instance instance);
+
+        /// <summary>
         /// Is called when the process for an instance is ended.
         /// </summary>
         Task OnEndProcess(string endEvent, Instance instance);
@@ -136,6 +143,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="id">The option id</param>
         /// <param name="options">Possible option found by the platform itself</param>
         /// <returns>The app options</returns>
+        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
         Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <summary>

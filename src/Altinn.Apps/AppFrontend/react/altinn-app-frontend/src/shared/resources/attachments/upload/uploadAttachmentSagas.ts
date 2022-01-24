@@ -7,7 +7,7 @@ import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import { IRuntimeState } from '../../../../types';
 import { post } from '../../../../utils/networking';
-import { fileUploadUrl } from '../../../../utils/urlHelper';
+import { fileUploadUrl } from '../../../../utils/appUrlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';

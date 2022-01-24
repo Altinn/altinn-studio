@@ -24,13 +24,13 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <summary>
         /// The all the unhandled attributes in order.
         /// </summary>
-        public IReadOnlyList<(string name, string value)> Properties { get; }
+        public IReadOnlyList<(string Name, string Value)> Properties { get; }
 
         /// <summary>
         /// Creates a new <see cref="XsdUnhandledAttributesKeyword"/>.
         /// </summary>
         /// <param name="values">The the unhandled attributes in order.</param>
-        public XsdUnhandledAttributesKeyword(params (string name, string value)[] values)
+        public XsdUnhandledAttributesKeyword(params (string Name, string Value)[] values)
         {
             Properties = values.ToList();
         }
@@ -39,7 +39,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// Creates a new <see cref="XsdUnhandledAttributesKeyword"/>.
         /// </summary>
         /// <param name="values">The unhandled attributes in order.</param>
-        public XsdUnhandledAttributesKeyword(IEnumerable<(string name, string value)> values)
+        public XsdUnhandledAttributesKeyword(IEnumerable<(string Name, string Value)> values)
         {
             Properties = values as List<(string, string)> ?? values.ToList();
         }

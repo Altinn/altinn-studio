@@ -7,22 +7,13 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface ICheckboxContainerProps {
-  id: string;
-  formData: any;
-  handleDataChange: (value: any) => void;
-  handleFocusUpdate: (value: any) => void;
-  isValid: boolean;
+export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: any;
   options: any[];
   optionsId: string;
-  preselectedOptionIndex: number;
-  readOnly: boolean;
-  shouldFocus: boolean;
-  legend: () => JSX.Element;
-  getTextResource: (key: string) => JSX.Element;
-  getTextResourceAsString: (key: string) => string;
+  preselectedOptionIndex?: number;
 }
 
 export interface IStyledCheckboxProps extends CheckboxProps {
@@ -95,15 +86,17 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnState();
-  }, [props.formData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.formData?.simpleBinding]);
 
   const returnState = () => {
     if (
-      !props.formData &&
+      !props.formData?.simpleBinding &&
       props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
@@ -114,7 +107,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       props.handleDataChange(preSelected[props.preselectedOptionIndex]);
       setSelected(preSelected);
     } else {
-      setSelected(props.formData ? props.formData.toString().split(',') : []);
+      setSelected(props.formData?.simpleBinding ? props.formData.simpleBinding.split(',') : []);
     }
   };
 
@@ -133,7 +126,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   };
 
   const handleOnBlur = () => {
-    props.handleDataChange(props.formData);
+    props.handleDataChange(props.formData?.simpleBinding ?? '');
   };
 
   const selectedHasValues = (select: string[]): boolean => {

@@ -18,7 +18,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import { ISimpleInstance } from 'src/types';
-import { getInstanceUiUrl } from '../../../utils/urlHelper';
+import { getInstanceUiUrl } from '../../../utils/appUrlHelper';
 
 export interface IInstanceSelectionProps {
   instances: ISimpleInstance[];
@@ -82,6 +82,7 @@ export default function InstanceSelection({
               <AltinnMobileTableItem
                 items={[
                   {
+                    key: 1,
                     label: getLanguageFromKey(
                       'instance_selection.last_changed',
                       language,
@@ -89,6 +90,7 @@ export default function InstanceSelection({
                     value: getDateDisplayString(instance.lastChanged),
                   },
                   {
+                    key: 2,
                     label: getLanguageFromKey(
                       'instance_selection.changed_by',
                       language,

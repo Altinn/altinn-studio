@@ -1,12 +1,12 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-undef */
 import 'jest';
-import { IFormData } from '../../src/features/form/data/formDataReducer';
+import { IFormDataState } from '../../src/features/form/data/formDataReducer';
 import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
 
 describe('>>> features/rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
-  let mockFormDataState: IFormData;
+  let mockFormDataState: Partial<IFormDataState>;
   let mockFormLayoutState: any;
   let mockLastUpdatedDataBinding: string;
   let mockRuleHandlerHelper;

@@ -21,8 +21,8 @@ describe('utils > validation', () => {
   let mockLayoutState: any;
   let mockJsonSchema: any;
   let mockInvalidTypes: any;
-  let mockFormData: IFormData;
-  let mockValidFormData: IFormData;
+  let mockFormData: any;
+  let mockValidFormData: any;
   let mockFormValidationResult: any;
   let mockLanguage: any;
   let mockFormAttachments: any;

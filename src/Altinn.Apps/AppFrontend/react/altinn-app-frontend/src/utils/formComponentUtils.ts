@@ -4,6 +4,8 @@ import {
   getParsedLanguageFromText,
   getTextResourceByKey,
 } from 'altinn-shared/utils';
+import React from 'react';
+import { IFormData } from 'src/features/form/data/formDataReducer';
 import {
   ILayoutComponent,
   ILayoutGroup,
@@ -21,7 +23,7 @@ import {
 } from 'src/types';
 import { AsciiUnitSeparator } from './attachment';
 
-export const isSimpleComponent = (
+export const componentValidationsHandledByGenericComponent = (
   dataModelBindings: any,
   type: string,
 ): boolean => {
@@ -60,20 +62,20 @@ export const getComponentValidations = (
   return undefined;
 };
 
+export interface IComponentFormData {
+  simpleBinding?: string;
+  [binding: string]: string;
+}
+
 export const getFormDataForComponent = (
-  formData: any,
+  formData: IFormData,
   dataModelBindings: IDataModelBindings,
 ) => {
   if (!dataModelBindings) {
-    return '';
+    return {} as IComponentFormData;
   }
 
-  if (dataModelBindings.simpleBinding) {
-    const formDataVal = formData[dataModelBindings.simpleBinding];
-    return formDataVal;
-  }
-
-  const formDataObj = {};
+  const formDataObj:IComponentFormData = {};
   Object.keys(dataModelBindings).forEach((key: any) => {
     const binding = dataModelBindings[key];
     if (formData[binding]) {
@@ -244,7 +246,7 @@ export const isComponentValid = (
 export const getTextResource = (
   resourceKey: string,
   textResources: ITextResource[],
-): any => {
+): React.ReactNode => {
   const textResource = textResources.find(
     (resource: ITextResource) => resource.id === resourceKey,
   );
@@ -257,7 +259,7 @@ export function selectComponentTexts(
   textResources: ITextResource[],
   textResourceBindings: ITextResourceBindings,
 ) {
-  const result: any = {};
+  const result: {[textResourceKey: string]: React.ReactNode} = {};
 
   Object.keys(textResourceBindings).forEach((key) => {
     result[key] = getTextResource(textResourceBindings[key], textResources);

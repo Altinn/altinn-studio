@@ -9,6 +9,7 @@ import { render } from '@testing-library/react';
 import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUpload/FileUploadComponent';
 import { getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations } from '../../../src/utils/formComponentUtils';
+import { IComponentProps } from 'src/components';
 
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
@@ -79,6 +80,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
           maxNumberOfAttachments={mockMaxNumberOfAttachments}
           minNumberOfAttachments={mockMinNumberOfAttachments}
           readOnly={mockReadOnly}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -207,6 +209,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
           maxNumberOfAttachments={mockMaxNumberOfAttachments}
           minNumberOfAttachments={mockMinNumberOfAttachments}
           readOnly={mockReadOnly}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -272,7 +275,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       minNumberOfAttachments: mockMinNumberOfAttachments,
       isValid: mockIsValid,
       readOnly: mockReadOnly,
-    };
+    } as IFileUploadProps;
 
     return render(
       <Provider store={mockStore}>

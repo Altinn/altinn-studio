@@ -1,7 +1,3 @@
-// https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
-// Disabled for React Router rendering
-// Extensive used in Material-UI's Grid
-
 import { Grid, Typography } from '@material-ui/core';
 import { createTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
@@ -13,8 +9,6 @@ import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
-import './App.css';
 import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
 import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
@@ -24,6 +18,8 @@ import { repoStatusUrl } from './utils/urlHelper';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 import LeftMenu from './layout/LeftMenu';
 import PageHeader from './layout/PageHeader';
+
+import './App.css';
 
 const theme = createTheme(altinnTheme);
 
@@ -147,10 +143,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     if (event.data === postMessages.forceRepoStatusCheck) {
       this.checkForMergeConflict();
     }
-  }
-
-  public handleDrawerToggle = () => {
-    NavigationActionDispatcher.toggleDrawer();
   }
 
   public handleSessionExpiresClose = (action: string) => {

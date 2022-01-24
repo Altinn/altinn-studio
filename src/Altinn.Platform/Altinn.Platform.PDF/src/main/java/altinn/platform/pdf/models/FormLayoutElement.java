@@ -1,12 +1,13 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
 import java.util.HashMap;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
-@ApiModel(description = "A form layout element")
+@Schema(description = "A form layout element")
 @Getter
 @Setter
 public class FormLayoutElement {

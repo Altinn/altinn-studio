@@ -17,28 +17,19 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import {
-  IComponentValidations,
   IComponentBindingValidation,
   DateFlags,
 } from 'src/types';
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
-import { ILanguage } from 'altinn-shared/types';
+import { IComponentProps } from '..';
 
-export interface IDatePickerProps {
-  id: string;
-  readOnly: boolean;
-  required: boolean;
-  formData: any;
-  handleDataChange: (value: any) => void;
-  isValid?: boolean;
+export interface IDatePickerProps extends IComponentProps {
   timeStamp?: boolean;
   format: string;
   minDate: string;
   maxDate: string;
-  language: ILanguage;
-  componentValidations: IComponentValidations;
 }
 
 const useStyles = makeStyles({
@@ -152,13 +143,15 @@ function DatepickerComponent(props: IDatePickerProps) {
   };
 
   React.useEffect(() => {
-    const dateValue = props.formData ? moment(props.formData) : null;
+    const dateValue = props.formData?.simpleBinding ? moment(props.formData.simpleBinding) : null;
     setDate(dateValue);
     setValidationMessages(getValidationMessages());
-  }, [props.formData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.formData?.simpleBinding]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {

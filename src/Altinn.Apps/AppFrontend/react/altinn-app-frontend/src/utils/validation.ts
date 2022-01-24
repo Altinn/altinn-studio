@@ -495,7 +495,7 @@ export function validateFormComponentsForLayout(
         const flagBasedMaxDate =
           getFlagBasedDate(component.maxDate as DateFlags) ?? component.maxDate;
         const datepickerValidations = validateDatepickerFormData(
-          date,
+          date?.simpleBinding,
           flagBasedMinDate,
           flagBasedMaxDate,
           component.format,

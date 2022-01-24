@@ -13,6 +13,8 @@ using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Interface;
@@ -63,10 +65,9 @@ namespace Altinn.App.Api.Controllers
 
         private readonly IAppResources _appResourcesService;
         private readonly IAltinnApp _altinnApp;
-        private readonly IProcess _processService;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
-
+        private readonly IProcessEngine _processEngine;
         private readonly AppSettings _appSettings;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
@@ -81,12 +82,12 @@ namespace Altinn.App.Api.Controllers
             IData dataClient,
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
-            IProcess processService,
             IPDP pdp,
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
             IPrefill prefillService,
-            IProfile profileClient)
+            IProfile profileClient,
+            IProcessEngine processEngine)
         {
             _logger = logger;
             _instanceClient = instanceClient;
@@ -94,12 +95,12 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerClient = registerClient;
             _altinnApp = altinnApp;
-            _processService = processService;
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
             _prefillService = prefillService;
             _profileClientClient = profileClient;
+            _processEngine = processEngine;
         }
 
         /// <summary>
@@ -273,12 +274,14 @@ namespace Altinn.App.Api.Controllers
 
             Instance instance;
             ProcessStateChange processResult;
+            instanceTemplate.Process = null;
+            ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
             try
             {
                 // start process and goto next task
-                instanceTemplate.Process = null;
-                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
-                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
+                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                processResult = processChangeContext.ProcessStateChange;
 
                 string userOrgClaim = User.GetOrg();
 
@@ -304,8 +307,9 @@ namespace Altinn.App.Api.Controllers
                 instance = await _instanceClient.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
                 // notify app and store events
-                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
-                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+                processChangeContext.Instance = instance;
+                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
+                await _processEngine.StartTask(processChangeContext);
             }
             catch (Exception exception)
             {
@@ -424,8 +428,12 @@ namespace Altinn.App.Api.Controllers
             {
                 // start process and goto next task
                 instanceTemplate.Process = null;
-                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
-                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                ProcessChangeContext processChangeContext = new ProcessChangeContext(instanceTemplate, User);
+                processChangeContext.Prefill = instansiationInstance.Prefill;
+                processChangeContext.DontUpdateProcessAndDispatchEvents = true;
+                processChangeContext = await _processEngine.StartProcess(processChangeContext);
+                processResult = processChangeContext.ProcessStateChange;
 
                 string userOrgClaim = User.GetOrg();
 
@@ -466,9 +474,9 @@ namespace Altinn.App.Api.Controllers
 
                 instance = await _instanceClient.GetInstance(instance);
 
-                // notify app and store events
-                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events, instansiationInstance.Prefill);
-                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+                processChangeContext.Instance = instance;
+                processChangeContext.DontUpdateProcessAndDispatchEvents = false;
+                await _processEngine.StartTask(processChangeContext);
             }
             catch (Exception exception)
             {
@@ -676,7 +684,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            Dictionary<string, StringValues> queryParams = new()
+            Dictionary<string, StringValues> queryParams = new ()
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },

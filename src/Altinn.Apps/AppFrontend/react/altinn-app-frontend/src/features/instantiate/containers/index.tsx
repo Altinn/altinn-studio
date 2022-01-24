@@ -34,7 +34,7 @@ export interface IPartyValidation {
 }
 
 function InstantiateContainer() {
-  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
+  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
   const { org, app } = window as Window as IAltinnWindow;
 
   const [instantiating, setInstantiating] = React.useState(false);
@@ -60,6 +60,7 @@ function InstantiateContainer() {
     ) {
       createNewInstance();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instantiating]);
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {

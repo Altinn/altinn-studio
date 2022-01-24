@@ -1,4 +1,4 @@
-import { atleastOneTagExists, getDisplayFormData, getFileUploadWithTagComponentValidations, getFormDataForComponentInRepeatingGroup, isAttachmentError, isNotAttachmentError, isSimpleComponent, parseFileUploadComponentWithTagValidationObject } from '../../src/utils/formComponentUtils';
+import { atleastOneTagExists, getDisplayFormData, getFormDataForComponentInRepeatingGroup, isAttachmentError, isNotAttachmentError, componentValidationsHandledByGenericComponent } from '../../src/utils/formComponentUtils';
 import { IOptions, ITextResource } from '../../src/types';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { ILayoutComponent, ISelectionComponentProps } from '../../src/features/form/layout';
@@ -140,23 +140,34 @@ describe('>>> utils/formComponentUtils.ts', () => {
     expect(result).toEqual('RepValue1, RepValue2, RepValue3');
   });
 
-  it('+++ isSimpleComponent should return false when dataModelBinding is undefined', () => {
+  it('+++ componentValidationsHandledByGenericComponent should return false when dataModelBinding is undefined', () => {
     const genericComponent = {
       type: 'FileUpload',
     }
-    const result = isSimpleComponent(undefined, genericComponent.type);
+    const result = componentValidationsHandledByGenericComponent(undefined, genericComponent.type);
     expect(result).toEqual(false);
   });
 
-  it('+++ isSimpleComponent should return false when component type is Datepicker', () => {
+  it('+++ componentValidationsHandledByGenericComponent should return false when component type is Datepicker', () => {
     const genericComponent = {
       type: 'Datepicker',
       dataModelBindings: {
         simpleBinding: 'group.superdate',
       },
     }
-    const result = isSimpleComponent(genericComponent.dataModelBindings, genericComponent.type);
+    const result = componentValidationsHandledByGenericComponent(genericComponent.dataModelBindings, genericComponent.type);
     expect(result).toEqual(false);
+  });
+
+  it('+++ componentValidationsHandledByGenericComponent should return true when component type is Input', () => {
+    const genericComponent = {
+      type: 'Input',
+      dataModelBindings: {
+        simpleBinding: 'group.secretnumber',
+      },
+    }
+    const result = componentValidationsHandledByGenericComponent(genericComponent.dataModelBindings, genericComponent.type);
+    expect(result).toEqual(true);
   });
 
   it('+++ isAttachmentError should return true when error has attachmentId', () => {

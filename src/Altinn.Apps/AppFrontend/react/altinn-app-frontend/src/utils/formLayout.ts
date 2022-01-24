@@ -1,4 +1,5 @@
 import { ITextResource } from 'altinn-shared/types';
+import { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
 import { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
 import {
   IRepeatingGroups,
@@ -10,7 +11,6 @@ import {
   IMapping,
 } from 'src/types';
 import {
-  IInstantiationButtonProps,
   ILayout,
   ILayoutComponent,
   ILayoutGroup

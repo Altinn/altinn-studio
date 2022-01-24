@@ -33,12 +33,15 @@ describe('Stateless', () => {
   });
 
   it('is possible to start app instance from stateless app', () => {
+    var userFirstName = Cypress.env('testUserName').includes('external')
+      ? Cypress.env('externalFistName')
+      : Cypress.env('firstName');
     cy.intercept('POST', '**/instances/create').as('createInstance');
     cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
     cy.get(appFrontend.instantiationButton).should('be.visible').click();
     cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
     cy.wait('@getLayoutSettings');
-    cy.get(appFrontend.stateless.name).should('have.value', Cypress.env('firstName'));
+    cy.get(appFrontend.stateless.name).should('have.value', userFirstName);
     cy.get(appFrontend.stateless.idnumber).should('have.value', '1364');
     cy.get(appFrontend.sendinButton).should('be.visible');
   });

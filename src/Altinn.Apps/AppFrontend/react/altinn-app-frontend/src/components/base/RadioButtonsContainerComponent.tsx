@@ -9,20 +9,14 @@ import { FormLabel } from '@material-ui/core';
 import classNames from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface IRadioButtonsContainerProps {
-  id: string;
-  formData: any;
-  handleDataChange: (value: any) => void;
-  handleFocusUpdate: (value: any) => void;
+export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
   options: any[];
   optionsId: string;
   preselectedOptionIndex: number;
-  shouldFocus: boolean;
   title: string;
-  legend: () => JSX.Element;
-  getTextResource: (key: string) => string;
 }
 
 const useStyles = makeStyles({
@@ -83,15 +77,17 @@ export const RadioButtonContainerComponent = (
 
   React.useEffect(() => {
     returnSelected();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   React.useEffect(() => {
     returnSelected();
-  }, [props.formData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.formData?.simpleBinding]);
 
   const returnSelected = () => {
     if (
-      !props.formData &&
+      !props.formData?.simpleBinding &&
       props.preselectedOptionIndex >= 0 &&
       options &&
       props.preselectedOptionIndex < options.length
@@ -101,9 +97,7 @@ export const RadioButtonContainerComponent = (
       setSelected(preSelectedValue);
     } else {
       setSelected(
-        props.formData !== undefined && props.formData !== null
-          ? props.formData
-          : '',
+        props.formData?.simpleBinding ?? '',
       );
     }
   };
@@ -115,7 +109,7 @@ export const RadioButtonContainerComponent = (
   };
 
   const handleOnBlur = () => {
-    props.handleDataChange(props.formData);
+    props.handleDataChange(props.formData?.simpleBinding ?? '');
   };
 
   const RenderLegend = props.legend;

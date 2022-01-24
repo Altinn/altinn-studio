@@ -1,5 +1,5 @@
 import { GridSize } from '@material-ui/core';
-import { IMapping, IOption, Triggers } from '../../../types';
+import { IOption, Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -67,16 +67,6 @@ export interface ISelectionComponentProps extends ILayoutComponent {
   optionsId?: string;
 }
 
-export type IDatepickerProps = ILayoutComponent;
-
-export interface IFileuploadProps extends ILayoutComponent {
-  maxNumberOfAttachments: number;
-  maxFileSizeInMB: number;
-  displayMode: any;
-  hasCustomFileEndings: boolean;
-  validFileEndings: any;
-}
-
 export interface IGrid extends IGridStyling {
   labelGrid?: IGridStyling;
   innerGrid?: IGridStyling;
@@ -88,52 +78,6 @@ export interface IGridStyling {
   md?: GridSize;
   lg?: GridSize;
   xl?: GridSize;
-}
-
-declare enum HeaderSize {
-  S,
-  M,
-  L,
-}
-
-export interface IHeaderProps extends ILayoutComponent {
-  size: HeaderSize;
-}
-
-declare enum InputFieldType {
-  text,
-  email,
-  password,
-}
-
-export interface IInputProps extends ILayoutComponent {
-  inputType: InputFieldType;
-}
-
-export interface INavigationButtonProps extends ILayoutComponent {
-  next?: string;
-  previous?: string;
-}
-
-export interface IInstantiationButtonProps extends ILayoutComponent {
-  mapping: IMapping;
-  text: string;
-}
-
-export type IParagraphProps = ILayoutComponent;
-
-export interface IRadioButtonsProps extends ILayoutComponent {
-  options: IOption[];
-  preselectedOptionIndex: number;
-}
-
-export type ITextAreaProps = ILayoutComponent;
-
-export interface IAdressComponent extends ILayoutComponent {
-  addressTextResourceBinding: string;
-  areaCodeTextResourceBinding: string;
-  coTextResourceBinding: string;
-  simpleDisplayMode: boolean;
 }
 
 export interface IGroupEditProperties {

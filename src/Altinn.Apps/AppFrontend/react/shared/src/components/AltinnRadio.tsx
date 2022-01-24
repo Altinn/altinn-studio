@@ -14,9 +14,6 @@ export interface IAltinnRadioComponentProvidedProps extends WithStyles<typeof st
 
 const theme = createTheme(altinnTheme);
 
-export interface IAltinnRadioComponentState {
-}
-
 const styles = () => createStyles({
   altinnFormControlLabel: {
     fontSize: '1.6rem',
@@ -33,7 +30,7 @@ const styles = () => createStyles({
 });
 
 export class AltinnRadio extends
-  React.Component<IAltinnRadioComponentProvidedProps, IAltinnRadioComponentState> {
+  React.Component<IAltinnRadioComponentProvidedProps> {
 
   public render() {
     if (!this.props.label) {

@@ -1,27 +1,56 @@
-import { mount } from 'enzyme';
-import 'jest';
 import * as React from 'react';
-import AltinnCheckBox from '../../src/components/AltinnCheckBox';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-describe('>>> AltinnCheckBox', () => {
-  let mockOnChangeFunction: any;
-  let mockChecked: boolean;
-  beforeEach(() => {
-    mockChecked = true;
-    mockOnChangeFunction = () => {
-      return false;
-    };
+import AltinnCheckBoxComponent from '../../src/components/AltinnCheckBox';
+
+const render = (props = {}) => {
+  const allProps = {
+    checked: false,
+    ...props,
+  };
+
+  rtlRender(<AltinnCheckBoxComponent {...allProps} />);
+};
+
+describe('AltinnCheckBox', () => {
+  it('should call change handler when clicked', () => {
+    const handleChange = jest.fn();
+    render({ onChangeFunction: handleChange });
+
+    const checkbox = screen.getByRole('checkbox');
+    userEvent.click(checkbox);
+
+    expect(handleChange).toHaveBeenCalled();
   });
 
-  it('+++ Should not be disabled on default', () => {
-    const mountedAltinnCheckbox = mount(
-      <AltinnCheckBox
-        onChangeFunction={mockOnChangeFunction}
-        checked={mockChecked}
-      />,
-    );
-    mountedAltinnCheckbox.find({ type: 'checkbox' }).forEach((node) => {
-      expect(node.props().disabled).toBe(false);
-    });
+  it('should not call change handler when clicked and disabled is true', () => {
+    const handleChange = jest.fn();
+    render({ onChangeFunction: handleChange, disabled: true });
+
+    const checkbox = screen.getByRole('checkbox');
+
+    expect(() => userEvent.click(checkbox)).toThrow(); // When disabled, pointer-events: none is set, so it will not be clickable, and it should throw
+    expect(handleChange).not.toHaveBeenCalled();
+  });
+
+  it('should call change handler when focused with tab and enter is hit', () => {
+    const handleChange = jest.fn();
+    render({ onKeyPressFunction: handleChange });
+
+    userEvent.tab();
+    userEvent.keyboard('{enter}');
+
+    expect(handleChange).toHaveBeenCalled();
+  });
+
+  it('should not call change handler when focused with tab and enter is hit, when disabled is true', () => {
+    const handleChange = jest.fn();
+    render({ onKeyPressFunction: handleChange, disabled: true });
+
+    userEvent.tab();
+    userEvent.keyboard('{enter}');
+
+    expect(handleChange).not.toHaveBeenCalled();
   });
 });

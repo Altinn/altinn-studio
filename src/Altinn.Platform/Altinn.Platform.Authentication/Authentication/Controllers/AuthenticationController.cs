@@ -121,6 +121,9 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="dontChooseReportee">Parameter to indicate disabling of reportee selection in Altinn Portal.</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status503ServiceUnavailable)]
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
@@ -232,6 +235,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> RefreshJwtCookie()
         {
             _logger.LogInformation("Starting to refresh token...");
@@ -252,6 +257,10 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The result of the action. Contains the new token if the old token was valid and could be exchanged.</returns>
         [AllowAnonymous]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(void), StatusCodes.Status429TooManyRequests)]
         [HttpGet("exchange/{tokenProvider}")]
         public async Task<ActionResult> ExchangeExternalSystemToken(string tokenProvider, [FromQuery] bool test)
         {
@@ -719,7 +728,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, string>(), Iss = provider.IssuerKey };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, List<string>>(), Iss = provider.IssuerKey };
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -782,7 +791,12 @@ namespace Altinn.Platform.Authentication.Controllers
                 // General claims handling
                 if (provider.ProviderClaims != null && provider.ProviderClaims.Contains(claim.Type))
                 {
-                    userAuthenticationModel.ProviderClaims.Add(claim.Type, claim.Value);
+                    if (!userAuthenticationModel.ProviderClaims.ContainsKey(claim.Type))
+                    {
+                        userAuthenticationModel.ProviderClaims.Add(claim.Type, new List<string>());
+                    }
+                       
+                    userAuthenticationModel.ProviderClaims[claim.Type].Add(claim.Value);
                 }
             }
 
@@ -1024,9 +1038,12 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (userAuthentication.ProviderClaims != null && userAuthentication.ProviderClaims.Count > 0)
             {
-                foreach (KeyValuePair<string, string> kvp in userAuthentication.ProviderClaims)
+                foreach (KeyValuePair<string, List<string>> kvp in userAuthentication.ProviderClaims)
                 {
-                    claims.Add(new Claim(kvp.Key, kvp.Value, ClaimValueTypes.String, issuer));
+                    foreach (string claimvalue in kvp.Value)
+                    {
+                        claims.Add(new Claim(kvp.Key, claimvalue, ClaimValueTypes.String, issuer));
+                    }
                 }
             }
 

@@ -1,16 +1,10 @@
 import { Grid } from '@material-ui/core';
-import { ILanguage } from 'altinn-shared/types';
 import * as React from 'react';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import { ITextResourceBindings } from 'src/types';
+import { IComponentProps } from '..';
 
-export interface IHeaderProps {
-  id: string;
-  text: string;
+export interface IHeaderProps extends IComponentProps {
   size?: string;
-  textResourceBindings: ITextResourceBindings;
-  language: ILanguage;
-  getTextResource: (key: string) => string;
 }
 
 const marginStyling = {
@@ -20,7 +14,7 @@ const marginStyling = {
 
 interface IHeaderSizeProps {
   id: string;
-  text: string;
+  text: React.ReactNode;
   size?: string;
 }
 

@@ -257,11 +257,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             CheckForRequiredPropertiesKeyword(subSchema, context);
 
-            if (IsPrimitiveType(subSchema))
+            if (IsSchemaExclusivePrimitiveType(subSchema))
             {
                 ProcessPrimitiveType(path, subSchema, context);
             }
-            else if (IsArrayType(subSchema))
+            else if (IsExclusiveArrayType(subSchema))
             {
                 ProcessArrayType(path, subSchema, context);
             }
@@ -282,7 +282,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            context.SchemaValueType = typeKeyword.Type;
+            context.SchemaValueType = GetPrimitiveType(typeKeyword.Type);
             AddElement(path, subSchema, context);
         }
 
@@ -365,9 +365,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessNillableType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
         {
-            if (subSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
+            TypeKeyword typeKeyword = null;
+            if (subSchema.TryGetKeyword(out typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Array))
             {
                 ProcessArrayType(path, subSchema, context);
+            }
+            else if (subSchema.TryGetKeyword(out typeKeyword) && typeKeyword.Type.HasFlag(SchemaValueType.Null))
+            {
+                context.IsNillable = true;
+                ProcessPrimitiveType(path, subSchema, context);
             }
             else
             {
@@ -377,7 +383,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 context.IsNillable = true;
 
                 ProcessSubSchema(path, schema, context);
-            }
+            }            
         }
 
         private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -604,6 +610,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private int GetMinOccurs(JsonSchema subSchema, SchemaContext context)
         {
+            if (context.IsNillable)
+            {
+                return 0;
+            }
+
             int minOccurs = IsRequired(context.Id, context.Name) ? 1 : 0;
 
             var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
@@ -806,7 +817,61 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return refkeyword != null;
         }
 
-        private static bool IsPrimitiveType(JsonSchema subSchema)
+        /// <summary>
+        /// Gets the primitive type flag set, either exlusively ie. it's
+        /// only one flag set or in combination with null ie. it's a
+        /// primitive nullable type.
+        /// </summary>
+        private static SchemaValueType GetPrimitiveType(SchemaValueType type)
+        {
+            if (IsExclusivePrimitiveType(type))
+            {
+                return type;
+            }
+
+            if (IsNullablePrimitiveType(type, SchemaValueType.String))
+            {
+                return SchemaValueType.String;
+            }
+
+            if (IsNullablePrimitiveType(type, SchemaValueType.Boolean))
+            {
+                return SchemaValueType.Boolean;
+            }
+
+            if (IsNullablePrimitiveType(type, SchemaValueType.Integer))
+            {
+                return SchemaValueType.Integer;
+            }
+
+            if (IsNullablePrimitiveType(type, SchemaValueType.Number))
+            {
+                return SchemaValueType.Number;
+            }
+
+            return SchemaValueType.Null;
+        }
+
+        /// <summary>
+        /// Checks if the actualType parameter is of the expectedType parameter combined with null.
+        /// SchemaValueType is a bitwise Enum and can hold all possible combinations.
+        /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type. 
+        /// </summary>
+        private static bool IsNullablePrimitiveType(SchemaValueType actualType, SchemaValueType expectedType)
+        {
+            if ((actualType | (expectedType | SchemaValueType.Null)) == (expectedType | SchemaValueType.Null))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Uses the type keyword to check if this exclusively is a primitive type.
+        /// Nullable primitive types will return false.
+        /// </summary>
+        private static bool IsSchemaExclusivePrimitiveType(JsonSchema subSchema)
         {
             var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
 
@@ -815,7 +880,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return false;
             }
 
-            switch (typeKeyword.Type)
+            return IsExclusivePrimitiveType(typeKeyword.Type);
+        }
+
+        /// <summary>
+        /// Check if this exclusively is a primitive type, ie. it's not
+        /// combined with any other flags.
+        /// </summary>
+        private static bool IsExclusivePrimitiveType(SchemaValueType type)
+        {
+            switch (type)
             {
                 case SchemaValueType.Boolean:
                 case SchemaValueType.Integer:
@@ -827,7 +901,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
         }
 
-        private static bool IsArrayType(JsonSchema subSchema)
+        private static bool IsExclusiveArrayType(JsonSchema subSchema)
         {
             var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
 

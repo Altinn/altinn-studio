@@ -4,6 +4,7 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react';
 import DropdownComponent from '../../../src/components/base/DropdownComponent';
+import { IComponentProps } from 'src/components';
 
 describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
   let mockId: string;
@@ -47,6 +48,7 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
           optionsId={mockOptionsId}
           isValid={mockIsValid}
           readOnly={false}
+          {...({} as IComponentProps)}
         />
       </Provider>,
     );
