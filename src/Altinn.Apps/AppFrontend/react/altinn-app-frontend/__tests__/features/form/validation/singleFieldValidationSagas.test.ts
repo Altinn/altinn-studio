@@ -7,12 +7,12 @@ import { runSingleFieldValidationSaga } from '../../../../src/features/form/vali
 import { runSingleFieldValidationFulfilled, runSingleFieldValidationRejected, setCurrentSingleFieldValidation } from '../../../../src/features/form/validation/validationSlice';
 import { IRuntimeState, IValidationIssue, IValidations, Severity } from '../../../../src/types';
 import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
-import { getDataValidationUrl } from '../../../../src/utils/urlHelper';
+import { getDataValidationUrl } from '../../../../src/utils/appUrlHelper';
 import { getParsedLanguageFromText } from '../../../../../shared/src';
 
 describe('singleFieldValidationSagas', () => {
   let mockState: IRuntimeState;
-  const mockTriggerField: string = 'mockField';
+  const mockTriggerField = 'mockField';
   const mockErrorMessage = 'This is wrong';
 
   beforeEach(() => {

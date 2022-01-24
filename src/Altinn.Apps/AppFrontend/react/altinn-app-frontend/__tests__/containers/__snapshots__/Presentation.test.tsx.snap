@@ -13,7 +13,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
     className="MuiPaper-root MuiAppBar-root AltinnAppHeader-altinnAppHeader-1 MuiAppBar-positionRelative MuiAppBar-colorPrimary MuiPaper-elevation4"
     style={
       Object {
-        "backgroundColor": "#1EADF7",
+        "backgroundColor": "#EFEFEF",
         "color": "#022F51",
       }
     }
@@ -208,10 +208,6 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
             >
               <i
                 aria-hidden="true"
-                className="ai ai-stack-1x ai-plain-circle-big"
-              />
-              <i
-                aria-hidden="true"
                 className="ai-stack-1x ai ai-exit  a-modal-close-icon"
               />
             </span>
@@ -240,15 +236,6 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
                   <div
                     className="a-iconText a-iconText-background a-iconText-large"
                   >
-                    <div
-                      className="a-iconText-icon"
-                    >
-                      <i
-                        aria-hidden="true"
-                        className="fa fa-corp a-icon"
-                        style={null}
-                      />
-                    </div>
                     <h1
                       className="a-iconText-text mb-0"
                     >

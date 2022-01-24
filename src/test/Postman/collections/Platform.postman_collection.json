@@ -1225,6 +1225,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -1273,6 +1283,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -1755,7 +1775,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n  {\r\n    \"delegatedByUserId\": 111,\r\n    \"offeredByPartyId\": 123,\r\n    \"coveredBy\": [\r\n      {\r\n        \"id\": \"urn:altinn:userid\",\r\n        \"value\": \"456\"\r\n      }\r\n    ],\r\n    \"resource\": [\r\n      {\r\n        \"id\": \"urn:altinn:org\",\r\n        \"value\": \"ttd\"\r\n      },\r\n\t  {\r\n        \"id\": \"urn:altinn:app\",\r\n        \"value\": \"apps-test\"\r\n      },\r\n      {\r\n        \"id\": \"urn:altinn:task\",\r\n        \"value\": \"Task_1\"\r\n      }\r\n    ],\r\n    \"action\": {\r\n      \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n      \"value\": \"read\"\r\n    }\r\n  }\r\n]",
+							"raw": "[\r\n  {\r\n    \"delegatedByUserId\": 111,\r\n    \"offeredByPartyId\": 123,\r\n    \"coveredBy\": [\r\n      {\r\n        \"id\": \"urn:altinn:userid\",\r\n        \"value\": \"456\"\r\n      }\r\n    ],\r\n    \"resource\": [\r\n      {\r\n        \"id\": \"urn:altinn:org\",\r\n        \"value\": \"ttd\"\r\n      },\r\n\t  {\r\n        \"id\": \"urn:altinn:app\",\r\n        \"value\": \"apps-test\"\r\n      },\r\n      {\r\n        \"id\": \"urn:altinn:task\",\r\n        \"value\": \"Task_1\"\r\n      }\r\n    ],\r\n    \"action\": {\r\n      \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n      \"value\": \"write\"\r\n    }\r\n  }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1808,7 +1828,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{  \r\n  \"policyMatches\": [\r\n    {\r\n      \"offeredByPartyId\": 123,\r\n      \"delegatedByUserId\": null,\r\n      \"resource\": [\r\n        {\r\n          \"id\": \"urn:altinn:org\",\r\n          \"value\": \"ttd\"\r\n        },\r\n\t\t{\r\n\t\t\"id\": \"urn:altinn:app\",\r\n\t\t\"value\": \"apps-test\"\r\n\t\t}\r\n      ],\r\n      \"coveredBy\": [\r\n        {\r\n          \"id\": \"urn:altinn:userid\",\r\n          \"value\": \"456\"\r\n        }\r\n      ]\r\n    }\r\n  ],\r\n  \"keyRolePartyIds\": [\r\n  ]\r\n}",
+							"raw": "{\r\n    \"parentPartyId\": 0,\r\n    \"keyRolePartyIds\": [\r\n        0\r\n    ],\r\n    \"offeredByPartyId\": 123,\r\n    \"resources\": [\r\n        [\r\n            {\r\n                \"id\": \"urn:altinn:org\",\r\n                \"value\": \"ttd\"\r\n            },\r\n            {\r\n                \"id\": \"urn:altinn:app\",\r\n                \"value\": \"apps-test\"\r\n            }\r\n        ]        \r\n    ],\r\n    \"coveredBy\": [\r\n        {\r\n            \"id\": \"urn:altinn:userid\",\r\n            \"value\": \"456\"\r\n        }\r\n    ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1861,7 +1881,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\r\n    {\r\n        \"ruleIds\": [\r\n            \"8006da1d-312a-4a9c-ae00-8cc57d65b33b\"\r\n        ],\r\n        \"deletedByUserId\": 111,\r\n        \"policyMatch\": {\r\n            \"offeredByPartyId\": 123,\r\n            \"resource\": [\r\n                {\r\n                    \"id\": \"urn:altinn:org\",\r\n                    \"value\": \"ttd\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:app\",\r\n                    \"value\": \"apps-test\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:task\",\r\n                    \"value\": \"Task_1\"\r\n                }\r\n            ],\r\n            \"coveredBy\": [\r\n                {\r\n                    \"id\": \"urn:altinn:userid\",\r\n                    \"value\": \"456\"\r\n                }\r\n            ],\r\n            \"action\": {\r\n                \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n                \"value\": \"read\"\r\n            }\r\n        }\r\n    }\r\n]",
+							"raw": "[\r\n    {\r\n        \"ruleIds\": [\r\n            \"09cba46e-060e-468a-8fb5-919a4160f5b7\"\r\n        ],\r\n        \"deletedByUserId\": 111,\r\n        \"policyMatch\": {\r\n            \"offeredByPartyId\": 123,\r\n            \"resource\": [\r\n                {\r\n                    \"id\": \"urn:altinn:org\",\r\n                    \"value\": \"ttd\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:app\",\r\n                    \"value\": \"apps-test\"\r\n                },\r\n                {\r\n                    \"id\": \"urn:altinn:task\",\r\n                    \"value\": \"Task_1\"\r\n                }\r\n            ],\r\n            \"coveredBy\": [\r\n                {\r\n                    \"id\": \"urn:altinn:userid\",\r\n                    \"value\": \"456\"\r\n                }\r\n            ],\r\n            \"action\": {\r\n                \"id\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n                \"value\": \"write\"\r\n            }\r\n        }\r\n    }\r\n]",
 							"options": {
 								"raw": {
 									"language": "json"
