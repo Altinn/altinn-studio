@@ -309,7 +309,10 @@
         "minDate": "1900-01-01T12:00:00Z",
         "maxDate": "2100-01-01T12:00:00Z",
         "required": true,
-        "timeStamp": false
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
       },
       {
         "id": "mobilnummer",
@@ -344,6 +347,26 @@
           "md": 6
         },
         "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.TredjeSignerer-grp-9349.SignererTredjeReferanseAltinn-datadef-34891.value"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }     
       },
       {
         "id": "fileUpload-changename",

@@ -9,6 +9,8 @@ using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
+using Altinn.App.services.options;
+using Altinn.App.PlatformServices.Options;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -78,6 +80,7 @@ namespace Altinn.App
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();
+            services.AddTransient<IAppOptionsProvider, ReferenceOptions>();
 
             services.Configure<KestrelServerOptions>(options =>
             {
