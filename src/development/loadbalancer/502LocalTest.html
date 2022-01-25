@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Localtest is not running</title>
 </head>
+
 <body>
   <h1>502 Bad Gateway</h1>
   <h2>Localtest is not running</h2>
@@ -14,5 +16,11 @@
     > cd src/development/LocalTest
     > dotnet run
   </pre>
+  <p>Alternaltivly you can run localtest in docker with the localtest profile</p>
+  <pre>
+    > cd src/development
+    > docker compose --profile localtest up --build
+  </pre>
 </body>
+
 </html>
