@@ -146,7 +146,10 @@
         {
           "key": "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value",
           "dataSource": "dataModel.ServiceModel-test"
-        }
+        },
+        { "key": "instanceId", "dataSource": "instanceContext" },
+        { "key": "appId", "dataSource": "instanceContext" },
+        { "key": "appUrl", "dataSource": "applicationSettings" }
       ]
     },
     {
