@@ -34,6 +34,7 @@ export default class AppFrontend {
     this.confirmContainer = '#ConfirmContainer';
     this.confirmBody = '#body-text';
     this.confirmSendInButton = '#confirm-button';
+    this.startAgain = '#startAgain';
 
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';

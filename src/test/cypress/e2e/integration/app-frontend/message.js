@@ -9,7 +9,7 @@ const appFrontend = new AppFrontend();
 describe('Message', () => {
   let instanceMetadata, instanceId;
   before(() => {
-    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
+    cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createdInstance');
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));
     cy.get(appFrontend.closeButton).should('be.visible');
@@ -39,6 +39,15 @@ describe('Message', () => {
         cy.get(attachments).first().should('contain.text', texts.downloadAttachment);
         cy.get(appFrontend.attachmentIcon).should('be.visible');
       });
+    cy.url().then((url) => {
+      var instantiateUrl =
+        Cypress.env('environment') != 'local'
+          ? 'https://ttd.apps.tt02.altinn.no/ttd/frontend-test/'
+          : 'http://altinn3local.no/ttd/frontend-test';
+      var instanceId = url.split('/').slice(-2).join('/');
+      cy.get(appFrontend.startAgain).contains(instanceId).and('contain.text', Cypress.env('multiData2Stage'));
+      cy.get(appFrontend.startAgain).find('a').should('have.attr', 'href', instantiateUrl);
+    });
     cy.get(appFrontend.sendinButton)
       .should('be.visible')
       .invoke('outerWidth')
