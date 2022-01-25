@@ -21,7 +21,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
     public class WebApplicationFactorySetup
     {
-        private WebApplicationFactory<Startup> _webApplicationFactory;
+        private readonly WebApplicationFactory<Startup> _webApplicationFactory;
 
         public WebApplicationFactorySetup(WebApplicationFactory<Startup> webApplicationFactory)
         {

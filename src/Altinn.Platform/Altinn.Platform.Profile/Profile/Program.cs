@@ -126,7 +126,7 @@ async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager confi
         }
         catch (Exception vaultException)
         {
-            logger.LogError($"Unable to read application insights key {vaultException}");
+            logger.LogError(vaultException, "Unable to read application insights key.");
         }
     }
 }
@@ -223,7 +223,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
         services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-        logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {applicationInsightsKey}");
+        logger.LogInformation("Startup // ApplicationInsightsTelemetryKey = {applicationInsightsKey}", applicationInsightsKey);
     }
 
     services.AddSwaggerGen(swaggerGenOptions => AddSwaggerGen(swaggerGenOptions));
@@ -247,7 +247,7 @@ void AddSwaggerGen(SwaggerGenOptions swaggerGenOptions)
 
 void Configure()
 {
-    logger.LogInformation($"Startup // Configure {app.Environment.ApplicationName}");
+    logger.LogInformation("Startup // Configure {appName}", app.Environment.ApplicationName);
 
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
