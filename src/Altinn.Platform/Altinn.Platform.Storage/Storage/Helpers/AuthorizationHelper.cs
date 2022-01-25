@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Authorizes a given action on an instance.
         /// </summary>
         /// <returns>true if the user is authorized.</returns>
-        public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action)
+        public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action, string task = null)
         {
             string org = instance.Org;
             string app = instance.AppId.Split('/')[1];
@@ -147,7 +147,7 @@ namespace Altinn.Platform.Storage.Helpers
             else
             {
                 Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid, task);
             }
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);

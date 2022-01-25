@@ -95,10 +95,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
+            string taskId = null;
 
             if (processState != null && processState.CurrentTask != null && processState.CurrentTask.FlowType != null && !processState.CurrentTask.FlowType.Equals("CompleteCurrentMoveToNext"))
             {
                 altinnTaskType = processState.CurrentTask.AltinnTaskType;
+                taskId = processState.CurrentTask.ElementId;
             }
 
             string action;
@@ -117,7 +119,7 @@ namespace Altinn.Platform.Storage.Controllers
                     break;
             }
 
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action);
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action, taskId);
 
             if (!authorized)
             {
