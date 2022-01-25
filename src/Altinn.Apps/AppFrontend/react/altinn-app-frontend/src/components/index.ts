@@ -14,7 +14,7 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
-import { NavigationBarComponent } from './base/NavigationBar';
+import { NavigationBar } from './base/NavigationBar';
 import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
 import { IGenericComponentProps } from './GenericComponent';
 import { IComponentFormData } from 'src/utils/formComponentUtils';
@@ -150,7 +150,7 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'NavigationBar',
-    Tag: NavigationBarComponent,
+    Tag: NavigationBar,
     Type: ComponentTypes.NavigationBar,
   },
 ];
