@@ -36,8 +36,6 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 
         public HttpClient GetTestServerClient()
         {
-            Program.ConfigureSetupLogging();
-
             return _webApplicationFactory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
