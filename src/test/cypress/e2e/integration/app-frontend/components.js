@@ -2,6 +2,7 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
+import * as texts from '../../fixtures/texts.json';
 
 const appFrontend = new AppFrontend();
 
@@ -9,10 +10,13 @@ describe('UI Components', () => {
   beforeEach(() => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));
-    cy.get(appFrontend.closeButton).should('be.visible');
   });
 
   it('Image component with help text', () => {
+    cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
+    cy.get(appFrontend.loadingAnimation).should('be.visible');
+    cy.get(appFrontend.closeButton).should('be.visible');
+    cy.get(appFrontend.header).should('contain.text', texts.startingSoon);
     cy.get(appFrontend.message.logo)
       .should('be.visible')
       .then((image) => {
@@ -25,5 +29,6 @@ describe('UI Components', () => {
         cy.get(appFrontend.helpText.alert).contains('Altinn logo').type('{esc}');
         cy.get(appFrontend.helpText.alert).should('not.exist');
       });
+    cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
   });
 });

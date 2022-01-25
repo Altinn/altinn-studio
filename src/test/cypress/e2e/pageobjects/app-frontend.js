@@ -6,6 +6,8 @@ export default class AppFrontend {
     this.startButton = '.btn';
 
     //Common
+    this.loadingAnimation = 'rect[role="presentation"]';
+    this.header = '.a-modal-header';
     this.closeButton = '.a-modal-close-icon';
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
