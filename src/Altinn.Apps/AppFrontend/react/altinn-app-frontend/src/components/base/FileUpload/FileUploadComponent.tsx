@@ -12,17 +12,12 @@ import { IComponentValidations } from '../../../types';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppSelector } from 'src/common/hooks';
-import { IComponentProps } from '../..';
 import { AttachmentsCounter, FileName } from './shared/render';
 import { DropzoneComponent } from './shared/DropzoneComponent';
+import { IFileUploadGenericProps } from './shared/props';
 
-export interface IFileUploadProps extends IComponentProps {
+export interface IFileUploadProps extends IFileUploadGenericProps {
   displayMode: string;
-  hasCustomFileEndings?: boolean;
-  maxFileSizeInMB: number;
-  maxNumberOfAttachments: number;
-  minNumberOfAttachments: number;
-  validFileEndings?: string;
 }
 
 export const bytesInOneMB = 1048576;

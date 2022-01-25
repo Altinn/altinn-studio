@@ -8,6 +8,7 @@ import { FileUploadWithTagComponent, IFileUploadWithTagProps } from '../../../sr
 import { AsciiUnitSeparator, getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations, parseFileUploadComponentWithTagValidationObject } from '../../../src/utils/formComponentUtils';
 import { ITextResourceBindings } from '../../../src/features/form/layout';
+import { IComponentProps } from 'src/components';
 
 
 describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
@@ -105,6 +106,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -127,6 +129,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -149,6 +152,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -170,6 +174,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -191,6 +196,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -214,6 +220,7 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
           getTextResource={mockGetTextResource}
           getTextResourceAsString={mockGetTextResourceAsString}
           textResourceBindings={mockTextResourceBindings}
+          {...({} as IComponentProps)}
         />
       </Provider>
     );
@@ -275,26 +282,4 @@ describe('>>> components/base/FileUploadWithTagComponent.tsx', () => {
     expect(removeFileEnding('navnutenfilendelse')).toEqual('navnutenfilendelse');
     expect(removeFileEnding(null)).toEqual('');
   });
-
-  function renderFileUploadWithTagComponent(props: Partial<IFileUploadWithTagProps> = {}) {
-    const defaultProps: IFileUploadWithTagProps = {
-      id: mockId,
-      language: {},
-      maxFileSizeInMB: mockMaxFileSizeInMB,
-      maxNumberOfAttachments: mockMaxNumberOfAttachments,
-      minNumberOfAttachments: mockMinNumberOfAttachments,
-      isValid: mockIsValid,
-      readOnly: mockReadOnly,
-      optionsId: mockOptionsId,
-      getTextResource: mockGetTextResource,
-      getTextResourceAsString: mockGetTextResourceAsString,
-      textResourceBindings: mockTextResourceBindings
-    };
-
-    return render(
-      <Provider store={mockStore}>
-        <FileUploadWithTagComponent {...defaultProps} {...props}/>
-      </Provider>
-    );
-  }
 });

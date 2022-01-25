@@ -3,13 +3,13 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IAttachment } from '../../../../shared/resources/attachments';
-import { ILanguage } from 'altinn-shared/types';
 import { IOption } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import AttachmentDispatcher from 'src/shared/resources/attachments/attachmentActions';
 import { renderValidationMessages } from 'src/utils/render';
 import { FileName } from '../shared/render';
 import classNames from 'classnames';
+import { IComponentProps } from 'src/components';
 
 const useStyles = makeStyles({
   textContainer: {
@@ -42,19 +42,13 @@ const useStyles = makeStyles({
   },
 });
 
-export interface EditWindowProps{
-  id: string;
+export interface EditWindowProps extends IComponentProps{
   attachment: IAttachment;
-  language: ILanguage;
   mobileView: boolean;
-  readOnly: boolean;
   options: IOption[];
-  getTextResource: (key: string) => string;
-  getTextResourceAsString: (key: string) => string;
   onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
   setEditIndex: (index: number) => void;
-  textResourceBindings: any;
   attachmentValidations: {
     id: string;
     message: string;

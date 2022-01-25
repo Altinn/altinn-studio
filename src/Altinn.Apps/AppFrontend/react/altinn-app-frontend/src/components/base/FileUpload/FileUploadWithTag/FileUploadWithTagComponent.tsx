@@ -6,7 +6,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import { IAttachment } from '../../../../shared/resources/attachments';
 import AttachmentDispatcher from '../../../../shared/resources/attachments/attachmentActions';
-import { IRuntimeState , IComponentValidations } from '../../../../types';
+import { IRuntimeState } from '../../../../types';
 import { renderValidationMessagesForComponent } from '../../../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,22 +14,11 @@ import { getFileUploadWithTagComponentValidations, isAttachmentError, isNotAttac
 import { AttachmentsCounter } from '../shared/render';
 import { FileList } from './FileListComponent';
 import { DropzoneComponent } from '../shared/DropzoneComponent';
+import { IFileUploadGenericProps } from '../shared/props';
+import { IComponentProps } from 'src/components';
 
-export interface IFileUploadWithTagProps {
-  hasCustomFileEndings?: boolean;
-  id: string;
-  isValid?: boolean;
-  componentValidations?: IComponentValidations;
-  language: any;
+export interface IFileUploadWithTagProps extends IFileUploadGenericProps {
   optionsId: string;
-  maxFileSizeInMB: number;
-  maxNumberOfAttachments: number;
-  minNumberOfAttachments: number;
-  readOnly: boolean;
-  validFileEndings?: string;
-  getTextResource: (key: string) => string;
-  getTextResourceAsString: (key: string) => string;
-  textResourceBindings: any;
 }
 
 export const bytesInOneMB = 1048576;
@@ -83,7 +72,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       tmpValidations.push(
         {
           id: attachment.id,
-          message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', props.language)} ${props.getTextResource(props.textResourceBindings.tagTitle).toLowerCase()}.`,
+          message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', props.language)} ${props.getTextResource(props.textResourceBindings.tagTitle).toString().toLowerCase()}.`,
         },
       );
       setValidations(validations.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
@@ -211,6 +200,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
         onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
         textResourceBindings={props.textResourceBindings}
+        {...({} as IComponentProps)}
       />
 
       {!shouldShowFileUpload() &&

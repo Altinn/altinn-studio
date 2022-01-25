@@ -6,10 +6,10 @@ import { AxiosRequestConfig } from 'axios';
 import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import { IRuntimeState } from '../../../../types';
-import { fileTagUrl } from '../../../../utils/urlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as updateActions from './updateAttachmentActions';
+import { fileTagUrl } from 'src/utils/appUrlHelper';
 
 export function* updateAttachmentSaga(
   {

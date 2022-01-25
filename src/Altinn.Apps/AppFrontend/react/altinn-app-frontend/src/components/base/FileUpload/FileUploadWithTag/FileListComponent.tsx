@@ -3,12 +3,12 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Grid, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnLoader } from 'altinn-shared/components';
 import { IAttachment } from '../../../../shared/resources/attachments';
-import { ILanguage } from 'altinn-shared/types';
 import { IOption } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import { FileName } from '../shared/render';
 import { EditWindowComponent } from './EditWindowComponent';
+import { IComponentProps } from 'src/components';
 
 const useStyles = makeStyles({
   table: {
@@ -113,16 +113,11 @@ const useStyles = makeStyles({
   },
 });
 
-export interface FileListProps {
-  id: string;
+export interface FileListProps extends IComponentProps {
   attachments: IAttachment[];
-  language: ILanguage;
   editIndex: number;
   mobileView: boolean;
-  readOnly: boolean;
   options: IOption[];
-  getTextResource: (key: string) => string;
-  getTextResourceAsString: (key: string) => string;
   onEdit: (index: any) => void;
   onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
@@ -131,7 +126,6 @@ export interface FileListProps {
     id: string;
     message: string;
   }[];
-  textResourceBindings: any;
 }
 
 export const bytesInOneMB = 1048576;
@@ -286,7 +280,9 @@ export function FileList(props: FileListProps): JSX.Element {
                         onSave={props.onSave}
                         onDropdownDataChange={props.onDropdownDataChange}
                         setEditIndex={props.setEditIndex}
-                        textResourceBindings={props.textResourceBindings} />
+                        textResourceBindings={props.textResourceBindings}
+                        {...({} as IComponentProps)}
+                      />
                   </TableCell>
                 </TableRow>
               );
