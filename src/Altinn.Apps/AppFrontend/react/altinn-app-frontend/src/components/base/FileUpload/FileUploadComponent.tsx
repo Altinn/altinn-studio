@@ -392,6 +392,8 @@ export function FileUploadComponent(props: IFileUploadProps) {
           onClick={handleClick}
           onDrop={handleDrop}
           hasValidationMessages={hasValidationMessages}
+          hasCustomFileEndings={props.hasCustomFileEndings}
+          validFileEndings={props.validFileEndings}
       />
       )}
 

@@ -168,6 +168,8 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
           onClick={handleClick}
           onDrop={handleDrop}
           hasValidationMessages={hasValidationMessages}
+          hasCustomFileEndings={props.hasCustomFileEndings}
+          validFileEndings={props.validFileEndings}
         />
       }
 
