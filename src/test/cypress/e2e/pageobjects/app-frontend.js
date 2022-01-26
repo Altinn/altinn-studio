@@ -59,6 +59,7 @@ export default class AppFrontend {
       newFullName: '#changeNameTo',
       confirmChangeName: '#confirmChangeName',
       reasons: '#reason',
+      reference: '#reference',
       dateOfEffect: '#dateOfEffect',
       upload: '#fileUpload-changename',
       reasonRelationship: '#reasonRelationship',
