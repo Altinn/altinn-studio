@@ -26,6 +26,9 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
@@ -351,6 +354,10 @@ public class PDFGenerator {
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
     lines.add(getLanguageString("reference_number") + " " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
+    ZonedDateTime lastChanged = instance.getLastChangedZonedDateTime();
+    if(lastChanged != null){
+      lines.add(getLanguageString("date_sent") + " " + lastChanged.withZoneSameInstant(ZoneId.of("Europe/Oslo")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy / HH:mm")));
+    }
     for (String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);

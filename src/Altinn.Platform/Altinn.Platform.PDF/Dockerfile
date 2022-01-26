@@ -1,10 +1,12 @@
 FROM maven:3.8.4-openjdk-17 AS build
-WORKDIR build
-COPY . .
+WORKDIR /build
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY src src
 RUN mvn -Pprod package
 
 FROM mcr.microsoft.com/openjdk/jdk:17-ubuntu AS final
-WORKDIR app
+WORKDIR /app
 COPY --from=build /build/target .
 # setup the user and group
 # the user will have no password, using shell /bin/false and using the group dotnet

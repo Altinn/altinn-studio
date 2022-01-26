@@ -3,6 +3,11 @@ package altinn.platform.pdf.models;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Schema(description = "The instance metadata json file.")
@@ -14,8 +19,8 @@ public class Instance {
   private String appId;
   @NotNull
   private String org;
-  private String createdDateTime;
-  private String lastChangedDateTime;
+  private String created;
+  private String lastChanged;
   private Title title;
 
   public Title getTitle() {
@@ -66,19 +71,27 @@ public class Instance {
     this.org = org;
   }
 
-  public String getCreatedDateTime() {
-    return createdDateTime;
+  public String getCreated() {
+    return created;
   }
 
-  public void setCreatedDateTime(String createdDateTime) {
-    this.createdDateTime = createdDateTime;
+  public void setCreated(String createdDateTime) {
+    this.created = createdDateTime;
   }
 
-  public String getLastChangedDateTime() {
-    return lastChangedDateTime;
+  public String getLastChanged() {
+    return lastChanged;
+  }
+  public ZonedDateTime getLastChangedZonedDateTime() {
+    try{
+      return ZonedDateTime.parse(lastChanged, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }catch (DateTimeParseException e){
+      System.out.println(e);
+      return null;
+    }
   }
 
-  public void setLastChangedDateTime(String lastChangedDateTime) {
-    this.lastChangedDateTime = lastChangedDateTime;
+  public void setLastChanged(String lastChangedDateTime) {
+    this.lastChanged = lastChangedDateTime;
   }
 }
