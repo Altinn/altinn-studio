@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 
@@ -9,6 +10,19 @@ namespace Altinn.App.Common.Helpers
     /// </summary>
     public static class SelfLinkHelper
     {
+        private static string[] testDomains = { "altinn3local.no", "local.altinn.cloud" };
+
+        private static string GetSafeScheme(HttpRequest request)
+        {
+            if (testDomains.Contains(request.Host.Host))
+            {
+                return request.Scheme;
+            }
+
+            // return https for all non-whitelisted domains
+            return "https";
+        }
+
         /// <summary>
         /// Sets the application specific self links.
         /// </summary>
@@ -16,7 +30,7 @@ namespace Altinn.App.Common.Helpers
         /// <param name="request">the http request to extract host and path name</param>
         public static void SetInstanceAppSelfLinks(Instance instance, HttpRequest request)
         {
-            string host = $"https://{request.Host.ToUriComponent()}";
+            string host = $"{GetSafeScheme(request)}://{request.Host.ToUriComponent()}";
             string url = request.Path;
 
             string selfLink = $"{host}{url}";
@@ -56,7 +70,7 @@ namespace Altinn.App.Common.Helpers
         /// <param name="request">the http request to extract host and path name</param>
         public static void SetDataAppSelfLinks(int instanceOwnerPartyId, Guid instanceGuid, DataElement dataElement, HttpRequest request)
         {
-            string host = $"https://{request.Host.ToUriComponent()}";
+            string host = $"{GetSafeScheme(request)}://{request.Host.ToUriComponent()}";
             string url = request.Path;
 
             string selfLink = $"{host}{url}";
