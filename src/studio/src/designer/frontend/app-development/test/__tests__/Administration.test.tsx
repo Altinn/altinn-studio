@@ -72,7 +72,7 @@ describe('Administration', () => {
     messageShort: '',
     encoding: '',
   };
-  const mockServiceDescription = 'AppDescription';;;
+  const mockServiceDescription = 'AppDescription';
   const mockServiceId = 'AppId';
   const mockServiceInformation: IHandleServiceInformationState = {
     initialCommit: mockInitialCommit,
