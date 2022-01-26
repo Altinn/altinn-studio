@@ -1,51 +1,17 @@
-/* eslint-disable max-len */
-
-import { createTheme, createStyles, Grid, withStyles } from '@material-ui/core';
+import { createTheme, Grid, makeStyles } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
-import { ICommit, IRepository } from '../../../types/global';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
-import { repoStatusUrl } from '../../../utils/urlHelper';
-
-export interface IAdministrationComponentProvidedProps {
-  classes: any;
-  dispatch?: Dispatch;
-}
-
-export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
-  initialCommit: ICommit;
-  language: any;
-  service: IRepository;
-  serviceDescription: string;
-  serviceDescriptionIsSaving: boolean;
-  serviceId: string;
-  serviceIdIsSaving: boolean;
-  serviceName: string;
-  serviceNameIsSaving: boolean;
-}
-
-export interface IAdministrationComponentState {
-  editServiceDescription: boolean;
-  editServiceId: boolean;
-  editServiceName: boolean;
-  serviceDescription: string;
-  serviceId: string;
-  serviceName: string;
-  serviceNameAnchorEl: any;
-}
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 
 const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
+const useStyles = makeStyles({
   avatar: {
     maxHeight: '2em',
   },
@@ -63,7 +29,7 @@ const styles = createStyles({
   },
   iconStyling: {
     fontSize: 35,
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   sidebarServiceOwner: {
     marginTop: 10,
@@ -88,212 +54,147 @@ const styles = createStyles({
   },
 });
 
-export class AdministrationComponent extends
-  React.Component<IAdministrationComponentProps, IAdministrationComponentState> {
-  public static getDerivedStateFromProps(_props: IAdministrationComponentProps, _state: IAdministrationComponentState) {
-    if (_state.editServiceName || _props.serviceNameIsSaving) {
-      return {
-        serviceDescription: _props.serviceDescription,
-        serviceId: _props.serviceId,
-        serviceName: _state.serviceName,
-      };
-    }
-    if (_state.editServiceDescription || _props.serviceDescriptionIsSaving) {
-      return {
-        serviceDescription: _state.serviceDescription,
-        serviceId: _props.serviceId,
-        serviceName: _props.serviceName,
-      };
-    }
-    if (_state.editServiceId || _props.serviceIdIsSaving) {
-      return {
-        serviceDescription: _props.serviceDescription,
-        serviceId: _state.serviceId,
-        serviceName: _props.serviceName,
-      };
-    }
-    return {
-      serviceDescription: _props.serviceDescription,
-      serviceId: _props.serviceId,
-      serviceName: _props.serviceName,
-    };
+export function AdministrationComponent() {
+  const name = useAppSelector(state => state.serviceInformation.serviceNameObj.name);
+  const description = useAppSelector(state => state.serviceInformation.serviceDescriptionObj.description);
+  const id = useAppSelector(state => state.serviceInformation.serviceIdObj.serviceId);
+  const language = useAppSelector(state => state.languageState.language);
+  const service = useAppSelector(state => state.serviceInformation.repositoryInfo);
+  const initialCommit = useAppSelector(state => state.serviceInformation.initialCommit);
+  const classes = useStyles();
+  const dispatch = useAppDispatch();
+
+  const [newName, setNewName] = React.useState<string>(name);
+  const [newDescription, setNewDescription] = React.useState<string>(description);
+  const [newId, setNewId] = React.useState<string>(id);
+  const [editAppName, setEditAppName] = React.useState<boolean>();
+  const [editAppDescription, setEditAppDescription] = React.useState<boolean>();
+  const [editAppId, setEditAppId] = React.useState<boolean>();
+  const [appNameAnchorEl, setAppNameAnchorEl] = React.useState<HTMLElement>();
+
+  React.useEffect(() => {
+    setNewName(name);
+  }, [name]);
+
+  React.useEffect(() => {
+    setNewDescription(description);
+  }, [description]);
+
+  React.useEffect(() => {
+    setNewId(id);
+  }, [id]);
+
+  const onServiceNameChanged = (event: any) => {
+    setNewName(event.target.value);
+    setAppNameAnchorEl(null);
   }
 
-  // eslint-disable-next-line react/state-in-constructor
-  public state: IAdministrationComponentState = {
-    editServiceDescription: false,
-    editServiceId: false,
-    editServiceName: false,
-    serviceDescription: '',
-    serviceId: '',
-    serviceName: this.props.serviceName,
-    serviceNameAnchorEl: null,
-  };
-
-  public componentDidMount() {
-    const altinnWindow: any = window;
-    const { org, app } = altinnWindow;
-
-    this.props.dispatch(HandleServiceInformationActions.fetchService(
-      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}` },
-    ));
-    this.props.dispatch(HandleServiceInformationActions.fetchInitialCommit(
-      { url: `${altinnWindow.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit` },
-    ));
-    this.props.dispatch(HandleServiceInformationActions.fetchServiceConfig(
-      { url: `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
-    ));
-    this.props.dispatch(fetchRepoStatus({
-      url: repoStatusUrl,
-      org,
-      repo: app,
-    }));
+  const handleEditServiceName = () => {
+    setEditAppName(true);
   }
 
-  public onServiceNameChanged = (event: any) => {
-    this.setState({ serviceName: event.target.value, serviceNameAnchorEl: null });
-  }
-
-  public handleEditServiceName = () => {
-    this.setState({ editServiceName: true });
-  }
-
-  public onBlurServiceName = () => {
-    if (this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === '')) {
-      this.setState({
-        serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
-      });
+  const onBlurAppName = () => {
+    if (editAppName && !newName) {
+      setAppNameAnchorEl(document.getElementById('administrationInputServicename'));
     } else {
       const { org, app } = window as Window as IAltinnWindow;
-      // eslint-disable-next-line max-len
-      this.props.dispatch(HandleServiceInformationActions.saveServiceName({
+      dispatch(HandleServiceInformationActions.saveServiceName({
         url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
-        newServiceName: this.state.serviceName,
+        newServiceName: newName,
       }));
-      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+      dispatch(HandleServiceInformationActions.saveServiceConfig({
         url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        newServiceDescription: this.state.serviceDescription,
-        newServiceId: this.state.serviceId,
-        newServiceName: this.state.serviceName,
+        newServiceDescription: newDescription,
+        newServiceId: newId,
+        newServiceName: newName,
       }));
-      this.setState({ editServiceName: false });
+      setEditAppName(false);
     }
   }
 
-  public onServiceDescriptionChanged = (event: any) => {
-    this.setState({ serviceDescription: event.target.value, editServiceDescription: true });
+  const onServiceDescriptionChanged = (event: any) => {
+    setNewDescription(event.target.value);
+    setEditAppDescription(true);
   }
 
-  public onBlurServiceDescription = () => {
-    if (this.state.editServiceDescription) {
+  const onBlurAppDescription = () => {
+    if (editAppDescription) {
       const { org, app } = window as Window as IAltinnWindow;
-      // eslint-disable-next-line max-len
-      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+      dispatch(HandleServiceInformationActions.saveServiceConfig({
         url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        newServiceDescription: this.state.serviceDescription,
-        newServiceId: this.state.serviceId,
-        newServiceName: this.state.serviceName,
+        newServiceDescription: newDescription,
+        newServiceId: newId,
+        newServiceName: newName,
       }));
-      this.setState({ editServiceDescription: false });
+      setEditAppDescription(false);
     }
   }
 
-  public onServiceIdChanged = (event: any) => {
-    this.setState({ serviceId: event.target.value, editServiceId: true });
+  const onAppIdChanged = (event: any) => {
+    setNewId(event.target.value);
+    setEditAppId(true);
   }
 
-  public onBlurServiceId = () => {
-    if (this.state.editServiceId) {
+  const onBlurAppId = () => {
+    if (editAppId) {
       const { org, app } = window as Window as IAltinnWindow;
-      // eslint-disable-next-line max-len
-      this.props.dispatch(HandleServiceInformationActions.saveServiceConfig({
+      dispatch(HandleServiceInformationActions.saveServiceConfig({
         url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        newServiceDescription: this.state.serviceDescription,
-        newServiceId: this.state.serviceId,
-        newServiceName: this.state.serviceName,
+        newServiceDescription: newDescription,
+        newServiceId: newId,
+        newServiceName: newName,
       }));
-      this.setState({ editServiceId: false });
+      setEditAppId(false);
     }
   }
 
-  public RenderMainContent = () => {
-    return (
-      <MainContent
-        editServiceName={this.state.editServiceName}
-        handleEditServiceName={this.handleEditServiceName}
-        language={this.props.language}
-        onBlurServiceDescription={this.onBlurServiceDescription}
-        onBlurServiceId={this.onBlurServiceId}
-        onBlurServiceName={this.onBlurServiceName}
-        onServiceDescriptionChanged={this.onServiceDescriptionChanged}
-        onServiceIdChanged={this.onServiceIdChanged}
-        onServiceNameChanged={this.onServiceNameChanged}
-        service={this.props.service}
-        serviceDescription={this.state.serviceDescription}
-        serviceId={this.state.serviceId}
-        serviceName={this.state.serviceName}
-        serviceNameAnchorEl={this.state.serviceNameAnchorEl}
-      />
-    );
-  }
+  const render = service &&
+    newName !== null &&
+    newDescription !== null &&
+    newId !== null;
 
-  public render() {
-    const {
-      classes, service, serviceName, serviceDescription, serviceId,
-    } = this.props;
-    const render = service &&
-      serviceName !== null &&
-      serviceDescription !== null &&
-      serviceId !== null;
-    const AboveColumnChildren = () => (
-      <div className={classes.versionControlHeaderMargin}>
-        <VersionControlHeader language={this.props.language} />
-      </div>
-    );
-    const SideMenuChildren = () => (
-      <SideMenuContent
-        initialCommit={this.props.initialCommit}
-        language={this.props.language}
-        service={this.props.service}
-      />
-    );
-    return (
-      <div data-testid='administration-container'>
-        {render ? (
-          <AltinnColumnLayout
-            aboveColumnChildren={<AboveColumnChildren />}
-            sideMenuChildren={<SideMenuChildren />}
-            header={getLanguageFromKey('administration.administration', this.props.language)}
-          >
-            <this.RenderMainContent />
-          </AltinnColumnLayout>
-        ) :
-          <Grid container={true}>
-            <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
-          </Grid>
-        }
-      </div>
-    );
-  }
+  return (
+    <div data-testid='administration-container'>
+      {render ? (
+        <AltinnColumnLayout
+          aboveColumnChildren={
+            <div className={classes.versionControlHeaderMargin}>
+              <VersionControlHeader language={language} />
+            </div>
+          }
+          sideMenuChildren={
+            <SideMenuContent
+              initialCommit={initialCommit}
+              language={language}
+              service={service}
+            />
+          }
+          header={getLanguageFromKey('administration.administration', language)}
+        >
+          <MainContent
+            editServiceName={editAppName}
+            handleEditServiceName={handleEditServiceName}
+            language={language}
+            onBlurServiceDescription={onBlurAppDescription}
+            onBlurServiceId={onBlurAppId}
+            onBlurServiceName={onBlurAppName}
+            onServiceDescriptionChanged={onServiceDescriptionChanged}
+            onServiceIdChanged={onAppIdChanged}
+            onServiceNameChanged={onServiceNameChanged}
+            service={service}
+            serviceDescription={newDescription}
+            serviceId={newId}
+            serviceName={newName}
+            serviceNameAnchorEl={appNameAnchorEl}
+          />
+        </AltinnColumnLayout>
+      ) :
+        <Grid container={true}>
+          <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
+        </Grid>
+      }
+    </div>
+  );
 }
 
-const mapStateToProps = (
-  state: IServiceDevelopmentState,
-  props: IAdministrationComponentProvidedProps,
-): IAdministrationComponentProps => {
-  return {
-    classes: props.classes,
-    dispatch: props.dispatch,
-    initialCommit: state.serviceInformation.initialCommit,
-    language: state.languageState.language,
-    service: state.serviceInformation.repositoryInfo,
-    serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
-    serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
-    serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
-    serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
-    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
-  };
-};
-
-export const Administration = withStyles(styles)(connect(mapStateToProps)(AdministrationComponent));
+export const Administration = AdministrationComponent;

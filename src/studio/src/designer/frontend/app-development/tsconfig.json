@@ -19,7 +19,8 @@
     "paths": {
       "app-shared/*": ["../shared/*"],
       "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
-      "services/*": ["./src/services/*"]
+      "services/*": ["./src/services/*"],
+      "common/*": ["common/*"]
     }
   },
   "include": ["./**/*", "../shared/**/*", "../ux-editor/**/*"],

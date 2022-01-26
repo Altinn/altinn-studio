@@ -1,9 +1,7 @@
 import { Grid, Typography } from '@material-ui/core';
-import { createTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createTheme, MuiThemeProvider, makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { RouteChildrenProps, HashRouter as Router, withRouter } from 'react-router-dom';
-import { compose, Dispatch } from 'redux';
+import { HashRouter as Router } from 'react-router-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -18,12 +16,13 @@ import { repoStatusUrl } from './utils/urlHelper';
 import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 import LeftMenu from './layout/LeftMenu';
 import PageHeader from './layout/PageHeader';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 
 import './App.css';
 
 const theme = createTheme(altinnTheme);
 
-const styles = () => createStyles({
+const useStyles = makeStyles({
   container: {
     backgroundColor: theme.altinnPalette.primary.greyLight,
     height: '100%',
@@ -46,172 +45,126 @@ const styles = () => createStyles({
   },
 });
 
-export interface IServiceDevelopmentProvidedProps {
-  dispatch?: Dispatch;
-}
+const GetRepoStatusSelector = makeGetRepoStatusSelector();
+const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
 
-export interface IServiceDevelopmentProps extends WithStyles<typeof styles>, IServiceDevelopmentProvidedProps {
-  language: any;
-  location: any;
-  repoStatus: any;
-  serviceName: any;
-  remainingSessionMinutes: number;
-}
-export interface IServiceDevelopmentAppState {
-  sessionExpiredPopoverRef: React.RefObject<HTMLDivElement>;
-  remainingSessionMinutes: number;
-  lastKeepAliveTimestamp: number;
-}
+export function App() {
+  const language = useAppSelector(state => state.languageState.language);
+  const repoStatus = useAppSelector(GetRepoStatusSelector);
+  const remainingSessionMinutes = useAppSelector(state => state.userState.session.remainingMinutes);
+  const dispatch = useAppDispatch();
+  const classes = useStyles();
+  const [lastKeepAliveTimestamp, setLastKeepAliveTimestamp] = React.useState<number>(0);
+  const sessionExpiredPopoverRef = React.useRef<HTMLDivElement>(null);
 
-const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
-
-class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
-  constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
-    super(_props, _state);
-    this.state = {
-      sessionExpiredPopoverRef: React.createRef<HTMLDivElement>(),
-      remainingSessionMinutes: _props.remainingSessionMinutes,
-      lastKeepAliveTimestamp: 0,
-    };
-  }
-
-  public componentDidMount() {
+  React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
-    this.props.dispatch(fetchLanguage({
+    dispatch(fetchLanguage({
       url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
       languageCode: 'nb',
     }));
-    this.props.dispatch(HandleServiceInformationActions.fetchServiceName({
+    dispatch(HandleServiceInformationActions.fetchServiceName({
       url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
     }));
-    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-    this.props.dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-    this.props.dispatch(fetchRemainingSession());
-    this.checkForMergeConflict();
-    this.setEventListeners(true);
-    window.addEventListener('message', this.windowEventReceived);
-  }
-
-  public componentDidUpdate(_prevProps: IServiceDevelopmentProps) {
-    if (_prevProps.remainingSessionMinutes !== this.props.remainingSessionMinutes) {
-      // OK, because of the guard above
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState(() => ({
-        remainingSessionMinutes: this.props.remainingSessionMinutes,
-      }));
-      return true;
-    }
-    return false;
-  }
-
-  public componentWillUnmount() {
-    window.removeEventListener('message', this.windowEventReceived);
-    this.setEventListeners(false);
-  }
-
-  public checkForMergeConflict = () => {
-    const { org, app } = window as Window as IAltinnWindow;
-
-    this.props.dispatch(fetchRepoStatus({
-      url: repoStatusUrl,
-      org,
-      repo: app,
-    }));
-  }
-
-  public keepAliveSession = () => {
-    const timeNow = Date.now();
-    if (
-      (this.state.remainingSessionMinutes > 10) &&
-      (this.state.remainingSessionMinutes <= 30) &&
-      ((timeNow - this.state.lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
-      this.setState(() => ({
-        lastKeepAliveTimestamp: timeNow,
-      }));
-      this.props.dispatch((keepAliveSession()));
-    }
-  }
-
-  public setEventListeners = (subscribe: boolean) => {
-    const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
-    keepAliveListeners.forEach((listener) => (subscribe ? window.addEventListener : window.removeEventListener)(
-      listener, this.keepAliveSession,
+    dispatch(ApplicationMetadataActions.getApplicationMetadata());
+    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
+    dispatch(fetchRemainingSession());
+    dispatch(HandleServiceInformationActions.fetchService(
+      { url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}` },
     ));
-  }
+    dispatch(HandleServiceInformationActions.fetchInitialCommit(
+      { url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit` },
+    ));
+    dispatch(HandleServiceInformationActions.fetchServiceConfig(
+      { url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
+    ));
+  }, [dispatch]);
 
-  public windowEventReceived = (event: any) => {
-    if (event.data === postMessages.forceRepoStatusCheck) {
-      this.checkForMergeConflict();
+  React.useEffect(() => {
+    const setEventListeners = (subscribe: boolean) => {
+      const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
+      keepAliveListeners.forEach((listener) => (subscribe ? window.addEventListener : window.removeEventListener)(
+        listener, keepAliveSessionState,
+      ));
     }
-  }
+    const windowEventReceived = (event: any) => {
+      if (event.data === postMessages.forceRepoStatusCheck) {
+        checkForMergeConflict();
+      }
+    }
+    const keepAliveSessionState = () => {
+      const timeNow = Date.now();
 
-  public handleSessionExpiresClose = (action: string) => {
+      if (
+        (remainingSessionMinutes > 10) &&
+        (remainingSessionMinutes <= 30) &&
+        ((timeNow - lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
+        setLastKeepAliveTimestamp(timeNow);
+        dispatch((keepAliveSession()));
+      }
+    }
+    const checkForMergeConflict = () => {
+      const { org, app } = window as Window as IAltinnWindow;
+      dispatch(fetchRepoStatus({
+        url: repoStatusUrl,
+        org,
+        repo: app,
+      }));
+    }
+
+    setEventListeners(true);
+    window.addEventListener('message', windowEventReceived);
+    return function cleanup() {
+      window.removeEventListener('message', windowEventReceived);
+      setEventListeners(false);
+    }
+  }, [dispatch, lastKeepAliveTimestamp, remainingSessionMinutes]);
+
+
+  const handleSessionExpiresClose = React.useCallback((action: string) => {
     if (action === 'close') {
       // user clicked close button, sign user out
-      this.props.dispatch(signOutUser());
+      dispatch(signOutUser());
     } else {
       // user clicked outside the popover or pressed "continue", keep signed in
-      this.props.dispatch(keepAliveSession());
-      this.setState(() => ({
-        lastKeepAliveTimestamp: Date.now(),
-      }));
+      dispatch(keepAliveSession());
+      setLastKeepAliveTimestamp(Date.now());
     }
-  }
-
-  public render() {
-    const { classes, repoStatus } = this.props;
-    return (
-      <MuiThemeProvider theme={theme}>
-        <Router>
-          <div className={classes.container} ref={this.state.sessionExpiredPopoverRef}>
-            <AltinnPopoverSimple
-              anchorEl={(this.state.remainingSessionMinutes < 11) ? this.state.sessionExpiredPopoverRef : null}
-              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-              handleClose={(event: string) => this.handleSessionExpiresClose(event)}
-              btnCancelText={getLanguageFromKey('general.sign_out', this.props.language)}
-              btnConfirmText={getLanguageFromKey('general.continue', this.props.language)}
-              btnClick={this.handleSessionExpiresClose}
-              paperProps={{ style: { margin: '2.4rem' } }}
-            >
-              <Typography variant='h2'>
-                {getLanguageFromKey('session.expires', this.props.language)}
-              </Typography>
-              <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
-                {getLanguageFromKey('session.inactive', this.props.language)}
-              </Typography>
-            </AltinnPopoverSimple>
-            <Grid container={true} direction='row'>
-              <PageHeader repoStatus={repoStatus} />
-              <LeftMenu
-                repoStatus={repoStatus}
-                classes={classes}
-                language={this.props.language}
-              />
-            </Grid>
-          </div>
-        </Router>
-      </MuiThemeProvider>
-    );
-  }
+  }, [dispatch]);
+  
+  return (
+    <MuiThemeProvider theme={theme}>
+      <Router>
+        <div className={classes.container} ref={sessionExpiredPopoverRef}>
+          <AltinnPopoverSimple
+            anchorEl={(remainingSessionMinutes < 11) ? sessionExpiredPopoverRef.current : null}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+            handleClose={(event: string) => handleSessionExpiresClose(event)}
+            btnCancelText={getLanguageFromKey('general.sign_out', language)}
+            btnConfirmText={getLanguageFromKey('general.continue', language)}
+            btnClick={handleSessionExpiresClose}
+            paperProps={{ style: { margin: '2.4rem' } }}
+          >
+            <Typography variant='h2'>
+              {getLanguageFromKey('session.expires', language)}
+            </Typography>
+            <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
+              {getLanguageFromKey('session.inactive', language)}
+            </Typography>
+          </AltinnPopoverSimple>
+          <Grid container={true} direction='row'>
+            <PageHeader repoStatus={repoStatus} />
+            <LeftMenu
+              repoStatus={repoStatus}
+              classes={classes}
+              language={language}
+            />
+          </Grid>
+        </div>
+      </Router>
+    </MuiThemeProvider>
+  );
 }
 
-const makeMapStateToProps = () => {
-  const GetRepoStatusSelector = makeGetRepoStatusSelector();
-  return (
-    state: IServiceDevelopmentState,
-    props: IServiceDevelopmentProvidedProps,
-  ) => ({
-    repoStatus: GetRepoStatusSelector(state),
-    language: state.languageState.language,
-    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    dispatch: props.dispatch,
-    remainingSessionMinutes: state.userState.session.remainingMinutes,
-  });
-};
-
-export default compose(
-  withRouter,
-  withStyles(styles),
-  connect(makeMapStateToProps),
-)(App);
+export default App;

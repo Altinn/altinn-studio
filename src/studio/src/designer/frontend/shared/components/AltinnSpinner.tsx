@@ -6,7 +6,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnSpinnerComponentProvidedProps {
   id?: string;
   spinnerText?: any;
-  styleObj?: object;
+  styleObj?: string;
 }
 
 const theme = createTheme(altinnTheme);
