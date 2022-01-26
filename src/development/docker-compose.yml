@@ -17,6 +17,7 @@ services:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
       - SUB_FILTER=${SUB_FILTER:-}
+      - TEST_DOMAIN=${TEST_DOMAIN:-altinn3local.no}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     build:
       context: ./loadbalancer
@@ -46,7 +47,8 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://*:5101/
-      - GeneralSettings__BaseUrl=http://altinn3local.no:${ALTINN3LOCAL_PORT:-80}
+      - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-altinn3local.no}:${ALTINN3LOCAL_PORT:-80}
+      - GeneralSettings__HostName=${TEST_DOMAIN:-altinn3local.no}
     volumes:
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
 
