@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Profile.Services.Implementation
 {
     /// <summary>
-    /// The organization wrapper
+    /// Represents an implementation of <see cref="IUserProfiles"/> using SBLBridge to obtain profile information.
     /// </summary>
     public class UserProfilesWrapper : IUserProfiles
     {
