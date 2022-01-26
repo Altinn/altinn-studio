@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
@@ -46,13 +47,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 ConfigureSetupLogging();
 
-SetConfigurationProviders(builder.Configuration);
+await SetConfigurationProviders(builder.Configuration);
 
 ConfigureLogging(builder.Logging);
 
 ConfigureServices(builder.Services, builder.Configuration);
-
-builder.WebHost.UseUrls("http://*:5020");
 
 var app = builder.Build();
 
@@ -60,7 +59,7 @@ Configure();
 
 app.Run();
 
-void SetConfigurationProviders(ConfigurationManager config)
+async Task SetConfigurationProviders(ConfigurationManager config)
 {
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
@@ -76,12 +75,12 @@ void SetConfigurationProviders(ConfigurationManager config)
 
     config.AddEnvironmentVariables();
 
-    ConnectToKeyVaultAndSetApplicationInsights(config);
+    await ConnectToKeyVaultAndSetApplicationInsights(config);
 
     config.AddCommandLine(args);
 }
 
-void ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager config)
+async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager config)
 {
     KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
@@ -103,14 +102,14 @@ void ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager config)
             keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
         try
         {
-            SecretBundle secretBundle = keyVaultClient
-                .GetSecretAsync(keyVaultSettings.SecretUri, vaultApplicationInsightsKey).Result;
+            SecretBundle secretBundle = await keyVaultClient
+                .GetSecretAsync(keyVaultSettings.SecretUri, vaultApplicationInsightsKey);
 
             applicationInsightsKey = secretBundle.Value;
         }
         catch (Exception vaultException)
         {
-            logger.LogError($"Unable to read application insights key {vaultException}");
+            logger.LogError(vaultException, $"Unable to read application insights key.");
         }
     }
 }
@@ -226,7 +225,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
         services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-        logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {applicationInsightsKey}");
+        logger.LogInformation("Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}", applicationInsightsKey);
     }
 
     // Add Swagger support (Swashbuckle)
@@ -247,7 +246,7 @@ void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
     }
     catch (Exception e)
     {
-        logger.LogWarning("Prorgam // Exception when attempting to include the XML comments file(s): " + e.Message);
+        logger.LogWarning(e, "Prorgam // Exception when attempting to include the XML comments file(s).");
     }
 }
 
