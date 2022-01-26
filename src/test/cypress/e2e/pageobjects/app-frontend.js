@@ -65,6 +65,11 @@ export default class AppFrontend {
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
       sources: '#sources',
+      uploadingAnimation: '#loader-upload',
+      deleteAttachment: 'div[id^="attachment-delete"]',
+      uploadedTable: '#altinn-file-listfileUpload-changename',
+      uploadSuccess: '.ai-check-circle',
+      uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
     };
 
     //group - task 3
