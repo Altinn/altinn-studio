@@ -1,22 +1,17 @@
 import * as React from 'react';
+import { IComponentProps } from '..';
 import '../../styles/shared.css';
 
-export interface ITextAreaComponentProps {
-  id: string;
-  formData: any;
-  handleDataChange: (value: any) => void;
-  isValid?: boolean;
-  readOnly: boolean;
-}
+export function TextAreaComponent(props: IComponentProps) {
+  const formData = props.formData?.simpleBinding;
 
-export function TextAreaComponent(props: ITextAreaComponentProps) {
   const [value, setValue] = React.useState(
-    props.formData ? props.formData : '',
+    formData ?? '',
   );
 
   React.useEffect(() => {
-    setValue(props.formData);
-  }, [props.formData]);
+    setValue(formData);
+  }, [formData]);
 
   const onDataChanged = (e: any) => {
     setValue(e.target.value);

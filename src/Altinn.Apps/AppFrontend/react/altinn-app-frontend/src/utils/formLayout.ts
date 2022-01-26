@@ -1,4 +1,5 @@
 import { ITextResource } from 'altinn-shared/types';
+import { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
 import {
   IRepeatingGroups,
   ILayoutNavigation,
@@ -6,7 +7,6 @@ import {
   IMapping,
 } from 'src/types';
 import {
-  IInstantiationButtonProps,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,

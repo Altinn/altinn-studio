@@ -41,6 +41,19 @@ const useStyles = makeStyles({
       left: '37px',
       width: 'calc(100% + 154px)',
     },
+    '& &': {
+      width: 'auto',
+      marginLeft: '0',
+
+      '@media (min-width:768px)': {
+        width: 'auto',
+        marginLeft: '0',
+      },
+      '@media (min-width:993px)': {
+        width: 'auto',
+        left: '0',
+      },
+    }
   }
 });
 

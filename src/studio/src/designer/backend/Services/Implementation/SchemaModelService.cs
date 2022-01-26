@@ -158,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     xsdMemoryStream.Position = 0;
                     Manatee.Json.Schema.JsonSchema schemaJsonSchema = GenerateJsonSchema(xsdMemoryStream);
                     string jsonSerialized = SerializeJson(schemaJsonSchema);
-                    await UpdateAllAppModelFiles(org, repository, developer, filePath, jsonSerialized);
+                    await UpdateAllAppModelFiles(org, repository, developer, Path.ChangeExtension(filePath, "schema.json"), jsonSerialized);
 
                     return jsonSerialized;
             }
@@ -196,7 +196,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<(string, string)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
+        public async Task<(string RelativePath, string JsonSchema)> CreateSchemaFromTemplate(string org, string repository, string developer, string schemaName, string relativeDirectory = "", bool altinn2Compatible = false)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
@@ -283,6 +283,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task UpdateAllAppModelFiles(string org, string repository, string developer, string relativeFilePath, string jsonContent)
         {
+            if (!relativeFilePath.ToLower().EndsWith(".schema.json"))
+            {
+                throw new ArgumentException($"This methods expects a model file with extension .schema.json, a file named {relativeFilePath} was provided.");
+            }
+
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
             var schemaName = GetSchemaName(relativeFilePath);

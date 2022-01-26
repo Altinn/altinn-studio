@@ -3,7 +3,8 @@ import React from 'react';
 import theme from '../../theme/altinnStudioTheme';
 
 export interface IMobileTableItem {
-  label: string;
+  key: React.Key;
+  label: React.ReactNode;
   value: string;
 }
 
@@ -81,7 +82,7 @@ export default function AltinnMobileTableItem({
         <TableBody>
           {items.map((item) => {
             return (
-              <TableRow key={item.label}>
+              <TableRow key={item.key}>
                 <TableCell variant='head' width='40%'>
                   <Typography variant='body1' className={`${classes.labelText} ${classes.textContainer}`}>
                     {item.label}

@@ -11,6 +11,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Helpers
@@ -213,7 +214,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest
@@ -265,8 +266,7 @@ namespace Altinn.Platform.Storage.Helpers
             resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
 
             // Replaces the current Resource attributes
-            jsonRequest.Request.Resource = new List<XacmlJsonCategory>();
-            jsonRequest.Request.Resource.Add(resourceCategory);
+            jsonRequest.Request.Resource = new List<XacmlJsonCategory> { resourceCategory };
         }
 
         /// <summary>

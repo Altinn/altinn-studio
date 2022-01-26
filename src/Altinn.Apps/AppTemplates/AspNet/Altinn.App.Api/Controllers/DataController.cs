@@ -520,7 +520,9 @@ namespace Altinn.App.Api.Controllers
             catch (NotImplementedException)
             {
                 // Trigger application business logic the old way. DEPRICATED
+#pragma warning disable CS0612 // Type or member is obsolete
                 await _altinnApp.RunCalculation(appModel);
+#pragma warning restore CS0612 // Type or member is obsolete
             }
 
             string userOrgClaim = User.GetOrg();
@@ -570,7 +572,9 @@ namespace Altinn.App.Api.Controllers
             catch (NotImplementedException)
             {
                 // Trigger application business logic the old way. DEPRICATED
-                 changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+#pragma warning disable CS0612 // Type or member is obsolete
+                changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
+#pragma warning restore CS0612 // Type or member is obsolete
             }
 
             await UpdatePresentationTextsOnInstance(instance, dataType, serviceModel);
