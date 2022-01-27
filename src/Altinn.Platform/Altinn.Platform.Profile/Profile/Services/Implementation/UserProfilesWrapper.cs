@@ -50,7 +50,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting user with user id {userId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting user {userId} failed with {statusCode}", userId, response.StatusCode);
             }
 
             return user;
@@ -73,7 +73,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting user by SSN failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting user by SSN failed with statuscode {statusCode}", response.StatusCode);
             }
 
             return user;
