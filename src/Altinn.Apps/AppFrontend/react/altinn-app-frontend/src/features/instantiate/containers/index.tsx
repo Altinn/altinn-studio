@@ -45,13 +45,11 @@ const InstantiateContainer = () => {
   });
 
   React.useEffect(() => {
-    if (!instantiating && !instantiation.instanceId) {
+    if (!instantiating && !instantiation.instanceId && selectedParty) {
       const createNewInstance = () => {
-        if (selectedParty) {
-          const { org, app } = window as Window as IAltinnWindow;
-          setInstantiating(true);
-          InstantiationActions.instantiate(org, app);
-        }
+        const { org, app } = window as Window as IAltinnWindow;
+        setInstantiating(true);
+        InstantiationActions.instantiate(org, app);
       };
 
       createNewInstance();
