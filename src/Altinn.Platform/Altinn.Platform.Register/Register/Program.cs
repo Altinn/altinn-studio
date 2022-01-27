@@ -276,10 +276,3 @@ void Configure()
     app.MapControllers();
     app.MapHealthChecks("/health");
 }
-
-/// <summary>
-/// Partial class made available for unit tests
-/// </summary>
-public partial class Program
-{
-}

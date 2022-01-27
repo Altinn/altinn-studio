@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Register.Controllers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Register.Tests.Mocks;
@@ -27,15 +28,15 @@ using Xunit;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
-    public class PartiesControllerTests : IClassFixture<WebApplicationFactory<Program>>
+    public class PartiesControllerTests : IClassFixture<WebApplicationFactory<PartiesController>>
     {
-        private readonly WebApplicationFactory<Program> _factory;
+        private readonly WebApplicationFactory<PartiesController> _factory;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="PartiesControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public PartiesControllerTests(WebApplicationFactory<Program> factory)
+        public PartiesControllerTests(WebApplicationFactory<PartiesController> factory)
         {
             _factory = factory;
         }
