@@ -13,7 +13,7 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
     className="MuiPaper-root MuiAppBar-root AltinnAppHeader-altinnAppHeader-1 MuiAppBar-positionRelative MuiAppBar-colorPrimary MuiPaper-elevation4"
     style={
       Object {
-        "backgroundColor": "#1EADF7",
+        "backgroundColor": "#EFEFEF",
         "color": "#022F51",
       }
     }
@@ -206,10 +206,6 @@ exports[`>>> containers/Presentation.tsx +++ should match snapshot 1`] = `
             <span
               className="ai-stack"
             >
-              <i
-                aria-hidden="true"
-                className="ai ai-stack-1x ai-plain-circle-big"
-              />
               <i
                 aria-hidden="true"
                 className="ai-stack-1x ai ai-exit  a-modal-close-icon"

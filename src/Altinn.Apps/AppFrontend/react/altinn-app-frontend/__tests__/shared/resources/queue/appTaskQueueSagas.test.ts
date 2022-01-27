@@ -3,7 +3,7 @@ import { startInitialAppTaskQueueSaga } from 'src/shared/resources/queue/appTask
 import { startInitialAppTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
 import TextResourcesActions from 'src/shared/resources/textResources/textResourcesActions';
 import ProfileActions from 'src/shared/resources/profile/profileActions';
-import { profileApiUrl } from 'src/utils/urlHelper';
+import { profileApiUrl } from 'src/utils/appUrlHelper';
 import LanguageActions from 'src/shared/resources/language/languageActions';
 import ApplicationMetadataActionDispatcher from 'src/shared/resources/applicationMetadata/actions';
 import PartyActions from 'src/shared/resources/party/partyActions';

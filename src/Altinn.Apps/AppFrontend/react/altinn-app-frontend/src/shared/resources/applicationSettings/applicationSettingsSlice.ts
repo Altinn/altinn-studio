@@ -1,5 +1,5 @@
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IApplicationSettings } from '../../../types';
+import { IApplicationSettings } from 'altinn-shared/types';
 import * as ApplicationSettingsTypes from './applicationSettingsTypes';
 
 export interface IApplicationSettingsState {

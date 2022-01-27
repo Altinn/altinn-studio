@@ -24,7 +24,7 @@ describe('Mobile', () => {
       .then((width) => {
         width = Math.round(width);
         expect(width).to.be.gt(268);
-        expect(width).to.be.lt(272);
+        expect(width).to.be.lt(274);
       });
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');

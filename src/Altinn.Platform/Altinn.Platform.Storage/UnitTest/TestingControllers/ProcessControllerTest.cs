@@ -181,6 +181,56 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         }
 
         /// <summary>
+        /// Test case: Uses want to go back to a earlier state
+        /// Expected: Returns status ok. 
+        /// </summary>
+        [Fact]
+        public async void PutProcessGatewayReturn_UserIsAuthorized_ReturnStatusOK()
+        {
+            // Arrange 
+            string requestUri = $"storage/api/v1/instances/1337/20b1353e-91cf-44d6-8ff7-f68993638ffe/process/";
+            ProcessState state = new ProcessState();
+            state.CurrentTask = new ProcessElementInfo();
+            state.CurrentTask.ElementId = "Task_1";
+            state.CurrentTask.FlowType = "AbandonCurrentReturnToNext";
+            state.CurrentTask.AltinnTaskType = "data";
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
+
+            HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetToken(3, 1337, 3);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: User wants to updates process on confirimation task. User does not have role required
+        /// Expected: Returns forbidden. 
+        /// </summary>
+        [Fact]
+        public async void PutProcessConfirm_UserIsNotAuthorized_ReturnDenied()
+        {
+            // Arrange 
+            string requestUri = $"storage/api/v1/instances/1337/20b1353e-91cf-44d6-8ff7-f68993638ffe/process/";
+            ProcessState state = new ProcessState();
+            JsonContent jsonString = JsonContent.Create(state, new MediaTypeHeaderValue("application/json"));
+
+            HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetToken(3, 1337, 3);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
         /// Test case: User is Authorized
         /// Expected: Returns status ok. 
         /// </summary>

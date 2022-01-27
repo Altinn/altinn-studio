@@ -27,7 +27,7 @@
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0034" />
     <PackageReference Include="Manatee.Json" Version="13.0.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="2.0.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.22" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -40,9 +40,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.22" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.39" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.40" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Include="Markdig" Version="0.26.0" />
+    <PackageReference Include="Markdig" Version="0.27.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
     <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />

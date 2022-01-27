@@ -18,7 +18,7 @@ import {
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { get } from 'src/utils/networking';
-import { getRedirectUrl } from 'src/utils/urlHelper';
+import { getRedirectUrl } from 'src/utils/appUrlHelper';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/presentation/Header';
 import NavBar from '../../components/presentation/NavBar';
@@ -94,7 +94,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   );
   const backgroundColor = isProcessStepsArchived
     ? AltinnAppTheme.altinnPalette.primary.greenLight
-    : AltinnAppTheme.altinnPalette.primary.blue;
+    : AltinnAppTheme.altinnPalette.primary.greyLight;
   document.body.style.background = backgroundColor;
 
   return (

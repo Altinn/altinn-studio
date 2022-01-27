@@ -35,11 +35,10 @@
   },
   "devDependencies": {
     "axe-core": "^4.3.5",
-    "cypress": "^9.2.1",
+    "cypress": "^9.3.1",
     "cypress-axe": "^0.14.0",
-    "cypress-file-upload": "^5.0.8",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^8.6.0",
+    "eslint": "^8.7.0",
     "eslint-plugin-cypress": "^2.12.1",
     "faker": "5.5.3",
     "fs-extra": "^10.0.0",

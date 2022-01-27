@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, all, put, take, select, takeLatest } from 'redux-saga/effects';
 import { IInstance } from 'altinn-shared/types';
 import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
-import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/urlHelper';
+import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/appUrlHelper';
 import { get } from '../../../../utils/networking';
 import { FormLayoutActions as Actions } from '../formLayoutSlice';
 import FormDataActions from '../../data/formDataActions';

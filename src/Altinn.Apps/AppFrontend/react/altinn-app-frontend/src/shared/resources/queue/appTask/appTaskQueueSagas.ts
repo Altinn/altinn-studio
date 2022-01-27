@@ -8,8 +8,8 @@ import TextResourcesActions from '../../textResources/textResourcesActions';
 import ProfileActions from '../../profile/profileActions';
 import LanguageActions from '../../language/languageActions';
 import PartyActions from '../../party/partyActions';
-import { profileApiUrl } from '../../../../utils/urlHelper';
 import OrgsActions from 'src/shared/resources/orgs/orgsActions';
+import { profileApiUrl } from '../../../../utils/appUrlHelper';
 
 export function* startInitialAppTaskQueueSaga(): SagaIterator {
   yield put(ApplicationSettingsActions.fetchApplicationSettings());

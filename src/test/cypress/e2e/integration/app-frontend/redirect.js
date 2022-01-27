@@ -14,7 +14,7 @@ describe('Redirect', () => {
   });
 
   it('User missing role to start the app is displayed', () => {
-    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`, {
+    cy.intercept('POST', `**/instances?instanceOwnerPartyId*`, {
       statusCode: 403,
     });
     cy.startAppInstance(Cypress.env('multiData2Stage'));

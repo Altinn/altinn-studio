@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -92,6 +92,28 @@ namespace Altinn.Studio.Designer.Controllers
               });
 
             return Ok(_sessingExtensionInMinutes);
+        }
+
+        /// <summary>
+        /// Gets session details for debug purposes
+        /// </summary>
+        /// <returns>Dictionary containing session details</returns>
+        [HttpGet]
+        [Route("details")]
+        [Authorize]
+        public ActionResult GetSessionDetails()
+        {
+            HttpContext ctx = _httpContextAccessor.HttpContext;
+
+            var sessionDetails = new Dictionary<string, string>
+            {
+                { "AppToken", AuthenticationHelper.GetDeveloperAppToken(ctx) },
+                { "AppTokenId", AuthenticationHelper.GetDeveloperAppTokenId(ctx) },
+                { "Username", AuthenticationHelper.GetDeveloperUserName(ctx) },
+                { "DesignerSessionTimeout", GetRemainingSessionTime().ToString() }
+            };
+
+            return Ok(sessionDetails);
         }
     }
 }
