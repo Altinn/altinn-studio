@@ -367,7 +367,7 @@ __metadata:
     requirejs: ^2.3.6
     requirejs-text: ^2.0.16
     rivets: ^0.9.6
-    select2: ^4.1.0-rc.0
+    select2: ^4.0.13
     sightglass: ^0.2.6
     underscore: ^1.13.2
     webpack: ^4.46.0
@@ -4841,10 +4841,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"select2@npm:^4.1.0-rc.0":
-  version: 4.1.0-rc.0
-  resolution: "select2@npm:4.1.0-rc.0"
-  checksum: c27cefc3967d2082b2887869e8379f6e8e0ec2e02a268b7abbaec87fbda20abe4d62ac008b87a14f17bfa46dd27aa0b33ee793ed30142e3bc30ba408e208ad20
+"select2@npm:^4.0.13":
+  version: 4.0.13
+  resolution: "select2@npm:4.0.13"
+  checksum: f0e657861e0d135437d763dcfc0e1581ea55d08f4057212b1baf9da2d59406849cb54d6dca9853b5551abe2b5aa06ba2b1712dcadd1f5a42eca053658d13358e
   languageName: node
   linkType: hard
 

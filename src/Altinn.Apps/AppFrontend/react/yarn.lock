@@ -3817,7 +3817,7 @@ __metadata:
     git-revision-webpack-plugin: ^3.0.6
     html-loader: ^1.3.2
     html-webpack-plugin: ^4.5.2
-    immutability-helper: 2.9.1
+    immutability-helper: 2.7.0
     jest: ^27.4.7
     jest-junit: ^12.3.0
     jsonpointer: 5.0.0
@@ -8796,12 +8796,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immutability-helper@npm:2.9.1":
-  version: 2.9.1
-  resolution: "immutability-helper@npm:2.9.1"
+"immutability-helper@npm:2.7.0":
+  version: 2.7.0
+  resolution: "immutability-helper@npm:2.7.0"
   dependencies:
     invariant: ^2.2.0
-  checksum: 8b66d20c22d517d4bff861616adec67294f1cf40bc1aedf68a5ebd5ae42c56593dc6c9bfb507f18705048bdecec03ef01f2b7817d6864fd7b06cbcc5e1f3f855
+  checksum: 08bb18d2de291b7140529e8f9aede94b1d318b3d3f29d88a5e85688ec969854e8ad78b5d699d46adb615cf476448987f1f9e6ddcc630e7cc96bfb97e2d3b5d0c
   languageName: node
   linkType: hard
 
