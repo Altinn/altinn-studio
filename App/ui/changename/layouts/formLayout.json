@@ -366,7 +366,7 @@
         },
         "mapping": {
           "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
-        }     
+        }
       },
       {
         "id": "fileUpload-changename",
@@ -380,7 +380,29 @@
         "displayMode": "list",
         "required": false,
         "hasCustomFileEndings": true,
-        "validFileEndings": ".pdf"
+        "validFileEndings": ".pdf",
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "fileUploadWithTags-changename",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Last opp vedlegg og knytte den mot en tag",
+          "tagTitle": "file type"
+        },
+        "maxFileSizeInMB": 5,
+        "maxNumberOfAttachments": 3,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "required": false,
+        "hasCustomFileEndings": true,
+        "validFileEndings": [".jpeg", ".jpg", ".pdf"],
+        "optionsId": "tags",
+        "grid": {
+          "md": 6
+        }
       },
       {
         "id": "toSummary",
