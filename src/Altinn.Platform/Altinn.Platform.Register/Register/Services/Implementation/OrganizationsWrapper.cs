@@ -47,7 +47,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting org with org nr {orgNr} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting org with org nr {OrgNr} failed with statuscode {StatusCode}", orgNr, response.StatusCode);
             }
 
             return null;
