@@ -19,11 +19,12 @@ using Moq;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
-    public class WebApplicationFactorySetup
+    public class WebApplicationFactorySetup<T>
+        where T : class
     {
-        private readonly WebApplicationFactory<Startup> _webApplicationFactory;
+        private readonly WebApplicationFactory<T> _webApplicationFactory;
 
-        public WebApplicationFactorySetup(WebApplicationFactory<Startup> webApplicationFactory)
+        public WebApplicationFactorySetup(WebApplicationFactory<T> webApplicationFactory)
         {
             _webApplicationFactory = webApplicationFactory;
         }

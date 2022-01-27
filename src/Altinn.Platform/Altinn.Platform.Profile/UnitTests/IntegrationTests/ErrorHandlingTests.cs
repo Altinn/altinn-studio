@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Profile.Controllers;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
 
 using Microsoft.AspNetCore.Mvc;
@@ -12,13 +13,13 @@ using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
-    public class ErrorHandlingTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class ErrorHandlingTests : IClassFixture<WebApplicationFactory<ErrorController>>
     {
-        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
+        private readonly WebApplicationFactorySetup<ErrorController> _webApplicationFactorySetup;
 
-        public ErrorHandlingTests(WebApplicationFactory<Startup> factory)
+        public ErrorHandlingTests(WebApplicationFactory<ErrorController> factory)
         {
-            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
+            _webApplicationFactorySetup = new WebApplicationFactorySetup<ErrorController>(factory);
         }
 
         [Fact]

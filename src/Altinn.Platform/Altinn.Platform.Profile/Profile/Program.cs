@@ -147,7 +147,7 @@ void ConfigureApplicationLogging(ILoggingBuilder logging)
         // Providing an instrumentation key here is required if you're using
         // standalone package Microsoft.Extensions.Logging.ApplicationInsights
         // or if you want to capture logs from early in the application startup 
-        // pipeline from Startup.cs or Program.cs itself.
+        // pipeline from Program.cs itself.
         logging.AddApplicationInsights(applicationInsightsKey);
 
         // Optional: Apply filters to control what logs are sent to Application Insights.
@@ -223,7 +223,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
         services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-        logger.LogInformation("Startup // ApplicationInsightsTelemetryKey = {applicationInsightsKey}", applicationInsightsKey);
+        logger.LogInformation("Program // ApplicationInsightsTelemetryKey = {applicationInsightsKey}", applicationInsightsKey);
     }
 
     services.AddSwaggerGen(swaggerGenOptions => AddSwaggerGen(swaggerGenOptions));
@@ -247,7 +247,7 @@ void AddSwaggerGen(SwaggerGenOptions swaggerGenOptions)
 
 void Configure()
 {
-    logger.LogInformation("Startup // Configure {appName}", app.Environment.ApplicationName);
+    logger.LogInformation("Program // Configure {appName}", app.Environment.ApplicationName);
 
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {

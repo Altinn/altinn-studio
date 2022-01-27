@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Profile.Configuration;
+using Altinn.Platform.Profile.Controllers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
 using Altinn.Platform.Profile.Tests.Mocks;
@@ -19,18 +20,18 @@ using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
-    public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class UserProfileTests : IClassFixture<WebApplicationFactory<UsersController>>
     {
-        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
+        private readonly WebApplicationFactorySetup<UsersController> _webApplicationFactorySetup;
 
         private readonly JsonSerializerOptions serializerOptionsCamelCase = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        public UserProfileTests(WebApplicationFactory<Startup> factory)
+        public UserProfileTests(WebApplicationFactory<UsersController> factory)
         {
-            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
+            _webApplicationFactorySetup = new WebApplicationFactorySetup<UsersController>(factory);
 
             GeneralSettings generalSettings = new() { BridgeApiEndpoint = "http://localhost/" };
             _webApplicationFactorySetup.GeneralSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
