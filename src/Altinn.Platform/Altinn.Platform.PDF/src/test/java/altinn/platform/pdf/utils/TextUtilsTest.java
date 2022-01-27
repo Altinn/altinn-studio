@@ -1,10 +1,14 @@
 package altinn.platform.pdf.utils;
 
+import altinn.platform.pdf.models.TextResourceElement;
+import altinn.platform.pdf.models.TextResources;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 public class TextUtilsTest extends TestCase {
@@ -101,4 +105,56 @@ public class TextUtilsTest extends TestCase {
       String filtered = TextUtils.removeIllegalChars(unfiltered);
       assertEquals(unfiltered, filtered);
     }
+
+    public void testGetAppOwnerNameShouldReturnValueFromResourcesIfResourcesHasAppOwnerKey() {
+      TextResources textResources = new TextResources();
+      TextResourceElement appOwnerKey = new TextResourceElement();
+      appOwnerKey.setValue("AppOwnerNameFromResource");
+      appOwnerKey.setId("appOwner");
+      textResources.setResources(Arrays.asList(appOwnerKey));
+
+      String result = TextUtils.getAppOwnerName("ttd", "nb", textResources);
+
+      String expected = "AppOwnerNameFromResource";
+      assertEquals(expected, result);
+
+    }
+
+  public void testGetAppOwnerNameShouldReturnValueFromCdnIfResourcesHasNoAppOwnerKey() {
+    TextResources textResources = new TextResources();
+    textResources.setResources(new ArrayList<>());
+
+    String result = TextUtils.getAppOwnerName("ttd", "nb", textResources);
+
+    String expected = "ttd"; // expected as orgs list is not fetched
+    assertEquals(expected, result);
+  }
+
+  public void testGetAppNameShouldReturnAppNameIfKeyPresent() {
+    TextResources textResources = new TextResources();
+    TextResourceElement appOwnerKey = new TextResourceElement();
+    appOwnerKey.setValue("AppNameFromNewKey");
+    appOwnerKey.setId("appName");
+    textResources.setResources(Arrays.asList(appOwnerKey));
+
+    String result = TextUtils.getAppName(textResources);
+
+    String expected = "AppNameFromNewKey";
+    assertEquals(expected, result);
+  }
+
+  public void testGetAppNameShouldReturnServiceNameAsFallback() {
+    TextResources textResources = new TextResources();
+    TextResourceElement appOwnerKey = new TextResourceElement();
+    appOwnerKey.setValue("AppNameFromOldKey");
+    appOwnerKey.setId("ServiceName");
+    textResources.setResources(Arrays.asList(appOwnerKey));
+
+    String result = TextUtils.getAppName(textResources);
+
+    String expected = "AppNameFromOldKey";
+    assertEquals(expected, result);
+  }
+
+
 }
