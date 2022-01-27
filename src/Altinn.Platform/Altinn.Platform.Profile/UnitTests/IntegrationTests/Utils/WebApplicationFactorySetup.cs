@@ -19,25 +19,24 @@ using Moq;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 {
-    public class WebApplicationFactorySetup
+    public class WebApplicationFactorySetup<T>
+        where T : class
     {
-        private WebApplicationFactory<Startup> _webApplicationFactory;
+        private readonly WebApplicationFactory<T> _webApplicationFactory;
 
-        public WebApplicationFactorySetup(WebApplicationFactory<Startup> webApplicationFactory)
+        public WebApplicationFactorySetup(WebApplicationFactory<T> webApplicationFactory)
         {
             _webApplicationFactory = webApplicationFactory;
         }
 
-        public Mock<ILogger<UserProfilesWrapper>> UserProfilesWrapperLogger { get; set; } = new ();
+        public Mock<ILogger<UserProfilesWrapper>> UserProfilesWrapperLogger { get; set; } = new();
 
-        public Mock<IOptions<GeneralSettings>> GeneralSettingsOptions { get; set; } = new ();
+        public Mock<IOptions<GeneralSettings>> GeneralSettingsOptions { get; set; } = new();
 
         public HttpMessageHandler SblBridgeHttpMessageHandler { get; set; } = new DelegatingHandlerStub();
 
         public HttpClient GetTestServerClient()
         {
-            Program.ConfigureSetupLogging();
-
             return _webApplicationFactory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
