@@ -43,6 +43,10 @@ const useStyles = makeStyles({
     '@media (min-width:993px)': {
       padding: '36px',
     },
+    '& &': {
+      padding: '24px',
+      border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    }
   },
   deleteItem: {
     paddingBottom: '0px !important',

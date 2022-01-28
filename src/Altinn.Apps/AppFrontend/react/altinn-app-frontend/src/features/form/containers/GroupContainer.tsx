@@ -44,8 +44,10 @@ const useStyles = makeStyles({
     '& &': {
       width: 'auto',
       marginLeft: '0',
+      left: '0',
 
       '@media (min-width:768px)': {
+        left: '0px',
         width: 'auto',
         marginLeft: '0',
       },
