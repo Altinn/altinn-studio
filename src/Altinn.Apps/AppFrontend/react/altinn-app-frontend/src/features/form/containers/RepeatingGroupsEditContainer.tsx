@@ -46,6 +46,7 @@ const useStyles = makeStyles({
     '& &': {
       padding: '24px',
       border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+      backgroundColor: theme.altinnPalette.primary.blueLighter,
     }
   },
   deleteItem: {
