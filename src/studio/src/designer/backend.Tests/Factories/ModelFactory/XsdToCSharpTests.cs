@@ -55,49 +55,6 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal(text, textOrgXml);
         }
 
-        /// <summary>
-        /// Try to verify that unexpected elements will be ignored. (if order is removed this would work)
-        /// </summary>
-        [Fact]
-        public async void ConvertXsdToCSharp_LoadXmlIncorrectOrder()
-        {
-            // Arrange
-            using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.xsd"));
-            XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
-
-            // Act
-            JsonSchema xsdasJsonSchema = target.AsJsonSchema();
-
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("test", "test", xsdasJsonSchema);
-            ModelMetadata modelMetadata = converter.GetModelMetadata();
-
-            string classes = GenerateCSharpClasses(modelMetadata);
-            Assembly assembly = Compiler.CompileToAssembly(classes);
-            Type type = assembly.GetType("Altinn.App.Models.ReelleRettighetshavere_M");
-            var modelInstance = assembly.CreateInstance(type.FullName);
-
-            Stream xmlStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.ModelData.Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.IncorrectOrder.xml");
-
-            var xmlObject = await DeserializeXmlAsync(xmlStream, type);
-
-            XmlSerializer serializer = new XmlSerializer(type);
-            using MemoryStream stream = new MemoryStream();
-            serializer.Serialize(stream, xmlObject);
-            stream.Position = 0;
-
-            StreamReader reader = new StreamReader(stream);
-            string text = reader.ReadToEnd();
-
-            xmlStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.ModelData.Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.IncorrectOrder.xml");
-            StreamReader orgXmlReader = new StreamReader(xmlStream);
-            string textOrgXml = orgXmlReader.ReadToEnd();
-
-            // Assert
-            Assert.NotNull(modelMetadata);
-            Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
-            Assert.NotEqual(text, textOrgXml);
-        }
-
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
