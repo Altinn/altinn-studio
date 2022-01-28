@@ -73,7 +73,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             classBuilder.AppendLine("  public class " + parentElement.TypeName);
             classBuilder.AppendLine("  {");
 
-            int elementOrder = 1;
+            int elementOrder = 0;
 
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
@@ -90,9 +90,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     }
                     else
                     {
-                        classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
                         elementOrder = elementOrder + 1;
-
+                        classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+                        
                         // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                         // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                         classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
@@ -111,9 +111,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 else if (element.Value.Type == ElementType.Group)
                 {
                     WriteRestrictionAnnotations(classBuilder, element.Value);
-                    classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
                     elementOrder = elementOrder + 1;
-
+                    classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
+                   
                     // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                     // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                     classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
