@@ -49,10 +49,16 @@ namespace Designer.Tests.Factories.ModelFactory
             StreamReader orgXmlReader = new StreamReader(xmlStream);
             string textOrgXml = orgXmlReader.ReadToEnd();
 
+            Stream classStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.CSharp.Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.expected.csharp.txt");
+
+            StreamReader classReader = new StreamReader(classStream);
+            string orgClasses = classReader.ReadToEnd();
+
             // Assert
             Assert.NotNull(modelMetadata);
             Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
             Assert.Equal(text, textOrgXml);
+            Assert.Equal(orgClasses, classes.Replace("\r", string.Empty).Replace("\n", "\r\n"));
         }
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
