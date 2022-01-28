@@ -16,7 +16,7 @@ namespace Designer.Tests.Factories.ModelFactory
     public class XsdToCSharpTests
     {
         [Fact]
-        public async void ConvertXsdToJsonSchema_CorrectXMLParsed()
+        public async void ConvertXsdToJsonSchema_CorrectXmlParsed()
         {
             // Arrange
             using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.xsd"));
@@ -31,7 +31,7 @@ namespace Designer.Tests.Factories.ModelFactory
             string classes = GenerateCSharpClasses(modelMetadata);
             Assembly assembly = Compiler.CompileToAssembly(classes);
             Type type = assembly.GetType("Altinn.App.Models.ReelleRettighetshavere_M");
-            var modelInstance = assembly.CreateInstance(type.FullName);
+            assembly.CreateInstance(type.FullName);
 
             Stream xmlStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.ModelData.Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.CorrectOrder.xml");
 
@@ -55,8 +55,11 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal(text, textOrgXml);
         }
 
+        /// <summary>
+        /// Try to verify that unexpected elements will be ignored. (if order is removed this would work)
+        /// </summary>
         [Fact]
-        public async void ConvertXsdToCSharp_LoadXMLIncorrectOrder()
+        public async void ConvertXsdToCSharp_LoadXmlIncorrectOrder()
         {
             // Arrange
             using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Brønnøysundregistrene_ReelleRettighetshavere_M_2021-11-22_6900_46864_SERES.xsd"));
