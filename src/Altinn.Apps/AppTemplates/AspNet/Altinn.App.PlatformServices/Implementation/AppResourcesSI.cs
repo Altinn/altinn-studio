@@ -174,7 +174,7 @@ namespace Altinn.App.Services.Implementation
             {
                 _logger.LogError("Something went wrong when fetching BPMNProcess. {0}", ex);
             }
-            
+
             return null;
         }
 
@@ -303,6 +303,13 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<List<AppOption>> GetOptions(string optionId, string language, Dictionary<string, string> keyValuePairs)
+        {
+            var appOptions = await _appOptionsService.GetOptionsAsync(optionId, string.Empty, new Dictionary<string, string>());
+            return appOptions.Options;
+        }
+
+        /// <inheritdoc />
         public string GetLayouts()
         {
           Dictionary<string, object> layouts = new Dictionary<string, object>();
@@ -421,7 +428,7 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
-       
+
         private byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
         {
             var fullFileName = legalPath + filePath;

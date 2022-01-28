@@ -99,7 +99,18 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="optionId">The id of the options list to retrieve</param>
         /// <returns>The list of options</returns>
+        [Obsolete]
         List<AppOption> GetOptions(string optionId);
+
+        /// <summary>
+        /// Get the list of options for a specific options list by its id.
+        /// </summary>
+        /// <param name="optionId">The id of the options list to retrieve</param>
+        /// <param name="language">The name of the language that the option labels might use</param>
+        /// <param name="keyValuePairs">Key/value pairs to control what options to get.
+        /// When called from the options controller this will be the querystring key/value pairs.</param>
+        /// <returns>The list of options</returns>
+        Task<List<AppOption>> GetOptions(string optionId, string language, Dictionary<string, string> keyValuePairs);
 
         /// <summary>
         /// Gets the layouts for the app.

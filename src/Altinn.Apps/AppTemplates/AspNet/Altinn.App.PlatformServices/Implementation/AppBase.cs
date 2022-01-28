@@ -200,7 +200,7 @@ namespace Altinn.App.Services.Implementation
         {
             _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
-            // If this is a revisit to a previous task we need to unlock data 
+            // If this is a revisit to a previous task we need to unlock data
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
             {
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
@@ -491,7 +491,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
-            Dictionary<string, Dictionary<string, string>> optionsDictionary = await GetOptionsDictionary(formLayoutsFileContent);
+            Dictionary<string, Dictionary<string, string>> optionsDictionary = await GetOptionsDictionary(formLayoutsFileContent, language);
 
             PDFContext pdfContext = new PDFContext
             {
@@ -560,7 +560,7 @@ namespace Altinn.App.Services.Implementation
             return optionsIds;
         }
 
-        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout)
+        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout, string language)
         {
             Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
             List<string> optionsIdsList = GetOptionIdsFromFormLayout(formLayout);
@@ -569,7 +569,7 @@ namespace Altinn.App.Services.Implementation
             {
                 AppOptions appOptions = new AppOptions();
 
-                appOptions.Options = _resourceService.GetOptions(optionsId);
+                appOptions.Options = await _resourceService.GetOptions(optionsId, language, new Dictionary<string, string>()); //TODO: Add proper variables from layout
 #pragma warning disable CS0618 // Type or member is obsolete
                 appOptions = await GetOptions(optionsId, appOptions);
 #pragma warning restore CS0618 // Type or member is obsolete
