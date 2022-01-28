@@ -32,11 +32,9 @@ namespace Altinn.Platform.Register.Health
             Next.Process(item);
         }
 
-        private bool ExcludeItemTelemetry(ITelemetry item)
+        private static bool ExcludeItemTelemetry(ITelemetry item)
         {
-            RequestTelemetry request = item as RequestTelemetry;
-
-            if (request != null && request.Url.ToString().EndsWith("/health/"))
+            if (item is RequestTelemetry request && request.Url.ToString().EndsWith("/health/"))
             {
                 return true;
             }

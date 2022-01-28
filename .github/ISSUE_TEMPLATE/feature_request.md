@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea you have for Altinn Studio
 labels: kind/feature-request
-assignees: altinnadmin
+assignees: FinnurO
 ---
 <!-- We value your input on what you think we should do. Please describe your request through the dimensions below -->
 

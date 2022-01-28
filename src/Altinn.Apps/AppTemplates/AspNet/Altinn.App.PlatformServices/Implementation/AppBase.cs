@@ -482,12 +482,12 @@ namespace Altinn.App.Services.Implementation
             // If layoutset exists pick correct layotFiles
             string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
 
-            TextResource textResource = await _textClient.GetText(org, app, language);
+            TextResource textResource = await _resourceService.GetTexts(org, app, language);
 
             if (textResource == null && language != "nb")
             {
                 // fallback to norwegian if texts does not exist
-                textResource = await _textClient.GetText(org, app, "nb");
+                textResource = await _resourceService.GetTexts(org, app, "nb");
             }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
