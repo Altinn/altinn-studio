@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, take, takeLatest } from 'redux-saga/effects';
+import { call, select, takeLatest } from 'redux-saga/effects';
 import { IData, IInstance } from 'altinn-shared/types';
 import { IAttachments } from '..';
 import { IRuntimeState } from '../../../../types';
@@ -7,7 +7,6 @@ import { mapAttachmentListToAttachments } from '../../../../utils/attachment';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import { IApplicationMetadata } from '../../applicationMetadata';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from '../../applicationMetadata/actions/types';
 import { getCurrentTaskData } from 'src/utils/appMetadata';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {
@@ -22,9 +21,6 @@ const SelectApplicationMetaData =
 export function* mapAttachments(): SagaIterator {
   try {
     const instance = yield select(SelectInstance);
-
-    // Fixes race between metadata and attachments on reload
-    yield take(FETCH_APPLICATION_METADATA_FULFILLED);
 
     const applicationMetadata = yield select(SelectApplicationMetaData);
 
