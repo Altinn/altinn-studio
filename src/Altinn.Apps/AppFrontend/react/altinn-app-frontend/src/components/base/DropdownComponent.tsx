@@ -1,10 +1,12 @@
-import * as React from 'react';
-import '../../styles/shared.css';
-import classNames from 'classnames';
+import React from 'react';
+import cn from 'classnames';
 import { makeStyles } from '@material-ui/core';
+
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useAppSelector } from 'src/common/hooks';
 import { IComponentProps } from '..';
+
+import '../../styles/shared.css';
 
 export interface IDropdownProps extends IComponentProps {
   optionsId: string;
@@ -44,27 +46,27 @@ function DropdownComponent({
   const options = useAppSelector(
     (state) => state.optionState.options[optionsId],
   );
+  const hasSelectedInitial = React.useRef(false);
 
   React.useEffect(() => {
-    returnState();
-  }, [options]);
-
-  const returnState = () => {
-    if (
+    const shouldSelectOptionAutomatically =
       !formData?.simpleBinding &&
-      preselectedOptionIndex >= 0 &&
       options &&
-      preselectedOptionIndex < options.length
-    ) {
-      handleDataChange(options[preselectedOptionIndex].value);
-    }
-  };
+      preselectedOptionIndex >= 0 &&
+      preselectedOptionIndex < options.length &&
+      hasSelectedInitial.current === false;
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    if (shouldSelectOptionAutomatically) {
+      handleDataChange(options[preselectedOptionIndex].value);
+      hasSelectedInitial.current = true;
+    }
+  }, [options, formData, preselectedOptionIndex, handleDataChange]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     handleDataChange(event.target.value);
   };
 
-  const handleOnBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
+  const handleBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
     handleDataChange(event.target.value);
   };
 
@@ -73,12 +75,12 @@ function DropdownComponent({
       id={id}
       value={formData?.simpleBinding}
       disabled={readOnly}
-      className={classNames(classes.select, 'custom-select a-custom-select', {
+      className={cn(classes.select, 'custom-select a-custom-select', {
         'validation-error': !isValid,
         'disabled !important': readOnly,
       })}
-      onChange={handleOnChange}
-      onBlur={handleOnBlur}
+      onChange={handleChange}
+      onBlur={handleBlur}
     >
       <option style={optionStyle} />
       {options?.map((option, index) => (
