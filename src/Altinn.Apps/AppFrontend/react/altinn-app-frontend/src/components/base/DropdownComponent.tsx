@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/control-has-associated-label */
 import * as React from 'react';
 import '../../styles/shared.css';
 import classNames from 'classnames';
@@ -31,42 +30,52 @@ const optionStyle = {
   display: 'none',
 };
 
-function DropdownComponent(props: IDropdownProps) {
+function DropdownComponent({
+  optionsId,
+  formData,
+  preselectedOptionIndex,
+  handleDataChange,
+  id,
+  readOnly,
+  isValid,
+  getTextResourceAsString,
+}: IDropdownProps) {
   const classes = useStyles();
-  const options = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const options = useAppSelector(
+    (state) => state.optionState.options[optionsId],
+  );
 
   React.useEffect(() => {
     returnState();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options]);
 
   const returnState = () => {
     if (
-      !props.formData?.simpleBinding &&
-      props.preselectedOptionIndex >= 0 &&
+      !formData?.simpleBinding &&
+      preselectedOptionIndex >= 0 &&
       options &&
-      props.preselectedOptionIndex < options.length
+      preselectedOptionIndex < options.length
     ) {
-      props.handleDataChange(options[props.preselectedOptionIndex].value);
+      handleDataChange(options[preselectedOptionIndex].value);
     }
   };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
+    handleDataChange(event.target.value);
   };
 
   const handleOnBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
+    handleDataChange(event.target.value);
   };
 
   return (
     <select
-      id={props.id}
-      value={props.formData?.simpleBinding}
-      disabled={props.readOnly}
+      id={id}
+      value={formData?.simpleBinding}
+      disabled={readOnly}
       className={classNames(classes.select, 'custom-select a-custom-select', {
-        'validation-error': !props.isValid,
-        'disabled !important': props.readOnly,
+        'validation-error': !isValid,
+        'disabled !important': readOnly,
       })}
       onChange={handleOnChange}
       onBlur={handleOnBlur}
@@ -74,7 +83,7 @@ function DropdownComponent(props: IDropdownProps) {
       <option style={optionStyle} />
       {options?.map((option, index) => (
         <option key={index} value={option.value}>
-          {props.getTextResourceAsString(option.label)}
+          {getTextResourceAsString(option.label)}
         </option>
       ))}
     </select>
