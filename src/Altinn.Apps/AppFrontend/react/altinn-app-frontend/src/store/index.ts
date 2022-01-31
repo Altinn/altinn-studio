@@ -8,7 +8,7 @@ export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 const middlewares = [sagaMiddleware, appApi.middleware];
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
-  const store = configureStore({
+  const innerStore = configureStore({
     reducer: reducers,
     devTools: process.env.NODE_ENV !== 'production',
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
@@ -19,8 +19,8 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
     preloadedState
   });
 
-  setupListeners(store.dispatch);
-  return store;
+  setupListeners(innerStore.dispatch);
+  return innerStore;
 };
 
 export const store = setupStore();
