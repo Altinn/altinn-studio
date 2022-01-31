@@ -12,11 +12,11 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
       id="group-mock-container-id-table-container"
     >
       <table
-        class="MuiTable-root makeStyles-table-3"
+        class="MuiTable-root makeStyles-table-4"
         id="group-mock-container-id-table"
       >
         <thead
-          class="MuiTableHead-root makeStyles-tableHeader-5"
+          class="MuiTableHead-root makeStyles-tableHeader-6"
           id="group-mock-container-id-table-header"
         >
           <tr
@@ -53,7 +53,7 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
           </tr>
         </thead>
         <tbody
-          class="MuiTableBody-root makeStyles-tableBody-6"
+          class="MuiTableBody-root makeStyles-tableBody-7"
           id="group-mock-container-id-table-body"
         >
           <tr
@@ -75,18 +75,17 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                style="color: rgb(0, 98, 186); font-weight: 700;"
+                class="MuiButtonBase-root MuiIconButton-root makeStyles-tableEditButton-3"
                 tabindex="0"
                 type="button"
               >
                 <span
                   class="MuiIconButton-label"
                 >
-                  general.edit_alt
                   <i
                     class="fa fa-edit makeStyles-editIcon-2"
                   />
+                  general.edit_alt
                 </span>
                 <span
                   class="MuiTouchRipple-root"
@@ -113,18 +112,17 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                style="color: rgb(0, 98, 186); font-weight: 700;"
+                class="MuiButtonBase-root MuiIconButton-root makeStyles-tableEditButton-3"
                 tabindex="0"
                 type="button"
               >
                 <span
                   class="MuiIconButton-label"
                 >
-                  general.edit_alt
                   <i
                     class="fa fa-edit makeStyles-editIcon-2"
                   />
+                  general.edit_alt
                 </span>
                 <span
                   class="MuiTouchRipple-root"
@@ -151,18 +149,17 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                style="color: rgb(0, 98, 186); font-weight: 700;"
+                class="MuiButtonBase-root MuiIconButton-root makeStyles-tableEditButton-3"
                 tabindex="0"
                 type="button"
               >
                 <span
                   class="MuiIconButton-label"
                 >
-                  general.edit_alt
                   <i
                     class="fa fa-edit makeStyles-editIcon-2"
                   />
+                  general.edit_alt
                 </span>
                 <span
                   class="MuiTouchRipple-root"
@@ -189,18 +186,17 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root"
-                style="color: rgb(0, 98, 186); font-weight: 700;"
+                class="MuiButtonBase-root MuiIconButton-root makeStyles-tableEditButton-3"
                 tabindex="0"
                 type="button"
               >
                 <span
                   class="MuiIconButton-label"
                 >
-                  general.edit_alt
                   <i
                     class="fa fa-edit makeStyles-editIcon-2"
                   />
+                  general.edit_alt
                 </span>
                 <span
                   class="MuiTouchRipple-root"
