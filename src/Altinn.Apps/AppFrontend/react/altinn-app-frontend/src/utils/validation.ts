@@ -457,23 +457,24 @@ export function validateFormComponentsForLayout(
         }
       }
       if (component.type === 'FileUploadWithTag') {
+        validations[component.id] = {};
+        const componentValidations: IComponentValidations = {
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          },
+        };
         const isValid = attachmentsValid(attachments, component);
-        const missingTagAttachments = attachments[component.id]
-          .filter((attachment) => attachmentIsMissingTag(attachment))
-          .map((attachment) => attachment.id);
-        if (!isValid || missingTagAttachments.length > 0) {
-          validations[component.id] = {};
-          const componentValidations: IComponentValidations = {
-            [fieldKey]: {
-              errors: [],
-              warnings: [],
-            },
-          };
+        if (!isValid) {
           if (!isValid) {
             componentValidations[fieldKey].errors.push(
               `${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language)} ${component.minNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language)}`,
             );
           }
+        } else {
+          const missingTagAttachments = attachments[component.id]
+            .filter((attachment) => attachmentIsMissingTag(attachment))
+            .map((attachment) => attachment.id);
           if (missingTagAttachments.length > 0) {
             missingTagAttachments.forEach((missingId) => {
               componentValidations[fieldKey].errors.push(
@@ -481,8 +482,8 @@ export function validateFormComponentsForLayout(
               );
             });
           }
-          validations[component.id] = componentValidations;
         }
+        validations[component.id] = componentValidations;
       }
       if (component.type === 'Datepicker') {
         let componentValidations: IComponentValidations = {};

@@ -38,7 +38,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
 
   const setValidationsFromArray = (validationArray: string[]) => {
     setValidations(
-      validations.concat(parseFileUploadComponentWithTagValidationObject(validationArray)),
+      parseFileUploadComponentWithTagValidationObject(validationArray),
     );
   };
 
