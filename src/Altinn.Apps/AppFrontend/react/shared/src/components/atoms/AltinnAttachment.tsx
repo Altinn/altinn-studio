@@ -62,6 +62,20 @@ function ListItemLink(props: any) {
     );
 }
 
+// Storage is always returning https:// links for attachments.
+// on localhost (without https) this is a problem, so we make links
+// to the same domain as window.location.host relative.
+// "https://domain.com/a/b" => "/a/b"
+const makeUrlRelativeIfSameDomain = (url: string) => {
+  if (window?.location?.protocol === 'http:') {
+    const urlStart = `https://${window.location.host}`;
+    if (url.startsWith(urlStart)) {
+      return url.substring(urlStart.length);
+    }
+  }
+  return url;
+};
+
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
     <>
@@ -75,7 +89,7 @@ export function AltinnAttachment(props: IAltinnAttachmentProps) {
               },
               props.classes.a,
               )}
-            href={attachment.url}
+            href={makeUrlRelativeIfSameDomain(attachment.url)}
             key={index}
           >
             <ListItemIcon>
