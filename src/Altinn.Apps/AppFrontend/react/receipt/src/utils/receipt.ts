@@ -1,15 +1,17 @@
 import moment from 'moment';
-import { IApplication, IInstance, ILanguage, IParty } from '../../../shared/src/types';
+import { IAltinnOrgs, IApplication, IInstance, ILanguage, IParty, ITextResource } from '../../../shared/src/types';
 import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getAppOwner, getLanguageFromKey } from '../../../shared/src/utils/language';
 import { getArchiveRef } from './instance';
 
 export const getInstanceMetaDataObject = (
   instance: IInstance,
   party: IParty,
   language: ILanguage,
-  organisations: any,
+  organisations: IAltinnOrgs,
   application: IApplication,
+  textResources: ITextResource[],
+  userLanguage: string,
 ) => {
   const obj = {} as any;
 
@@ -30,18 +32,8 @@ export const getInstanceMetaDataObject = (
     sender = `${party.orgNumber}-${party.name}`;
   }
   obj[getLanguageFromKey('receipt_platform.sender', language)] = sender;
-  obj[getLanguageFromKey('receipt_platform.receiver', language)] = getOrganisationDisplayName(instance, organisations);
+  obj[getLanguageFromKey('receipt_platform.receiver', language)] = getAppOwner(textResources, organisations, instance.org, userLanguage);
   obj[getLanguageFromKey('receipt_platform.reference_number', language)] = getArchiveRef();
   return obj;
 };
 
-export const getOrganisationDisplayName = (instance: IInstance, organisations: any): string => {
-  if (!organisations) {
-    return instance.org.toUpperCase();
-  }
-  // TODO: fetch this language based on language cookie
-  if (organisations.orgs[instance.org]) {
-    return organisations.orgs[instance.org].name.nb.toUpperCase();
-  }
-  return instance.org.toUpperCase();
-};
