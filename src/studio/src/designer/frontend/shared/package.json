@@ -19,7 +19,7 @@
     "core-js": "^3.20.3",
     "diff": "^5.0.0",
     "dompurify": "^2.3.5",
-    "marked": "^1.2.9",
+    "marked": "^4.0.10",
     "moment": "^2.29.1",
     "react-content-loader": "^6.1.0",
     "react-html-parser": "^2.0.2",
