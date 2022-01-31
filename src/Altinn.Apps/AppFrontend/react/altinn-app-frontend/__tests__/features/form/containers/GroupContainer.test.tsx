@@ -281,7 +281,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     };
     const utils = renderComponent(mockContainerInEditModeWithTrigger);
 
-    const editButton = utils.getAllByText('Lagre')[0].closest('button');
+    const editButton = utils.getAllByText('Ferdig')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =
@@ -305,7 +305,7 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     };
     const utils = renderComponent(mockContainerInEditMode)
 
-    const editButton = utils.getAllByText('Lagre')[0].closest('button');
+    const editButton = utils.getAllByText('Ferdig')[0].closest('button');
     fireEvent.click(editButton);
 
     const mockDispatchedAction =

@@ -92,6 +92,7 @@ export function en() {
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Delete',
       disabled: 'Disabled',
+      done: 'Done',
       edit_alt_error: 'Fix error here',
       edit_alt: 'Edit',
       edit: 'Edit',
