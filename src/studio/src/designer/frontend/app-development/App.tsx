@@ -54,7 +54,7 @@ export function App() {
   const remainingSessionMinutes = useAppSelector(state => state.userState.session.remainingMinutes);
   const dispatch = useAppDispatch();
   const classes = useStyles();
-  const [lastKeepAliveTimestamp, setLastKeepAliveTimestamp] = React.useState<number>(0);
+  const lastKeepAliveTimestamp = React.useRef<number>(0);
   const sessionExpiredPopoverRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -98,8 +98,8 @@ export function App() {
       if (
         (remainingSessionMinutes > 10) &&
         (remainingSessionMinutes <= 30) &&
-        ((timeNow - lastKeepAliveTimestamp) > TEN_MINUTE_IN_MILLISECONDS)) {
-        setLastKeepAliveTimestamp(timeNow);
+        ((timeNow - lastKeepAliveTimestamp.current) > TEN_MINUTE_IN_MILLISECONDS)) {
+        lastKeepAliveTimestamp.current = timeNow;
         dispatch((keepAliveSession()));
       }
     }
@@ -128,7 +128,7 @@ export function App() {
     } else {
       // user clicked outside the popover or pressed "continue", keep signed in
       dispatch(keepAliveSession());
-      setLastKeepAliveTimestamp(Date.now());
+      lastKeepAliveTimestamp.current = Date.now();
     }
   }, [dispatch]);
   
