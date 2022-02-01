@@ -84,7 +84,7 @@ export function AdministrationComponent() {
     setNewId(id);
   }, [id]);
 
-  const onServiceNameChanged = (event: any) => {
+  const handleAppNameChanged = (event: any) => {
     setNewName(event.target.value);
     setAppNameAnchorEl(null);
   }
@@ -93,7 +93,7 @@ export function AdministrationComponent() {
     setEditAppName(true);
   }
 
-  const onBlurAppName = () => {
+  const handleBlurAppName = () => {
     if (editAppName && !newName) {
       setAppNameAnchorEl(document.getElementById('administrationInputServicename'));
     } else {
@@ -112,12 +112,12 @@ export function AdministrationComponent() {
     }
   }
 
-  const onServiceDescriptionChanged = (event: any) => {
+  const handleAppDescriptionChanged = (event: any) => {
     setNewDescription(event.target.value);
     setEditAppDescription(true);
   }
 
-  const onBlurAppDescription = () => {
+  const handleBlurAppDescription = () => {
     if (editAppDescription) {
       const { org, app } = window as Window as IAltinnWindow;
       dispatch(HandleServiceInformationActions.saveServiceConfig({
@@ -130,12 +130,12 @@ export function AdministrationComponent() {
     }
   }
 
-  const onAppIdChanged = (event: any) => {
+  const handleAppIdChanged = (event: any) => {
     setNewId(event.target.value);
     setEditAppId(true);
   }
 
-  const onBlurAppId = () => {
+  const handleBlurAppId = () => {
     if (editAppId) {
       const { org, app } = window as Window as IAltinnWindow;
       dispatch(HandleServiceInformationActions.saveServiceConfig({
@@ -175,12 +175,12 @@ export function AdministrationComponent() {
             editServiceName={editAppName}
             handleEditServiceName={handleEditServiceName}
             language={language}
-            onBlurServiceDescription={onBlurAppDescription}
-            onBlurServiceId={onBlurAppId}
-            onBlurServiceName={onBlurAppName}
-            onServiceDescriptionChanged={onServiceDescriptionChanged}
-            onServiceIdChanged={onAppIdChanged}
-            onServiceNameChanged={onServiceNameChanged}
+            onBlurServiceDescription={handleBlurAppDescription}
+            onBlurServiceId={handleBlurAppId}
+            onBlurServiceName={handleBlurAppName}
+            onServiceDescriptionChanged={handleAppDescriptionChanged}
+            onServiceIdChanged={handleAppIdChanged}
+            onServiceNameChanged={handleAppNameChanged}
             service={service}
             serviceDescription={newDescription}
             serviceId={newId}
