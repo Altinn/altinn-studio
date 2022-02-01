@@ -90,7 +90,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
       <div className={classes.marginBottom_24}>
         <AltinnInputField
           id='administrationInputReponame'
-          inputHeader={getLanguageFromKey('general.app_saved_name', props.language)}
+          inputHeader={getLanguageFromKey('general.service_saved_name', props.language)}
           inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', props.language)}
           inputValue={props.repository ? props.repository.name : ''}
           isDisabled={true}
