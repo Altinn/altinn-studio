@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import Presentation from 'src/shared/containers/Presentation';
 import { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
@@ -39,6 +40,8 @@ export default function Entrypoint() {
     React.useState<ISimpleInstance[]>(null);
   const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
+  const appName = useAppSelector(selectAppName);
+  const appOwner = useAppSelector (selectAppOwner);
   const dispatch = useAppDispatch();
 
   const handleNewInstance = () => {
@@ -132,7 +135,8 @@ export default function Entrypoint() {
     return (
       // let user decide if continuing on existing or starting new
       <Presentation
-        header={applicationMetadata?.title?.nb}
+        header={appName}
+        appOwner={appOwner}
         type={ProcessTaskType.Unknown}
       >
         <InstanceSelection
@@ -151,7 +155,8 @@ export default function Entrypoint() {
     if (statelessLoading === false) {
       return (
         <Presentation
-          header={applicationMetadata?.title?.nb}
+          header={appName}
+          appOwner={appOwner}
           type={PresentationType.Stateless}
         >
           <div>

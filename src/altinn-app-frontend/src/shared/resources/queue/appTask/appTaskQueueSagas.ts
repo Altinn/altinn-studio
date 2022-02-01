@@ -8,6 +8,7 @@ import TextResourcesActions from '../../textResources/textResourcesActions';
 import ProfileActions from '../../profile/profileActions';
 import LanguageActions from '../../language/languageActions';
 import PartyActions from '../../party/partyActions';
+import OrgsActions from 'src/shared/resources/orgs/orgsActions';
 import { profileApiUrl } from '../../../../utils/appUrlHelper';
 
 export function* startInitialAppTaskQueueSaga(): SagaIterator {
@@ -17,6 +18,7 @@ export function* startInitialAppTaskQueueSaga(): SagaIterator {
   yield call(LanguageActions.fetchLanguage);
   yield call(ApplicationMetadataActions.getApplicationMetadata);
   yield call(PartyActions.getCurrentParty);
+  yield call(OrgsActions.fetchOrgs);
   yield put(startInitialAppTaskQueueFulfilled());
 }
 

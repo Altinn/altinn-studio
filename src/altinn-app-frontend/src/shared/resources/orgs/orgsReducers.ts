@@ -1,10 +1,11 @@
+import { IAltinnOrgs } from 'altinn-shared/types';
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFetchOrgsFulfilled, IFetchOrgsRejected } from './fetch/fetchOrgsActions';
 import * as OrgsActionTypes from './fetch/fetchOrgsActionTypes';
 
 export interface IOrgsState {
-  allOrgs: any;
+  allOrgs: IAltinnOrgs;
   error: Error;
 }
 
