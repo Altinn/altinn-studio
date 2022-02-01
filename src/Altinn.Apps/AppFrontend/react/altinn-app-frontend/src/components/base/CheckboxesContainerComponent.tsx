@@ -72,6 +72,10 @@ const useStyles = makeStyles({
 const emptyList: undefined[] = []; // constant for reference stability
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
+  const {
+    handleDataChange,
+    preselectedOptionIndex
+  } = props;
   const classes = useStyles(props);
   const apiOptions: IOption[] = useAppSelector(state => state.optionState.options[props.optionsId]);
   const options = apiOptions || props.options || emptyList;
@@ -82,21 +86,22 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   }, [props.formData, options])
 
   // Implement preselected functionality
+  const preselectedOptionSet = React.useRef(false);
   React.useEffect(() => {
-    const preselectedOption = options?.[props.preselectedOptionIndex]?.value;
+    const preselectedOption = options?.[preselectedOptionIndex]?.value;
     if (
       !selected &&
-      preselectedOption
+      preselectedOption &&
+      !preselectedOptionSet.current
     ) {
-      props.handleDataChange(preselectedOption);
+      preselectedOptionSet.current = true; //only rune once when ready
+      handleDataChange(preselectedOption);
     }
-    // This effect should only run when new options are loaded
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
+  }, [options, handleDataChange, selected, preselectedOptionIndex, preselectedOptionSet]);
 
 
 
-  const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const previouslySelected = selected.some(v => v.value === event.target.name);
 
     const newSelected = previouslySelected ?
@@ -133,7 +138,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
               control={
                 <StyledCheckbox
                   checked={isOptionSelected(option)}
-                  onChange={onDataChanged}
+                  onChange={handleChange}
                   value={index}
                   key={option.value}
                   name={option.value}
