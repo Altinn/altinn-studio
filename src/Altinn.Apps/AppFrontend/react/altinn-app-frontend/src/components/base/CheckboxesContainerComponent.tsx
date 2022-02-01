@@ -113,7 +113,6 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       ? selected.filter((o) => o.value !== event.target.name)
       : [...selected, options.find((o) => o.value === event.target.name)];
     props.handleDataChange(newSelected.map((o) => o.value).join());
-    props.handleFocusUpdate(props.id);
   };
 
   const isOptionSelected = (option: IOption) => {
