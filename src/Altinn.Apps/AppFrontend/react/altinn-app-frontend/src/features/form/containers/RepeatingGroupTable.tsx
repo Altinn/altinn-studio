@@ -69,11 +69,29 @@ const useStyles = makeStyles({
     width: 'auto',
     color: theme.altinnPalette.primary.red,
     marginBottom: '2px',
+    marginTop: '1px',
+    paddingRight: '4px',
   },
   editIcon: {
-    paddingLeft: '6px',
-    fontSize: '24px',
+    paddingRight: '6px',
+    fontSize: '28px',
+    marginTop: '-2px',
   },
+  tableEditButton: {
+    color: theme.altinnPalette.primary.blueDark,
+    fontWeight: 700,
+    borderRadius: '5px',
+    padding: '6px 12px',
+    margin: '8px 2px',
+    '&:hover': {
+      background: 'none',
+      outline: `1px dotted ${theme.altinnPalette.primary.blueDark}`
+    },
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueLighter,
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
+    }
+  }
 });
 
 function getEditButtonText(
@@ -236,12 +254,16 @@ export function RepeatingGroupTable({
                       })}
                       <TableCell align='right' key={`delete-${index}`}>
                         <IconButton
-                          style={{
-                            color: theme.altinnPalette.primary.blueDark,
-                            fontWeight: 700,
-                          }}
+                          className={classes.tableEditButton}
                           onClick={() => onClickEdit(index)}
                         >
+                          <i
+                            className={
+                              rowHasErrors
+                                ? `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}`
+                                : `fa fa-edit ${classes.editIcon}`
+                            }
+                          />
                           {rowHasErrors
                             ? getLanguageFromKey(
                               'general.edit_alt_error',
@@ -253,13 +275,6 @@ export function RepeatingGroupTable({
                               textResources,
                               container.textResourceBindings
                             )}
-                          <i
-                            className={
-                              rowHasErrors
-                                ? `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}`
-                                : `fa fa-edit ${classes.editIcon}`
-                            }
-                          />
                         </IconButton>
                       </TableCell>
                     </AltinnTableRow>
@@ -302,6 +317,13 @@ export function RepeatingGroupTable({
                     onClick={() => onClickEdit(index)}
                     iconNode={
                       <>
+                        <i
+                          className={
+                            rowHasErrors
+                              ? `ai ai-circle-exclamation ${classes.errorIcon}`
+                              : `fa fa-edit ${classes.editIcon}`
+                          }
+                        />
                         {rowHasErrors
                           ? getLanguageFromKey(
                             'general.edit_alt_error',
@@ -313,13 +335,6 @@ export function RepeatingGroupTable({
                             textResources,
                             container.textResourceBindings
                           )}
-                        <i
-                          className={
-                            rowHasErrors
-                              ? `ai ai-circle-exclamation ${classes.errorIcon}`
-                              : `fa fa-edit ${classes.editIcon}`
-                          }
-                        />
                       </>
                     }
                   />

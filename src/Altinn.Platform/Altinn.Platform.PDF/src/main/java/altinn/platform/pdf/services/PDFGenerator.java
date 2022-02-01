@@ -160,7 +160,7 @@ public class PDFGenerator {
       renderFormLayout(filteredLayout);
     } else if (formLayouts != null) {
       // contains a map of form layouts. Render each page and separate by a new page
-      if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null) {
+      if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null && !layoutSettings.getPages().getOrder().isEmpty()) {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey : order) {

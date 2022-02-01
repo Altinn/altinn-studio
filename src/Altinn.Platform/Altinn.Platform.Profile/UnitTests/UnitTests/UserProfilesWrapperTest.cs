@@ -43,7 +43,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             const int UserId = 2001607;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 
@@ -75,7 +75,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             const int UserId = 2001606;
 
             HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 sblRequest = request;
 

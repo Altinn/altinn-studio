@@ -32,4 +32,10 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
   });
+
+  /* it('is possible to retrieve options dynamically', () => {
+    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get(appFrontend.changeOfName.reference).should('be.visible');
+    cy.get(appFrontend.changeOfName.reference).find('option[value="nordmann"]').should('exist').select();
+  }); */
 });

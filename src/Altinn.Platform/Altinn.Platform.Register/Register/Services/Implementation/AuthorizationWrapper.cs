@@ -62,7 +62,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Validating selected party {PartyId} for user {UserId} failed with statuscode {StatusCode}", partyId, userId, response.StatusCode);
                 result = null;
             }
 

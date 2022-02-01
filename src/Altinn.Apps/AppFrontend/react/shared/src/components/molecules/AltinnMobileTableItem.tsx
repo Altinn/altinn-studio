@@ -17,8 +17,7 @@ export interface IAltinnMobileTableItemProps {
 
 const useStyles = makeStyles({
   tableContainer: {
-    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    paddingLeft: '0.6rem',
+    borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -34,8 +33,7 @@ const useStyles = makeStyles({
         overflow: 'hidden',
         maxWidth: '50%',
         minWidth: '50%',
-        padding: 0,
-        paddingRight: '5px',
+        padding: '0 0 0 24px',
         border: 'none',
       },
     },
@@ -46,10 +44,20 @@ const useStyles = makeStyles({
   labelText: {
     color: theme.altinnPalette.primary.grey,
   },
-  iconButton: {
+  tableEditButton: {
     color: theme.altinnPalette.primary.blueDark,
-    padding: '0px',
     fontWeight: 700,
+    borderRadius: '5px',
+    padding: '6px 12px',
+    margin: '8px 2px 8px -12px',
+    '&:hover': {
+      background: 'none',
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
+    },
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueLighter,
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
+    }
   },
   textContainer: {
     width: '100%',
@@ -92,7 +100,7 @@ export default function AltinnMobileTableItem({
             <TableCell width='40%' />
             <TableCell>
               <IconButton
-                className={classes.iconButton}
+                className={classes.tableEditButton}
                 onClick={onClick}
               >
                 {iconNode}

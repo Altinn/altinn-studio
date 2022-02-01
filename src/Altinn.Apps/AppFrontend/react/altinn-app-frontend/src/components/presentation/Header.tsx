@@ -18,8 +18,8 @@ const Header = (props: IHeaderProps) => {
       })}
     >
       <div className='a-iconText a-iconText-background a-iconText-large'>
-        <h1 className='a-iconText-text mb-0'>
-          <span className='a-iconText-text-large'>
+        <h1 className='a-iconText-text mb-0' >
+          <span className='a-iconText-text-large' data-testid='presentation-heading'>
             {props.type === ProcessTaskType.Archived ? (
               <span>
                 {getLanguageFromKey('receipt.receipt', props.language)}
