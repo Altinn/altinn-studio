@@ -55,6 +55,12 @@ namespace Altinn.Platform.Authorization.Models
                 return validationResult;
             }
 
+            if (this.Any(r => r.DeletedByUserId <= 0))
+            {
+                validationResult.Add(new ValidationResult("Not all RequestToDelete has a value for the user performing the delete"));
+                return validationResult;
+            }
+
             try
             {
                 if (this.GroupBy(x => PolicyHelper.GetAltinnAppDelegationPolicyPath(x.PolicyMatch)).Any(g => g.Count() > 1))
@@ -90,6 +96,12 @@ namespace Altinn.Platform.Authorization.Models
             if (this.Count < 1)
             {
                 validationResult.Add(new ValidationResult("Missing policiesToDelete in body"));
+                return validationResult;
+            }
+
+            if (this.Any(r => r.DeletedByUserId <= 0))
+            {
+                validationResult.Add(new ValidationResult("Not all RequestToDelete has a value for the user performing the delete"));
                 return validationResult;
             }
 

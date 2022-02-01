@@ -244,6 +244,90 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 where the user performing the task is not defined
+        /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no DeletedByUser set (0)
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeleteRules to delete rules without giving a DeletedByUserId
+        /// Input:
+        /// List of three rules for delegation of the app org1/app3 and org1/app4 between for a single offeredby/coveredby combination resulting in no policy file beeing updated.
+        /// Expected Result:
+        /// No Rules are deleted and no rules are returned
+        /// Success Criteria:
+        /// DeleteRules returns status code 500 and no deletion is performed
+        /// </summary>
+        [Fact]
+        public async Task Post_DeleteRules_InvalidUserPerformingDeleteRule_BadRequest()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeleteRules/ReadOrg1App3App4_50001337_20001337_NoDeletedBy.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            List<Rule> actual = null;
+            try
+            {
+                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+            }
+            catch
+            {
+                // do nothing this is expected
+            }
+
+            Assert.Null(actual);
+        }
+
+        /// <summary>
+        /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 where the user performing the task is not defined
+        /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no DeletedByUser set (0)
+        /// </summary>
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for DeleteRules to delete rules without giving a DeletedByUserId
+        /// Input:
+        /// List of three rules for delegation of the app org1/app3 and org1/app4 between for a single offeredby/coveredby combination resulting in no policy file beeing updated.
+        /// Expected Result:
+        /// No Rules are deleted and no rules are returned
+        /// Success Criteria:
+        /// DeleteRules returns status code 500 and no deletion is performed
+        /// </summary>
+        [Fact]
+        public async Task Post_DeletePolicies_InvalidUserPerformingDeleteRule_BadRequest()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/DeletePolicies/ReadOrg1App3App4_50001337_20001337_NoDeletedBy.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            List<Rule> actual = null;
+            try
+            {
+                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+            }
+            catch
+            {
+                // do nothing this is expected
+            }
+
+            Assert.Null(actual);
+        }
+
+        /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 without rules defined
         /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no ruleids defined
         /// </summary>
