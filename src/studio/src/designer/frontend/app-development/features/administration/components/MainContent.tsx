@@ -6,22 +6,23 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { useSelector } from 'react-redux';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
+import { IRepository } from 'types/global';
 
 export interface IMainContentProps {
-  service: any;
-  serviceName: string;
-  serviceId: string;
-  serviceDescription: string;
+  repository: IRepository;
+  appDescription: string;
+  appId: string;
+  appName: string;
+  editAppName: boolean;
   language: any;
-  editServiceName: boolean;
-  serviceNameAnchorEl: any;
-  onServiceNameChanged: (event: any) => void;
-  onBlurServiceName: () => void;
-  handleEditServiceName: () => void;
-  onServiceIdChanged: (event: any) => void;
-  onBlurServiceId: () => void;
-  onServiceDescriptionChanged: (event: any) => void;
-  onBlurServiceDescription: () => void;
+  onAppDescriptionBlur: () => void;
+  onAppDescriptionChange: (event: any) => void;
+  onAppIdBlur: () => void;
+  onAppIdChange: (event: any) => void;
+  onAppNameBlur: () => void;
+  onAppNameChange: (event: any) => void;
+  onEditAppNameClick: () => void;
+  appNameAnchorEl: any;
 }
 
 const theme = createTheme(altinnTheme);
@@ -54,47 +55,44 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
           </div>
         }
         <AltinnInputField
-          id='administrationInputServicename'
-          textFieldId='administrationInputServicename_textField'
-          onChangeFunction={props.onServiceNameChanged}
+          id='administrationInputAppName'
+          textFieldId='administrationInputAppName_textField'
+          onChangeFunction={props.onAppNameChange}
           inputHeader={getLanguageFromKey('general.service_name', props.language)}
-          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_name_administration_description', props.language)}
-          inputValue={props.serviceName}
-          onBlurFunction={props.onBlurServiceName}
+          inputValue={props.appName}
+          onBlurFunction={props.onAppNameBlur}
           btnText={getLanguageFromKey('general.edit', props.language)}
-          onBtnClickFunction={props.handleEditServiceName}
-          isDisabled={!props.editServiceName}
-          focusOnComponentDidUpdate={props.editServiceName}
+          onBtnClickFunction={props.onEditAppNameClick}
+          isDisabled={!props.editAppName}
+          focusOnComponentDidUpdate={props.editAppName}
           inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          inputFieldStyling={props.editServiceName ?
+          inputFieldStyling={props.editAppName ?
             { background: theme.altinnPalette.primary.white } : null}
         />
       </div>
       <AltinnPopper
-        anchorEl={props.serviceNameAnchorEl}
+        anchorEl={props.appNameAnchorEl}
         message={getLanguageFromKey('administration.service_name_empty_message', props.language)}
       />
       <div className={classes.marginBottom_24}>
         <AltinnInputField
-          id='administrationInputServiceid'
-          textFieldId='administrationInputServiceid_textField'
-          onChangeFunction={props.onServiceIdChanged}
+          id='administrationInputAppId'
+          textFieldId='administrationInputAppId_textField'
+          onChangeFunction={props.onAppIdChange}
           inputHeader={getLanguageFromKey('administration.service_id', props.language)}
-          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_id_description', props.language)}
-          inputValue={props.serviceId}
-          onBlurFunction={props.onBlurServiceId}
+          inputValue={props.appId}
+          onBlurFunction={props.onAppIdBlur}
           inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
         />
       </div>
       <div className={classes.marginBottom_24}>
         <AltinnInputField
           id='administrationInputReponame'
-          inputHeader={getLanguageFromKey('general.service_saved_name', props.language)}
-          // eslint-disable-next-line max-len
+          inputHeader={getLanguageFromKey('general.app_saved_name', props.language)}
           inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', props.language)}
-          inputValue={props.service ? props.service.name : ''}
+          inputValue={props.repository ? props.repository.name : ''}
           isDisabled={true}
           inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
         />
@@ -103,13 +101,12 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
         <AltinnInputField
           id='administrationInputDescription'
           textFieldId='administrationInputDescription_textField'
-          onChangeFunction={props.onServiceDescriptionChanged}
+          onChangeFunction={props.onAppDescriptionChange}
           inputHeader={getLanguageFromKey('administration.service_comment', props.language)}
-          // eslint-disable-next-line max-len
           inputDescription={getLanguageFromKey('administration.service_comment_description', props.language)}
           textAreaRows={7}
-          inputValue={props.serviceDescription}
-          onBlurFunction={props.onBlurServiceDescription}
+          inputValue={props.appDescription}
+          onBlurFunction={props.onAppDescriptionBlur}
           inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
         />
       </div>

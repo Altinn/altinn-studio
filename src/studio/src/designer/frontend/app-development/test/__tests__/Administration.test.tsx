@@ -115,7 +115,7 @@ describe('Administration', () => {
     const editButton = utils.getByText('general.edit').closest('button');
     fireEvent.click(editButton);
 
-    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputServicename_textField');
+    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputAppName_textField');
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
     fireEvent.change(inputElement, mockEvent);
@@ -189,7 +189,7 @@ describe('Administration', () => {
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New id' } };
 
-    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputServiceid_textField');
+    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputAppId_textField');
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
     fireEvent.change(inputElement, mockEvent);

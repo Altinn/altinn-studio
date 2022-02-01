@@ -59,7 +59,7 @@ export function AdministrationComponent() {
   const description = useAppSelector(state => state.serviceInformation.serviceDescriptionObj.description);
   const id = useAppSelector(state => state.serviceInformation.serviceIdObj.serviceId);
   const language = useAppSelector(state => state.languageState.language);
-  const service = useAppSelector(state => state.serviceInformation.repositoryInfo);
+  const repository = useAppSelector(state => state.serviceInformation.repositoryInfo);
   const initialCommit = useAppSelector(state => state.serviceInformation.initialCommit);
   const classes = useStyles();
   const dispatch = useAppDispatch();
@@ -84,18 +84,18 @@ export function AdministrationComponent() {
     setNewId(id);
   }, [id]);
 
-  const handleAppNameChanged = (event: any) => {
+  const handleAppNameChange = (event: any) => {
     setNewName(event.target.value);
     setAppNameAnchorEl(null);
   }
 
-  const handleEditServiceName = () => {
+  const handleEditAppNameClick = () => {
     setEditAppName(true);
   }
 
-  const handleBlurAppName = () => {
+  const handleAppNameBlur = () => {
     if (editAppName && !newName) {
-      setAppNameAnchorEl(document.getElementById('administrationInputServicename'));
+      setAppNameAnchorEl(document.getElementById('administrationInputAppName'));
     } else {
       const { org, app } = window as Window as IAltinnWindow;
       dispatch(HandleServiceInformationActions.saveServiceName({
@@ -112,12 +112,12 @@ export function AdministrationComponent() {
     }
   }
 
-  const handleAppDescriptionChanged = (event: any) => {
+  const handleAppDescriptionChange = (event: any) => {
     setNewDescription(event.target.value);
     setEditAppDescription(true);
   }
 
-  const handleBlurAppDescription = () => {
+  const handleAppDescriptionBlur = () => {
     if (editAppDescription) {
       const { org, app } = window as Window as IAltinnWindow;
       dispatch(HandleServiceInformationActions.saveServiceConfig({
@@ -130,12 +130,12 @@ export function AdministrationComponent() {
     }
   }
 
-  const handleAppIdChanged = (event: any) => {
+  const handleAppIdChange = (event: any) => {
     setNewId(event.target.value);
     setEditAppId(true);
   }
 
-  const handleBlurAppId = () => {
+  const handleAppIdBlur = () => {
     if (editAppId) {
       const { org, app } = window as Window as IAltinnWindow;
       dispatch(HandleServiceInformationActions.saveServiceConfig({
@@ -148,7 +148,7 @@ export function AdministrationComponent() {
     }
   }
 
-  const render = service &&
+  const render = repository &&
     newName !== null &&
     newDescription !== null &&
     newId !== null;
@@ -166,26 +166,26 @@ export function AdministrationComponent() {
             <SideMenuContent
               initialCommit={initialCommit}
               language={language}
-              service={service}
+              service={repository}
             />
           }
           header={getLanguageFromKey('administration.administration', language)}
         >
           <MainContent
-            editServiceName={editAppName}
-            handleEditServiceName={handleEditServiceName}
+            appDescription={newDescription}
+            appId={newId}
+            appName={newName}
+            appNameAnchorEl={appNameAnchorEl}
+            editAppName={editAppName}
             language={language}
-            onBlurServiceDescription={handleBlurAppDescription}
-            onBlurServiceId={handleBlurAppId}
-            onBlurServiceName={handleBlurAppName}
-            onServiceDescriptionChanged={handleAppDescriptionChanged}
-            onServiceIdChanged={handleAppIdChanged}
-            onServiceNameChanged={handleAppNameChanged}
-            service={service}
-            serviceDescription={newDescription}
-            serviceId={newId}
-            serviceName={newName}
-            serviceNameAnchorEl={appNameAnchorEl}
+            onAppDescriptionBlur={handleAppDescriptionBlur}
+            onAppDescriptionChange={handleAppDescriptionChange}
+            onAppIdBlur={handleAppIdBlur}
+            onAppIdChange={handleAppIdChange}
+            onAppNameBlur={handleAppNameBlur}
+            onAppNameChange={handleAppNameChange}
+            onEditAppNameClick={handleEditAppNameClick}
+            repository={repository}
           />
         </AltinnColumnLayout>
       ) :
