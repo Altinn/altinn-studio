@@ -14,7 +14,7 @@ namespace Altinn.App.PlatformServices.Options
         /// <summary>
         /// Extention method for IServiceCollection to add the AddAltinn2CodeList() method
         /// <code>
-        /// services.AddCommonAppOptions(builder => {
+        /// services.AddAltinn2CodeList(builder => {
         ///     builder.Add(
         ///         id: "ASF_Land",
         ///         transform: (code) => new (){Value = code.Code, Label=code.Value1},
