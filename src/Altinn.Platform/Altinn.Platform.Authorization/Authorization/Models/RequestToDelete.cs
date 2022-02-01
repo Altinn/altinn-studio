@@ -9,7 +9,7 @@ namespace Altinn.Platform.Authorization.Models
     /// <summary>
     /// This model describes a list of rules to delete from a single policyfile
     /// </summary>
-    public class RequestToDelete
+    public class RequestToDelete : IValidatableObject
     {
         /// <summary>
         /// Gets or sets a list of unique identifier for specific rules within a policy.
@@ -27,6 +27,23 @@ namespace Altinn.Platform.Authorization.Models
         /// </summary>
         [Required]
         public PolicyMatch PolicyMatch { get; set; }
+
+        /// <summary>
+        /// Method validating the model
+        /// </summary>
+        /// <param name="validationContext">The context to validate for</param>
+        /// <returns></returns>
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            List<ValidationResult> validationResult = new List<ValidationResult>();
+
+            if (this.DeletedByUserId <= 0)
+            {
+                validationResult.Add(new ValidationResult("Not all RequestToDelete has a value for the user performing the delete"));                
+            }
+
+            return validationResult;
+        }
     }
 
     /// <summary>
@@ -52,12 +69,6 @@ namespace Altinn.Platform.Authorization.Models
             if (this.Any(r => r.RuleIds == null || r.RuleIds.Count == 0))
             {
                 validationResult.Add(new ValidationResult("Not all RequestToDelete has RuleId"));
-                return validationResult;
-            }
-
-            if (this.Any(r => r.DeletedByUserId <= 0))
-            {
-                validationResult.Add(new ValidationResult("Not all RequestToDelete has a value for the user performing the delete"));
                 return validationResult;
             }
 
@@ -96,12 +107,6 @@ namespace Altinn.Platform.Authorization.Models
             if (this.Count < 1)
             {
                 validationResult.Add(new ValidationResult("Missing policiesToDelete in body"));
-                return validationResult;
-            }
-
-            if (this.Any(r => r.DeletedByUserId <= 0))
-            {
-                validationResult.Add(new ValidationResult("Not all RequestToDelete has a value for the user performing the delete"));
                 return validationResult;
             }
 
