@@ -6,6 +6,8 @@ export default class AppFrontend {
     this.startButton = '.btn';
 
     //Common
+    this.loadingAnimation = 'rect[role="presentation"]';
+    this.header = '.a-modal-header';
     this.closeButton = '.a-modal-close-icon';
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
@@ -32,6 +34,7 @@ export default class AppFrontend {
     this.confirmContainer = '#ConfirmContainer';
     this.confirmBody = '#body-text';
     this.confirmSendInButton = '#confirm-button';
+    this.startAgain = '#startAgain';
 
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
@@ -56,12 +59,18 @@ export default class AppFrontend {
       newFullName: '#changeNameTo',
       confirmChangeName: '#confirmChangeName',
       reasons: '#reason',
+      reference: '#reference',
       dateOfEffect: '#dateOfEffect',
       upload: '#fileUpload-changename',
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
       sources: '#sources',
+      uploadingAnimation: '#loader-upload',
+      deleteAttachment: 'div[id^="attachment-delete"]',
+      uploadedTable: '#altinn-file-listfileUpload-changename',
+      uploadSuccess: '.ai-check-circle',
+      uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
     };
 
     //group - task 3

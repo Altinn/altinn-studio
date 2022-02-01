@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
-using Altinn.Platform.Profile.Tests.Mocks;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -11,13 +11,13 @@ using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
-    public class OpenApiSpecificationTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class OpenApiSpecificationTests : IClassFixture<WebApplicationFactory<GeneralSettings>>
     {
-        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
+        private readonly WebApplicationFactorySetup<GeneralSettings> _webApplicationFactorySetup;
 
-        public OpenApiSpecificationTests(WebApplicationFactory<Startup> factory)
+        public OpenApiSpecificationTests(WebApplicationFactory<GeneralSettings> factory)
         {
-            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
+            _webApplicationFactorySetup = new WebApplicationFactorySetup<GeneralSettings>(factory);
         }
 
         [Fact]
@@ -26,7 +26,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests
             // Arrange
             HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
 
-            HttpRequestMessage httpRequestMessage = new (HttpMethod.Get, "/profile/swagger/v1/swagger.json");
+            HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, "/profile/swagger/v1/swagger.json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

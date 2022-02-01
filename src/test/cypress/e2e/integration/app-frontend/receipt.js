@@ -23,5 +23,6 @@ describe('Receipt', () => {
       });
     cy.get(appFrontend.linkToArchive).should('be.visible');
     cy.get(mui.listedAnchor).should('be.visible').and('have.length', 3);
+    cy.get('body').should('have.css', 'background-color', 'rgb(212, 249, 228)');
   });
 });

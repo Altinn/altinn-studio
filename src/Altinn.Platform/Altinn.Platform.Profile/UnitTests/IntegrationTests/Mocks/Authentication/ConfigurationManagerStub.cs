@@ -41,7 +41,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
-            List<SecurityKey> signingKeys = new () { key };
+            List<SecurityKey> signingKeys = new() { key };
 
             return await Task.FromResult(signingKeys);
         }

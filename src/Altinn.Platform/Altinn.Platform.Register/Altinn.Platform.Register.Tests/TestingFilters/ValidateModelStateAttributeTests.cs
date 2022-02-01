@@ -77,7 +77,7 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
             Assert.Null(context.Result);
         }
 
-        private ActionExecutingContext CreateActionExecutingContext(ModelStateDictionary modelState, IActionResult result = null)
+        private static ActionExecutingContext CreateActionExecutingContext(ModelStateDictionary modelState, IActionResult result = null)
         {
             ActionExecutingContext context = new ActionExecutingContext(
                 new ActionContext(
