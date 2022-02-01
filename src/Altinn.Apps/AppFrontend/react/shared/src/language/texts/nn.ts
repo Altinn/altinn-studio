@@ -90,6 +90,7 @@ export function nn() {
       customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Slett',
       disabled: 'Deaktivert',
+      done: 'Ferdig',
       edit: 'Endre',
       edit_alt: 'Rediger',
       edit_alt_error: 'Rett feil her',

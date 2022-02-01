@@ -33,7 +33,7 @@ const Header = ({
           </Grid>
           <Grid item>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>
+              <span className='a-iconText-text-large' data-testid='presentation-heading'>
                 {type === ProcessTaskType.Archived ? (
                   <span>
                     {getLanguageFromKey('receipt.receipt', language)}
