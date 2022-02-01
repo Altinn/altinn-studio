@@ -1,10 +1,9 @@
 #nullable enable
 using System;
+using System.Net.Http;
 
 using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Options;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http;
 
 namespace Altinn.App.PlatformServices.Options.Altinn2Provider
 {
@@ -40,7 +39,7 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         /// <param name="codeListVersion">version of the code list in the altinn2 metadata api</param>
         public Altinn2CodeListOptionsBuilder Add(string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter = null, string? metadataApiId = null, int? codeListVersion = null)
         {
-            _serviceCollection.AddSingleton<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(id, transform, filter, metadataApiId, codeListVersion));
+            _serviceCollection.AddSingleton<IAppOptionsProvider>(sp => new Altinn2CodeListProvider(sp.GetRequiredService<IHttpClientFactory>(), id, transform, filter, metadataApiId, codeListVersion));
             return this;
         }
     }

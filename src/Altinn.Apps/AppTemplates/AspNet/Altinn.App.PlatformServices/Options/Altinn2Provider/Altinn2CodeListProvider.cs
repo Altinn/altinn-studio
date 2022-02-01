@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Options;
 
 namespace Altinn.App.PlatformServices.Options.Altinn2Provider
 {
@@ -36,6 +35,11 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         private readonly int? _codeListVersion;
 
         /// <summary>
+        /// IHttpClientFactory for getting HttpClient for rest requests.
+        /// </summary>
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        /// <summary>
         /// Cache for options as altinn2 options are static
         /// </summary>
         private readonly Dictionary<string, AppOptions> _cachedOptions = new();
@@ -46,13 +50,14 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         /// <summary>
         /// <see cref="Altinn.App.PlatformServices.Options.Altinn2Provider.Altinn2CodeListOptionsBuilder.Add(string, Func{MetadataCodeListCodes, AppOption}, Func{MetadataCodeListCodes, bool}?, string?, int?)" />
         /// </summary>
-        public Altinn2CodeListProvider(string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = null)
+        public Altinn2CodeListProvider(IHttpClientFactory httpClientFactory, string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = null)
         {
             Id = id; // id in layout definitions
             _metadataApiId = metadataApiId ?? id; // codelist id in api (often the same as id, but if the same codelist is used with different filters, it has to be different)
             _transform = transform;
             _filter = filter;
             _codeListVersion = codeListVersion;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <inheritdoc/>
@@ -69,8 +74,7 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
                     _ => "1044", // default to norwegian bokmål
                 };
 
-                // Don't use httpClientFactory, as this will only run once per language per container reboot
-                using (var client = new HttpClient())
+                using (var client = _httpClientFactory.CreateClient())
                 {
                     var version = _codeListVersion == null ? string.Empty : $"/{_codeListVersion.Value}";
                     var response = await client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{Id}{version}?language={langCode}");
