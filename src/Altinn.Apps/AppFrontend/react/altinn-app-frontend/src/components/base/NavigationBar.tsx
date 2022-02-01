@@ -179,6 +179,7 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
         <ul
           hidden={!shouldShowMenu}
           id='navigation-menu'
+          data-testid='navigation-menu'
           className={classes.menu}
         >
           {pageIds.map((pageId, index) => {
