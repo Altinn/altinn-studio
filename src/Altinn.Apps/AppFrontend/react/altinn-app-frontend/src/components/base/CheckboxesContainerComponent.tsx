@@ -68,51 +68,56 @@ const useStyles = makeStyles({
   },
 });
 
-
 const emptyList: undefined[] = []; // constant for reference stability
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
-  const {
-    handleDataChange,
-    preselectedOptionIndex
-  } = props;
+  const { handleDataChange, preselectedOptionIndex } = props;
   const classes = useStyles(props);
-  const apiOptions: IOption[] = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const apiOptions: IOption[] = useAppSelector(
+    (state) => state.optionState.options[props.optionsId],
+  );
   const options = apiOptions || props.options || emptyList;
   const checkBoxesIsRow: boolean = options.length <= 2;
 
   const selected = React.useMemo(() => {
-    return props.formData.simpleBinding.split(',').map(v => options.find(o => o.value == v)).filter(o => !!o) ?? emptyList;
-  }, [props.formData, options])
+    return (
+      props.formData.simpleBinding
+        .split(',')
+        .map((v) => options.find((o) => o.value == v))
+        .filter((o) => !!o) ?? emptyList
+    );
+  }, [props.formData, options]);
 
   // Implement preselected functionality
   const preselectedOptionSet = React.useRef(false);
   React.useEffect(() => {
     const preselectedOption = options?.[preselectedOptionIndex]?.value;
-    if (
-      !selected &&
-      preselectedOption &&
-      !preselectedOptionSet.current
-    ) {
+    if (!selected && preselectedOption && !preselectedOptionSet.current) {
       preselectedOptionSet.current = true; //only rune once when ready
       handleDataChange(preselectedOption);
     }
-  }, [options, handleDataChange, selected, preselectedOptionIndex, preselectedOptionSet]);
-
-
+  }, [
+    options,
+    handleDataChange,
+    selected,
+    preselectedOptionIndex,
+    preselectedOptionSet,
+  ]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const previouslySelected = selected.some(v => v.value === event.target.name);
+    const previouslySelected = selected.some(
+      (v) => v.value === event.target.name,
+    );
 
-    const newSelected = previouslySelected ?
-      selected.filter(o => o.value !== event.target.name) :
-      [...selected, options.find(o => o.value === event.target.name)];
-    props.handleDataChange(newSelected.map(o => o.value).join());
+    const newSelected = previouslySelected
+      ? selected.filter((o) => o.value !== event.target.name)
+      : [...selected, options.find((o) => o.value === event.target.name)];
+    props.handleDataChange(newSelected.map((o) => o.value).join());
     props.handleFocusUpdate(props.id);
   };
 
   const isOptionSelected = (option: IOption) => {
-    return selected.some(o => o.value === option.value);
+    return selected.some((o) => o.value === option.value);
   };
 
   const RenderLegend = props.legend;
