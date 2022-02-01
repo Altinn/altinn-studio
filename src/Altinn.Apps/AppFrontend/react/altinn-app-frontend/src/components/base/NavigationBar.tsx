@@ -144,15 +144,16 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
 
   const shouldShowMenu = isMobile === false || showMenu;
 
-  const handleShowMenu = React.useCallback(() => {
+  const handleShowMenu = () => {
     setShowMenu(true);
+  };
 
-    if (firstPageLink.current) {
-      setTimeout(() => {
-        firstPageLink.current.focus();
-      }, 0);
+  React.useLayoutEffect(() => {
+    const shouldFocusFirstItem = firstPageLink.current && showMenu === true;
+    if (shouldFocusFirstItem) {
+      firstPageLink.current.focus();
     }
-  }, [firstPageLink]);
+  }, [showMenu]);
 
   return (
     <Grid container>
