@@ -54,7 +54,7 @@ describe('>>> containers/EditModalContent', () => {
           model: [] as any[],
         },
         textResources: {
-          resources: [{ id: 'ServiceName', value: 'Test' }],
+          resources: [{ id: 'appName', value: 'Test' }],
         },
       },
       thirdPartyComponents: {

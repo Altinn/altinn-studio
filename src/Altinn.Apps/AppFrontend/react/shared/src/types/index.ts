@@ -16,6 +16,19 @@ export interface IApplication {
   onEntry?: IOnEntry;
 }
 
+
+export interface IAltinnOrg {
+  name: ITitle;
+  logo: string;
+  orgnr: string;
+  homepage: string;
+  environments: string[];
+}
+
+export interface IAltinnOrgs {
+  [org: string]: IAltinnOrg;
+}
+
 export interface IOnEntry {
   show: 'new-instance' | 'startpage' | string;
 }
@@ -203,7 +216,7 @@ export interface ITask {
 }
 
 export interface ITitle {
-  nb: string;
+  [key: string]: string;
 }
 
 export interface IValidated {

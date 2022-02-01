@@ -38,7 +38,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
           id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'ServiceName' },
+          textResourceBindings: { title: 'appName' },
         },
         {
           dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
@@ -46,7 +46,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
           id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'ServiceName' },
+          textResourceBindings: { title: 'appName' },
           type: 'Input',
         },
         {
@@ -55,7 +55,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
           id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'ServiceName' },
+          textResourceBindings: { title: 'appName' },
           type: 'Input',
         },
         {
@@ -64,7 +64,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
           id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'ServiceName' },
+          textResourceBindings: { title: 'appName' },
           type: 'Input',
         },
       ],
@@ -141,7 +141,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
             id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
             readOnly: false,
             required: false,
-            textResourceBindings: { title: 'ServiceName' },
+            textResourceBindings: { title: 'appName' },
           },
           {
             type: 'Input',
@@ -149,7 +149,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
             id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
             readOnly: false,
             required: false,
-            textResourceBindings: { title: 'ServiceName' },
+            textResourceBindings: { title: 'appName' },
           },
         ],
       },

@@ -16,7 +16,6 @@ import {
 import {
   mapInstanceAttachments,
   getLanguageFromKey,
-  getTextResourceByKey,
   returnUrlToArchive,
 } from 'altinn-shared/utils';
 import {
@@ -24,9 +23,9 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
 
 export type IReceiptContainerProps = RouteChildrenProps;
 
@@ -81,6 +80,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const parties = useAppSelector(state => state.party.parties);
   const textResources = useAppSelector(state => state.textResources.resources);
   const profile = useAppSelector(state => state.profile.profile);
+  const appName = useAppSelector(selectAppName);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
@@ -94,7 +94,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !parties;
 
   React.useEffect(() => {
-    OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(
       routeParams.partyId,
       routeParams.instanceGuid,
@@ -165,10 +164,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           instanceMetaDataObject={instanceMetaObject}
           subtitle={getLanguageFromKey('receipt.subtitle', language)}
           subtitleurl={returnUrlToArchive(origin)}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
+          title={`${appName} ${getLanguageFromKey(
             'receipt.title_part_is_submitted',
             language,
           )}`}
@@ -188,10 +184,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
             null,
             false,
           )}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
+          title={`${appName} ${getLanguageFromKey(
             'receipt.title_part_is_submitted',
             language,
           )}`}

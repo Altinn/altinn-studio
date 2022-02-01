@@ -11,10 +11,7 @@ import {
 } from 'altinn-shared/components';
 import { IAttachment, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import {
-  mapInstanceAttachments,
-  getTextResourceByKey,
-} from 'altinn-shared/utils';
+import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
@@ -24,11 +21,11 @@ import { getValidationUrl } from '../../../utils/appUrlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import moment from 'moment';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
 
 export type IConfirmProps = RouteChildrenProps;
 
@@ -99,6 +96,7 @@ const Confirm = (props: IConfirmProps) => {
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
   );
+  const appName = useAppSelector(selectAppName);
 
   const routeParams: any = props.match.params;
 
@@ -116,7 +114,6 @@ const Confirm = (props: IConfirmProps) => {
     !parties;
 
   React.useEffect(() => {
-    OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(
       routeParams.partyId,
       routeParams.instanceGuid,
@@ -196,7 +193,7 @@ const Confirm = (props: IConfirmProps) => {
               'confirm.body',
               textResources,
               language,
-              [getTextResourceByKey('ServiceName', textResources)],
+              [appName],
             )}
             collapsibleTitle={getTextFromAppOrDefault(
               'confirm.attachments',
