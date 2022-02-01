@@ -3,8 +3,6 @@ import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
 import { AppStore, RootState, setupStore } from '../store';
 
@@ -38,5 +36,3 @@ export const renderWithProviders = (
     }),
   };
 };
-
-export { setupServer, rest };
