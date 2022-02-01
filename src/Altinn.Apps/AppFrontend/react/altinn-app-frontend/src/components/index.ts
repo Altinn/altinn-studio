@@ -1,9 +1,7 @@
-/* eslint-disable no-shadow */
 import { AddressComponent } from './advanced/AddressComponent';
 import { AttachmentListComponent } from './base/AttachmentListComponent';
 import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-// eslint-disable-next-line import/no-cycle
 import DatepickerComponent from './base/DatepickerComponent';
 import DropdownComponent from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
@@ -17,6 +15,7 @@ import { NavigationButtons as NavigationButtonsComponent } from './presentation/
 import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
 import { IGenericComponentProps } from './GenericComponent';
 import { IComponentFormData } from 'src/utils/formComponentUtils';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IComponent {
   name: string;
@@ -160,20 +159,23 @@ export const advancedComponents: IComponent[] = [
   },
 ];
 
-export interface  IComponentProps extends IGenericComponentProps {
-  handleDataChange: (value: string, key?: string) => void,
-  handleFocusUpdate: (componentId: string, step?: number) => void,
-  getTextResource: (key: string) => React.ReactNode,
-  getTextResourceAsString: (key: string) => string,
-  formData: IComponentFormData,
-  isValid: boolean,
-  language: any,
-  shouldFocus: boolean,
-  text: React.ReactNode,
-  label: () => JSX.Element,
-  legend: () => JSX.Element,
-};
+export interface IComponentProps extends IGenericComponentProps {
+  handleDataChange: (value: string, key?: string) => void;
+  handleFocusUpdate: (componentId: string, step?: number) => void;
+  getTextResource: (key: string) => React.ReactNode;
+  getTextResourceAsString: (key: string) => string;
+  formData: IComponentFormData;
+  isValid: boolean;
+  language: ILanguage;
+  shouldFocus: boolean;
+  text: React.ReactNode;
+  label: () => JSX.Element;
+  legend: () => JSX.Element;
+}
 
-const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
+const components: IComponent[] = textComponents.concat(
+  schemaComponents,
+  advancedComponents,
+);
 
 export default components;
