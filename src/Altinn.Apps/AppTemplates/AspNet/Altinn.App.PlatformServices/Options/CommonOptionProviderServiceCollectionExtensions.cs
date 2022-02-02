@@ -17,7 +17,7 @@ namespace Altinn.App.PlatformServices.Options
         /// services.AddAltinn2CodeList(builder => {
         ///     builder.Add(
         ///         id: "ASF_Land",
-        ///         transform: (code) => new (){Value = code.Code, Label=code.Value1},
+        ///         transform: (code) => new (){ Value = code.Code, Label=code.Value1 },
         ///         // filter: (code) => int.Parse(code.Value3) > 100,
         ///         codeListVersion: 2758,
         ///         metadataApiId: "ASF_land"
@@ -27,6 +27,7 @@ namespace Altinn.App.PlatformServices.Options
         /// </summary>
         public static IServiceCollection AddAltinn2CodeList(this IServiceCollection serviceCollection, Action<Altinn2CodeListOptionsBuilder> builder)
         {
+            serviceCollection.AddHttpClient<Altinn2MetadataApiClient>();
             builder(new Altinn2CodeListOptionsBuilder(serviceCollection));
             return serviceCollection;
         }

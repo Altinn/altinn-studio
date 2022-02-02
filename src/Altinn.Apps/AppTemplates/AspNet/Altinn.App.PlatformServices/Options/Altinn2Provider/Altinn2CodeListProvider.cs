@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
+
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Altinn.App.PlatformServices.Options.Altinn2Provider
 {
@@ -35,14 +36,14 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         private readonly int? _codeListVersion;
 
         /// <summary>
-        /// IHttpClientFactory for getting HttpClient for rest requests.
+        /// Altinn2MetadataApiClient for requesting
         /// </summary>
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly Altinn2MetadataApiClient _client;
 
         /// <summary>
         /// Cache for options as altinn2 options are static
         /// </summary>
-        private readonly Dictionary<string, AppOptions> _cachedOptions = new();
+        private readonly IMemoryCache _cache;
 
         /// <inheritdoc />
         public string Id { get;  private set; }
@@ -50,46 +51,41 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         /// <summary>
         /// <see cref="Altinn.App.PlatformServices.Options.Altinn2Provider.Altinn2CodeListOptionsBuilder.Add(string, Func{MetadataCodeListCodes, AppOption}, Func{MetadataCodeListCodes, bool}?, string?, int?)" />
         /// </summary>
-        public Altinn2CodeListProvider(IHttpClientFactory httpClientFactory, string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = null)
+        public Altinn2CodeListProvider(IMemoryCache cache, Altinn2MetadataApiClient client, string id, Func<MetadataCodeListCodes, AppOption> transform, Func<MetadataCodeListCodes, bool>? filter, string? metadataApiId = null, int? codeListVersion = null)
         {
+            _cache = cache;
+            _client = client;
             Id = id; // id in layout definitions
             _metadataApiId = metadataApiId ?? id; // codelist id in api (often the same as id, but if the same codelist is used with different filters, it has to be different)
             _transform = transform;
             _filter = filter;
             _codeListVersion = codeListVersion;
-            _httpClientFactory = httpClientFactory;
         }
 
         /// <inheritdoc/>
         public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
         {
-            // TODO: consider making sure this only fetches once even if the server has high load
-            if (!_cachedOptions.ContainsKey(language))
+
+            var langCode = language switch
             {
-                var langCode = language switch
-                {
-                    "nb" => "1044",
-                    "nn" => "2068",
-                    "en" => "1033",
-                    _ => "1044", // default to norwegian bokmål
-                };
+                "nb" => "1044",
+                "nn" => "2068",
+                "en" => "1033",
+                _ => "1044", // default to norwegian bokmål
+            };
+            var codelist = await _cache.GetOrCreateAsync($"{_metadataApiId}{langCode}{_codeListVersion}", async(entry) =>
+            {
+                entry.Priority = CacheItemPriority.NeverRemove;
+                entry.AbsoluteExpiration = DateTimeOffset.MaxValue;
+                return await _client.GetAltinn2Codelist(_metadataApiId, langCode, _codeListVersion);
+            });
 
-                using (var client = _httpClientFactory.CreateClient())
-                {
-                    var version = _codeListVersion == null ? string.Empty : $"/{_codeListVersion.Value}";
-                    var response = await client.GetAsync($"https://www.altinn.no/api/metadata/codelists/{Id}{version}?language={langCode}");
-                    response.EnsureSuccessStatusCode();
-                    var codelist = await response.Content.ReadAsAsync<MetadataCodelistResponse>();
-                    AppOptions options = new()
-                    {
-                        Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
-                        IsCacheable = true
-                    };
-                    _cachedOptions[language] = options;
-                }
-            }
-
-            return _cachedOptions[language];
+            AppOptions options = new()
+            {
+                Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
+                IsCacheable = true
+            };
+            return options;
         }
     }
 }
