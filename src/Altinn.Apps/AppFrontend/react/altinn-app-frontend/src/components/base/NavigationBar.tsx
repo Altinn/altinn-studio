@@ -96,7 +96,7 @@ const NavigationButton = React.forwardRef(
   },
 );
 
-NavigationButton.displayName = 'Button';
+NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBar = ({ triggers }: INavigationBar) => {
   const classes = useStyles();
