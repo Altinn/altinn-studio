@@ -412,13 +412,12 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
     const component = state.formLayout.layouts[currentView]
         .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
     const componentOptions = state.optionState.options[component.optionsId]
-
     if (componentOptions.find(op => op.value === option.value)) {
       yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
         uploader, id, option,
       }));
     } else {
-      yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error: null }));
+      yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error: new Error('Could not find the selected option!') }));
     }
   } catch (error) {
     yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error }));
@@ -445,5 +444,10 @@ export function* initFileUploaderWithTagSaga(): SagaIterator {
 export function* watchInitFileUploaderWithTagSaga(): SagaIterator {
   yield take(FormLayoutActions.fetchLayoutFulfilled);
   yield call(initFileUploaderWithTagSaga);
-  yield takeLatest([FormLayoutActions.initFileUploaderWithTag], initFileUploaderWithTagSaga);
+  yield takeLatest([
+    FormLayoutActions.initFileUploaderWithTag,
+    FormLayoutActions.fetchLayoutFulfilled
+    ],
+    initFileUploaderWithTagSaga
+  );
 }
