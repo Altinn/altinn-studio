@@ -66,7 +66,7 @@ export interface INavigationBar {
 
 interface INavigationButton {
   onClick: () => void;
-  children: any;
+  children: React.ReactNode;
   current: boolean;
   hidden?: boolean;
 }
