@@ -83,7 +83,11 @@ export function SummaryComponent(props: ISummaryComponent) {
     );
   });
   const formData = useAppSelector(state => {
-    if (formComponent.type.toLowerCase() === 'group') return undefined;
+    if (
+      formComponent.type.toLowerCase() === 'group' ||
+      formComponent.type.toLowerCase() === 'fileupload' ||
+      formComponent.type.toLowerCase() === 'fileuploadwithtag'
+    ) return undefined;
     return (
       props.formData ||
       getDisplayFormDataForComponent(
