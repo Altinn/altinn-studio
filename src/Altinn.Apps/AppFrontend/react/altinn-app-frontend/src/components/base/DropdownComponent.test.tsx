@@ -22,20 +22,22 @@ const render = (props: Partial<IDropdownProps> = {}) => {
     ...props,
   };
 
-  const countries = [
-    {
-      label: 'Norway',
-      value: 'norway',
-    },
-    {
-      label: 'Sweden',
-      value: 'sweden',
-    },
-    {
-      label: 'Denmark',
-      value: 'denmark',
-    },
-  ];
+  const countries = {
+    options: [
+      {
+        label: 'Norway',
+        value: 'norway',
+      },
+      {
+        label: 'Sweden',
+        value: 'sweden',
+      },
+      {
+        label: 'Denmark',
+        value: 'denmark',
+      },
+    ]
+  }
 
   renderWithProviders(<DropdownComponent {...allProps} />, {
     preloadedState: {

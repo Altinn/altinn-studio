@@ -71,7 +71,7 @@ export const RadioButtonContainerComponent = (
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]?.options);
   const options = apiOptions || props.options || [];
   const radioGroupIsRow: boolean = options.length <= 2;
 

@@ -180,7 +180,12 @@ export interface IOption {
 }
 
 export interface IOptions {
-  [id: string]: IOption[];
+  [id: string]: IOptionData;
+}
+
+export interface IOptionData {
+  options: IOption[];
+  mapping?: IMapping;
 }
 
 export interface IRepeatingGroup {

@@ -78,7 +78,7 @@ function usePrevious(value) {
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]?.options);
   const options = apiOptions || props.options || [];
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);

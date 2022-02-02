@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { fork, call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState, IOption, IFetchSpecificOptionSaga } from 'src/types';
+import { IRuntimeState, IOption, IFetchSpecificOptionSaga, IOptionData } from 'src/types';
 import { ILayouts } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/appUrlHelper';
@@ -53,7 +53,11 @@ export function* fetchSpecificOptionSaga({
   try {
     const url = getOptionsUrl({ optionsId, formData, language, dataMapping });
     const options: IOption[] = yield call(get, url);
-    yield call(OptionsActions.fetchOptionsFulfilled, optionsId, options);
+    const optionData: IOptionData = {
+      options,
+      mapping: dataMapping,
+    }
+    yield call(OptionsActions.fetchOptionsFulfilled, optionsId, optionData);
   } catch (error) {
     yield call(OptionsActions.fetchOptionsRejected, error);
   }

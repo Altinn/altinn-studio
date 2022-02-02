@@ -44,7 +44,7 @@ function DropdownComponent({
 }: IDropdownProps) {
   const classes = useStyles();
   const options = useAppSelector(
-    (state) => state.optionState.options[optionsId],
+    (state) => state.optionState.options[optionsId]?.options,
   );
   const hasSelectedInitial = React.useRef(false);
 

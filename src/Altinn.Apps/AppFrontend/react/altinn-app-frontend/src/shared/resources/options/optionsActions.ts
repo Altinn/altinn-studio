@@ -1,5 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IOption } from 'src/types';
+import { IOptionData } from 'src/types';
 import { store } from '../../../store';
 
 import * as FetchOptions from './fetch/fetchOptionsActions';
@@ -8,7 +8,7 @@ export interface IOptionsActions extends ActionCreatorsMapObject {
   fetchOptions: () => Action;
   fetchOptionsFulfilled: (
     optionsId: string,
-    options: IOption[],
+    optionData: IOptionData,
   ) => FetchOptions.IFetchOptionsFulfilledAction;
   fetchOptionsRecjeted: (
     error: Error,

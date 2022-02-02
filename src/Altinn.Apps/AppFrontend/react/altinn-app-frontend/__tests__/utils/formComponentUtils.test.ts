@@ -32,15 +32,19 @@ describe('>>> utils/formComponentUtils.ts', () => {
     },
   ];
   const mockOptions: IOptions = {
-    mockOption: [
-      { value: 'optionValue1', label: 'textKey1' },
-      { value: 'optionValue2', label: 'textKey2' },
-    ],
-    mockRepOption: [
-      { value: 'repOptionValue1', label: 'repTextKey1' },
-      { value: 'repOptionValue2', label: 'repTextKey2' },
-      { value: 'repOptionValue3', label: 'repTextKey3' },
-    ],
+    mockOption: {
+      options: [
+        { value: 'optionValue1', label: 'textKey1' },
+        { value: 'optionValue2', label: 'textKey2' },
+      ]
+    },
+    mockRepOption: {
+      options: [
+        { value: 'repOptionValue1', label: 'repTextKey1' },
+        { value: 'repOptionValue2', label: 'repTextKey2' },
+        { value: 'repOptionValue3', label: 'repTextKey3' },
+      ]
+    },
   };
 
   it('+++ getDisplayFormData should return form data for a component', () => {
