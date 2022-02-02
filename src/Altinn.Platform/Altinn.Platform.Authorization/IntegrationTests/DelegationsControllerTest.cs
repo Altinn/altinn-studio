@@ -269,20 +269,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeleteRules", content);
 
             string responseContent = await response.Content.ReadAsStringAsync();
+            ValidationProblemDetails actual = (ValidationProblemDetails)JsonConvert.DeserializeObject(responseContent, typeof(ValidationProblemDetails));
+            string errormessage = actual.Errors.Values.FirstOrDefault()[0];
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            List<Rule> actual = null;
-            try
-            {
-                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
-            }
-            catch
-            {
-                // do nothing this is expected
-            }
-
-            Assert.Null(actual);
+            Assert.Equal("Not all RequestToDelete has a value for the user performing the delete", errormessage);
         }
 
         /// <summary>
@@ -311,20 +303,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/DeletePolicy", content);
 
             string responseContent = await response.Content.ReadAsStringAsync();
+            ValidationProblemDetails actual = (ValidationProblemDetails)JsonConvert.DeserializeObject(responseContent, typeof(ValidationProblemDetails));
+            string errormessage = actual.Errors.Values.FirstOrDefault()[0];
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            List<Rule> actual = null;
-            try
-            {
-                actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
-            }
-            catch
-            {
-                // do nothing this is expected
-            }
-
-            Assert.Null(actual);
+            Assert.Equal("Not all RequestToDelete has a value for the user performing the delete", errormessage);
         }
 
         /// <summary>
