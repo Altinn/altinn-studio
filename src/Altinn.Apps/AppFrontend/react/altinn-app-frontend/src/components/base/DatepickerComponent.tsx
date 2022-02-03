@@ -30,6 +30,8 @@ export interface IDatePickerProps extends IComponentProps {
   maxDate: string;
 }
 
+const iconSize = '30px';
+
 const useStyles = makeStyles({
   root: {
     fontSize: '1.6rem',
@@ -53,9 +55,8 @@ const useStyles = makeStyles({
     outlineColor: `${AltinnAppTheme.altinnPalette.primary.red} !important`,
   },
   icon: {
-    // must be the same to center align icon
-    fontSize: '30px',
-    lineHeight: '30px',
+    fontSize: iconSize,
+    lineHeight: iconSize,
   },
   formHelperText: {
     fontSize: '1.4rem',
@@ -81,7 +82,7 @@ export const DatePickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
 export const DatePickerFormatDefault = 'DD.MM.YYYY';
 export const DatePickerSaveFormatNoTimestamp = 'YYYY-MM-DD';
 
-// We dont use the built-in validation for the component, so it is always empty string
+// We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';
 
 function DatepickerComponent({
@@ -125,11 +126,11 @@ function DatepickerComponent({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const isDateEmpty = () => {
+  const isDateEmpty = React.useCallback(() => {
     return date && date.parsingFlags().parsedDateParts.length === 0;
-  };
+  }, [date]);
 
-  const getValidationMessages = () => {
+  const getValidationMessages = React.useCallback(() => {
     const checkDate = isDateEmpty() ? '' : date?.toISOString();
     const validations: IComponentBindingValidation = validateDatepickerFormData(
       checkDate,
@@ -154,21 +155,26 @@ function DatepickerComponent({
       });
     }
     return validations;
-  };
+  }, [
+    calculatedFormat,
+    calculatedMinDate,
+    calculatedMaxDate,
+    language,
+    componentValidations,
+    date,
+    isDateEmpty,
+  ]);
 
   React.useEffect(() => {
     const dateValue = formData?.simpleBinding
       ? moment(formData.simpleBinding)
       : null;
     setDate(dateValue);
-    setValidationMessages(getValidationMessages());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData?.simpleBinding]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [componentValidations]);
+  }, [componentValidations, getValidationMessages]);
 
   const handleDateChange = (dateValue: moment.Moment) => {
     dateValue
