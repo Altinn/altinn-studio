@@ -138,7 +138,7 @@ namespace Altinn.Platform.Authorization.Repositories
         public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
         {
             List<DelegationChange> delegationChanges = new List<DelegationChange>();
-            if ((coveredByPartyIds == null && coveredByUserIds == null) || (coveredByPartyIds.Count == 0 && coveredByUserIds.Count == 0))
+            if ((coveredByPartyIds == null && coveredByUserIds == null) || (coveredByPartyIds != null && coveredByPartyIds.Count == 0 && coveredByUserIds != null && coveredByUserIds.Count == 0))
             {
                 delegationChanges.AddRange(await GetAllCurrentDelegationChangesOfferedByPartyIdOnly(altinnAppIds, offeredByPartyIds));
             }
