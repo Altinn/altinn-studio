@@ -65,7 +65,6 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
         /// <inheritdoc/>
         public async Task<AppOptions> GetAppOptionsAsync(string language, Dictionary<string, string> keyValuePairs)
         {
-
             var langCode = language switch
             {
                 "nb" => "1044",
@@ -73,7 +72,7 @@ namespace Altinn.App.PlatformServices.Options.Altinn2Provider
                 "en" => "1033",
                 _ => "1044", // default to norwegian bokmål
             };
-            var codelist = await _cache.GetOrCreateAsync($"{_metadataApiId}{langCode}{_codeListVersion}", async(entry) =>
+            var codelist = await _cache.GetOrCreateAsync($"{_metadataApiId}{langCode}{_codeListVersion}", async (entry) =>
             {
                 entry.Priority = CacheItemPriority.NeverRemove;
                 entry.AbsoluteExpiration = DateTimeOffset.MaxValue;
