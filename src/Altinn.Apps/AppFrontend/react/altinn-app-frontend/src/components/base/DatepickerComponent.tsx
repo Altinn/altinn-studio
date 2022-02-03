@@ -16,10 +16,7 @@ import {
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import {
-  IComponentBindingValidation,
-  DateFlags,
-} from 'src/types';
+import { IComponentBindingValidation, DateFlags } from 'src/types';
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
@@ -109,7 +106,7 @@ function DatepickerComponent(props: IDatePickerProps) {
     props.format ||
     DatePickerFormatDefault;
   const theme = useTheme();
-  const inline = useMediaQuery(theme.breakpoints.up('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const isDateEmpty = () => {
     return date && date.parsingFlags().parsedDateParts.length === 0;
@@ -143,7 +140,9 @@ function DatepickerComponent(props: IDatePickerProps) {
   };
 
   React.useEffect(() => {
-    const dateValue = props.formData?.simpleBinding ? moment(props.formData.simpleBinding) : null;
+    const dateValue = props.formData?.simpleBinding
+      ? moment(props.formData.simpleBinding)
+      : null;
     setDate(dateValue);
     setValidationMessages(getValidationMessages());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,7 +150,7 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
@@ -210,6 +209,23 @@ function DatepickerComponent(props: IDatePickerProps) {
     }
   };
 
+  const mobileOnlyProps = isMobile
+    ? {
+        cancelLabel: getLanguageFromKey(
+          'date_picker.cancel_label',
+          props.language,
+        ),
+        clearLabel: getLanguageFromKey(
+          'date_picker.clear_label',
+          props.language,
+        ),
+        todayLabel: getLanguageFromKey(
+          'date_picker.today_label',
+          props.language,
+        ),
+      }
+    : {};
+
   return (
     <>
       <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
@@ -217,7 +233,7 @@ function DatepickerComponent(props: IDatePickerProps) {
           <KeyboardDatePicker
             readOnly={props.readOnly}
             required={props.required}
-            variant={inline ? 'inline' : 'dialog'}
+            variant={isMobile ? 'dialog' : 'inline'}
             format={format}
             margin='normal'
             id={props.id}
@@ -232,18 +248,6 @@ function DatepickerComponent(props: IDatePickerProps) {
             minDateMessage='' // all validation messages intentionally left empty
             minDate={minDate}
             maxDate={maxDate}
-            cancelLabel={getLanguageFromKey(
-              'date_picker.cancel_label',
-              props.language,
-            )}
-            clearLabel={getLanguageFromKey(
-              'date_picker.clear_label',
-              props.language,
-            )}
-            todayLabel={getLanguageFromKey(
-              'date_picker.today_label',
-              props.language,
-            )}
             InputProps={{
               disableUnderline: true,
               'aria-describedby': `description-${props.id}`,
@@ -289,6 +293,7 @@ function DatepickerComponent(props: IDatePickerProps) {
               <Icon id='date-icon' className={`${classes.icon} ai ai-date`} />
             }
             className={classes.datepicker}
+            {...mobileOnlyProps}
           />
         </Grid>
       </MuiPickersUtilsProvider>
