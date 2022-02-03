@@ -11,7 +11,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
         it('should take every updateFormData action and spawn checkIfOptionsShouldRefetchSaga', () => {
             testSaga(watchCheckIfOptionsShouldRefetchSaga)
                 .next()
-                .takeEvery(FormDataActions.updateFormData, checkIfOptionsShouldRefetchSaga)
+                .takeEvery(FormDataActions.updateFormDataFulfilled, checkIfOptionsShouldRefetchSaga)
                 .next()
                 .isDone();
         });

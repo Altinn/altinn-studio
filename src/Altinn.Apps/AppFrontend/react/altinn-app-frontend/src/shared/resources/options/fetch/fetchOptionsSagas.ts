@@ -8,7 +8,7 @@ import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSl
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
 import FormDataActions from 'src/features/form/data/formDataActions';
-import { IUpdateFormData } from 'src/features/form/data/formDataTypes';
+import { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { IFormData } from 'src/features/form/data/formDataReducer';
 
@@ -72,7 +72,7 @@ export function* checkIfOptionsShouldRefetchSaga({
   payload: {
     field
   },
-}: PayloadAction<IUpdateFormData>): SagaIterator {
+}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   const formData: IFormData = yield select(formDataSelector);
   const language: string = yield select(userLanguageSelector);
   const options: IOptions = yield select(optionsSelector);
@@ -91,7 +91,7 @@ export function* checkIfOptionsShouldRefetchSaga({
 }
 
 export function* watchCheckIfOptionsShouldRefetchSaga(): SagaIterator {
-  yield takeEvery(FormDataActions.updateFormData, checkIfOptionsShouldRefetchSaga);
+  yield takeEvery(FormDataActions.updateFormDataFulfilled, checkIfOptionsShouldRefetchSaga);
 }
 
 export function* watchInitialFetchOptionSaga(): SagaIterator {
