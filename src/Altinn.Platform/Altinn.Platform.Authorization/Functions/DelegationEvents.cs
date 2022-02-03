@@ -1,25 +1,22 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Storage.Queue.Protocol;
-using Microsoft.Extensions.Logging;
+using Altinn.Platform.Authorization.Functions.Models;
+using Altinn.Platform.Authorization.Functions.Services.Interfaces;
+using Microsoft.Azure.WebJobs;
 
-namespace Altinn.Platform.Authorzation.Functions
+namespace Altinn.Platform.Authorization.Functions
 {
     public class DelegationEvents
     {
-        private readonly ILogger _logger;
+        private readonly IEventPusherService _eventPusherService;
 
-        public DelegationEvents(ILoggerFactory loggerFactory)
+        public DelegationEvents(IEventPusherService eventPusherService)
         {
-            _logger = loggerFactory.CreateLogger<DelegationEvents>();
+            _eventPusherService = eventPusherService;
         }
 
-        [Function("DelegationEvents")]
-        public async Task Run([QueueTrigger("delegationevents", Connection = "DelegationEventsQueueStorage")] string myQueueItem)
+        [FunctionName(nameof(DelegationEvents))]
+        public void Run([QueueTrigger("delegationevents", Connection = "QueueStorage")] DelegationChangeEvent delegationChangeEvent)
         {
-            _logger.LogInformation($"C# Queue trigger function processed: {myQueueItem}");
-            await Task.CompletedTask;
+            _eventPusherService.PushEvent(delegationChangeEvent);
         }
     }
 }

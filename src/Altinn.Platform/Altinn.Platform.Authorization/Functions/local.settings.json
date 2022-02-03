@@ -2,7 +2,9 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "DelegationEventsQueueStorage__queueServiceUri": "https://storageaccountrgdel8df8.queue.core.windows.net"
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "QueueStorage__queueServiceUri": "https://storageaccountrgdel8df8.queue.core.windows.net",
+    "Platform:BridgeApiEndpoint": "https://at21.altinn.cloud/sblbridge/authorization/api/",
+    "KeyVault:KeyVaultURI": "https://altinn-at21-kv.vault.azure.net/"
   }
 }

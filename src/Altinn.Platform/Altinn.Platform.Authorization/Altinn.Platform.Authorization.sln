@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorizati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC.UnitTest", "UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{F7FECF3A-0766-46DE-94C7-F237A188FCD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Authorzation.Functions", "Functions\Altinn.Platform.Authorzation.Functions.csproj", "{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Authorization.Functions", "Functions\Altinn.Platform.Authorization.Functions.csproj", "{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
