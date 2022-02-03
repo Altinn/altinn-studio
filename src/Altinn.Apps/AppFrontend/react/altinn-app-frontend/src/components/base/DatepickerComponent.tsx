@@ -248,7 +248,7 @@ function DatepickerComponent({
             readOnly={readOnly}
             required={required}
             variant={isMobile ? 'dialog' : 'inline'}
-            format={format}
+            format={calculatedFormat}
             margin='normal'
             id={id}
             value={date}
