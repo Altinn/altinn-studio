@@ -71,7 +71,9 @@ export const RadioButtonContainerComponent = (
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const apiOptions = useAppSelector(
+    (state) => state.optionState.options[props.optionsId],
+  );
   const options = apiOptions || props.options || [];
   const radioGroupIsRow: boolean = options.length <= 2;
 
@@ -96,9 +98,7 @@ export const RadioButtonContainerComponent = (
       props.handleDataChange(preSelectedValue);
       setSelected(preSelectedValue);
     } else {
-      setSelected(
-        props.formData?.simpleBinding ?? '',
-      );
+      setSelected(props.formData?.simpleBinding ?? '');
     }
   };
 
