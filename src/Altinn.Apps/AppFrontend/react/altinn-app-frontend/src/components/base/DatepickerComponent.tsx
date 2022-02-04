@@ -174,7 +174,7 @@ function DatepickerComponent({
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-  }, [componentValidations, getValidationMessages]);
+  }, [getValidationMessages]);
 
   const handleDateChange = (dateValue: moment.Moment) => {
     dateValue
