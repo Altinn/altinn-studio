@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -51,13 +56,14 @@ namespace Designer.Tests.Services
                 service.Status("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
-        public void DecoratedISourceControlService_CloneRemoteRepository_LogsErrorWithAdditionalInfo()
+        public void DecoratedISourceControlService_CloneRemoteRepository1_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
 
@@ -66,9 +72,26 @@ namespace Designer.Tests.Services
                 service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
+        }
+
+        [Fact]
+        public void DecoratedISourceControlService_CloneRemoteRepository2_LogsErrorWithAdditionalInfo()
+        {
+            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
+
+            try
+            {
+                service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists", "destination_path_should_not_exists", "branch_name_should_not_exists");
+            }
+            catch
+            {                
+            }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -81,9 +104,10 @@ namespace Designer.Tests.Services
                 service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -96,9 +120,10 @@ namespace Designer.Tests.Services
                 service.StageChange("org_should_not_exists", "repo_should_not_exists", "file_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -111,9 +136,10 @@ namespace Designer.Tests.Services
                 service.AbortMerge("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -126,9 +152,10 @@ namespace Designer.Tests.Services
                 service.CheckoutLatestCommitForSpecificFile("org_should_not_exists", "repo_should_not_exists", "file_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -141,9 +168,10 @@ namespace Designer.Tests.Services
                 service.CheckRemoteUpdates("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -156,9 +184,10 @@ namespace Designer.Tests.Services
                 service.Commit(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -172,8 +201,9 @@ namespace Designer.Tests.Services
             }
             catch
             {
-                loggerMock.Verify();
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -187,8 +217,9 @@ namespace Designer.Tests.Services
             }
             catch
             {
-                loggerMock.Verify();
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -202,8 +233,9 @@ namespace Designer.Tests.Services
             }
             catch
             {
-                loggerMock.Verify();
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -216,9 +248,10 @@ namespace Designer.Tests.Services
                 service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -231,9 +264,10 @@ namespace Designer.Tests.Services
                 service.GetInitialCommit("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -246,9 +280,10 @@ namespace Designer.Tests.Services
                 service.GetLatestCommitForCurrentUser("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -261,9 +296,10 @@ namespace Designer.Tests.Services
                 service.IsLocalRepo("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {             
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -276,9 +312,10 @@ namespace Designer.Tests.Services
                 service.Log("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -291,9 +328,10 @@ namespace Designer.Tests.Services
                 service.PullRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -306,9 +344,10 @@ namespace Designer.Tests.Services
                 service.Push("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -321,9 +360,10 @@ namespace Designer.Tests.Services
                 service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -336,9 +376,10 @@ namespace Designer.Tests.Services
                 service.RepositoryStatus("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -351,9 +392,10 @@ namespace Designer.Tests.Services
                 service.ResetCommit("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         [Fact]
@@ -366,9 +408,10 @@ namespace Designer.Tests.Services
                 service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {
-                loggerMock.Verify();
+            {                
             }
+
+            loggerMock.Verify();
         }
 
         private (ISourceControl Service, Mock<ILogger<SourceControlLoggingDecorator>> LoggerMock) GetService()
@@ -403,10 +446,12 @@ namespace Designer.Tests.Services
 
             return _webApplicationFactory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureServices(services =>
+                builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<ILoggerFactory>(loggerFactoryMock.Object);
                     services.AddSingleton<IHttpContextAccessor>(httpContextAccessorMock.Object);
+                    services.AddTransient<ISourceControl, SourceControlStub>();
+                    services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
                 });
             }).Services;
         }
@@ -425,6 +470,144 @@ namespace Designer.Tests.Services
             c.Request.RouteValues.Add("app", "apps-test-tba");
 
             return c;
+        }
+    }
+
+    public class SourceControlStub : ISourceControl
+    {
+        public void AbortMerge(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int? CheckRemoteUpdates(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string CloneRemoteRepository(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Commit(CommitInfo commitInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Branch> CreateBranch(string org, string repository, string branchName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> CreatePullRequest(string org, string repository, string target, string source, string title)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteRepository(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void FetchRemoteChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetAppToken()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetAppTokenId()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetDeployToken()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Commit GetInitialCommit(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Commit GetLatestCommitForCurrentUser(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsLocalRepo(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Commit> Log(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RepoStatus PullRemoteChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Push(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PushChangesForRepository(CommitInfo commitInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public RepoStatus RepositoryStatus(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ResetCommit(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StageChange(string org, string repository, string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<RepositoryContent> Status(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StoreAppTokenForUser(string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void VerifyCloneExists(string org, string repository)
+        {
+            throw new NotImplementedException();
         }
     }
 }

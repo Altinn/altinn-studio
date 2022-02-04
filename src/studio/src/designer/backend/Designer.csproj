@@ -79,6 +79,8 @@
     <CoreLanguage Include="../Common/Languages/ini/*" />
     <Compile Remove="Controllers\ManualTestingController.cs" />
     <None Remove="jwtselfsignedcert.pfx" />
+    <Watch Remove="Helpers\Extensions\Mock.cs" />
+    <Watch Remove="Helpers\Extensions\ServiceCollectionExtensions.cs" />
     <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
     <Content Include="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
