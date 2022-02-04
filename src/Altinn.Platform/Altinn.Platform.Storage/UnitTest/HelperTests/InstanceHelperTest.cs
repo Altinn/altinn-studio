@@ -412,7 +412,7 @@ namespace Altinn.Platform.Storage.UnitTest
         /// </summary>
         [Fact]
         public void ReplaceTextKeys_AppNameAvailable_AppNameKeyUsedAsTitle()
-        {
+        {   
             // Arrange
             List<MessageBoxInstance> instances = new();
             instances.Add(new MessageBoxInstance
@@ -441,10 +441,10 @@ namespace Altinn.Platform.Storage.UnitTest
             });
 
             // Act
-            InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
+            instances = InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
 
             // Assert
-            Assert.Equal("ValueFromAppNameKey", instances[0].AppName);
+            Assert.Equal("ValueFromAppNameKey", instances[0].Title);
         }
 
         /// <summary>
@@ -476,10 +476,10 @@ namespace Altinn.Platform.Storage.UnitTest
             });
 
             // Act
-            InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
+            instances = InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
 
             // Assert
-            Assert.Equal("ValueFromServiceNameKey", instances[0].AppName);
+            Assert.Equal("ValueFromServiceNameKey", instances[0].Title);
         }
     }
 }
