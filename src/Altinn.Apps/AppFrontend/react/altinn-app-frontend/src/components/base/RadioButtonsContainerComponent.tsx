@@ -83,7 +83,7 @@ export const RadioButtonContainerComponent = ({
 }: IRadioButtonsContainerProps) => {
   const classes = useStyles();
 
-  const [selected, setSelected] = React.useState('');
+  const selected = formData?.simpleBinding ?? '';
   const apiOptions = useAppSelector(
     (state) => state.optionState.options[optionsId],
   );
@@ -99,9 +99,6 @@ export const RadioButtonContainerComponent = ({
     if (shouldPreselectItem) {
       const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
       handleDataChange(preSelectedValue);
-      setSelected(preSelectedValue);
-    } else {
-      setSelected(formData?.simpleBinding ?? '');
     }
   }, [
     formData?.simpleBinding,
@@ -110,13 +107,12 @@ export const RadioButtonContainerComponent = ({
     preselectedOptionIndex,
   ]);
 
-  const onDataChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelected(event.target.value);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleFocusUpdate(id);
     handleDataChange(event.target.value);
   };
 
-  const handleOnBlur = () => {
+  const handleBlur = () => {
     handleDataChange(formData?.simpleBinding ?? '');
   };
 
@@ -131,8 +127,8 @@ export const RadioButtonContainerComponent = ({
         aria-label={title}
         name={title}
         value={selected}
-        onBlur={handleOnBlur}
-        onChange={onDataChange}
+        onBlur={handleBlur}
+        onChange={handleChange}
         row={radioGroupIsRow}
         id={id}
       >

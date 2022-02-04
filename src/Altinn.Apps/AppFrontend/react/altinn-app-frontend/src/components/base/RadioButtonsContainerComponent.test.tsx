@@ -60,18 +60,20 @@ const getRadio = ({ name, isChecked = false }) => {
 };
 
 describe('DatepickerComponent', () => {
-  it('should set correct selected radio based on preselectedOptionIndex', () => {
+  it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', () => {
     const handleChange = jest.fn();
-    render({ handleDataChange: handleChange, preselectedOptionIndex: 1 });
-
-    expect(getRadio({ name: 'Norway' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden', isChecked: true })).toBeInTheDocument();
-    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
+    render({
+      handleDataChange: handleChange,
+      preselectedOptionIndex: 1,
+      formData: {
+        simpleBinding: undefined,
+      },
+    });
 
     expect(handleChange).toHaveBeenCalledWith('sweden');
   });
 
-  it('should not select item by preselectedOptionIndex when binding is present', () => {
+  it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -99,24 +101,7 @@ describe('DatepickerComponent', () => {
     expect(handleChange).not.toHaveBeenCalled();
   });
 
-  it('should call handleDataChange and update selected radio when selection changes', () => {
-    const handleChange = jest.fn();
-    render({ handleDataChange: handleChange, preselectedOptionIndex: 0 });
-
-    expect(getRadio({ name: 'Norway', isChecked: true })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
-
-    userEvent.click(getRadio({ name: 'Denmark' }));
-
-    expect(handleChange).toHaveBeenCalledWith('denmark');
-
-    expect(getRadio({ name: 'Norway' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
-  });
-
-  it('should call handleDataChange on blur with already selected value', () => {
+  it('should call handleDataChange with updated value when selection changes', () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -129,14 +114,26 @@ describe('DatepickerComponent', () => {
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
+    userEvent.click(getRadio({ name: 'Denmark' }));
+
+    expect(handleChange).toHaveBeenCalledWith('denmark');
+  });
+
+  it('should call handleDataChange on blur with already selected value', () => {
+    const handleChange = jest.fn();
+    render({
+      handleDataChange: handleChange,
+      formData: {
+        simpleBinding: 'norway',
+      },
+    });
+
+    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
+
     fireEvent.focus(getRadio({ name: 'Denmark' }));
     fireEvent.blur(getRadio({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('norway');
-
-    expect(getRadio({ name: 'Norway', isChecked: true })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
   });
 
   it('should call handleDataChange on blur with empty value when no item is selected', () => {
@@ -145,17 +142,11 @@ describe('DatepickerComponent', () => {
       handleDataChange: handleChange,
     });
 
-    expect(getRadio({ name: 'Norway' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
     fireEvent.focus(getRadio({ name: 'Denmark' }));
     fireEvent.blur(getRadio({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('');
-
-    expect(getRadio({ name: 'Norway' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
   });
 });
