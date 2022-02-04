@@ -82,14 +82,6 @@ public class Instance {
   public String getLastChanged() {
     return lastChanged;
   }
-  public ZonedDateTime getLastChangedZonedDateTime() {
-    try{
-      return ZonedDateTime.parse(lastChanged, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }catch (DateTimeParseException e){
-      System.out.println(e);
-      return null;
-    }
-  }
 
   public void setLastChanged(String lastChangedDateTime) {
     this.lastChanged = lastChangedDateTime;
