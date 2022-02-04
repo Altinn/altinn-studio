@@ -92,7 +92,7 @@ function DatepickerComponent({
   language,
   componentValidations,
   formData,
-  timeStamp,
+  timeStamp = true,
   handleDataChange,
   readOnly,
   required,
@@ -186,9 +186,9 @@ function DatepickerComponent({
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
       const dateString =
-        timeStamp === false
-          ? dateValue.format(DatePickerSaveFormatNoTimestamp)
-          : dateValue?.toISOString(true);
+        timeStamp === true
+          ? dateValue?.toISOString(true)
+          : dateValue.format(DatePickerSaveFormatNoTimestamp);
       setValidDate(isValidDate(dateValue)); // the date can have a valid format but not pass min/max validation
       handleDataChange(dateString);
       setDate(dateValue);
