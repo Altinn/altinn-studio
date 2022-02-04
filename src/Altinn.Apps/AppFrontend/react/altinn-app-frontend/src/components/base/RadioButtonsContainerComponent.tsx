@@ -65,6 +65,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const defaultArray = [];
+
 export const RadioButtonContainerComponent = ({
   id,
   optionsId,
@@ -85,33 +87,28 @@ export const RadioButtonContainerComponent = ({
   const apiOptions = useAppSelector(
     (state) => state.optionState.options[optionsId],
   );
-  const combinedOptions = apiOptions || options || [];
-  const radioGroupIsRow: boolean = combinedOptions.length <= 2;
+  const calculatedOptions = apiOptions || options || defaultArray;
+  const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
 
   React.useEffect(() => {
-    returnSelected();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [combinedOptions]);
-
-  React.useEffect(() => {
-    returnSelected();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData?.simpleBinding]);
-
-  const returnSelected = () => {
-    if (
+    const shouldPreselectItem =
       !formData?.simpleBinding &&
       preselectedOptionIndex >= 0 &&
-      combinedOptions &&
-      preselectedOptionIndex < combinedOptions.length
-    ) {
-      const preSelectedValue = combinedOptions[preselectedOptionIndex].value;
+      calculatedOptions &&
+      preselectedOptionIndex < calculatedOptions.length;
+    if (shouldPreselectItem) {
+      const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
       handleDataChange(preSelectedValue);
       setSelected(preSelectedValue);
     } else {
       setSelected(formData?.simpleBinding ?? '');
     }
-  };
+  }, [
+    formData?.simpleBinding,
+    calculatedOptions,
+    handleDataChange,
+    preselectedOptionIndex,
+  ]);
 
   const onDataChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelected(event.target.value);
@@ -139,7 +136,7 @@ export const RadioButtonContainerComponent = ({
         row={radioGroupIsRow}
         id={id}
       >
-        {combinedOptions.map((option: any, index: number) => (
+        {calculatedOptions.map((option: any, index: number) => (
           <React.Fragment key={index}>
             <FormControlLabel
               control={
