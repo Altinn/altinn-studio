@@ -414,6 +414,70 @@ namespace Designer.Tests.Services
             loggerMock.Verify();
         }
 
+        [Fact]
+        public void DecoratedISourceControlService_GetAppToken_LogsErrorWithAdditionalInfo()
+        {
+            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
+
+            try
+            {
+                service.GetAppToken();
+            }
+            catch
+            {
+            }
+
+            loggerMock.Verify();
+        }
+
+        [Fact]
+        public void DecoratedISourceControlService_GetAppTokenId_LogsErrorWithAdditionalInfo()
+        {
+            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
+
+            try
+            {
+                service.GetAppTokenId();
+            }
+            catch
+            {
+            }
+
+            loggerMock.Verify();
+        }
+
+        [Fact]
+        public void DecoratedISourceControlService_GetDeployToken_LogsErrorWithAdditionalInfo()
+        {
+            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
+
+            try
+            {
+                service.GetDeployToken();
+            }
+            catch
+            {
+            }
+
+            loggerMock.Verify();
+        }
+
+        [Fact]
+        public void DecoratedISourceControlService_StoreAppTokenForUser_LogsErrorWithAdditionalInfo()
+        {
+            (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
+
+            try
+            {
+                service.StoreAppTokenForUser("some_random_token");
+            }
+            catch
+            {
+            }
+
+            loggerMock.Verify();
+        }
+
         private (ISourceControl Service, Mock<ILogger<SourceControlLoggingDecorator>> LoggerMock) GetService()
         {
             // Since the system under test is a logging decorator class, we
