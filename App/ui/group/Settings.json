@@ -2,8 +2,8 @@
   "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",  
   "pages": {
       "order": [
-        "side1",
-        "side2",
+        "repeating",
+        "hide",
         "summary"           
       ],
       "excludeFromPdf": ["summary"]

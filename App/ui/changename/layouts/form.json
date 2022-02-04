@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "id": "nav1",
+        "type": "NavigationBar",
+        "textResourceBindings": {
+          "next": "Kort svar",
+          "back": "back"
+        }
+      },
+      {
         "id": "currentName",
         "type": "Input",
         "textResourceBindings": {
@@ -366,7 +374,7 @@
         },
         "mapping": {
           "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
-        }     
+        }
       },
       {
         "id": "fileUpload-changename",

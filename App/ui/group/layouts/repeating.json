@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "id": "nav1",
+        "type": "NavigationBar",
+        "textResourceBindings": {
+          "next": "Kort svar",
+          "back": "back"
+        }
+      },
+      {
         "id": "showGroupToContinue",
         "type": "Checkboxes",
         "textResourceBindings": {
