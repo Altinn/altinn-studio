@@ -23,7 +23,7 @@ import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
 
-export type IReceiptContainerProps = RouteChildrenProps;
+type IReceiptContainerProps = RouteChildrenProps;
 
 export const returnInstanceMetaDataObject = (
   orgsData: any,
