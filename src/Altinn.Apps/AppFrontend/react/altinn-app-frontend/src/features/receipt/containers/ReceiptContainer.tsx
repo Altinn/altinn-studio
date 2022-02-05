@@ -149,48 +149,54 @@ const ReceiptContainer = () => {
 
   return (
     <>
-      {isLoading() && (
+      {isLoading() ? (
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
-      )}
-      {!isLoading() && !applicationMetadata.autoDeleteOnProcessEnd && (
-        <AltinnReceipt
-          attachmentGroupings={getAttachmentGroupings(
-            attachments,
-            applicationMetadata,
-            textResources,
+      ) : (
+        <>
+          {!applicationMetadata.autoDeleteOnProcessEnd && (
+            <AltinnReceipt
+              attachmentGroupings={getAttachmentGroupings(
+                attachments,
+                applicationMetadata,
+                textResources,
+              )}
+              body={getLanguageFromKey('receipt.body', language)}
+              collapsibleTitle={getLanguageFromKey(
+                'receipt.attachments',
+                language,
+              )}
+              instanceMetaDataObject={instanceMetaObject}
+              subtitle={getLanguageFromKey('receipt.subtitle', language)}
+              subtitleurl={returnUrlToArchive(origin)}
+              title={`${appName} ${getLanguageFromKey(
+                'receipt.title_part_is_submitted',
+                language,
+              )}`}
+              titleSubmitted={getLanguageFromKey(
+                'receipt.title_submitted',
+                language,
+              )}
+              pdf={pdf || null}
+            />
           )}
-          body={getLanguageFromKey('receipt.body', language)}
-          collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
-          instanceMetaDataObject={instanceMetaObject}
-          subtitle={getLanguageFromKey('receipt.subtitle', language)}
-          subtitleurl={returnUrlToArchive(origin)}
-          title={`${appName} ${getLanguageFromKey(
-            'receipt.title_part_is_submitted',
-            language,
-          )}`}
-          titleSubmitted={getLanguageFromKey(
-            'receipt.title_submitted',
-            language,
+          {applicationMetadata.autoDeleteOnProcessEnd && (
+            <AltinnReceiptSimple
+              body={getTextFromAppOrDefault(
+                'receipt.body_simple',
+                textResources,
+                language,
+                null,
+                false,
+              )}
+              title={`${appName} ${getLanguageFromKey(
+                'receipt.title_part_is_submitted',
+                language,
+              )}`}
+            />
           )}
-          pdf={pdf || null}
-        />
-      )}
-      {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd && (
-        <AltinnReceiptSimple
-          body={getTextFromAppOrDefault(
-            'receipt.body_simple',
-            textResources,
-            language,
-            null,
-            false,
-          )}
-          title={`${appName} ${getLanguageFromKey(
-            'receipt.title_part_is_submitted',
-            language,
-          )}`}
-        />
+        </>
       )}
     </>
   );
