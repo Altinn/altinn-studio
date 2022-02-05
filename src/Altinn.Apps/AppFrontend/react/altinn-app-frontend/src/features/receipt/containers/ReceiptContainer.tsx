@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import moment from 'moment';
-import { RouteChildrenProps, withRouter } from 'react-router';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -100,8 +99,7 @@ const ReceiptContainer = () => {
 
   React.useEffect(() => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [partyId, instanceGuid]);
 
   React.useEffect(() => {
     if (profile && profile.profileSettingPreference) {
@@ -126,8 +124,15 @@ const ReceiptContainer = () => {
       );
       setInstanceMetaObject(obj);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allOrgs, parties, instance, lastChangedDateTime]);
+  }, [
+    allOrgs,
+    parties,
+    instance,
+    lastChangedDateTime,
+    language,
+    instanceGuid,
+    userLanguage,
+  ]);
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
@@ -202,4 +207,4 @@ const ReceiptContainer = () => {
   );
 };
 
-export default withRouter(ReceiptContainer);
+export default ReceiptContainer;
