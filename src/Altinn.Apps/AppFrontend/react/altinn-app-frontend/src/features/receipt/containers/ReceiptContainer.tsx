@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import * as React from 'react';
+import React, { useState } from 'react';
 import moment from 'moment';
 import { RouteChildrenProps, withRouter } from 'react-router';
+import { useParams } from 'react-router-dom';
+
 import {
   AltinnContentIconReceipt,
   AltinnContentLoader,
   AltinnReceipt,
   AltinnReceiptSimple,
 } from 'altinn-shared/components';
-import { IParty, IAttachment } from 'altinn-shared/types';
 import {
   mapInstanceAttachments,
   getLanguageFromKey,
@@ -22,8 +22,12 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
+import type { IParty, IAttachment } from 'altinn-shared/types';
 
-type IReceiptContainerProps = RouteChildrenProps;
+interface IParams {
+  partyId: string;
+  instanceGuid: string;
+}
 
 export const returnInstanceMetaDataObject = (
   orgsData: any,
@@ -62,7 +66,7 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-const ReceiptContainer = (props: IReceiptContainerProps) => {
+const ReceiptContainer = () => {
   const [attachments, setAttachments] = useState([]);
   const [pdf, setPdf] = React.useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
@@ -83,7 +87,8 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const appName = useAppSelector(selectAppName);
 
   const origin = window.location.origin;
-  const routeParams: any = props.match.params;
+
+  const { partyId, instanceGuid } = useParams() as IParams;
 
   const isLoading = (): boolean =>
     !attachments ||
@@ -94,10 +99,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !parties;
 
   React.useEffect(() => {
-    InstanceDataActions.getInstanceData(
-      routeParams.partyId,
-      routeParams.instanceGuid,
-    );
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -117,7 +119,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
         allOrgs,
         language,
         instanceOwnerParty,
-        routeParams.instanceGuid,
+        instanceGuid,
         userLanguage,
         lastChangedDateTime,
         instance.org,
