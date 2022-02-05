@@ -1,6 +1,6 @@
 
 import 'jest';
-import { returnInstanceMetaDataObject } from '../../src/features/receipt/containers/receiptContainer';
+import { returnInstanceMetaDataObject } from './receiptContainer';
 
 describe('Testing functions in ReceiptContainer', () => {
   test('returnInstanceMetaDataObject() returns correct object', () => {
