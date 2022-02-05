@@ -1,9 +1,7 @@
-
-import 'jest';
 import { returnInstanceMetaDataObject } from './receiptContainer';
 
-describe('Testing functions in ReceiptContainer', () => {
-  test('returnInstanceMetaDataObject() returns correct object', () => {
+describe('returnInstanceMetaDataObject', () => {
+  test('should return correct object', () => {
     const testData = {
       orgsData: {
         tdd: {
@@ -78,8 +76,8 @@ describe('Testing functions in ReceiptContainer', () => {
       instanceOwnerParty: {
         partyId: 50001,
         name: 'Ola Privatperson',
-        ssn: '01017512345'
-      }
+        ssn: '01017512345',
+      },
     };
 
     const expected = {
@@ -89,15 +87,16 @@ describe('Testing functions in ReceiptContainer', () => {
       'receipt.sender': '01017512345-Ola Privatperson',
     };
 
-    expect(returnInstanceMetaDataObject(
-      testData.orgsData,
-      testData.languageData,
-      testData.instanceOwnerParty,
-      testData.instanceGuid,
-      testData.userLanguageString,
-      testData.lastChangedDateTime,
-      testData.instance.org,
-    )).toEqual(expected);
+    expect(
+      returnInstanceMetaDataObject(
+        testData.orgsData,
+        testData.languageData,
+        testData.instanceOwnerParty,
+        testData.instanceGuid,
+        testData.userLanguageString,
+        testData.lastChangedDateTime,
+        testData.instance.org,
+      ),
+    ).toEqual(expected);
   });
-
 });

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import * as React from 'react';
 import moment from 'moment';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import {
   AltinnContentIconReceipt,
@@ -9,10 +8,7 @@ import {
   AltinnReceipt,
   AltinnReceiptSimple,
 } from 'altinn-shared/components';
-import {
-  IParty,
-  IAttachment,
-} from 'altinn-shared/types';
+import { IParty, IAttachment } from 'altinn-shared/types';
 import {
   mapInstanceAttachments,
   getLanguageFromKey,
@@ -73,13 +69,17 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
-  const allOrgs = useAppSelector(state => state.organisationMetaData.allOrgs);
-  const applicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
-  const instance = useAppSelector(state => state.instanceData.instance);
-  const language = useAppSelector(state => state.language.language);
-  const parties = useAppSelector(state => state.party.parties);
-  const textResources = useAppSelector(state => state.textResources.resources);
-  const profile = useAppSelector(state => state.profile.profile);
+  const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
+  );
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const language = useAppSelector((state) => state.language.language);
+  const parties = useAppSelector((state) => state.party.parties);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
+  const profile = useAppSelector((state) => state.profile.profile);
   const appName = useAppSelector(selectAppName);
 
   const origin = window.location.origin;
@@ -98,7 +98,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       routeParams.partyId,
       routeParams.instanceGuid,
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -124,7 +124,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       );
       setInstanceMetaObject(obj);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allOrgs, parties, instance, lastChangedDateTime]);
 
   React.useEffect(() => {
