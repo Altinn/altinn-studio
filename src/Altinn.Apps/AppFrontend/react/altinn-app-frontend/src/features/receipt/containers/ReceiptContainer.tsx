@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import { useParams } from 'react-router-dom';
 
@@ -67,10 +67,10 @@ export const returnInstanceMetaDataObject = (
 
 const ReceiptContainer = () => {
   const [attachments, setAttachments] = useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment[]>(null);
+  const [pdf, setPdf] = useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
-  const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [userLanguage, setUserLanguage] = useState('nb');
 
   const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
   const applicationMetadata = useAppSelector(
@@ -97,17 +97,17 @@ const ReceiptContainer = () => {
     !instance ||
     !parties;
 
-  React.useEffect(() => {
+  useEffect(() => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
   }, [partyId, instanceGuid]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile && profile.profileSettingPreference) {
       setUserLanguage(profile.profileSettingPreference.language);
     }
   }, [profile]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (allOrgs != null && instance && instance.org && allOrgs && parties) {
       const instanceOwnerParty = parties.find((party: IParty) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
@@ -134,7 +134,7 @@ const ReceiptContainer = () => {
     userLanguage,
   ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
         (dataType) => !!dataType.appLogic,
