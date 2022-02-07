@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
-import moment from 'moment';
 
 import {
   AltinnReceipt,
@@ -10,7 +9,7 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { IAttachment, IParty } from 'altinn-shared/types';
+import { IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
@@ -21,7 +20,6 @@ import { getValidationUrl } from '../../../utils/appUrlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
@@ -141,7 +139,7 @@ const Confirm = () => {
     setIsSubmitting(false);
   }, [validations]);
 
-  const onClickConfirm = () => {
+  const handleConfirmClick = () => {
     setIsSubmitting(true);
     get(getValidationUrl(instanceId))
       .then((data: any) => {
@@ -216,7 +214,7 @@ const Confirm = () => {
                 textResources,
                 language,
               )}
-              onClickFunction={onClickConfirm}
+              onClickFunction={handleConfirmClick}
               className={classes.button}
               id='confirm-button'
             />
