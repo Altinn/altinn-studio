@@ -8,7 +8,7 @@ import ProcessDispatcher from '../resources/process/processDispatcher';
 import { ProcessTaskType, IAltinnWindow } from '../../types';
 import Presentation from './Presentation';
 import { Form } from '../../features/form/containers/Form';
-import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
+import ReceiptContainer from '../../features/receipt/containers/ReceiptContainer';
 import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
 import {
