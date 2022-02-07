@@ -1,16 +1,16 @@
-/* 
+/*
   Test data required: deployed app (reference app: ttd/apps-test)
-  Command: docker-compose run k6 run /src/tests/platform/authorization/delegations.js 
+  Command: docker-compose run k6 run /src/tests/platform/authorization/delegations/delegations.js
   -e env=*** -e org=*** -e app=***  -e tokengenuser=*** -e tokengenuserpwd=*** -e appsaccesskey=***
 */
 import { check, sleep } from 'k6';
-import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
-import * as delegation from '../../../api/platform/authorization/delegations.js';
-import * as authz from '../../../api/platform/authorization/authorization.js';
-import { generateToken } from '../../../api/altinn-testtools/token-generator.js';
-import { generateJUnitXML, reportPath } from '../../../report.js';
+import { addErrorCount, stopIterationOnFail } from '../../../../errorcounter.js';
+import * as delegation from '../../../../api/platform/authorization/delegations.js';
+import * as authz from '../../../../api/platform/authorization/authorization.js';
+import { generateToken } from '../../../../api/altinn-testtools/token-generator.js';
+import { generateJUnitXML, reportPath } from '../../../../report.js';
 
-let pdpInputJson = open('../../../data/pdpinput.json');
+let pdpInputJson = open('../../../../data/pdpinput.json');
 
 const appOwner = __ENV.org;
 const appName = __ENV.app;
@@ -99,7 +99,7 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources);
+  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources, null, null);
   success = check(res, {
     'Get delegated rule - status is 200': (r) => r.status === 200,
     'Get delegated rule - rule id matches': (r) => r.json('0.ruleId') === ruleId,
@@ -132,7 +132,7 @@ export default function (data) {
   sleep(3);
 
   //Get rules that are deleted where response should be an empty array
-  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources);
+  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources, null, null);
   success = check(res, {
     'Get deleted rules - status is 200': (r) => r.status === 200,
     'Get deleted rules - response is empty': (r) => r.json().length === 0,
