@@ -35,13 +35,18 @@ export interface ICloneModalProps extends WithStyles<typeof styles> {
 
 function CloneModal(props: ICloneModalProps) {
   const [hasDataModel, setHasDataModel] = React.useState(false);
+  const isMounted = React.useRef(true);
 
   const checkIfDataModelExists = async () => {
     try { // dataModelXsdUrl does not resolve in unit-tests
       const dataModel: any = await get(sharedUrls().dataModelXsdUrl);
-      setHasDataModel(dataModel != null);
+      if (isMounted.current) {
+        setHasDataModel(dataModel != null);
+      }
     } catch {
-      setHasDataModel(false);
+      if (isMounted.current) {
+        setHasDataModel(false);
+      }
     }
   };
 
@@ -60,6 +65,9 @@ function CloneModal(props: ICloneModalProps) {
 
   React.useEffect(() => {
     checkIfDataModelExists();
+    return () => {
+      isMounted.current = false;
+    }
   }, []);
 
   return (
