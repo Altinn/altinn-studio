@@ -83,12 +83,9 @@ const Confirm = () => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
 
-  const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
-  const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
-  const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
-  const applicationMetadata: IApplicationMetadata = useAppSelector(
+  const applicationMetadata = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
@@ -106,47 +103,39 @@ const Confirm = () => {
     (state) => state.textResources.resources,
   );
 
-  const isLoading = (): boolean =>
-    !attachments ||
-    !instanceMetaObject ||
-    !lastChangedDateTime ||
-    !instance ||
-    !lastChangedDateTime ||
-    !parties;
+  const isLoading = (): boolean => !instance || !parties;
 
   React.useEffect(() => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
   }, [partyId, instanceGuid]);
 
-  React.useEffect(() => {
+  const getInstanceMetaObject = () => {
     if (instance && instance.org && parties && applicationMetadata) {
       const instanceOwnerParty = parties.find((party: IParty) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
       });
 
-      const obj = returnConfirmSummaryObject({
+      return returnConfirmSummaryObject({
         languageData: language,
         instanceOwnerParty,
       });
-      setInstanceMetaObject(obj);
     }
-  }, [parties, instance, lastChangedDateTime, applicationMetadata, language]);
 
-  React.useEffect(() => {
+    return {};
+  };
+
+  const getAttachments = () => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
         (dataType) => !!dataType.appLogic,
       );
-      const attachmentsResult = mapInstanceAttachments(
+
+      return mapInstanceAttachments(
         instance.data,
         appLogicDataTypes.map((type) => type.id),
       );
-      setAttachments(attachmentsResult);
-      setLastChangedDateTime(
-        moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'),
-      );
     }
-  }, [instance, applicationMetadata]);
+  };
 
   React.useEffect(() => {
     setIsSubmitting(false);
@@ -181,7 +170,7 @@ const Confirm = () => {
         <>
           <AltinnReceipt
             attachmentGroupings={getAttachmentGroupings(
-              attachments,
+              getAttachments(),
               applicationMetadata,
               textResources,
             )}
@@ -199,7 +188,7 @@ const Confirm = () => {
               true,
             )}
             hideCollapsibleCount={true}
-            instanceMetaDataObject={instanceMetaObject}
+            instanceMetaDataObject={getInstanceMetaObject()}
             title={getTextFromAppOrDefault(
               'confirm.title',
               textResources,
