@@ -78,30 +78,20 @@ interface IParams {
 }
 
 const Confirm = () => {
-  const classes = useStyles();
-  const dispatch = useAppDispatch();
-
-  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
-
   const applicationMetadata = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
-  const validations = useAppSelector(
-    (state) => state.formValidations.validations,
-  );
   const appName = useAppSelector(selectAppName);
-
-  const { partyId, instanceGuid }: IParams = useParams();
-
-  const { instanceId } = window as Window as IAltinnWindow;
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
   );
 
-  const isLoading = (): boolean => !instance || !parties;
+  const { partyId, instanceGuid }: IParams = useParams();
+
+  const isLoading = !instance || !parties;
 
   React.useEffect(() => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
@@ -135,32 +125,9 @@ const Confirm = () => {
     }
   };
 
-  React.useEffect(() => {
-    setIsSubmitting(false);
-  }, [validations]);
-
-  const handleConfirmClick = () => {
-    setIsSubmitting(true);
-    get(getValidationUrl(instanceId))
-      .then((data: any) => {
-        const mappedValidations = mapDataElementValidationToRedux(
-          data,
-          {},
-          textResources,
-        );
-        dispatch(updateValidations({ validations: mappedValidations }));
-        if (data.length === 0) {
-          ProcessDispatcher.completeProcess();
-        }
-      })
-      .catch(() => {
-        setIsSubmitting(false);
-      });
-  };
-
   return (
     <>
-      {isLoading() ? (
+      {isLoading ? (
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
@@ -202,26 +169,73 @@ const Confirm = () => {
               true,
             )}
           />
-          {isSubmitting ? (
-            <AltinnLoader
-              style={loaderStyles}
-              srContent={getLanguageFromKey('general.loading', language)}
-            />
-          ) : (
-            <AltinnButton
-              btnText={getTextFromAppOrDefault(
-                'confirm.button_text',
-                textResources,
-                language,
-              )}
-              onClickFunction={handleConfirmClick}
-              className={classes.button}
-              id='confirm-button'
-            />
-          )}
+          <SubmitButton />
         </>
       )}
     </>
+  );
+};
+
+const SubmitButton = () => {
+  const classes = useStyles();
+
+  const dispatch = useAppDispatch();
+
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
+  const language = useAppSelector((state) => state.language.language);
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
+
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+
+  const { instanceId } = window as Window as IAltinnWindow;
+
+  React.useEffect(() => {
+    setIsSubmitting(false);
+  }, [validations]);
+
+  const handleConfirmClick = () => {
+    setIsSubmitting(true);
+    get(getValidationUrl(instanceId))
+      .then((data: any) => {
+        const mappedValidations = mapDataElementValidationToRedux(
+          data,
+          {},
+          textResources,
+        );
+        dispatch(updateValidations({ validations: mappedValidations }));
+        if (data.length === 0) {
+          ProcessDispatcher.completeProcess();
+        }
+      })
+      .catch(() => {
+        setIsSubmitting(false);
+      });
+  };
+
+  if (isSubmitting) {
+    return (
+      <AltinnLoader
+        style={loaderStyles}
+        srContent={getLanguageFromKey('general.loading', language)}
+      />
+    );
+  }
+
+  return (
+    <AltinnButton
+      btnText={getTextFromAppOrDefault(
+        'confirm.button_text',
+        textResources,
+        language,
+      )}
+      onClickFunction={handleConfirmClick}
+      className={classes.button}
+      id='confirm-button'
+    />
   );
 };
 
