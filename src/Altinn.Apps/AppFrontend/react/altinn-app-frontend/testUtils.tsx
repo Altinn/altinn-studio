@@ -1,11 +1,14 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
-import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { RootState, AppStore, setupStore } from 'src/store';
+import { render as rtlRender } from '@testing-library/react';
+import type { RenderOptions } from '@testing-library/react';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { RootState, AppStore, setupStore } from 'src/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -21,7 +24,13 @@ export const renderWithProviders = (
   }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    return <Provider store={store}>{children}</Provider>;
+    const theme = createTheme(AltinnAppTheme);
+
+    return (
+      <MuiThemeProvider theme={theme}>
+        <Provider store={store}>{children}</Provider>
+      </MuiThemeProvider>
+    );
   }
 
   return {
@@ -32,7 +41,6 @@ export const renderWithProviders = (
     }),
   };
 };
-
 
 export const handlers = [
   rest.get(
