@@ -23,7 +23,6 @@ namespace Altinn.Platform.Authorization.Repositories
         private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performedByUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_isDeleted, @_delegationChangeId)";
         private readonly string getCurrentDelegationChangeSql = "select * from delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
         private readonly string getAllDelegationChangesSql = "select * from delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
-        private readonly string getAllCurrentDelegationChangesSql = "select * from delegation.get_all_current_changes(@_altinnAppIds, @_offeredByPartyIds, @_coveredByPartyIds, @_coveredByUserIds)";
         private readonly string getAllCurrentDelegationChangesPartyIdsSql = "select * from delegation.get_all_current_changes_partyids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByPartyIds)";
         private readonly string getAllCurrentDelegationChangesUserIdsSql = "select * from delegation.get_all_current_changes_userids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByUserIds)";
         private readonly string getAllCurrentDelegationChangesOnlyOfferedBysSql = "select * from delegation.get_all_current_changes(@_altinnAppIds, @_offeredByPartyIds)";
