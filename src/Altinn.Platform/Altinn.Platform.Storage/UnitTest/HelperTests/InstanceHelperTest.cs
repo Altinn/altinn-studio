@@ -139,7 +139,7 @@ namespace Altinn.Platform.Storage.UnitTest
         }
 
         /// <summary>
-        /// Scenario: Getting sbl status for an instance in a confirmation step       
+        /// Scenario: Getting sbl status for an instance in a confirmation step
         /// Expected: The SBL status "Confirmation" is returned
         /// Success: SBL status is as expected
         /// </summary>
@@ -168,7 +168,7 @@ namespace Altinn.Platform.Storage.UnitTest
         }
 
         /// <summary>
-        /// Scenario: Getting sbl status for an instance in a confirmation step       
+        /// Scenario: Getting sbl status for an instance in a confirmation step
         /// Expected: The SBL status "Confirmation" is returned
         /// Success: SBL status is as expected
         /// </summary>
@@ -405,6 +405,81 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Empty(instances);
+        }
+
+        /// <summary>
+        /// Replaces text keys, appName key is available, should be used as Title
+        /// </summary>
+        [Fact]
+        public void ReplaceTextKeys_AppNameAvailable_AppNameKeyUsedAsTitle()
+        {   
+            // Arrange
+            List<MessageBoxInstance> instances = new();
+            instances.Add(new MessageBoxInstance
+            {
+                Org = "ttd",
+                AppName = "test-app"
+            });
+
+            List<TextResource> textResources = new();
+            List<TextResourceElement> textResource = new();
+            textResource.Add(new TextResourceElement
+            {
+                Value = "ValueFromAppNameKey",
+                Id = "appName",
+            });
+            textResource.Add(new TextResourceElement
+            {
+                Value = "ValueFromServiceNameKey",
+                Id = "ServiceName",
+            });
+
+            textResources.Add(new TextResource
+            {
+                Id = "ttd-test-app-nb",
+                Resources = textResource
+            });
+
+            // Act
+            instances = InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
+
+            // Assert
+            Assert.Equal("ValueFromAppNameKey", instances[0].Title);
+        }
+
+        /// <summary>
+        /// Replaces text keys, appName key is not available, should default to ServiceName
+        /// </summary>
+        [Fact]
+        public void ReplaceTextKeys_AppNameNotAvailable_ServiceNameKeyUsedAsTitle()
+        {
+            // Arrange
+            List<MessageBoxInstance> instances = new();
+            instances.Add(new MessageBoxInstance
+            {
+                Org = "ttd",
+                AppName = "test-app"
+            });
+
+            List<TextResource> textResources = new();
+            List<TextResourceElement> textResource = new();
+            textResource.Add(new TextResourceElement
+            {
+                Value = "ValueFromServiceNameKey",
+                Id = "ServiceName",
+            });
+
+            textResources.Add(new TextResource
+            {
+                Id = "ttd-test-app-nb",
+                Resources = textResource
+            });
+
+            // Act
+            instances = InstanceHelper.ReplaceTextKeys(instances, textResources, "nb");
+
+            // Assert
+            Assert.Equal("ValueFromServiceNameKey", instances[0].Title);
         }
     }
 }

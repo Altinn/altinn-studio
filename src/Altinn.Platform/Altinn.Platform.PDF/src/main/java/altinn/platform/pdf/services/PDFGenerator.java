@@ -319,7 +319,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    String unparsedHeader = AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), getLanguage()) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources);
+    String unparsedHeader = TextUtils.getAppOwnerName(instance.getOrg(), getLanguage(), textResources) + " - " + TextUtils.getAppName(textResources);
     String header = TextUtils.removeIllegalChars(unparsedHeader);
     List<String> lines = TextUtils.splitTextToLines(header, fontBold, headerFontSize, width);
     for (String line : lines) {

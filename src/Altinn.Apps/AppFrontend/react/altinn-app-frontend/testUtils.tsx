@@ -14,7 +14,6 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
   store?: AppStore;
 }
-const theme = createTheme(AltinnAppTheme);
 
 export const renderWithProviders = (
   component: any,
@@ -25,6 +24,8 @@ export const renderWithProviders = (
   }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
+    const theme = createTheme(AltinnAppTheme);
+
     return (
       <MuiThemeProvider theme={theme}>
         <Provider store={store}>{children}</Provider>

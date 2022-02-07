@@ -1,3 +1,4 @@
+import { IAltinnOrgs } from 'altinn-shared/types';
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 
@@ -5,7 +6,7 @@ import * as Fetchorgs from './fetch/fetchOrgsActions';
 
 export interface IOrgsActions extends ActionCreatorsMapObject {
   fetchOrgs: () => Fetchorgs.IFetchOrgs;
-  fetchOrgsFulfilled: (orgs: any) => Fetchorgs.IFetchOrgsFulfilled;
+  fetchOrgsFulfilled: (orgs: IAltinnOrgs) => Fetchorgs.IFetchOrgsFulfilled;
   fetchOrgsRejected: (error: Error) => Fetchorgs.IFetchOrgsRejected;
 }
 
