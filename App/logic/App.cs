@@ -211,7 +211,7 @@ namespace Altinn.App.AppLogic
       var newValue = formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value; 
       if (newValue.HasValue && newValue > 10)
       {
-        pageOrder.Remove("side2");
+        pageOrder.Remove("hide");
       }
     }
   }

@@ -7,5 +7,10 @@
         "summary"           
       ],
       "excludeFromPdf": ["summary"]
+    },
+    "components": {
+        "excludeFromPdf": [    
+            "nav1", "nav2"
+        ]
     }
   }
