@@ -1,8 +1,7 @@
 import React from 'react';
 import { RouteChildrenProps } from 'react-router';
 import { useParams } from 'react-router-dom';
-import { createTheme } from '@material-ui/core';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   AltinnReceipt,
   AltinnContentLoader,
@@ -13,7 +12,6 @@ import {
 import { IAttachment, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow } from '../../../types';
@@ -30,9 +28,7 @@ import { selectAppName } from 'src/selectors/language';
 
 export type IConfirmProps = RouteChildrenProps;
 
-const theme = createTheme(AltinnAppTheme);
-
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
@@ -51,7 +47,7 @@ const useStyles = makeStyles({
     },
     marginTop: 28,
   },
-});
+}));
 
 export interface ISummaryData {
   languageData?: any;
