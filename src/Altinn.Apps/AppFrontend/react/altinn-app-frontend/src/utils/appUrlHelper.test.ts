@@ -269,7 +269,7 @@ describe('Frontend urlHelper.ts', () => {
   describe('getFetchFormDynamicsUrl', () => {
     test('should return default when no parameter is passed', () => {
       const nullResult = getFetchFormDynamicsUrl(null);
-      const undefinedResult = getFetchFormDynamicsUrl(undefined);
+      const undefinedResult = getFetchFormDynamicsUrl();
 
       const expected =
         'https://altinn3local.no/ttd/test/api/resource/RuleConfiguration.json';
