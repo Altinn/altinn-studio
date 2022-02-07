@@ -1,7 +1,8 @@
 import React from 'react';
-import { RouteChildrenProps } from 'react-router';
 import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
+import moment from 'moment';
+
 import {
   AltinnReceipt,
   AltinnContentLoader,
@@ -22,11 +23,8 @@ import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import moment from 'moment';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
-
-export type IConfirmProps = RouteChildrenProps;
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -60,19 +58,20 @@ const loaderStyles = {
   height: '64px',
 };
 
-export const returnConfirmSummaryObject = (data: ISummaryData) => {
-  const obj: any = {};
-  const { languageData, instanceOwnerParty } = data;
-
+export const returnConfirmSummaryObject = ({
+  languageData,
+  instanceOwnerParty,
+}: ISummaryData) => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
-  obj[getLanguageFromKey('confirm.sender', languageData)] = sender;
 
-  return obj;
+  return {
+    [getLanguageFromKey('confirm.sender', languageData)]: sender,
+  };
 };
 
 interface IParams {
