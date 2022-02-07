@@ -59,7 +59,7 @@ const getRadio = ({ name, isChecked = false }) => {
   });
 };
 
-describe('DatepickerComponent', () => {
+describe('RadioButtonsContainerComponent', () => {
   it('should call handleDataChange with value of preselectedOptionIndex when simpleBinding is not set', () => {
     const handleChange = jest.fn();
     render({
