@@ -121,8 +121,7 @@ const Confirm = () => {
 
   React.useEffect(() => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [partyId, instanceGuid]);
 
   React.useEffect(() => {
     if (instance && instance.org && parties && applicationMetadata) {
