@@ -87,7 +87,7 @@ const ReceiptContainer = () => {
 
   const origin = window.location.origin;
 
-  const { partyId, instanceGuid } = useParams() as IParams;
+  const { partyId, instanceGuid }: IParams = useParams();
 
   const isLoading = (): boolean =>
     !attachments ||
