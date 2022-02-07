@@ -264,6 +264,7 @@ public class PDFGenerator {
     String componentId = element.getId();
     if (componentType.equals("Button")
       || componentType.equalsIgnoreCase("NavigationButtons")
+      || componentType.equalsIgnoreCase("NavigationBar")
       || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
@@ -599,4 +600,3 @@ public class PDFGenerator {
     }
   }
 }
-
