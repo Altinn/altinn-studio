@@ -24,7 +24,9 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
             services.AddTransient<IAltinnGitRepositoryFactory, AltinnGitRepositoryFactory>();
+
             services.AddTransient<ISourceControl, SourceControlSI>();
+            services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
 
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
