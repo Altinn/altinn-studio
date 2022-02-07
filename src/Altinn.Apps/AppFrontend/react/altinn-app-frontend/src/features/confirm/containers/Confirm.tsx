@@ -178,12 +178,11 @@ const Confirm = () => {
 
   return (
     <>
-      {isLoading() && (
+      {isLoading() ? (
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
-      )}
-      {!isLoading() && (
+      ) : (
         <>
           <AltinnReceipt
             attachmentGroupings={getAttachmentGroupings(
