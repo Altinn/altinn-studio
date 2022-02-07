@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import {
   createTheme,
   createStyles,
@@ -86,19 +85,13 @@ class VersionControlHeader extends React.Component<
 
   public componentDidMount() {
     this.componentIsMounted = true;
-    // check status every 5 min
-    this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
-    this.getStatus();
     this.getRepoPermissions();
     this.getLastPush();
-    window.addEventListener('message', this.changeToRepoOccured);
   }
 
   public componentWillUnmount() {
-    clearInterval(this.interval);
     this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
     clearTimeout(this.timeout);
-    window.removeEventListener('message', this.changeToRepoOccured);
   }
 
   public getRepoPermissions = async () => {
@@ -174,12 +167,6 @@ class VersionControlHeader extends React.Component<
       });
     }
   }
-
-  public changeToRepoOccured = (event: any) => {
-    if (event.data === postMessages.filesAreSaved && this.componentIsMounted) {
-      this.getStatus();
-    }
-  };
 
   public handleClose = () => {
     if (!this.state.mergeConflict) {
@@ -564,11 +551,6 @@ class VersionControlHeader extends React.Component<
       cloneModalAnchor: event.currentTarget,
     });
   };
-
-  public updateStateOnIntervals() {
-    this.getStatus();
-    this.getLastPush();
-  }
 
   public render() {
     const { classes } = this.props;
