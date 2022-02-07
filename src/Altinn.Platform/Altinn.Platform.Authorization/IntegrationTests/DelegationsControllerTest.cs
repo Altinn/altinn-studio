@@ -52,8 +52,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3
         /// Expected: DeleteRules returns status code 201 and list of rules created match expected
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to perform a valid deletion
         /// Input:
@@ -92,8 +91,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3
         /// Expected: DeleteRules returns status code 206 and list of rules created match expected one of the rules does not exist
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to perform a valid deletion and one not existing 
         /// Input:
@@ -132,8 +130,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3 without a valid bearertoken
         /// Expected: DeleteRules returns status code 401
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to perform a valid deletion
         /// Input:
@@ -162,8 +159,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a valid deletion of org1/app3 org1/app4 org1/app8
         /// Expected: DeleteRules returns status code 206 and list of rules created match expected
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to perform a valid deletion but one of the policy files was not found and some rules was therfore not deleted
         /// Input:
@@ -204,8 +200,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 without rules defined
         /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no ruleids defined
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to delete rules without giving a RuleId
         /// Input:
@@ -246,8 +241,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 where the user performing the task is not defined
         /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no DeletedByUser set (0)
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to delete rules without giving a DeletedByUserId
         /// Input:
@@ -280,8 +274,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 where the user performing the task is not defined
         /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no DeletedByUser set (0)
-        /// </summary>
-        /// <summary>
+        ///
         /// Scenario:
         /// Calling the POST operation for DeleteRules to delete rules without giving a DeletedByUserId
         /// Input:
@@ -314,8 +307,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app4 and org1/app3 without rules defined
         /// Expected: DeleteRules returns status code 500 and no list of rules as one of the policies had no ruleids defined
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to delete rules without giving a RuleId
         /// Input:
@@ -356,8 +348,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeleteRules to perform a deletion of org1/app3 with difrent rules on same policy declared in two requests
         /// Expected: DeleteRules returns status code 500 and no list of rules as the same policy was tried to delete from twice
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeleteRules to delete rules giving the dame policy twice
         /// Input:
@@ -391,8 +382,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app3 org1/app4
         /// Expected: DeletePolicy returns status code 201 and list of rules created match expected
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion
         /// Input:
@@ -434,8 +424,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app3 with invalid Authorization token
         /// Expected: DeletePolicy returns status code 401
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion withot valid bearertoken
         /// Input:
@@ -464,8 +453,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app3 org1/app4 and one who does not exixt org1/app8
         /// Expected: DeletePolicy returns status code 206 and list of rules deleted match expected
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion
         /// Input:
@@ -507,8 +495,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a valid deletion of org1/app8 error/postgrewritechangefail
         /// Expected: DeletePolicy returns status code 500
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion
         /// Input:
@@ -549,8 +536,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a invalid deletion of org1/app3 with the same policy defined twice
         /// Expected: DeletePolicy returns status code 500
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion
         /// Input:
@@ -584,8 +570,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// <summary>
         /// Test case: Calling the POST operation for DeletePolicy to perform a invalid deletion of org1/app3 with the same policy defined twice
         /// Expected: DeletePolicy returns status code 500
-        /// </summary>
-        /// <summary>
+        /// 
         /// Scenario:
         /// Calling the POST operation for DeletePolicy to perform a valid deletion
         /// Input:
