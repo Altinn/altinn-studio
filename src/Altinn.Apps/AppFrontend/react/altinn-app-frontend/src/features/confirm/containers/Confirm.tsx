@@ -1,5 +1,6 @@
-import * as React from 'react';
-import { RouteChildrenProps, withRouter } from 'react-router';
+import React from 'react';
+import { RouteChildrenProps } from 'react-router';
+import { useParams } from 'react-router-dom';
 import { createTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import {
@@ -78,7 +79,12 @@ export const returnConfirmSummaryObject = (data: ISummaryData) => {
   return obj;
 };
 
-const Confirm = (props: IConfirmProps) => {
+interface IParams {
+  partyId: string;
+  instanceGuid: string;
+}
+
+const Confirm = () => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
 
@@ -98,7 +104,7 @@ const Confirm = (props: IConfirmProps) => {
   );
   const appName = useAppSelector(selectAppName);
 
-  const routeParams: any = props.match.params;
+  const { partyId, instanceGuid }: IParams = useParams();
 
   const { instanceId } = window as Window as IAltinnWindow;
   const textResources = useAppSelector(
@@ -114,10 +120,7 @@ const Confirm = (props: IConfirmProps) => {
     !parties;
 
   React.useEffect(() => {
-    InstanceDataActions.getInstanceData(
-      routeParams.partyId,
-      routeParams.instanceGuid,
-    );
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -242,4 +245,4 @@ const Confirm = (props: IConfirmProps) => {
   );
 };
 
-export default withRouter(Confirm);
+export default Confirm;
