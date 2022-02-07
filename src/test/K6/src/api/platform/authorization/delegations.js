@@ -48,14 +48,19 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
  * @param {*} offeredByPartyId party id of the user who offers the rule
  * @param {*} coveredById user id or party id of whom that receives the rule
  * @param {Array} resources [{ appOwner: ttd, appName: apps-test }]
+ * @param {*} parentPartyId parent party id from whom rules should be inherited
+ * @param {Array} keyRolePartyIds [123,124]
  * @returns response of the POST request
  */
-export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredById, resources) {
+export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredById, resources, parentPartyId, keyRolePartyIds) {
   var endpoint = config.platformAuthorization.getRules;
   var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
 
   var body = { coveredBy: [], resources: [] };
+
   if (offeredByPartyId) body.offeredByPartyId = offeredByPartyId;
+
+  if (parentPartyId) body.parentPartyId = parentPartyId;
 
   var coveredBy = policyMatchKeys['coveredBy'];
   if (coveredById && coveredBy) {
@@ -71,7 +76,11 @@ export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, covered
     body.resources.push(buildResourcesArray(policyMatchKeys['resource'], appOwner, appName, altinnTask));
   });
 
-  body.keyRolePartyIds = [];
+  if (keyRolePartyIds) {
+    body.keyRolePartyIds = keyRolePartyIds;
+  } else {
+    body.keyRolePartyIds = [];
+  }
 
   return http.post(endpoint, JSON.stringify(body), params);
 }
