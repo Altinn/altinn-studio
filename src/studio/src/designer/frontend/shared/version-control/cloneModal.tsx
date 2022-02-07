@@ -1,4 +1,5 @@
 import { createTheme, createStyles, Grid, Popover, Typography, WithStyles, withStyles } from '@material-ui/core';
+import axios from 'axios';
 import * as React from 'react';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
@@ -35,20 +36,6 @@ export interface ICloneModalProps extends WithStyles<typeof styles> {
 
 function CloneModal(props: ICloneModalProps) {
   const [hasDataModel, setHasDataModel] = React.useState(false);
-  const isMounted = React.useRef(true);
-
-  const checkIfDataModelExists = async () => {
-    try { // dataModelXsdUrl does not resolve in unit-tests
-      const dataModel: any = await get(sharedUrls().dataModelXsdUrl);
-      if (isMounted.current) {
-        setHasDataModel(dataModel != null);
-      }
-    } catch {
-      if (isMounted.current) {
-        setHasDataModel(false);
-      }
-    }
-  };
 
   const copyGitUrl = () => {
     const textField = document.querySelector('#repository-url');
@@ -64,9 +51,20 @@ function CloneModal(props: ICloneModalProps) {
   };
 
   React.useEffect(() => {
+    const source = axios.CancelToken.source();
+    const checkIfDataModelExists = async () => {
+      try { 
+        const dataModel: any = await get(sharedUrls().dataModelXsdUrl, { cancelToken: source.token });
+        setHasDataModel(dataModel != null);
+      } catch (err) {
+        if (!axios.isCancel(err)) {
+          setHasDataModel(false);
+        }
+      }
+    };
     checkIfDataModelExists();
     return () => {
-      isMounted.current = false;
+      source.cancel('Component got unmounted.');
     }
   }, []);
 
