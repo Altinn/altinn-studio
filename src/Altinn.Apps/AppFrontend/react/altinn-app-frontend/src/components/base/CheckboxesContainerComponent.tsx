@@ -128,7 +128,7 @@ export const CheckboxContainerComponent = ({
     }
   };
 
-  const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();
     const index = newSelected.indexOf(event.target.name);
 
@@ -142,7 +142,7 @@ export const CheckboxContainerComponent = ({
     handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
 
-  const handleOnBlur = () => {
+  const handleBlur = () => {
     handleDataChange(formData?.simpleBinding ?? '');
   };
 
@@ -191,8 +191,8 @@ export const CheckboxContainerComponent = ({
               control={
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
-                  onChange={onDataChanged}
-                  onBlur={handleOnBlur}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   value={index}
                   key={option.value}
                   name={option.value}
