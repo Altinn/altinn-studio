@@ -27,6 +27,7 @@ export default function Label(props: IFormLabelProps) {
         <label
           className='a-form-label title-label'
           htmlFor={props.id}
+          data-testid={`label-${props.id}`}
         >
           {props.labelText}
           {props.labelSettings?.optionalIndicator === false ||

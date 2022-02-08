@@ -102,16 +102,17 @@ export function GenericComponent(props: IGenericComponentProps) {
       state.formValidations.validations[currentView]?.[props.id],
     ),
   );
-  const language = useAppSelector(state => state.language.language);
-  const textResources = useAppSelector(state => state.textResources.resources);
-  const texts = useAppSelector(state =>
-    selectComponentTexts(
-      state.textResources.resources,
-      props.textResourceBindings,
-    ),
+  const language = useAppSelector((state) => state.language.language);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
   );
-  const hidden = useAppSelector(state => props.hidden || GetHiddenSelector(state, props));
-  const shouldFocus = useAppSelector(state => GetFocusSelector(state, props));
+
+  const texts = selectComponentTexts(textResources, props.textResourceBindings);
+
+  const hidden = useAppSelector(
+    (state) => props.hidden || GetHiddenSelector(state, props),
+  );
+  const shouldFocus = useAppSelector((state) => GetFocusSelector(state, props));
   const componentValidations = useAppSelector(
     (state) => state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
@@ -219,9 +220,10 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const RenderDescription = () => {
     // eslint-disable-next-line react/prop-types
-    if (!props.textResourceBindings.description) {
+    if (!props.textResourceBindings?.description) {
       return null;
     }
+
     return (
       <Description
         // eslint-disable-next-line react/prop-types

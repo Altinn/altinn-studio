@@ -257,11 +257,13 @@ export function selectComponentTexts(
   textResources: ITextResource[],
   textResourceBindings: ITextResourceBindings,
 ) {
-  const result: {[textResourceKey: string]: React.ReactNode} = {};
+  const result: { [textResourceKey: string]: React.ReactNode } = {};
 
-  Object.keys(textResourceBindings).forEach((key) => {
-    result[key] = getTextResource(textResourceBindings[key], textResources);
-  });
+  if (textResourceBindings) {
+    Object.keys(textResourceBindings).forEach((key) => {
+      result[key] = getTextResource(textResourceBindings[key], textResources);
+    });
+  }
 
   return result;
 }
