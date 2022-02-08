@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authorization.Models
         /// <summary>
         /// Gets or sets the altinnappid. E.g. skd/skattemelding
         /// </summary>
-        [JsonPropertyName("altinnappis")]
+        [JsonPropertyName("altinnappid")]
         public string AltinnAppId { get; set; }
 
         /// <summary>
