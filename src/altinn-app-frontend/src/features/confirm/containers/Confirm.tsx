@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { RouteChildrenProps, withRouter } from 'react-router';
-import { createTheme } from '@material-ui/core';
-import { makeStyles } from '@material-ui/styles';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { makeStyles } from '@material-ui/core/styles';
+
 import {
   AltinnReceipt,
   AltinnContentLoader,
@@ -9,10 +9,9 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { IAttachment, IParty } from 'altinn-shared/types';
+import { IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow } from '../../../types';
@@ -21,17 +20,11 @@ import { getValidationUrl } from '../../../utils/appUrlHelper';
 import { updateValidations } from '../../form/validation/validationSlice';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import moment from 'moment';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
 
-export type IConfirmProps = RouteChildrenProps;
-
-const theme = createTheme(AltinnAppTheme);
-
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
@@ -50,7 +43,7 @@ const useStyles = makeStyles({
     },
     marginTop: 28,
   },
-});
+}));
 
 export interface ISummaryData {
   languageData?: any;
@@ -63,99 +56,148 @@ const loaderStyles = {
   height: '64px',
 };
 
-export const returnConfirmSummaryObject = (data: ISummaryData) => {
-  const obj: any = {};
-  const { languageData, instanceOwnerParty } = data;
-
+export const returnConfirmSummaryObject = ({
+  languageData,
+  instanceOwnerParty,
+}: ISummaryData) => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
-  obj[getLanguageFromKey('confirm.sender', languageData)] = sender;
 
-  return obj;
+  return {
+    [getLanguageFromKey('confirm.sender', languageData)]: sender,
+  };
 };
 
-const Confirm = (props: IConfirmProps) => {
-  const classes = useStyles();
-  const dispatch = useAppDispatch();
+interface IParams {
+  partyId: string;
+  instanceGuid: string;
+}
 
-  const [attachments, setAttachments] = React.useState<IAttachment[]>([]);
-  const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
-  const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
-  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
-
-  const applicationMetadata: IApplicationMetadata = useAppSelector(
+const Confirm = () => {
+  const applicationMetadata = useAppSelector(
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
-  const validations = useAppSelector(
-    (state) => state.formValidations.validations,
-  );
   const appName = useAppSelector(selectAppName);
-
-  const routeParams: any = props.match.params;
-
-  const { instanceId } = window as Window as IAltinnWindow;
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
   );
 
-  const isLoading = (): boolean =>
-    !attachments ||
-    !instanceMetaObject ||
-    !lastChangedDateTime ||
-    !instance ||
-    !lastChangedDateTime ||
-    !parties;
+  const { partyId, instanceGuid }: IParams = useParams();
+
+  const isLoading = !instance || !parties;
 
   React.useEffect(() => {
-    InstanceDataActions.getInstanceData(
-      routeParams.partyId,
-      routeParams.instanceGuid,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
+  }, [partyId, instanceGuid]);
 
-  React.useEffect(() => {
+  const getInstanceMetaObject = () => {
     if (instance && instance.org && parties && applicationMetadata) {
       const instanceOwnerParty = parties.find((party: IParty) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
       });
 
-      const obj = returnConfirmSummaryObject({
+      return returnConfirmSummaryObject({
         languageData: language,
         instanceOwnerParty,
       });
-      setInstanceMetaObject(obj);
     }
-  }, [parties, instance, lastChangedDateTime, applicationMetadata, language]);
 
-  React.useEffect(() => {
+    return {};
+  };
+
+  const getAttachments = () => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
         (dataType) => !!dataType.appLogic,
       );
-      const attachmentsResult = mapInstanceAttachments(
+
+      return mapInstanceAttachments(
         instance.data,
         appLogicDataTypes.map((type) => type.id),
       );
-      setAttachments(attachmentsResult);
-      setLastChangedDateTime(
-        moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'),
-      );
     }
-  }, [instance, applicationMetadata]);
+  };
+
+  return (
+    <>
+      {isLoading ? (
+        <AltinnContentLoader width={705} height={561}>
+          <AltinnContentIconReceipt />
+        </AltinnContentLoader>
+      ) : (
+        <>
+          <AltinnReceipt
+            attachmentGroupings={getAttachmentGroupings(
+              getAttachments(),
+              applicationMetadata,
+              textResources,
+            )}
+            body={getTextFromAppOrDefault(
+              'confirm.body',
+              textResources,
+              language,
+              [appName],
+            )}
+            collapsibleTitle={getTextFromAppOrDefault(
+              'confirm.attachments',
+              textResources,
+              language,
+              null,
+              true,
+            )}
+            hideCollapsibleCount={true}
+            instanceMetaDataObject={getInstanceMetaObject()}
+            title={getTextFromAppOrDefault(
+              'confirm.title',
+              textResources,
+              language,
+              null,
+              true,
+            )}
+            titleSubmitted={getTextFromAppOrDefault(
+              'confirm.answers',
+              textResources,
+              language,
+              null,
+              true,
+            )}
+          />
+          <SubmitButton />
+        </>
+      )}
+    </>
+  );
+};
+
+const SubmitButton = () => {
+  const classes = useStyles();
+
+  const dispatch = useAppDispatch();
+
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
+  const language = useAppSelector((state) => state.language.language);
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
+
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+
+  const { instanceId } = window as Window as IAltinnWindow;
 
   React.useEffect(() => {
     setIsSubmitting(false);
   }, [validations]);
 
-  const onClickConfirm = () => {
+  const handleConfirmClick = () => {
     setIsSubmitting(true);
     get(getValidationUrl(instanceId))
       .then((data: any) => {
@@ -174,72 +216,27 @@ const Confirm = (props: IConfirmProps) => {
       });
   };
 
+  if (isSubmitting) {
+    return (
+      <AltinnLoader
+        style={loaderStyles}
+        srContent={getLanguageFromKey('general.loading', language)}
+      />
+    );
+  }
+
   return (
-    <>
-      {isLoading() && (
-        <AltinnContentLoader width={705} height={561}>
-          <AltinnContentIconReceipt />
-        </AltinnContentLoader>
+    <AltinnButton
+      btnText={getTextFromAppOrDefault(
+        'confirm.button_text',
+        textResources,
+        language,
       )}
-      {!isLoading() && (
-        <>
-          <AltinnReceipt
-            attachmentGroupings={getAttachmentGroupings(
-              attachments,
-              applicationMetadata,
-              textResources,
-            )}
-            body={getTextFromAppOrDefault(
-              'confirm.body',
-              textResources,
-              language,
-              [appName],
-            )}
-            collapsibleTitle={getTextFromAppOrDefault(
-              'confirm.attachments',
-              textResources,
-              language,
-              null,
-              true,
-            )}
-            hideCollapsibleCount={true}
-            instanceMetaDataObject={instanceMetaObject}
-            title={getTextFromAppOrDefault(
-              'confirm.title',
-              textResources,
-              language,
-              null,
-              true,
-            )}
-            titleSubmitted={getTextFromAppOrDefault(
-              'confirm.answers',
-              textResources,
-              language,
-              null,
-              true,
-            )}
-          />
-          {isSubmitting ? (
-            <AltinnLoader
-              style={loaderStyles}
-              srContent={getLanguageFromKey('general.loading', language)}
-            />
-          ) : (
-            <AltinnButton
-              btnText={getTextFromAppOrDefault(
-                'confirm.button_text',
-                textResources,
-                language,
-              )}
-              onClickFunction={onClickConfirm}
-              className={classes.button}
-              id='confirm-button'
-            />
-          )}
-        </>
-      )}
-    </>
+      onClickFunction={handleConfirmClick}
+      className={classes.button}
+      id='confirm-button'
+    />
   );
 };
 
-export default withRouter(Confirm);
+export default Confirm;
