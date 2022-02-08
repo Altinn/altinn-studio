@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -60,15 +61,23 @@ namespace Altinn.Platform.Register.Controllers
                 return Forbid();
             }
 
+            Party? party;
             try
             {
-                return await _personCheck.GetPersonParty(
+                party = await _personCheck.GetPersonParty(
                     personLookup.NationalIdentityNumber, personLookup.LastName, userId.Value);
             }
             catch (TooManyFailedLookupsException)
             {
                 return StatusCode(StatusCodes.Status429TooManyRequests);
             }
+
+            if (party is null)
+            {
+                return NotFound();
+            }
+
+            return party;
         }
 
         /// <summary>

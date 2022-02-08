@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,7 +14,7 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Tests.IntegrationTests.Utils;
 using Altinn.Platform.Register.Tests.Mocks;
 using Altinn.Platform.Register.Tests.Utils;
-
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 using Moq;
@@ -65,6 +66,30 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             Party actual = await response.Content.ReadFromJsonAsync<Party>();
+
+            Assert.NotNull(actual);
+        }
+
+        [Fact]
+        public async Task GetPersonPartyAsync_MissingParameters_ReturnsBadRequest()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            httpRequestMessage.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+            ValidationProblemDetails actual = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
 
             Assert.NotNull(actual);
         }
