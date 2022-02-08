@@ -79,7 +79,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <returns>List of mainunits</returns>
         public async new Task<List<MainUnit>> GetMainUnits(MainUnitQuery mainUnitQuery)
         {
-            return await GetMainUnits(mainUnitQuery);
+            return await base.GetMainUnits(mainUnitQuery);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <returns>List of partyIds for units where user has keyrole</returns>
         public async new Task<List<int>> GetKeyRolePartyIds(int subjectUserId)
         {
-            return await GetKeyRolePartyIds(subjectUserId);
+            return await base.GetKeyRolePartyIds(subjectUserId);
         }
     }
 }
