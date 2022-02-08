@@ -17,7 +17,7 @@ export interface ICheckboxContainerProps extends IComponentProps {
   preselectedOptionIndex?: number;
 }
 
-export interface IStyledCheckboxProps extends CheckboxProps {
+interface IStyledCheckboxProps extends CheckboxProps {
   label: string;
 }
 
@@ -68,15 +68,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function usePrevious(value) {
-  const ref = React.useRef();
-  React.useEffect(() => {
-    ref.current = value.slice();
-  });
-
-  return ref.current;
-}
-
 const defaultArray = [];
 
 export const CheckboxContainerComponent = ({
@@ -87,7 +78,6 @@ export const CheckboxContainerComponent = ({
   preselectedOptionIndex,
   handleDataChange,
   handleFocusUpdate,
-  shouldFocus,
   legend,
   getTextResourceAsString,
   getTextResource,
@@ -99,7 +89,6 @@ export const CheckboxContainerComponent = ({
   );
   const calculatedOptions = apiOptions || options || defaultArray;
   const [selected, setSelected] = React.useState([]);
-  const prevSelected: any = usePrevious(selected);
   const checkBoxesIsRow: boolean = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
 
@@ -160,27 +149,6 @@ export const CheckboxContainerComponent = ({
     return selected.indexOf(option) > -1;
   };
 
-  const inFocus = (index: number) => {
-    let changed: any;
-    if (!prevSelected) {
-      return false;
-    }
-    if (prevSelected.length === 0) {
-      changed = selected.findIndex((x) => !!x && x !== '');
-    } else {
-      changed = selected.findIndex((x) => !prevSelected.includes(x));
-    }
-    if (changed === -1) {
-      changed = prevSelected.findIndex((x) => !selected.includes(x));
-    }
-
-    if (changed === -1) {
-      return false;
-    }
-    const should = shouldFocus && changed === index;
-    return should;
-  };
-
   const RenderLegend = legend;
 
   return (
@@ -202,7 +170,6 @@ export const CheckboxContainerComponent = ({
                   value={index}
                   key={option.value}
                   name={option.value}
-                  autoFocus={inFocus(index)}
                   label={getTextResourceAsString(option.label)}
                 />
               }
