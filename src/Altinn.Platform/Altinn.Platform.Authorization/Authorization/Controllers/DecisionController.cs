@@ -36,7 +36,6 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IContextHandler _contextHandler;
         private readonly IDelegationContextHandler _delegationContextHandler;
         private readonly IDelegationMetadataRepository _delegationRepository;
-        private readonly IParties _partiesWrapper;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -46,16 +45,14 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="delegationContextHandler">The delegation context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="delegationRepository">The delegation repository</param>
-        /// <param name="partiesWrapper">The wrapper/handler for requests to SBL Bridge for party information</param>
         /// <param name="logger">the logger.</param>
-        public DecisionController(IContextHandler contextHandler, IDelegationContextHandler delegationContextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IDelegationMetadataRepository delegationRepository, IParties partiesWrapper, ILogger<DecisionController> logger)
+        public DecisionController(IContextHandler contextHandler, IDelegationContextHandler delegationContextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IDelegationMetadataRepository delegationRepository, ILogger<DecisionController> logger)
         {
             _pdp = new PolicyDecisionPoint();
             _prp = policyRetrievalPoint;
             _contextHandler = contextHandler;
             _delegationContextHandler = delegationContextHandler;
             _delegationRepository = delegationRepository;
-            _partiesWrapper = partiesWrapper;
             _logger = logger;
         }
 
