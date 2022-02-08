@@ -6,13 +6,14 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
+import type { IOption } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: any;
-  options: any[];
+  options: IOption[];
   optionsId: string;
   preselectedOptionIndex?: number;
 }
@@ -68,7 +69,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const defaultArray = [];
+const defaultOptions: IOption[] = [];
+const defaultSelectedOptions: string[] = [];
 
 export const CheckboxContainerComponent = ({
   id,
@@ -87,13 +89,13 @@ export const CheckboxContainerComponent = ({
   const apiOptions = useAppSelector(
     (state) => state.optionState.options[optionsId],
   );
-  const calculatedOptions = apiOptions || options || defaultArray;
+  const calculatedOptions = apiOptions || options || defaultOptions;
   const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
 
   const selected = formData?.simpleBinding
     ? formData.simpleBinding.split(',')
-    : defaultArray;
+    : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
