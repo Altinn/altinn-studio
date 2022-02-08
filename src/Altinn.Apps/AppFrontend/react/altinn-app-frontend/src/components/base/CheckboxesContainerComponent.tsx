@@ -5,9 +5,10 @@ import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
+import type { IComponentProps } from '..';
+
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
-import { IComponentProps } from '..';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: any;
@@ -76,6 +77,8 @@ function usePrevious(value) {
   return ref.current;
 }
 
+const defaultArray = [];
+
 export const CheckboxContainerComponent = ({
   id,
   options,
@@ -94,39 +97,42 @@ export const CheckboxContainerComponent = ({
   const apiOptions = useAppSelector(
     (state) => state.optionState.options[optionsId],
   );
-  const calculatedOptions = apiOptions || options || [];
+  const calculatedOptions = apiOptions || options || defaultArray;
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
   const checkBoxesIsRow: boolean = calculatedOptions.length <= 2;
+  const hasSelectedInitial = React.useRef(false);
 
   React.useEffect(() => {
-    returnState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calculatedOptions]);
+    const returnState = () => {
+      if (
+        !formData?.simpleBinding &&
+        preselectedOptionIndex >= 0 &&
+        calculatedOptions &&
+        preselectedOptionIndex < calculatedOptions.length &&
+        hasSelectedInitial.current === false
+      ) {
+        const preSelected = [];
+        preSelected[preselectedOptionIndex] =
+          calculatedOptions[preselectedOptionIndex].value;
 
-  React.useEffect(() => {
-    returnState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData?.simpleBinding]);
+        handleDataChange(preSelected[preselectedOptionIndex]);
+        setSelected(preSelected);
+        hasSelectedInitial.current = true;
+      } else {
+        setSelected(
+          formData?.simpleBinding ? formData.simpleBinding.split(',') : [],
+        );
+      }
+    };
 
-  const returnState = () => {
-    if (
-      !formData?.simpleBinding &&
-      preselectedOptionIndex >= 0 &&
-      calculatedOptions &&
-      preselectedOptionIndex < calculatedOptions.length
-    ) {
-      const preSelected: string[] = [];
-      preSelected[preselectedOptionIndex] =
-        calculatedOptions[preselectedOptionIndex].value;
-      handleDataChange(preSelected[preselectedOptionIndex]);
-      setSelected(preSelected);
-    } else {
-      setSelected(
-        formData?.simpleBinding ? formData.simpleBinding.split(',') : [],
-      );
-    }
-  };
+    returnState();
+  }, [
+    formData?.simpleBinding,
+    calculatedOptions,
+    handleDataChange,
+    preselectedOptionIndex,
+  ]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSelected: any = selected.slice();
