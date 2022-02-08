@@ -28,9 +28,8 @@ if (Cypress.env('environment') != 'local') {
       cy.deletecomponents();
       cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).trigger('dragstart');
       cy.get(designer.dragToArea).parents(designer.draggable).trigger('drop');
-      cy.wait('@getRepoStatus').its('response.statusCode').should('eq', 200);
-      cy.get(designer.syncApp.push).scrollIntoView().isVisible();
-      cy.get(designer.syncApp.push).click();
+      cy.get(designer.syncApp.noChanges).scrollIntoView().isVisible();
+      cy.get(designer.syncApp.noChanges).click();
       cy.get(designer.syncApp.commitMessage).should('be.visible').clear().type('automation');
       cy.get(designer.syncApp.pushButton).should('be.visible').click();
       cy.wait('@commitChanges').its('response.statusCode').should('eq', 200);
