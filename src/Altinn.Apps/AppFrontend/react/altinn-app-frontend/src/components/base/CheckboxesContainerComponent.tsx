@@ -88,34 +88,25 @@ export const CheckboxContainerComponent = ({
     (state) => state.optionState.options[optionsId],
   );
   const calculatedOptions = apiOptions || options || defaultArray;
-  const [selected, setSelected] = React.useState([]);
-  const checkBoxesIsRow: boolean = calculatedOptions.length <= 2;
+  const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
 
+  const selected = formData?.simpleBinding
+    ? formData.simpleBinding.split(',')
+    : defaultArray;
+
   React.useEffect(() => {
-    const returnState = () => {
-      if (
-        !formData?.simpleBinding &&
-        preselectedOptionIndex >= 0 &&
-        calculatedOptions &&
-        preselectedOptionIndex < calculatedOptions.length &&
-        hasSelectedInitial.current === false
-      ) {
-        const preSelected = [];
-        preSelected[preselectedOptionIndex] =
-          calculatedOptions[preselectedOptionIndex].value;
+    const shouldSelectOptionAutomatically =
+      !formData?.simpleBinding &&
+      preselectedOptionIndex >= 0 &&
+      calculatedOptions &&
+      preselectedOptionIndex < calculatedOptions.length &&
+      hasSelectedInitial.current === false;
 
-        handleDataChange(preSelected[preselectedOptionIndex]);
-        setSelected(preSelected);
-        hasSelectedInitial.current = true;
-      } else {
-        setSelected(
-          formData?.simpleBinding ? formData.simpleBinding.split(',') : [],
-        );
-      }
-    };
-
-    returnState();
+    if (shouldSelectOptionAutomatically) {
+      handleDataChange(calculatedOptions[preselectedOptionIndex].value);
+      hasSelectedInitial.current = true;
+    }
   }, [
     formData?.simpleBinding,
     calculatedOptions,
@@ -124,30 +115,22 @@ export const CheckboxContainerComponent = ({
   ]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected: any = selected.slice();
-    const index = newSelected.indexOf(event.target.name);
+    const clickedItem = event.target.name;
+    const isSelected = isOptionSelected(clickedItem);
 
-    if (index >= 0) {
-      newSelected[index] = '';
+    if (isSelected) {
+      handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
     } else {
-      newSelected.push(event.target.name);
+      handleDataChange(selected.concat(clickedItem).join(','));
     }
-    const filtered = newSelected.filter((element: string) => !!element);
     handleFocusUpdate(id);
-    handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
 
   const handleBlur = () => {
     handleDataChange(formData?.simpleBinding ?? '');
   };
 
-  const selectedHasValues = (select: string[]): boolean => {
-    return select.some((element) => element !== '');
-  };
-
-  const isOptionSelected = (option: string) => {
-    return selected.indexOf(option) > -1;
-  };
+  const isOptionSelected = (option: string) => selected.includes(option);
 
   const RenderLegend = legend;
 
