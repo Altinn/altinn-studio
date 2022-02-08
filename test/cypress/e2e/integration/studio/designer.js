@@ -89,13 +89,13 @@ context('Designer', () => {
 
   it('is possible to delete local changes of an app ', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
+    cy.intercept('GET', '**/GetLayoutSettings').as('getLayoutSettings');
     cy.get(designer.appMenu['edit']).click();
-    cy.intercept('GET', '**/status').as('getRepoStatus');
+    cy.wait('@getLayoutSettings');
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).click().type('{enter}');
-    cy.wait('@getRepoStatus');
-    cy.get(designer.syncApp.push).scrollIntoView().isVisible();
+    cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
+    cy.get(designer.dragToArea).parents(designer.draggable).trigger('drop');
     cy.deleteLocalChanges(Cypress.env('designerApp'));
-    cy.get(designer.syncApp.noChanges).scrollIntoView().isVisible();
   });
 
   it('is possible details of the clone modal ', () => {
