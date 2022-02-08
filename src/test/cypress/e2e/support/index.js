@@ -4,7 +4,6 @@ import './localtest';
 import './app';
 import './app-frontend';
 import './custom';
-import 'cypress-file-upload';
 import 'cypress-plugin-tab';
 import './start-app-instance';
 import 'cypress-axe';

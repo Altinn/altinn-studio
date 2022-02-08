@@ -1,5 +1,7 @@
-using Altinn.App.Api.Models;
+using System.Text.Json;
+
 using Altinn.App.Services.Configuration;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -11,14 +13,21 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class ApplicationSettingsController : ControllerBase
     {
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        {
+            DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+        };
+
         private readonly AppSettings _appSettings;
+        private readonly FrontEndSettings _frontEndSettings;
 
         /// <summary>
         /// Controller that exposes a subset of app setings
         /// </summary>
-        public ApplicationSettingsController(IOptions<AppSettings> appSettings)
+        public ApplicationSettingsController(IOptions<AppSettings> appSettings, IOptions<FrontEndSettings> frontEndSettings)
         {
             _appSettings = appSettings.Value;
+            _frontEndSettings = frontEndSettings.Value;
         }
 
         /// <summary>
@@ -27,14 +36,15 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{org}/{app}/api/v1/applicationsettings")]
         public IActionResult GetAction(string org, string app)
         {
-            return Ok(GetSettings());
-        }
+            FrontEndSettings frontEndSettings = _frontEndSettings;
 
-        private SimpleAppSettings GetSettings()
-        {
-            SimpleAppSettings settings = new SimpleAppSettings();
-            settings.AppOidcProvider = _appSettings.AppOidcProvider;
-            return settings;
+            // Adding key from _appSettings to be backwards compatible.
+            if (!frontEndSettings.ContainsKey(nameof(_appSettings.AppOidcProvider)) && !string.IsNullOrEmpty(_appSettings.AppOidcProvider))
+            {
+                frontEndSettings.Add(nameof(_appSettings.AppOidcProvider), _appSettings.AppOidcProvider);
+            }
+
+            return new JsonResult(frontEndSettings, _serializerOptions);
         }
     }
 }

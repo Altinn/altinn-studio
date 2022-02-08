@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Register.Controllers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Register.Tests.Mocks;
@@ -25,15 +26,15 @@ using Xunit;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
-    public class OrganizationsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class OrganizationsControllerTests : IClassFixture<WebApplicationFactory<OrganizationsController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<OrganizationsController> _factory;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="OrganizationsControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public OrganizationsControllerTests(WebApplicationFactory<Startup> factory)
+        public OrganizationsControllerTests(WebApplicationFactory<OrganizationsController> factory)
         {
             _factory = factory;
         }
@@ -138,8 +139,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
         private HttpClient GetTestClient(IOrganizations organizationsService)
         {
-            Program.ConfigureSetupLogging();
-
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 

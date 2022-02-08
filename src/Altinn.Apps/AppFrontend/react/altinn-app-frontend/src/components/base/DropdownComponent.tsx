@@ -1,11 +1,12 @@
-/* eslint-disable jsx-a11y/control-has-associated-label */
-import * as React from 'react';
-import '../../styles/shared.css';
-import classNames from 'classnames';
+import React from 'react';
+import cn from 'classnames';
 import { makeStyles } from '@material-ui/core';
+
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useAppSelector } from 'src/common/hooks';
 import { IComponentProps } from '..';
+
+import '../../styles/shared.css';
 
 export interface IDropdownProps extends IComponentProps {
   optionsId: string;
@@ -31,50 +32,60 @@ const optionStyle = {
   display: 'none',
 };
 
-function DropdownComponent(props: IDropdownProps) {
+function DropdownComponent({
+  optionsId,
+  formData,
+  preselectedOptionIndex,
+  handleDataChange,
+  id,
+  readOnly,
+  isValid,
+  getTextResourceAsString,
+}: IDropdownProps) {
   const classes = useStyles();
-  const options = useAppSelector(state => state.optionState.options[props.optionsId]);
+  const options = useAppSelector(
+    (state) => state.optionState.options[optionsId],
+  );
+  const hasSelectedInitial = React.useRef(false);
 
   React.useEffect(() => {
-    returnState();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
-
-  const returnState = () => {
-    if (
-      !props.formData?.simpleBinding &&
-      props.preselectedOptionIndex >= 0 &&
+    const shouldSelectOptionAutomatically =
+      !formData?.simpleBinding &&
       options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      props.handleDataChange(options[props.preselectedOptionIndex].value);
+      preselectedOptionIndex >= 0 &&
+      preselectedOptionIndex < options.length &&
+      hasSelectedInitial.current === false;
+
+    if (shouldSelectOptionAutomatically) {
+      handleDataChange(options[preselectedOptionIndex].value);
+      hasSelectedInitial.current = true;
     }
+  }, [options, formData, preselectedOptionIndex, handleDataChange]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    handleDataChange(event.target.value);
   };
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
-  };
-
-  const handleOnBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
+  const handleBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
+    handleDataChange(event.target.value);
   };
 
   return (
     <select
-      id={props.id}
-      value={props.formData?.simpleBinding}
-      disabled={props.readOnly}
-      className={classNames(classes.select, 'custom-select a-custom-select', {
-        'validation-error': !props.isValid,
-        'disabled !important': props.readOnly,
+      id={id}
+      value={formData?.simpleBinding}
+      disabled={readOnly}
+      className={cn(classes.select, 'custom-select a-custom-select', {
+        'validation-error': !isValid,
+        'disabled !important': readOnly,
       })}
-      onChange={handleOnChange}
-      onBlur={handleOnBlur}
+      onChange={handleChange}
+      onBlur={handleBlur}
     >
       <option style={optionStyle} />
       {options?.map((option, index) => (
         <option key={index} value={option.value}>
-          {props.getTextResourceAsString(option.label)}
+          {getTextResourceAsString(option.label)}
         </option>
       ))}
     </select>

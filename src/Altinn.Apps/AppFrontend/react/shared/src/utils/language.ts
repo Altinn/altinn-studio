@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify';
 import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
 import * as React from 'react';
-import { ITextResource, IDataSources, ILanguage } from '../types';
+import { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from '../types';
 import marked from 'marked';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
@@ -130,6 +130,12 @@ export function replaceTextResourceParams(
         if (variable.dataSource.startsWith('dataModel')) {
           replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
         }
+        else if (variable.dataSource === 'applicationSettings') {
+          replaceValues.push(dataSources.applicationSettings[variable.key] || variable.key);
+        }
+        else if (variable.dataSource === 'instanceContext') {
+          replaceValues.push(dataSources.instanceContext[variable.key] || variable.key);
+        }
       });
 
       const newValue = replaceParameters(resource.unparsedValue, replaceValues);
@@ -139,4 +145,49 @@ export function replaceTextResourceParams(
     }
   });
   return textResources;
+}
+
+export function getAppOwner(
+  textResources: ITextResource[],
+  orgs: IAltinnOrgs,
+  org: string,
+  userLanguage: string,
+  ) {
+
+  const appOwner = getTextResourceByKey('appOwner', textResources);
+  if (appOwner !== 'appOwner') {
+    return appOwner;
+  }
+
+  // if no text resource key is set, fetch from orgs
+  if (orgs && orgs[org]) {
+    return orgs[org].name[userLanguage] || orgs[org].name.nb;
+  }
+
+  return undefined;
+}
+
+const appNameKey = 'appName';
+const oldAppNameKey = 'ServiceName';
+
+export function getAppName(
+  textResources: ITextResource[],
+  applicationMetadata: IApplication,
+  userLanguage: string
+  ) {
+    let appName = getTextResourceByKey(appNameKey, textResources);
+    if (appName === appNameKey) {
+      appName = getTextResourceByKey(oldAppNameKey, textResources);
+    }
+
+    if (appName !== appNameKey && appName !== oldAppNameKey) {
+      return appName;
+    }
+
+    // if no text resource key is set, fetch from app metadata
+    if (applicationMetadata) {
+        return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+    }
+
+    return undefined;
 }

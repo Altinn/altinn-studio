@@ -5,6 +5,7 @@ import { get } from 'app-shared/utils/networking';
 import { IRepoStatusAction, RepoStatusActions } from '../repoStatusSlice';
 import { fetchRepoStatus } from '../../../features/handleMergeConflict/handleMergeConflictSlice';
 import { repoStatusUrl } from '../../../utils/urlHelper';
+import postMessages from 'app-shared/utils/postMessages';
 
 // GET MASTER REPO
 export function* resetLocalRepoSaga({ payload: {
@@ -20,7 +21,7 @@ export function* resetLocalRepoSaga({ payload: {
       org,
       repo,
     }));
-
+    window.postMessage(postMessages.filesAreSaved, window.location.href);
     yield put(RepoStatusActions.resetLocalRepoFulfilled({ result }));
   } catch (error) {
     yield put(RepoStatusActions.resetLocalRepoRejected({ error }));

@@ -5,9 +5,6 @@ using Altinn.Common.AccessToken.Constants;
 using Altinn.Platform.Register.Tests.Mocks;
 using AltinnCore.Authentication.Constants;
 
-#pragma warning disable 1591
-#pragma warning disable SA1600
-
 namespace Altinn.Platform.Register.Tests.Utils
 {
     public static class PrincipalUtil
@@ -35,8 +32,11 @@ namespace Altinn.Platform.Register.Tests.Utils
 
         public static string GetAccessToken(string issuer, string app)
         {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer));
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer)
+            };
+
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

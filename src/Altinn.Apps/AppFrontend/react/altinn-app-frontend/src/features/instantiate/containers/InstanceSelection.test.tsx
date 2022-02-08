@@ -1,12 +1,13 @@
-import { render } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import InstanceSelection from '../../../src/features/instantiate/containers/InstanceSelection';
-import { IRuntimeState, ISimpleInstance } from '../../../src/types';
-import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
+import { render } from '@testing-library/react';
 
-describe('>>> features/instantiate/InstanceSelection.tsx', () => {
+import InstanceSelection from './InstanceSelection';
+import { IRuntimeState, ISimpleInstance } from 'src/types';
+import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
+
+describe('features/instantiate/InstanceSelection.tsx', () => {
   let mockInitialState: IRuntimeState;
   let mockStore: any;
   let mockStartNewInstance: () => void;
@@ -19,10 +20,14 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
     mockStartNewInstance = jest.fn();
     mockActiveInstances = [
       {
-        id: 'some-id', lastChanged: '2021-10-05T07:51:57.8795258Z', lastChangedBy: 'Navn Navnesen',
+        id: 'some-id',
+        lastChanged: '2021-10-05T07:51:57.8795258Z',
+        lastChangedBy: 'Navn Navnesen',
       },
       {
-        id: 'some-other-id', lastChanged: '2021-05-13T07:51:57.8795258Z', lastChangedBy: 'Kåre Nordmannsen',
+        id: 'some-other-id',
+        lastChanged: '2021-05-13T07:51:57.8795258Z',
+        lastChangedBy: 'Kåre Nordmannsen',
       },
     ];
   });
@@ -36,7 +41,9 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
         />
       </Provider>,
     );
-    const altinnTable = rendered.container.querySelector('#instance-selection-table');
+    const altinnTable = rendered.container.querySelector(
+      '#instance-selection-table',
+    );
     expect(altinnTable).not.toBeNull();
   });
 
@@ -54,7 +61,9 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
         />
       </Provider>,
     );
-    const altinnMobileTable = rendered.container.querySelector('#instance-selection-mobile-table');
+    const altinnMobileTable = rendered.container.querySelector(
+      '#instance-selection-mobile-table',
+    );
     expect(altinnMobileTable).not.toBeNull();
   });
 
@@ -68,8 +77,12 @@ describe('>>> features/instantiate/InstanceSelection.tsx', () => {
       </Provider>,
     );
 
-    const firstInstanceChangedBy = await rendered.findByText(mockActiveInstances[0].lastChangedBy);
-    const secondInstanceChangedBy = await rendered.findByText(mockActiveInstances[1].lastChangedBy);
+    const firstInstanceChangedBy = await rendered.findByText(
+      mockActiveInstances[0].lastChangedBy,
+    );
+    const secondInstanceChangedBy = await rendered.findByText(
+      mockActiveInstances[1].lastChangedBy,
+    );
 
     const firstInstanceLastChanged = await rendered.findByText('10/05/2021');
     const secondInstanceLastChanged = await rendered.findByText('05/13/2021');

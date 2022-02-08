@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { RouteChildrenProps, withRouter } from 'react-router';
+import { useParams } from 'react-router-dom';
+
 import {
   AltinnContentIconReceipt,
   AltinnContentLoader,
@@ -10,13 +9,8 @@ import {
   AltinnReceiptSimple,
 } from 'altinn-shared/components';
 import {
-  IParty,
-  IAttachment,
-} from 'altinn-shared/types';
-import {
   mapInstanceAttachments,
   getLanguageFromKey,
-  getTextResourceByKey,
   returnUrlToArchive,
 } from 'altinn-shared/utils';
 import {
@@ -24,11 +18,15 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
+import type { IParty, IAttachment } from 'altinn-shared/types';
 
-export type IReceiptContainerProps = RouteChildrenProps;
+interface IParams {
+  partyId: string;
+  instanceGuid: string;
+}
 
 export const returnInstanceMetaDataObject = (
   orgsData: any,
@@ -67,23 +65,29 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-const ReceiptContainer = (props: IReceiptContainerProps) => {
+const ReceiptContainer = () => {
   const [attachments, setAttachments] = useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment[]>(null);
+  const [pdf, setPdf] = useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
-  const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [userLanguage, setUserLanguage] = useState('nb');
 
-  const allOrgs = useAppSelector(state => state.organisationMetaData.allOrgs);
-  const applicationMetadata = useAppSelector(state => state.applicationMetadata.applicationMetadata);
-  const instance = useAppSelector(state => state.instanceData.instance);
-  const language = useAppSelector(state => state.language.language);
-  const parties = useAppSelector(state => state.party.parties);
-  const textResources = useAppSelector(state => state.textResources.resources);
-  const profile = useAppSelector(state => state.profile.profile);
+  const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata.applicationMetadata,
+  );
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const language = useAppSelector((state) => state.language.language);
+  const parties = useAppSelector((state) => state.party.parties);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
+  const profile = useAppSelector((state) => state.profile.profile);
+  const appName = useAppSelector(selectAppName);
 
   const origin = window.location.origin;
-  const routeParams: any = props.match.params;
+
+  const { partyId, instanceGuid }: IParams = useParams();
 
   const isLoading = (): boolean =>
     !attachments ||
@@ -93,22 +97,17 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !instance ||
     !parties;
 
-  React.useEffect(() => {
-    OrgsActions.fetchOrgs();
-    InstanceDataActions.getInstanceData(
-      routeParams.partyId,
-      routeParams.instanceGuid,
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => {
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
+  }, [partyId, instanceGuid]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile && profile.profileSettingPreference) {
       setUserLanguage(profile.profileSettingPreference.language);
     }
   }, [profile]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (allOrgs != null && instance && instance.org && allOrgs && parties) {
       const instanceOwnerParty = parties.find((party: IParty) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
@@ -118,17 +117,24 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
         allOrgs,
         language,
         instanceOwnerParty,
-        routeParams.instanceGuid,
+        instanceGuid,
         userLanguage,
         lastChangedDateTime,
         instance.org,
       );
       setInstanceMetaObject(obj);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allOrgs, parties, instance, lastChangedDateTime]);
+  }, [
+    allOrgs,
+    parties,
+    instance,
+    lastChangedDateTime,
+    language,
+    instanceGuid,
+    userLanguage,
+  ]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
         (dataType) => !!dataType.appLogic,
@@ -148,57 +154,57 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
   return (
     <>
-      {isLoading() && (
+      {isLoading() ? (
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
-      )}
-      {!isLoading() && !applicationMetadata.autoDeleteOnProcessEnd && (
-        <AltinnReceipt
-          attachmentGroupings={getAttachmentGroupings(
-            attachments,
-            applicationMetadata,
-            textResources,
+      ) : (
+        <>
+          {!applicationMetadata.autoDeleteOnProcessEnd && (
+            <AltinnReceipt
+              attachmentGroupings={getAttachmentGroupings(
+                attachments,
+                applicationMetadata,
+                textResources,
+              )}
+              body={getLanguageFromKey('receipt.body', language)}
+              collapsibleTitle={getLanguageFromKey(
+                'receipt.attachments',
+                language,
+              )}
+              instanceMetaDataObject={instanceMetaObject}
+              subtitle={getLanguageFromKey('receipt.subtitle', language)}
+              subtitleurl={returnUrlToArchive(origin)}
+              title={`${appName} ${getLanguageFromKey(
+                'receipt.title_part_is_submitted',
+                language,
+              )}`}
+              titleSubmitted={getLanguageFromKey(
+                'receipt.title_submitted',
+                language,
+              )}
+              pdf={pdf || null}
+            />
           )}
-          body={getLanguageFromKey('receipt.body', language)}
-          collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
-          instanceMetaDataObject={instanceMetaObject}
-          subtitle={getLanguageFromKey('receipt.subtitle', language)}
-          subtitleurl={returnUrlToArchive(origin)}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
-            'receipt.title_part_is_submitted',
-            language,
-          )}`}
-          titleSubmitted={getLanguageFromKey(
-            'receipt.title_submitted',
-            language,
+          {applicationMetadata.autoDeleteOnProcessEnd && (
+            <AltinnReceiptSimple
+              body={getTextFromAppOrDefault(
+                'receipt.body_simple',
+                textResources,
+                language,
+                null,
+                false,
+              )}
+              title={`${appName} ${getLanguageFromKey(
+                'receipt.title_part_is_submitted',
+                language,
+              )}`}
+            />
           )}
-          pdf={pdf || null}
-        />
-      )}
-      {!isLoading() && applicationMetadata.autoDeleteOnProcessEnd && (
-        <AltinnReceiptSimple
-          body={getTextFromAppOrDefault(
-            'receipt.body_simple',
-            textResources,
-            language,
-            null,
-            false,
-          )}
-          title={`${getTextResourceByKey(
-            'ServiceName',
-            textResources,
-          )} ${getLanguageFromKey(
-            'receipt.title_part_is_submitted',
-            language,
-          )}`}
-        />
+        </>
       )}
     </>
   );
 };
 
-export default withRouter(ReceiptContainer);
+export default ReceiptContainer;

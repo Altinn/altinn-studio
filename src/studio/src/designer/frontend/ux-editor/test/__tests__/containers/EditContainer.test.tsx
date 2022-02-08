@@ -31,7 +31,7 @@ describe('>>> containers/EditContainer', () => {
           model: [] as any[],
         },
         textResources: {
-          resources: [{ id: 'ServiceName', value: 'Test' }],
+          resources: [{ id: 'appName', value: 'Test' }],
         },
         codeLists: {
           codeLists: [] as any[],

@@ -160,7 +160,7 @@ public class PDFGenerator {
       renderFormLayout(filteredLayout);
     } else if (formLayouts != null) {
       // contains a map of form layouts. Render each page and separate by a new page
-      if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null) {
+      if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null && !layoutSettings.getPages().getOrder().isEmpty()) {
         // The app developer has specified the order on a page => render pages in accordance
         List<String> order = layoutSettings.getPages().getOrder();
         for (String layoutKey : order) {
@@ -322,7 +322,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    String unparsedHeader = AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), getLanguage()) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources);
+    String unparsedHeader = TextUtils.getAppOwnerName(instance.getOrg(), getLanguage(), textResources) + " - " + TextUtils.getAppName(textResources);
     String header = TextUtils.removeIllegalChars(unparsedHeader);
     List<String> lines = TextUtils.splitTextToLines(header, fontBold, headerFontSize, width);
     for (String line : lines) {

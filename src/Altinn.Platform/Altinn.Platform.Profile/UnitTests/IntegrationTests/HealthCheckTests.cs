@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Profile.Health;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Utils;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,13 +11,13 @@ using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.IntegrationTests
 {
-    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<HealthCheck>>
     {
-        private readonly WebApplicationFactorySetup _webApplicationFactorySetup;
+        private readonly WebApplicationFactorySetup<HealthCheck> _webApplicationFactorySetup;
 
-        public HealthCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<HealthCheck> factory)
         {
-            _webApplicationFactorySetup = new WebApplicationFactorySetup(factory);
+            _webApplicationFactorySetup = new WebApplicationFactorySetup<HealthCheck>(factory);
         }
 
         [Fact]

@@ -32,9 +32,7 @@ namespace Altinn.Platform.Register.Filters
         /// <inheritdoc/>
         public void Process(ITelemetry item)
         {
-            RequestTelemetry request = item as RequestTelemetry;
-
-            if (request != null && request.Url.ToString().Contains("register/api/"))
+            if (item is RequestTelemetry request && request.Url.ToString().Contains("register/api/"))
             {
                 HttpContext ctx = _httpContextAccessor.HttpContext;
 

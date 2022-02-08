@@ -1,12 +1,12 @@
 import { CircularProgress, createTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
-import classNames from 'classnames';
+import classNames, { Argument } from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {
   id?: string;
   spinnerText?: any;
-  styleObj?: object;
+  styleObj?: Argument;
 }
 
 const theme = createTheme(altinnTheme);

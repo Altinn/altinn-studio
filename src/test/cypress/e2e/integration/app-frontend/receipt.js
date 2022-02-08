@@ -11,9 +11,7 @@ const appFrontend = new AppFrontend();
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
     cy.navigateToTask4();
-    cy.intercept('GET', '**/orgs/altinn-orgs.json').as('getAltinnOrgs');
     cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
-    cy.wait('@getAltinnOrgs');
     cy.get(appFrontend.receiptContainer)
       .should('be.visible')
       .find(mui.tableBody)
@@ -23,5 +21,6 @@ describe('Receipt', () => {
       });
     cy.get(appFrontend.linkToArchive).should('be.visible');
     cy.get(mui.listedAnchor).should('be.visible').and('have.length', 3);
+    cy.get('body').should('have.css', 'background-color', 'rgb(212, 249, 228)');
   });
 });

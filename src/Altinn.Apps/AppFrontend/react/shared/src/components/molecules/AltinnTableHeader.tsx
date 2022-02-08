@@ -18,12 +18,13 @@ const useStyles = makeStyles({
     '& th': {
       fontSize: '1.4rem',
       padding: '0px',
-      paddingLeft: '6px',
+      paddingLeft: '36px',
+      paddingBottom: '4px',
+      fontFamily: 'Altinn-DIN',
       '& p': {
-        fontWeight: 500,
+        fontWeight: '500',
         fontSize: '1.4rem',
         padding: '0px',
-        paddingLeft: '6px',
       },
     },
   },

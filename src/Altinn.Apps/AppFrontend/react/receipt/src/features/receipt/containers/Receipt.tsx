@@ -24,6 +24,7 @@ import {
   IProfile,
   IExtendedInstance,
   ITextResource,
+  IAltinnOrgs,
 } from 'altinn-shared/types';
 import {
   mapInstanceAttachments,
@@ -31,6 +32,7 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import {
+  getAppName,
   getLanguageFromKey,
   getTextResourceByKey,
 } from 'altinn-shared/utils/language';
@@ -76,7 +78,7 @@ const logFetchError = (error: any) => {
 function Receipt(props: WithStyles<typeof styles>) {
   const [party, setParty] = React.useState<IParty>(null);
   const [instance, setInstance] = React.useState<IInstance>(null);
-  const [organisations, setOrganisations] = React.useState(null);
+  const [organisations, setOrganisations] = React.useState<IAltinnOrgs>(null);
   const [application, setApplication] = React.useState<IApplication>(null);
   const [user, setUser] = React.useState<IProfile>(null);
   const [language, setLanguage] = React.useState(null);
@@ -88,7 +90,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const isPrint = useMediaQuery('print');
 
   const getTitle = (): string => {
-    const applicationTitle = getTextResourceByKey('ServiceName', textResources);
+    const applicationTitle = getAppName(textResources, application, user.profileSettingPreference.language);
     return `${applicationTitle} ${getLanguageFromKey(
       'receipt_platform.is_sent',
       language,
@@ -201,7 +203,7 @@ function Receipt(props: WithStyles<typeof styles>) {
 
         setParty(instanceResponse.data.party);
         setInstance(instanceResponse.data.instance);
-        setOrganisations(orgResponse.data);
+        setOrganisations(orgResponse.data.orgs);
         setUser(userResponse.data);
       } catch (error) {
         logFetchError(error);
@@ -300,6 +302,8 @@ function Receipt(props: WithStyles<typeof styles>) {
               language,
               organisations,
               application,
+              textResources,
+              user.profileSettingPreference.language,
             )}
             titleSubmitted={getLanguageFromKey(
               'receipt_platform.sent_content',
