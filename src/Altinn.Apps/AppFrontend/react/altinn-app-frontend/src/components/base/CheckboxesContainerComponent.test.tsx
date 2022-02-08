@@ -136,6 +136,24 @@ describe('CheckboxContainerComponent', () => {
     expect(handleChange).toHaveBeenCalledWith('norway,denmark');
   });
 
+  it('should call handleDataChange with updated values when deselecting item', () => {
+    const handleChange = jest.fn();
+    render({
+      handleDataChange: handleChange,
+      formData: {
+        simpleBinding: 'norway,denmark',
+      },
+    });
+
+    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
+
+    userEvent.click(getCheckbox({ name: 'Denmark', isChecked: true }));
+
+    expect(handleChange).toHaveBeenCalledWith('norway');
+  });
+
   it('should call handleDataChange on blur with already selected value', () => {
     const handleChange = jest.fn();
     render({
