@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Core;
@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Altinn.Platform.Register.Tests.UnitTests
 {
-    public class PersonCheckServiceTests
+    public class PersonLookupServiceTests
     {
         private readonly Mock<IParties> parties;
         private readonly Mock<IOptions<PersonLookupSettings>> settingsMock;
@@ -24,7 +24,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         private readonly MemoryCache memoryCache;
         private readonly PersonLookupSettings lookupSettings;
 
-        public PersonCheckServiceTests()
+        public PersonLookupServiceTests()
         {
             parties = new Mock<IParties>();
             lookupSettings = new PersonLookupSettings();
