@@ -1,10 +1,10 @@
+import React from 'react';
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
-import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames from 'classnames';
+
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
 import { IComponentProps } from '..';
@@ -20,7 +20,7 @@ export interface IStyledCheckboxProps extends CheckboxProps {
   label: string;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
     '&:hover': {
       backgroundColor: 'transparent',
@@ -34,10 +34,10 @@ const useStyles = makeStyles({
     '$root.Mui-focusVisible &': {
       outline: '2px solid #ff0000',
       outlineOffset: 0,
-      outlineColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      outlineColor: theme.altinnPalette.primary.blueDark,
     },
     'input:hover ~ &': {
-      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderColor: theme.altinnPalette.primary.blueDark,
     },
     'input:disabled ~ &': {
       boxShadow: 'none',
@@ -56,7 +56,7 @@ const useStyles = makeStyles({
       content: '""',
     },
     'input:hover ~ &': {
-      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderColor: theme.altinnPalette.primary.blueDark,
     },
   },
   legend: {
@@ -65,7 +65,7 @@ const useStyles = makeStyles({
   margin: {
     marginBottom: '1.2rem',
   },
-});
+}));
 
 function usePrevious(value) {
   const ref = React.useRef();
