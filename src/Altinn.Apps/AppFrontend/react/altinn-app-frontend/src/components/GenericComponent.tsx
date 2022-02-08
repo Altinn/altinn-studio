@@ -13,7 +13,7 @@ import type {
   ITextResourceBindings,
 } from '../features/form/layout';
 
-import components from '.';
+import components, { ComponentTypes } from '.';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { Triggers } from 'src/types';
 import FormDataActions from '../features/form/data/formDataActions';
@@ -286,7 +286,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     ...passThroughProps,
   };
 
-  const noLabelComponents: string[] = [
+  const noLabelComponents = [
     'Header',
     'Paragraph',
     'Image',
@@ -298,6 +298,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'RadioButtons',
     'AttachmentList',
     'InstantiationButton',
+    'NavigationBar',
   ];
 
   return (

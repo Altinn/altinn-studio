@@ -1,6 +1,5 @@
 import React from 'react';
-import userEvent from '@testing-library/user-event';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { renderWithProviders } from '../../testUtils';
 
@@ -100,6 +99,19 @@ describe('components/GenericComponent.tsx', () => {
     render({
       type: 'Input',
       textResourceBindings: {},
+    });
+
+    expect(screen.queryByTestId('description-mockId')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('label-mockId')).not.toBeInTheDocument();
+  });
+
+  it('should not render description and label when textResourceBindings includes description and title, but the component is listed in "noLabelComponents"', () => {
+    render({
+      type: 'NavigationBar',
+      textResourceBindings: {
+        title: 'titleKey',
+        description: 'descriptionKey',
+      },
     });
 
     expect(screen.queryByTestId('description-mockId')).not.toBeInTheDocument();
