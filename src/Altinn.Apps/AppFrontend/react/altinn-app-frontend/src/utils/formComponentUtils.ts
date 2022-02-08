@@ -73,7 +73,7 @@ export const getFormDataForComponent = (
     return {} as IComponentFormData;
   }
 
-  const formDataObj:IComponentFormData = {};
+  const formDataObj: IComponentFormData = {};
   Object.keys(dataModelBindings).forEach((key: any) => {
     const binding = dataModelBindings[key];
     if (formData[binding]) {
