@@ -12,7 +12,7 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
-  validationMessages: any;
+  validationMessages: IComponentValidations;
   options: IOption[];
   optionsId: string;
   preselectedOptionIndex?: number;
