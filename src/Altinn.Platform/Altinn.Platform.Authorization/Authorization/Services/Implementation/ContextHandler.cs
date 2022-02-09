@@ -30,6 +30,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     {
         private readonly IInstanceMetadataRepository _policyInformationRepository;
         private readonly IRoles _rolesWrapper;
+        private readonly IParties _partiesWrapper;
         private readonly IMemoryCache _memoryCache;
         private readonly GeneralSettings _generalSettings;
 
@@ -38,13 +39,15 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// </summary>
         /// <param name="policyInformationRepository">the policy information repository handler</param>
         /// <param name="rolesWrapper">the roles handler</param>
+        /// <param name="partiesWrapper">the party information handler</param>
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
         public ContextHandler(
-            IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+            IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IParties partiesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _policyInformationRepository = policyInformationRepository;
             _rolesWrapper = rolesWrapper;
+            _partiesWrapper = partiesWrapper;
             _memoryCache = memoryCache;
             _generalSettings = settings.Value;
         }
@@ -295,6 +298,54 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return roles;
+        }
+
+        /// <summary>
+        /// Gets the list of mainunits for a subunit
+        /// </summary>
+        /// <param name="subUnitPartyId">The subunit partyId to check and retrieve mainunits for</param>
+        /// <returns>List of mainunits</returns>
+        protected async Task<List<MainUnit>> GetMainUnits(int subUnitPartyId)
+        {
+            string cacheKey = $"GetMainUnitsFor:{subUnitPartyId}";
+
+            if (!_memoryCache.TryGetValue(cacheKey, out List<MainUnit> mainUnits))
+            {
+                // Key not in cache, so get data.
+                mainUnits = await _partiesWrapper.GetMainUnits(new MainUnitQuery { PartyIds = new List<int> { subUnitPartyId } });
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.MainUnitCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, mainUnits, cacheEntryOptions);
+            }
+
+            return mainUnits;
+        }
+
+        /// <summary>
+        /// Gets the list of keyrole unit partyIds for a user
+        /// </summary>
+        /// <param name="subjectUserId">The userid to retrieve keyrole unit for</param>
+        /// <returns>List of partyIds for units where user has keyrole</returns>
+        protected async Task<List<int>> GetKeyRolePartyIds(int subjectUserId)
+        {
+            string cacheKey = $"GetKeyRolePartyIdsFor:{subjectUserId}";
+
+            if (!_memoryCache.TryGetValue(cacheKey, out List<int> keyrolePartyIds))
+            {
+                // Key not in cache, so get data.
+                keyrolePartyIds = await _partiesWrapper.GetKeyRoleParties(subjectUserId);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.MainUnitCacheTimeout, 0));
+
+                _memoryCache.Set(cacheKey, keyrolePartyIds, cacheEntryOptions);
+            }
+
+            return keyrolePartyIds;
         }
 
         private string GetCacheKey(int userId, int partyId)

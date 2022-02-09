@@ -1,26 +1,28 @@
+import React from 'react';
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
-import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import classNames from 'classnames';
+import cn from 'classnames';
+
+import type { IComponentProps } from '..';
+import type { IOption, IComponentValidations } from 'src/types';
+
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
-import { IComponentProps } from '..';
 
 export interface ICheckboxContainerProps extends IComponentProps {
-  validationMessages: any;
-  options: any[];
+  validationMessages: IComponentValidations;
+  options: IOption[];
   optionsId: string;
   preselectedOptionIndex?: number;
 }
 
-export interface IStyledCheckboxProps extends CheckboxProps {
+interface IStyledCheckboxProps extends CheckboxProps {
   label: string;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
     '&:hover': {
       backgroundColor: 'transparent',
@@ -34,10 +36,10 @@ const useStyles = makeStyles({
     '$root.Mui-focusVisible &': {
       outline: '2px solid #ff0000',
       outlineOffset: 0,
-      outlineColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      outlineColor: theme.altinnPalette.primary.blueDark,
     },
     'input:hover ~ &': {
-      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderColor: theme.altinnPalette.primary.blueDark,
     },
     'input:disabled ~ &': {
       boxShadow: 'none',
@@ -56,7 +58,7 @@ const useStyles = makeStyles({
       content: '""',
     },
     'input:hover ~ &': {
-      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderColor: theme.altinnPalette.primary.blueDark,
     },
   },
   legend: {
@@ -65,138 +67,103 @@ const useStyles = makeStyles({
   margin: {
     marginBottom: '1.2rem',
   },
-});
+}));
 
-function usePrevious(value) {
-  const ref = React.useRef();
+const defaultOptions: IOption[] = [];
+const defaultSelectedOptions: string[] = [];
+
+export const CheckboxContainerComponent = ({
+  id,
+  options,
+  optionsId,
+  formData,
+  preselectedOptionIndex,
+  handleDataChange,
+  handleFocusUpdate,
+  legend,
+  getTextResourceAsString,
+  getTextResource,
+  validationMessages,
+}: ICheckboxContainerProps) => {
+  const classes = useStyles();
+  const apiOptions = useAppSelector(
+    (state) => state.optionState.options[optionsId],
+  );
+  const calculatedOptions = apiOptions || options || defaultOptions;
+  const checkBoxesIsRow = calculatedOptions.length <= 2;
+  const hasSelectedInitial = React.useRef(false);
+
+  const selected =
+    formData?.simpleBinding?.split(',') ?? defaultSelectedOptions;
+
   React.useEffect(() => {
-    ref.current = value.slice();
-  });
+    const shouldSelectOptionAutomatically =
+      !formData?.simpleBinding &&
+      preselectedOptionIndex >= 0 &&
+      calculatedOptions &&
+      preselectedOptionIndex < calculatedOptions.length &&
+      hasSelectedInitial.current === false;
 
-  return ref.current;
-}
+    if (shouldSelectOptionAutomatically) {
+      handleDataChange(calculatedOptions[preselectedOptionIndex].value);
+      hasSelectedInitial.current = true;
+    }
+  }, [
+    formData?.simpleBinding,
+    calculatedOptions,
+    handleDataChange,
+    preselectedOptionIndex,
+  ]);
 
-export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
-  const classes = useStyles(props);
-  const apiOptions = useAppSelector(state => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options || [];
-  const [selected, setSelected] = React.useState([]);
-  const prevSelected: any = usePrevious(selected);
-  const checkBoxesIsRow: boolean = options.length <= 2;
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const clickedItem = event.target.name;
+    const isSelected = isOptionSelected(clickedItem);
 
-  React.useEffect(() => {
-    returnState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
-
-  React.useEffect(() => {
-    returnState();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.formData?.simpleBinding]);
-
-  const returnState = () => {
-    if (
-      !props.formData?.simpleBinding &&
-      props.preselectedOptionIndex >= 0 &&
-      options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      const preSelected: string[] = [];
-      preSelected[props.preselectedOptionIndex] =
-        options[props.preselectedOptionIndex].value;
-      props.handleDataChange(preSelected[props.preselectedOptionIndex]);
-      setSelected(preSelected);
+    if (isSelected) {
+      handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
     } else {
-      setSelected(props.formData?.simpleBinding ? props.formData.simpleBinding.split(',') : []);
+      handleDataChange(selected.concat(clickedItem).join(','));
     }
+    handleFocusUpdate(id);
   };
 
-  const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected: any = selected.slice();
-    const index = newSelected.indexOf(event.target.name);
-
-    if (index >= 0) {
-      newSelected[index] = '';
-    } else {
-      newSelected.push(event.target.name);
-    }
-    const filtered = newSelected.filter((element: string) => !!element);
-    props.handleFocusUpdate(props.id);
-    props.handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
+  const handleBlur = () => {
+    handleDataChange(formData?.simpleBinding ?? '');
   };
 
-  const handleOnBlur = () => {
-    props.handleDataChange(props.formData?.simpleBinding ?? '');
-  };
+  const isOptionSelected = (option: string) => selected.includes(option);
 
-  const selectedHasValues = (select: string[]): boolean => {
-    return select.some((element) => element !== '');
-  };
-
-  const isOptionSelected = (option: string) => {
-    return selected.indexOf(option) > -1;
-  };
-
-  const inFocus = (index: number) => {
-    let changed: any;
-    if (!prevSelected) {
-      return false;
-    }
-    if (prevSelected.length === 0) {
-      changed = selected.findIndex((x) => !!x && x !== '');
-    } else {
-      changed = selected.findIndex((x) => !prevSelected.includes(x));
-    }
-    if (changed === -1) {
-      changed = prevSelected.findIndex((x) => !selected.includes(x));
-    }
-
-    if (changed === -1) {
-      return false;
-    }
-    const should = props.shouldFocus && changed === index;
-    return should;
-  };
-
-  const RenderLegend = props.legend;
+  const RenderLegend = legend;
 
   return (
-    <FormControl key={`checkboxes_control_${props.id}`} component='fieldset'>
-      <FormLabel
-        component='legend'
-        classes={{ root: classNames(classes.legend) }}
-      >
+    <FormControl key={`checkboxes_control_${id}`} component='fieldset'>
+      <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup
-        row={checkBoxesIsRow}
-        id={props.id}
-        key={`checkboxes_group_${props.id}`}
-      >
-        {options.map((option, index) => (
+      <FormGroup row={checkBoxesIsRow} id={id} key={`checkboxes_group_${id}`}>
+        {calculatedOptions.map((option, index) => (
           <React.Fragment key={option.value}>
             <FormControlLabel
               key={option.value}
-              classes={{ root: classNames(classes.margin) }}
+              classes={{ root: cn(classes.margin) }}
               control={
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
-                  onChange={onDataChanged}
-                  onBlur={handleOnBlur}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   value={index}
                   key={option.value}
                   name={option.value}
-                  autoFocus={inFocus(index)}
-                  label={props.getTextResourceAsString(option.label)}
+                  label={getTextResourceAsString(option.label)}
                 />
               }
-              label={props.getTextResource(option.label)}
+              label={getTextResource(option.label)}
             />
-            {props.validationMessages &&
+            {validationMessages &&
               isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(
-                props.validationMessages.simpleBinding,
-                props.id,
+                validationMessages.simpleBinding,
+                id,
               )}
           </React.Fragment>
         ))}
@@ -205,21 +172,18 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   );
 };
 
-const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
-  const { label, ...checkboxProps } = styledCheckboxProps;
-  const classes = useStyles(styledCheckboxProps);
+const StyledCheckbox = ({ label, ...rest }: IStyledCheckboxProps) => {
+  const classes = useStyles();
 
   return (
     <Checkbox
       className={classes.root}
       disableRipple={true}
       color='default'
-      checkedIcon={
-        <span className={classNames(classes.icon, classes.checkedIcon)} />
-      }
+      checkedIcon={<span className={cn(classes.icon, classes.checkedIcon)} />}
       icon={<span className={classes.icon} />}
       inputProps={{ 'aria-label': label }}
-      {...checkboxProps}
+      {...rest}
     />
   );
 };
