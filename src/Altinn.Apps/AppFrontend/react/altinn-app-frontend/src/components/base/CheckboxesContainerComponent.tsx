@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
-import type { IOption } from 'src/types';
+import type { IOption, IComponentValidations } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector } from 'src/common/hooks';
@@ -93,7 +93,8 @@ export const CheckboxContainerComponent = ({
   const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
 
-  const selected = formData?.simpleBinding?.split(',') ?? defaultSelectedOptions;
+  const selected =
+    formData?.simpleBinding?.split(',') ?? defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
