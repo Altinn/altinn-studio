@@ -107,7 +107,7 @@ namespace LocalTest.Controllers
             UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
 
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
@@ -127,7 +127,7 @@ namespace LocalTest.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -141,7 +141,7 @@ namespace LocalTest.Controllers
             }
 
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
@@ -164,7 +164,7 @@ namespace LocalTest.Controllers
         public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = "")
         {
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
