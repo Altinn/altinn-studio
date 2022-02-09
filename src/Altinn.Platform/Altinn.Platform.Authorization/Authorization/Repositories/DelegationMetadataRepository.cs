@@ -23,8 +23,8 @@ namespace Altinn.Platform.Authorization.Repositories
         private readonly string insertDelegationChangeSql = "call delegation.insert_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId, @_performedByUserId, @_blobStoragePolicyPath, @_blobStorageVersionId, @_isDeleted, @_delegationChangeId)";
         private readonly string getCurrentDelegationChangeSql = "select * from delegation.get_current_change(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
         private readonly string getAllDelegationChangesSql = "select * from delegation.get_all_changes(@_altinnAppId, @_offeredByPartyId, @_coveredByUserId, @_coveredByPartyId)";
-        private readonly string getAllCurrentDelegationChangesPartyIdsSql = "select * from delegation.get_all_current_changes_partyids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByPartyIds)";
-        private readonly string getAllCurrentDelegationChangesUserIdsSql = "select * from delegation.get_all_current_changes_userids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByUserIds)";
+        private readonly string getAllCurrentDelegationChangesPartyIdsSql = "select * from delegation.get_all_current_changes_coveredbypartyids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByPartyIds)";
+        private readonly string getAllCurrentDelegationChangesUserIdsSql = "select * from delegation.get_all_current_changes_coveredbyuserids(@_altinnAppIds, @_offeredByPartyIds, @_coveredByUserIds)";
         private readonly string getAllCurrentDelegationChangesOnlyOfferedBysSql = "select * from delegation.get_all_current_changes(@_altinnAppIds, @_offeredByPartyIds)";
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // Insert // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // Insert // Exception");
                 throw;
             }
         }
@@ -97,7 +97,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // GetCurrentDelegationChange // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // GetCurrentDelegationChange // Exception");
                 throw;
             }
         }
@@ -128,7 +128,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // GetAllDelegationChanges // Exception");
                 throw;
             }
         }
@@ -137,20 +137,20 @@ namespace Altinn.Platform.Authorization.Repositories
         public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
         {
             List<DelegationChange> delegationChanges = new List<DelegationChange>();
-            if ((coveredByPartyIds == null && coveredByUserIds == null) || (coveredByPartyIds != null && coveredByPartyIds.Count == 0 && coveredByUserIds != null && coveredByUserIds.Count == 0))
+            if ((coveredByPartyIds == null && coveredByUserIds == null) || (coveredByPartyIds?.Count > 0 && coveredByUserIds?.Count > 0))
             {
                 delegationChanges.AddRange(await GetAllCurrentDelegationChangesOfferedByPartyIdOnly(altinnAppIds, offeredByPartyIds));
             }
             else
             {
-                if (coveredByPartyIds != null && coveredByPartyIds.Count > 0)
+                if (coveredByPartyIds?.Count > 0)
                 {
-                    delegationChanges.AddRange(await GetAllCurrentDelegationChangesPartyIds(altinnAppIds, offeredByPartyIds, coveredByPartyIds));
+                    delegationChanges.AddRange(await GetAllCurrentDelegationChangesCoveredByPartyIds(altinnAppIds, offeredByPartyIds, coveredByPartyIds));
                 }
 
-                if (coveredByUserIds != null && coveredByUserIds.Count > 0)
+                if (coveredByUserIds?.Count > 0)
                 {
-                    delegationChanges.AddRange(await GetAllCurrentDelegationChangesUserIds(altinnAppIds, offeredByPartyIds, coveredByUserIds));
+                    delegationChanges.AddRange(await GetAllCurrentDelegationChangesCoveredByUserIds(altinnAppIds, offeredByPartyIds, coveredByUserIds));
                 }
             }
 
@@ -173,7 +173,7 @@ namespace Altinn.Platform.Authorization.Repositories
             return delegationChange;
         }
 
-        private async Task<List<DelegationChange>> GetAllCurrentDelegationChangesPartyIds(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null)
+        private async Task<List<DelegationChange>> GetAllCurrentDelegationChangesCoveredByPartyIds(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null)
         {
             try
             {
@@ -197,12 +197,12 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // GetAllCurrentDelegationChangesCoveredByPartyIds // Exception");
                 throw;
             }
         }
 
-        private async Task<List<DelegationChange>> GetAllCurrentDelegationChangesUserIds(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByUserIds = null)
+        private async Task<List<DelegationChange>> GetAllCurrentDelegationChangesCoveredByUserIds(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByUserIds = null)
         {
             try
             {
@@ -226,7 +226,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // GetAllCurrentDelegationChangesCoveredByUserIds // Exception");
                 throw;
             }
         }
@@ -254,7 +254,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Authorization // PostgresRepository // GetAllDelegationChanges // Exception");
+                _logger.LogError(e, "Authorization // DelegationMetadataRepository // GetAllCurrentDelegationChangesOfferedByPartyIdOnly // Exception");
                 throw;
             }
         }
