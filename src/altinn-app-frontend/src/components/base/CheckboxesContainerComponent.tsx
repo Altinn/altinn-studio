@@ -94,7 +94,7 @@ export const CheckboxContainerComponent = ({
   const hasSelectedInitial = React.useRef(false);
 
   const selected =
-    formData?.simpleBinding?.split(',') ?? defaultSelectedOptions;
+    formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =

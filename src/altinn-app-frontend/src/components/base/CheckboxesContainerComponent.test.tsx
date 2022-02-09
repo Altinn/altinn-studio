@@ -184,4 +184,22 @@ describe('CheckboxContainerComponent', () => {
 
     expect(handleChange).toHaveBeenCalledWith('');
   });
+
+  it('should call handleDataChange onBlur with no commas in string when starting with empty string formData', () => {
+    const handleChange = jest.fn();
+    render({
+      handleDataChange: handleChange,
+      formData: {
+        simpleBinding: '',
+      },
+    });
+
+    expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
+
+    userEvent.click(getCheckbox({ name: 'Denmark' }));
+
+    expect(handleChange).toHaveBeenCalledWith('denmark');
+  });
 });
