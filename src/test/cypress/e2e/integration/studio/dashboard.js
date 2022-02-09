@@ -11,7 +11,9 @@ context('Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.intercept('GET', '**/repos/search**').as('fetchApps');
-    cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
+    if (Cypress.env('environment') == 'local') cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
+    if (Cypress.env('environment') != 'local')
+      cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
