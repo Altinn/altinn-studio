@@ -516,8 +516,10 @@ namespace Altinn.App.Services.Implementation
             string fileName = null;
             string app = instance.AppId.Split("/")[1];
 
-            TextResourceElement titleText = textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
-
+            TextResourceElement titleText = 
+                textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("appName")) ??
+                textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
+            
             if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
             {
                 fileName = titleText.Value + ".pdf";
