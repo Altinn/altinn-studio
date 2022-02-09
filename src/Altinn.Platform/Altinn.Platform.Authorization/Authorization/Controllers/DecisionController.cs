@@ -274,7 +274,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             // 2. Direct user delegations from mainunit
-            List<MainUnit> mainunits = await _delegationContextHandler.GetMainUnits(new MainUnitQuery { PartyIds = new List<int> { reporteePartyId } });
+            List<MainUnit> mainunits = await _delegationContextHandler.GetMainUnits(reporteePartyId);
             List<int> mainunitPartyIds = mainunits.Where(m => m.PartyId.HasValue).Select(m => m.PartyId.Value).ToList();
 
             if (mainunitPartyIds.Any())

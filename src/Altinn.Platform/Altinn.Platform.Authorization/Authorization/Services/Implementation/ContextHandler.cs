@@ -303,16 +303,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <summary>
         /// Gets the list of mainunits for a subunit
         /// </summary>
-        /// <param name="mainUnitQuery">Query model for the list of subunit partyIds to check and retrieve mainunits for</param>
+        /// <param name="subUnitPartyId">The subunit partyId to check and retrieve mainunits for</param>
         /// <returns>List of mainunits</returns>
-        protected async Task<List<MainUnit>> GetMainUnits(MainUnitQuery mainUnitQuery)
+        protected async Task<List<MainUnit>> GetMainUnits(int subUnitPartyId)
         {
-            string cacheKey = $"GetMainUnitsFor:{string.Join(",", mainUnitQuery.PartyIds)}";
+            string cacheKey = $"GetMainUnitsFor:{subUnitPartyId}";
 
             if (!_memoryCache.TryGetValue(cacheKey, out List<MainUnit> mainUnits))
             {
                 // Key not in cache, so get data.
-                mainUnits = await _partiesWrapper.GetMainUnits(mainUnitQuery);
+                mainUnits = await _partiesWrapper.GetMainUnits(new MainUnitQuery { PartyIds = new List<int> { subUnitPartyId } });
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)

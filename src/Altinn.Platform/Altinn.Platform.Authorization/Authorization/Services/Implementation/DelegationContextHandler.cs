@@ -75,11 +75,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <summary>
         /// Gets the list of mainunits for a subunit
         /// </summary>
-        /// <param name="mainUnitQuery">Query model for the list of subunit partyIds to check and retrieve mainunits for</param>
+        /// <param name="subUnitPartyId">The subunit partyIds to check and retrieve mainunits for</param>
         /// <returns>List of mainunits</returns>
-        public async new Task<List<MainUnit>> GetMainUnits(MainUnitQuery mainUnitQuery)
+        public async new Task<List<MainUnit>> GetMainUnits(int subUnitPartyId)
         {
-            return await base.GetMainUnits(mainUnitQuery);
+            return await base.GetMainUnits(subUnitPartyId);
         }
 
         /// <summary>

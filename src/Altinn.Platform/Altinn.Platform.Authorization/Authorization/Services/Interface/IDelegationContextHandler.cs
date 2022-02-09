@@ -34,9 +34,9 @@ namespace Altinn.Authorization.ABAC.Interface
         /// <summary>
         /// Gets the list of mainunits for a subunit
         /// </summary>
-        /// <param name="mainUnitQuery">Query model for the list of subunit partyIds to check and retrieve mainunits for</param>
+        /// <param name="subUnitPartyId">The subunit partyId to check and retrieve mainunits for</param>
         /// <returns>List of mainunits</returns>
-        public Task<List<MainUnit>> GetMainUnits(MainUnitQuery mainUnitQuery);
+        public Task<List<MainUnit>> GetMainUnits(int subUnitPartyId);
 
         /// <summary>
         /// Gets the list of keyrole unit partyIds for a user
