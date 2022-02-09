@@ -71,6 +71,7 @@ namespace LocalTest.Controllers
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
+            model.AuthenticationLevels = GetAuthenticationLevels();
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -112,7 +113,7 @@ namespace LocalTest.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);
@@ -224,6 +225,39 @@ namespace LocalTest.Controllers
             }
 
             return userItems;
+        }
+
+        private List<SelectListItem> GetAuthenticationLevels()
+        {
+            return new()
+            {
+                new()
+                {
+                    Value = "0",
+                    Text = "Nivå 0",
+                },
+                new()
+                {
+                    Value = "1",
+                    Text = "Nivå 1",
+                },
+                new()
+                {
+                    Value = "2",
+                    Text = "Nivå 2",
+                    Selected = true,
+                },
+                new()
+                {
+                    Value = "3",
+                    Text = "Nivå 3",
+                },
+                new()
+                {
+                    Value = "4",
+                    Text = "Nivå 4",
+                },
+            };
         }
 
         private async Task<IEnumerable<SelectListItem>> GetAppsList()
