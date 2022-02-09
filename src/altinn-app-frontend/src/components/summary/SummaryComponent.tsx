@@ -9,7 +9,7 @@ import {
 } from 'src/utils/formComponentUtils';
 import { shallowEqual } from 'react-redux';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { IGrid, ILayoutComponent } from 'src/features/form/layout';
+import { IGrid, ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
 import { FormLayoutActions } from '../../features/form/layout/formLayoutSlice';
 import { IComponentValidations } from '../../types';
 import SummaryGroupComponent from './SummaryGroupComponent';
@@ -17,6 +17,7 @@ import SingleInputSummary from './SingleInputSummary';
 import ErrorPaper from '../message/ErrorPaper';
 import { makeGetHidden } from '../../selectors/getLayoutData';
 import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
+import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
 import MultipleChoiceSummary from './MultipleChoiceSummary';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
@@ -82,7 +83,11 @@ export function SummaryComponent(props: ISummaryComponent) {
     );
   });
   const formData = useAppSelector(state => {
-    if (formComponent.type.toLowerCase() === 'group') return undefined;
+    if (
+      formComponent.type.toLowerCase() === 'group' ||
+      formComponent.type.toLowerCase() === 'fileupload' ||
+      formComponent.type.toLowerCase() === 'fileuploadwithtag'
+    ) return undefined;
     return (
       props.formData ||
       getDisplayFormDataForComponent(
@@ -165,6 +170,18 @@ export function SummaryComponent(props: ISummaryComponent) {
             hasValidationMessages={hasValidationMessages}
             componentRef={props.componentRef}
             changeText={changeText}
+          />
+        );
+      }
+      case 'FileUploadWithTag': {
+        return (
+          <AttachmentWithTagSummaryComponent
+            onChangeClick={onChangeClick}
+            label={title}
+            hasValidationMessages={hasValidationMessages}
+            componentRef={props.componentRef}
+            changeText={changeText}
+            component={formComponent as ISelectionComponentProps}
           />
         );
       }

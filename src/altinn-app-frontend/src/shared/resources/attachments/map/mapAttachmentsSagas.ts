@@ -21,6 +21,7 @@ const SelectApplicationMetaData =
 export function* mapAttachments(): SagaIterator {
   try {
     const instance = yield select(SelectInstance);
+
     const applicationMetadata = yield select(SelectApplicationMetaData);
 
     const defaultElement = getCurrentTaskData(applicationMetadata, instance);
