@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +7,7 @@ namespace Altinn.Platform.Register.Models
     /// <summary>
     /// Represents the input parameters for the Person lookup endpoint.
     /// </summary>
-    public class PersonLookup
+    public class PersonLookupIdentifiers
     {
         /// <summary>
         /// The unique national identity number of the person.

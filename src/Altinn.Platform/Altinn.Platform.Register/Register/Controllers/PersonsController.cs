@@ -20,15 +20,15 @@ namespace Altinn.Platform.Register.Controllers
     [Route("register/api/v1/persons")]
     public class PersonsController : ControllerBase
     {
-        private readonly IPersonLookup _personCheck;
+        private readonly IPersonLookup _personLookup;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonsController"/> class.
         /// </summary>
-        /// <param name="personCheck">An implementation of the <see cref="IPersonLookup"/> service.</param>
-        public PersonsController(IPersonLookup personCheck)
+        /// <param name="personLookup">An implementation of the <see cref="IPersonLookup"/> service.</param>
+        public PersonsController(IPersonLookup personLookup)
         {
-            _personCheck = personCheck;
+            _personLookup = personLookup;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Altinn.Platform.Register.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(200)]
         [Produces("application/json")]
-        public async Task<ActionResult<Party>> GetPersonPartyAsync(PersonLookup personLookup)
+        public async Task<ActionResult<Party>> GetPersonPartyAsync(PersonLookupIdentifiers personLookup)
         {
             if (!ModelState.IsValid)
             {
@@ -64,7 +64,7 @@ namespace Altinn.Platform.Register.Controllers
             Party? party;
             try
             {
-                party = await _personCheck.GetPersonParty(
+                party = await _personLookup.GetPersonParty(
                     personLookup.NationalIdentityNumber, personLookup.LastName, userId.Value);
             }
             catch (TooManyFailedLookupsException)
