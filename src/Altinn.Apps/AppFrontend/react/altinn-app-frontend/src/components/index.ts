@@ -4,7 +4,8 @@ import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import DatepickerComponent from './base/DatepickerComponent';
 import DropdownComponent from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
+import { FileUploadComponent } from './base/FileUpload/FileUploadComponent';
+import { FileUploadWithTagComponent } from './base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
@@ -37,6 +38,7 @@ export enum ComponentTypes {
   RadioButton,
   TextArea,
   FileUpload,
+  FileUploadWithTag,
   Button,
   Group,
   AddressComponent,
@@ -124,6 +126,11 @@ export const schemaComponents: IComponent[] = [
     name: 'FileUpload',
     Tag: FileUploadComponent,
     Type: ComponentTypes.FileUpload,
+  },
+  {
+    name: 'FileUploadWithTag',
+    Tag: FileUploadWithTagComponent,
+    Type: ComponentTypes.FileUploadWithTag,
   },
   {
     name: 'Button',

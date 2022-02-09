@@ -59,6 +59,7 @@ const fallbackLanguage = {
     modal_options: 'Options',
     modal_properties_data_model_helper: 'Link to data model',
     modal_properties_description_helper: 'Write or search for description',
+    modal_properties_tag_helper: 'Write or search for tag description',
     modal_properties_header_helper: 'Write a title or search',
     modal_properties_label_helper: 'Write or search for label',
     modal_properties_paragraph_helper: 'Search for paragraph text',
