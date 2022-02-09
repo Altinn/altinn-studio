@@ -26,8 +26,8 @@ context('Before all tests', () => {
     cy.get(login.form).find(registration.singUp).click();
     cy.get(login.userName).type(Cypress.env('autoTestUser'));
     cy.get(registration.email).type(Cypress.env('testEmail'));
-    cy.get(login.userPwd).type(Cypress.env('autoTestUserPwd'));
-    cy.get(registration.reTypePwd).type(Cypress.env('autoTestUserPwd'));
+    cy.get(login.userPwd).type(Cypress.env('autoTestUserPwd'), { log: false });
+    cy.get(registration.reTypePwd).type(Cypress.env('autoTestUserPwd'), { log: false });
     cy.get(login.submit).click();
   });
 

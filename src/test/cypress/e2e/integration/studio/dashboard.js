@@ -19,6 +19,7 @@ context('Dashboard', () => {
   });
 
   it('is possible to view apps, add and remove favourites', () => {
+    var createdBy = Cypress.env('environment') == 'local' ? Cypress.env('adminUser') : Cypress.env('autoTestUser');
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
       .siblings()
@@ -31,7 +32,7 @@ context('Dashboard', () => {
           .first()
           .then((app) => {
             cy.get(app).children(dashboard.apps.name).invoke('text').should('not.be.empty');
-            cy.get(app).children(dashboard.apps.createdBy).should('have.text', Cypress.env('adminUser'));
+            cy.get(app).children(dashboard.apps.createdBy).should('have.text', createdBy);
             cy.get(app).children(dashboard.apps.updatedAt).invoke('text').should('not.be.empty');
           });
       });
