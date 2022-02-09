@@ -47,7 +47,7 @@ The commands should be run in an order that makes sure the tests are intact on t
 1. Setup: Before all the tests
 
 ```cmd
-    yarn run before:all -e environment=local
+    yarn run before:all
 ```
 
 2. Tests on different solutions of studio
@@ -59,7 +59,7 @@ The commands should be run in an order that makes sure the tests are intact on t
 3. Cleanup: After all the tests
 
 ```cmd
-    yarn run after:all -e environment=local
+    yarn run after:all
 ```
 
 ### Run App Frontend tests
