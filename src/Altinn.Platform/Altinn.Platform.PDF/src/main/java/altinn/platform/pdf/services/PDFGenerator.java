@@ -357,7 +357,7 @@ public class PDFGenerator {
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
     lines.add(getLanguageString("reference_number") + " " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
-    lines.add(getLanguageString("date_geneated") + " " + ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Oslo")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy / HH:mm")));
+    lines.add(getLanguageString("date_generated") + " " + ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Oslo")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy / HH:mm")));
     for (String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
