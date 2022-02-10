@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 
 public class LayoutUtils {
@@ -51,6 +52,21 @@ public class LayoutUtils {
     if (element.getType().equalsIgnoreCase("fileupload")) {
       List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
       for (String line: lines) {
+        height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
+        height += (leading - fontSize);
+      }
+    } else if (element.getType().equalsIgnoreCase("fileuploadwithtag")) {
+      Map<String, List<String>> attachmentsAndTags = InstanceUtils.getAttachmentsAndTagsByComponentId(element.getId(), instance);
+      for (String name: attachmentsAndTags.keySet()) {
+        String line = name + " - ";
+        List<String> tags = attachmentsAndTags.get(name);
+
+        for (String tag: tags){
+          if (tag != tags.get(tags.size() -1))
+            line += tag + ", ";
+          else
+            line += tag;
+        }
         height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
         height += (leading - fontSize);
       }

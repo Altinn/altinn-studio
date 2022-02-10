@@ -26,6 +26,9 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.Map;
@@ -298,6 +301,9 @@ public class PDFGenerator {
     if (elementType.equalsIgnoreCase("fileupload")) {
       // different view for file upload
       renderFileUploadContent(element);
+    } else if (elementType.equalsIgnoreCase("fileuploadwithtag")) {
+      // different view for file upload with tags
+      renderFileUploadWithTagsContent(element);
     } else if (elementType.equalsIgnoreCase("attachmentlist")) {
       // different view for attachment list
       renderAttachmentListContent(element);
@@ -351,6 +357,7 @@ public class PDFGenerator {
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
     lines.add(getLanguageString("reference_number") + " " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
+    lines.add(getLanguageString("date_generated") + " " + ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/Oslo")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy / HH:mm")));
     for (String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
@@ -475,9 +482,51 @@ public class PDFGenerator {
     return String.join(", ", returnValues);
   }
 
+  private Map<String, List<String>> getFileTagDisplayValueFromOptions(FormLayoutElement element, Map<String, List<String>> files) {
+    Map<String, List<String>> returnValues = new HashMap<String, List<String>>();
+
+    if (element.getOptionsId() != null) {
+      if(optionsDictionary == null){
+        return files;
+      }
+      files.forEach((name, tags) -> {
+          List<String> tmpTags = new ArrayList<>();
+          tags.forEach(tag -> {
+            String label = MapUtils.getLabelFromValue(optionsDictionary, element.getOptionsId(), tag);
+            tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
+          });
+          returnValues.put(name, tmpTags);
+        }
+      );
+    } else {
+      List<Option> optionList = element.getOptions();
+      files.forEach((name, tags) -> {
+        List<String> tmpTags = new ArrayList<>();
+        tags.forEach(tag -> {
+          var option = optionList.stream()
+          .filter(o -> o.getValue().equals(tag))
+          .findFirst()
+          .orElse(null);
+          String label = (option != null) ? option.getLabel() : tag;
+          tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
+        });
+        returnValues.put(name, tmpTags);
+        }
+      );
+    }
+
+    return returnValues;
+  }
+
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
     List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
     renderFileListContent(files);
+  }
+
+  private void renderFileUploadWithTagsContent(FormLayoutElement element) throws IOException {
+    Map<String, List<String>> filesAndTags = InstanceUtils.getAttachmentsAndTagsByComponentId(element.getId(), this.instance);
+    Map<String, List<String>> filesAndTagsDisplay = getFileTagDisplayValueFromOptions(element, filesAndTags);
+    renderFileListWithTagsContent(filesAndTagsDisplay);
   }
 
   private void renderAttachmentListContent(FormLayoutElement element) throws IOException {
@@ -498,6 +547,31 @@ public class PDFGenerator {
     currentContent.newLineAtOffset(xPoint + indent, yPoint);
     for (String file : files) {
       currentContent.showText("- " + file);
+      currentContent.newLineAtOffset(0, -leading);
+      yPoint -= leading;
+    }
+    currentContent.endText();
+    addContentToCurrentSection(COSName.P, StandardStructureTypes.P);
+    currentContent.endMarkedContent();
+  }
+
+  private void renderFileListWithTagsContent(Map<String, List<String>> files) throws IOException {
+    addSection(currentPart);
+    beginMarkedContent(COSName.P);
+    currentContent.setFont(font, fontSize);
+    currentContent.beginText();
+    float indent = 10;
+    currentContent.newLineAtOffset(xPoint + indent, yPoint);
+    for (String name: files.keySet()) {
+      List<String> tags = files.get(name);
+
+      currentContent.showText("- " + name + " - ");
+      for (String tag: tags){
+        if (tag != tags.get(tags.size() -1))
+          currentContent.showText(tag + ", ");
+        else
+          currentContent.showText(tag);
+      }
       currentContent.newLineAtOffset(0, -leading);
       yPoint -= leading;
     }

@@ -161,6 +161,11 @@ Some of the react projects also have various other predefined yarn tasks, which 
 
 The platform receipt component can run locally, both in docker and manually.
 
+##### Start localtest and app
+
+Receipt need localtest for backend services. Start this as explained under app settings.
+Also use an app for creating data that should be presented in receipt.
+
 ##### Manual
 
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`

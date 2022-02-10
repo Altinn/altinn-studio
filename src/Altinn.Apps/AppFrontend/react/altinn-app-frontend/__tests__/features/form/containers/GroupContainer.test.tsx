@@ -1,25 +1,164 @@
-/* eslint-disable max-len */
-/* eslint-disable no-undef */
+import React from 'react';
+import { screen, fireEvent } from '@testing-library/react';
 
-import 'jest';
-import * as React from 'react';
-import { fireEvent, render } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import { Provider } from 'react-redux';
-import configureStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { getInitialStateMock } from '../../../../__mocks__/mocks';
-import { ILayoutGroup } from '../../../../src/features/form/layout';
+import type { ILayoutGroup } from '../../../../src/features/form/layout';
+
+import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { Triggers } from '../../../../src/types';
+import { renderWithProviders } from '../../../../testUtils';
+import { setupStore } from 'src/store';
 
-describe('features > form > containers > GroupContainer.tsx', () => {
-  let mockStore: MockStoreEnhanced<unknown, unknown>;
-  let mockLayout: any;
-  let mockData: any;
-  let mockComponents: any;
-  let mockTextResources: any;
-  let mockContainer: ILayoutGroup;
+const mockContainer: ILayoutGroup = {
+  id: 'container-closed-id',
+  type: 'Group',
+  children: ['field1', 'field2', 'field3', 'field4'],
+  maxCount: 8,
+  dataModelBindings: {
+    group: 'some-group',
+  },
+};
 
+interface IRender {
+  container?: ILayoutGroup;
+}
+
+function render({ container = mockContainer }: IRender = {}) {
+  const mockComponents = [
+    {
+      id: 'field1',
+      type: 'Input',
+      dataModelBindings: {
+        simpleBinding: 'Group.prop1',
+      },
+      textResourceBindings: {
+        title: 'Title1',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+    },
+    {
+      id: 'field2',
+      type: 'Input',
+      dataModelBindings: {
+        simpleBinding: 'Group.prop2',
+      },
+      textResourceBindings: {
+        title: 'Title2',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+    },
+    {
+      id: 'field3',
+      type: 'Input',
+      dataModelBindings: {
+        simpleBinding: 'Group.prop3',
+      },
+      textResourceBindings: {
+        title: 'Title3',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+    },
+    {
+      id: 'field4',
+      type: 'Checkboxes',
+      dataModelBindings: {
+        simpleBinding: 'some-group.checkboxBinding',
+      },
+      textResourceBindings: {
+        title: 'Title4',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+      options: [{ value: 'option.value', label: 'option.label' }],
+    },
+  ] as any;
+
+  const mockLayout = {
+    layouts: {
+      FormLayout: [
+        {
+          id: 'container-closed-id',
+          type: 'group',
+          dataModelBindings: {
+            group: 'Group',
+          },
+          children: ['field1', 'field2', 'field3', 'field4'],
+        },
+        {
+          id: 'container-in-edit-mode-id',
+          type: 'group',
+          dataModelBindings: {
+            group: 'Group',
+          },
+          children: ['field1', 'field2', 'field3', 'field4'],
+        },
+      ].concat(mockComponents),
+    },
+    uiConfig: {
+      hiddenFields: [],
+      repeatingGroups: {
+        'container-closed-id': {
+          count: 3,
+          editIndex: -1,
+        },
+        'container-in-edit-mode-id': {
+          count: 4,
+          editIndex: 0,
+        },
+      },
+      autosave: false,
+      currentView: 'FormLayout',
+    },
+  } as any;
+
+  const mockData = {
+    formData: {
+      'some-group[1].checkboxBinding': 'option.value',
+    },
+  } as any;
+
+  const mockTextResources = {
+    resources: [
+      { id: 'option.label', value: 'Value to be shown' },
+      { id: 'button.open', value: 'New open text' },
+      { id: 'button.close', value: 'New close text' },
+      { id: 'button.save', value: 'New save text' },
+    ],
+  } as any;
+
+  const preloadedState = getInitialStateMock({
+    formLayout: mockLayout,
+    formData: mockData,
+    textResources: mockTextResources,
+  });
+
+  const mockStore = setupStore(preloadedState);
+
+  mockStore.dispatch = jest.fn();
+
+  const { store } = renderWithProviders(
+    <GroupContainer
+      components={mockComponents}
+      container={container}
+      id={container.id}
+      key='testKey'
+    />,
+    {
+      store: mockStore,
+    },
+  );
+
+  return store;
+}
+
+describe('GroupContainer', () => {
   beforeAll(() => {
     window.matchMedia = jest.fn().mockImplementation((query) => {
       return {
@@ -32,180 +171,17 @@ describe('features > form > containers > GroupContainer.tsx', () => {
     });
   });
 
-  beforeEach(() => {
-    const createStore = configureStore();
-    mockComponents = [
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop1',
-        },
-        textResourceBindings: {
-          title: 'Title1',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'field2',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop2',
-        },
-        textResourceBindings: {
-          title: 'Title2',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'field3',
-        type: 'Input',
-        dataModelBindings: {
-          simpleBinding: 'Group.prop3',
-        },
-        textResourceBindings: {
-          title: 'Title3',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'field4',
-        type: 'Checkboxes',
-        dataModelBindings: {
-          simpleBinding: 'some-group.checkboxBinding',
-        },
-        textResourceBindings: {
-          title: 'Title4',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-        options: [{ value: 'option.value', label: 'option.label' }],
-      },
-    ];
-
-    mockLayout = {
-      layouts: {
-        FormLayout: [
-          {
-            id: 'container-closed-id',
-            type: 'group',
-            dataModelBindings: {
-              group: 'Group',
-            },
-            children: [
-              'field1',
-              'field2',
-              'field3',
-              'field4',
-            ],
-          },
-          {
-            id: 'container-in-edit-mode-id',
-            type: 'group',
-            dataModelBindings: {
-              group: 'Group',
-            },
-            children: [
-              'field1',
-              'field2',
-              'field3',
-              'field4',
-            ],
-          },
-        ].concat(mockComponents),
-      },
-      uiConfig: {
-        hiddenFields: [],
-        repeatingGroups: {
-          'container-closed-id': {
-            count: 3,
-            editIndex: -1,
-          },
-          'container-in-edit-mode-id': {
-            count: 4,
-            editIndex: 0,
-          }
-        },
-        autosave: false,
-        currentView: 'FormLayout',
-      },
-    };
-
-    mockContainer = {
-      id: 'container-closed-id',
-      type: 'Group',
-      children: [
-        'field1',
-        'field2',
-        'field3',
-        'field4',
-      ],
-      maxCount: 8,
-      dataModelBindings: {
-        group: 'some-group',
-      },
-    };
-
-    mockData = {
-      formData: {
-        'some-group[1].checkboxBinding': 'option.value',
-      },
-    };
-
-    mockTextResources = {
-      resources: [
-        { id: 'option.label', value: 'Value to be shown' },
-        { id: 'button.open', value: 'New open text' },
-        { id: 'button.close', value: 'New close text' },
-        { id: 'button.save', value: 'New save text' },
-      ],
-    };
-
-    const initialState = getInitialStateMock({
-      formLayout: mockLayout,
-      formData: mockData,
-      textResources: mockTextResources,
-    });
-    mockStore = createStore(initialState);
-    mockStore.dispatch = jest.fn();
-  });
-
-  function renderComponent(container: ILayoutGroup) {
-    return render(
-      <Provider store={mockStore}>
-        <GroupContainer
-          components={mockComponents}
-          container={container}
-          id={container.id}
-          key='testKey'
-        />
-      </Provider>,
-    );
-  }
-
-  it('should render add new button', async () => {
-    const utils = renderComponent(mockContainer);
-    const item = await utils.findByText('Legg til ny');
-    expect(item).not.toBe(null);
-  });
-
-  it('should render add new button with custom label when supplied', async () => {
+  it('should render add new button with custom label when supplied', () => {
     const mockContainerWithLabel: ILayoutGroup = {
       textResourceBindings: {
         add_button: 'person',
       },
       ...mockContainer,
     };
-    const utils = renderComponent(mockContainerWithLabel)
-    const item = await utils.findByText('Legg til ny person');
-    expect(item).not.toBeNull();
+    render({ container: mockContainerWithLabel });
+
+    const item = screen.getByText('Legg til ny person');
+    expect(item).toBeInTheDocument();
   });
 
   it('should not show add button when maxOccurs is reached', () => {
@@ -213,89 +189,89 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       maxCount: 3,
     };
-    const utils = renderComponent(mockContainerWithMaxCount)
-    const addButton = utils.queryByText('Legg til ny');
-    expect(addButton).toBeNull();
+    render({ container: mockContainerWithMaxCount });
+
+    const addButton = screen.queryByText('Legg til ny');
+    expect(addButton).not.toBeInTheDocument();
   });
 
-  it('should show option label when displaying selection components', async () => {
-    const utils = renderComponent(mockContainer);
-    const item = await utils.findByText('Value to be shown');
-    expect(item).not.toBeNull();
+  it('should show option label when displaying selection components', () => {
+    render();
+
+    const item = screen.getByText('Value to be shown');
+    expect(item).toBeInTheDocument();
   });
 
   it('should trigger validate when closing edit mode if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
-      triggers: [Triggers.Validation]
+      triggers: [Triggers.Validation],
     };
-    const utils = renderComponent(mockContainerInEditModeWithTrigger)
-    const editButton = utils.getAllByText('Rediger')[0].closest('button');
+
+    const store = render({ container: mockContainerInEditModeWithTrigger });
+
+    const editButton = screen.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
-    const mockDispatchedAction =
-    {
+    const mockDispatchedAction = {
       payload: {
         group: 'container-in-edit-mode-id',
         index: -1,
-        validate: true
+        validate: true,
       },
-      type: 'formLayout/updateRepeatingGroupsEditIndex'
+      type: 'formLayout/updateRepeatingGroupsEditIndex',
     };
 
-    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
-    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+    expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
-
 
   it('should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
-    const utils = renderComponent(mockContainerInEditMode)
+    const store = render({ container: mockContainerInEditMode });
 
-    const editButton = utils.getAllByText('Rediger')[0].closest('button');
+    const editButton = screen.getAllByText('Rediger')[0].closest('button');
     fireEvent.click(editButton);
 
-    const mockDispatchedAction =
-    {
+    const mockDispatchedAction = {
       payload: {
         group: 'container-in-edit-mode-id',
         index: -1,
-        validate: false
+        validate: false,
       },
-      type: 'formLayout/updateRepeatingGroupsEditIndex'
+      type: 'formLayout/updateRepeatingGroupsEditIndex',
     };
 
-    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
-    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+    expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
   it('should trigger validate when saving if validation trigger is present', () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
-      triggers: [Triggers.Validation]
+      triggers: [Triggers.Validation],
     };
-    const utils = renderComponent(mockContainerInEditModeWithTrigger);
+    const store = render({ container: mockContainerInEditModeWithTrigger });
 
-    const editButton = utils.getAllByText('Ferdig')[0].closest('button');
+    const editButton = screen.getAllByText('Ferdig')[0].closest('button');
     fireEvent.click(editButton);
 
-    const mockDispatchedAction =
-    {
+    const mockDispatchedAction = {
       payload: {
         group: 'container-in-edit-mode-id',
         index: -1,
-        validate: true
+        validate: true,
       },
-      type: 'formLayout/updateRepeatingGroupsEditIndex'
+      type: 'formLayout/updateRepeatingGroupsEditIndex',
     };
 
-    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
-    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+    expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
   it('should NOT trigger validate when saving if validation trigger is NOT present', () => {
@@ -303,64 +279,67 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
-    const utils = renderComponent(mockContainerInEditMode)
+    const store = render({ container: mockContainerInEditMode });
 
-    const editButton = utils.getAllByText('Ferdig')[0].closest('button');
+    const editButton = screen.getAllByText('Ferdig')[0].closest('button');
     fireEvent.click(editButton);
 
-    const mockDispatchedAction =
-    {
+    const mockDispatchedAction = {
       payload: {
         group: 'container-in-edit-mode-id',
         index: -1,
-        validate: false
+        validate: false,
       },
-      type: 'formLayout/updateRepeatingGroupsEditIndex'
+      type: 'formLayout/updateRepeatingGroupsEditIndex',
     };
 
-    expect(mockStore.dispatch).toHaveBeenCalledTimes(1)
-    expect(mockStore.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+    expect(store.dispatch).toHaveBeenCalledTimes(1);
+    expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
+  });
+
+  it('should display "Add new" button when edit.addButton is undefined', () => {
+    render();
+
+    const addButton = screen.getByText('Legg til ny');
+    expect(addButton).toBeInTheDocument();
   });
 
   it('should not display "Add new" button when edit.addButton is false', () => {
     const mockContainerDisabledAddButton = {
       ...mockContainer,
       edit: {
-        addButton: false
+        addButton: false,
       },
     };
-    const utils = renderComponent(mockContainerDisabledAddButton);
-    const addButton = utils.queryByText('Legg til ny');
-    expect(addButton).toBeNull();
+    render({ container: mockContainerDisabledAddButton });
+
+    const addButton = screen.queryByText('Legg til ny');
+    expect(addButton).not.toBeInTheDocument();
   });
 
   it('should display "Add new" button when edit.addButton is true', () => {
     const mockContainerDisabledAddButton = {
       ...mockContainer,
       edit: {
-        addButton: true
+        addButton: true,
       },
     };
-    const utils = renderComponent(mockContainerDisabledAddButton);
-    const addButton = utils.queryByText('Legg til ny');
-    expect(addButton).not.toBeNull();
-  });
+    render({ container: mockContainerDisabledAddButton });
 
-  it('should display "Add new" button when edit.addButton is undefined', () => {
-    const utils = renderComponent(mockContainer);
-    const addButton = utils.queryByText('Legg til ny');
-    expect(addButton).not.toBeNull();
+    const addButton = screen.getByText('Legg til ny');
+    expect(addButton).toBeInTheDocument();
   });
 
   it('should display textResourceBindings.edit_button_open as edit button if present when opening', () => {
     const mockContainerWithEditButtonOpen = {
       ...mockContainer,
       textResourceBindings: {
-        edit_button_open: 'button.open' // referencing a text resource
-      }
-    }
-    const utils = renderComponent(mockContainerWithEditButtonOpen);
-    const openButtons = utils.queryAllByText('New open text');
+        edit_button_open: 'button.open',
+      },
+    };
+    render({ container: mockContainerWithEditButtonOpen });
+
+    const openButtons = screen.getAllByText('New open text');
     expect(openButtons).toHaveLength(4);
   });
 
@@ -369,11 +348,12 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
       textResourceBindings: {
-        edit_button_close: 'button.close' // referencing a text resource
-      }
-    }
-    const utils = renderComponent(mockContainerWithEditButtonClose);
-    const closeButtons = utils.queryAllByText('New close text');
+        edit_button_close: 'button.close',
+      },
+    };
+    render({ container: mockContainerWithEditButtonClose });
+
+    const closeButtons = screen.getAllByText('New close text');
     expect(closeButtons).toHaveLength(1);
   });
 
@@ -382,12 +362,12 @@ describe('features > form > containers > GroupContainer.tsx', () => {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
       textResourceBindings: {
-        save_button: 'button.save' // referencing a text resource
-      }
-    }
-    const utils = renderComponent(mockContainerWithAddButton);
-    const saveButton = utils.queryByText('New save text');
-    expect(saveButton).not.toBeNull();
-  });
+        save_button: 'button.save',
+      },
+    };
+    render({ container: mockContainerWithAddButton });
 
+    const saveButton = screen.getByText('New save text');
+    expect(saveButton).toBeInTheDocument();
+  });
 });

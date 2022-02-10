@@ -36,7 +36,6 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IContextHandler _contextHandler;
         private readonly IDelegationContextHandler _delegationContextHandler;
         private readonly IDelegationMetadataRepository _delegationRepository;
-        private readonly IParties _partiesWrapper;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -46,16 +45,14 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="delegationContextHandler">The delegation context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
         /// <param name="delegationRepository">The delegation repository</param>
-        /// <param name="partiesWrapper">The wrapper/handler for requests to SBL Bridge for party information</param>
         /// <param name="logger">the logger.</param>
-        public DecisionController(IContextHandler contextHandler, IDelegationContextHandler delegationContextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IDelegationMetadataRepository delegationRepository, IParties partiesWrapper, ILogger<DecisionController> logger)
+        public DecisionController(IContextHandler contextHandler, IDelegationContextHandler delegationContextHandler, IPolicyRetrievalPoint policyRetrievalPoint, IDelegationMetadataRepository delegationRepository, ILogger<DecisionController> logger)
         {
             _pdp = new PolicyDecisionPoint();
             _prp = policyRetrievalPoint;
             _contextHandler = contextHandler;
             _delegationContextHandler = delegationContextHandler;
             _delegationRepository = delegationRepository;
-            _partiesWrapper = partiesWrapper;
             _logger = logger;
         }
 
@@ -277,7 +274,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             // 2. Direct user delegations from mainunit
-            List<MainUnit> mainunits = await _partiesWrapper.GetMainUnits(new MainUnitQuery { PartyIds = new List<int> { reporteePartyId } });
+            List<MainUnit> mainunits = await _delegationContextHandler.GetMainUnits(reporteePartyId);
             List<int> mainunitPartyIds = mainunits.Where(m => m.PartyId.HasValue).Select(m => m.PartyId.Value).ToList();
 
             if (mainunitPartyIds.Any())
@@ -297,14 +294,14 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             // 3. Direct party delegations to keyrole units
-            List<int> keyroleParties = await _partiesWrapper.GetKeyRoleParties(subjectUserId);
-            if (keyroleParties.Any())
+            List<int> keyrolePartyIds = await _delegationContextHandler.GetKeyRolePartyIds(subjectUserId);
+            if (keyrolePartyIds.Any())
             {
-                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds: keyroleParties);
+                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds: keyrolePartyIds);
 
                 if (delegations.Any())
                 {
-                    _delegationContextHandler.Enrich(decisionRequest, keyroleParties);
+                    _delegationContextHandler.Enrich(decisionRequest, keyrolePartyIds);
                     delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations, appPolicy);
                 }
             }
