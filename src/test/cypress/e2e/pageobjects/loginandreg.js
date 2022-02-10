@@ -6,6 +6,7 @@ export const login = {
   submit: 'button',
   errorMessage: '.ui.negative.message',
   container: '.container',
+  form: 'form[action="/repos/user/login"]',
 };
 
 export const registration = {

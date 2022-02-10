@@ -3,6 +3,7 @@ export const header = {
   profileIcon: '#profile-icon-button',
   profileIconDesigner: "button[aria-label*='profilikon']",
   menu: {
+    item: '[role="menuitem"]',
     all: '#menu-all',
     self: '#menu-self',
     org: "[id='menu-org*']",
