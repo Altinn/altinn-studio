@@ -22,7 +22,7 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
     ...props,
   };
 
-  const countries = [
+  const countriesOptions = [
     {
       label: 'Norway',
       value: 'norway',
@@ -41,7 +41,9 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
     preloadedState: {
       optionState: {
         options: {
-          countries,
+          countries: {
+            options: countriesOptions,
+          }
         },
         error: {
           name: '',

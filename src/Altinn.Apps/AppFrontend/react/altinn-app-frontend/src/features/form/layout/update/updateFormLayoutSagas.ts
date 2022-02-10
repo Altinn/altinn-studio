@@ -411,7 +411,7 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
     const currentView = state.formLayout.uiConfig.currentView;
     const component = state.formLayout.layouts[currentView]
         .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
-    const componentOptions = state.optionState.options[component.optionsId]
+    const componentOptions = state.optionState.options[component.optionsId]?.options;
     if (componentOptions.find(op => op.value === option.value)) {
       yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
         uploader, id, option,

@@ -23,7 +23,7 @@ const render = (props: Partial<ICheckboxContainerProps> = {}) => {
     ...props,
   };
 
-  const countries = [
+  const countriesOptions = [
     {
       label: 'Norway',
       value: 'norway',
@@ -42,7 +42,9 @@ const render = (props: Partial<ICheckboxContainerProps> = {}) => {
     preloadedState: {
       optionState: {
         options: {
-          countries,
+          countries: {
+            options: countriesOptions
+          },
         },
         error: {
           name: '',

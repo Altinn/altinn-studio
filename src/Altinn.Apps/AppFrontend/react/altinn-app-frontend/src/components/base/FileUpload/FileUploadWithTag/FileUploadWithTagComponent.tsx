@@ -28,7 +28,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   const dataDispatch = useDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]?.options);
   const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.editIndex ?? -1);
   const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.chosenOptions ?? {});
 

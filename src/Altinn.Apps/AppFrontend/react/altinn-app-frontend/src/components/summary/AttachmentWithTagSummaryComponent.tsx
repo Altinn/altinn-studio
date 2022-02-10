@@ -45,7 +45,7 @@ export function AttachmentWithTagSummaryComponent(props: IAttachmentWithTagSumma
   const attachments: IAttachment[] =
     useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.component.optionsId]);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.component.optionsId]?.options);
 
   return (
     <>
