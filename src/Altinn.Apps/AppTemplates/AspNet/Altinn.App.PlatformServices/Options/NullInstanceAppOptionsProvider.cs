@@ -8,7 +8,7 @@ namespace Altinn.App.PlatformServices.Options
     /// <summary>
     /// Nullobject for cases where there is no match on the requested <see cref="IInstanceAppOptionsProvider"/>
     /// </summary>
-    internal class NullInstanceAppOptionsProvider : IInstanceAppOptionsProvider
+    public class NullInstanceAppOptionsProvider : IInstanceAppOptionsProvider
     {
         /// <inheritdoc/>
         public string Id => string.Empty;

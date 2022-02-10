@@ -6,6 +6,7 @@ using Altinn.App.AppLogic.Validation;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -173,9 +174,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.DataFieldsApp
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             var customDataValues = new DataValues() { Values = new System.Collections.Generic.Dictionary<string, string>() { { "customKey", "customValue" } } };
-            var (instanceOwnerPartyId, instanceGuid) = InstanceHelper.DeconstructInstanceIdFromUrl(_httpContextAccessor.HttpContext.Request.Path.Value);
+            var instanceIdentifier = InstanceIdentifier.CreateFromUrl(_httpContextAccessor.HttpContext.Request.Path.Value);
 
-            await _instanceService.UpdateDataValues(instanceOwnerPartyId, instanceGuid, customDataValues);
+            await _instanceService.UpdateDataValues(instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, customDataValues);
 
             await Task.CompletedTask;
         }
