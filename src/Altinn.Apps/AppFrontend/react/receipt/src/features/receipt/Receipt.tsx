@@ -7,7 +7,8 @@ import {
 } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
-import * as React from 'react';
+import React from 'react';
+
 import { getLanguageFromCode } from 'altinn-shared/language';
 import {
   AltinnContentLoader,
@@ -38,14 +39,14 @@ import {
 } from 'altinn-shared/utils/language';
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
 import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
-import { getInstanceMetaDataObject } from '../../../utils/receipt';
+import { getInstanceMetaDataObject } from 'utils/receipt';
 import {
   altinnOrganisationsUrl,
   getApplicationMetadataUrl,
   getUserUrl,
   getExtendedInstanceUrl,
   getTextResourceUrl,
-} from '../../../utils/urlHelper';
+} from 'utils/receiptUrlHelper';
 
 const theme = createTheme(AltinnReceiptTheme);
 
@@ -90,7 +91,11 @@ function Receipt(props: WithStyles<typeof styles>) {
   const isPrint = useMediaQuery('print');
 
   const getTitle = (): string => {
-    const applicationTitle = getAppName(textResources, application, user.profileSettingPreference.language);
+    const applicationTitle = getAppName(
+      textResources,
+      application,
+      user.profileSettingPreference.language,
+    );
     return `${applicationTitle} ${getLanguageFromKey(
       'receipt_platform.is_sent',
       language,
@@ -259,7 +264,11 @@ function Receipt(props: WithStyles<typeof styles>) {
         )}
       />
       {instance?.status?.substatus && (
-        <Grid item={true} className={props.classes.substatus}>
+        <Grid
+          item={true}
+          className={props.classes.substatus}
+          data-testid='receipt-substatus'
+        >
           <AltinnSubstatusPaper
             label={getTextResourceByKey(
               instance.status.substatus.label,

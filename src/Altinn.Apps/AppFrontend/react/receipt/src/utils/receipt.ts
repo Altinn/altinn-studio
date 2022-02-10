@@ -1,7 +1,17 @@
 import moment from 'moment';
-import { IAltinnOrgs, IApplication, IInstance, ILanguage, IParty, ITextResource } from '../../../shared/src/types';
-import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
-import { getAppOwner, getLanguageFromKey } from '../../../shared/src/utils/language';
+
+import type {
+  IAltinnOrgs,
+  IApplication,
+  IInstance,
+  ILanguage,
+  IParty,
+  ITextResource,
+} from 'altinn-shared/types';
+
+import { getCurrentTaskData } from 'altinn-shared/utils/applicationMetaDataUtils';
+import { getAppOwner, getLanguageFromKey } from 'altinn-shared/utils/language';
+
 import { getArchiveRef } from './instance';
 
 export const getInstanceMetaDataObject = (
@@ -24,16 +34,26 @@ export const getInstanceMetaDataObject = (
     const lastChanged = getCurrentTaskData(application, instance).lastChanged;
     dateSubmitted = moment(lastChanged).format('DD.MM.YYYY / HH:mm');
   }
-  obj[getLanguageFromKey('receipt_platform.date_sent', language)] = dateSubmitted;
+
+  obj[getLanguageFromKey('receipt_platform.date_sent', language)] =
+    dateSubmitted;
   let sender = '';
+
   if (party && party.ssn) {
     sender = `${party.ssn}-${party.name}`;
   } else if (party && party.orgNumber) {
     sender = `${party.orgNumber}-${party.name}`;
   }
+
   obj[getLanguageFromKey('receipt_platform.sender', language)] = sender;
-  obj[getLanguageFromKey('receipt_platform.receiver', language)] = getAppOwner(textResources, organisations, instance.org, userLanguage);
-  obj[getLanguageFromKey('receipt_platform.reference_number', language)] = getArchiveRef();
+  obj[getLanguageFromKey('receipt_platform.receiver', language)] = getAppOwner(
+    textResources,
+    organisations,
+    instance.org,
+    userLanguage,
+  );
+  obj[getLanguageFromKey('receipt_platform.reference_number', language)] =
+    getArchiveRef();
+
   return obj;
 };
-

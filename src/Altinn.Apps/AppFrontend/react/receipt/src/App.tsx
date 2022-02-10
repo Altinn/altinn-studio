@@ -1,20 +1,17 @@
+import React from 'react';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
-import * as React from 'react';
-import AltinnReceiptTheme from '../../shared/src/theme/altinnReceiptTheme';
+
+import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
+import Receipt from 'features/receipt/Receipt';
+
 import './App.css';
-import Receipt from './features/receipt/containers/Receipt';
 
 const theme = createTheme(AltinnReceiptTheme);
 
-// eslint-disable-next-line react/prefer-stateless-function
-class App extends React.Component {
-  public render() {
-    return (
-      <MuiThemeProvider theme={theme}>
-        <Receipt/>
-      </MuiThemeProvider>
-    );
-  }
-}
-
-export default App;
+export const App = () => {
+  return (
+    <MuiThemeProvider theme={theme}>
+      <Receipt />
+    </MuiThemeProvider>
+  );
+};
