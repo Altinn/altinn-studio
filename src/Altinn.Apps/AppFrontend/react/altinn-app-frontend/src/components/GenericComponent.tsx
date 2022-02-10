@@ -13,7 +13,7 @@ import type {
   ITextResourceBindings,
 } from '../features/form/layout';
 
-import components, { ComponentTypes } from '.';
+import components from '.';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { Triggers } from 'src/types';
 import FormDataActions from '../features/form/data/formDataActions';
