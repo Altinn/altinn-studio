@@ -4,7 +4,10 @@
     "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": {
-      "altinn-shared/*": ["../shared/src/*"]
+      "altinn-shared/*": ["../shared/src/*"],
+      "utils/*": ["./src/utils/*"],
+      "features/*": ["./src/features/*"],
+      "testConfig/*": ["testConfig/*"]
     },
     "outDir": "compiled",
     "module": "commonjs",

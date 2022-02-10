@@ -6,7 +6,7 @@ import {
   IProfile,
   IParty,
   IApplication,
-} from '../shared/src/types';
+} from 'altinn-shared/types';
 
 const party: IParty = {
   partyId: '1',
@@ -36,6 +36,13 @@ const applicationCommonFields: any = {
   maxCount: 1,
   minCount: 1,
   grouping: null,
+};
+
+export const mockLocation = (location: object = {}) => {
+  jest.spyOn(window, 'location', 'get').mockReturnValue({
+    ...window.location,
+    ...location,
+  });
 };
 
 export const handlers: any = [
@@ -136,7 +143,7 @@ export const handlers: any = [
     return res(ctx.json(mockApiResponse));
   }),
 
-  rest.get('http://localhost/receipt/api/v1/users/current', (req, res, ctx) => {
+  rest.get('https://localhost/receipt/api/v1/users/current', (req, res, ctx) => {
     const mockApiResponse: IProfile = {
       userId: 1,
       userName: 'user name',
@@ -229,7 +236,7 @@ export const handlers: any = [
   ),
 
   rest.get(
-    'http://localhost/storage/api/v1/applications/ttd/frontend-test/texts/nb',
+    'https://localhost/storage/api/v1/applications/ttd/frontend-test/texts/nb',
     (req, res, ctx) => {
       const mockApiResponse: any = {
         id: 'ttd-frontend-test-nb',
