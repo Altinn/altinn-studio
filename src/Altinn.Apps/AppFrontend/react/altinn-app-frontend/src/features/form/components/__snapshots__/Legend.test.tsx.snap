@@ -11,6 +11,7 @@ Array [
   </label>,
   <span
     className="a-form-label description-label"
+    data-testid="description-legend1"
     id="description-legend1"
   >
     legend.description
@@ -29,6 +30,7 @@ Array [
   </label>,
   <span
     className="a-form-label description-label"
+    data-testid="description-legend1"
     id="description-legend1"
   >
     legend.description
@@ -47,6 +49,7 @@ Array [
   </label>,
   <span
     className="a-form-label description-label"
+    data-testid="description-legend1"
     id="description-legend1"
   >
     legend.description
@@ -70,6 +73,7 @@ Array [
   </label>,
   <span
     className="a-form-label description-label"
+    data-testid="description-legend1"
     id="description-legend1"
   >
     legend.description
