@@ -9,7 +9,7 @@ import type { IComponentProps } from '..';
 import type { IOption, IComponentValidations } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
@@ -92,6 +92,7 @@ export const CheckboxContainerComponent = ({
   const calculatedOptions = apiOptions || options || defaultOptions;
   const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
+  const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
 
   const selected =
     formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
@@ -114,6 +115,14 @@ export const CheckboxContainerComponent = ({
     handleDataChange,
     preselectedOptionIndex,
   ]);
+
+  React.useEffect(() => {
+    if (optionsHasChanged) {
+      // New options have been loaded, we have to reset form data.
+      // We also skip any required validations
+      handleDataChange(null, 'simpleBinding', true);
+    }
+  }, [handleDataChange, optionsHasChanged]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const clickedItem = event.target.name;

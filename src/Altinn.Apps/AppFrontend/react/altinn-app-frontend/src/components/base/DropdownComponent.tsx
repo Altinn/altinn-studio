@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { makeStyles } from '@material-ui/core';
 
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 
 import '../../styles/shared.css';
@@ -11,12 +11,6 @@ import '../../styles/shared.css';
 export interface IDropdownProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex?: number;
-}
-
-export interface IDropdownState {
-  title: string;
-  options: any[];
-  name: string;
 }
 
 const useStyles = makeStyles({
@@ -47,6 +41,7 @@ function DropdownComponent({
     (state) => state.optionState.options[optionsId]?.options,
   );
   const hasSelectedInitial = React.useRef(false);
+  const optionsHasChanged = useHasChangedIgnoreUndefined(options);
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -61,6 +56,14 @@ function DropdownComponent({
       hasSelectedInitial.current = true;
     }
   }, [options, formData, preselectedOptionIndex, handleDataChange]);
+
+  React.useEffect(() => {
+    if (optionsHasChanged) {
+      // New options have been loaded, we have to reset form data.
+      // We also skip any required validations
+      handleDataChange(null, 'simpleBinding', true);
+    }
+  }, [handleDataChange, optionsHasChanged]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     handleDataChange(event.target.value);

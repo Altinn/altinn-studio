@@ -8,7 +8,7 @@ import { FormLabel } from '@material-ui/core';
 import cn from 'classnames';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
@@ -89,6 +89,7 @@ export const RadioButtonContainerComponent = ({
   );
   const calculatedOptions = apiOptions || options || defaultArray;
   const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
+  const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
 
   React.useEffect(() => {
     const shouldPreselectItem =
@@ -106,6 +107,14 @@ export const RadioButtonContainerComponent = ({
     handleDataChange,
     preselectedOptionIndex,
   ]);
+
+  React.useEffect(() => {
+    if (optionsHasChanged) {
+      // New options have been loaded, we have to reset form data.
+      // We also skip any required validations
+      handleDataChange(null, 'simpleBinding', true);
+    }
+  }, [handleDataChange, optionsHasChanged]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleFocusUpdate(id);

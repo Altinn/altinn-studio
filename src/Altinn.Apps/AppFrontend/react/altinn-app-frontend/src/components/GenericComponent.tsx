@@ -129,7 +129,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
-  const handleDataUpdate = (value: string, key = 'simpleBinding') => {
+  const handleDataUpdate = (value: string, key = 'simpleBinding', skipValidation = false) => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
     }
@@ -159,6 +159,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         field: dataModelBinding,
         data: value,
         componentId: props.id,
+        skipValidation
       }),
     );
 
