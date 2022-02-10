@@ -111,9 +111,12 @@ namespace Altinn.App.PlatformServices.Extensions
         private static void AddAppOptions(IServiceCollection services)
         {
             services.AddTransient<IAppOptionsService, AppOptionsService>();
+
             services.AddTransient<AppOptionsFactory>();
             services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
             services.AddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
+
+            services.AddTransient<InstanceAppOptionsFactory>();
         }
     }
 }
