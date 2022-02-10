@@ -380,10 +380,7 @@
         "displayMode": "list",
         "required": false,
         "hasCustomFileEndings": true,
-        "validFileEndings": ".pdf",
-        "grid": {
-          "md": 6
-        }
+        "validFileEndings": ".pdf"        
       },
       {
         "id": "fileUploadWithTags-changename",
@@ -399,10 +396,7 @@
         "required": false,
         "hasCustomFileEndings": true,
         "validFileEndings": [".jpeg", ".jpg", ".pdf"],
-        "optionsId": "tags",
-        "grid": {
-          "md": 6
-        }
+        "optionsId": "tags"
       },
       {
         "id": "toSummary",
