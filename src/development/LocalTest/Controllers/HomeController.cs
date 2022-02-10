@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Xml;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -15,20 +16,16 @@ using Microsoft.Extensions.Options;
 
 using AltinnCore.Authentication.Constants;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
-using LocalTest.Services.Localtest.Interface;
 using LocalTest.Services.LocalApp.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Text;
-using Newtonsoft.Json;
 
 namespace LocalTest.Controllers
 {
@@ -71,7 +68,8 @@ namespace LocalTest.Controllers
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
-            model.AuthenticationLevels = GetAuthenticationLevels();
+            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps.First().Value) : 2;
+            model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -226,8 +224,25 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
+        private async Task<int> GetAppAuthLevel(string appId)
+        {
+            try {
+                var policyString = await _localApp.GetXACMLPolicy(appId);
+                var document = new XmlDocument();
+                document.LoadXml(policyString);
+                var nsMngr = new XmlNamespaceManager(document.NameTable);
+                nsMngr.AddNamespace("xacml", "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17");
+                var authLevelNode = document.SelectSingleNode("/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue", nsMngr);
+                return int.Parse(authLevelNode.InnerText);
+            }
+            catch(Exception)
+            {
+                // Return default auth level if app auth level can't be found.
+                return 2;
+            }
+        }
 
-        private List<SelectListItem> GetAuthenticationLevels()
+        private List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)
         {
             return new()
             {
@@ -235,32 +250,36 @@ namespace LocalTest.Controllers
                 {
                     Value = "0",
                     Text = "Nivå 0",
+                    Selected = defaultAuthLevel == 0
                 },
                 new()
                 {
                     Value = "1",
                     Text = "Nivå 1",
+                    Selected = defaultAuthLevel == 1
                 },
                 new()
                 {
                     Value = "2",
                     Text = "Nivå 2",
-                    Selected = true,
+                    Selected = defaultAuthLevel == 2
                 },
                 new()
                 {
                     Value = "3",
                     Text = "Nivå 3",
+                    Selected = defaultAuthLevel == 3
                 },
                 new()
                 {
                     Value = "4",
                     Text = "Nivå 4",
+                    Selected = defaultAuthLevel == 4
                 },
             };
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetAppsList()
+        private async Task<List<SelectListItem>> GetAppsList()
         {
             var applications = await _localApp.GetApplications();
             return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
