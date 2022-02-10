@@ -44,6 +44,8 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 
 The commands should be run in an order that makes sure the tests are intact on the subsequent runs.
 
+**Note:** Use cmd or git bash to run the scripts.
+
 1. Setup: Before all the tests
 
 ```cmd
@@ -65,6 +67,8 @@ The commands should be run in an order that makes sure the tests are intact on t
 ### Run App Frontend tests
 
 Follow the steps below to start localtest, app frontend, app and the tests.
+
+**Note:** Use cmd or git bash to run the scripts.
 
 1. Create testfiles that are used by the tests as attachments in app instances.
 
