@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:16.13.2-alpine3.15 AS generate-studio-frontend
+FROM node:16.14.0-alpine3.15 AS generate-studio-frontend
 
 WORKDIR /build
 
@@ -45,7 +45,7 @@ COPY --from=generate-studio-frontend /build/dist/app-development/app-development
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.css .
 
-FROM node:16.13.2-alpine3.15 AS generate-designer-js
+FROM node:16.14.0-alpine3.15 AS generate-designer-js
 WORKDIR /app
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
@@ -58,7 +58,7 @@ RUN yarn --immutable
 COPY src/designer/backend .
 RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.404-alpine3.14 AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0.405-alpine3.14 AS build
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
@@ -68,7 +68,7 @@ COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.13-alpine3.14 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:5.0.14-alpine3.14 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
