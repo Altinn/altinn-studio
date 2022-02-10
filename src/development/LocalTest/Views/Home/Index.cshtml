@@ -3,7 +3,7 @@
   ViewData["Title"] = "Altinn Studio Local Testing";
 }
 
-@{ 
+@{
   if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
@@ -75,6 +75,10 @@
       <div class="form-group">
         <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
         @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+      </div>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Select your authentication level</label>
+        @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
       <button type="submit" class="btn btn-primary">Sign in</button>
     }
