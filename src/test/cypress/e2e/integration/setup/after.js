@@ -9,7 +9,8 @@
  */
 context('After all tests', () => {
   it('Delete all apps', () => {
-    cy.deleteallapps(Cypress.env('appOwner'), Cypress.env('accessToken'));
+    cy.deleteallapps('org', Cypress.env('appOwner'), Cypress.env('accessToken'));
+    cy.deleteallapps('user', Cypress.env('adminUser'), Cypress.env('accessToken'));
   });
 
   it('Delete Org', () => {
@@ -17,6 +18,6 @@ context('After all tests', () => {
   });
 
   it('Delete an user', () => {
-    cy.deleteuser(Cypress.env('userName'), Cypress.env('accessToken'));
+    cy.deleteuser(Cypress.env('autoTestUser'), Cypress.env('accessToken'));
   });
 });

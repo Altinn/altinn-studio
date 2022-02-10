@@ -18,11 +18,11 @@ context(
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
     });
     beforeEach(() => {
-      cy.intercept(/(s|RepoS)tatus/).as('repoStatus');
+      cy.intercept('GET', '**/datamodels').as('getDatamodels');
       Cypress.Cookies.preserveOnce('AltinnStudioDesigner', 'i_like_gitea', 'XSRF-TOKEN', 'AS-XSRF-TOKEN');
       cy.visit('/');
       cy.searchAndOpenApp(Cypress.env('deployApp'));
-      cy.wait('@repoStatus');
+      cy.wait('@getDatamodels');
       cy.get(designer.layOutContainer).should('be.visible');
     });
 

@@ -41,6 +41,7 @@ export type ComponentTypes =
   | 'Datepicker'
   | 'Dropdown'
   | 'FileUpload'
+  | 'FileUploadWithTag'
   | 'Header'
   | 'Input'
   | 'NavigationButtons'

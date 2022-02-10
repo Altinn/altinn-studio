@@ -39,6 +39,11 @@ export function fileUploadUrl(attachmentType: string) {
   );
 }
 
+export function fileTagUrl(dataGuid: string) {
+  return `${appPath}/instances/` +
+  `${altinnWindow.instanceId}/data/${dataGuid}/tags`;
+}
+
 export function dataElementUrl(dataGuid: string) {
   return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
 }

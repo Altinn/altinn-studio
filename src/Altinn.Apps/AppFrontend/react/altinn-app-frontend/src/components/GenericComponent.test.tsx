@@ -66,7 +66,7 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
   });
 };
 
-describe('components/GenericComponent.tsx', () => {
+describe('GenericComponent', () => {
   it('should render Unknown component when passing unknown type', () => {
     render({ type: 'unknown-type' });
 

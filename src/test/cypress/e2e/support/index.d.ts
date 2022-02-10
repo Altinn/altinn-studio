@@ -125,7 +125,7 @@ declare namespace Cypress {
         getIframeBody(): Chainable<Element>;
 
       /**
-       * check visibility of an element whose parent is found hidden by cypress 
+       * check visibility of an element whose parent is found hidden by cypress
        */
         isVisible(): Chainable<Element>;
 
@@ -134,5 +134,17 @@ declare namespace Cypress {
       * @example cy.searchAndOpenApp('ttd/app')
       */
        searchAndOpenApp(appId: string): Chainable<Element>;
+
+       /**
+      * Custom command to create a repo for an user
+      * @example cy.createrepository(user, app, token)
+      */
+        createrepository(username: string, appName: string, token: string): Chainable<Element>;
+
+        /**
+      * Custom command to get a repo and return response
+      * @example cy.getrepo('ttd/app', token)
+      */
+         getrepo(appId: string, token: string): Chainable<Element>;
   }
 }

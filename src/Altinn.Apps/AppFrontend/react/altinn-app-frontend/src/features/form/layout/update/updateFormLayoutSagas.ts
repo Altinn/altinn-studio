@@ -2,8 +2,8 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
-import { IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
-import { getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
+import { IFileUploadersWithTag, IFormFileUploaderWithTagComponent, IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
+import { getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
 import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
@@ -12,10 +12,11 @@ import { validateFormData, validateFormComponents, validateEmptyFields, mapDataE
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { startInitialDataTaskQueueFulfilled } from 'src/shared/resources/queue/queueSlice';
 import { updateValidations } from 'src/features/form/validation/validationSlice';
+import { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
 import { ILayoutComponent, ILayoutEntry, ILayoutGroup, ILayouts } from '..';
 import ConditionalRenderingActions from '../../dynamics/formDynamicsActions';
 import { FormLayoutActions, ILayoutState } from '../formLayoutSlice';
-import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage, IUpdateRepeatingGroupsEditIndex } from '../formLayoutTypes';
+import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePageOrderAndMoveToNextPage, IUpdateRepeatingGroupsEditIndex, IUpdateFileUploaderWithTagEditIndex, IUpdateFileUploaderWithTagChosenOptions } from '../formLayoutTypes';
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
@@ -23,6 +24,7 @@ import { convertDataBindingToModel, removeGroupData } from '../../../../utils/da
 const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
 const selectFormLayouts = (state: IRuntimeState): ILayouts => state.formLayout.layouts;
+const selectAttachmentState = (state: IRuntimeState): IAttachmentState => state.attachments;
 
 function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
@@ -373,5 +375,79 @@ export function* watchInitRepeatingGroupsSaga(): SagaIterator {
     FormLayoutActions.fetchLayoutFulfilled
     ],
     initRepeatingGroupsSaga
+  );
+}
+
+export function* updateFileUploaderWithTagEditIndexSaga({ payload: {
+  uploader, index, attachmentId = null
+} }: PayloadAction<IUpdateFileUploaderWithTagEditIndex>): SagaIterator {
+  try {
+    if (attachmentId && index === -1) { // In the case of closing an edit view.
+      const state: IRuntimeState = yield select();
+      const chosenOption = state.formLayout.uiConfig.fileUploadersWithTag[uploader].chosenOptions[attachmentId]
+      if(chosenOption && chosenOption !== '') {
+        yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
+      } else {
+        yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error: null }));
+      }
+    } else {
+      yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
+    }
+  } catch (error) {
+    yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error }));
+  }
+}
+
+export function* watchUpdateFileUploaderWithTagEditIndexSaga(): SagaIterator {
+  yield takeLatest(FormLayoutActions.updateFileUploaderWithTagEditIndex, updateFileUploaderWithTagEditIndexSaga);
+}
+
+export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
+  uploader, id, option
+} }: PayloadAction<IUpdateFileUploaderWithTagChosenOptions>): SagaIterator {
+  try {
+    // Validate option to available options
+    const state: IRuntimeState = yield select();
+    const currentView = state.formLayout.uiConfig.currentView;
+    const component = state.formLayout.layouts[currentView]
+        .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
+    const componentOptions = state.optionState.options[component.optionsId]
+    if (componentOptions.find(op => op.value === option.value)) {
+      yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
+        uploader, id, option,
+      }));
+    } else {
+      yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error: new Error('Could not find the selected option!') }));
+    }
+  } catch (error) {
+    yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsRejected({ error }));
+  }
+}
+
+export function* watchUpdateFileUploaderWithTagChosenOptionsSaga(): SagaIterator {
+  yield takeLatest(FormLayoutActions.updateFileUploaderWithTagChosenOptions, updateFileUploaderWithTagChosenOptionsSaga);
+}
+
+export function* initFileUploaderWithTagSaga(): SagaIterator {
+  const attachmentState: IAttachmentState = yield select(selectAttachmentState);
+  const layouts = yield select(selectFormLayouts);
+  let newUploads: IFileUploadersWithTag = {};
+  Object.keys(layouts).forEach((layoutKey: string) => {
+    newUploads = {
+      ...newUploads,
+      ...getFileUploadersWithTag(layouts[layoutKey], attachmentState),
+    };
+  });
+  yield put(FormLayoutActions.updateFileUploadersWithTagFulfilled({ uploaders: newUploads }));
+}
+
+export function* watchInitFileUploaderWithTagSaga(): SagaIterator {
+  yield take(FormLayoutActions.fetchLayoutFulfilled);
+  yield call(initFileUploaderWithTagSaga);
+  yield takeLatest([
+    FormLayoutActions.initFileUploaderWithTag,
+    FormLayoutActions.fetchLayoutFulfilled
+    ],
+    initFileUploaderWithTagSaga
   );
 }

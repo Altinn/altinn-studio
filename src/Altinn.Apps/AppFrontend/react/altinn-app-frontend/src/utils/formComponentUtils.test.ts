@@ -1,20 +1,27 @@
-import {
-  getDisplayFormData,
-  getFormDataForComponentInRepeatingGroup,
-  componentValidationsHandledByGenericComponent,
-  selectComponentTexts,
-  isComponentValid,
-} from './formComponentUtils';
-import { IOptions, ITextResource } from '../types';
-import { IFormData } from '../features/form/data/formDataReducer';
-import {
+import ReactHtmlParser from 'react-html-parser';
+
+import type { IOptions, ITextResource } from 'src/types';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type {
   ILayoutComponent,
   ISelectionComponentProps,
-} from '../features/form/layout';
-import ReactHtmlParser from 'react-html-parser';
+} from 'src/features/form/layout';
+import type { IAttachment } from 'src/shared/resources/attachments';
+
 import { removeStyling } from 'altinn-shared/utils/language';
 
-describe('utils/formComponentUtils', () => {
+import {
+  atleastOneTagExists,
+  getDisplayFormData,
+  getFormDataForComponentInRepeatingGroup,
+  isAttachmentError,
+  selectComponentTexts,
+  isNotAttachmentError,
+  isComponentValid,
+  componentValidationsHandledByGenericComponent,
+} from './formComponentUtils';
+
+describe('formComponentUtils', () => {
   const mockFormData: IFormData = {
     mockBindingInput: 'test',
     mockBindingCheckbox: 'optionValue1,optionValue2',
@@ -53,6 +60,64 @@ describe('utils/formComponentUtils', () => {
       { value: 'repOptionValue3', label: 'repTextKey3' },
     ],
   };
+  const mockAttachments: IAttachment[] = [
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: ['mockTag'],
+      id: '12345',
+    },
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '123456',
+    },
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: null,
+      id: '123457',
+    },
+  ];
+  const mockAttachmentsWithoutTag: IAttachment[] = [
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '12345',
+    },
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: [],
+      id: '123456',
+    },
+    {
+      uploaded: true,
+      updating: false,
+      deleting: false,
+      name: 'mockName',
+      size: 12345,
+      tags: null,
+      id: '123457',
+    },
+  ];
 
   describe('getDisplayFormData', () => {
     it('should return form data for a component', () => {
@@ -105,6 +170,27 @@ describe('utils/formComponentUtils', () => {
     });
   });
 
+  describe('getFormDataForComponentInRepeatingGroup', () => {
+    it('should return comma separated string of text resources for checkboxes with mulitiple values', () => {
+      const checkboxComponent = {
+        type: 'Checkboxes',
+        optionsId: 'mockRepOption',
+        dataModelBindings: {
+          simpleBinding: 'group.checkbox',
+        },
+      } as unknown as ISelectionComponentProps;
+      const result = getFormDataForComponentInRepeatingGroup(
+        mockFormData,
+        checkboxComponent,
+        0,
+        'group',
+        mockTextResources,
+        mockOptions,
+      );
+      expect(result).toEqual('RepValue1, RepValue2, RepValue3');
+    });
+  });
+
   describe('componentValidationsHandledByGenericComponent', () => {
     it(' should return false when dataModelBinding is undefined', () => {
       const genericComponent = {
@@ -143,27 +229,6 @@ describe('utils/formComponentUtils', () => {
         genericComponent.type,
       );
       expect(result).toEqual(true);
-    });
-  });
-
-  describe('getFormDataForComponentInRepeatingGroup', () => {
-    it('should return comma separated string of text resources for checkboxes with mulitiple values', () => {
-      const checkboxComponent = {
-        type: 'Checkboxes',
-        optionsId: 'mockRepOption',
-        dataModelBindings: {
-          simpleBinding: 'group.checkbox',
-        },
-      } as unknown as ISelectionComponentProps;
-      const result = getFormDataForComponentInRepeatingGroup(
-        mockFormData,
-        checkboxComponent,
-        0,
-        'group',
-        mockTextResources,
-        mockOptions,
-      );
-      expect(result).toEqual('RepValue1, RepValue2, RepValue3');
     });
   });
 
@@ -248,6 +313,58 @@ describe('utils/formComponentUtils', () => {
       });
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('isAttachmentError', () => {
+    it('should return true when error has attachmentId', () => {
+      const error = {
+        id: 'mockUUID',
+        message: 'mockMessage',
+      };
+      const result = isAttachmentError(error);
+      expect(result).toEqual(true);
+    });
+
+    it('should return false when error does not have attachmentId', () => {
+      const error = {
+        id: null,
+        message: 'mockMessage',
+      };
+      const result = isAttachmentError(error);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('isNotAttachmentError', () => {
+    it('should return true when error does not have attachmentId', () => {
+      const error = {
+        id: null,
+        message: 'mockMessage',
+      };
+      const result = isNotAttachmentError(error);
+      expect(result).toEqual(true);
+    });
+
+    it('should return false when error has attachmentId', () => {
+      const error = {
+        id: 'mockUUID',
+        message: 'mockMessage',
+      };
+      const result = isNotAttachmentError(error);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('atleastOneTagExists', () => {
+    it('should return true if one or more attachments has a tag', () => {
+      const result = atleastOneTagExists(mockAttachments);
+      expect(result).toEqual(true);
+    });
+
+    it('should return false if none of the attachments has a tag', () => {
+      const result = atleastOneTagExists(mockAttachmentsWithoutTag);
+      expect(result).toEqual(false);
     });
   });
 });

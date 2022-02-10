@@ -1,13 +1,12 @@
 import * as React from 'react';
-import { IComponentProps } from '..';
+import type { IComponentProps } from '..';
+
 import '../../styles/shared.css';
 
 export function TextAreaComponent(props: IComponentProps) {
   const formData = props.formData?.simpleBinding;
 
-  const [value, setValue] = React.useState(
-    formData ?? '',
-  );
+  const [value, setValue] = React.useState(formData ?? '');
 
   React.useEffect(() => {
     setValue(formData);
