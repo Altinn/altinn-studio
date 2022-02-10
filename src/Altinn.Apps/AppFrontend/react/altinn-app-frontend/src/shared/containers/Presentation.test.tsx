@@ -103,8 +103,8 @@ describe('containers/Presentation.tsx', () => {
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
-    const origin = 'http://altinn3local.no';
-    const returnUrl = 'http://altinn.cloud.no';
+    const origin = 'https://altinn3local.no';
+    const returnUrl = 'https://altinn.cloud.no';
     (axios.get as jest.Mock).mockRejectedValue({
       data: 'Error',
       status: HttpStatusCodes.BadRequest,
@@ -135,7 +135,7 @@ describe('containers/Presentation.tsx', () => {
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', () => {
-    const origin = 'http://altinn3local.no';
+    const origin = 'https://altinn3local.no';
     Object.defineProperty(window, 'location', {
       value: {
         ...window,

@@ -25,19 +25,19 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('returnUrlToMessagebox() returning null when unknown origin', () => {
-    const origin = 'http://www.vg.no';
+    const origin = 'https://www.vg.no';
     expect(returnUrlToMessagebox(origin)).toBe(null);
   });
 
   test('returnBaseUrlToAltinn() returning correct environemnts', () => {
     const originTT =
-      'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     const originAT =
-      'http://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
     const originYT =
-      'http://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'http://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'http://www.vg.no';
+      'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
+    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
+    const originUnknown = 'https://www.vg.no';
     expect(returnBaseUrlToAltinn(originTT)).toContain('tt02.altinn.no');
     expect(returnBaseUrlToAltinn(originAT)).toContain('at21.altinn.cloud');
     expect(returnBaseUrlToAltinn(originYT)).toContain('yt01.altinn.cloud');
@@ -47,13 +47,13 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlTProfile() returning correct environments', () => {
     const originTT =
-      'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     const originAT =
-      'http://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
     const originYT =
-      'http://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'http://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'http://www.vg.no';
+      'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
+    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
+    const originUnknown = 'https://www.vg.no';
     expect(returnUrlToProfile(originTT)).toContain('tt02.altinn.no/ui/profile');
     expect(returnUrlToProfile(originAT)).toContain(
       'at21.altinn.cloud/ui/profile',
@@ -67,13 +67,13 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlAllSchemas() returning correct environments', () => {
     const originTT =
-      'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     const originAT =
-      'http://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
+      'https://ttd.apps.at21.altinn.cloud/tdd/tjeneste-20190826-1130';
     const originYT =
-      'http://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
-    const originProd = 'http://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
-    const originUnknown = 'http://www.vg.no';
+      'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
+    const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
+    const originUnknown = 'https://www.vg.no';
     expect(returnUrlToAllSchemas(originTT)).toContain(
       'tt02.altinn.no/skjemaoversikt',
     );
@@ -90,12 +90,12 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('customEncodeURI() returning correct encoding', () => {
-    const uri1 = 'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+    const uri1 = 'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     const uri2 = 'attachment [example].png';
     const uri3 = 'attachment (example).gif';
     const uri4 = 'attachment (example) (1) (2).gif';
     expect(customEncodeURI(uri1)).toBe(
-      'http%3A%2F%2Fttd.apps.tt02.altinn.no%2Ftdd%2Ftjeneste-20190826-1130',
+      'https%3A%2F%2Fttd.apps.tt02.altinn.no%2Ftdd%2Ftjeneste-20190826-1130',
     );
     expect(customEncodeURI(uri2)).toBe('attachment%20%5Bexample%5D.png');
     expect(customEncodeURI(uri3)).toBe('attachment%20%28example%29.gif');

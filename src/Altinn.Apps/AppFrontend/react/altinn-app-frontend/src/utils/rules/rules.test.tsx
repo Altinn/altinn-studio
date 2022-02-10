@@ -1,6 +1,13 @@
 import type { IFormDataState } from '../../features/form/data/formDataReducer';
 import { checkIfRuleShouldRun, getRuleModelFields } from '.';
 
+const ruleHandleFn = (obj) => {
+  obj.a = +obj.a;
+  obj.b = +obj.b;
+  obj.c = +obj.c;
+  return obj.a + obj.b + obj.c;
+};
+
 describe('features/rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
   let mockFormDataState: Partial<IFormDataState>;
@@ -19,12 +26,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
       },
     };
     mockRuleHandlerObject = {
-      sum: (obj) => {
-        obj.a = +obj.a;
-        obj.b = +obj.b;
-        obj.c = +obj.c;
-        return obj.a + obj.b + obj.c;
-      },
+      sum: ruleHandleFn,
     };
     mockLayout = {
       FormLayout: [
@@ -103,6 +105,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     expect(rules[0].ruleShouldRun).toBe(true);
     expect(rules[0].dataBindingName).toEqual('mockDataModelBinding4');
   });
+
   it('should return false if no rule should be triggered', () => {
     mockLastUpdatedDataBinding = 'mockDataModelBinding5';
 
@@ -114,6 +117,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('no ruleConnection, no rules ', () => {
     mockRuleConnectionState = {};
 
@@ -125,6 +129,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('no dataBindingkey, no rules ', () => {
     mockFormLayoutState = {
       error: null,
@@ -158,6 +163,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('if no components, no rules ', () => {
     mockFormLayoutState = {
       error: null,
@@ -173,6 +179,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('if no input params, no rules ', () => {
     const rules = checkIfRuleShouldRun(
       {
@@ -188,6 +195,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('if no output params, no rules ', () => {
     const rules = checkIfRuleShouldRun(
       {
@@ -207,6 +215,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     );
     expect(rules.length).toBe(0);
   });
+
   it('if container the function should continue ', () => {
     mockFormLayoutState = {
       error: null,
@@ -238,19 +247,17 @@ describe('features/rules getRuleModelFields', () => {
   let mockRuleHandlerObject: any;
 
   beforeEach(() => {
+    const numberFn = () => {
+      return {
+        number: 'number',
+      };
+    };
+
     mockRuleHandlerHelper = {
-      sum: () => {
-        return {
-          number: 'number',
-        };
-      },
+      sum: numberFn,
     };
     mockConditionalRuleHandlerHelper = {
-      biggerThan10: () => {
-        return {
-          number: 'number',
-        };
-      },
+      biggerThan10: numberFn,
       lengthBiggerThan4: () => {
         return {
           value: 'value',
@@ -270,12 +277,7 @@ describe('features/rules getRuleModelFields', () => {
       },
     };
     mockRuleHandlerObject = {
-      sum: (obj) => {
-        obj.a = +obj.a;
-        obj.b = +obj.b;
-        obj.c = +obj.c;
-        return obj.a + obj.b + obj.c;
-      },
+      sum: ruleHandleFn,
     };
     const mockRuleScript =
       'var ruleHandlerObject = { sum: (obj) => { obj.a = +obj.a; obj.b = +obj.b; obj.c = +obj.c; return' +
@@ -296,6 +298,7 @@ describe('features/rules getRuleModelFields', () => {
       mockConditionalRuleHandlerObject;
     (window as any).ruleHandlerObject = mockRuleHandlerObject;
   });
+
   it('should return an array ', () => {
     const ruleModelFields = getRuleModelFields();
     const expectedResult = [
