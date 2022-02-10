@@ -4,11 +4,7 @@
     "layout": [
       {
         "id": "nav3",
-        "type": "NavigationBar",
-        "textResourceBindings": {
-          "next": "Kort svar",
-          "back": "back"
-        }
+        "type": "NavigationBar"
       },
       {
         "id": "send-in-text",

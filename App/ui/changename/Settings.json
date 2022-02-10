@@ -4,14 +4,14 @@
         "order": [
             "form",
             "summary"
-        ],        
+        ],
         "excludeFromPdf": [
-            "summary"          
+            "summary"
         ]
     },
     "components": {
-        "excludeFromPdf": [    
-            "confirmChangeName", "nav1"
+        "excludeFromPdf": [
+            "confirmChangeName"
         ]
     }
 }
