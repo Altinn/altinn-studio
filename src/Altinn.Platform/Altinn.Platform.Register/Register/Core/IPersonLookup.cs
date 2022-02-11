@@ -1,3 +1,4 @@
+#nullable enable
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Models;
@@ -16,6 +17,6 @@ namespace Altinn.Platform.Register.Core
         /// <param name="lastName">The last name of the person. Must match the last name of the person.</param>
         /// <param name="activeUser">The unique id of the user performing the check.</param>
         /// <returns>The identified person if found.</returns>
-        Task<Person> GetPerson(string nationalIdentityNumber, string lastName, int activeUser);
+        Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, int activeUser);
     }
 }

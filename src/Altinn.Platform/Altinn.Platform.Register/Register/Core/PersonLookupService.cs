@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Threading.Tasks;
 
@@ -44,7 +45,7 @@ namespace Altinn.Platform.Register.Core
         /// <param name="lastName">The last name of the person. Must match the last name of the person.</param>
         /// <param name="activeUser">The unique id of the user performing the check.</param>
         /// <returns>The identified <see cref="Task{Party}"/> if last name was correct.</returns>
-        public async Task<Person> GetPerson(string nationalIdentityNumber, string lastName, int activeUser)
+        public async Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, int activeUser)
         {
             string uniqueCacheKey = PersonLookupFailedAttempts + activeUser;
 
@@ -57,13 +58,13 @@ namespace Altinn.Platform.Register.Core
                 throw new TooManyFailedLookupsException();
             }
 
-            Party party = await _partiesService.LookupPartyBySSNOrOrgNo(nationalIdentityNumber);
+            Party? party = await _partiesService.LookupPartyBySSNOrOrgNo(nationalIdentityNumber);
 
             string nameFromParty = party?.Person?.LastName ?? string.Empty;
 
-            if (nameFromParty.IsSimilarTo(lastName))
+            if (nameFromParty.Length > 0 && nameFromParty.IsSimilarTo(lastName))
             {
-                return party.Person;
+                return party!.Person;
             }
 
             failedAttempts += 1;
