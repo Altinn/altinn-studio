@@ -9,19 +9,6 @@ namespace Altinn.Platform.Register.Core
     /// </summary>
     public static class StringExtensions
     {
-        /* https://stackoverflow.com/questions/359827/ignoring-accented-letters-in-string-comparison */
-
-        /// <summary>
-        /// Compare to strings doing a loose compare ignoring case and diacritics
-        /// </summary>
-        /// <param name="text1">First text</param>
-        /// <param name="text2">Second text</param>
-        /// <returns>true if the texts are equal</returns>
-        public static bool LooseEquals(this string text1, string text2)
-        {
-            return string.Compare(text1, text2, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) == 0;
-        }
-
         /// <summary>
         /// Compare to strings doing a loose compare ignoring case and diacritics
         /// </summary>
