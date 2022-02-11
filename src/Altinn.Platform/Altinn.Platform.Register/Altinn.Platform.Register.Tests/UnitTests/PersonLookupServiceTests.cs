@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Core;
@@ -37,7 +37,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetPersonParty_NoFailedAttempts_CorrectInput_ReturnsParty()
+        public async Task GetPerson_NoFailedAttempts_CorrectInput_ReturnsParty()
         {
             // Arrange
             Party party = new Party
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             var target = new PersonLookupService(parties.Object, settingsMock.Object, memoryCache, logger.Object);
 
             // Act
-            var actual = await target.GetPersonParty("personnumber", "lastname", 777);
+            var actual = await target.GetPerson("personnumber", "lastname", 777);
 
             // Assert
             Assert.NotNull(actual);
@@ -60,7 +60,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetPersonParty_OneFailedAttempt_MoreToGo_CorrectInput_ReturnsParty()
+        public async Task GetPerson_OneFailedAttempt_MoreToGo_CorrectInput_ReturnsParty()
         {
             // Arrange
             Party party = new Party
@@ -77,7 +77,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             var target = new PersonLookupService(parties.Object, settingsMock.Object, memoryCache, logger.Object);
 
             // Act
-            var actual = await target.GetPersonParty("personnumber", "lastname", 777);
+            var actual = await target.GetPerson("personnumber", "lastname", 777);
 
             // Assert
             Assert.NotNull(actual);
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetPersonParty_OneFailedAttempt_MoreToGo_WrongInput_ReturnsNull()
+        public async Task GetPerson_OneFailedAttempt_MoreToGo_WrongInput_ReturnsNull()
         {
             // Arrange
             parties.Setup(s => s.LookupPartyBySSNOrOrgNo(It.IsAny<string>())).ReturnsAsync((Party)null);
@@ -95,7 +95,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             var target = new PersonLookupService(parties.Object, settingsMock.Object, memoryCache, logger.Object);
 
             // Act
-            var actual = await target.GetPersonParty("personnumber", "lastname", 777);
+            var actual = await target.GetPerson("personnumber", "lastname", 777);
 
             // Assert
             Assert.Null(actual);
@@ -103,7 +103,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetPersonParty_TooManyFailedAttempts_CorrectInput_ThrowsTooManyFailedLookupsException()
+        public async Task GetPerson_TooManyFailedAttempts_CorrectInput_ThrowsTooManyFailedLookupsException()
         {
             // Arrange
             Party party = new Party
@@ -124,7 +124,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             // Act
             try
             {
-                _ = await target.GetPersonParty("personnumber", "lastname", 777);
+                _ = await target.GetPerson("personnumber", "lastname", 777);
             }
             catch (TooManyFailedLookupsException tomfle)
             {
@@ -137,7 +137,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         }
 
         [Fact]
-        public async Task GetPersonParty_WrongInput_FailedAttemptsBeingResetAtCacheTimeout()
+        public async Task GetPerson_WrongInput_FailedAttemptsBeingResetAtCacheTimeout()
         {
             // Arrange
             Party party = new Party
@@ -155,11 +155,11 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             var target = new PersonLookupService(parties.Object, settingsMock.Object, memoryCache, logger.Object);
 
             // Act
-            _ = await target.GetPersonParty("personnumber", "wrongname", 777);
+            _ = await target.GetPerson("personnumber", "wrongname", 777);
 
             try
             {
-                _ = await target.GetPersonParty("personnumber", "wrongname", 777);
+                _ = await target.GetPerson("personnumber", "wrongname", 777);
             }
             catch
             {

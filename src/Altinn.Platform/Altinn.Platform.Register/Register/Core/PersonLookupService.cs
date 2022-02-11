@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Models;
@@ -44,7 +44,7 @@ namespace Altinn.Platform.Register.Core
         /// <param name="lastName">The last name of the person. Must match the last name of the person.</param>
         /// <param name="activeUser">The unique id of the user performing the check.</param>
         /// <returns>The identified <see cref="Task{Party}"/> if last name was correct.</returns>
-        public async Task<Party> GetPersonParty(string nationalIdentityNumber, string lastName, int activeUser)
+        public async Task<Person> GetPerson(string nationalIdentityNumber, string lastName, int activeUser)
         {
             string uniqueCacheKey = PersonLookupFailedAttempts + activeUser;
 
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Register.Core
 
             if (nameFromParty.IsSimilarTo(lastName))
             {
-                return party;
+                return party.Person;
             }
 
             failedAttempts += 1;

@@ -34,7 +34,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetPersonPartyAsync_CorrectInput_OutcomeSuccessful()
+        public async Task GetPerson_CorrectInput_OutcomeSuccessful()
         {
             // Arrange
             HttpRequestMessage sblRequest = null;
@@ -65,7 +65,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetPersonPartyAsync_MissingParameters_ReturnsBadRequest()
+        public async Task GetPerson_MissingParameters_ReturnsBadRequest()
         {
             // Arrange
             string token = PrincipalUtil.GetToken(1);
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetPersonPartyAsync_InvalidInput_ReturnsNotFound()
+        public async Task GetPerson_InvalidInput_ReturnsNotFound()
         {
             // Arrange
             HttpRequestMessage sblRequest = null;
@@ -120,7 +120,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task GetPersonPartyAsync_TooManyAttempts_OutcomeTooManyRequests()
+        public async Task GetPerson_TooManyAttempts_OutcomeTooManyRequests()
         {
             // Arrange
             HttpRequestMessage sblRequest = null;

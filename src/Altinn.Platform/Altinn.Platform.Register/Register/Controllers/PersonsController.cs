@@ -47,7 +47,7 @@ namespace Altinn.Platform.Register.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(200)]
         [Produces("application/json")]
-        public async Task<ActionResult<Party>> GetPersonPartyAsync(PersonLookupIdentifiers personLookup)
+        public async Task<ActionResult<Person>> GetPerson(PersonLookupIdentifiers personLookup)
         {
             if (!ModelState.IsValid)
             {
@@ -61,10 +61,10 @@ namespace Altinn.Platform.Register.Controllers
                 return Forbid();
             }
 
-            Party? party;
+            Person? person;
             try
             {
-                party = await _personLookup.GetPersonParty(
+                person = await _personLookup.GetPerson(
                     personLookup.NationalIdentityNumber, personLookup.LastName, userId.Value);
             }
             catch (TooManyFailedLookupsException)
@@ -72,12 +72,12 @@ namespace Altinn.Platform.Register.Controllers
                 return StatusCode(StatusCodes.Status429TooManyRequests);
             }
 
-            if (party is null)
+            if (person is null)
             {
                 return NotFound();
             }
 
-            return party;
+            return person;
         }
 
         /// <summary>
