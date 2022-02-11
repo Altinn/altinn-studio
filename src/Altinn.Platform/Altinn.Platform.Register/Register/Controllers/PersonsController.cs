@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -80,20 +81,11 @@ namespace Altinn.Platform.Register.Controllers
             return person;
         }
 
-        /// <summary>
-        /// Gets userId from httpContext
-        /// </summary>
         private static int? GetUserId(HttpContext context)
         {
-            foreach (Claim claim in context.User.Claims)
-            {
-                if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
-                {
-                    return Convert.ToInt32(claim.Value);
-                }
-            }
+            Claim? userIdClaim = context.User.Claims.FirstOrDefault(c => c.Type.Equals(AltinnCoreClaimTypes.UserId));
 
-            return null;
+            return userIdClaim is not null ? Convert.ToInt32(userIdClaim.Value) : null;
         }
     }
 }
