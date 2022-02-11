@@ -262,7 +262,7 @@ namespace Altinn.Platform.Authorization.Controllers
             List<int> coveredByUserIds = new List<int> { subjectUserId };
 
             // 1. Direct user delegations
-            List<DelegationChange> delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByUserIds: coveredByUserIds);
+            List<DelegationChange> delegations = await _delegationRepository.GetAllCurrentDelegationChanges(offeredByPartyIds, appIds, coveredByUserIds: coveredByUserIds);
             if (delegations.Any())
             {
                 delegationContextResponse = await AuthorizeBasedOnDelegations(decisionRequest, delegations, appPolicy);
@@ -280,7 +280,7 @@ namespace Altinn.Platform.Authorization.Controllers
             if (mainunitPartyIds.Any())
             {
                 offeredByPartyIds.AddRange(mainunitPartyIds);
-                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, mainunitPartyIds, coveredByUserIds: coveredByUserIds);
+                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(mainunitPartyIds, appIds, coveredByUserIds: coveredByUserIds);
 
                 if (delegations.Any())
                 {
@@ -297,7 +297,7 @@ namespace Altinn.Platform.Authorization.Controllers
             List<int> keyrolePartyIds = await _delegationContextHandler.GetKeyRolePartyIds(subjectUserId);
             if (keyrolePartyIds.Any())
             {
-                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds: keyrolePartyIds);
+                delegations = await _delegationRepository.GetAllCurrentDelegationChanges(offeredByPartyIds, appIds, coveredByPartyIds: keyrolePartyIds);
 
                 if (delegations.Any())
                 {
