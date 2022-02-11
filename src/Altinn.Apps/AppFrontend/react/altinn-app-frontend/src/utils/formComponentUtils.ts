@@ -75,7 +75,7 @@ export const getFormDataForComponent = (
     return {} as IComponentFormData;
   }
 
-  const formDataObj:IComponentFormData = {};
+  const formDataObj: IComponentFormData = {};
   Object.keys(dataModelBindings).forEach((key: any) => {
     const binding = dataModelBindings[key];
     if (formData[binding]) {
@@ -259,11 +259,13 @@ export function selectComponentTexts(
   textResources: ITextResource[],
   textResourceBindings: ITextResourceBindings,
 ) {
-  const result: {[textResourceKey: string]: React.ReactNode} = {};
+  const result: { [textResourceKey: string]: React.ReactNode } = {};
 
-  Object.keys(textResourceBindings).forEach((key) => {
-    result[key] = getTextResource(textResourceBindings[key], textResources);
-  });
+  if (textResourceBindings) {
+    Object.keys(textResourceBindings).forEach((key) => {
+      result[key] = getTextResource(textResourceBindings[key], textResources);
+    });
+  }
 
   return result;
 }

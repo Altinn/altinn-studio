@@ -1,14 +1,14 @@
 import React from 'react';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
-import type { PreloadedState } from '@reduxjs/toolkit';
-import { render as rtlRender } from '@testing-library/react';
-import type { RenderOptions } from '@testing-library/react';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
+import { render as rtlRender } from '@testing-library/react';
+import type { RenderOptions } from '@testing-library/react';
+import type { PreloadedState } from '@reduxjs/toolkit';
 
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { RootState, AppStore, setupStore } from 'src/store';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;

@@ -41,7 +41,6 @@ export interface IUpdateCurrentViewFulfilled {
   newView: string;
   returnToView?: string;
 }
-
 export interface IUpdateFocus {
   currentComponentId: string;
   step?: number;
