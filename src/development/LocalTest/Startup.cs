@@ -136,7 +136,7 @@ namespace LocalTest
                 // Adding custom model binders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
-            
+
             services.AddDirectoryBrowser();
 
             // Access local app details depending on LocalAppMode ("file" or "http")
@@ -156,7 +156,7 @@ namespace LocalTest
             IWebHostEnvironment env,
             IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsEnvironment("docker"))
             {
                 app.UseDeveloperExceptionPage();
 
@@ -169,7 +169,7 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),

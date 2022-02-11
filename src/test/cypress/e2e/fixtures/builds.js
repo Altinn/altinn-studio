@@ -1,7 +1,5 @@
-var faker = require('faker');
 export const builds = (status) => {
   var appBuilds = [];
-  faker.seed(100);
 
   appBuilds = {
     results: [

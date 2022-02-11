@@ -43,18 +43,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The remainder of the session in minutes</returns>
         [HttpGet]
         [Route("remaining")]
-
         public int GetRemainingSessionTime()
         {
-            HttpContext ctx = _httpContextAccessor.HttpContext;
-            ctx.Request.Cookies.TryGetValue(_settings.SessionTimeoutCookieName, out string remainingString);
+            var remainingTime = AuthenticationHelper.GetRemainingSessionTime(_httpContextAccessor.HttpContext, _settings.SessionTimeoutCookieName);
 
-            if (string.IsNullOrEmpty(remainingString) || !DateTime.TryParse(remainingString, out DateTime timeout))
-            {
-                return -1;
-            }
-
-            return (int)Math.Floor((timeout - DateTime.UtcNow).TotalMinutes);
+            return remainingTime == TimeSpan.Zero ? -1 : (int)Math.Floor(remainingTime.TotalMinutes);
         }
 
         /// <summary>

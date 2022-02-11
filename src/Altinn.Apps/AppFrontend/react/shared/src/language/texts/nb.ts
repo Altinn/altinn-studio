@@ -68,6 +68,8 @@ export function nb() {
       file_uploader_validation_error_general_1: 'Det var et problem med filen',
       file_uploader_validation_error_general_2: '. Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.',
       file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
+      file_uploader_validation_error_update: 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
+      file_uploader_validation_error_no_chosen_tag: 'Du må velge',
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
       summary_item_change: 'Endre',

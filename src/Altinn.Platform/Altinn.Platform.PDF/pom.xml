@@ -33,7 +33,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.6.2</version>
+    <version>2.6.3</version>
   </parent>
   <dependencies>
     <dependency>
@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-ui</artifactId>
-      <version>1.6.4</version>
+      <version>1.6.6</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate.validator</groupId>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-secrets</artifactId>
-      <version>4.3.5</version>
+      <version>4.3.6</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.azure</groupId>
@@ -83,7 +83,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.4.2</version>
+      <version>1.4.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

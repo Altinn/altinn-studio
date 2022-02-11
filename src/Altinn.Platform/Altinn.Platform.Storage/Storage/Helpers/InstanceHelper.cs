@@ -174,7 +174,10 @@ namespace Altinn.Platform.Storage.Helpers
             foreach (MessageBoxInstance instance in instances)
             {
                 string id = $"{instance.Org}-{instance.AppName}-{language}";
-                instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
+                string appTitle =
+                    textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("appName")).Select(r => r.Value).FirstOrDefault() ??
+                    textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault();
+                instance.Title = appTitle ?? instance.AppName;
 
                 if (!string.IsNullOrWhiteSpace(instance.PresentationText))
                 {

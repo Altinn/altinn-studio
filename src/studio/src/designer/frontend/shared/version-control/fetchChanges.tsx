@@ -48,6 +48,7 @@ class FetchChangesComponent extends React.Component<IFetchChangesComponentProps>
       <Button
         onClick={this.fetchChangesHandler}
         className={classNames(classes.clickable, classes.btn)}
+        data-testid='fetch-changes-button'
       >
         <Grid container={true} alignItems='center'>
           <Grid item={true}>

@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`features/altinnAppHeader.tsx should match snapshot 1`] = `
+<div
+  className="AltinnAppHeader-appBarWrapper-1"
+>
+  <header
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AltinnAppHeader-default-4 MuiPaper-elevation4"
+  >
+    <div
+      className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-12 MuiToolbar-gutters"
+    >
+      <div
+        className="MuiGrid-root AltinnAppHeader-logo-9 MuiGrid-item"
+        style={Object {}}
+      >
+        <img
+          alt="Altinn logo"
+          className="logo"
+          id="logo"
+          src="https://altinncdn.no/img/Altinn-logo-blue.svg"
+        />
+      </div>
+      <ul
+        className="AltinnAppHeader-headerLinkList-6"
+      >
+        <li
+          className="AltinnAppHeader-headerLink-5"
+        >
+          <a
+            href="/ui/Reportee/ChangeReporteeAndRedirect?goTo=/ui/messagebox&R=123456"
+          >
+            instantiate.inbox
+          </a>
+        </li>
+        <li
+          className="AltinnAppHeader-headerLink-5"
+        >
+          <a
+            href="/skjemaoversikt"
+          >
+            instantiate.all_forms
+          </a>
+        </li>
+        <li
+          className="AltinnAppHeader-headerLink-5"
+        >
+          <a
+            href="/ui/Reportee/ChangeReporteeAndRedirect?goTo=/ui/profile&R=123456"
+          >
+            instantiate.profile
+          </a>
+        </li>
+      </ul>
+      <div
+        className="a-personSwitcher"
+        title="OLA PRIVATPERSON"
+      >
+        <span
+          className="a-personSwitcher-name"
+          style={
+            Object {
+              "marginBottom": "10px",
+            }
+          }
+        >
+          <span
+            className="d-block"
+          />
+        </span>
+        <i
+          aria-hidden="true"
+          className="fa fa-private-circle-big AltinnAppHeader-partyIcon-11 AltinnAppHeader-blueDark-2"
+        />
+      </div>
+    </div>
+  </header>
+</div>
+`;

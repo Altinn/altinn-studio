@@ -12,7 +12,6 @@ export interface IShareChangesComponentProps {
   hasMergeConflict: boolean;
   hasPushRight: boolean;
   language: any;
-  moreThanAnHourSinceLastPush: boolean;
   shareChanges: any;
 }
 

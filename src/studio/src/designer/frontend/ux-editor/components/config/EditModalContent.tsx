@@ -21,6 +21,7 @@ import { ImageComponent } from './ImageComponent';
 import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelect from './HeaderSizeSelect';
 import { ComponentTypes } from '../index';
+import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
 
 const styles = {
   gridItem: {
@@ -211,7 +212,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleValidFileEndingsChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
+    const component = (this.props.component as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent);
     component.validFileEndings = event.target.value;
     this.setState({
       component,
@@ -230,7 +231,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleMaxFileSizeInMBChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
+    const component = (this.props.component as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent);
     const value = parseInt(event.target.value, 10);
     component.maxFileSizeInMB = (value >= 0) ? value : 0;
     this.setState({
@@ -240,7 +241,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
+    const component = (this.props.component as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent);
     const value = parseInt(event.target.value, 10);
     if (type === 'max') {
       component.maxNumberOfAttachments = (value >= 1) ? value : 1;
@@ -293,7 +294,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleHasCustomFileEndingsChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
+    const component = (this.props.component as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent);
     component.hasCustomFileEndings = (event.target.value === 'true');
     if (!component.hasCustomFileEndings) {
       component.validFileEndings = undefined;
@@ -749,6 +750,28 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 )}
               </Typography>
             </Grid>
+          </Grid>
+        );
+      }
+
+      case ComponentTypes.FileUploadWithTag: {
+        return (
+          <Grid>
+            {this.renderChangeId()}
+            <FileUploadWithTagComponent
+              component={this.props.component as IFormFileUploaderWithTagComponent}
+              stateComponent={this.state.component}
+              language={this.props.language}
+              textResources={this.props.textResources}
+              handleComponentUpdate={this.props.handleComponentUpdate}
+              handleTitleChange={this.handleTitleChange}
+              handleDescriptionChange={this.handleDescriptionChange}
+              handleOptionsIdChange={this.handleOptionsIdChange}
+              handleNumberOfAttachmentsChange={this.handleNumberOfAttachmentsChange}
+              handleMaxFileSizeInMBChange={this.handleMaxFileSizeInMBChange}
+              handleHasCustomFileEndingsChange={this.handleHasCustomFileEndingsChange}
+              handleValidFileEndingsChange={this.handleValidFileEndingsChange}
+              />
           </Grid>
         );
       }

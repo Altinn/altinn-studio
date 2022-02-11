@@ -25,6 +25,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _contextHandler = new ContextHandler(
                 new InstanceMetadataRepositoryMock(),
                 new RolesMock(),
+                new PartiesMock(),
                 new MemoryCache(new MemoryCacheOptions()),
                 Options.Create(new GeneralSettings { RoleCacheTimeout = 5 }));
         }

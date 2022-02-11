@@ -4,7 +4,6 @@
 import { dashboard } from '../../pageobjects/dashboard';
 import { header } from '../../pageobjects/header';
 import Common from '../../pageobjects/common';
-import { repos } from '../../fixtures/repo';
 
 const common = new Common();
 
@@ -12,13 +11,15 @@ context('Dashboard', () => {
   beforeEach(() => {
     cy.visit('/');
     cy.intercept('GET', '**/repos/search**').as('fetchApps');
-    cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
+    if (Cypress.env('environment') == 'local') cy.studiologin(Cypress.env('adminUser'), Cypress.env('adminPwd'));
+    if (Cypress.env('environment') != 'local')
+      cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
     cy.get(dashboard.searchApp).should('be.visible');
     cy.wait('@fetchApps').its('response.statusCode').should('eq', 200);
   });
 
   it('is possible to view apps, add and remove favourites', () => {
-    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
+    var createdBy = Cypress.env('environment') == 'local' ? Cypress.env('adminUser') : Cypress.env('autoTestUser');
     cy.intercept('PUT', '**/designer/api/v1/user/starred/**').as('addFavourite');
     cy.contains('h2', 'Mine applikasjoner')
       .siblings()
@@ -31,7 +32,7 @@ context('Dashboard', () => {
           .first()
           .then((app) => {
             cy.get(app).children(dashboard.apps.name).invoke('text').should('not.be.empty');
-            cy.get(app).children(dashboard.apps.createdBy).should('have.text', Cypress.env('autoTestUser'));
+            cy.get(app).children(dashboard.apps.createdBy).should('have.text', createdBy);
             cy.get(app).children(dashboard.apps.updatedAt).invoke('text').should('not.be.empty');
           });
       });
@@ -47,7 +48,6 @@ context('Dashboard', () => {
   });
 
   it('is possible to change context and view all apps', () => {
-    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
     cy.get(header.profileIcon).should('be.visible').click();
     cy.get(header.menu.all).should('be.visible').click();
     cy.wait('@fetchApps');
@@ -55,7 +55,6 @@ context('Dashboard', () => {
   });
 
   it('is possible to search an app by name', () => {
-    if (Cypress.env('environment') == 'local') cy.intercept('GET', '**/user/repos', repos(10));
     cy.get(dashboard.searchApp).type('auto');
     cy.wait('@fetchApps');
     cy.contains('h2', 'Søkeresultat')
