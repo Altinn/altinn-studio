@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-
+using System.Threading.Tasks;
 using Altinn.App;
+using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -81,6 +83,8 @@ namespace App.IntegrationTests.Utils
                     {
                         services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
                     }
+
+                    services.AddTransient<IInstanceAppOptionsProvider, InstanceAppOptionsProviderStub>();
 
                     switch (app)
                     {
@@ -178,6 +182,29 @@ namespace App.IntegrationTests.Utils
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
+        }
+
+        public class InstanceAppOptionsProviderStub : IInstanceAppOptionsProvider
+        {
+            public string Id => "answers";
+
+            public Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string language, Dictionary<string, string> keyValuePairs)
+            {
+                var appOptions = new AppOptions()
+                {
+                    IsCacheable = false,
+                    Options = new List<AppOption>()
+                    {
+                        new AppOption()
+                        {
+                            Value = "42",
+                            Label = "The answer to life the universe and everything"
+                        }
+                    }
+                };
+
+                return Task.FromResult(appOptions);
+            }
         }
     }
 }

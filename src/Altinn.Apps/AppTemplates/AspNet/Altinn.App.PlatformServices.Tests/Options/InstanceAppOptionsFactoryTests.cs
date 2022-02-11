@@ -14,9 +14,9 @@ namespace Altinn.App.PlatformServices.Tests.Options
         [Fact]
         public void GetOptionsProvider_NoCustomOptionsProvider_ShouldReturnDefault()
         {
-            var factory = new InstanceAppOptionsFactory(new List<IInstanceAppOptionsProvider>());
+            var factory = new InstanceAppOptionsFactory(new List<IInstanceAppOptionsProvider>() { new VehiclesInstanceAppOptionsProvider() });
 
-            IInstanceAppOptionsProvider optionsProvider = factory.GetOptionsProvider("cars");
+            IInstanceAppOptionsProvider optionsProvider = factory.GetOptionsProvider("not-vehicles");
 
             optionsProvider.Should().BeOfType<NullInstanceAppOptionsProvider>();
         }
