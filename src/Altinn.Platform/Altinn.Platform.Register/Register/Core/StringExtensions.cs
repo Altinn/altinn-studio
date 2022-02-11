@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Globalization;
 using System.Text;
@@ -38,30 +39,33 @@ namespace Altinn.Platform.Register.Core
         /// <returns>The normalized text.</returns>
         public static string RemoveDiacritics(this string text)
         {
-            string normalizedText = string.Empty;
-            StringBuilder stringBuilder = new StringBuilder();
+            string normalizedText;
 
             // Å is not a special character in Norwegian hence handling this character differently
             if (text.ToUpper().Contains('Å'))
             {
+                StringBuilder firstPassBuilder = new StringBuilder();
                 foreach (char ch in text)
                 {
                     if (ch == 'Å' || ch == 'å')
                     {
                         // NormalizationForm C doesn't convert Å to A
-                        normalizedText += ch.ToString().Normalize(NormalizationForm.FormC);
+                        firstPassBuilder.Append(ch.ToString().Normalize(NormalizationForm.FormC));
                     }
                     else
                     {
-                        normalizedText += ch.ToString().Normalize(NormalizationForm.FormD);
+                        firstPassBuilder.Append(ch.ToString().Normalize(NormalizationForm.FormD));
                     }
                 }
+
+                normalizedText = firstPassBuilder.ToString();
             }
             else
             {
                 normalizedText = text.Normalize(NormalizationForm.FormD);
             }
 
+            StringBuilder secondPassBuilder = new StringBuilder();
             foreach (char ch in normalizedText)
             {
                 // Unicode information of the characters, e.g. Uppercase, Lowercase, NonSpacingMark, etc.
@@ -70,11 +74,11 @@ namespace Altinn.Platform.Register.Core
                 if (unicode != UnicodeCategory.NonSpacingMark)
                 {
                     // StringBuilder is appended with the characters that are not diacritics
-                    stringBuilder.Append(ch);
+                    secondPassBuilder.Append(ch);
                 }
             }
 
-            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+            return secondPassBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
     }
 }
