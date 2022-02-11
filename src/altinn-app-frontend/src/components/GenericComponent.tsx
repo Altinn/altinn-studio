@@ -1,22 +1,22 @@
-import * as React from 'react';
+import React from 'react';
 import { shallowEqual } from 'react-redux';
-import { getTextResourceByKey } from 'altinn-shared/utils';
-import {
-  ILabelSettings,
-  Triggers,
-  IComponentValidations
-} from 'src/types';
-
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
-import components, { IComponentProps } from '.';
-import FormDataActions from '../features/form/data/formDataActions';
-import {
+
+import type { IComponentProps } from '.';
+import type { ILanguage } from 'altinn-shared/types';
+import type { ILabelSettings, IComponentValidations } from 'src/types';
+import type {
   IDataModelBindings,
   IGrid,
   IGridStyling,
   ITextResourceBindings,
 } from '../features/form/layout';
+
+import components from '.';
+import { getTextResourceByKey } from 'altinn-shared/utils';
+import { Triggers } from 'src/types';
+import FormDataActions from '../features/form/data/formDataActions';
 import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
@@ -34,7 +34,6 @@ import {
 import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { ILanguage } from 'altinn-shared/types';
 
 export interface IGenericComponentProps {
   id: string;
@@ -91,31 +90,31 @@ export function GenericComponent(props: IGenericComponentProps) {
     React.useState(false);
 
   const formData = useAppSelector(
-    state =>
+    (state) =>
       getFormDataForComponent(state.formData.formData, props.dataModelBindings),
     shallowEqual,
   );
   const currentView = useAppSelector(
-    state => state.formLayout.uiConfig.currentView,
+    (state) => state.formLayout.uiConfig.currentView,
   );
-  const isValid = useAppSelector(state =>
+  const isValid = useAppSelector((state) =>
     isComponentValid(
       state.formValidations.validations[currentView]?.[props.id],
     ),
   );
-  const language = useAppSelector(state => state.language.language);
-  const textResources = useAppSelector(state => state.textResources.resources);
-  const texts = useAppSelector(state =>
-    selectComponentTexts(
-      state.textResources.resources,
-      props.textResourceBindings,
-    ),
+  const language = useAppSelector((state) => state.language.language);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
   );
-  const hidden = useAppSelector(state => props.hidden || GetHiddenSelector(state, props));
-  const shouldFocus = useAppSelector(state => GetFocusSelector(state, props));
+
+  const texts = selectComponentTexts(textResources, props.textResourceBindings);
+
+  const hidden = useAppSelector(
+    (state) => props.hidden || GetHiddenSelector(state, props),
+  );
+  const shouldFocus = useAppSelector((state) => GetFocusSelector(state, props));
   const componentValidations = useAppSelector(
-    state =>
-      state.formValidations.validations[currentView]?.[props.id],
+    (state) => state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
   );
 
@@ -200,10 +199,13 @@ export function GenericComponent(props: IGenericComponentProps) {
     (componentCandidate) => componentCandidate.name === props.type,
   );
   if (!RenderComponent) {
-    return <div>
-      Unknown component type: {props.type}<br />
-      Valid component types: {components.map(c=>c.name).join(', ')}
-    </div>;
+    return (
+      <div>
+        Unknown component type: {props.type}
+        <br />
+        Valid component types: {components.map((c) => c.name).join(', ')}
+      </div>
+    );
   }
 
   const RenderLabel = () => {
@@ -219,9 +221,10 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const RenderDescription = () => {
     // eslint-disable-next-line react/prop-types
-    if (!props.textResourceBindings.description) {
+    if (!props.textResourceBindings?.description) {
       return null;
     }
+
     return (
       <Description
         // eslint-disable-next-line react/prop-types
@@ -268,7 +271,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return getTextResourceByKey(key, textResources);
   };
 
-  const componentProps:IComponentProps = {
+  const componentProps: IComponentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
     getTextResource: getTextResourceWrapper,
@@ -284,7 +287,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     ...passThroughProps,
   };
 
-  const noLabelComponents: string[] = [
+  const noLabelComponents = [
     'Header',
     'Paragraph',
     'Image',
@@ -295,7 +298,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     'Checkboxes',
     'RadioButtons',
     'AttachmentList',
-    'InstantiationButton'
+    'InstantiationButton',
+    'NavigationBar',
   ];
 
   return (
@@ -308,9 +312,12 @@ export function GenericComponent(props: IGenericComponentProps) {
       lg={props.grid?.lg || false}
       xl={props.grid?.xl || false}
       key={`grid-${props.id}`}
-      className={
-        classNames('form-group', 'a-form-group', classes.container, gridToHiddenProps(props.grid?.labelGrid, classes))
-      }
+      className={classNames(
+        'form-group',
+        'a-form-group',
+        classes.container,
+        gridToHiddenProps(props.grid?.labelGrid, classes),
+      )}
       alignItems='baseline'
     >
       {!noLabelComponents.includes(props.type) && (
@@ -343,7 +350,10 @@ export function GenericComponent(props: IGenericComponentProps) {
       >
         <RenderComponent.Tag {...componentProps} />
 
-        {componentValidationsHandledByGenericComponent(props.dataModelBindings, props.type) &&
+        {componentValidationsHandledByGenericComponent(
+          props.dataModelBindings,
+          props.type,
+        ) &&
           hasValidationMessages &&
           renderValidationMessagesForComponent(
             componentValidations?.simpleBinding,
@@ -374,7 +384,10 @@ const RenderLabelScoped = (props: IRenderLabelProps) => {
   );
 };
 
-const gridToHiddenProps = (labelGrid: IGridStyling, classes: ReturnType<typeof useStyles>) => {
+const gridToHiddenProps = (
+  labelGrid: IGridStyling,
+  classes: ReturnType<typeof useStyles>,
+) => {
   if (!labelGrid) return undefined;
   return {
     [classes.xs]: labelGrid.xs > 0 && labelGrid.xs < 12,

@@ -55,7 +55,7 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
   return parsedText;
 };
 
-const removeStyling = (node: any): React.ReactElement | void | null => {
+export const removeStyling = (node: any): React.ReactElement | void | null => {
   // all this does is remove the default styling of the <p> element, which is causing styling issues
   if (node.name === 'p') {
     return React.createElement(
