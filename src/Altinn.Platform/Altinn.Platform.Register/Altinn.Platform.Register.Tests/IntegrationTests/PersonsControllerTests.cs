@@ -156,6 +156,37 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
         }
 
+        [Fact]
+        public async Task GetPerson_CallAsOrg_OutcomeForbidden()
+        {
+            // Arrange
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                Party party = new Party { Person = new Person { LastName = "làstnâme" } };
+                return await CreateHttpResponseMessage(party);
+            });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
+
+            string token = PrincipalUtil.GetOrgToken("ttd");
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(testRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
         private static async Task<HttpResponseMessage> CreateHttpResponseMessage(object obj)
         {
             string content = JsonSerializer.Serialize(obj);
