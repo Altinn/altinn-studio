@@ -137,14 +137,7 @@ namespace Altinn.Platform.Authorization.Repositories
         public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<int> offeredByPartyIds, List<string> altinnAppIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
         {
             List<DelegationChange> delegationChanges = new List<DelegationChange>();
-            if (offeredByPartyIds == null)
-            {
-                throw new ArgumentNullException(nameof(offeredByPartyIds));
-            }
-            else if (offeredByPartyIds.Count == 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offeredByPartyIds));
-            }
+            CheckIfOfferedbyPartyIdsHasValue(offeredByPartyIds);
 
             if (coveredByPartyIds == null && coveredByUserIds == null)
             {
@@ -164,6 +157,18 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             return delegationChanges;
+        }
+
+        private static void CheckIfOfferedbyPartyIdsHasValue(List<int> offeredByPartyIds)
+        {
+            if (offeredByPartyIds == null)
+            {
+                throw new ArgumentNullException(nameof(offeredByPartyIds));
+            }
+            else if (offeredByPartyIds.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offeredByPartyIds));
+            }
         }
 
         private static DelegationChange GetDelegationChange(NpgsqlDataReader reader)
