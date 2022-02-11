@@ -45,6 +45,11 @@ const render = (props: Partial<IDropdownProps> = {}) => {
       optionState: {
         options: {
           countries,
+          loadingOptions: {
+            id: 'loadingOptions',
+            options: undefined,
+            loading: true
+          },
         },
         error: {
           name: '',
@@ -115,5 +120,21 @@ describe('components/base/DropdownComponent', () => {
 
     expect(handleDataChange).toHaveBeenCalledWith('denmark');
     expect(handleDataChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('should show spinner while waiting for options', () => {
+    render({
+      optionsId: 'loadingOptions'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+  });
+
+  it('should not show spinner when options are present', () => {
+    render({
+      optionsId: 'countries'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 });

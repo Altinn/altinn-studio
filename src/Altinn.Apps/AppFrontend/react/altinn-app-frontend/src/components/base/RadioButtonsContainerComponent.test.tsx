@@ -44,7 +44,12 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
           countries: {
             id: 'countries',
             options: countriesOptions,
-          }
+          },
+          loadingOptions: {
+            id: 'loadingOptions',
+            options: undefined,
+            loading: true
+          },
         },
         error: {
           name: '',
@@ -151,5 +156,21 @@ describe('RadioButtonsContainerComponent', () => {
     fireEvent.blur(getRadio({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('');
+  });
+
+  it('should show spinner while waiting for options', () => {
+    render({
+      optionsId: 'loadingOptions'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+  });
+
+  it('should not show spinner when options are present', () => {
+    render({
+      optionsId: 'countries'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 });

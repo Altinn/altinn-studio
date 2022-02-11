@@ -7,13 +7,27 @@ export interface IFetchOptionsFulfilledAction extends Action {
   optionData: IOptionData;
 }
 
+export interface IFetchingOptionsAction extends Action {
+  optionsKey: string;
+}
+
 export interface IFetchOptionsRejectedAction extends Action {
-  error: Error,
+  optionsKey: string;
+  error: Error;
 }
 
 export function fetchOptions(): Action {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS,
+  };
+}
+
+export function fetchingOptions(
+  optionsKey: string
+): IFetchingOptionsAction {
+  return {
+    type: fetchOptionsActionTypes.FETCHING_OPTION,
+    optionsKey,
   };
 }
 
@@ -29,10 +43,12 @@ export function fetchOptionsFulfilled(
 }
 
 export function fetchOptionsRejected(
+  optionsKey: string,
   error: Error,
 ): IFetchOptionsRejectedAction {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS_REJECTED,
+    optionsKey,
     error,
   };
 }

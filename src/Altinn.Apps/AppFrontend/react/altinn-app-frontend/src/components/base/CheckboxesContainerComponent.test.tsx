@@ -46,6 +46,11 @@ const render = (props: Partial<ICheckboxContainerProps> = {}) => {
             id: 'countries',
             options: countriesOptions
           },
+          loadingOptions: {
+            id: 'loadingOptions',
+            options: undefined,
+            loading: true
+          },
         },
         error: {
           name: '',
@@ -204,5 +209,21 @@ describe('CheckboxContainerComponent', () => {
     userEvent.click(getCheckbox({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('denmark');
+  });
+
+  it('should show spinner while waiting for options', () => {
+    render({
+      optionsId: 'loadingOptions'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+  });
+
+  it('should not show spinner when options are present', () => {
+    render({
+      optionsId: 'countries'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { fork, call, select, takeLatest, takeEvery } from 'redux-saga/effects';
 import { IRuntimeState, IOption, IFetchSpecificOptionSaga, IOptionData, IOptions } from 'src/types';
-import { ILayouts } from 'src/features/form/layout';
+import { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/appUrlHelper';
 import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
@@ -21,27 +21,23 @@ export const userLanguageSelector = (state: IRuntimeState) =>
 export const optionsSelector = (state: IRuntimeState): IOptions => state.optionState.options;
 
 export function* fetchOptionsSaga(): SagaIterator {
-  try {
-    const layouts: ILayouts = yield select(formLayoutSelector);
-    const fetchedOptions: string[] = [];
-    for (const layoutId of Object.keys(layouts)) {
-      for (const element of layouts[layoutId]) {
-        const component = element as any;
+  const layouts: ILayouts = yield select(formLayoutSelector);
+  const fetchedOptions: string[] = [];
+  for (const layoutId of Object.keys(layouts)) {
+    for (const element of layouts[layoutId]) {
+      const component = element as ISelectionComponentProps;
 
-        if (
-          component.optionsId &&
-          fetchedOptions.indexOf(component.optionsId) === -1
-        ) {
-          yield fork(fetchSpecificOptionSaga, {
-            optionsId: component.optionsId,
-            dataMapping: component?.mapping,
-          });
-          fetchedOptions.push(component.optionsId);
-        }
+      if (
+        component.optionsId &&
+        fetchedOptions.indexOf(component.optionsId) === -1
+      ) {
+        yield fork(fetchSpecificOptionSaga, {
+          optionsId: component.optionsId,
+          dataMapping: component?.mapping,
+        });
+        fetchedOptions.push(component.optionsId);
       }
     }
-  } catch (error) {
-    yield call(OptionsActions.fetchOptionsRejected, error);
   }
 }
 
@@ -49,7 +45,9 @@ export function* fetchSpecificOptionSaga({
   optionsId,
   dataMapping,
 }: IFetchSpecificOptionSaga): SagaIterator {
+  const optionKey = getOptionLookupKey(optionsId, dataMapping);
   try {
+    yield call(OptionsActions.fetchingOptions, optionKey);
     const formData: IFormData = yield select(formDataSelector);
     const language: string = yield select(userLanguageSelector);
     const url = getOptionsUrl({ optionsId, formData, language, dataMapping });
@@ -59,10 +57,9 @@ export function* fetchSpecificOptionSaga({
       options,
       mapping: dataMapping,
     };
-    const optionKey = getOptionLookupKey(optionsId, dataMapping);
     yield call(OptionsActions.fetchOptionsFulfilled, optionKey, optionData);
   } catch (error) {
-    yield call(OptionsActions.fetchOptionsRejected, error);
+    yield call(OptionsActions.fetchOptionsRejected, optionKey, error);
   }
 }
 

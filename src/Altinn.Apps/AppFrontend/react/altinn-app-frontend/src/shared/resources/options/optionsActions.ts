@@ -6,19 +6,24 @@ import * as FetchOptions from './fetch/fetchOptionsActions';
 
 export interface IOptionsActions extends ActionCreatorsMapObject {
   fetchOptions: () => Action;
+  fetchingOptions: (
+    optionsKey: string,
+  ) => FetchOptions.IFetchingOptionsAction;
   fetchOptionsFulfilled: (
-    optionsId: string,
+    optionsKey: string,
     optionData: IOptionData,
   ) => FetchOptions.IFetchOptionsFulfilledAction;
-  fetchOptionsRecjeted: (
+  fetchOptionsRejected: (
+    optionsKey: string,
     error: Error,
   ) => FetchOptions.IFetchOptionsRejectedAction;
 }
 
 const actions: IOptionsActions = {
   fetchOptions: FetchOptions.fetchOptions,
+  fetchingOptions: FetchOptions.fetchingOptions,
   fetchOptionsFulfilled: FetchOptions.fetchOptionsFulfilled,
-  fetchOptionsRecjeted: FetchOptions.fetchOptionsRejected,
+  fetchOptionsRejected: FetchOptions.fetchOptionsRejected,
 };
 
 const optionsActions: IOptionsActions = bindActionCreators<any, any>(actions, store.dispatch);

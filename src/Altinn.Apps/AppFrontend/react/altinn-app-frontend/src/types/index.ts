@@ -207,6 +207,7 @@ export interface IOptionData {
   options: IOption[];
   id: string;
   mapping?: IMapping;
+  loading?: boolean;
 }
 
 export interface IRepeatingGroup {

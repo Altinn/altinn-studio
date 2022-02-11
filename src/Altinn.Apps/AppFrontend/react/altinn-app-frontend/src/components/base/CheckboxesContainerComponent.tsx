@@ -11,6 +11,7 @@ import type { IOption, IComponentValidations, IMapping } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
+import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
@@ -96,6 +97,9 @@ export const CheckboxContainerComponent = ({
   const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
+  const fetchingOptions = useAppSelector(
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+  );
 
   const selected =
     formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
@@ -120,12 +124,12 @@ export const CheckboxContainerComponent = ({
   ]);
 
   React.useEffect(() => {
-    if (optionsHasChanged) {
+    if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
       // We also skip any required validations
-      handleDataChange(null, 'simpleBinding', true);
+      handleDataChange(undefined, 'simpleBinding', true);
     }
-  }, [handleDataChange, optionsHasChanged]);
+  }, [handleDataChange, optionsHasChanged, formData]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const clickedItem = event.target.name;
@@ -153,32 +157,36 @@ export const CheckboxContainerComponent = ({
         <RenderLegend />
       </FormLabel>
       <FormGroup row={checkBoxesIsRow} id={id} key={`checkboxes_group_${id}`}>
-        {calculatedOptions.map((option, index) => (
-          <React.Fragment key={option.value}>
-            <FormControlLabel
-              key={option.value}
-              classes={{ root: cn(classes.margin) }}
-              control={
-                <StyledCheckbox
-                  checked={isOptionSelected(option.value)}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={index}
+        {fetchingOptions ? <AltinnSpinner /> :
+          <>
+            {calculatedOptions.map((option, index) => (
+              <React.Fragment key={option.value}>
+                <FormControlLabel
                   key={option.value}
-                  name={option.value}
-                  label={getTextResourceAsString(option.label)}
+                  classes={{ root: cn(classes.margin) }}
+                  control={
+                    <StyledCheckbox
+                      checked={isOptionSelected(option.value)}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      value={index}
+                      key={option.value}
+                      name={option.value}
+                      label={getTextResourceAsString(option.label)}
+                    />
+                  }
+                  label={getTextResource(option.label)}
                 />
-              }
-              label={getTextResource(option.label)}
-            />
-            {validationMessages &&
-              isOptionSelected(option.value) &&
-              renderValidationMessagesForComponent(
-                validationMessages.simpleBinding,
-                id,
-              )}
-          </React.Fragment>
-        ))}
+                {validationMessages &&
+                  isOptionSelected(option.value) &&
+                  renderValidationMessagesForComponent(
+                    validationMessages.simpleBinding,
+                    id,
+                  )}
+              </React.Fragment>
+            ))}
+          </>
+        }
       </FormGroup>
     </FormControl>
   );
