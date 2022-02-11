@@ -1,8 +1,7 @@
-using System.Linq;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -14,10 +13,9 @@ using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Tests.IntegrationTests.Utils;
 using Altinn.Platform.Register.Tests.Mocks;
 using Altinn.Platform.Register.Tests.Utils;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 
-using Moq;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Caching.Memory;
 
 using Xunit;
 
@@ -54,20 +52,16 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
-            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
-            httpRequestMessage.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
-            httpRequestMessage.Headers.Add("X-Ai-LastName", "lastname");
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+            testRequest.Headers.Add("X-Ai-LastName", "lastname");
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await client.SendAsync(testRequest);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            Party actual = await response.Content.ReadFromJsonAsync<Party>();
-
-            Assert.NotNull(actual);
         }
 
         [Fact]
@@ -79,19 +73,87 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
-            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
-            httpRequestMessage.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await client.SendAsync(testRequest);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-            ValidationProblemDetails actual = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            string content = await response.Content.ReadAsStringAsync();
 
-            Assert.NotNull(actual);
+            Assert.Contains("X-Ai-LastName", content);
+        }
+
+        [Fact]
+        public async Task GetPersonPartyAsync_InvalidInput_ReturnsNotFound()
+        {
+            // Arrange
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                Party party = new Party { Person = new Person { LastName = "låstnâme" } };
+                return await CreateHttpResponseMessage(party);
+            });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
+
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(testRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetPersonPartyAsync_TooManyAttempts_OutcomeTooManyRequests()
+        {
+            // Arrange
+            HttpRequestMessage sblRequest = null;
+            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                sblRequest = request;
+
+                Party party = new Party { Person = new Person { LastName = "làstnâme" } };
+                return await CreateHttpResponseMessage(party);
+            });
+            _webApplicationFactorySetup.SblBridgeHttpMessageHandler = messageHandler;
+
+            MemoryCacheEntryOptions options = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
+            };
+            _webApplicationFactorySetup.MemoryCache.Set("Person-Lookup-Failed-Attempts1", 44, options);
+
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+            testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
+            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(testRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
         }
 
         private static async Task<HttpResponseMessage> CreateHttpResponseMessage(object obj)

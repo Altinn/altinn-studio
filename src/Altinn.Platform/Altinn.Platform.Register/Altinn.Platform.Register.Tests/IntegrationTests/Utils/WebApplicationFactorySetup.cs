@@ -45,8 +45,9 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests.Utils
                 {
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
+                    services.AddSingleton<IMemoryCache>(MemoryCache);
 
-                    // Using the real/actual implementation of IUserProfiles, but with a mocked message handler.
+                    // Using the real/actual implementation of IParties, but with a mocked message handler.
                     // Haven't found any other ways of injecting a mocked message handler to simulate SBL Bridge.
                     services.AddSingleton<IParties>(
                         new PartiesWrapper(
