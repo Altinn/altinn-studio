@@ -106,17 +106,14 @@ function Receipt(props: WithStyles<typeof styles>) {
     window.location.href = returnUrlToMessagebox(window.location.origin);
   };
 
-  const isLoading = (): boolean => {
-    return (
-      !party ||
-      !instance ||
-      !organisations ||
-      !application ||
-      !language ||
-      !user ||
-      !textResources
-    );
-  };
+  const isLoading =
+    !party ||
+    !instance ||
+    !organisations ||
+    !application ||
+    !language ||
+    !user ||
+    !textResources;
 
   React.useEffect(() => {
     const appAbortController = new AbortController();
@@ -291,8 +288,9 @@ function Receipt(props: WithStyles<typeof styles>) {
         closeButtonOutsideModal={true}
         headerText={getLanguageFromKey('receipt_platform.receipt', language)}
       >
-        {isLoading() && <AltinnContentLoader />}
-        {!isLoading() && (
+        {isLoading ? (
+          <AltinnContentLoader />
+        ) : (
           <AltinnReceipt
             title={getTitle()}
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
