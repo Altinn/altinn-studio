@@ -68,6 +68,8 @@ export function en() {
       file_uploader_validation_error_general_1: 'There was a problem with the file',
       file_uploader_validation_error_general_2: '. Make sure the file has correct file type and does not exeed the size limit.',
       file_uploader_validation_error_upload: 'Something went wrong trying to upload the file, please try again.',
+      file_uploader_validation_error_update: 'Something went wrong trying to update the filetag, please try again.',
+      file_uploader_validation_error_no_chosen_tag: 'You have to choose one',
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
       summary_item_change: 'Change',

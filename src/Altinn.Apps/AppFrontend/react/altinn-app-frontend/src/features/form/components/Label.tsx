@@ -22,26 +22,24 @@ export default function Label(props: IFormLabelProps) {
   }
 
   return (
-    <Grid
-      item={true}
-      container={true}
-      xs={12}
-    >
+    <Grid item={true} container={true} xs={12}>
       <Grid item={true}>
         <label
           className='a-form-label title-label'
           htmlFor={props.id}
+          data-testid={`label-${props.id}`}
         >
           {props.labelText}
-          {(props.labelSettings?.optionalIndicator === false || props.required || props.readOnly) ?
-            null :
+          {props.labelSettings?.optionalIndicator === false ||
+          props.required ||
+          props.readOnly ? null : (
             <span className='label-optional'>
               {` (${getLanguageFromKey('general.optional', props.language)})`}
             </span>
-          }
+          )}
         </label>
       </Grid>
-      {props.helpText &&
+      {props.helpText && (
         <Grid item={true}>
           <HelpTextContainer
             language={props.language}
@@ -49,7 +47,7 @@ export default function Label(props: IFormLabelProps) {
             helpText={props.helpText}
           />
         </Grid>
-      }
+      )}
     </Grid>
   );
 }

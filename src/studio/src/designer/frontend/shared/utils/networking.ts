@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export async function get(url: string, options?: any): Promise<any> {
+export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
   const response: AxiosResponse = await axios.get(
     url,
     options || null,

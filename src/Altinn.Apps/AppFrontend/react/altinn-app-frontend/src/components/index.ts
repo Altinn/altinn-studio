@@ -4,7 +4,8 @@ import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import DatepickerComponent from './base/DatepickerComponent';
 import DropdownComponent from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
+import { FileUploadComponent } from './base/FileUpload/FileUploadComponent';
+import { FileUploadWithTagComponent } from './base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
@@ -12,6 +13,7 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
+import { NavigationBar } from './base/NavigationBar';
 import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
 import { IGenericComponentProps } from './GenericComponent';
 import { IComponentFormData } from 'src/utils/formComponentUtils';
@@ -37,12 +39,14 @@ export enum ComponentTypes {
   RadioButton,
   TextArea,
   FileUpload,
+  FileUploadWithTag,
   Button,
   Group,
   AddressComponent,
   NavigationButtons,
   InstantiationButton,
   AttachmentList,
+  NavigationBar,
 }
 
 export const textComponents: IComponent[] = [
@@ -126,6 +130,11 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.FileUpload,
   },
   {
+    name: 'FileUploadWithTag',
+    Tag: FileUploadWithTagComponent,
+    Type: ComponentTypes.FileUploadWithTag,
+  },
+  {
     name: 'Button',
     Tag: ButtonComponent,
     Type: ComponentTypes.Button,
@@ -144,6 +153,11 @@ export const schemaComponents: IComponent[] = [
     name: 'AttachmentList',
     Tag: AttachmentListComponent,
     Type: ComponentTypes.AttachmentList,
+  },
+  {
+    name: 'NavigationBar',
+    Tag: NavigationBar,
+    Type: ComponentTypes.NavigationBar,
   },
 ];
 

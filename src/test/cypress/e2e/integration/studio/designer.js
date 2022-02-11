@@ -12,9 +12,15 @@ context('Designer', () => {
     if (Cypress.env('environment') == 'local') {
       cy.visit('/');
       cy.studiologin(Cypress.env('autoTestUser'), Cypress.env('autoTestUserPwd'));
-      cy.createapp(Cypress.env('appOwner'), 'designer');
-      cy.get(header.profileIconDesigner).click();
-      cy.contains(header.menuItem, 'Logout').click();
+      cy.getrepo(Cypress.env('designerApp'), Cypress.env('accessToken')).then((response) => {
+        if (response.status != 200) cy.createapp(Cypress.env('appOwner'), Cypress.env('designerApp').split('/')[1]);
+      });
+      cy.visit('/');
+      cy.getrepo(Cypress.env('withoutDataModelApp'), Cypress.env('accessToken')).then((response) => {
+        if (response.status != 200)
+          cy.createapp(Cypress.env('appOwner'), Cypress.env('withoutDataModelApp').split('/')[1]);
+      });
+      cy.clearCookies();
     }
   });
   beforeEach(() => {
@@ -73,7 +79,6 @@ context('Designer', () => {
     cy.get(designer.rules.add).should('be.visible').click();
     cy.get(designer.rules.list).should('be.visible').select('sum');
     cy.get(designer.rules.paramA).parents('.col').siblings().find(designer.rules.paramValue).click();
-    cy.get(designer.rules.dataModelBinding).should('have.length.above', 0);
     cy.get(designer.submit).scrollIntoView().should('be.visible').click();
     cy.contains(common.gridItem, 'sum').should('be.visible').click();
     cy.get(designer.delete).scrollIntoView().should('be.visible').click();
@@ -89,13 +94,13 @@ context('Designer', () => {
 
   it('is possible to delete local changes of an app ', () => {
     cy.searchAndOpenApp(Cypress.env('designerApp'));
+    cy.intercept('GET', '**/GetLayoutSettings').as('getLayoutSettings');
     cy.get(designer.appMenu['edit']).click();
-    cy.intercept('GET', '**/status').as('getRepoStatus');
+    cy.wait('@getLayoutSettings');
     cy.get(designer.formComponents.shortAnswer).parents(designer.draggable).click().type('{enter}');
-    cy.wait('@getRepoStatus');
-    cy.get(designer.syncApp.push).scrollIntoView().isVisible();
+    cy.get(designer.formComponents.longAnswer).parents(designer.draggable).trigger('dragstart');
+    cy.get(designer.dragToArea).parents(designer.draggable).trigger('drop');
     cy.deleteLocalChanges(Cypress.env('designerApp'));
-    cy.get(designer.syncApp.noChanges).scrollIntoView().isVisible();
   });
 
   it('is possible details of the clone modal ', () => {
