@@ -11,6 +11,7 @@
 	{{if and .IsSigned .MustChangePassword}}
 		{{/* No links */}}
 	{{else if .IsSigned}}
+    <a class="item {{if .PageIsDashboard}}active{{end}}" href="{{AppSubUrl}}/">{{.i18n.Tr "dashboard"}}</a>
 		{{if not .UnitIssuesGlobalDisabled}}
 		<a class="item {{if .PageIsIssues}}active{{end}}" href="{{AppSubUrl}}/issues">{{.i18n.Tr "issues"}}</a>
 		{{end}}
