@@ -51,7 +51,9 @@ namespace Altinn.Platform.Register.Core
             _ = _memoryCache.TryGetValue(uniqueCacheKey, out int failedAttempts);
             if (failedAttempts >= _personLookupSettings.MaximumFailedAttempts)
             {
-                // We stop counting at max to avoid refreshing the cache timer.
+                _logger.LogInformation(
+                    "User {userId} has performed too many failed person lookup attempts.", activeUser);
+
                 throw new TooManyFailedLookupsException();
             }
 
