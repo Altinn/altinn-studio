@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION delegation.get_all_current_changes(
 	_offeredbypartyids integer[])
     RETURNS SETOF delegation.delegationchanges 
     LANGUAGE 'sql'
+    STABLE PARALLEL SAFE 
 
 AS $BODY$
 SELECT
@@ -39,6 +40,7 @@ CREATE OR REPLACE FUNCTION delegation.get_all_current_changes_coveredbypartyids(
 	_coveredbypartyids integer[])
     RETURNS SETOF delegation.delegationchanges 
     LANGUAGE 'sql'
+    STABLE PARALLEL SAFE
 
 AS $BODY$
 SELECT
@@ -74,6 +76,7 @@ CREATE OR REPLACE FUNCTION delegation.get_all_current_changes_coveredbyuserids(
 	_coveredbyuserids integer[])
     RETURNS SETOF delegation.delegationchanges 
     LANGUAGE 'sql'
+    STABLE PARALLEL SAFE 
 
 AS $BODY$
 SELECT

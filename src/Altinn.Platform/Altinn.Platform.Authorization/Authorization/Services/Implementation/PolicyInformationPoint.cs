@@ -35,7 +35,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public async Task<List<Rule>> GetRulesAsync(List<string> appIds, List<int> offeredByPartyIds, List<int> coveredByPartyIds, List<int> coveredByUserIds)
         {
             List<Rule> rules = new List<Rule>();
-            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(appIds, offeredByPartyIds, coveredByPartyIds, coveredByUserIds);
+            List<DelegationChange> delegationChanges = await _delegationRepository.GetAllCurrentDelegationChanges(offeredByPartyIds, appIds, coveredByPartyIds, coveredByUserIds);
             foreach (DelegationChange delegationChange in delegationChanges)
             {
                 if (!delegationChange.IsDeleted)

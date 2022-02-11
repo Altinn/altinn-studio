@@ -134,10 +134,19 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
+        public async Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<int> offeredByPartyIds, List<string> altinnAppIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null)
         {
             List<DelegationChange> delegationChanges = new List<DelegationChange>();
-            if ((coveredByPartyIds == null && coveredByUserIds == null) || (coveredByPartyIds?.Count > 0 && coveredByUserIds?.Count > 0))
+            if (offeredByPartyIds == null)
+            {
+                throw new ArgumentNullException(nameof(offeredByPartyIds));
+            }
+            else if (offeredByPartyIds.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offeredByPartyIds));
+            }
+
+            if (coveredByPartyIds == null && coveredByUserIds == null)
             {
                 delegationChanges.AddRange(await GetAllCurrentDelegationChangesOfferedByPartyIdOnly(altinnAppIds, offeredByPartyIds));
             }
@@ -182,8 +191,8 @@ namespace Altinn.Platform.Authorization.Repositories
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesPartyIdsSql, conn);
                 pgcom.Parameters.AddWithValue("_altinnAppIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text, altinnAppIds?.Count > 0 ? altinnAppIds : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds?.Count > 0 ? offeredByPartyIds : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_coveredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByPartyIds?.Count > 0 ? coveredByPartyIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds);
+                pgcom.Parameters.AddWithValue("_coveredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByPartyIds);
 
                 List<DelegationChange> delegationChanges = new List<DelegationChange>();
 
@@ -211,8 +220,8 @@ namespace Altinn.Platform.Authorization.Repositories
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesUserIdsSql, conn);
                 pgcom.Parameters.AddWithValue("_altinnAppIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text, altinnAppIds?.Count > 0 ? altinnAppIds : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds?.Count > 0 ? offeredByPartyIds : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_coveredByUserIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByUserIds?.Count > 0 ? coveredByUserIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds);
+                pgcom.Parameters.AddWithValue("_coveredByUserIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, coveredByUserIds);
 
                 List<DelegationChange> delegationChanges = new List<DelegationChange>();
 
@@ -240,7 +249,7 @@ namespace Altinn.Platform.Authorization.Repositories
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesOnlyOfferedBysSql, conn);
                 pgcom.Parameters.AddWithValue("_altinnAppIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text, altinnAppIds?.Count > 0 ? altinnAppIds : DBNull.Value);
-                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds?.Count > 0 ? offeredByPartyIds : DBNull.Value);
+                pgcom.Parameters.AddWithValue("_offeredByPartyIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, offeredByPartyIds);
 
                 List<DelegationChange> delegationChanges = new List<DelegationChange>();
 

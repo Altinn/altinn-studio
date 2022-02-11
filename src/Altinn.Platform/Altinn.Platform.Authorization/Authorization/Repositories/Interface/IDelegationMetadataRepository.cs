@@ -45,10 +45,10 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <summary>
         /// Gets all the current delegation change records matching the filter values
         /// </summary>
-        /// <param name="altinnAppIds">The list of AltinnApp identifier iin the format org/appname</param>
         /// <param name="offeredByPartyIds">The list of party id of the entity offering the delegated the policy</param>
+        /// <param name="altinnAppIds">The list of AltinnApp identifier iin the format org/appname</param>
         /// <param name="coveredByPartyIds">The list of party id of the entity having received the delegated policy, if the entity is an organization</param>
         /// <param name="coveredByUserIds">The list of user id of the entity having received the delegated policy, if the entity is a user</param>
-        Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<string> altinnAppIds = null, List<int> offeredByPartyIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null);
+        Task<List<DelegationChange>> GetAllCurrentDelegationChanges(List<int> offeredByPartyIds, List<string> altinnAppIds = null, List<int> coveredByPartyIds = null, List<int> coveredByUserIds = null);
     }
 }
