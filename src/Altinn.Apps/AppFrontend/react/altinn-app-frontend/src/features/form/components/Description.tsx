@@ -13,6 +13,7 @@ export default function Description(props: IDescriptionProps) {
     <span
       className='a-form-label description-label'
       id={`description-${props.id}`}
+      data-testid={`description-${props.id}`}
     >
       {props.description}
     </span>
