@@ -3,7 +3,7 @@ import { IOptionData } from 'src/types';
 import * as fetchOptionsActionTypes from './fetchOptionsActionTypes';
 
 export interface IFetchOptionsFulfilledAction extends Action {
-  optionsId: string;
+  optionsKey: string;
   optionData: IOptionData;
 }
 
@@ -18,12 +18,12 @@ export function fetchOptions(): Action {
 }
 
 export function fetchOptionsFulfilled(
-  optionsId: string,
+  optionsKey: string,
   optionData: IOptionData,
 ): IFetchOptionsFulfilledAction {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED,
-    optionsId,
+    optionsKey,
     optionData,
   };
 }

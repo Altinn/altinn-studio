@@ -6,6 +6,7 @@ import { IRuntimeState } from 'src/types';
 import { IAttachment } from 'src/shared/resources/attachments';
 import { ISelectionComponentProps } from 'src/features/form/layout';
 import { EditButton } from './EditButton';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;
@@ -45,7 +46,7 @@ export function AttachmentWithTagSummaryComponent(props: IAttachmentWithTagSumma
   const attachments: IAttachment[] =
     useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.component.optionsId]?.options);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[getOptionLookupKey(props.component.optionsId, props.component.mapping)]?.options);
 
   return (
     <>

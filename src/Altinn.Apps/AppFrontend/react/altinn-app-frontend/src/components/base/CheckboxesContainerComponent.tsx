@@ -6,16 +6,18 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
-import type { IOption, IComponentValidations } from 'src/types';
+import type { IOption, IComponentValidations, IMapping } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
   options: IOption[];
   optionsId: string;
   preselectedOptionIndex?: number;
+  mapping?: IMapping;
 }
 
 interface IStyledCheckboxProps extends CheckboxProps {
@@ -84,10 +86,11 @@ export const CheckboxContainerComponent = ({
   getTextResourceAsString,
   getTextResource,
   validationMessages,
+  mapping,
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[optionsId]?.options,
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
   );
   const calculatedOptions = apiOptions || options || defaultOptions;
   const checkBoxesIsRow = calculatedOptions.length <= 2;

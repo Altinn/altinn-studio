@@ -23,10 +23,10 @@ const OptionsReducer: Reducer<IOptionsState> = (
   }
   switch (action.type) {
     case FetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED: {
-      const { optionsId, optionData } = action as IFetchOptionsFulfilledAction;
+      const { optionsKey, optionData } = action as IFetchOptionsFulfilledAction;
       return update<IOptionsState>(state, {
         options: {
-          [optionsId]: { $set: optionData },
+          [optionsKey]: { $set: optionData },
         },
       });
     }

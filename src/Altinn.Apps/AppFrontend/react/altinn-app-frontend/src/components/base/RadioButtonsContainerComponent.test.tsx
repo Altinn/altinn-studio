@@ -42,6 +42,7 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
       optionState: {
         options: {
           countries: {
+            id: 'countries',
             options: countriesOptions,
           }
         },

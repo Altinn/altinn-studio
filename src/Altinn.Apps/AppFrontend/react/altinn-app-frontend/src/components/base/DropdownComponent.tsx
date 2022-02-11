@@ -7,9 +7,12 @@ import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 
 import '../../styles/shared.css';
+import { IMapping } from 'src/types';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export interface IDropdownProps extends IComponentProps {
   optionsId: string;
+  mapping?: IMapping;
   preselectedOptionIndex?: number;
 }
 
@@ -35,10 +38,11 @@ function DropdownComponent({
   readOnly,
   isValid,
   getTextResourceAsString,
+  mapping,
 }: IDropdownProps) {
   const classes = useStyles();
   const options = useAppSelector(
-    (state) => state.optionState.options[optionsId]?.options,
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
   );
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);

@@ -43,6 +43,7 @@ const render = (props: Partial<ICheckboxContainerProps> = {}) => {
       optionState: {
         options: {
           countries: {
+            id: 'countries',
             options: countriesOptions
           },
         },

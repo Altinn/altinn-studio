@@ -11,6 +11,7 @@ import FormDataActions from 'src/features/form/data/formDataActions';
 import { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { IFormData } from 'src/features/form/data/formDataReducer';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;
@@ -22,9 +23,6 @@ export const optionsSelector = (state: IRuntimeState): IOptions => state.optionS
 export function* fetchOptionsSaga(): SagaIterator {
   try {
     const layouts: ILayouts = yield select(formLayoutSelector);
-    const formData = yield select(formDataSelector);
-    const language = yield select(userLanguageSelector);
-
     const fetchedOptions: string[] = [];
     for (const layoutId of Object.keys(layouts)) {
       for (const element of layouts[layoutId]) {
@@ -36,9 +34,7 @@ export function* fetchOptionsSaga(): SagaIterator {
         ) {
           yield fork(fetchSpecificOptionSaga, {
             optionsId: component.optionsId,
-            formData,
             dataMapping: component?.mapping,
-            language,
           });
           fetchedOptions.push(component.optionsId);
         }
@@ -51,18 +47,20 @@ export function* fetchOptionsSaga(): SagaIterator {
 
 export function* fetchSpecificOptionSaga({
   optionsId,
-  formData,
-  language,
   dataMapping,
 }: IFetchSpecificOptionSaga): SagaIterator {
   try {
+    const formData: IFormData = yield select(formDataSelector);
+    const language: string = yield select(userLanguageSelector);
     const url = getOptionsUrl({ optionsId, formData, language, dataMapping });
     const options: IOption[] = yield call(get, url);
     const optionData: IOptionData = {
+      id: optionsId,
       options,
       mapping: dataMapping,
-    }
-    yield call(OptionsActions.fetchOptionsFulfilled, optionsId, optionData);
+    };
+    const optionKey = getOptionLookupKey(optionsId, dataMapping);
+    yield call(OptionsActions.fetchOptionsFulfilled, optionKey, optionData);
   } catch (error) {
     yield call(OptionsActions.fetchOptionsRejected, error);
   }
@@ -73,18 +71,15 @@ export function* checkIfOptionsShouldRefetchSaga({
     field
   },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
-  const formData: IFormData = yield select(formDataSelector);
-  const language: string = yield select(userLanguageSelector);
   const options: IOptions = yield select(optionsSelector);
 
-  for (const optionsId of Object.keys(options)) {
-    const dataMapping = options[optionsId].mapping;
+  for (const optionsKey of Object.keys(options)) {
+    const dataMapping = options[optionsKey].mapping;
+    const optionsId = options[optionsKey].id;
     if (dataMapping && Object.keys(dataMapping).includes(field)) {
       yield fork(fetchSpecificOptionSaga, {
         optionsId,
-        formData,
         dataMapping,
-        language,
       });
     }
   }

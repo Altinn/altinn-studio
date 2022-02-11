@@ -10,6 +10,8 @@ import cn from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
+import { IMapping } from 'src/types';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
@@ -17,6 +19,7 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex: number;
   title: string;
+  mapping?: IMapping;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -80,12 +83,13 @@ export const RadioButtonContainerComponent = ({
   shouldFocus,
   getTextResource,
   validationMessages,
+  mapping,
 }: IRadioButtonsContainerProps) => {
   const classes = useStyles();
 
   const selected = formData?.simpleBinding ?? '';
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[optionsId]?.options,
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
   const radioGroupIsRow: boolean = calculatedOptions.length <= 2;

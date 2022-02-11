@@ -23,6 +23,7 @@ const render = (props: Partial<IDropdownProps> = {}) => {
   };
 
   const countries = {
+    id: 'countries',
     options: [
       {
         label: 'Norway',

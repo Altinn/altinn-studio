@@ -34,6 +34,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
             jest.spyOn(networking, 'get').mockResolvedValue([]);
             const optionsWithField: IOptions = {
                 someOption: {
+                    id: 'someOption',
                     options: [],
                     mapping: {
                         some_field: 'some_url_parm'
@@ -48,18 +49,17 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
                 ])
                 .fork(fetchSpecificOptionSaga, {
                     optionsId: 'someOption',
-                    formData,
                     dataMapping: {
                         some_field: 'some_url_parm'
                     },
-                    language: userLanguage
                 })
                 .run();
         });
 
         it('should do nothing when an updated field is not present in a option mapping', () => {
-            const optionsWithouthField: IOptions = {
+            const optionsWithoutField: IOptions = {
                 someOption: {
+                    id: 'someOption',
                     options: [],
                     mapping: {
                         some_other_field: 'some_url_parm'
@@ -70,7 +70,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
                 .provide([
                     [select(formDataSelector), formData],
                     [select(userLanguageSelector), userLanguage],
-                    [select(optionsSelector), optionsWithouthField],
+                    [select(optionsSelector), optionsWithoutField],
                 ])
                 .run();
         });

@@ -9,6 +9,7 @@ describe('>>> utils/formComponentUtils.ts', () => {
     mockBindingInput: 'test',
     mockBindingCheckbox: 'optionValue1,optionValue2',
     'group[0].checkbox': 'repOptionValue1,repOptionValue2,repOptionValue3',
+    mockBindingCheckboxWithMapping: 'mockOptionsWithMapping1,mockOptionsWithMapping2'
   };
   const mockTextResources: ITextResource[] = [
     {
@@ -34,18 +35,29 @@ describe('>>> utils/formComponentUtils.ts', () => {
   ];
   const mockOptions: IOptions = {
     mockOption: {
+      id: 'mockOption',
       options: [
         { value: 'optionValue1', label: 'textKey1' },
         { value: 'optionValue2', label: 'textKey2' },
       ]
     },
     mockRepOption: {
+      id: 'mockRepOption',
       options: [
         { value: 'repOptionValue1', label: 'repTextKey1' },
         { value: 'repOptionValue2', label: 'repTextKey2' },
         { value: 'repOptionValue3', label: 'repTextKey3' },
       ]
     },
+    "{\"id\":\"mockOptionsWithMapping\",\"mapping\":{\"someDataField\":\"someUrlParam\"}}": {
+      id: 'mockOptionsWithMapping',
+      mapping: { someDataField: 'someUrlParam' },
+      options: [
+        { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
+        { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
+      ]
+    }
+
   };
   const mockAttachments: IAttachment[] = [
     {
@@ -117,6 +129,17 @@ describe('>>> utils/formComponentUtils.ts', () => {
     } as ISelectionComponentProps;
     const result = getDisplayFormData('mockBindingCheckbox', checkboxComponent, mockFormData, mockOptions, mockTextResources);
     expect(result).toEqual('Value1, Value2');
+  });
+
+  it('+++ getDisplayFormData should return comma separated string of text resources for checkboxes with multiple values and mapping', () => {
+    const checkboxComponent = {
+      type: 'Checkboxes',
+      optionsId: 'mockOptionsWithMapping',
+      mapping: { someDataField: 'someUrlParam' },
+
+    } as unknown as ISelectionComponentProps;
+    const result = getDisplayFormData('mockBindingCheckboxWithMapping', checkboxComponent, mockFormData, mockOptions, mockTextResources);
+    expect(result).toEqual('Value Mapping 1, Value Mapping 2');
   });
 
   it('+++ getDisplayFormData should return object with text resources for checkboxes with multiple values when asObject parameter is true', () => {

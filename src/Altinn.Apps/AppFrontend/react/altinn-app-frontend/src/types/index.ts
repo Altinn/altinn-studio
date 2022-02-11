@@ -133,6 +133,7 @@ export interface IFormFileUploaderComponent extends IFormComponent {
 export interface IFormFileUploaderWithTagComponent extends IFormFileUploaderComponent {
   options: IOption[];
   optionsId: string;
+  mapping?: IMapping;
 }
 
 export interface IFormFileUploaderWithTag {
@@ -199,11 +200,12 @@ export interface IOption {
 }
 
 export interface IOptions {
-  [id: string]: IOptionData;
+  [key: string]: IOptionData;
 }
 
 export interface IOptionData {
   options: IOption[];
+  id: string;
   mapping?: IMapping;
 }
 
