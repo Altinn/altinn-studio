@@ -1,4 +1,4 @@
-FROM gitea/gitea:1.16.1-rootless
+FROM gitea/gitea:1.15.10-rootless
 USER 0:0
 RUN apk --no-cache upgrade expat
 USER 1000:1000
