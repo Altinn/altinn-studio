@@ -79,7 +79,7 @@ export function getCompleteProcessUrl() {
 }
 
 export function getRedirectUrl(returnUrl: string) {
-  return `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
+  return `${appPath}/api/v1/redirect?url=${returnUrl}`;
 }
 
 export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {

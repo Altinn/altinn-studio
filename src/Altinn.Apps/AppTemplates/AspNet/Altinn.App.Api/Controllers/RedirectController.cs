@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
 
 using Altinn.App.Api.Filters;
 using Altinn.App.Services.Configuration;
@@ -40,9 +41,11 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<string> ValidateUrl([BindRequired, FromQuery, Url] string url)
+        public ActionResult<string> ValidateUrl([BindRequired, FromQuery] string url)
         {
-            Uri uri = new Uri(url);
+            var byteArrayUri = Convert.FromBase64String(url);
+            var convertedUri = Encoding.UTF8.GetString(byteArrayUri);
+            Uri uri = new Uri(convertedUri);
 
             if (!IsValidRedirectUri(uri.Host))
             {
@@ -51,7 +54,7 @@ namespace Altinn.App.Api.Controllers
                 return ValidationProblem();
             }
 
-            return Ok(url);
+            return Ok(convertedUri);
         }
 
         private bool IsValidRedirectUri(string urlHost)
