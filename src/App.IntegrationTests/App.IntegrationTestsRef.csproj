@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
     <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
     <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
     <ProjectReference Include="..\App\AppRef.csproj" />
@@ -28,13 +27,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <AdditionalFiles Include="..\..\..\..\..\stylecop.json">
+    <AdditionalFiles Include="..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
 
   </PropertyGroup>
 
