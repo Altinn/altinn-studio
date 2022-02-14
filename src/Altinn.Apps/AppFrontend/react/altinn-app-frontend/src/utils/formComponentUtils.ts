@@ -153,7 +153,7 @@ export const getDisplayFormData = (
         const displayFormData = {};
         split?.forEach((value: string) => {
           const optionsForComponent = selectionComponent?.optionsId
-            ? options[getOptionLookupKey(selectionComponent?.optionsId, selectionComponent.mapping)].options
+            ? options[getOptionLookupKey(selectionComponent.optionsId, selectionComponent.mapping)].options
             : selectionComponent.options;
           const textKey =
             optionsForComponent?.find(
@@ -178,7 +178,7 @@ export const getDisplayFormData = (
         } else if (selectionComponent.optionsId) {
           label +=
             getTextResourceByKey(
-              options[getOptionLookupKey(selectionComponent?.optionsId, selectionComponent.mapping)]?.options.find(
+              options[getOptionLookupKey(selectionComponent.optionsId, selectionComponent.mapping)]?.options.find(
                 (option: IOption) => option.value === value,
               )?.label,
               textResources,
