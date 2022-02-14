@@ -7,20 +7,22 @@ import {
 
 import Receipt from './Receipt';
 
-import { setupServer, handlers, instanceHandler } from 'testConfig/testUtils';
+import {
+  setupServer,
+  handlers,
+  instanceHandler,
+  textsHandler,
+} from 'testConfig/testUtils';
 
 import {
   instanceWithPdf,
   instanceWithSubstatus,
+  texts,
 } from 'testConfig/apiResponses';
 
 const server = setupServer(...handlers);
 
-beforeAll(() =>
-  server.listen({
-    onUnhandledRequest: 'warn',
-  }),
-);
+beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
@@ -80,5 +82,79 @@ describe('Receipt', () => {
     await waitForElementToBeRemoved(() => screen.getByText('Loading...'));
 
     expect(screen.queryByTestId('receipt-substatus')).not.toBeInTheDocument();
+  });
+
+  it('should show customised text when textResources contains overrides', async () => {
+    const textsWithOverrides = {
+      ...texts,
+      resources: [
+        ...texts.resources,
+        {
+          id: 'receipt_platform.helper_text',
+          value: 'Help text override',
+        },
+      ],
+    };
+    server.use(textsHandler(textsWithOverrides));
+
+    render();
+
+    await waitForElementToBeRemoved(() => screen.getByText('Loading...'));
+
+    expect(screen.getByText('Help text override')).toBeInTheDocument();
+  });
+
+  it('should show customised text with variables when textResources contains overrides', async () => {
+    const textsWithOverrides = {
+      ...texts,
+      resources: [
+        ...texts.resources,
+        {
+          id: 'receipt_platform.helper_text',
+          value: 'Help text override with instanceOwnerPartyId variable: {0}',
+          variables: [
+            {
+              key: 'instanceOwnerPartyId',
+              dataSource: 'instanceContext',
+            },
+          ],
+        },
+      ],
+    };
+    server.use(textsHandler(textsWithOverrides));
+
+    render();
+
+    await waitForElementToBeRemoved(() => screen.getByText('Loading...'));
+
+    expect(
+      screen.getByText(
+        'Help text override with instanceOwnerPartyId variable: 512345',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should parse customised text with markdown when textResources contains overrides', async () => {
+    const textsWithOverrides = {
+      ...texts,
+      resources: [
+        ...texts.resources,
+        {
+          id: 'receipt_platform.helper_text',
+          value: `Help text with [a link to altinn](https://altinn.no)`,
+        },
+      ],
+    };
+    server.use(textsHandler(textsWithOverrides));
+
+    render();
+
+    await waitForElementToBeRemoved(() => screen.getByText('Loading...'));
+
+    expect(
+      screen.getByRole('link', {
+        name: /a link to altinn/i,
+      }),
+    ).toBeInTheDocument();
   });
 });

@@ -25,8 +25,18 @@ export const instanceHandler = (response: any) => {
   );
 };
 
+export const textsHandler = (response: any) => {
+  return rest.get(
+    'https://localhost/storage/api/v1/applications/ttd/frontend-test/texts/nb',
+    (req, res, ctx) => {
+      return res(ctx.json(response));
+    },
+  );
+};
+
 export const handlers: any = [
   instanceHandler(instance),
+  textsHandler(texts),
 
   rest.get('https://altinncdn.no/orgs/altinn-orgs.json', (req, res, ctx) => {
     return res(ctx.json(altinnOrgs));
@@ -43,13 +53,6 @@ export const handlers: any = [
     'https://platform.at21.altinn.cloud/storage/api/v1/applications/ttd/frontend-test',
     (req, res, ctx) => {
       return res(ctx.json(application));
-    },
-  ),
-
-  rest.get(
-    'https://localhost/storage/api/v1/applications/ttd/frontend-test/texts/nb',
-    (req, res, ctx) => {
-      return res(ctx.json(texts));
     },
   ),
 ];

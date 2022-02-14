@@ -9,15 +9,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import React from 'react';
 
-import { getLanguageFromCode } from 'altinn-shared/language';
-import {
-  AltinnContentLoader,
-  AltinnModal,
-  AltinnAppHeader,
-  AltinnReceipt,
-  AltinnSubstatusPaper,
-} from 'altinn-shared/components';
-import {
+import type {
   IApplication,
   IAttachment,
   IInstance,
@@ -27,6 +19,14 @@ import {
   ITextResource,
   IAltinnOrgs,
 } from 'altinn-shared/types';
+
+import {
+  AltinnContentLoader,
+  AltinnModal,
+  AltinnAppHeader,
+  AltinnReceipt,
+  AltinnSubstatusPaper,
+} from 'altinn-shared/components';
 import {
   mapInstanceAttachments,
   getAttachmentGroupings,
@@ -34,7 +34,7 @@ import {
 } from 'altinn-shared/utils/attachmentsUtils';
 import {
   getAppName,
-  getLanguageFromKey,
+  getParsedLanguageFromKey,
   getTextResourceByKey,
 } from 'altinn-shared/utils/language';
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
@@ -47,6 +47,8 @@ import {
   getExtendedInstanceUrl,
   getTextResourceUrl,
 } from 'utils/receiptUrlHelper';
+
+import { useLanguageWithOverrides } from './hooks';
 
 const theme = createTheme(AltinnReceiptTheme);
 
@@ -82,24 +84,32 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [organisations, setOrganisations] = React.useState<IAltinnOrgs>(null);
   const [application, setApplication] = React.useState<IApplication>(null);
   const [user, setUser] = React.useState<IProfile>(null);
-  const [language, setLanguage] = React.useState(null);
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
   const [textResources, setTextResources] =
     React.useState<ITextResource[]>(null);
   const [pdf, setPdf] = React.useState<IAttachment[]>(null);
 
+  const { language } = useLanguageWithOverrides({
+    textResources,
+    instance,
+    user,
+  });
+
   const isPrint = useMediaQuery('print');
 
-  const getTitle = (): string => {
+  const getTitle = (): React.ReactNode => {
     const applicationTitle = getAppName(
       textResources,
       application,
       user.profileSettingPreference.language,
     );
-    return `${applicationTitle} ${getLanguageFromKey(
-      'receipt_platform.is_sent',
-      language,
-    )}`;
+
+    return (
+      <>
+        <span>{applicationTitle}</span>{' '}
+        {getParsedLanguageFromKey('receipt_platform.is_sent', language)}
+      </>
+    );
   };
 
   const handleModalClose = () => {
@@ -134,7 +144,7 @@ function Receipt(props: WithStyles<typeof styles>) {
       }
     };
 
-    const fetchTextResources = async () => {
+    const fetchAppTextResources = async () => {
       try {
         const app = instance.appId.split('/')[1];
         const response = await Axios.get(
@@ -151,10 +161,24 @@ function Receipt(props: WithStyles<typeof styles>) {
         setTextResources(response.data.resources);
       } catch (error) {
         logFetchError(error);
-        setTextResources([]);
       }
     };
 
+    if (!application && instance) {
+      fetchApplication();
+    }
+
+    if (!textResources && instance && user) {
+      fetchAppTextResources();
+    }
+
+    return () => {
+      appAbortController.abort();
+      textAbortController.abort();
+    };
+  }, [instance, application, user, textResources]);
+
+  React.useEffect(() => {
     if (instance && application) {
       const appLogicDataTypes = application.dataTypes.filter(
         (dataType: any) => !!dataType.appLogic,
@@ -168,19 +192,7 @@ function Receipt(props: WithStyles<typeof styles>) {
       setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data, true));
     }
-    if (!application && instance) {
-      fetchApplication();
-    }
-
-    if (!textResources && instance && user) {
-      fetchTextResources();
-    }
-
-    return () => {
-      appAbortController.abort();
-      textAbortController.abort();
-    };
-  }, [instance, application, user, textResources]);
+  }, [instance, application]);
 
   React.useEffect(() => {
     const instanceAbortController = new AbortController();
@@ -221,27 +233,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     };
   }, []);
 
-  React.useEffect(() => {
-    const fetchLanguage = async (languageCode: string) => {
-      try {
-        const fetchedLanguage = getLanguageFromCode(languageCode);
-        setLanguage({
-          receipt_platform: { ...fetchedLanguage.receipt_platform },
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    if (user) {
-      if (user.profileSettingPreference?.language) {
-        fetchLanguage(user.profileSettingPreference.language);
-      } else {
-        fetchLanguage('nb');
-      }
-    }
-  }, [user]);
-
   return (
     <Grid
       container={true}
@@ -254,8 +245,11 @@ function Receipt(props: WithStyles<typeof styles>) {
         headerBackgroundColor={theme.altinnPalette.primary.blue}
         party={party || ({} as IParty)}
         userParty={user ? user.party : ({} as IParty)}
-        logoutText={getLanguageFromKey('receipt_platform.log_out', language)}
-        ariaLabelIcon={getLanguageFromKey(
+        logoutText={getParsedLanguageFromKey(
+          'receipt_platform.log_out',
+          language,
+        )}
+        ariaLabelIcon={getParsedLanguageFromKey(
           'receipt_platform.profile_icon_aria_label',
           language,
         )}
@@ -286,15 +280,21 @@ function Receipt(props: WithStyles<typeof styles>) {
         hideCloseIcon={isPrint}
         printView={true}
         closeButtonOutsideModal={true}
-        headerText={getLanguageFromKey('receipt_platform.receipt', language)}
+        headerText={getParsedLanguageFromKey(
+          'receipt_platform.receipt',
+          language,
+        )}
       >
         {isLoading ? (
           <AltinnContentLoader />
         ) : (
           <AltinnReceipt
             title={getTitle()}
-            body={getLanguageFromKey('receipt_platform.helper_text', language)}
-            collapsibleTitle={getLanguageFromKey(
+            body={getParsedLanguageFromKey(
+              'receipt_platform.helper_text',
+              language,
+            )}
+            collapsibleTitle={getParsedLanguageFromKey(
               'receipt_platform.attachments',
               language,
             )}
@@ -312,7 +312,7 @@ function Receipt(props: WithStyles<typeof styles>) {
               textResources,
               user.profileSettingPreference.language,
             )}
-            titleSubmitted={getLanguageFromKey(
+            titleSubmitted={getParsedLanguageFromKey(
               'receipt_platform.sent_content',
               language,
             )}
