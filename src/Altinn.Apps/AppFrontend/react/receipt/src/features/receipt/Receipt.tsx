@@ -6,19 +6,9 @@ import {
   createTheme,
 } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import Axios from 'axios';
 import React from 'react';
 
-import type {
-  IApplication,
-  IAttachment,
-  IInstance,
-  IParty,
-  IProfile,
-  IExtendedInstance,
-  ITextResource,
-  IAltinnOrgs,
-} from 'altinn-shared/types';
+import type { IAttachment, IParty } from 'altinn-shared/types';
 
 import {
   AltinnContentLoader,
@@ -40,15 +30,8 @@ import {
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
 import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
 import { getInstanceMetaDataObject } from 'utils/receipt';
-import {
-  altinnOrganisationsUrl,
-  getApplicationMetadataUrl,
-  getUserUrl,
-  getExtendedInstanceUrl,
-  getTextResourceUrl,
-} from 'utils/receiptUrlHelper';
 
-import { useLanguageWithOverrides } from './hooks';
+import { useLanguageWithOverrides, useFetchInitialData } from './hooks';
 
 const theme = createTheme(AltinnReceiptTheme);
 
@@ -70,24 +53,12 @@ const styles = () =>
     },
   });
 
-const cancelSignalMessage = 'canceled';
-
-const logFetchError = (error: any) => {
-  if (error?.message !== cancelSignalMessage) {
-    console.error(error);
-  }
-};
-
 function Receipt(props: WithStyles<typeof styles>) {
-  const [party, setParty] = React.useState<IParty>(null);
-  const [instance, setInstance] = React.useState<IInstance>(null);
-  const [organisations, setOrganisations] = React.useState<IAltinnOrgs>(null);
-  const [application, setApplication] = React.useState<IApplication>(null);
-  const [user, setUser] = React.useState<IProfile>(null);
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
-  const [textResources, setTextResources] =
-    React.useState<ITextResource[]>(null);
   const [pdf, setPdf] = React.useState<IAttachment[]>(null);
+
+  const { application, textResources, party, instance, organisations, user } =
+    useFetchInitialData();
 
   const { language } = useLanguageWithOverrides({
     textResources,
@@ -126,59 +97,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     !textResources;
 
   React.useEffect(() => {
-    const appAbortController = new AbortController();
-    const textAbortController = new AbortController();
-
-    const fetchApplication = async () => {
-      try {
-        const app = instance.appId.split('/')[1];
-        const response = await Axios.get<IApplication>(
-          getApplicationMetadataUrl(instance.org, app),
-          {
-            signal: appAbortController.signal,
-          },
-        );
-        setApplication(response.data);
-      } catch (error) {
-        logFetchError(error);
-      }
-    };
-
-    const fetchAppTextResources = async () => {
-      try {
-        const app = instance.appId.split('/')[1];
-        const response = await Axios.get(
-          getTextResourceUrl(
-            instance.org,
-            app,
-            user.profileSettingPreference.language,
-          ),
-          {
-            signal: textAbortController.signal,
-          },
-        );
-
-        setTextResources(response.data.resources);
-      } catch (error) {
-        logFetchError(error);
-      }
-    };
-
-    if (!application && instance) {
-      fetchApplication();
-    }
-
-    if (!textResources && instance && user) {
-      fetchAppTextResources();
-    }
-
-    return () => {
-      appAbortController.abort();
-      textAbortController.abort();
-    };
-  }, [instance, application, user, textResources]);
-
-  React.useEffect(() => {
     if (instance && application) {
       const appLogicDataTypes = application.dataTypes.filter(
         (dataType: any) => !!dataType.appLogic,
@@ -193,45 +111,6 @@ function Receipt(props: WithStyles<typeof styles>) {
       setPdf(getInstancePdf(instance.data, true));
     }
   }, [instance, application]);
-
-  React.useEffect(() => {
-    const instanceAbortController = new AbortController();
-    const orgAbortController = new AbortController();
-    const userAbortController = new AbortController();
-
-    const fetchInitialData = async () => {
-      try {
-        const [instanceResponse, orgResponse, userResponse] = await Promise.all(
-          [
-            Axios.get<IExtendedInstance>(getExtendedInstanceUrl(), {
-              signal: instanceAbortController.signal,
-            }),
-            Axios.get(altinnOrganisationsUrl, {
-              signal: orgAbortController.signal,
-            }),
-            Axios.get<IProfile>(getUserUrl(), {
-              signal: userAbortController.signal,
-            }),
-          ],
-        );
-
-        setParty(instanceResponse.data.party);
-        setInstance(instanceResponse.data.instance);
-        setOrganisations(orgResponse.data.orgs);
-        setUser(userResponse.data);
-      } catch (error) {
-        logFetchError(error);
-      }
-    };
-
-    fetchInitialData();
-
-    return () => {
-      instanceAbortController.abort();
-      orgAbortController.abort();
-      userAbortController.abort();
-    };
-  }, []);
 
   return (
     <Grid
