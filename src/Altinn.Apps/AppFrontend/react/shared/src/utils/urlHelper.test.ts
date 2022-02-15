@@ -29,7 +29,7 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToMessagebox(origin)).toBe(null);
   });
 
-  test('returnBaseUrlToAltinn() returning correct environemnts', () => {
+  test('returnBaseUrlToAltinn() returning correct environemnts with full urls', () => {
     const originTT =
       'https://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     const originAT =
@@ -37,11 +37,37 @@ describe('Shared urlHelper.ts', () => {
     const originYT =
       'https://ttd.apps.yt01.altinn.cloud/tdd/tjeneste-20190826-1130';
     const originProd = 'https://ttd.apps.altinn.no/tdd/tjeneste-20190826-1130';
+    const originLocal = 'http://altinn3local.no/tdd/tjeneste-20190826-1130';
+    const originCloudLocal = 'http://local.altinn.cloud/tdd/tjeneste-20190826-1130';
     const originUnknown = 'https://www.vg.no';
     expect(returnBaseUrlToAltinn(originTT)).toContain('tt02.altinn.no');
     expect(returnBaseUrlToAltinn(originAT)).toContain('at21.altinn.cloud');
     expect(returnBaseUrlToAltinn(originYT)).toContain('yt01.altinn.cloud');
+    expect(returnBaseUrlToAltinn(originYT)).toEqual('https://yt01.altinn.cloud/');
     expect(returnBaseUrlToAltinn(originProd)).toContain('altinn.no');
+    expect(returnBaseUrlToAltinn(originLocal)).toEqual('/');
+    expect(returnBaseUrlToAltinn(originCloudLocal)).toEqual('/');
+    expect(returnBaseUrlToAltinn(originUnknown)).toBe(null);
+  });
+
+  test('returnBaseUrlToAltinn() returning correct environemnts with just window.location.origin', () => {
+    const originTT =
+      'https://ttd.apps.tt02.altinn.no';
+    const originAT =
+      'https://ttd.apps.at21.altinn.cloud';
+    const originYT =
+      'https://ttd.apps.yt01.altinn.cloud';
+    const originProd = 'https://ttd.apps.altinn.no';
+    const originLocal = 'http://altinn3local.no';
+    const originCloudLocal = 'http://local.altinn.cloud';
+    const originUnknown = 'https://www.vg.no';
+    expect(returnBaseUrlToAltinn(originTT)).toContain('tt02.altinn.no');
+    expect(returnBaseUrlToAltinn(originAT)).toContain('at21.altinn.cloud');
+    expect(returnBaseUrlToAltinn(originYT)).toContain('yt01.altinn.cloud');
+    expect(returnBaseUrlToAltinn(originYT)).toEqual('https://yt01.altinn.cloud/');
+    expect(returnBaseUrlToAltinn(originProd)).toContain('altinn.no');
+    expect(returnBaseUrlToAltinn(originLocal)).toEqual('/');
+    expect(returnBaseUrlToAltinn(originCloudLocal)).toEqual('/');
     expect(returnBaseUrlToAltinn(originUnknown)).toBe(null);
   });
 

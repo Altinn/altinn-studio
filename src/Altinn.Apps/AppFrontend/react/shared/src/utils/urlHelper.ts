@@ -25,8 +25,8 @@ export const pathToArchive = 'ui/messagebox/archive';
 export const pathToProfile = 'ui/profile';
 export const pathToAllSchemas = 'skjemaoversikt';
 const prodRegex = new RegExp(baseHostnameAltinnProd);
-const testRegex = new RegExp(baseHostnameAltinnTest);
-const localRegex = new RegExp(baseHostnameAltinnLocal);
+const testRegex = new RegExp(`^https?://(\\w+)\\.(\\w+)\\.(\\w+).${baseHostnameAltinnTest}`);
+const localRegex = new RegExp(`^https?://(local.${baseHostnameAltinnTest}|${baseHostnameAltinnLocal})`);
 
 export const returnUrlToMessagebox = (url: string, partyId?: string | undefined): string => {
   const baseUrl = returnBaseUrlToAltinn(url);

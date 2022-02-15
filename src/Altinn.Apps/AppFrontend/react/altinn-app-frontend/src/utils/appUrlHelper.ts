@@ -127,7 +127,7 @@ export const getHostname: () => string = () => {
   if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
   }
-  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
+  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local' || window.location.host === "local.altinn.cloud") {
     // Local test
     return window.location.host;
   }
