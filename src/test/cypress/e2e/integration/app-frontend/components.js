@@ -53,7 +53,7 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.deleteAttachment).should('not.exist');
   });
 
-  it.skip('is possible to upload attachments with tags', () => {
+  it('is possible to upload attachments with tags', () => {
     cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
     cy.intercept('POST', '**/tags').as('saveTags');
     cy.get(appFrontend.sendinButton).then((button) => {
