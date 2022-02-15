@@ -107,7 +107,12 @@ export function GenericComponent(props: IGenericComponentProps) {
     (state) => state.textResources.resources,
   );
 
-  const texts = selectComponentTexts(textResources, props.textResourceBindings);
+  const texts = useAppSelector(state =>
+    selectComponentTexts(
+      state.textResources.resources,
+      props.textResourceBindings,
+    ),
+  );
 
   const hidden = useAppSelector(
     (state) => props.hidden || GetHiddenSelector(state, props),
