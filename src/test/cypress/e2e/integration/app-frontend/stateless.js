@@ -2,6 +2,7 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
+import * as texts from '../../fixtures/texts.json';
 
 const appFrontend = new AppFrontend();
 
@@ -18,6 +19,7 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.number).should('have.value', '1364');
     cy.get(appFrontend.stateless.name).clear().type('test').blur();
     cy.get(appFrontend.stateless.name).should('have.value', 'automation');
+    cy.get(appFrontend.header).should('contain.text', Cypress.env('stateless')).and('contain.text', texts.ttd);
   });
 
   it('Dynamics in stateless app', () => {
