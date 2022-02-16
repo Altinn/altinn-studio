@@ -1,11 +1,11 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import { IRuntimeState } from 'src/types';
 import { IAttachment } from 'src/shared/resources/attachments';
 import { ISelectionComponentProps } from 'src/features/form/layout';
 import { EditButton } from './EditButton';
+import { getOptionLookupKey } from 'src/utils/options';
+import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;
@@ -43,9 +43,9 @@ const useStyles = makeStyles({
 export function AttachmentWithTagSummaryComponent(props: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
   const attachments: IAttachment[] =
-    useSelector((state: IRuntimeState) => state.attachments.attachments[props.componentRef]);
-  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.component.optionsId]);
+    useAppSelector((state) => state.attachments.attachments[props.componentRef]);
+  const textResources = useAppSelector((state) => state.textResources.resources);
+  const options = useAppSelector((state) => state.optionState.options[getOptionLookupKey(props.component.optionsId, props.component.mapping)]?.options);
 
   return (
     <>
@@ -65,7 +65,7 @@ export function AttachmentWithTagSummaryComponent(props: IAttachmentWithTagSumma
         />
       </Grid>
       <Grid item xs={12}>
-        {attachments && attachments?.map((attachment) => {
+        {attachments && attachments.map((attachment) => {
           return (
             <Grid
               container={true}

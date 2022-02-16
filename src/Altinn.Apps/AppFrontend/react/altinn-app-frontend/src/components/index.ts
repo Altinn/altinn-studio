@@ -174,7 +174,7 @@ export const advancedComponents: IComponent[] = [
 ];
 
 export interface IComponentProps extends IGenericComponentProps {
-  handleDataChange: (value: string, key?: string) => void;
+  handleDataChange: (value: string, key?: string, skipValidation?: boolean) => void;
   handleFocusUpdate: (componentId: string, step?: number) => void;
   getTextResource: (key: string) => React.ReactNode;
   getTextResourceAsString: (key: string) => string;

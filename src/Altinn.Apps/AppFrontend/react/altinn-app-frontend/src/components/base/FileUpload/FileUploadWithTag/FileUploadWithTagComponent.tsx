@@ -6,7 +6,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import { IAttachment } from '../../../../shared/resources/attachments';
 import AttachmentDispatcher from '../../../../shared/resources/attachments/attachmentActions';
-import { IRuntimeState } from '../../../../types';
+import { IMapping, IRuntimeState } from '../../../../types';
 import { renderValidationMessagesForComponent } from '../../../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,9 +16,11 @@ import { FileList } from './FileListComponent';
 import { DropzoneComponent } from '../shared/DropzoneComponent';
 import { IFileUploadGenericProps } from '../shared/props';
 import { IComponentProps } from 'src/components';
+import { getOptionLookupKey } from 'src/utils/options';
 
 export interface IFileUploadWithTagProps extends IFileUploadGenericProps {
   optionsId: string;
+  mapping?: IMapping;
 }
 
 export const bytesInOneMB = 1048576;
@@ -28,7 +30,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   const dataDispatch = useDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[getOptionLookupKey(props.optionsId, props.mapping)]?.options);
   const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.editIndex ?? -1);
   const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.chosenOptions ?? {});
 

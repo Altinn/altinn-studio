@@ -22,26 +22,34 @@ const render = (props: Partial<IDropdownProps> = {}) => {
     ...props,
   };
 
-  const countries = [
-    {
-      label: 'Norway',
-      value: 'norway',
-    },
-    {
-      label: 'Sweden',
-      value: 'sweden',
-    },
-    {
-      label: 'Denmark',
-      value: 'denmark',
-    },
-  ];
+  const countries = {
+    id: 'countries',
+    options: [
+      {
+        label: 'Norway',
+        value: 'norway',
+      },
+      {
+        label: 'Sweden',
+        value: 'sweden',
+      },
+      {
+        label: 'Denmark',
+        value: 'denmark',
+      },
+    ]
+  }
 
   renderWithProviders(<DropdownComponent {...allProps} />, {
     preloadedState: {
       optionState: {
         options: {
           countries,
+          loadingOptions: {
+            id: 'loadingOptions',
+            options: undefined,
+            loading: true
+          },
         },
         error: {
           name: '',
@@ -112,5 +120,21 @@ describe('components/base/DropdownComponent', () => {
 
     expect(handleDataChange).toHaveBeenCalledWith('denmark');
     expect(handleDataChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('should show spinner while waiting for options', () => {
+    render({
+      optionsId: 'loadingOptions'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
+  });
+
+  it('should not show spinner when options are present', () => {
+    render({
+      optionsId: 'countries'
+    });
+
+    expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 });
