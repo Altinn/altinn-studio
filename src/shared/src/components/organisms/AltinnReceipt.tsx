@@ -16,15 +16,15 @@ import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachmentGroupings?: IAttachmentGrouping;
-  body: string;
-  collapsibleTitle: string;
+  body: React.ReactNode;
+  collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
   instanceMetaDataObject: any;
   pdf?: IAttachment[];
   subtitle?: boolean;
   subtitleurl?: string;
-  title: string;
-  titleSubmitted: string;
+  title: React.ReactNode;
+  titleSubmitted: React.ReactNode;
 }
 
 const theme = createTheme(altinnTheme);
@@ -50,7 +50,7 @@ const styles = createStyles({
 
 interface ICollapsibleAttacments {
   attachments: IAttachment[];
-  title: string;
+  title: React.ReactNode;
   hideCollapsibleCount?: boolean;
 }
 
@@ -67,14 +67,13 @@ const CollapsibleAttachments = ({
       }
       title={title}
       hideCount={hideCollapsibleCount}
-      key={title}
     />
   );
 };
 
 interface IRenderAttachmentGroupings {
   attachmentGroupings?: IAttachmentGrouping;
-  collapsibleTitle: string;
+  collapsibleTitle: React.ReactNode;
   hideCollapsibleCount?: boolean;
 }
 

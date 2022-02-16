@@ -33,7 +33,7 @@ const styles = createStyles({
 interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   collapsible?: boolean;
-  title?: string;
+  title?: React.ReactNode;
   hideCount?: boolean;
 }
 
