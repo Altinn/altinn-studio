@@ -56,7 +56,10 @@
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js",
-      "^altinn-shared/(.*)$": "<rootDir>/../shared/src/$1"
+      "^altinn-shared/(.*)$": "<rootDir>/../shared/src/$1",
+      "^utils/(.*)$": "<rootDir>/src/utils/$1",
+      "^features/(.*)$": "<rootDir>/src/features/$1",
+      "^testConfig/(.*)$": "<rootDir>/testConfig/$1"
     },
     "testRegex": "(/__tests__/.*|.*.(test|spec)).(ts|tsx|js|jsx)$",
     "moduleFileExtensions": [
@@ -65,9 +68,9 @@
       "js"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/setupTests.ts"
+      "<rootDir>/testConfig/setupTests.ts"
     ],
-    "testURL": "http://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
+    "testURL": "https://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
     "testEnvironment": "jsdom"
   },
   "browserslist": [

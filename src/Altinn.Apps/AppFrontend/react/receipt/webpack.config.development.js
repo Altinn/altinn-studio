@@ -1,103 +1,43 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
-const path = require('path');
+
+const commonConfig = require('./webpack.common');
 
 module.exports = {
+  ...commonConfig,
   mode: 'development',
   devtool: 'eval',
-  entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
-    "./src/index.tsx"
-  ],
-  output: {
-    filename: "receipt.js"
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
-    alias: {
-      // CUSTOM PACKAGES
-      'altinn-shared': path.resolve(__dirname, './../shared/src'),
-    }
-  },
   performance: {
     hints: 'warning',
   },
   module: {
-    rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.html$/,
-        use: [{
-          loader: "html-loader",
-          options: {
-            minimize: true
-          }
-        }]
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
-      {
-        test: /\.svg$/,
-        use: {
-          loader: "svg-inline-loader",
-        }
-      },
-      {
-        test: /\.css$/,
-        use: [{
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: "css-loader",
-            options: {
-              url: false
-            }
-          },
-        ]
-      },
+    rules: [
+      ...commonConfig.module.rules,
+
       {
         test: /\.tsx?/,
-        use: [
-          { loader: "ts-loader", options: { transpileOnly: true }}
-        ],
+        use: [{ loader: 'ts-loader', options: { transpileOnly: true } }],
       },
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.js$/,
-        loader: "source-map-loader",
-      }
+        loader: 'source-map-loader',
+      },
     ],
   },
   plugins: [
+    ...commonConfig.plugins,
     new ForkTsCheckerWebpackPlugin({
       eslint: {
-        files: './src/**/*.{ts,tsx,js,jsx}'
-      }
+        files: './src/**/*.{ts,tsx,js,jsx}',
+      },
     }),
-    new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
-    }),
-    new MiniCssExtractPlugin({
-      filename: "receipt.css",
+    new ForkTsCheckerNotifierWebpackPlugin({
+      title: 'TypeScript',
+      excludeWarnings: false,
     }),
   ],
   devServer: {
     historyApiFallback: true,
-  }
-}
+  },
+};
