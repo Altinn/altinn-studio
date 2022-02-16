@@ -26,6 +26,11 @@ describe('formComponentUtils', () => {
     mockBindingInput: 'test',
     mockBindingCheckbox: 'optionValue1,optionValue2',
     'group[0].checkbox': 'repOptionValue1,repOptionValue2,repOptionValue3',
+    mockBindingCheckboxWithMapping: 'mockOptionsWithMapping1,mockOptionsWithMapping2',
+    mockBindingDropdown: 'optionValue1',
+    mockBindingDropdownWithMapping: 'mockOptionsWithMapping1',
+    mockBindingRadioButtons: 'optionValue1',
+    mockBindingRadioButtonsWithMapping: 'mockOptionsWithMapping1'
   };
   const mockTextResources: ITextResource[] = [
     {
@@ -50,15 +55,29 @@ describe('formComponentUtils', () => {
     },
   ];
   const mockOptions: IOptions = {
-    mockOption: [
-      { value: 'optionValue1', label: 'textKey1' },
-      { value: 'optionValue2', label: 'textKey2' },
-    ],
-    mockRepOption: [
-      { value: 'repOptionValue1', label: 'repTextKey1' },
-      { value: 'repOptionValue2', label: 'repTextKey2' },
-      { value: 'repOptionValue3', label: 'repTextKey3' },
-    ],
+    mockOption: {
+      id: 'mockOption',
+      options: [
+        { value: 'optionValue1', label: 'textKey1' },
+        { value: 'optionValue2', label: 'textKey2' },
+      ]
+    },
+    mockRepOption: {
+      id: 'mockRepOption',
+      options: [
+        { value: 'repOptionValue1', label: 'repTextKey1' },
+        { value: 'repOptionValue2', label: 'repTextKey2' },
+        { value: 'repOptionValue3', label: 'repTextKey3' },
+      ]
+    },
+    "{\"id\":\"mockOptionsWithMapping\",\"mapping\":{\"someDataField\":\"someUrlParam\"}}": {
+      id: 'mockOptionsWithMapping',
+      mapping: { someDataField: 'someUrlParam' },
+      options: [
+        { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
+        { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
+      ]
+    }
   };
   const mockAttachments: IAttachment[] = [
     {
@@ -149,6 +168,16 @@ describe('formComponentUtils', () => {
       expect(result).toEqual('Value1, Value2');
     });
 
+    it('should return comma separated string of text resources for checkboxes with multiple values and mapping', () => {
+      const checkboxComponent = {
+        type: 'Checkboxes',
+        optionsId: 'mockOptionsWithMapping',
+        mapping: { someDataField: 'someUrlParam' },
+      } as unknown as ISelectionComponentProps;
+      const result = getDisplayFormData('mockBindingCheckboxWithMapping', checkboxComponent, mockFormData, mockOptions, mockTextResources);
+      expect(result).toEqual('Value Mapping 1, Value Mapping 2');
+    });
+
     it('should return object with text resources for checkboxes with multiple values when asObject parameter is true', () => {
       const checkboxComponent = {
         type: 'Checkboxes',
@@ -167,6 +196,68 @@ describe('formComponentUtils', () => {
         optionValue2: 'Value2',
       };
       expect(result).toEqual(expected);
+    });
+
+    it('should return text resource for dropdown component', () => {
+      const dropdownComponent = {
+        type: 'Dropdown',
+        optionsId: 'mockOption',
+      } as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        'mockBindingDropdown',
+        dropdownComponent,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('Value1');
+    });
+
+    it('should return text resource for dropdown component with mapping', () => {
+      const checkboxComponent = {
+        type: 'Dropdown',
+        optionsId: 'mockOptionsWithMapping',
+        mapping: { someDataField: 'someUrlParam' },
+      } as unknown as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        'mockBindingDropdownWithMapping',
+        checkboxComponent,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('Value Mapping 1');
+    });
+
+    it('should return text resource for radio button component', () => {
+      const radioButtonComponent = {
+        type: 'RadioButtons',
+        optionsId: 'mockOption',
+      } as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        'mockBindingRadioButtons',
+        radioButtonComponent,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('Value1');
+    });
+
+    it('should return text resource for radio button component with mapping', () => {
+      const radioButtonComponentWithMapping = {
+        type: 'RadioButtons',
+        optionsId: 'mockOptionsWithMapping',
+        mapping: { someDataField: 'someUrlParam' },
+      } as unknown as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        'mockBindingRadioButtonsWithMapping',
+        radioButtonComponentWithMapping,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('Value Mapping 1');
     });
   });
 

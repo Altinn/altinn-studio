@@ -1,24 +1,29 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IOption } from 'src/types';
+import { IOptionData } from 'src/types';
 import { store } from '../../../store';
 
 import * as FetchOptions from './fetch/fetchOptionsActions';
 
 export interface IOptionsActions extends ActionCreatorsMapObject {
   fetchOptions: () => Action;
+  fetchingOptions: (
+    optionsKey: string,
+  ) => FetchOptions.IFetchingOptionsAction;
   fetchOptionsFulfilled: (
-    optionsId: string,
-    options: IOption[],
+    optionsKey: string,
+    optionData: IOptionData,
   ) => FetchOptions.IFetchOptionsFulfilledAction;
-  fetchOptionsRecjeted: (
+  fetchOptionsRejected: (
+    optionsKey: string,
     error: Error,
   ) => FetchOptions.IFetchOptionsRejectedAction;
 }
 
 const actions: IOptionsActions = {
   fetchOptions: FetchOptions.fetchOptions,
+  fetchingOptions: FetchOptions.fetchingOptions,
   fetchOptionsFulfilled: FetchOptions.fetchOptionsFulfilled,
-  fetchOptionsRecjeted: FetchOptions.fetchOptionsRejected,
+  fetchOptionsRejected: FetchOptions.fetchOptionsRejected,
 };
 
 const optionsActions: IOptionsActions = bindActionCreators<any, any>(actions, store.dispatch);

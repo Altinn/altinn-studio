@@ -34,7 +34,7 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
   const classes = useStyles(props);
 
   return (
-    <div className={classNames(props.styleObj)}>
+    <div className={classNames(props.styleObj)} data-testid='altinn-spinner'>
       <CircularProgress
         className={classNames(classes.spinner)}
         id={props.id ? props.id : null}

@@ -8,8 +8,11 @@ import { FormLabel } from '@material-ui/core';
 import cn from 'classnames';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
+import { IMapping } from 'src/types';
+import { getOptionLookupKey } from 'src/utils/options';
+import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
@@ -17,6 +20,7 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex: number;
   title: string;
+  mapping?: IMapping;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -80,15 +84,20 @@ export const RadioButtonContainerComponent = ({
   shouldFocus,
   getTextResource,
   validationMessages,
+  mapping,
 }: IRadioButtonsContainerProps) => {
   const classes = useStyles();
 
   const selected = formData?.simpleBinding ?? '';
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[optionsId],
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
   const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
+  const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
+  const fetchingOptions = useAppSelector(
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+  );
 
   React.useEffect(() => {
     const shouldPreselectItem =
@@ -107,6 +116,14 @@ export const RadioButtonContainerComponent = ({
     preselectedOptionIndex,
   ]);
 
+  React.useEffect(() => {
+    if (optionsHasChanged && formData.simpleBinding) {
+      // New options have been loaded, we have to reset form data.
+      // We also skip any required validations
+      handleDataChange(undefined, 'simpleBinding', true);
+    }
+  }, [handleDataChange, optionsHasChanged, formData]);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     handleFocusUpdate(id);
     handleDataChange(event.target.value);
@@ -123,36 +140,39 @@ export const RadioButtonContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <RadioGroup
-        aria-label={title}
-        name={title}
-        value={selected}
-        onBlur={handleBlur}
-        onChange={handleChange}
-        row={radioGroupIsRow}
-        id={id}
-      >
-        {calculatedOptions.map((option: any, index: number) => (
-          <React.Fragment key={index}>
-            <FormControlLabel
-              control={
-                <StyledRadio
-                  autoFocus={shouldFocus && selected === option.value}
-                />
-              }
-              label={getTextResource(option.label)}
-              value={option.value}
-              classes={{ root: cn(classes.margin) }}
-            />
-            {validationMessages &&
-              selected === option.value &&
-              renderValidationMessagesForComponent(
-                validationMessages.simpleBinding,
-                id,
-              )}
-          </React.Fragment>
-        ))}
-      </RadioGroup>
+      {fetchingOptions ?
+        <AltinnSpinner /> :
+        <RadioGroup
+          aria-label={title}
+          name={title}
+          value={selected}
+          onBlur={handleBlur}
+          onChange={handleChange}
+          row={radioGroupIsRow}
+          id={id}
+        >
+          {calculatedOptions.map((option: any, index: number) => (
+            <React.Fragment key={index}>
+              <FormControlLabel
+                control={
+                  <StyledRadio
+                    autoFocus={shouldFocus && selected === option.value}
+                  />
+                }
+                label={getTextResource(option.label)}
+                value={option.value}
+                classes={{ root: cn(classes.margin) }}
+              />
+              {validationMessages &&
+                selected === option.value &&
+                renderValidationMessagesForComponent(
+                  validationMessages.simpleBinding,
+                  id,
+                )}
+            </React.Fragment>
+          ))}
+        </RadioGroup>
+      }
     </FormControl>
   );
 };

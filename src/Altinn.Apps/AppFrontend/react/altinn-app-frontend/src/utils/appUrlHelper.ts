@@ -1,4 +1,5 @@
-import { IAltinnWindow, IFetchSpecificOptionSaga } from 'src/types';
+import { IFormData } from 'src/features/form/data/formDataReducer';
+import { IAltinnWindow, IMapping } from 'src/types';
 import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
@@ -41,7 +42,7 @@ export function fileUploadUrl(attachmentType: string) {
 
 export function fileTagUrl(dataGuid: string) {
   return `${appPath}/instances/` +
-  `${altinnWindow.instanceId}/data/${dataGuid}/tags`;
+    `${altinnWindow.instanceId}/data/${dataGuid}/tags`;
 }
 
 export function dataElementUrl(dataGuid: string) {
@@ -53,9 +54,8 @@ export function getProcessStateUrl() {
 }
 
 export function getStartProcessUrl(instanceId?: string) {
-  return `${appPath}/instances/${
-    instanceId || altinnWindow.instanceId
-  }/process/start`;
+  return `${appPath}/instances/${instanceId || altinnWindow.instanceId
+    }/process/start`;
 }
 
 export function getCreateInstancesUrl(partyId: string) {
@@ -198,12 +198,14 @@ export function getInstanceUiUrl(instanceId: string) {
   return `${appPath}#/instance/${instanceId}`;
 }
 
-export const getOptionsUrl = ({
-  optionsId,
-  formData,
-  language,
-  dataMapping,
-}: IFetchSpecificOptionSaga) => {
+export interface IGetOptionsUrlParams {
+  optionsId: string;
+  dataMapping?: IMapping;
+  formData?: IFormData;
+  language?: string;
+}
+
+export const getOptionsUrl = ({ optionsId, dataMapping, formData, language }: IGetOptionsUrlParams) => {
   const url = new URL(`${appPath}/api/options/${optionsId}`);
   let params: Record<string, string> = {};
 

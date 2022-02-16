@@ -32,5 +32,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "endUserSystemId")]
         public int? EndUserSystemId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the national identity number of the person that triggered the event.
+        /// </summary>
+        [JsonProperty(PropertyName = "nationalIdentityNumber")]
+        public string NationalIdentityNumber { get; set; }
     }
 }
