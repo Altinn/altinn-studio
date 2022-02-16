@@ -1,6 +1,6 @@
 -- Function: delegation.get_all_current_changes
 
-CREATE OR REPLACE FUNCTION delegation.get_all_current_changes(
+CREATE OR REPLACE FUNCTION delegation.get_all_current_changes_offeredbypartyid_only(
 	_altinnappids character varying[],
 	_offeredbypartyids integer[])
     RETURNS SETOF delegation.delegationchanges 
