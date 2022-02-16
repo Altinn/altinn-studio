@@ -90,38 +90,6 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
 
             // Assert
             Assert.NotNull(actual);
-        }
-
-        /// <summary>
-        /// Tests that the SBL notation for norsk bokmål is mapped to "nb"
-        /// </summary>
-        [Fact]
-        public async Task GetUserFromId_TC02()
-        {
-            // Arrange
-            const int UserId = 2001606;
-
-            HttpRequestMessage sblRequest = null;
-            DelegatingHandlerStub messageHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
-            {
-                sblRequest = request;
-
-                UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
-                return new HttpResponseMessage() { Content = JsonContent.Create(userProfile) };
-            });
-
-            HttpClient httpClient = new HttpClient(messageHandler);
-            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
-
-            // Act
-            UserProfile actual = await target.GetUser(UserId);
-
-            // Assert
-            Assert.NotNull(sblRequest);
-            Assert.Equal(HttpMethod.Get, sblRequest.Method);
-            Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
-
-            Assert.Equal("nb", actual.ProfileSettingPreference.Language);
-        }
+        }   
     }
 }
