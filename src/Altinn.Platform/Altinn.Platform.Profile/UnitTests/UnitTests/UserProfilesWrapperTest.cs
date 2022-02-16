@@ -9,6 +9,7 @@ using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Tests.Mocks;
 using Altinn.Platform.Profile.Tests.Testdata;
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -22,6 +23,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
     {
         private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
         private readonly Mock<ILogger<UserProfilesWrapper>> logger;
+        private readonly MemoryCache memoryCache;
 
         public UserProfilesWrapperTest()
         {
@@ -31,6 +33,8 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
             logger = new Mock<ILogger<UserProfilesWrapper>>();
+
+            memoryCache = new MemoryCache(new MemoryCacheOptions());
         }
 
         /// <summary>
@@ -52,7 +56,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             });
 
             HttpClient httpClient = new HttpClient(messageHandler);
-            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object);
+            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
 
             // Act
             UserProfile actual = await target.GetUser(UserId);
@@ -84,7 +88,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             });
 
             HttpClient httpClient = new HttpClient(messageHandler);
-            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object);
+            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
 
             // Act
             UserProfile actual = await target.GetUser(UserId);
