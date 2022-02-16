@@ -31,8 +31,8 @@ const useStyles = makeStyles(() => createStyles({
     borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
   },
   button: {
-    color: theme.altinnPalette.primary.black,
-    background: theme.altinnPalette.primary.blue,
+    color: theme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.blueDark,
     textTransform: 'none',
     transition: 'none',
     fontWeight: 400,
@@ -47,16 +47,16 @@ const useStyles = makeStyles(() => createStyles({
       width: 'auto',
     },
     '&:hover': {
-      background: theme.altinnPalette.primary.blueHover,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarkHover,
+      color: theme.altinnPalette.primary.white,
       boxShadow: 'none',
     },
     '&:focus': {
-      background: theme.altinnPalette.primary.blueHover,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarkHover,
+      color: theme.altinnPalette.primary.white,
       boxShadow: 'none',
       outline: '2px solid',
-      outlineColor: theme.altinnPalette.primary.blueDark,
+      outlineColor: theme.altinnPalette.primary.blueDarker,
     },
   },
   secondaryButton: {
