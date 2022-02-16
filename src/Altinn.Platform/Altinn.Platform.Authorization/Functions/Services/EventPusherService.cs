@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Authorization.Functions.Clients;
+using Altinn.Platform.Authorization.Functions.Exceptions;
 using Altinn.Platform.Authorization.Functions.Models;
 using Altinn.Platform.Authorization.Functions.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -10,26 +14,78 @@ namespace Altinn.Platform.Authorization.Functions.Services
     public class EventPusherService : IEventPusherService
     {
         private readonly ILogger _logger;
-        private readonly IKeyVaultService _keyVaultService;
-        private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly BridgeClient _bridgeClient;
 
-        public EventPusherService(ILogger logger, IKeyVaultService keyVaultService, IAccessTokenGenerator accessTokenGenerator,
-            BridgeClient bridgeClient)
+        public EventPusherService(ILogger<EventPusherService> logger, BridgeClient bridgeClient)
         {
             _logger = logger;
-            _keyVaultService = keyVaultService;
-            _accessTokenGenerator = accessTokenGenerator;
             _bridgeClient = bridgeClient;
         }
 
-        public async Task PushEvent(DelegationChangeEvent delegationChangeEvent)
+        public async Task PushEvents(DelegationChangeEventList delegationChangeEventList)
         {
-            // TODO!
-            // - Get token (and cache it)
-            // - Send events to bridge
-            // - If the request fails, throw so the queue items will be requeued
-            await Task.CompletedTask;
+            delegationChangeEventList.DelegationChangeEvents ??= new List<DelegationChangeEvent>();
+            try
+            {
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(
+                        "Posting delegationChangeEventList numEventsSent={numEventsSent} changeIds={changeIds}",
+                        delegationChangeEventList.DelegationChangeEvents.Count,
+                        GetChangeIdsForLog(delegationChangeEventList));
+                }
+
+                HttpResponseMessage response =
+                    await _bridgeClient.PostDelegationEventsAsync(MapToBridgeModel(delegationChangeEventList));
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "Failed to post delegation events to bridge. resultCode={resultCode} reasonPhrase={reasonPhrase} resultBody={resultBody} numEventsSent={numEventsSent} changeIds={changeIds}",
+                        response.StatusCode,
+                        response.ReasonPhrase,
+                        await response.Content.ReadAsStringAsync(),
+                        delegationChangeEventList.DelegationChangeEvents.Count,
+                        GetChangeIdsForLog(delegationChangeEventList));
+                }
+
+                // Throw exception to ensure requeue of the event list
+                throw new BridgeRequestFailedException();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    "Exception thrown while attempting to post delegation events to bridge. exception={exception} message={message} numEventsSent={numEventsSent} changeIds={changeIds}",
+                    ex.GetType().Name,
+                    ex.Message,
+                    delegationChangeEventList.DelegationChangeEvents.Count,
+                    GetChangeIdsForLog(delegationChangeEventList));
+
+                throw;
+            }
+        }
+
+        private static List<DelegationEvent> MapToBridgeModel(DelegationChangeEventList delegationChangeEventList)
+        {
+            return delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent => new DelegationEvent()
+                {
+                    Event = Enum.GetName(typeof(DelegationChangeEventType), delegationChangeEvent.EventType),
+                    ChangeId = delegationChangeEvent.DelegationChange.PolicyChangeId,
+                    Timestamp = delegationChangeEvent.DelegationChange.Created,
+                    AltinnAppId = delegationChangeEvent.DelegationChange.AltinnAppId,
+                    OfferedByPartyId = delegationChangeEvent.DelegationChange.OfferedByPartyId,
+                    CoveredByPartyId = delegationChangeEvent.DelegationChange.CoveredByPartyId,
+                    CoveredByUserId = delegationChangeEvent.DelegationChange.CoveredByUserId,
+                    PerformedByUserId = delegationChangeEvent.DelegationChange.PerformedByUserId
+                })
+                .ToList();
+        }
+
+        private static string GetChangeIdsForLog(DelegationChangeEventList delegationChangeEventList)
+        {
+            return string.Join(',',
+                delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent =>
+                    delegationChangeEvent.DelegationChange.PolicyChangeId));
         }
     }
 }

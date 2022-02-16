@@ -5,5 +5,5 @@ namespace Altinn.Platform.Authorization.Functions.Services.Interfaces;
 
 public interface IEventPusherService
 {
-    Task PushEvent(DelegationChangeEvent delegationChangeEvents);
+    Task PushEvents(DelegationChangeEventList delegationChangeEvents);
 }

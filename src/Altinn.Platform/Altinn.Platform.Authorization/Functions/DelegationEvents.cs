@@ -14,9 +14,9 @@ namespace Altinn.Platform.Authorization.Functions
         }
 
         [FunctionName(nameof(DelegationEvents))]
-        public void Run([QueueTrigger("delegationevents", Connection = "QueueStorage")] DelegationChangeEvent delegationChangeEvent)
+        public void Run([QueueTrigger("delegationevents", Connection = "QueueStorage")] DelegationChangeEventList delegationChangeEvent)
         {
-            _eventPusherService.PushEvent(delegationChangeEvent);
+            _eventPusherService.PushEvents(delegationChangeEvent);
         }
     }
 }
