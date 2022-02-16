@@ -10,6 +10,7 @@ declare module '@material-ui/core/styles/createTheme' {
       primary: {
         blueDarker: string,
         blueDark: string,
+        blueDarkHover: string,
         blueMedium: string,
         blue: string,
         blueHover: string,
@@ -50,6 +51,7 @@ export const commonTheme = {
     primary: {
       blueDarker: '#022F51',
       blueDark: '#0062BA',
+      blueDarkHover: '#1A72C1',
       blueMedium: '#008FD6',
       blue: '#1EADF7',
       blueHover: '#37b7f8',
