@@ -49,7 +49,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                 });
 
             return _webApplicationFactory.WithWebHostBuilder(builder =>
-            {                
+            {  
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

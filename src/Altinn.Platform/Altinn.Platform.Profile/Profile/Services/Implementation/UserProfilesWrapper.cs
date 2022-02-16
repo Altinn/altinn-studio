@@ -53,10 +53,9 @@ namespace Altinn.Platform.Profile.Services.Implementation
             {
                 WriteIndented = true,
                 PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }               
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
             };
-
-    }
+        }
 
         /// <inheritdoc />
         public async Task<UserProfile> GetUser(int userId)
@@ -80,7 +79,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
 
             string content = await response.Content.ReadAsStringAsync();
             user = JsonSerializer.Deserialize<UserProfile>(content, _serializerOptions);
-
             _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
 
             return user;
@@ -109,7 +107,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
 
             string content = await response.Content.ReadAsStringAsync();
             user = JsonSerializer.Deserialize<UserProfile>(content, _serializerOptions);
-
             _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
 
             return user;

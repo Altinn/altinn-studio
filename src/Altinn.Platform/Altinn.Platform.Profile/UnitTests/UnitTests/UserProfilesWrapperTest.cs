@@ -41,7 +41,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
         /// Tests that a language string is mapped to it's orginial value.
         /// </summary>
         [Fact]
-        public async Task GetUserFromId_TC01()
+        public async Task GetUserFromId_NoMatchInCache_RequestSentToBridge()
         {
             // Arrange
             const int UserId = 2001607;
@@ -65,8 +65,31 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             Assert.NotNull(sblRequest);
             Assert.Equal(HttpMethod.Get, sblRequest.Method);
             Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
+        }
 
-            Assert.Equal("ru", actual.ProfileSettingPreference.Language);
+        /// <summary>
+        /// Tests that the messagehandler is not utilized, as the userprofile is retrieved from cache.
+        /// </summary>
+        [Fact]
+        public async Task GetUserFromId_MatchInCache_NoRequestSentToBridge()
+        {
+            // Arrange
+            const int UserId = 2001607;
+
+            DelegatingHandlerStub messageHandler = new();
+
+            UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
+
+            memoryCache.Set("User_UserId_2001607", userProfile);
+
+            HttpClient httpClient = new HttpClient(messageHandler);
+            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
+
+            // Act
+            UserProfile actual = await target.GetUser(UserId);
+
+            // Assert
+            Assert.NotNull(actual);
         }
 
         /// <summary>
