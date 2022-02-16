@@ -20,6 +20,7 @@ import { IUpdateFocus, IUpdateRepeatingGroups, IUpdateCurrentView, ICalculatePag
 import { IFormDataState } from '../../data/formDataReducer';
 import FormDataActions from '../../data/formDataActions';
 import { convertDataBindingToModel, removeGroupData } from '../../../../utils/databindings';
+import { getOptionLookupKey } from 'src/utils/options';
 
 const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
@@ -411,7 +412,7 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
     const currentView = state.formLayout.uiConfig.currentView;
     const component = state.formLayout.layouts[currentView]
         .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
-    const componentOptions = state.optionState.options[component.optionsId]
+    const componentOptions = state.optionState.options[getOptionLookupKey(component.optionsId, component.mapping)]?.options;
     if (componentOptions.find(op => op.value === option.value)) {
       yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
         uploader, id, option,

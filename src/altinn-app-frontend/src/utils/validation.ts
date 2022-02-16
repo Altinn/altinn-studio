@@ -473,9 +473,9 @@ export function validateFormComponentsForLayout(
           }
         } else {
           const missingTagAttachments = attachments[component.id]
-            .filter((attachment) => attachmentIsMissingTag(attachment))
+            ?.filter((attachment) => attachmentIsMissingTag(attachment))
             .map((attachment) => attachment.id);
-          if (missingTagAttachments.length > 0) {
+          if (missingTagAttachments?.length > 0) {
             missingTagAttachments.forEach((missingId) => {
               componentValidations[fieldKey].errors.push(
                 `${missingId + AsciiUnitSeparator + getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${component.textResourceBindings.tagTitle.toLowerCase()}.`,

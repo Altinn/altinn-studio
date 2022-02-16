@@ -22,21 +22,47 @@ const OptionsReducer: Reducer<IOptionsState> = (
     return state;
   }
   switch (action.type) {
-    case FetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED: {
-      const { optionsId, options } = action as IFetchOptionsFulfilledAction;
+      case FetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED: {
+      const { optionsKey, optionData } = action as IFetchOptionsFulfilledAction;
       return update<IOptionsState>(state, {
         options: {
-          [optionsId]: { $set: options },
+          [optionsKey]: { $set: optionData },
         },
       });
     }
     case FetchOptionsActionTypes.FETCH_OPTIONS_REJECTED: {
-      const { error } = action as IFetchOptionsRejectedAction;
+      const { optionsKey, error } = action as IFetchOptionsRejectedAction;
       return update<IOptionsState>(state, {
+        options: {
+          [optionsKey]: {
+            loading: { $set: false }
+          }
+        },
         error: {
           $set: error,
         },
       });
+    }
+
+    case FetchOptionsActionTypes.FETCHING_OPTION: {
+      const { optionsKey } = action as IFetchOptionsRejectedAction;
+      if (state.options[optionsKey]) {
+        return update<IOptionsState>(state, {
+          options: {
+            [optionsKey]: {
+              loading: { $set: true },
+            }
+          },
+        });
+      } else {
+        return update<IOptionsState>(state, {
+          options: {
+            [optionsKey]: { $set: {
+              loading: true
+            } },
+          },
+        });
+      }
     }
     default: { return state; }
   }

@@ -55,6 +55,7 @@ export default class AppFrontend {
       newFirstName: '#newFirstName',
       newLastName: '#newLastName',
       newMiddleName: '#newMiddleName',
+      newMiddleNameDescription: '#description-newMiddleName',
       oldFullName: '#changeNameFrom',
       newFullName: '#changeNameTo',
       confirmChangeName: '#confirmChangeName',
