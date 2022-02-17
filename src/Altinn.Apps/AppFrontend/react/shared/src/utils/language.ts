@@ -49,9 +49,7 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
   }
 
   const clean = DOMPurify.sanitize(dirty, options);
-  const parsedText = parseHtmlToReact(clean.toString().trim(), parseOptions);
-
-  return parsedText;
+  return parseHtmlToReact(clean.toString().trim(), parseOptions);
 };
 
 
