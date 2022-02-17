@@ -1,5 +1,5 @@
 # base image
-FROM node:16.13.2-alpine3.15 AS generate-app-development
+FROM node:16.14.0-alpine3.15 AS generate-app-development
 
 WORKDIR /build
 
