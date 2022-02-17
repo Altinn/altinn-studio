@@ -67,7 +67,6 @@ export const HeaderComponent = ({
         <Grid item={true} style={marginStyling}>
           <HelpTextContainer
             language={language}
-            id={id}
             helpText={getTextResource(textResourceBindings.help)}
           />
         </Grid>
