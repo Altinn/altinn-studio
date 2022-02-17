@@ -57,25 +57,40 @@ const useStyles = makeStyles((theme) => ({
   },
   xs: {
     'border-bottom': '1px dashed #949494',
+    '& > div:nth-child(2)':{
+      paddingLeft: theme.spacing(3/2) // Half the spacing of <Grid in <Form
+    }
   },
   sm: {
     [theme.breakpoints.up('sm')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   md: {
     [theme.breakpoints.up('md')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   lg: {
     [theme.breakpoints.up('lg')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   xl: {
     [theme.breakpoints.up('xl')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
 }));
