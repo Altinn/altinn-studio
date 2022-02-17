@@ -55,15 +55,17 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to)
         {
-            string apiUrl = $"{instanceOwnerPartyId}/{instanceId}";
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
+            char paramSeparator = '?';
             if (eventTypes != null)
             {
                 StringBuilder bld = new StringBuilder();
                 foreach (string type in eventTypes)
                 {
-                    bld.Append($"&eventTypes={type}");
+                    bld.Append($"{paramSeparator}eventTypes={type}");
+                    paramSeparator = '&';
                 }
 
                 apiUrl += bld.ToString();
@@ -71,7 +73,7 @@ namespace Altinn.App.Services.Implementation
 
             if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
             {
-                apiUrl += $"&from={from}&to={to}";
+                apiUrl += $"{paramSeparator}from={from}&to={to}";
             }
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
@@ -79,9 +81,9 @@ namespace Altinn.App.Services.Implementation
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+                InstanceEventList instanceEvents = JsonConvert.DeserializeObject<InstanceEventList>(eventData);
 
-                return instanceEvents;
+                return instanceEvents.InstanceEvents;
             }
 
             throw await PlatformHttpException.CreateAsync(response);
