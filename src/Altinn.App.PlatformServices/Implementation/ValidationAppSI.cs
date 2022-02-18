@@ -229,10 +229,10 @@ namespace Altinn.App.Services.Implementation
                         {
                             InstanceId = instance.Id,
                             DataElementId = dataElementId,
-                            Code = severityAndMessage.message,
+                            Code = severityAndMessage.Message,
                             Field = modelKey,
-                            Severity = severityAndMessage.severity,
-                            Description = severityAndMessage.message
+                            Severity = severityAndMessage.Severity,
+                            Description = severityAndMessage.Message
                         });
                     }
                 }
@@ -257,9 +257,9 @@ namespace Altinn.App.Services.Implementation
                         validationIssues.Add(new ValidationIssue
                         {
                             InstanceId = instance.Id,
-                            Code = severityAndMessage.message,
-                            Severity = severityAndMessage.severity,
-                            Description = severityAndMessage.message
+                            Code = severityAndMessage.Message,
+                            Severity = severityAndMessage.Severity,
+                            Description = severityAndMessage.Message
                         });
                     }
                 }
@@ -268,7 +268,7 @@ namespace Altinn.App.Services.Implementation
             return validationIssues;
         }
 
-        private (ValidationIssueSeverity severity, string message) GetSeverityFromMessage(string originalMessage)
+        private (ValidationIssueSeverity Severity, string Message) GetSeverityFromMessage(string originalMessage)
         {
             if (originalMessage.StartsWith(_generalSettings.SoftValidationPrefix))
             {

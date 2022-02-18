@@ -25,7 +25,6 @@ namespace Altinn.App.PlatformServices.Options
         /// provided.
         /// </summary>
         /// <param name="optionsId">Id matching the options requested.</param>
-        /// <returns></returns>
         public IAppOptionsProvider GetOptionsProvider(string optionsId)
         {
             bool isDefault = optionsId == DEFAULT_PROVIDER_NAME;
