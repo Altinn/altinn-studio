@@ -11,6 +11,7 @@ using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Core;
 using Altinn.Platform.Register.Filters;
 using Altinn.Platform.Register.Health;
+using Altinn.Platform.Register.Services;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -189,6 +190,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
     services.AddTransient<IPersonLookup, PersonLookupService>();
+    services.Decorate<IPersonLookup, PersonLookupServiceDecorator>();
 
     services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
           .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
