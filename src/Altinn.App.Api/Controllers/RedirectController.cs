@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-
+using System.Text;
 using Altinn.App.Api.Filters;
 using Altinn.App.Services.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -36,22 +36,36 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Validates URL used for redirection
         /// </summary>
-        /// <param name="url">URL to validate</param>
+        /// <param name="url">Base64 encoded string of the URL to validate</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<string> ValidateUrl([BindRequired, FromQuery, Url] string url)
+        public ActionResult<string> ValidateUrl([BindRequired, FromQuery] string url)
         {
-            Uri uri = new Uri(url);
-
-            if (!IsValidRedirectUri(uri.Host))
+            if (string.IsNullOrEmpty(url))
             {
-                string errorMessage = $"Invalid domain from query parameter {nameof(url)}.";
-                ModelState.AddModelError(nameof(url), errorMessage);
-                return ValidationProblem();
+                return BadRequest($"Invalid value of query parameter {nameof(url)}. The query parameter {nameof(url)} must not be empty or null.");
             }
 
-            return Ok(url);
+            try
+            {
+                var byteArrayUri = Convert.FromBase64String(url);
+                var convertedUri = Encoding.UTF8.GetString(byteArrayUri);
+                Uri uri = new Uri(convertedUri);
+
+                if (!IsValidRedirectUri(uri.Host))
+                {
+                    string errorMessage = $"Invalid domain from query parameter {nameof(url)}.";
+                    ModelState.AddModelError(nameof(url), errorMessage);
+                    return ValidationProblem();
+                }
+
+                return Ok(convertedUri);
+            }
+            catch (FormatException)
+            {
+                return BadRequest($"Invalid format of query parameter {nameof(url)}. The query parameter {nameof(url)} must be a valid base64 encoded string");
+            }
         }
 
         private bool IsValidRedirectUri(string urlHost)
