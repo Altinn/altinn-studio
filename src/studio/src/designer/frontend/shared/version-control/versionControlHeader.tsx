@@ -258,8 +258,8 @@ class VersionControlHeader extends React.Component<
       });
       this.getStatus((result: IGitStatus) => {
         if (result) {
-          if (result.contentStatus.length === 0) {
-            // if user is ahead with no changes to commit => show nothing to push message
+          if (!hasLocalChanges(result) && result.aheadBy === 0) {
+            // if user has nothing to commit => show nothing to push message
             this.setState({
               anchorEl: currentTarget,
               modalState: {
@@ -268,6 +268,23 @@ class VersionControlHeader extends React.Component<
                   'sync_header.nothing_to_push',
                   this.props.language,
                 ),
+              },
+            });
+          } else if (!hasLocalChanges(result) && result.aheadBy > 0 ) {
+            this.setState({
+              anchorEl: currentTarget,
+              modalState: {
+                header: getLanguageFromKey(
+                  'sync_header.validation_completed',
+                  this.props.language,
+                ),
+                btnText: getLanguageFromKey(
+                  'sync_header.share_changes',
+                  this.props.language,
+                ),
+                shouldShowDoneIcon: true,
+                isLoading: false,
+                btnMethod: this.pushChanges,
               },
             });
           } else {
