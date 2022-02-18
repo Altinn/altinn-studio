@@ -74,8 +74,8 @@ namespace Altinn.Platform.Authorization.Functions.Services
                     Created = delegationChangeEvent.DelegationChange.Created,
                     AltinnAppId = delegationChangeEvent.DelegationChange.AltinnAppId,
                     OfferedByPartyId = delegationChangeEvent.DelegationChange.OfferedByPartyId,
-                    CoveredByPartyId = delegationChangeEvent.DelegationChange.CoveredByPartyId,
-                    CoveredByUserId = delegationChangeEvent.DelegationChange.CoveredByUserId,
+                    CoveredByPartyId = delegationChangeEvent.DelegationChange.CoveredByPartyId ?? 0,
+                    CoveredByUserId = delegationChangeEvent.DelegationChange.CoveredByUserId ?? 0,
                     PerformedByUserId = delegationChangeEvent.DelegationChange.PerformedByUserId
                 })
                 .ToList();

@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs.Host.Queues;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+Microsoft.Extensions.DependencyInjection
 
 [assembly: WebJobsStartup(typeof(Startup))]
 

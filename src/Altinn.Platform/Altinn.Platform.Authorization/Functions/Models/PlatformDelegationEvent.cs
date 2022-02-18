@@ -25,12 +25,10 @@ namespace Altinn.Platform.Authorization.Functions.Models
         public int OfferedByPartyId { get; set; }
 
         [JsonPropertyName("coveredByPartyId")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? CoveredByPartyId { get; set; }
+        public int CoveredByPartyId { get; set; }
 
         [JsonPropertyName("coveredByUserId")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public int? CoveredByUserId { get; set; }
+        public int CoveredByUserId { get; set; }
 
         [JsonPropertyName("performedByUserId")]
         public int PerformedByUserId { get; set; }
