@@ -87,6 +87,7 @@ option {
 
 .a-form-group .form-control {
   border: 2px solid #008FD6;
+  background-color: #fff;
 }
 
 .a-form-group .input-group .input-group-prepend {

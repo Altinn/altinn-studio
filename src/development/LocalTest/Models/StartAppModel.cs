@@ -65,6 +65,11 @@ namespace LocalTest.Models
         public string AppPathSelection { get; set; }
 
         /// <summary>
+        /// Authentication level for the test user
+        /// </summary>
+        public string AuthenticationLevel { get; set; }
+
+        /// <summary>
         /// List of TestUsers for dropdown
         /// </summary>
         public IEnumerable<SelectListItem> TestUsers { get; set; }
@@ -73,5 +78,10 @@ namespace LocalTest.Models
         /// List of selectable Apps for dropdown
         /// </summary>
         public IEnumerable<SelectListItem> TestApps { get; set; }
+
+        /// <summary>
+        /// List of possible authentication levels
+        /// </summary>
+        public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
     }
 }

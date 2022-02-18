@@ -26,6 +26,7 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IPresentationProvidedProps {
   header: string;
+  appOwner?: string;
   type: ProcessTaskType | PresentationType;
   children?: JSX.Element;
 }

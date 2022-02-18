@@ -159,5 +159,21 @@ namespace Altinn.Studio.Designer.Helpers
 
             return new HttpClient(handler);
         }
+
+        /// <summary>
+        /// Gets the value of the session timeout cookie.
+        /// </summary>
+        /// <returns>The remainder of the session in minutes</returns>
+        public static TimeSpan GetRemainingSessionTime(HttpContext context, string cookieName)
+        {
+            context.Request.Cookies.TryGetValue(cookieName, out string remainingString);
+
+            if (string.IsNullOrEmpty(remainingString) || !DateTime.TryParse(remainingString, out DateTime timeout))
+            {
+                return TimeSpan.Zero;
+            }
+
+            return timeout - DateTime.UtcNow;
+        }
     }
 }

@@ -1135,7 +1135,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     language = "nb",
                     resources = new[]
                     {
-                        new { id = "ServiceName", value = serviceConfig.ServiceName }
+                        new { id = "appName", value = serviceConfig.ServiceName }
                     },
                 });
 

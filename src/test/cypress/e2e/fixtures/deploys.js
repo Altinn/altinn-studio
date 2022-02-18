@@ -1,7 +1,5 @@
-var faker = require('faker');
 export const deploys = () => {
   var appDeploys = [];
-  faker.seed(100);
 
   appDeploys = {
     results: [

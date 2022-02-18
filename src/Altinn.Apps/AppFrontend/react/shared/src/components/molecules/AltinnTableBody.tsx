@@ -10,9 +10,8 @@ export interface IAltinnTableBody {
 const useStyles = makeStyles({
   tableBody: {
     '& td': {
-      borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-      padding: '0px',
-      paddingLeft: '6px',
+      borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
+      padding: '0 18px 0 36px',
       fontSize: '1.4rem',
       whiteSpace: 'nowrap',
       textOverflow: 'ellipsis',

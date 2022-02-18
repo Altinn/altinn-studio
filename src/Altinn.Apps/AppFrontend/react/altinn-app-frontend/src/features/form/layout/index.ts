@@ -41,6 +41,7 @@ export type ComponentTypes =
   | 'Datepicker'
   | 'Dropdown'
   | 'FileUpload'
+  | 'FileUploadWithTag'
   | 'Header'
   | 'Input'
   | 'NavigationButtons'
@@ -49,7 +50,8 @@ export type ComponentTypes =
   | 'Image'
   | 'RadioButtons'
   | 'Summary'
-  | 'TextArea';
+  | 'TextArea'
+  | 'NavigationBar';
 
 export interface IDataModelBindings {
   [id: string]: string;

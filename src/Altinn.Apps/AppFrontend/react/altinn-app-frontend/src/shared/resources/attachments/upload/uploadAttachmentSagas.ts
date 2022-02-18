@@ -58,8 +58,10 @@ export function* uploadAttachmentSaga(
         name: file.name,
         size: file.size,
         uploaded: true,
+        tags: [],
         id: response.data.id,
         deleting: false,
+        updating: false,
       };
       yield call(AttachmentDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);

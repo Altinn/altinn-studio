@@ -22,6 +22,10 @@ import java.util.*;
 public class TextUtils {
 
   private static Map<String,Map<String, String>> languages;
+  private static String appOwnerKey = "appOwner";
+  private static String appNameKey = "appName";
+  private static String oldAppNameKey = "ServiceName";
+
   private TextUtils() {}
 
   /**
@@ -40,6 +44,36 @@ public class TextUtils {
       }
     }
     return key;
+  }
+
+  /**
+   * Fetes app owner name. Tries to fetch from resources, fallbacks to name defined in orgs list from cdn
+   * @param org the org short name
+   * @param lang the users preferred language
+   * @param textResources the app text resources
+   * @return the app owner name
+   */
+  public static String getAppOwnerName(String org, String lang, TextResources textResources) {
+    String appOwnerNameFromResources = getTextResourceByKey(appOwnerKey, textResources);
+    if (!appOwnerNameFromResources.equals(appOwnerKey)) {
+      return appOwnerNameFromResources;
+    } else {
+      return AltinnOrgUtils.getOrgFullNameByShortName(org, lang);
+    }
+  }
+
+  /***
+   * Gets the app name. Checks appName key, then fallbacks to ServiceName if not found for backward compatibility
+   * @param textResources the text resources
+   * @return
+   */
+  public static String getAppName(TextResources textResources) {
+    String newAppName = getTextResourceByKey(appNameKey, textResources);
+    if (!newAppName.equals(appNameKey)) {
+      return newAppName;
+    } else {
+      return getTextResourceByKey(oldAppNameKey, textResources);
+    }
   }
 
   /**

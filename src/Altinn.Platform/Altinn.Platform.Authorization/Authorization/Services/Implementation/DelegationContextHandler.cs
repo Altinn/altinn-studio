@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
@@ -10,8 +9,6 @@ using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Platform.Authorization.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -28,10 +25,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// </summary>
         /// <param name="policyInformationRepository">the policy information repository handler</param>
         /// <param name="rolesWrapper">the roles handler</param>
+        /// <param name="partiesWrapper">the party information handler</param>
         /// <param name="memoryCache">The cache handler </param>
         /// <param name="settings">The app settings</param>
-        public DelegationContextHandler(IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
-            : base(policyInformationRepository, rolesWrapper, memoryCache, settings)
+        public DelegationContextHandler(IInstanceMetadataRepository policyInformationRepository, IRoles rolesWrapper, IParties partiesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
+            : base(policyInformationRepository, rolesWrapper, partiesWrapper, memoryCache, settings)
         {
         }
 
@@ -72,6 +70,26 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
             return GetResourceAttributeValues(resourceContextAttributes);
+        }
+
+        /// <summary>
+        /// Gets the list of mainunits for a subunit
+        /// </summary>
+        /// <param name="subUnitPartyId">The subunit partyIds to check and retrieve mainunits for</param>
+        /// <returns>List of mainunits</returns>
+        public async new Task<List<MainUnit>> GetMainUnits(int subUnitPartyId)
+        {
+            return await base.GetMainUnits(subUnitPartyId);
+        }
+
+        /// <summary>
+        /// Gets the list of keyrole unit partyIds for a user
+        /// </summary>
+        /// <param name="subjectUserId">The userid to retrieve keyrole unit for</param>
+        /// <returns>List of partyIds for units where user has keyrole</returns>
+        public async new Task<List<int>> GetKeyRolePartyIds(int subjectUserId)
+        {
+            return await base.GetKeyRolePartyIds(subjectUserId);
         }
     }
 }

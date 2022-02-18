@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import {
   createTheme,
   createStyles,
@@ -27,7 +26,6 @@ export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
 export interface IVersionControlHeaderState {
   changesInMaster: boolean;
   changesInLocalRepo: boolean;
-  moreThanAnHourSinceLastPush: boolean;
   hasPushRight: boolean;
   anchorEl: any;
   modalState: any;
@@ -63,18 +61,13 @@ class VersionControlHeader extends React.Component<
 
   public source = this.cancelToken.source();
 
-  public interval: any;
-
   public componentIsMounted = false;
-
-  public timeout: any;
 
   constructor(_props: IVersionControlHeaderProps) {
     super(_props);
     this.state = {
       changesInMaster: false,
       changesInLocalRepo: false,
-      moreThanAnHourSinceLastPush: false,
       hasPushRight: null,
       anchorEl: null,
       mergeConflict: false,
@@ -86,19 +79,11 @@ class VersionControlHeader extends React.Component<
 
   public componentDidMount() {
     this.componentIsMounted = true;
-    // check status every 5 min
-    this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
-    this.getStatus();
     this.getRepoPermissions();
-    this.getLastPush();
-    window.addEventListener('message', this.changeToRepoOccured);
   }
 
   public componentWillUnmount() {
-    clearInterval(this.interval);
     this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
-    clearTimeout(this.timeout);
-    window.removeEventListener('message', this.changeToRepoOccured);
   }
 
   public getRepoPermissions = async () => {
@@ -107,7 +92,6 @@ class VersionControlHeader extends React.Component<
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
-
       this.setState({
         hasPushRight: currentRepo.permissions.push,
       });
@@ -156,30 +140,6 @@ class VersionControlHeader extends React.Component<
         }
       });
   }
-
-  public getLastPush() {
-    if (!this.state.moreThanAnHourSinceLastPush) {
-      const { org, app } = window as Window as IAltinnWindow;
-      // eslint-disable-next-line max-len
-      const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/latestcommit`;
-      get(url).then((result: any) => {
-        if (this.componentIsMounted && result) {
-          const diff =
-            new Date().getTime() - new Date(result.comitter.when).getTime();
-          const oneHour = 60 * 60 * 1000;
-          this.setState({
-            moreThanAnHourSinceLastPush: oneHour < diff,
-          });
-        }
-      });
-    }
-  }
-
-  public changeToRepoOccured = (event: any) => {
-    if (event.data === postMessages.filesAreSaved && this.componentIsMounted) {
-      this.getStatus();
-    }
-  };
 
   public handleClose = () => {
     if (!this.state.mergeConflict) {
@@ -384,7 +344,6 @@ class VersionControlHeader extends React.Component<
           this.setState({
             changesInMaster: false,
             changesInLocalRepo: false,
-            moreThanAnHourSinceLastPush: true,
             modalState: {
               header: getLanguageFromKey(
                 'sync_header.sharing_changes_completed',
@@ -565,11 +524,6 @@ class VersionControlHeader extends React.Component<
     });
   };
 
-  public updateStateOnIntervals() {
-    this.getStatus();
-    this.getLastPush();
-  }
-
   public render() {
     const { classes } = this.props;
     const type = this.props.type || 'header';
@@ -606,9 +560,6 @@ class VersionControlHeader extends React.Component<
                 hasMergeConflict={this.state.mergeConflict}
                 hasPushRight={this.state.hasPushRight}
                 language={this.props.language}
-                moreThanAnHourSinceLastPush={
-                  this.state.moreThanAnHourSinceLastPush
-                }
                 shareChanges={this.shareChanges}
               />
             </Grid>
@@ -616,31 +567,26 @@ class VersionControlHeader extends React.Component<
             {this.renderCloneModal()}
           </Grid>
         ) : type === 'fetchButton' ? (
-          <React.Fragment>
+          <div data-testid='version-control-fetch-button'          >
             <FetchChangesComponent
               changesInMaster={this.state.changesInMaster}
               fetchChanges={this.fetchChanges}
               language={this.props.language}
-              data-testid='version-control-fetch-button'
             />
             {this.renderSyncModalComponent()}
-          </React.Fragment>
+          </div>
         ) : type === 'shareButton' ? (
-          <React.Fragment>
+          <div data-testid='version-control-share-button'>
             <ShareChangesComponent
-              data-testid='version-control-share-button'
               buttonOnly={true}
               changesInLocalRepo={this.state.changesInLocalRepo}
               hasMergeConflict={this.state.mergeConflict}
               hasPushRight={this.state.hasPushRight}
               language={this.props.language}
-              moreThanAnHourSinceLastPush={
-                this.state.moreThanAnHourSinceLastPush
-              }
               shareChanges={this.shareChanges}
             />
             {this.renderSyncModalComponent()}
-          </React.Fragment>
+          </div>
         ) : null}
       </React.Fragment>
     );

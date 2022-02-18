@@ -8,7 +8,6 @@ jest.mock('react-truncate-markup');
 describe('>>> components/base/shareChanges.tsx --- Snapshot', () => {
   let mockShareChanges: any;
   let mockChangesInLocalRepo: boolean;
-  let mockMoreThanAnHourSinceLastPush: boolean;
   let mockHasPushRight: boolean;
   let mockHasMergeConflict: boolean;
   let mockLanguage: any;
@@ -16,7 +15,6 @@ describe('>>> components/base/shareChanges.tsx --- Snapshot', () => {
   beforeEach(() => {
     mockShareChanges = jest.fn();
     mockChangesInLocalRepo = true;
-    mockMoreThanAnHourSinceLastPush = true;
     mockHasPushRight = true;
     mockHasMergeConflict = false;
     mockLanguage = {};
@@ -28,7 +26,6 @@ describe('>>> components/base/shareChanges.tsx --- Snapshot', () => {
         language={mockLanguage}
         shareChanges={mockShareChanges}
         changesInLocalRepo={mockChangesInLocalRepo}
-        moreThanAnHourSinceLastPush={mockMoreThanAnHourSinceLastPush}
         hasPushRight={mockHasPushRight}
         hasMergeConflict={mockHasMergeConflict}
       />,

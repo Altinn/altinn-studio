@@ -29,7 +29,7 @@ export const designer = {
     prod: '#deploy-history-table-production',
   },
   aboutApp: {
-    appName: '#administrationInputServicename_textField',
+    appName: '#administrationInputAppName_textField',
     appDescription: '#administrationInputDescription_textField',
     appHeader: '#altinn-column-layout-header',
     repoName: '#administrationInputReponame',
