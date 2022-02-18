@@ -16,7 +16,7 @@ namespace Altinn.Platform.Profile.Services.Decorators
     /// </summary>
     public class UserProfileCachingDecorator : IUserProfiles
     {
-        IUserProfiles _decoratedService;
+        private readonly IUserProfiles _decoratedService;
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheEntryOptions _cacheOptions;
 
