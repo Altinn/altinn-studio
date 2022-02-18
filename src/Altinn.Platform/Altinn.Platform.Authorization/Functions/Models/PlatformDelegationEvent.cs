@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authorization.Functions.Models
 {
-    public class DelegationEvent
+    /// <summary>
+    /// This is the model Altinn Bridge expects to receive an array of
+    /// </summary>
+    public class PlatformDelegationEvent
     {
-        [JsonPropertyName("event")]
-        public string Event { get; set; }
+        [JsonPropertyName("eventType")]
+        public DelegationChangeEventType EventType { get; set; }
 
-        [JsonPropertyName("changeId")]
-        public int ChangeId { get; set; }
-
-        [JsonPropertyName("timestamp")]
-        public DateTime Timestamp { get; set; }
+        [JsonPropertyName("policyChangeId")]
+        public int PolicyChangeId { get; set; }
 
         [JsonPropertyName("altinnAppId")]
         public string AltinnAppId { get; set; }
@@ -34,5 +34,8 @@ namespace Altinn.Platform.Authorization.Functions.Models
 
         [JsonPropertyName("performedByUserId")]
         public int PerformedByUserId { get; set; }
+
+        [JsonPropertyName("created")]
+        public DateTime Created { get; set; }
     }
 }

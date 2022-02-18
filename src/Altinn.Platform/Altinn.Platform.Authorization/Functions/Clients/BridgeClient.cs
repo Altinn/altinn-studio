@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authorization.Functions.Clients
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<HttpResponseMessage> PostDelegationEventsAsync(List<DelegationEvent> delegationEvents)
+        public async Task<HttpResponseMessage> PostDelegationEventsAsync(List<PlatformDelegationEvent> delegationEvents)
         {
             JsonContent jsonContent = JsonContent.Create(delegationEvents);
             using var request = new HttpRequestMessage(HttpMethod.Post, DelegationEventEndpoint)

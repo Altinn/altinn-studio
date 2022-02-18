@@ -65,13 +65,13 @@ namespace Altinn.Platform.Authorization.Functions.Services
             }
         }
 
-        private static List<DelegationEvent> MapToBridgeModel(DelegationChangeEventList delegationChangeEventList)
+        private static List<PlatformDelegationEvent> MapToBridgeModel(DelegationChangeEventList delegationChangeEventList)
         {
-            return delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent => new DelegationEvent()
+            return delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent => new PlatformDelegationEvent()
                 {
-                    Event = Enum.GetName(typeof(DelegationChangeEventType), delegationChangeEvent.EventType),
-                    ChangeId = delegationChangeEvent.DelegationChange.PolicyChangeId,
-                    Timestamp = delegationChangeEvent.DelegationChange.Created,
+                    EventType = delegationChangeEvent.EventType,
+                    PolicyChangeId = delegationChangeEvent.DelegationChange.PolicyChangeId,
+                    Created = delegationChangeEvent.DelegationChange.Created,
                     AltinnAppId = delegationChangeEvent.DelegationChange.AltinnAppId,
                     OfferedByPartyId = delegationChangeEvent.DelegationChange.OfferedByPartyId,
                     CoveredByPartyId = delegationChangeEvent.DelegationChange.CoveredByPartyId,
