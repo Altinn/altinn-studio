@@ -200,7 +200,7 @@ namespace Altinn.App.Services.Implementation
         {
             _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
-            // If this is a revisit to a previous task we need to unlock data 
+            // If this is a revisit to a previous task we need to unlock data
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))
             {
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
@@ -437,12 +437,12 @@ namespace Altinn.App.Services.Implementation
             }
 
             // Ensure layoutsettings are initialized in FormatPdf
-            layoutSettings ??= new ();
-            layoutSettings.Pages ??= new ();
-            layoutSettings.Pages.Order ??= new ();
-            layoutSettings.Pages.ExcludeFromPdf ??= new ();
-            layoutSettings.Components ??= new ();
-            layoutSettings.Components.ExcludeFromPdf ??= new ();
+            layoutSettings ??= new();
+            layoutSettings.Pages ??= new();
+            layoutSettings.Pages.Order ??= new();
+            layoutSettings.Pages.ExcludeFromPdf ??= new();
+            layoutSettings.Components ??= new();
+            layoutSettings.Components.ExcludeFromPdf ??= new();
 
             object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
 

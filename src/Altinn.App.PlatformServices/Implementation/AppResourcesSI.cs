@@ -100,9 +100,9 @@ namespace Altinn.App.Services.Implementation
                 return null;
             }
 
-            using (FileStream fileStream = new (fullFileName, FileMode.Open, FileAccess.Read))
+            using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
             {
-                JsonSerializerOptions options = new () { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                 TextResource textResource = await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, options);
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
@@ -174,7 +174,7 @@ namespace Altinn.App.Services.Implementation
             {
                 _logger.LogError("Something went wrong when fetching BPMNProcess. {0}", ex);
             }
-            
+
             return null;
         }
 
@@ -421,7 +421,7 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
-       
+
         private byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
         {
             var fullFileName = legalPath + filePath;

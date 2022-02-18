@@ -8,7 +8,7 @@ namespace Altinn.App.Common.Helpers
     /// <summary>
     /// Helper class for processing JSON objects
     /// </summary>
-    public class JsonHelper
+    public static class JsonHelper
     {
         /// <summary>
         /// Find changed fields between old and new json objects
