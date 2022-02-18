@@ -143,7 +143,6 @@ namespace Altinn.App.Common.Process
                 if (endEvent != null)
                 {
                     elementIds.Add(endEvent.Id);
-                    continue;
                 }
             }
 
@@ -229,7 +228,7 @@ namespace Altinn.App.Common.Process
         }
 
         /// <summary>
-        /// Identifies the first task in the process. 
+        /// Identifies the first task in the process.
         /// </summary>
         /// <returns>The first task in the process</returns>
         public string GetStartElementId()
