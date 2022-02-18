@@ -39,7 +39,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
         /// Tests that a language string is mapped to it's orginial value.
         /// </summary>
         [Fact]
-        public async Task GetUserFromId_NoMatchInCache_RequestSentToBridge()
+        public async Task GetUserFromId_TC01()
         {
             // Arrange
             const int UserId = 2001607;
