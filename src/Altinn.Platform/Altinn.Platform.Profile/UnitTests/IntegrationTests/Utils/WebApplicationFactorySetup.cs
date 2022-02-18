@@ -62,8 +62,7 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
                         new UserProfilesWrapper(
                             new HttpClient(SblBridgeHttpMessageHandler),
                             UserProfilesWrapperLogger.Object,
-                            GeneralSettingsOptions.Object,
-                            memoryCache));
+                            GeneralSettingsOptions.Object));
                 });
             }).CreateClient();
         }

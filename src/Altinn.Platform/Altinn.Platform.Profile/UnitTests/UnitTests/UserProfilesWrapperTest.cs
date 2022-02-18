@@ -23,7 +23,6 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
     {
         private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
         private readonly Mock<ILogger<UserProfilesWrapper>> logger;
-        private readonly MemoryCache memoryCache;
 
         public UserProfilesWrapperTest()
         {
@@ -34,7 +33,6 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
 
             logger = new Mock<ILogger<UserProfilesWrapper>>();
 
-            memoryCache = new MemoryCache(new MemoryCacheOptions());
         }
 
         /// <summary>
@@ -56,7 +54,7 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             });
 
             HttpClient httpClient = new HttpClient(messageHandler);
-            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
+            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object);
 
             // Act
             UserProfile actual = await target.GetUser(UserId);
@@ -66,30 +64,5 @@ namespace Altinn.Platform.Profile.Tests.UnitTests
             Assert.Equal(HttpMethod.Get, sblRequest.Method);
             Assert.EndsWith($"users/{UserId}", sblRequest.RequestUri.ToString());
         }
-
-        /// <summary>
-        /// Tests that the messagehandler is not utilized, as the userprofile is retrieved from cache.
-        /// </summary>
-        [Fact]
-        public async Task GetUserFromId_MatchInCache_NoRequestSentToBridge()
-        {
-            // Arrange
-            const int UserId = 2001607;
-
-            DelegatingHandlerStub messageHandler = new();
-
-            UserProfile userProfile = await TestDataLoader.Load<UserProfile>(UserId.ToString());
-
-            memoryCache.Set("User_UserId_2001607", userProfile);
-
-            HttpClient httpClient = new HttpClient(messageHandler);
-            UserProfilesWrapper target = new UserProfilesWrapper(httpClient, logger.Object, generalSettingsOptions.Object, memoryCache);
-
-            // Act
-            UserProfile actual = await target.GetUser(UserId);
-
-            // Assert
-            Assert.NotNull(actual);
-        }   
     }
 }

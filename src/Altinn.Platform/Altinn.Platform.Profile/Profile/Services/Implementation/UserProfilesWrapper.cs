@@ -22,9 +22,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly GeneralSettings _generalSettings;
-        private readonly IMemoryCache _memoryCache;
         private readonly HttpClient _client;
-        private readonly MemoryCacheEntryOptions _cacheOptions;
         private readonly JsonSerializerOptions _serializerOptions;
 
         /// <summary>
@@ -37,17 +35,11 @@ namespace Altinn.Platform.Profile.Services.Implementation
         public UserProfilesWrapper(
             HttpClient httpClient,
             ILogger<UserProfilesWrapper> logger,
-            IOptions<GeneralSettings> generalSettings,
-            IMemoryCache memoryCache)
+            IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
             _client = httpClient;
-            _memoryCache = memoryCache;
-            _cacheOptions = new()
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(_generalSettings.ProfileCacheLifetimeSeconds)
-            };
 
             _serializerOptions = new JsonSerializerOptions
             {
@@ -60,12 +52,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         /// <inheritdoc />
         public async Task<UserProfile> GetUser(int userId)
         {
-            string uniqueCacheKey = "User_UserId_" + userId;
-
-            if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile user))
-            {
-                return user;
-            }
+            UserProfile user;
 
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}users/{userId}");
 
@@ -79,7 +66,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
 
             string content = await response.Content.ReadAsStringAsync();
             user = JsonSerializer.Deserialize<UserProfile>(content, _serializerOptions);
-            _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
 
             return user;
         }
@@ -87,13 +73,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         /// <inheritdoc />
         public async Task<UserProfile> GetUser(string ssn)
         {
-            string uniqueCacheKey = "User_SSN_" + ssn;
-
-            if (_memoryCache.TryGetValue(uniqueCacheKey, out UserProfile user))
-            {
-                return user;
-            }
-
+            UserProfile user;
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}users");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
 
@@ -107,7 +87,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
 
             string content = await response.Content.ReadAsStringAsync();
             user = JsonSerializer.Deserialize<UserProfile>(content, _serializerOptions);
-            _memoryCache.Set(uniqueCacheKey, user, _cacheOptions);
 
             return user;
         }
