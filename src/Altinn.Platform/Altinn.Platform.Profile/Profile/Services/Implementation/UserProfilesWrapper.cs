@@ -31,7 +31,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
         /// <param name="httpClient">HttpClient from default http client factory</param>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the general settings</param>
-        /// <param name="memoryCache">the memory cache</param>
         public UserProfilesWrapper(
             HttpClient httpClient,
             ILogger<UserProfilesWrapper> logger,
