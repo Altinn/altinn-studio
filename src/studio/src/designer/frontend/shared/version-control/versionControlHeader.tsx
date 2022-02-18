@@ -9,7 +9,7 @@ import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { IAltinnWindow } from '../types';
+import { IAltinnWindow, IGitStatus } from '../types';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';
@@ -52,6 +52,10 @@ const initialModalState = {
   shouldShowCommitBox: false,
   btnMethod: '',
 };
+
+function hasLocalChanges(result: IGitStatus) {
+  return result && result.contentStatus.some(file => file.fileStatus !== 'Ignored');
+}
 
 class VersionControlHeader extends React.Component<
   IVersionControlHeaderProps,
@@ -111,7 +115,7 @@ class VersionControlHeader extends React.Component<
     const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
     get(url)
-      .then((result: any) => {
+      .then((result: IGitStatus) => {
         if (this.componentIsMounted) {
           this.setState({
             mergeConflict: result.repositoryStatus === 'MergeConflict',
@@ -121,7 +125,7 @@ class VersionControlHeader extends React.Component<
           } else if (result) {
             this.setState({
               changesInMaster: result.behindBy !== 0,
-              changesInLocalRepo: result.contentStatus.length > 0,
+              changesInLocalRepo: hasLocalChanges(result)
             });
           }
         }
@@ -171,7 +175,7 @@ class VersionControlHeader extends React.Component<
             // if pull was successfull, show app is updated message
             this.setState({
               changesInMaster: result.behindBy !== 0,
-              changesInLocalRepo: result.contentStatus.length > 0,
+              changesInLocalRepo: hasLocalChanges(result),
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.service_updated_to_latest',
@@ -252,10 +256,21 @@ class VersionControlHeader extends React.Component<
           isLoading: true,
         },
       });
-      this.getStatus((result: any) => {
+      this.getStatus((result: IGitStatus) => {
         if (result) {
-          // if user is ahead with no changes to commit, show share changes modal
-          if (result.aheadBy > 0 && result.contentStatus.length === 0) {
+          if (!hasLocalChanges(result) && result.aheadBy === 0) {
+            // if user has nothing to commit => show nothing to push message
+            this.setState({
+              anchorEl: currentTarget,
+              modalState: {
+                shouldShowDoneIcon: true,
+                header: getLanguageFromKey(
+                  'sync_header.nothing_to_push',
+                  this.props.language,
+                ),
+              },
+            });
+          } else if (!hasLocalChanges(result) && result.aheadBy > 0 ) {
             this.setState({
               anchorEl: currentTarget,
               modalState: {
