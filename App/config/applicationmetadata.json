@@ -46,6 +46,13 @@
       "minCount": 0
     },
     {
+      "id": "fileUploadWithTags-changename",
+      "taskId": "Task_2",
+      "maxSize": 5,
+      "maxCount": 3,
+      "minCount": 0
+    },
+    {
       "id": "nested-group",
       "allowedContentTypes": [
         "application/xml"

@@ -55,6 +55,17 @@ namespace Altinn.App.AppLogic.DataProcessing
           edited = true;
         }
       }
+
+      if (data.GetType() == typeof(Skjema))
+      {
+        Skjema model = (Skjema)data;
+        if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")
+        {
+          model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759.value = "MiddleNameFromCalculation";
+          edited = true;
+        }
+      }
+
       return await Task.FromResult(edited);
     }
   }

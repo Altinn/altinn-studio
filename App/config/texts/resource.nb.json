@@ -105,7 +105,13 @@
     },
     {
       "id": "HintMellomnavn",
-      "value": "Mellomnavn må være et navn som kan benyttes som etternavn. "
+      "value": "Mellomnavn må være et navn som kan benyttes som etternavn. Du har nå skrevet {0}",
+      "variables": [
+        {
+          "key": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value",
+          "dataSource": "dataModel.ServiceModel-test"
+        }
+      ]
     },
     {
       "id": "Kontaktinformasjon",
