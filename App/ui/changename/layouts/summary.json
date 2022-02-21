@@ -50,13 +50,13 @@
         "id": "summary-5",
         "type": "Summary",
         "componentRef": "fileUpload-changename",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "summary-6",
         "type": "Summary",
         "componentRef": "fileUploadWithTags-changename",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "startAgain",
