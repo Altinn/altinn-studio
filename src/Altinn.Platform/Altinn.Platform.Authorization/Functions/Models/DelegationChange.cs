@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.Platform.Authorization.Functions.Models
 {
     /// <summary>
-    /// This model describes a delegation change as stored in the AUthorization postgre DelegatedPolicy table.
+    /// This model describes a delegation change as stored in the PostgreSQL-database Authorization in the table DelegatedPolicy.
     /// </summary>
     public class DelegationChange
     {
