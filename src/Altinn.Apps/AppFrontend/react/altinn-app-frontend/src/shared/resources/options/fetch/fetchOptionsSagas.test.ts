@@ -1,7 +1,7 @@
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
 import FormDataActions from 'src/features/form/data/formDataActions';
-import { checkIfOptionsShouldRefetchSaga, fetchSpecificOptionSaga, formDataSelector, optionsSelector, userLanguageSelector, watchCheckIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { checkIfOptionsShouldRefetchSaga, fetchSpecificOptionSaga, formDataSelector, instanceIdSelector, optionsSelector, userLanguageSelector, watchCheckIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { IOptions } from 'src/types';
 import * as networking from 'altinn-shared/utils/networking';
 
@@ -46,6 +46,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
                     [select(formDataSelector), formData],
                     [select(userLanguageSelector), userLanguage],
                     [select(optionsSelector), optionsWithField],
+                    [select(instanceIdSelector), 'someId']
                 ])
                 .fork(fetchSpecificOptionSaga, {
                     optionsId: 'someOption',

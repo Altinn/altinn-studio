@@ -19,6 +19,7 @@ export const formDataSelector = (state: IRuntimeState) => state.formData.formDat
 export const userLanguageSelector = (state: IRuntimeState) =>
   state.profile.profile.profileSettingPreference.language;
 export const optionsSelector = (state: IRuntimeState): IOptions => state.optionState.options;
+export const instanceIdSelector = (state: IRuntimeState): string => state.instanceData.instance?.id;
 
 export function* fetchOptionsSaga(): SagaIterator {
   const layouts: ILayouts = yield select(formLayoutSelector);
@@ -33,7 +34,8 @@ export function* fetchOptionsSaga(): SagaIterator {
       ) {
         yield fork(fetchSpecificOptionSaga, {
           optionsId: component.optionsId,
-          dataMapping: component?.mapping,
+          dataMapping: component.mapping,
+          secure: component.secure,
         });
         fetchedOptions.push(component.optionsId);
       }
@@ -44,13 +46,15 @@ export function* fetchOptionsSaga(): SagaIterator {
 export function* fetchSpecificOptionSaga({
   optionsId,
   dataMapping,
+  secure
 }: IFetchSpecificOptionSaga): SagaIterator {
   const optionKey = getOptionLookupKey(optionsId, dataMapping);
+  const instanceId = yield select(instanceIdSelector);
   try {
     yield call(OptionsActions.fetchingOptions, optionKey);
     const formData: IFormData = yield select(formDataSelector);
     const language: string = yield select(userLanguageSelector);
-    const url = getOptionsUrl({ optionsId, formData, language, dataMapping });
+    const url = getOptionsUrl({ optionsId, formData, language, dataMapping, secure, instanceId });
     const options: IOption[] = yield call(get, url);
     const optionData: IOptionData = {
       id: optionsId,

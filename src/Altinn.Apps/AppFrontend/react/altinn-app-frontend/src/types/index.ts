@@ -373,4 +373,6 @@ export interface IFetchSpecificOptionSaga {
   formData?: IFormData;
   language?: string;
   dataMapping?: IMapping;
+  secure?: boolean;
+  instanceId?: string;
 }
