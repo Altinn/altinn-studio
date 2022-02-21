@@ -7,7 +7,6 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 
-
 namespace Altinn.Platform.Authorization.Functions.Services
 {
     /// <summary>

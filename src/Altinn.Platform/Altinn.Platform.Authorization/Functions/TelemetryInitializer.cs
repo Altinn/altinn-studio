@@ -14,7 +14,6 @@ namespace Altinn.Platform.Authorization.Functions
         /// <param name="telemetry">The telemetry.</param>
         public void Initialize(ITelemetry telemetry)
         {
-            // set custom role name here
             telemetry.Context.Cloud.RoleName = "delegationevents-function";
         }
     }
