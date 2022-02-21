@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authorization.Functions.Services
                     string certBase64 = await _keyVaultService.GetCertificateAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
                     _accessToken = _accessTokenGenerator.GenerateAccessToken(
                         "platform",
-                        "delegationevents",
+                        "platform.authorization",
                         new X509Certificate2(Convert.FromBase64String(certBase64), (string)null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable));
                 }
 
