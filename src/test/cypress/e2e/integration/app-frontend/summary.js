@@ -34,8 +34,30 @@ describe('Summary', () => {
           .then((summaryDate) => {
             cy.get(summaryDate).children(mui.gridItem).find(mui.buttonIcon).should('exist').and('be.visible').click();
             cy.get(appFrontend.changeOfName.dateOfEffect).clear();
+            cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.pdf', { force: true });
+            cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('e2e/fixtures/test.pdf', {
+              force: true,
+            });
+            cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('be.visible').select('address');
+            cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).should('be.visible').click();
             cy.contains(mui.button, texts.backToSummary).should('be.visible').click();
           });
+      });
+
+    //Summary of attachment components
+    cy.get(appFrontend.changeOfName.summaryNameChanges)
+      .should('exist')
+      .siblings()
+      .then((summary) => {
+        cy.get(summary)
+          .contains(mui.gridContainer, texts.uplodDocs)
+          .contains(mui.gridItem, 'test.pdf')
+          .should('be.visible');
+        cy.get(summary)
+          .contains(mui.gridContainer, texts.uploadWithTag)
+          .contains(mui.gridItem, 'test.pdf')
+          .should('be.visible')
+          .and('contain.text', 'Adresse');
       });
 
     //Summary displays error when required field is not filled
