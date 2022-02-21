@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 using System;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace Altinn.Platform.Register.Services
     /// <summary>
     /// Represents the business logic related to checking if a national identity number is in use.
     /// </summary>
-    public class PersonLookupServiceDecorator : IPersonLookup
+    public class PersonLookupCacheDecorator : IPersonLookup
     {
         private readonly IPersonLookup _decoratedService;
         private readonly IMemoryCache _memoryCache;
@@ -22,7 +22,7 @@ namespace Altinn.Platform.Register.Services
         /// <summary>
         /// Initialize a new instance of the <see cref="PersonLookupService"/> class.
         /// </summary>
-        public PersonLookupServiceDecorator(
+        public PersonLookupCacheDecorator(
             IPersonLookup decoratedService,
             IMemoryCache memoryCache,
             IOptions<PersonLookupSettings> personLookupSettings)

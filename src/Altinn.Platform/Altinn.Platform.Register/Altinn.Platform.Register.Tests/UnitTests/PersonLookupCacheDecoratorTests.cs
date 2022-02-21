@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Altinn.Platform.Register.Tests.UnitTests
 {
-    public class PersonLookupServiceDecoratorTests
+    public class PersonLookupCacheDecoratorTests
     {
         private readonly Mock<IPersonLookup> _personLookup;
         private readonly Mock<IOptions<PersonLookupSettings>> _personLookupSettingsOptions;
@@ -24,7 +24,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
         private readonly MemoryCache _memoryCache;
         private readonly PersonLookupSettings _personLookupSettings;
 
-        public PersonLookupServiceDecoratorTests()
+        public PersonLookupCacheDecoratorTests()
         {
             _personLookup = new Mock<IPersonLookup>();
             _personLookupSettings = new PersonLookupSettings();
@@ -46,7 +46,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             _personLookup.Setup(s => s.GetPerson(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync(person);
 
-            var target = new PersonLookupServiceDecorator(
+            var target = new PersonLookupCacheDecorator(
                 _personLookup.Object, _memoryCache, _personLookupSettingsOptions.Object);
 
             // Act
@@ -73,7 +73,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
 
             _memoryCache.Set("GetPerson_personnumber_lastname", person);
 
-            var target = new PersonLookupServiceDecorator(
+            var target = new PersonLookupCacheDecorator(
                 _personLookup.Object, _memoryCache, _personLookupSettingsOptions.Object);
 
             // Act
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Register.Tests.UnitTests
             _personLookup.Setup(s => s.GetPerson(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
                 .ReturnsAsync((Person?)null);
 
-            var target = new PersonLookupServiceDecorator(
+            var target = new PersonLookupCacheDecorator(
                 _personLookup.Object, _memoryCache, _personLookupSettingsOptions.Object);
 
             // Act

@@ -190,7 +190,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
     services.AddTransient<IPersonLookup, PersonLookupService>();
-    services.Decorate<IPersonLookup, PersonLookupServiceDecorator>();
+    services.Decorate<IPersonLookup, PersonLookupCacheDecorator>();
 
     services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
           .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
