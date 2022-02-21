@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
         "id": "currentName",
         "type": "Input",
         "textResourceBindings": {
@@ -380,7 +384,7 @@
         "displayMode": "list",
         "required": false,
         "hasCustomFileEndings": true,
-        "validFileEndings": ".pdf"        
+        "validFileEndings": ".pdf"
       },
       {
         "id": "fileUploadWithTags-changename",

@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav1",
+        "type": "NavigationBar"
+      },
+      {
         "id": "showGroupToContinue",
         "type": "Checkboxes",
         "textResourceBindings": {

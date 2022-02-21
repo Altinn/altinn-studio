@@ -1,11 +1,16 @@
 {
-  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",  
+  "$schema": "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
-      "order": [
-        "side1",
-        "side2",
-        "summary"           
-      ],
-      "excludeFromPdf": ["summary"]
-    }
+    "order": [
+      "repeating",
+      "hide",
+      "summary"
+    ],
+    "excludeFromPdf": [
+      "summary"
+    ]
+  },
+  "components": {
+    "excludeFromPdf": []
   }
+}

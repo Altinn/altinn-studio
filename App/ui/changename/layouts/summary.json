@@ -3,6 +3,10 @@
   "data": {
     "layout": [
       {
+        "id": "nav2",
+        "type": "NavigationBar"
+      },
+      {
         "id": "send-in-text",
         "type": "Paragraph",
         "textResourceBindings": {
@@ -22,25 +26,25 @@
         "id": "summary-1",
         "type": "Summary",
         "componentRef": "changeNameFrom",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "summary-2",
         "type": "Summary",
         "componentRef": "changeNameTo",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "summary-3",
         "type": "Summary",
         "componentRef": "reason",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "summary-4",
         "type": "Summary",
         "componentRef": "dateOfEffect",
-        "pageRef": "formLayout"
+        "pageRef": "form"
       },
       {
         "id": "summary-5",
