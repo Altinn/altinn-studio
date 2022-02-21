@@ -8,8 +8,10 @@ using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Configuration;
+using Altinn.Platform.Register.Core;
 using Altinn.Platform.Register.Filters;
 using Altinn.Platform.Register.Health;
+using Altinn.Platform.Register.Services;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -181,10 +183,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.Configure<KeyVaultSettings>(config.GetSection("kvSetting"));
     services.Configure<AccessTokenSettings>(config.GetSection("AccessTokenSettings"));
     services.Configure<PlatformSettings>(config.GetSection("PlatformSettings"));
+    services.Configure<PersonLookupSettings>(config.GetSection("PersonLookupSettings"));
 
     services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
     services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
     services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
+
+    services.AddTransient<IPersonLookup, PersonLookupService>();
+    services.Decorate<IPersonLookup, PersonLookupCacheDecorator>();
 
     services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
           .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.TestHost;
 
 using Xunit;
 
-namespace Altinn.Platform.Register.UnitTest
+namespace Altinn.Platform.Register.Tests.IntegrationTests
 {
     /// <summary>
     /// Health check 
@@ -36,9 +36,7 @@ namespace Altinn.Platform.Register.UnitTest
         {
             HttpClient client = GetTestClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
