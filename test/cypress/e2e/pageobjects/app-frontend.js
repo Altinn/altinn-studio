@@ -26,6 +26,8 @@ export default class AppFrontend {
       alert: 'div[role="alert"]',
     };
 
+    this.navMenu = '#navigation-menu';
+
     //Receipt
     this.receiptContainer = '#ReceiptContainer';
     this.linkToArchive = 'a[href$="/ui/messagebox/archive"]';
