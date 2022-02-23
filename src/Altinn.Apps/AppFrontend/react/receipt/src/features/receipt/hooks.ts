@@ -83,17 +83,18 @@ export const useLanguageWithOverrides = ({
   instance,
   user,
 }: IUseLanguageWithOverrides) => {
-  const [language, setLanguage] = useState(null);
+  const [language, setLanguage] = useState({ 
+    receipt_platform: getLanguageFromCode(user?.profileSettingPreference.language).receipt_platform 
+  });
 
   useEffect(() => {
-    if (user && !language && textResources && instance) {
+    if (user && textResources && instance) {
       try {
         const mergedLanguage = mergeLanguageWithOverrides({
           languageCode: user.profileSettingPreference?.language,
           textResources,
           instance,
         });
-
         setLanguage({
           receipt_platform: mergedLanguage,
         });
@@ -101,7 +102,7 @@ export const useLanguageWithOverrides = ({
         console.error(error);
       }
     }
-  }, [user, instance, language, textResources]);
+  }, [user, instance, textResources]);
 
   return { language };
 };

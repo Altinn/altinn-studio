@@ -35,7 +35,6 @@ describe('Receipt', () => {
     render();
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByText('Kvittering')).not.toBeInTheDocument();
 
     await waitForElementToBeRemoved(() => screen.getByText('Loading...'));
 
