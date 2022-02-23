@@ -83,7 +83,9 @@ export const useLanguageWithOverrides = ({
   instance,
   user,
 }: IUseLanguageWithOverrides) => {
-  const [language, setLanguage] = useState(null);
+  const [language, setLanguage] = useState({ 
+    receipt_platform: getLanguageFromCode(user?.profileSettingPreference.language).receipt_platform 
+  });
 
   useEffect(() => {
     if (user && !language && textResources && instance) {
