@@ -348,7 +348,7 @@
         "readOnly": false,
         "labelSettings": { "optionalIndicator": false },
         "grid": {
-          "md": 6
+          "md": 4
         },
         "preselectedOptionIndex": 0
       },
@@ -364,9 +364,31 @@
         "optionsId": "references",
         "required": false,
         "readOnly": false,
+        "secure": false,
         "labelSettings": { "optionalIndicator": false },
         "grid": {
-          "md": 6
+          "md": 4
+        },
+        "mapping": {
+          "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
+        }
+      },
+      {
+        "id": "reference2",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse 2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Innledning-grp-9309.Kontaktinformasjon-grp-9311.MelderReferanseAltinn-datadef-34743.value"
+        },
+        "optionsId": "test",
+        "required": false,
+        "readOnly": false,
+        "secure": true,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 4
         },
         "mapping": {
           "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value": "source"
