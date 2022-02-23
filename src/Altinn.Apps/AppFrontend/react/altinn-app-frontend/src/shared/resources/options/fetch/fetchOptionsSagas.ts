@@ -60,6 +60,7 @@ export function* fetchSpecificOptionSaga({
       id: optionsId,
       options,
       mapping: dataMapping,
+      secure,
     };
     yield call(OptionsActions.fetchOptionsFulfilled, optionKey, optionData);
   } catch (error) {
@@ -77,10 +78,12 @@ export function* checkIfOptionsShouldRefetchSaga({
   for (const optionsKey of Object.keys(options)) {
     const dataMapping = options[optionsKey].mapping;
     const optionsId = options[optionsKey].id;
+    const secure = options[optionsKey].secure;
     if (dataMapping && Object.keys(dataMapping).includes(field)) {
       yield fork(fetchSpecificOptionSaga, {
         optionsId,
         dataMapping,
+        secure,
       });
     }
   }

@@ -208,6 +208,7 @@ export interface IOptionData {
   id: string;
   mapping?: IMapping;
   loading?: boolean;
+  secure?: boolean;
 }
 
 export interface IRepeatingGroup {

@@ -54,6 +54,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
           dataMapping: {
             some_field: 'some_url_parm'
           },
+          secure: undefined
         })
         .run();
     });
