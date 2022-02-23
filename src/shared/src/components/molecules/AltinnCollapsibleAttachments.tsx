@@ -87,7 +87,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       ) : (
         <>
           <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-            {`${props.title} ${attachmentCount}`}
+            {props.title} {attachmentCount}
           </Typography>
           <AltinnAttachmentComponent
             attachments={props.attachments}

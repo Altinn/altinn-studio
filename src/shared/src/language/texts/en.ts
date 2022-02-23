@@ -205,6 +205,8 @@ export function en() {
       reference_number: 'Reference number',
       sender: 'Sender',
       sent_content: 'The following is submitted:',
+      log_out: 'Log out',
+      profile_icon_aria_label: 'Profile icon button',
     },
     validation_errors: {
       min: 'Minimum valid value is {0}',
