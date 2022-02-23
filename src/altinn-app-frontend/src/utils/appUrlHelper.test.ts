@@ -178,7 +178,7 @@ describe('Frontend urlHelper.ts', () => {
 
     test('should return correct url when no language is passed and formData/dataMapping is provided', () => {
       const result = getOptionsUrl({
-        optionsId: 'county',
+        optionsId: 'country',
         formData: {
           country: 'Norway',
         },
@@ -188,7 +188,7 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual(
-        'https://altinn3local.no/ttd/test/api/options/county?selectedCountry=Norway',
+        'https://altinn3local.no/ttd/test/api/options/country?selectedCountry=Norway',
       );
     });
 
@@ -208,6 +208,39 @@ describe('Frontend urlHelper.ts', () => {
 
       expect(result).toEqual(
         'https://altinn3local.no/ttd/test/api/options/country?language=en&selectedCountry=Norway&selectedPostCode=0123',
+      );
+    });
+
+    test('should return instance aware url when secure param is passed for secure option', () => {
+      const result = getOptionsUrl({
+        optionsId: 'country',
+        language: 'en',
+        formData: {
+          country: 'Norway',
+          postCode: '0123',
+        },
+        dataMapping: {
+          country: 'selectedCountry',
+          postCode: 'selectedPostCode',
+        },
+        secure: true,
+        instanceId: 'someInstanceId'
+      });
+
+      expect(result).toEqual(
+        'https://altinn3local.no/ttd/test/instances/someInstanceId/options/country?language=en&selectedCountry=Norway&selectedPostCode=0123',
+      );
+    });
+
+    test('should return instance aware url when no language or formData/dataMapping is provided for secure option', () => {
+      const result = getOptionsUrl({
+        optionsId: 'country',
+        secure: true,
+        instanceId: 'someInstanceId'
+      });
+
+      expect(result).toEqual(
+        'https://altinn3local.no/ttd/test/instances/someInstanceId/options/country',
       );
     });
   });
