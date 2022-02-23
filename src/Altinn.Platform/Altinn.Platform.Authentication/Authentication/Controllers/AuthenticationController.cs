@@ -728,7 +728,14 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, List<string>>(), Iss = provider.IssuerKey };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel()
+            {
+                IsAuthenticated = true,
+                ProviderClaims = new Dictionary<string,
+                List<string>>(), Iss = provider.IssuerKey,
+                AuthenticationMethod = AuthenticationMethod.NotDefined
+            };
+
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -798,6 +805,11 @@ namespace Altinn.Platform.Authentication.Controllers
                        
                     userAuthenticationModel.ProviderClaims[claim.Type].Add(claim.Value);
                 }
+            }
+
+            if (userAuthenticationModel.AuthenticationMethod == AuthenticationMethod.NotDefined)
+            {
+                userAuthenticationModel.AuthenticationMethod = (AuthenticationMethod)System.Enum.Parse(typeof(AuthenticationMethod), provider.DefaultAuthenticationMethod);
             }
 
             return userAuthenticationModel;
