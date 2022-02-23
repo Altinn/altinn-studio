@@ -12,7 +12,7 @@ import {
 import { IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
-import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
+import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow } from '../../../types';
 import { get } from '../../../utils/networking';
@@ -168,6 +168,7 @@ const Confirm = () => {
               null,
               true,
             )}
+            pdf={getInstancePdf(instance.data)}
           />
           <SubmitButton />
         </>
@@ -185,17 +186,10 @@ const SubmitButton = () => {
     (state) => state.textResources.resources,
   );
   const language = useAppSelector((state) => state.language.language);
-  const validations = useAppSelector(
-    (state) => state.formValidations.validations,
-  );
 
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
   const { instanceId } = window as Window as IAltinnWindow;
-
-  React.useEffect(() => {
-    setIsSubmitting(false);
-  }, [validations]);
 
   const handleConfirmClick = () => {
     setIsSubmitting(true);
@@ -209,6 +203,8 @@ const SubmitButton = () => {
         dispatch(updateValidations({ validations: mappedValidations }));
         if (data.length === 0) {
           ProcessDispatcher.completeProcess();
+        } else {
+          setIsSubmitting(false);
         }
       })
       .catch(() => {
