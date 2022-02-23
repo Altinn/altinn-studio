@@ -26,7 +26,7 @@ The dependencies are for linting and formatting of the test scripts.
     yarn run prettier:format # Fix and save the files based on configuration
 ```
 
-Refer this page for more [documentation](https://docs.altinn.studio/teknologi/altinnstudio/development/handbook/test/k6/) on how to write new test scripts.
+Refer this page for more [documentation](https://docs.altinn.studio/technology/altinnstudio/development/handbook/test/k6/) on how to write new test scripts.
 
 ## Run Tests
 
