@@ -57,8 +57,6 @@ namespace Altinn.App.services.options
         }
       };
 
-
-
       return await Task.FromResult(options);
     }
   }
