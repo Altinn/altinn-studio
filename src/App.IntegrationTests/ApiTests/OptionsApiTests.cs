@@ -34,7 +34,7 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
             
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
             Assert.Equal(7, options.Count);
         }
@@ -50,13 +50,13 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
             Assert.Equal(5, options.Count);
         }
 
         [Fact]
-        public async Task InstanceAwareOptions_Returns404WhenNoneIsFound()
+        public async Task InstanceAwareOptions_Returns404WhenNoOptionProviderIsFound()
         {
             string token = PrincipalUtil.GetToken(1337);
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -65,7 +65,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);            
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]

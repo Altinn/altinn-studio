@@ -15,7 +15,7 @@ namespace Altinn.App.PlatformServices.Tests.Options
             var provider = new NullInstanceAppOptionsProvider();
 
             provider.Id.Should().Be(string.Empty);
-            provider.GetInstanceAppOptionsAsync(new InstanceIdentifier(12345, Guid.NewGuid()), "nb", new Dictionary<string, string>()).Result.Options.Should().HaveCount(0);
+            provider.GetInstanceAppOptionsAsync(new InstanceIdentifier(12345, Guid.NewGuid()), "nb", new Dictionary<string, string>()).Result.Options.Should().BeNull();
         }
     }
 }

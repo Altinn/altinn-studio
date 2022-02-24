@@ -52,7 +52,7 @@ namespace Altinn.App.Api.Controllers
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            if (appOptions.Options == null || appOptions.Options.Count == 0)
+            if (appOptions.Options == null)
             {
                 return NotFound();
             }
@@ -89,7 +89,9 @@ namespace Altinn.App.Api.Controllers
 
             AppOptions appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language, queryParams);
 
-            if (appOptions.Options == null || appOptions.Options.Count == 0)
+            // Only return NotFound if we can't find an options provider.
+            // If we find the options provider, but it doesnt' have values, return empty list.
+            if (appOptions.Options == null)
             {
                 return NotFound();
             }
