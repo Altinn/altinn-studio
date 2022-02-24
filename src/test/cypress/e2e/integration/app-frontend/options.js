@@ -13,16 +13,16 @@ describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
     // Case: options are dynamicly refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
-    cy.get(appFrontend.changeOfName.reference).should('be.visible');
-    cy.get(appFrontend.changeOfName.reference).select('nordmann');
-    cy.get(appFrontend.changeOfName.reference).should('have.value', 'nordmann');
+    cy.get(appFrontend.changeOfName.reference).should('be.visible').select('nordmann').should('have.value', 'nordmann');
+
+    //Secure options
+    cy.get(appFrontend.changeOfName.reference2).should('be.visible').select('1').and('have.value', '1');
 
     // Select a different source, expect previous selction to be cleared and
     // new value to be selectable in the reference option
     cy.get(appFrontend.changeOfName.sources).select('digdir');
-    cy.get(appFrontend.changeOfName.reference).should('be.visible');
-    cy.get(appFrontend.changeOfName.reference).should('have.value', '');
-    cy.get(appFrontend.changeOfName.reference).select('salt');
-    cy.get(appFrontend.changeOfName.reference).should('have.value', 'salt');
+    cy.get(appFrontend.changeOfName.reference).should('be.visible').and('have.value', '');
+    cy.get(appFrontend.changeOfName.reference).select('salt').should('have.value', 'salt');
+    cy.get(appFrontend.changeOfName.reference2).should('be.visible').select('2').and('have.value', '2');
   });
 });
