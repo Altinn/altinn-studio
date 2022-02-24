@@ -151,7 +151,7 @@ void ConfigureLogging(ILoggingBuilder logging)
         // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
         // Providing an instrumentation key here is required if you're using
         // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-        // or if you want to capture logs from early in the application startup 
+        // or if you want to capture logs from early in the application startup
         // pipeline from Startup.cs or Program.cs itself.
         logging.AddApplicationInsights(applicationInsightsKey);
 
