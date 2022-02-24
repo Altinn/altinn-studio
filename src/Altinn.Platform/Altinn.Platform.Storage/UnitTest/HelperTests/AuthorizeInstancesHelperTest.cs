@@ -53,14 +53,14 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Assert
             // Checks it has the right number of attributes in each category 
             Assert.Single(requestRoot.Request.AccessSubject);
-            Assert.Equal(2, requestRoot.Request.Action.Count());
-            Assert.Equal(3, requestRoot.Request.Resource.Count());
-            Assert.Equal(4, requestRoot.Request.Resource.First().Attribute.Count());
-            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
+            Assert.Equal(2, requestRoot.Request.Action.Count);
+            Assert.Equal(3, requestRoot.Request.Resource.Count);
+            Assert.Equal(4, requestRoot.Request.Resource.First().Attribute.Count);
+            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count);
 
             foreach (var referenceId in requestRoot.Request.MultiRequests.RequestReference)
             {
-                Assert.Equal(3, referenceId.ReferenceId.Count());
+                Assert.Equal(3, referenceId.ReferenceId.Count);
             }
         }
 

@@ -36,17 +36,17 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class ApplicationsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class ApplicationsControllerTests : IClassFixture<TestApplicationFactory<ApplicationsController>>
     {
         private const string BasePath = "/storage/api/v1";
 
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<ApplicationsController> _factory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
         /// </summary>
         /// <param name="factory">The <see cref="TestApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-        public ApplicationsControllerTests(TestApplicationFactory<Startup> factory)
+        public ApplicationsControllerTests(TestApplicationFactory<ApplicationsController> factory)
         {
             _factory = factory;
         }
@@ -486,7 +486,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
 
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

@@ -7,6 +7,7 @@ using System.Text;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Fixture;
@@ -30,11 +31,11 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class InstanceEventsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class InstanceEventsControllerTests : IClassFixture<TestApplicationFactory<InstanceEventsController>>
     {
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<InstanceEventsController> _factory;
 
-        public InstanceEventsControllerTests(TestApplicationFactory<Startup> factory)
+        public InstanceEventsControllerTests(TestApplicationFactory<InstanceEventsController> factory)
         {
             _factory = factory;
         }
@@ -204,8 +205,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
-
             // No setup required for these services. They are not in use by the InstanceEventController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();

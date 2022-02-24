@@ -205,9 +205,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosId = appId;
 
-            if (appId != null && appId.Contains("/"))
+            if (appId != null && appId.Contains('/'))
             {
-                string[] parts = appId.Split("/");
+                string[] parts = appId.Split('/');
 
                 cosmosId = $"{parts[0]}-{parts[1]}";
             }
