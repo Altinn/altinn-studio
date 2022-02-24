@@ -213,7 +213,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest

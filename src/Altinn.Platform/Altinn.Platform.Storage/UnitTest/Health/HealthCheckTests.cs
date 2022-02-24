@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Storage.Health;
 using Altinn.Platform.Storage.UnitTest.Fixture;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Microsoft.AspNetCore.TestHost;
@@ -10,11 +11,11 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.Health
 {
-    public class HealthCheckTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<TestApplicationFactory<HealthCheck>>
     {
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<HealthCheck> _factory;
 
-        public HealthCheckTests(TestApplicationFactory<Startup> factory)
+        public HealthCheckTests(TestApplicationFactory<HealthCheck> factory)
         {
             _factory = factory;
         }
@@ -39,7 +40,6 @@ namespace Altinn.Platform.Storage.UnitTest.Health
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
