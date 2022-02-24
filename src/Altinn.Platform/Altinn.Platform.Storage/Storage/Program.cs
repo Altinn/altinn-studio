@@ -104,7 +104,6 @@ async Task SetConfigurationProviders(ConfigurationManager config)
 async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager config)
 {
     KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
-
     config.GetSection("kvSetting").Bind(keyVaultSettings);
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
         !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
