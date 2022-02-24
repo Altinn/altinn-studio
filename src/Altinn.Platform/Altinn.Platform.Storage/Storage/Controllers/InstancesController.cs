@@ -247,7 +247,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to perform query on instances due to: {e}");
+                _logger.LogError(e, "Unable to perform query on instances");
                 return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
             }
         }
@@ -313,7 +313,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
                 return Forbid();
             }
 
@@ -334,7 +334,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
-                _logger.LogInformation($"Created instance: {storedInstance.Id}");
+                _logger.LogInformation("Created instance: {storedInstance.Id}", storedInstance.Id);
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
@@ -343,12 +343,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception storageException)
             {
-                _logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
+                _logger.LogError(storageException, "Unable to create {appId} instance for {instance.InstanceOwner.PartyId}", appId, instance.InstanceOwner.PartyId);
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
 
-                _logger.LogError($"Deleted instance {storedInstance.Id}");
+                _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance.Id);
                 return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
         }
@@ -383,12 +383,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
 
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
+                _logger.LogError(dce, "Cannot delete instance {instanceId}.", instanceId);
                 return StatusCode(500, $"Unknown database exception in delete: {dce}");
             }
             catch (Exception e)
             {
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
+                _logger.LogError(e, "Cannot delete instance {instanceId}.", instanceId);
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
@@ -423,7 +423,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                _logger.LogError(e, "Unexpected exception when deleting instance {instance.Id}", instance.Id);
                 return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
             }
         }
@@ -472,7 +472,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update instance {instanceId}");
+                _logger.LogError(e, "Unable to update instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -521,7 +521,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update read status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update read status for instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -578,7 +578,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update sub status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update sub status for instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -698,7 +698,7 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
+        private async Task<(Application Application, ActionResult ErrorMessage)> GetApplicationOrErrorAsync(string appId)
         {
             ActionResult errorResult = null;
             Application appInfo = null;

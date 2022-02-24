@@ -81,12 +81,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (DocumentClientException dce)
             {
-                logger.LogError($"Unable to access document database {dce}");
+                logger.LogError(dce, "Unable to access document database");
                 return StatusCode(500, $"Unable to access document database {dce}");
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform query request {e}");
+                logger.LogError(e, $"Unable to perform query request");
                 return StatusCode(500, $"Unable to perform query request {e}");
             }
         }
@@ -120,12 +120,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Could not find an application with appId={appId}");
                 }
 
-                logger.LogError($"Unable to access document database: {dce}");
+                logger.LogError(dce, "Unable to access document database");
                 return StatusCode(500, $"Unable to access document database: {dce}");
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform request: {e.Message}");
+                logger.LogError(e, "Unable to perform request");
                 return StatusCode(500, $"Unable to perform request: {e.Message}");
             }
         }
@@ -168,7 +168,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform request: {e}");
+                logger.LogError(e, $"Unable to perform request");
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
 
@@ -211,7 +211,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to store application data in database. {e}");
+                logger.LogError(e, "Unable to store application data in database.");
                 return StatusCode(500, $"Unable to store application data in database. {e}");
             }
         }
@@ -294,12 +294,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Did not find application with id={appId} to update");
                 }
 
-                logger.LogError($"Document database error: {dce}");
+                logger.LogError(dce, "Document database error");
                 return StatusCode(500, $"Document database error: {dce}");
             }
             catch (Exception exception)
             {
-                logger.LogError($"Unable to perform request: {exception}");
+                logger.LogError(exception, "Unable to perform request");
                 return StatusCode(500, $"Unable to perform request: {exception}");
             }
         }
@@ -352,12 +352,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with appId={appId}");
                 }
 
-                logger.LogError($"Unable to reach document database {dce}");
+                logger.LogError(dce, "Unable to reach document database");
                 return StatusCode(500, $"Unable to reach document database {dce}");
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform request: {e}");
+                logger.LogError(e, "Unable to perform request.");
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
         }

@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
 
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
+            _logger.LogInformation("// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {request}", JsonConvert.SerializeObject(xacmlJsonRequest));
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
 
             foreach (XacmlJsonResult result in response.Response)
@@ -154,7 +154,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Authorization Helper // Authorize instance action failed for request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation("// Authorization Helper // Authorize instance action failed for request: {request}.", JsonConvert.SerializeObject(request));
                 return false;
             }
 

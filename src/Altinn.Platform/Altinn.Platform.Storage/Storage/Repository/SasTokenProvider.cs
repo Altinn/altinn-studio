@@ -18,8 +18,8 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class SasTokenProvider : ISasTokenProvider
     {
-        private readonly ConcurrentDictionary<string, (DateTime created, string token)> _sasTokens =
-            new ConcurrentDictionary<string, (DateTime created, string token)>();
+        private readonly ConcurrentDictionary<string, (DateTime Created, string Token)> _sasTokens =
+            new ConcurrentDictionary<string, (DateTime Created, string Token)>();
 
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly IKeyVaultClientWrapper _keyVaultWrapper;
@@ -54,10 +54,10 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>The SAS token to use when accessing the application owner storage account.</returns>
         public async Task<string> GetSasToken(string org)
         {
-            (DateTime created, string token) sasToken;
-            if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.created))
+            (DateTime Created, string Token) sasToken;
+            if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.Created))
             {
-                return sasToken.token;
+                return sasToken.Token;
             }
 
             _sasTokens.TryRemove(org, out _);
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 if (_sasTokens.TryGetValue(org, out sasToken))
                 {
-                    return sasToken.token;
+                    return sasToken.Token;
                 }
 
                 string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org);
@@ -76,15 +76,15 @@ namespace Altinn.Platform.Storage.Repository
                 string secretName = $"{storageAccount}-{sasDefinition}";
                 string keyVaultUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org);
 
-                _logger.LogInformation($"Getting secret '{secretName}' from '{keyVaultUri}'.");
+                _logger.LogInformation("Getting secret '{secretName}' from '{keyVaultUri}'.", secretName, keyVaultUri);
 
-                (DateTime created, string token) newSasToken = default;
-                newSasToken.created = DateTime.UtcNow;
-                newSasToken.token = await _keyVaultWrapper.GetSecretAsync(keyVaultUri, secretName);
+                (DateTime Created, string Token) newSasToken = default;
+                newSasToken.Created = DateTime.UtcNow;
+                newSasToken.Token = await _keyVaultWrapper.GetSecretAsync(keyVaultUri, secretName);
 
                 _sasTokens.TryAdd(org, newSasToken);
 
-                return newSasToken.token;
+                return newSasToken.Token;
             }
             finally
             {
@@ -98,7 +98,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="org">The application owner id.</param>
         public void InvalidateSasToken(string org)
         {
-            _logger.LogInformation($"Removing SAS token for '{org}'.");
+            _logger.LogInformation("Removing SAS token for '{org}'.", org);
 
             _sasTokens.TryRemove(org, out _);
         }
