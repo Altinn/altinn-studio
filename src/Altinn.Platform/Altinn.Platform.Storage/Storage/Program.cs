@@ -62,7 +62,6 @@ Configure();
 
 app.Run();
 
-
 void ConfigureSetupLogging()
 {
     var logFactory = LoggerFactory.Create(builder =>
@@ -269,7 +268,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
                                 Type = ReferenceType.SecurityScheme
                             }
                         },
-                        new string[] { }
+                        Array.Empty<string>()
                     }
                 });
         try
