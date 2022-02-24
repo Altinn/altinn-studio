@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
@@ -41,8 +42,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<string> GetSasToken(string org)
         {
-            (DateTime Created, string Token) sasToken;
-            if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.Created))
+            if (_sasTokens.TryGetValue(org, out (DateTime Created, string Token) sasToken) && StillYoung(sasToken.Created))
             {
                 return sasToken.Token;
             }

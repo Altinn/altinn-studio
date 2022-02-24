@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Wrappers;
+
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.Extensions.Logging;
@@ -54,8 +55,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>The SAS token to use when accessing the application owner storage account.</returns>
         public async Task<string> GetSasToken(string org)
         {
-            (DateTime Created, string Token) sasToken;
-            if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.Created))
+            if (_sasTokens.TryGetValue(org, out (DateTime Created, string Token) sasToken) && StillYoung(sasToken.Created))
             {
                 return sasToken.Token;
             }
@@ -72,7 +72,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org);
                 string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org);
-                
+
                 string secretName = $"{storageAccount}-{sasDefinition}";
                 string keyVaultUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org);
 
