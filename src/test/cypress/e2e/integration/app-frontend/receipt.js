@@ -11,7 +11,7 @@ const appFrontend = new AppFrontend();
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
     cy.navigateToTask4();
-    cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receiptContainer)
       .should('be.visible')
       .find(mui.tableBody)

@@ -47,9 +47,9 @@ describe('Mobile', () => {
       cy.get(appFrontend.sendinButton).should('be.visible').click();
       cy.wait('@getInstance');
       cy.wait('@getInstanceData');
-      cy.get(appFrontend.confirmContainer).should('be.visible');
+      cy.get(appFrontend.confirm.container).should('be.visible');
     });
-    cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receiptContainer).should('be.visible');
     cy.get(appFrontend.linkToArchive).should('be.visible');
   });
