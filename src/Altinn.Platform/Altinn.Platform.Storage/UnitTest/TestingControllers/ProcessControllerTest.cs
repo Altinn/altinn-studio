@@ -275,7 +275,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
-
             
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {

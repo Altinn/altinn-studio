@@ -173,7 +173,6 @@ void ConfigureLogging(ILoggingBuilder logging)
     }
 }
 
-
 void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     logger.LogInformation("Program // ConfigureServices");
