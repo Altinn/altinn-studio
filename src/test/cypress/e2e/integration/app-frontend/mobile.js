@@ -50,7 +50,7 @@ describe('Mobile', () => {
       cy.get(appFrontend.confirm.container).should('be.visible');
     });
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
-    cy.get(appFrontend.receiptContainer).should('be.visible');
-    cy.get(appFrontend.linkToArchive).should('be.visible');
+    cy.get(appFrontend.receipt.container).should('be.visible');
+    cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
   });
 });

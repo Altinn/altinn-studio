@@ -30,8 +30,12 @@ export default class AppFrontend {
     this.startAgain = '#startAgain';
 
     //Receipt
-    this.receiptContainer = '#ReceiptContainer';
-    this.linkToArchive = 'a[href$="/ui/messagebox/archive"]';
+    this.receipt = {
+      container: '#ReceiptContainer',
+      linkToArchive: 'a[href$="/ui/messagebox/archive"]',
+      pdf: '#attachment-list-pdf',
+      uploadedAttachments: '#attachment-list',
+    };
 
     // Confirmation
     this.confirm = {
