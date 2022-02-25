@@ -26,7 +26,7 @@ function* fetchLayoutSaga(): SagaIterator {
     const navigationConfig: any = {};
     let autoSave: boolean;
     let firstLayoutKey: string;
-    if (layoutResponse.data) {
+    if (layoutResponse.data?.layout) {
       layouts.FormLayout = layoutResponse.data.layout;
       firstLayoutKey = 'FormLayout';
       autoSave = layoutResponse.data.autoSave;
