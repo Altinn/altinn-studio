@@ -33,7 +33,7 @@ namespace Altinn.Platform.Register.Controllers
         }
 
         /// <summary>
-        /// Gets the party for the given national identity number.
+        /// Gets the <see cref="Person"/> with the given national identity number.
         /// </summary>
         /// <remarks>
         /// This method can be used to retrieve the party and person object for an identified person with
