@@ -53,6 +53,7 @@ export function AddressComponent({
   );
   const [validations, setValidations] = React.useState({} as any);
   const prevZipCode = React.useRef(null);
+  const hasFetchedPostPlace = React.useRef(false);
 
   React.useEffect(() => {
     setAddress(formData.address || '');
@@ -121,11 +122,12 @@ export function AddressComponent({
       return;
     }
 
-    if (prevZipCode.current === formData.zipCode) {
+    if (prevZipCode.current === formData.zipCode && hasFetchedPostPlace.current === true) {
       return;
     }
 
     const fetchPostPlace = async (pnr: string, cancellationToken: any) => {
+      hasFetchedPostPlace.current = false;
       try {
         prevZipCode.current = formData.zipCode;
         const response = await get(
@@ -153,6 +155,7 @@ export function AddressComponent({
           setPostPlace('');
           setValidations({ ...validations, zipCode: errorMessage });
         }
+        hasFetchedPostPlace.current = true;
       } catch (err) {
         if (axios.isCancel(err)) {
           // Intentionally ignored
