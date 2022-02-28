@@ -1,18 +1,18 @@
 using System;
+
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Interface;
 using Altinn.App.PlatformServices.Filters;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Options;
+using Altinn.App.Services;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
-using Altinn.Common.PEP.Authorization;
-using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 
@@ -39,7 +39,10 @@ namespace Altinn.App.PlatformServices.Extensions
         /// <param name="env">A reference to the current <see cref="IWebHostEnvironment"/> object.</param>
         public static void AddPlatformServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
-            // Registered as HttpClients so default HttpClientFactory is used
+            services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+            services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
+
             services.AddHttpClient<IApplication, ApplicationClient>();
             services.AddHttpClient<IAuthentication, AuthenticationClient>();
             services.AddHttpClient<IAuthorization, AuthorizationClient>();
@@ -54,10 +57,11 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddHttpClient<IRegister, RegisterClient>();
             services.AddHttpClient<IText, TextClient>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
+            services.AddHttpClient<IPersonRetriever, PersonClient>();
 
-            services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
-            services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
-            services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
+            services.AddTransient<IUserTokenProvider, UserTokenProvider>();
+            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<IPersonLookup, PersonService>();
         }
 
         /// <summary>
@@ -72,7 +76,6 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddTransient<IValidation, ValidationAppSI>();
             services.AddTransient<IPrefill, PrefillSI>();
-            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddHttpClient<IEFormidlingClient, Altinn.Common.EFormidlingClient.EFormidlingClient>();
             services.AddSingleton<IAppResources, AppResourcesSI>();
