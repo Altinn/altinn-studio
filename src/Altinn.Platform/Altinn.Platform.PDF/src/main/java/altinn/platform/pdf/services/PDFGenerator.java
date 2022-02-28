@@ -69,6 +69,13 @@ public class PDFGenerator {
   private int mcid = 1;
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
+  private List<String> componentsIgnoredFromGeneration = Arrays.asList(
+    "Button",
+    "Image",
+    "NavigationBar",
+    "NavigationButtons",
+    "Summary"
+  );
 
 
   /**
@@ -265,9 +272,7 @@ public class PDFGenerator {
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     String componentType = element.getType();
     String componentId = element.getId();
-    if (componentType.equals("Button")
-      || componentType.equalsIgnoreCase("NavigationButtons")
-      || componentType.equalsIgnoreCase("NavigationBar")
+    if (componentsIgnoredFromGeneration.contains(componentType)
       || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
