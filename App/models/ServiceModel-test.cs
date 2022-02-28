@@ -50,6 +50,12 @@ public Begrunnelsegrp9317 Begrunnelsegrp9317 { get; set; }
     [JsonProperty("Radioknapp")]
     [JsonPropertyName("Radioknapp")]
 public string Radioknapp { get; set; }
+
+    [XmlElement("Adresse")]
+    [JsonProperty("Adresse")]
+    [JsonPropertyName("Adresse")]
+public Adresse Adresse {get; set; }
+
 }
 public class Innledninggrp9309{
 [Range(1,Int32.MaxValue)]
@@ -1535,3 +1541,21 @@ public decimal orid {get; set;} = 34948;
 public string value { get; set; }
 }
 }
+
+  public class Adresse
+  {
+    [XmlElement("Gateadresse", Order = 1)]
+    [JsonProperty("Gateadresse")]
+    [JsonPropertyName("Gateadresse")]
+    public string Gateadresse { get; set; }
+
+    [XmlElement("Postnr", Order = 2)]
+    [JsonProperty("Postnr")]
+    [JsonPropertyName("Postnr")]
+    public string Postnr { get; set; }
+
+    [XmlElement("Poststed", Order = 3)]
+    [JsonProperty("Poststed")]
+    [JsonPropertyName("Poststed")]
+    public string Poststed { get; set; }
+  }

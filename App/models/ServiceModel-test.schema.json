@@ -411,6 +411,24 @@
 												}
 										},
 									"type" : "string"
+								},
+								"Adresse" : {
+									"properties" : {
+											"Gateadresse" : {
+													"type" : "string"
+												},
+											"Postnr" : {
+													"type" : "string"
+												},
+											"Poststed" : {
+													"type" : "string"
+												}
+										},
+									"required" : [
+											"Gateadresse",
+											"Postnr",
+											"Poststed"
+										]
 								}
 						},
 					"required" : [
