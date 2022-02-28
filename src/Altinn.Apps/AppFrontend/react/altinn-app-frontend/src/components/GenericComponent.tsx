@@ -17,7 +17,6 @@ import components from '.';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { Triggers } from 'src/types';
 import FormDataActions from '../features/form/data/formDataActions';
-import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import Label from '../features/form/components/Label';
@@ -180,12 +179,6 @@ export function GenericComponent(props: IGenericComponentProps) {
         componentId: props.id,
         skipValidation
       }),
-    );
-
-    RuleActions.checkIfRuleShouldRun(
-      props.id,
-      props.dataModelBindings[key],
-      value,
     );
   };
 

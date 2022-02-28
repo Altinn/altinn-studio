@@ -1,13 +1,13 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { all, call, put, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../types';
 import { checkIfRuleShouldRun } from '../../../../utils/rules';
 import FormDataActions from '../../data/formDataActions';
 import { IFormDataState } from '../../data/formDataReducer';
+import { IUpdateFormDataFulfilled } from '../../data/formDataTypes';
 import { IRuleConnections } from '../../dynamics';
 import { ILayoutState } from '../../layout/formLayoutSlice';
-import * as RuleActions from './checkRulesActions';
-import * as ActionTypes from '../rulesActionTypes';
 
 const selectRuleConnection = (state: IRuntimeState): IRuleConnections => state.formDynamics.ruleConnection;
 const selectFormDataConnection = (state: IRuntimeState): IFormDataState => state.formData;
@@ -21,20 +21,20 @@ export interface IResponse {
 }
 
 function* checkIfRuleShouldRunSaga({
-  lastUpdatedDataBinding,
-}: RuleActions.ICheckIfRuleShouldRun): SagaIterator {
+  payload: {
+    field
+  },
+}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
     const ruleConnectionState: IRuleConnections = yield select(selectRuleConnection);
     const formDataState: IFormDataState = yield select(selectFormDataConnection);
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
 
-    // const currentLayout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
-
     const rules: IResponse[] = checkIfRuleShouldRun(
       ruleConnectionState,
       formDataState,
       formLayoutState.layouts,
-      lastUpdatedDataBinding,
+      field,
     );
 
     if (rules.length > 0) {
@@ -44,7 +44,6 @@ function* checkIfRuleShouldRunSaga({
           return;
         }
 
-        // eslint-disable-next-line consistent-return
         return put(FormDataActions.updateFormData({
           componentId: rule.componentId,
           data: rule.result,
@@ -62,5 +61,8 @@ function* checkIfRuleShouldRunSaga({
 }
 
 export function* watchCheckIfRuleShouldRunSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.CHECK_IF_RULE_SHOULD_RUN, checkIfRuleShouldRunSaga);
+  yield takeLatest([
+    FormDataActions.updateFormDataFulfilled,
+    FormDataActions.updateFormDataSkipAutosave
+  ], checkIfRuleShouldRunSaga);
 }
