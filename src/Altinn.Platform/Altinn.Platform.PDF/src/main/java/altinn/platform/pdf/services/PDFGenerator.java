@@ -272,7 +272,7 @@ public class PDFGenerator {
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     String componentType = element.getType();
     String componentId = element.getId();
-    if (componentsIgnoredFromGeneration.contains(element.getType())
+    if (componentsIgnoredFromGeneration.contains(componentType)
       || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
