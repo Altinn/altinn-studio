@@ -295,33 +295,45 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
+            Application appInfo;
+            ActionResult appInfoError;
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-            if (appInfoError != null)
+
+            try
             {
-                return appInfoError;
+                (appInfo, appInfoError) = await GetApplicationOrErrorAsync(appId);
+                
+                if (appInfoError != null)
+                {
+                    return appInfoError;
+                }
+
+                if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
+                {
+                    return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
+                }
+
+                // Checking that user is authorized to instantiate.
+                XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
+                XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+                if (response?.Response == null)
+                {
+                    _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
+                    return Forbid();
+                }
+
+                bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+
+                if (!authorized)
+                {
+                    return Forbid();
+                }
             }
-
-            if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
+            catch (Exception ex)
             {
-                return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
-            }
-
-            // Checking that user is authorized to instantiate.
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
-
-            if (response?.Response == null)
-            {
-                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
-                return Forbid();
-            }
-
-            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
-
-            if (!authorized)
-            {
-                return Forbid();
+                _logger.LogError(ex, "Something went wrong during posting instance for application id: {appId}", appId);
+                throw;
             }
 
             Instance storedInstance = new Instance();

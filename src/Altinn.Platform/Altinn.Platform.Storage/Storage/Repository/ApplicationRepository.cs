@@ -92,9 +92,13 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
                 PostProcess(application);
-            }
 
-            _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
+                if (application.Id.Split("/").Length == 2)
+                {
+                    _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
+                }
+            }
+            
             return application;
         }
 
@@ -251,6 +255,7 @@ namespace Altinn.Platform.Storage.Repository
         private static void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
+
         }
 
         private static void PostProcess(List<Application> applications)
