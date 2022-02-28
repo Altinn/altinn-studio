@@ -61,6 +61,10 @@ namespace Altinn.App.AppLogic.DataProcessing
         Skjema model = (Skjema)data;
         if (model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value == "TriggerCalculation")
         {
+          if (model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 == null)
+          {
+            model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759 = new PersonMellomnavnNyttdatadef34759();
+          }
           model.NyttNavngrp9313.NyttNavngrp9314.PersonMellomnavnNyttdatadef34759.value = "MiddleNameFromCalculation";
           edited = true;
         }
