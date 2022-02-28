@@ -47,6 +47,7 @@ Cypress.Commands.add('completeChangeNameForm', (firstName, lastName) => {
         .then(() => {
           cy.get(mui.selectedDate).should('be.visible').click();
         });
+      cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.pdf', { force: true });
       cy.contains(mui.button, texts.next).click();
     });
 });
@@ -86,7 +87,7 @@ Cypress.Commands.add('navigateToTask4', () => {
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.wait('@getInstance');
     cy.wait('@getInstanceData');
-    cy.get(appFrontend.confirmContainer).should('be.visible');
+    cy.get(appFrontend.confirm.container).should('be.visible');
   });
 });
 
