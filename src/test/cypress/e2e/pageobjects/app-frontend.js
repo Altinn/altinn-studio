@@ -62,7 +62,7 @@ export default class AppFrontend {
     //change of name - task_2
     this.changeOfName = {
       address: {
-        strees_name: '#address_address_adresse',
+        street_name: '#address_address_adresse',
         zip_code: '#address_zip_code_adresse',
         post_place: '#address_post_place_adresse'
       },

@@ -109,7 +109,7 @@ describe('UI Components', () => {
       cy.get(button).should('be.visible').click();
       cy.wait('@getLayoutChangeName');
     });
-    cy.get(appFrontend.changeOfName.address.strees_name).should('be.visible').type('Sesame Street 1A').blur();
+    cy.get(appFrontend.changeOfName.address.street_name).should('be.visible').type('Sesame Street 1A').blur();
     cy.get(appFrontend.changeOfName.address.zip_code).should('be.visible').type('0174').blur();
     cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'OSLO');
   });
