@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -83,10 +84,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                string message = $"Unable to find instance {instanceId} to update: {e}";
-                _logger.LogError(message);
-
-                return NotFound(message);
+                _logger.LogError(e, "Unable to find instance {instanceId} to update", instanceId);
+                return NotFound($"Unable to find instance {instanceId} to update");
             }
 
             if (existingInstance == null)
@@ -146,7 +145,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
+                _logger.LogError(e, "Unable to update instance object {instanceId}.", instanceId);
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
             }
 
@@ -180,7 +179,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to retriece process history for instance object {instanceId}. Due to {e}");
+                _logger.LogError(e, "Unable to retriece process history for instance object {instanceId}", instanceId);
                 return StatusCode(500, $"Unable to retriece process history for instance object {instanceId}: {e.Message}");
             }
         }

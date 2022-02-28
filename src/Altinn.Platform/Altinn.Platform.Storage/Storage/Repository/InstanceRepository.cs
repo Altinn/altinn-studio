@@ -609,7 +609,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosId = instanceId;
 
-            if (instanceId != null && instanceId.Contains("/"))
+            if (instanceId != null && instanceId.Contains('/'))
             {
                 cosmosId = instanceId.Split("/")[1];
             }
