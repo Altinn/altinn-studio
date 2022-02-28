@@ -102,4 +102,15 @@ describe('UI Components', () => {
         cy.get(appFrontend.changeOfName.summaryNameChanges).should('be.visible');
       });
   });
+
+  it('address component fetches post place from zip code', () => {
+    cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
+    cy.get(appFrontend.sendinButton).then((button) => {
+      cy.get(button).should('be.visible').click();
+      cy.wait('@getLayoutChangeName');
+    });
+    cy.get(appFrontend.changeOfName.address.street_name).should('be.visible').type('Sesame Street 1A').blur();
+    cy.get(appFrontend.changeOfName.address.zip_code).should('be.visible').type('0174').blur();
+    cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'OSLO');
+  });
 });
