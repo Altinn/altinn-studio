@@ -11,16 +11,25 @@ const appFrontend = new AppFrontend();
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
     cy.navigateToTask4();
-    cy.get(appFrontend.confirmSendInButton).should('be.visible').click();
-    cy.get(appFrontend.receiptContainer)
+    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.receipt.container)
       .should('be.visible')
       .find(mui.tableBody)
       .then((table) => {
         cy.get(table).should('exist').and('be.visible');
         cy.get(table).contains(mui.tableElement, 'Mottaker').siblings().should('contain.text', texts.ttd);
       });
-    cy.get(appFrontend.linkToArchive).should('be.visible');
-    cy.get(mui.listedAnchor).should('be.visible').and('have.length', 3);
+    cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
+    cy.get(appFrontend.receipt.pdf)
+      .find('a')
+      .should('have.length', 3)
+      .first()
+      .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
+    cy.get(appFrontend.receipt.uploadedAttachments)
+      .find('a')
+      .should('have.length', 1)
+      .first()
+      .should('contain.text', `test.pdf`);
     cy.get('body').should('have.css', 'background-color', 'rgb(212, 249, 228)');
     cy.get(appFrontend.header).should('contain.text', texts.ttd);
   });

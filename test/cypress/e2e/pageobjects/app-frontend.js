@@ -27,16 +27,24 @@ export default class AppFrontend {
     };
 
     this.navMenu = '#navigation-menu';
+    this.startAgain = '#startAgain';
 
     //Receipt
-    this.receiptContainer = '#ReceiptContainer';
-    this.linkToArchive = 'a[href$="/ui/messagebox/archive"]';
+    this.receipt = {
+      container: '#ReceiptContainer',
+      linkToArchive: 'a[href$="/ui/messagebox/archive"]',
+      pdf: '#attachment-list-pdf',
+      uploadedAttachments: '#attachment-list',
+    };
 
     // Confirmation
-    this.confirmContainer = '#ConfirmContainer';
-    this.confirmBody = '#body-text';
-    this.confirmSendInButton = '#confirm-button';
-    this.startAgain = '#startAgain';
+    this.confirm = {
+      container: '#ConfirmContainer',
+      body: '#body-text',
+      sendIn: '#confirm-button',
+      receiptPdf: '#attachment-list-pdf',
+      uploadedAttachments: '#attachment-list',
+    };
 
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
@@ -63,6 +71,7 @@ export default class AppFrontend {
       confirmChangeName: '#confirmChangeName',
       reasons: '#reason',
       reference: '#reference',
+      reference2: '#reference2',
       dateOfEffect: '#dateOfEffect',
       upload: '#fileUpload-changename',
       uploadWithTag: {
