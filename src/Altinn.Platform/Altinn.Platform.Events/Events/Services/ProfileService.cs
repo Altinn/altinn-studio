@@ -61,7 +61,7 @@ namespace Altinn.Platform.Events.Services
             }
             else
             {
-                _logger.LogError("Getting user profile with userId {userId} failed with statuscode {response.StatusCode}", userId, response.StatusCode);
+                _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
             }
 
             return userProfile;

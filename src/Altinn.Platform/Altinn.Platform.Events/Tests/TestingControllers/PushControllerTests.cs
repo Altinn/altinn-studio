@@ -14,7 +14,6 @@ using Altinn.Platform.Events.Tests.Mocks;
 using Altinn.Platform.Events.Tests.Mocks.Authentication;
 using Altinn.Platform.Events.Tests.Utils;
 using Altinn.Platform.Events.UnitTest.Mocks;
-
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -34,17 +33,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
         /// <summary>
         /// Represents a collection of integration tests of the <see cref="PushController"/>.
         /// </summary>
-        public class PushControllerTests : IClassFixture<WebApplicationFactory<PushController>>
+        public class PushControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<PushController> _factory;
+            private readonly WebApplicationFactory<Startup> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="PushControllerTests"/> class with the given <see cref="WebApplicationFactory{TPushController}"/>.
+            /// Initializes a new instance of the <see cref="PushControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TPushController}"/> to use when setting up the test server.</param>
-            public PushControllerTests(WebApplicationFactory<PushController> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
+            public PushControllerTests(WebApplicationFactory<Startup> factory)
             {
                 _factory = factory;
             }
@@ -65,7 +64,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 CloudEvent cloudEvent = GetCloudEvent(new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/instances/1337/123124"), "/party/1337/", "app.instance.process.completed");
 
                 HttpClient client = GetTestClient();
-
+                
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
                 {
                     Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
@@ -116,6 +115,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private HttpClient GetTestClient()
             {
+                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
@@ -138,7 +138,19 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private static CloudEvent GetCloudEvent(Uri source, string subject, string type)
+            private Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
+            {
+                Subscription subscription = new Subscription()
+                {
+                    EndPoint = new Uri(endpoint),
+                    AlternativeSubjectFilter = alternativeSubjectFilter,
+                    SourceFilter = new Uri(sourceFilter)
+                };
+
+                return subscription;
+            }
+
+            private CloudEvent GetCloudEvent(Uri source, string subject, string type)
             {
                 CloudEvent cloudEvent = new CloudEvent
                 {

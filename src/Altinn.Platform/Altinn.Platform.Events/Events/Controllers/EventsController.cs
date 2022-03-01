@@ -83,12 +83,12 @@ namespace Altinn.Platform.Events.Controllers
             try
             {
                 string cloudEventId = await _eventsService.StoreCloudEvent(cloudEvent);
-                _logger.LogInformation("Cloud Event successfully stored with id: {cloudEventId}", cloudEventId);
+                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
                 return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to store cloud event in database.");
+                _logger.LogError($"Unable to store cloud event in database. {e}");
                 return StatusCode(500, $"Unable to store cloud event in database. {e}");
             }
         }
@@ -249,7 +249,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else
             {
-                _logger.LogError(e, "// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform.");
+                _logger.LogError($"// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform. {e}");
                 return StatusCode(500, e);
             }
         }

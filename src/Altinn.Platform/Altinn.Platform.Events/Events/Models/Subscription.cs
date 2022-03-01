@@ -1,6 +1,5 @@
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Events.Models
 {
@@ -60,7 +59,7 @@ namespace Altinn.Platform.Events.Models
         /// <returns>Serialized cloud event</returns>
         public string Serialize()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { IgnoreNullValues = true });
         }
 
         /// <summary>
