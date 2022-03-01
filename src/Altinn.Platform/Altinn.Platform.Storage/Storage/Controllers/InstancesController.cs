@@ -295,45 +295,73 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            Application appInfo;
+            Application appInfo = null;
             ActionResult appInfoError;
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
             try
             {
                 (appInfo, appInfoError) = await GetApplicationOrErrorAsync(appId);
-                
-                if (appInfoError != null)
-                {
-                    return appInfoError;
-                }
-
-                if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
-                {
-                    return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
-                }
-
-                // Checking that user is authorized to instantiate.
-                XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
-                XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
-
-                if (response?.Response == null)
-                {
-                    _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
-                    return Forbid();
-                }
-
-                bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
-
-                if (!authorized)
-                {
-                    return Forbid();
-                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Something went wrong during posting instance for application id: {appId}", appId);
+                _logger.LogError(ex, "Something went wrong during GetApplicationOrErrorAsync for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
                 throw;
+            }
+
+            if (appInfoError != null)
+            {
+                return appInfoError;
+            }
+
+            if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
+            {
+                return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
+            }
+
+            // Checking that user is authorized to instantiate.
+            XacmlJsonRequestRoot request;
+            try
+            {
+                request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during CreateDecisionRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
+            XacmlJsonResponse response;
+            try
+            {
+                response = await _pdp.GetDecisionForRequest(request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during GetDecisionForRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
+                return Forbid();
+            }
+
+            bool authorized;
+            try
+            {
+                authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during ValidatePdpDecision for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
+            if (!authorized)
+            {
+                return Forbid();
             }
 
             Instance storedInstance = new Instance();

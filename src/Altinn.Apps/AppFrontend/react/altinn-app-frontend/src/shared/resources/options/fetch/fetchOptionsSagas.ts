@@ -90,7 +90,10 @@ export function* checkIfOptionsShouldRefetchSaga({
 }
 
 export function* watchCheckIfOptionsShouldRefetchSaga(): SagaIterator {
-  yield takeEvery(FormDataActions.updateFormDataFulfilled, checkIfOptionsShouldRefetchSaga);
+  yield takeEvery([
+    FormDataActions.updateFormDataFulfilled,
+    FormDataActions.updateFormDataSkipAutosave
+  ], checkIfOptionsShouldRefetchSaga);
 }
 
 export function* watchInitialFetchOptionSaga(): SagaIterator {
