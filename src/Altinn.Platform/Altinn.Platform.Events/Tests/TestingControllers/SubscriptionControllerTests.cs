@@ -32,19 +32,19 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
     public partial class IntegrationTests
     {
         /// <summary>
-        /// Represents a collection of integration tests of the <see cref="EventsController"/>.
+        /// Represents a collection of integration tests of the <see cref="SubscriptionController"/>.
         /// </summary>
-        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<EventsController>>
+        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<SubscriptionController>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<EventsController> _factory;
+            private readonly WebApplicationFactory<SubscriptionController> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TEventsController}"/>.
+            /// Initializes a new instance of the <see cref="SubscriptionControllerTests"/> class with the given <see cref="WebApplicationFactory{TSubscriptionController}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TEventsController}"/> to use when setting up the test server.</param>
-            public SubscriptionControllerTests(WebApplicationFactory<EventsController> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TSubscriptionController}"/> to use when setting up the test server.</param>
+            public SubscriptionControllerTests(WebApplicationFactory<SubscriptionController> factory)
             {
                 _factory = factory;
             }
