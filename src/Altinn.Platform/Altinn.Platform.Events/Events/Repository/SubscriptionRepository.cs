@@ -76,11 +76,9 @@ namespace Altinn.Platform.Events.Repository
                 pgcom.Parameters.AddWithValue("createdby", eventsSubscription.CreatedBy);
                 pgcom.Parameters.AddWithValue("validated", false);
 
-                using (NpgsqlDataReader reader = pgcom.ExecuteReader())
-                {
-                    reader.Read();
-                    return GetSubscription(reader);
-                }
+                using NpgsqlDataReader reader = pgcom.ExecuteReader();
+                reader.Read();
+                return GetSubscription(reader);
             }
             catch (Exception e)
             {
@@ -220,15 +218,17 @@ namespace Altinn.Platform.Events.Repository
 
         private static Subscription GetSubscription(NpgsqlDataReader reader)
         {
-            Subscription subscription = new Subscription();
-            subscription.Id = reader.GetValue<int>("id");
-            subscription.SourceFilter = new Uri(reader.GetValue<string>("sourcefilter"));
-            subscription.SubjectFilter = reader.GetValue<string>("subjectfilter");
-            subscription.TypeFilter = reader.GetValue<string>("typefilter");
-            subscription.Consumer = reader.GetValue<string>("consumer");
-            subscription.EndPoint = new Uri(reader.GetValue<string>("endpointurl"));
-            subscription.CreatedBy = reader.GetValue<string>("createdby");
-            subscription.Created = reader.GetValue<DateTime>("time").ToUniversalTime();
+            Subscription subscription = new Subscription
+            {
+                Id = reader.GetValue<int>("id"),
+                SourceFilter = new Uri(reader.GetValue<string>("sourcefilter")),
+                SubjectFilter = reader.GetValue<string>("subjectfilter"),
+                TypeFilter = reader.GetValue<string>("typefilter"),
+                Consumer = reader.GetValue<string>("consumer"),
+                EndPoint = new Uri(reader.GetValue<string>("endpointurl")),
+                CreatedBy = reader.GetValue<string>("createdby"),
+                Created = reader.GetValue<DateTime>("time").ToUniversalTime()
+            };
             return subscription;
         }
     }

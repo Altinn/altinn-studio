@@ -31,7 +31,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return user;
         }
 
-        private string GetProfilePath(int userId)
+        private static string GetProfilePath(int userId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ProfileMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "Profile", "User", userId.ToString() + ".json");
