@@ -38,7 +38,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using Npgsql.Logging;
+
 using Swashbuckle.AspNetCore.SwaggerGen;
+
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 ILogger logger;
 
@@ -58,7 +63,7 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-Configure();
+Configure(builder.Configuration);
 
 app.Run();
 
@@ -263,7 +268,7 @@ void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
     }
 }
 
-void Configure()
+void Configure(IConfiguration config)
 {
     if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
@@ -271,15 +276,38 @@ void Configure()
     }
     else
     {
-        app.UseExceptionHandler("/storage/api/v1/error");
+        app.UseExceptionHandler("/events/api/v1/error");
     }
 
-    app.UseSwagger(o => o.RouteTemplate = "storage/swagger/{documentName}/swagger.json");
+    if (config.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+    {
+        NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+
+        ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+        string connectionString = string.Format(
+            config.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+            config.GetValue<string>("PostgreSQLSettings:EventsDbAdminPwd"));
+
+        app.UseYuniql(
+            new PostgreSqlDataService(traceService),
+            new PostgreSqlBulkImportService(traceService),
+            traceService,
+            new Yuniql.AspNetCore.Configuration
+            {
+                Workspace = Path.Combine(Environment.CurrentDirectory, config.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                ConnectionString = connectionString,
+                IsAutoCreateDatabase = false,
+                IsDebug = true
+            });
+    }
+
+    app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
 
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/storage/swagger/v1/swagger.json", "Altinn Platform Storage API");
-        c.RoutePrefix = "storage/swagger";
+        c.SwaggerEndpoint("/events/swagger/v1/swagger.json", "Altinn Platform Events API");
+        c.RoutePrefix = "events/swagger";
     });
 
     app.UseRouting();
