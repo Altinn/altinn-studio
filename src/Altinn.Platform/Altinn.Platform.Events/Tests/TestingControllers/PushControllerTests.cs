@@ -33,17 +33,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
         /// <summary>
         /// Represents a collection of integration tests of the <see cref="PushController"/>.
         /// </summary>
-        public class PushControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+        public class PushControllerTests : IClassFixture<WebApplicationFactory<PushController>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<Startup> _factory;
+            private readonly WebApplicationFactory<PushController> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="PushControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
+            /// Initializes a new instance of the <see cref="PushControllerTests"/> class with the given <see cref="WebApplicationFactory{TPushController}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-            public PushControllerTests(WebApplicationFactory<Startup> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TPushController}"/> to use when setting up the test server.</param>
+            public PushControllerTests(WebApplicationFactory<PushController> factory)
             {
                 _factory = factory;
             }
@@ -115,7 +115,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private HttpClient GetTestClient()
             {
-                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
@@ -138,7 +137,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
+        private Subscription GetEventsSubscription(string sourceFilter, string alternativeSubjectFilter, string endpoint)
             {
                 Subscription subscription = new Subscription()
                 {

@@ -34,17 +34,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
         /// <summary>
         /// Represents a collection of integration tests of the <see cref="EventsController"/>.
         /// </summary>
-        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<EventsController>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<Startup> _factory;
+            private readonly WebApplicationFactory<EventsController> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
+            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TEventsController}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-            public SubscriptionControllerTests(WebApplicationFactory<Startup> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TEventsController}"/> to use when setting up the test server.</param>
+            public SubscriptionControllerTests(WebApplicationFactory<EventsController> factory)
             {
                 _factory = factory;
             }
@@ -397,7 +397,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private HttpClient GetTestClient()
             {
-                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
