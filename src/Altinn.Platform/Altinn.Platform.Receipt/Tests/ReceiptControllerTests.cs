@@ -226,7 +226,7 @@ namespace Altinn.Platform.Receipt.Tests
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        private string GetUserToken(int userId)
+        private static string GetUserToken(int userId)
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
@@ -253,7 +253,6 @@ namespace Altinn.Platform.Receipt.Tests
         {
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine($"{projectDir}", "appsettings.json");
-            Program.ConfigureSetupLogging();
 
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {

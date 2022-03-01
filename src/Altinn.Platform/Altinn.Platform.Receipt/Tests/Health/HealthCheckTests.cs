@@ -1,11 +1,13 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Receipt;
 using Altinn.Platform.Receipt.Health;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+
 using Xunit;
 
 namespace Altinn.Platform.Receipt.UnitTest
@@ -40,13 +42,12 @@ namespace Altinn.Platform.Receipt.UnitTest
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

@@ -1,46 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
-using Altinn.Common.AccessToken;
-using Altinn.Common.AccessToken.Configuration;
-using Altinn.Common.AccessToken.Services;
-using Altinn.Platform.Register.Configuration;
-using Altinn.Platform.Register.Core;
-using Altinn.Platform.Register.Filters;
-using Altinn.Platform.Register.Health;
-using Altinn.Platform.Register.Services;
-using Altinn.Platform.Register.Services.Implementation;
-using Altinn.Platform.Register.Services.Interfaces;
-using Altinn.Platform.Telemetry;
-
-using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.JwtCookie;
-
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-
-using Swashbuckle.AspNetCore.SwaggerGen;
-
-using System;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -51,6 +10,8 @@ using Altinn.Platform.Receipt.Health;
 using Altinn.Platform.Receipt.Services;
 using Altinn.Platform.Receipt.Services.Interfaces;
 using Altinn.Platform.Telemetry;
+
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.ApplicationInsights.Channel;
@@ -59,7 +20,11 @@ using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -84,7 +49,7 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-Configure();
+Configure(builder.Configuration);
 
 app.Run();
 
@@ -193,7 +158,7 @@ void ConfigureLogging(ILoggingBuilder logging)
 }
 
 void ConfigureServices(IServiceCollection services, IConfiguration config)
-{    
+{
     services.AddControllersWithViews();
     services.AddHealthChecks().AddCheck<HealthCheck>("receipt_health_check");
     GeneralSettings generalSettings = config.GetSection("GeneralSettings").Get<GeneralSettings>();
@@ -237,4 +202,63 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
         services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
+}
+
+void Configure(IConfiguration config)
+{
+    string authenticationEndpoint = string.Empty;
+    if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
+    {
+        authenticationEndpoint = Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint");
+    }
+    else
+    {
+        authenticationEndpoint = config["PlatformSettings:ApiAuthenticationEndpoint"];
+    }
+
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+    {
+        app.UseDeveloperExceptionPage();
+
+        // Enable higher level of detail in exceptions related to JWT validation
+        IdentityModelEventSource.ShowPII = true;
+    }
+    else
+    {
+        app.UseExceptionHandler("/receipt/api/v1/error");
+    }
+
+    app.UseStaticFiles();
+    app.UseStatusCodePages(context =>
+    {
+        var request = context.HttpContext.Request;
+        var response = context.HttpContext.Response;
+        string url = $"https://platform.{config["GeneralSettings:Hostname"]}{request.Path}";
+
+        // you may also check requests path to do this only for specific methods
+        // && request.Path.Value.StartsWith("/specificPath")
+        if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+        {
+            response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
+        }
+
+        return Task.CompletedTask;
+    });
+
+    app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+        endpoints.MapControllerRoute(
+            name: "languageRoute",
+            pattern: "receipt/api/v1/{controller}/{action=Index}",
+            defaults: new { controller = "Language" },
+            constraints: new
+            {
+                controller = "Language",
+            });
+        endpoints.MapHealthChecks("/health");
+    });
 }
