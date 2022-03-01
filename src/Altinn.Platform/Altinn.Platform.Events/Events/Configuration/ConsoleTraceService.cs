@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 using Yuniql.Extensibility;
 
@@ -7,6 +8,7 @@ namespace Altinn.Platform.Events.Configuration
     /// <summary>
     /// Copied from sample project.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
