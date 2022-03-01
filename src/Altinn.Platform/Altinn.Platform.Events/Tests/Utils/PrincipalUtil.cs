@@ -35,8 +35,11 @@ namespace Altinn.Platform.Events.Tests.Utils
 
         public static string GetAccessToken(string issuer, string app)
         {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer));
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer)
+            };
+
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

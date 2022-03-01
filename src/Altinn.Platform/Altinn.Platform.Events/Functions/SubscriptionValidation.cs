@@ -50,11 +50,14 @@ namespace Altinn.Platform.Events.Functions
 
         private CloudEventEnvelope CreateValidateEvent(Subscription subscription)
         {
-            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope();
-            cloudEventEnvelope.Consumer = subscription.Consumer;
-            cloudEventEnvelope.Endpoint = subscription.EndPoint;
-            cloudEventEnvelope.SubscriptionId = subscription.Id;
-            cloudEventEnvelope.CloudEvent = new CloudEvent();
+            CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope
+            {
+                Consumer = subscription.Consumer,
+                Endpoint = subscription.EndPoint,
+                SubscriptionId = subscription.Id,
+                CloudEvent = new CloudEvent()
+            };
+
             cloudEventEnvelope.CloudEvent.Source = new Uri(_platformSettings.ApiEventsEndpoint + "subscriptions/" + subscription.Id);
             cloudEventEnvelope.CloudEvent.Type = "platform.events.validatesubscription";
             return cloudEventEnvelope;

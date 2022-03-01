@@ -83,7 +83,7 @@ namespace Altinn.Platform.Events.Controllers
             try
             {
                 string cloudEventId = await _eventsService.StoreCloudEvent(cloudEvent);
-                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
+                _logger.LogInformation("Cloud Event successfully stored with id: {cloudEventId}", cloudEventId);
                 return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)

@@ -41,8 +41,11 @@ namespace Altinn.Platform.Events.Functions.Extensions
         /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PutAsync(this HttpClient httpClient, string requestUri, HttpContent content, string platformAccessToken = null)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            request.Content = content;
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri)
+            {
+                Content = content
+            };
+
             if (!string.IsNullOrEmpty(platformAccessToken))
             {
                 request.Headers.Add("PlatformAccessToken", platformAccessToken);

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.Common.AccessToken;
@@ -172,7 +173,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
 {
     services.AddControllers().AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.IgnoreNullValues = true;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 

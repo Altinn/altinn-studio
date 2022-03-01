@@ -707,7 +707,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private CloudEvent GetCloudEvent()
+            private static CloudEvent GetCloudEvent()
             {
                 CloudEvent cloudEvent = new CloudEvent
                 {
