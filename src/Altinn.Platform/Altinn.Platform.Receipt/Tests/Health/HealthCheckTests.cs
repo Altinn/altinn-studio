@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Receipt;
+using Altinn.Platform.Receipt.Health;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
@@ -11,15 +13,15 @@ namespace Altinn.Platform.Receipt.UnitTest
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<HealthCheck>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<HealthCheck> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="factory">The web applicaiton factory</param>
-        public HealthCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<HealthCheck> factory)
         {
             _factory = factory;
         }

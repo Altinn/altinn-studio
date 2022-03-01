@@ -27,11 +27,11 @@ using Xunit;
 
 namespace Altinn.Platform.Receipt.Tests
 {
-    public class ReceiptControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class ReceiptControllerTests : IClassFixture<WebApplicationFactory<ReceiptController>>
     {
         private const string BasePath = "/receipt/api/v1/";
 
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<ReceiptController> _factory;
         private readonly Mock<IRegister> _registerMock;
         private readonly Mock<IStorage> _storageMock;
         private readonly Mock<IProfile> _profileMock;
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Receipt.Tests
         /// Initialises a new instance of the <see cref="ReceiptControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public ReceiptControllerTests(WebApplicationFactory<Startup> factory)
+        public ReceiptControllerTests(WebApplicationFactory<ReceiptController> factory)
         {
             _factory = factory;
             _registerMock = new Mock<IRegister>();
