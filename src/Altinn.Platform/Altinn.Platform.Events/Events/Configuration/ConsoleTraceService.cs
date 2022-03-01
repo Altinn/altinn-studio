@@ -1,5 +1,4 @@
 using System;
-
 using Yuniql.Extensibility;
 
 namespace Altinn.Platform.Events.Configuration
@@ -13,15 +12,6 @@ namespace Altinn.Platform.Events.Configuration
         /// Debug enabled 
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
-
-        /// <inheritdoc/>>
-        public bool IsTraceSensitiveData { get; set; } = false;
-
-        /// <inheritdoc/>>
-        public string TraceToDirectory { get; set; }
-
-        /// <inheritdoc/>>
-        public bool IsTraceToFile { get; set; } = false;
 
         /// <summary>
         /// Info
