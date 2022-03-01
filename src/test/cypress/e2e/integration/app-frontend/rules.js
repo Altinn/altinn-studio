@@ -21,4 +21,13 @@ describe('Rules', () => {
           .should('have.css', 'max-width', '50%');
       });
   });
+
+  it('Rule is run when a backend calculation updates a relevant field', () => {
+    cy.navigateToChangeName();
+    // We update newLastName which triggers a calculation backend that updates NewMiddleName to 'MiddleNameFromCalculation'
+    // This should then trigger function which concatenates first + middle + last name to the newFullName field
+    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('LastName').blur();
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('TriggerCalculation').blur();
+    cy.get(appFrontend.changeOfName.newFullName).should('have.value', 'TriggerCalculation MiddleNameFromCalculation LastName');
+  });
 });
