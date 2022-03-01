@@ -124,24 +124,6 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             return xacmlContextResponse;
         }
 
-        private static string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
-        {
-            string instanceId = string.Empty;
-            foreach (XacmlJsonCategory category in xacmlJsonRequest.Request.Resource)
-            {
-                foreach (var atr in category.Attribute)
-                {
-                    if (atr.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
-                    {
-                        instanceId = atr.Value;
-                        break;
-                    }
-                }
-            }
-
-            return instanceId;
-        }
-
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
@@ -161,27 +143,6 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
 
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
-        }
-
-        private static void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
-        {
-            if (string.IsNullOrEmpty(attributeValue))
-            {
-                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
-            }
-        }
-
-        private static XacmlAttribute GetAttribute(string attributeId, string attributeValue)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
-            if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
-            {
-                // When Party attribute is missing from input it is good to return it so PEP can get this information
-                attribute.IncludeInResult = true;
-            }
-
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
-            return attribute;
         }
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)

@@ -620,8 +620,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string responseString = await response.Content.ReadAsStringAsync();
                 List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
 
-                string test = response.Headers.GetValues("next").First();
-
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(expectedCount, actual.Count);

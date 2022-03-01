@@ -62,7 +62,7 @@ namespace Altinn.Platform.Events.Services
 
             if (!receipt.Success)
             {
-                _logger.LogError("// EventsService // StoreCloudEvent // Failed to push event envelope {EventId} to queue. Exception {Exception}", cloudEventId, receipt.Exception);
+                _logger.LogError("// EventsService // StoreCloudEvent // Failed to push event envelope {EventId} to comsumer with subscriptionId {subscriptionId}. Exception {Exception}", cloudEventId, subscriptionId, receipt.Exception);
             }
         }
 
