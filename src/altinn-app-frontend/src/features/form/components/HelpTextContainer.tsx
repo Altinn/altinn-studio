@@ -1,31 +1,35 @@
-import * as React from 'react';
+import React from 'react';
+
+import type { ILanguage } from 'altinn-shared/types';
+
 import HelpTextPopover from './HelpTextPopover';
 import HelpTextIcon from './HelpTextIcon';
-import { ILanguage } from 'altinn-shared/types';
 
 export interface IHelpTextContainerProps {
   language: ILanguage;
-  id: string;
   helpText: React.ReactNode;
 }
 
-export function HelpTextContainer(props: IHelpTextContainerProps) {
+export function HelpTextContainer({
+  language,
+  helpText,
+}: IHelpTextContainerProps) {
   const helpIconRef = React.useRef();
   const [openPopover, setOpenPopover] = React.useState<boolean>(false);
 
-  const toggleClickPopover = (event: React.MouseEvent): void => {
+  const handlePopoverClick = (event: React.MouseEvent): void => {
     event.stopPropagation();
     event.preventDefault();
     setOpenPopover(!openPopover);
   };
 
-  const toggleKeypressPopover = (event: React.KeyboardEvent): void => {
+  const handlePopoverKeypress = (event: React.KeyboardEvent): void => {
     if ((event.key === ' ' || event.key === 'Enter') && !openPopover) {
       setOpenPopover(true);
     }
   };
 
-  const closePopover = () => {
+  const handlePopoverClose = () => {
     setOpenPopover(false);
   };
 
@@ -33,11 +37,10 @@ export function HelpTextContainer(props: IHelpTextContainerProps) {
     <>
       <HelpTextIcon
         helpIconRef={helpIconRef}
-        language={props.language}
-        toggleClickPopover={toggleClickPopover}
-        toggleKeypressPopover={toggleKeypressPopover}
+        language={language}
+        onPopoverClick={handlePopoverClick}
+        onPopoverKeypress={handlePopoverKeypress}
         openPopover={openPopover}
-        id={props.id}
         aria-haspopup={true}
         aria-expanded={openPopover}
       />
@@ -45,11 +48,9 @@ export function HelpTextContainer(props: IHelpTextContainerProps) {
       <HelpTextPopover
         helpIconRef={helpIconRef}
         openPopover={openPopover}
-        language={props.language}
-        helpText={props.helpText}
-        closePopover={closePopover}
-        key={props.id}
-        id={props.id}
+        language={language}
+        helpText={helpText}
+        onClose={handlePopoverClose}
       />
     </>
   );

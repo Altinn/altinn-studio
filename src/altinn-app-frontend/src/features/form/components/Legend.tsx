@@ -38,7 +38,6 @@ export default function Legend(props: IFormLegendProps) {
         {props.helpText &&
           <HelpTextContainer
             language={props.language}
-            id={props.id}
             helpText={props.helpText}
           />
         }

@@ -78,7 +78,6 @@ export function ImageComponent(props: IImageProps) {
       <Grid item={true} className={classes.spacing}>
         <HelpTextContainer
           language={props.language}
-          id={props.id}
           helpText={props.getTextResource(props.textResourceBindings.help)}
         />
       </Grid>
