@@ -52,35 +52,31 @@ exports[`components/summary/MultipleChoiceSummary.tsx components/summary/Multipl
         >
           <span
             class="makeStyles-label-7"
-          />
+          >
+            <span>
+              Mock field 1
+            </span>
+             : 
+          </span>
+          <span>
+            1
+          </span>
         </p>
-        <p
-          style="margin-bottom: 0px; display: inline;"
-        >
-          Mock field 1
-        </p>
-         : 
-        <span>
-          1
-        </span>
-        <p />
         <p
           class="MuiTypography-root MuiTypography-body1"
         >
           <span
             class="makeStyles-label-7"
-          />
+          >
+            <span>
+              Mock field 2
+            </span>
+             : 
+          </span>
+          <span>
+            2
+          </span>
         </p>
-        <p
-          style="margin-bottom: 0px; display: inline;"
-        >
-          Mock field 2
-        </p>
-         : 
-        <span>
-          2
-        </span>
-        <p />
       </div>
     </div>
   </div>

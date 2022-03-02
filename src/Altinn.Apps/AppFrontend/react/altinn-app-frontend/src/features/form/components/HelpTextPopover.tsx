@@ -1,10 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 import { createTheme, makeStyles } from '@material-ui/core';
+import { isMobile } from 'react-device-detect';
+
+import type { ILanguage } from 'altinn-shared/types';
+
 import { AltinnPopover } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { isMobile } from 'react-device-detect';
-import { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -31,13 +33,17 @@ export interface IHelpTextPopoverProps {
   openPopover: boolean;
   helpText: React.ReactNode;
   language: ILanguage;
-  id: string;
-  closePopover: () => void;
+  onClose: () => void;
 }
 
-export default function HelpTextPopover(props: IHelpTextPopoverProps) {
+export default function HelpTextPopover({
+  helpIconRef,
+  openPopover,
+  helpText,
+  language,
+  onClose,
+}: IHelpTextPopoverProps) {
   const classes = useStyle();
-  const { helpIconRef, openPopover, helpText, language, closePopover } = props;
 
   return (
     <>
@@ -48,7 +54,7 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
           transformOrigin={transformOrigin}
           backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
           anchorEl={openPopover ? helpIconRef.current : null}
-          handleClose={closePopover}
+          handleClose={onClose}
           paperProps={{
             classes: {
               root: classes.helpTextPopoverPaper,
@@ -56,7 +62,7 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
           }}
           descriptionText={helpText}
           closeButton={isMobile} // tmp fix until material-ui fixes https://github.com/mui-org/material-ui/issues/19965
-          closeButtonText={getLanguageFromKey('general.close', props.language)}
+          closeButtonText={getLanguageFromKey('general.close', language)}
         />
       )}
     </>

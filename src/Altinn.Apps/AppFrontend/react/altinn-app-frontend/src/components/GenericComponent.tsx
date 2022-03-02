@@ -265,18 +265,6 @@ export function GenericComponent(props: IGenericComponentProps) {
     );
   };
 
-  const getText = () => {
-    if (props.type === 'Header') {
-      // disabled markdown parsing
-      return getTextResourceByKey(
-        props.textResourceBindings.title,
-        textResources,
-      );
-    }
-
-    return texts.title;
-  };
-
   const getTextResourceWrapper = (key: string) => {
     return getTextResource(key, textResources);
   };
@@ -295,7 +283,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     language,
     id,
     shouldFocus,
-    text: getText(),
+    text: texts.title,
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
