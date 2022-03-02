@@ -61,13 +61,13 @@ namespace Altinn.Platform.Events.Tests.Mocks
                 { Content = new StringContent(string.Empty), StatusCode = System.Net.HttpStatusCode.NotFound });
         }
 
-        private string GetPartiesPath()
+        private static string GetPartiesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "parties");
         }
 
-        private string GetPartyPath(int partyId)
+        private static string GetPartyPath(int partyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RegisterServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "Register", "Party", partyId.ToString() + ".json");

@@ -18,7 +18,7 @@ namespace Altinn.Platform.Events.Extensions
         /// <returns>The reader value when present, otherwise the default value.</returns>
         public static T GetValue<T>(this IDataReader reader, string colName)
         {
-            return GetValue<T>(reader, colName, default(T));
+            return GetValue<T>(reader, colName, default);
         }
 
         /// <summary>

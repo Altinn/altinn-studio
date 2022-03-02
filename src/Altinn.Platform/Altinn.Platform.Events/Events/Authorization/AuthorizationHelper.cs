@@ -78,7 +78,7 @@ namespace Altinn.Platform.Events.Authorization
             return ValidateResult(response);
         }
 
-        private bool ValidateResult(XacmlJsonResponse response)
+        private static bool ValidateResult(XacmlJsonResponse response)
         {
             if (response.Response[0].Decision.Equals(XacmlContextDecision.Permit.ToString()))
             {
