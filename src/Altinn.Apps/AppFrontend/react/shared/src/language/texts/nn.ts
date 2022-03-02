@@ -201,6 +201,8 @@ export function nn() {
       reference_number: 'Referansenummer',
       sender: 'Avsendar',
       sent_content: 'Følgjande er sendt inn:',
+      log_out: 'Logg ut',
+      profile_icon_aria_label: 'Profil ikon knapp',
     },
     validation_errors: {
       min: 'Minste gyldige verdi er {0}',

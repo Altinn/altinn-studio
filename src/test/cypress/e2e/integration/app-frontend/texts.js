@@ -6,7 +6,6 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Texts', () => {
-
   beforeEach(() => {
     cy.navigateToChangeName();
   });
@@ -20,4 +19,3 @@ describe('Texts', () => {
     cy.get(appFrontend.changeOfName.newMiddleNameDescription).should('contain.text', 'MiddleNameFromCalculation');
   });
 });
-

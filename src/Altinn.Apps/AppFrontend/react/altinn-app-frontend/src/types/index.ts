@@ -208,6 +208,7 @@ export interface IOptionData {
   id: string;
   mapping?: IMapping;
   loading?: boolean;
+  secure?: boolean;
 }
 
 export interface IRepeatingGroup {
@@ -373,4 +374,6 @@ export interface IFetchSpecificOptionSaga {
   formData?: IFormData;
   language?: string;
   dataMapping?: IMapping;
+  secure?: boolean;
+  instanceId?: string;
 }

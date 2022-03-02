@@ -247,7 +247,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to perform query on instances due to: {e}");
+                _logger.LogError(e, "Unable to perform query on instances");
                 return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
             }
         }
@@ -295,8 +295,20 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
+            Application appInfo = null;
+            ActionResult appInfoError;
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
+            try
+            {
+                (appInfo, appInfoError) = await GetApplicationOrErrorAsync(appId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during GetApplicationOrErrorAsync for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
             if (appInfoError != null)
             {
                 return appInfoError;
@@ -308,16 +320,44 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Checking that user is authorized to instantiate.
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            XacmlJsonRequestRoot request;
+            try
+            {
+                request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during CreateDecisionRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
+            XacmlJsonResponse response;
+            try
+            {
+                response = await _pdp.GetDecisionForRequest(request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during GetDecisionForRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
                 return Forbid();
             }
 
-            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            bool authorized;
+            try
+            {
+                authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during ValidatePdpDecision for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
 
             if (!authorized)
             {
@@ -334,7 +374,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
-                _logger.LogInformation($"Created instance: {storedInstance.Id}");
+                _logger.LogInformation("Created instance: {storedInstance.Id}", storedInstance.Id);
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
@@ -343,12 +383,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception storageException)
             {
-                _logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
+                _logger.LogError(storageException, "Unable to create {appId} instance for {instance.InstanceOwner.PartyId}", appId, instance.InstanceOwner.PartyId);
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
 
-                _logger.LogError($"Deleted instance {storedInstance.Id}");
+                _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance.Id);
                 return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
         }
@@ -383,12 +423,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
 
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
+                _logger.LogError(dce, "Cannot delete instance {instanceId}.", instanceId);
                 return StatusCode(500, $"Unknown database exception in delete: {dce}");
             }
             catch (Exception e)
             {
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
+                _logger.LogError(e, "Cannot delete instance {instanceId}.", instanceId);
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
@@ -423,7 +463,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                _logger.LogError(e, "Unexpected exception when deleting instance {instance.Id}", instance.Id);
                 return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
             }
         }
@@ -472,7 +512,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update instance {instanceId}");
+                _logger.LogError(e, "Unable to update instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -521,7 +561,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update read status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update read status for instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -578,7 +618,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update sub status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update sub status for instance {instanceId}", instanceId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -698,7 +738,7 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
+        private async Task<(Application Application, ActionResult ErrorMessage)> GetApplicationOrErrorAsync(string appId)
         {
             ActionResult errorResult = null;
             Application appInfo = null;

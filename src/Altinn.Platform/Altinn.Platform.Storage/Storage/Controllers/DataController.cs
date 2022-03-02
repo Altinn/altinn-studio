@@ -249,8 +249,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataType, refs, instance);
-            Stream theStream = streamAndDataElement.Item1;
-            DataElement newData = streamAndDataElement.Item2;
+            Stream theStream = streamAndDataElement.Stream;
+            DataElement newData = streamAndDataElement.DataElement;
 
             if (theStream == null)
             {
@@ -324,9 +324,9 @@ namespace Altinn.Platform.Storage.Controllers
             if (string.Equals(dataElement.BlobStoragePath, blobStoragePathName))
             {
                 var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataElement.DataType, refs, instance);
-                Stream theStream = streamAndDataElement.Item1;
-                DataElement updatedData = streamAndDataElement.Item2;
-
+                Stream theStream = streamAndDataElement.Stream;
+                DataElement updatedData = streamAndDataElement.DataElement;
+           
                 if (theStream == null)
                 {
                     return BadRequest("No data found in request body");
@@ -383,8 +383,6 @@ namespace Altinn.Platform.Storage.Controllers
             Guid dataGuid,
             [FromBody] DataElement dataElement)
         {
-            _logger.LogInformation($"update data element for {instanceOwnerPartyId}");
-
             if (!instanceGuid.ToString().Equals(dataElement.InstanceGuid) || !dataGuid.ToString().Equals(dataElement.Id))
             {
                 return BadRequest("Mismatch between path and dataElement content");
@@ -398,7 +396,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private async Task<(Stream, DataElement)> ReadRequestAndCreateDataElementAsync(HttpRequest request, string elementType, List<Guid> refs, Instance instance)
+        private async Task<(Stream Stream, DataElement DataElement)> ReadRequestAndCreateDataElementAsync(HttpRequest request, string elementType, List<Guid> refs, Instance instance)
         {
             DateTime creationTime = DateTime.UtcNow;
             Stream theStream;
@@ -451,7 +449,7 @@ namespace Altinn.Platform.Storage.Controllers
             return (theStream, newData);
         }
 
-        private async Task<(Application, ActionResult)> GetApplicationAsync(string appId, string org)
+        private async Task<(Application Application, ActionResult ErrorMessage)> GetApplicationAsync(string appId, string org)
         {
             ActionResult errorMessage;
 
@@ -476,7 +474,7 @@ namespace Altinn.Platform.Storage.Controllers
             return (null, errorMessage);
         }
 
-        private async Task<(Instance, ActionResult)> GetInstanceAsync(string instanceId, int instanceOwnerPartyId)
+        private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(string instanceId, int instanceOwnerPartyId)
         {
             ActionResult errorMessage;
             try
@@ -500,7 +498,7 @@ namespace Altinn.Platform.Storage.Controllers
             return (null, errorMessage);
         }
 
-        private async Task<(DataElement, ActionResult)> GetDataElementAsync(Guid instanceGuid, Guid dataGuid)
+        private async Task<(DataElement DataElement, ActionResult ErrorMessage)> GetDataElementAsync(Guid instanceGuid, Guid dataGuid)
         {
             ActionResult errorMessage;
             try

@@ -42,6 +42,24 @@ describe('features > confirm > Confirm', () => {
     expect(contentLoader).not.toBeInTheDocument();
   });
 
+  it('should present pdf as part of previously submitted data', () => {
+    renderWithProviders(
+      <MemoryRouter>
+        <Confirm />
+      </MemoryRouter>,
+      {
+        preloadedState: getInitialStateMock({
+          attachments: { attachments: {} },
+        }),
+      },
+    );
+    const pdf = screen.getByText('mockApp.pdf');
+    expect(pdf).toBeInTheDocument();
+
+    const contentLoader = screen.queryByText('Loading...');
+    expect(contentLoader).not.toBeInTheDocument();
+  });
+
   it('should show loading when clicking submit', () => {
     renderWithProviders(
       <MemoryRouter>

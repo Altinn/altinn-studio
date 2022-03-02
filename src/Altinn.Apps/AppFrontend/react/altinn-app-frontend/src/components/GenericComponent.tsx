@@ -17,7 +17,6 @@ import components from '.';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { Triggers } from 'src/types';
 import FormDataActions from '../features/form/data/formDataActions';
-import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import Label from '../features/form/components/Label';
@@ -57,25 +56,40 @@ const useStyles = makeStyles((theme) => ({
   },
   xs: {
     'border-bottom': '1px dashed #949494',
+    '& > div:nth-child(2)':{
+      paddingLeft: theme.spacing(3/2) // Half the spacing of <Grid in <Form
+    }
   },
   sm: {
     [theme.breakpoints.up('sm')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   md: {
     [theme.breakpoints.up('md')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   lg: {
     [theme.breakpoints.up('lg')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
   xl: {
     [theme.breakpoints.up('xl')]: {
       'border-bottom': '1px dashed #949494',
+      '& > div:nth-child(2)':{
+        paddingLeft: theme.spacing(3/2)
+      }
     },
   },
 }));
@@ -165,12 +179,6 @@ export function GenericComponent(props: IGenericComponentProps) {
         componentId: props.id,
         skipValidation
       }),
-    );
-
-    RuleActions.checkIfRuleShouldRun(
-      props.id,
-      props.dataModelBindings[key],
-      value,
     );
   };
 

@@ -7,10 +7,12 @@ using Altinn.Platform.Profile.Services.Interfaces;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Mocks;
 using Altinn.Platform.Profile.Tests.IntegrationTests.Mocks.Authentication;
 using Altinn.Platform.Profile.Tests.Mocks;
+
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -37,12 +39,22 @@ namespace Altinn.Platform.Profile.Tests.IntegrationTests.Utils
 
         public HttpClient GetTestServerClient()
         {
+            MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+            GeneralSettingsOptions.Setup(gso => gso.Value).Returns(
+                new GeneralSettings
+                {
+                    ProfileCacheLifetimeSeconds = 600,
+                    BridgeApiEndpoint = "https://at22.altinn.cloud/sblbridge/profile/api/"
+                });
+
             return _webApplicationFactory.WithWebHostBuilder(builder =>
-            {
+            {  
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
+                    services.AddSingleton<IMemoryCache>(memoryCache);
 
                     // Using the real/actual implementation of IUserProfiles, but with a mocked message handler.
                     // Haven't found any other ways of injecting a mocked message handler to simulate SBL Bridge.

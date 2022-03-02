@@ -5,6 +5,8 @@
   "errorReport": "Det er feil i skjema",
   "attachmentError": "Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse",
   "dateOfEffect": "Når vil du at navnendringen skal skje?",
+  "uplodDocs": "Last opp eventuell dokumentasjon for ditt nye navn",
+  "uploadWithTag": "Last opp vedlegg og knytte den mot en tag",
   "backToSummary": "Tilbake til oppsummering",
   "next": "Neste",
   "goToRightPage": "Gå til riktig side i skjema",

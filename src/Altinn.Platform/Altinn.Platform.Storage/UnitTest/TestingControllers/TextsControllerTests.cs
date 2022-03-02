@@ -8,6 +8,7 @@ using System.Text;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Fixture;
@@ -31,14 +32,14 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class TextsControllerTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class TextsControllerTests : IClassFixture<TestApplicationFactory<TextsController>>
     {
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<TextsController> _factory;
         private readonly HttpClient _httpClient;
 
         private const string BasePath = "/storage/api/v1/applications";
 
-        public TextsControllerTests(TestApplicationFactory<Startup> factory)
+        public TextsControllerTests(TestApplicationFactory<TextsController> factory)
         {
             _factory = factory;
             Mock<ITextRepository> mockTextRepository = CreateMockTextRepo();
@@ -278,8 +279,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
-
-            Program.ConfigureSetupLogging();
+            
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

@@ -29,16 +29,16 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
     /// <summary>
     /// Represents a collection of integration tests of the <see cref="DataController"/>.
     /// </summary>
-    public class DataControllerTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class DataControllerTests : IClassFixture<TestApplicationFactory<DataController>>
     {
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<DataController> _factory;
         private readonly string _versionPrefix = "/storage/api/v1";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataControllerTests"/> class.
         /// </summary>
         /// <param name="factory">Platform storage fixture.</param>
-        public DataControllerTests(TestApplicationFactory<Startup> factory)
+        public DataControllerTests(TestApplicationFactory<DataController> factory)
         {
             _factory = factory;
         }
@@ -310,7 +310,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
 
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

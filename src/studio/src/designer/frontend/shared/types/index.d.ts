@@ -193,3 +193,16 @@ export interface IGiteaOrganisation {
   website?: string;
   full_name?: string;
 }
+
+export interface IContentStatus {
+  filePath: string;
+  fileStatus: string;
+}
+
+export interface IGitStatus {
+  behindBy: number;
+  aheadBy: number;
+  contentStatus: IContentStatus[];
+  repositoryStatus: string;
+  hasMergeConflict: boolean;
+}

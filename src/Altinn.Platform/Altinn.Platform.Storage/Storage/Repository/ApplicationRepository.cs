@@ -92,9 +92,13 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
                 PostProcess(application);
-            }
 
-            _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
+                if (application.Id.Split("/").Length == 2)
+                {
+                    _memoryCache.Set(appId, application, _cacheEntryOptionsMetadata);
+                }
+            }
+            
             return application;
         }
 
@@ -142,10 +146,10 @@ namespace Altinn.Platform.Storage.Repository
 
             Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosAppId);
 
-            ResourceResponse<Document> instance = await Client
-                .DeleteDocumentAsync(
-                    uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(org) });
+            await Client
+               .DeleteDocumentAsync(
+                   uri.ToString(),
+                   new RequestOptions { PartitionKey = new PartitionKey(org) });
 
             return true;
         }
@@ -153,9 +157,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<Dictionary<string, string>> GetAllAppTitles()
         {
-            Dictionary<string, string> appTitles;
-
-            if (!_memoryCache.TryGetValue(_cacheKey, out appTitles))
+            if (!_memoryCache.TryGetValue(_cacheKey, out Dictionary<string, string> appTitles))
             {
                 appTitles = new Dictionary<string, string>();
                 IDocumentQuery<Application> query = Client.CreateDocumentQuery<Application>(CollectionUri).AsDocumentQuery();
@@ -205,9 +207,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosId = appId;
 
-            if (appId != null && appId.Contains("/"))
+            if (appId != null && appId.Contains('/'))
             {
-                string[] parts = appId.Split("/");
+                string[] parts = appId.Split('/');
 
                 cosmosId = $"{parts[0]}-{parts[1]}";
             }
@@ -253,6 +255,7 @@ namespace Altinn.Platform.Storage.Repository
         private static void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
+
         }
 
         private static void PostProcess(List<Application> applications)
