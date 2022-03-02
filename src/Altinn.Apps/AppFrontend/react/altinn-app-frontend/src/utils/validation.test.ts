@@ -702,15 +702,52 @@ describe('utils > validation', () => {
     expect(validations).toEqual(mockResult);
   });
 
-  it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidations =
-      validation.mapDataElementValidationToRedux(
-        mockDataElementValidations,
-        mockLayoutState.layouts,
-        [],
-      );
-    const expected = getMockValidationState(true);
-    expect(mappedDataElementValidations).toEqual(expected);
+  describe('mapDataElementValidationToRedux', () => {
+    it('should be mapped correctly to our redux format', () => {
+      const mappedDataElementValidations =
+        validation.mapDataElementValidationToRedux(
+          mockDataElementValidations,
+          mockLayoutState.layouts,
+          [],
+        );
+      const expected = getMockValidationState(true);
+      expect(mappedDataElementValidations).toEqual(expected);
+    });
+
+    it('should support mapping to two different components on different pages', () => {
+      const mappedDataElementValidations =
+        validation.mapDataElementValidationToRedux(
+          mockDataElementValidations,
+          { ...mockLayoutState.layouts,
+            AnotherPage: [
+              {
+                type: 'Input',
+                id: 'AnotherComponent',
+                dataModelBindings: {
+                  simpleBinding: 'dataModelField_1',
+                },
+                required: true,
+                readOnly: false,
+                textResourceBindings: {},
+              },
+            ]
+          },
+          [],
+        );
+      const expected = {
+        ...getMockValidationState(true),
+        AnotherPage: {
+          AnotherComponent: {
+            simpleBinding: {
+              errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
+              warnings: [],
+              fixed: []
+            },
+          }
+        }
+      }
+      expect(mappedDataElementValidations).toEqual(expected);
+    });
   });
 
   it('+++ validateFormData should return error if form data is invalid', () => {

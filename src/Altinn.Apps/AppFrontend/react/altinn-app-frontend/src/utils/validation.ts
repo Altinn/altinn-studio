@@ -964,15 +964,16 @@ export function canFormBeSaved(
   return canBeSaved;
 }
 
-export function findLayoutIdFromValidationIssue(
+export function findLayoutIdsFromValidationIssue(
   layouts: ILayouts,
   validationIssue: IValidationIssue,
-) {
+): string[] {
+
   if (!validationIssue.field) {
     // validation issue could be mapped to task and not to a field in the datamodel
-    return 'unmapped';
+    return ['unmapped'];
   }
-  return Object.keys(layouts).find((id) => {
+  return Object.keys(layouts).filter((id) => {
     const foundInLayout = layouts[id].find((c: ILayoutComponent) => {
       // Special handling for FileUpload components
       if (c.type === 'FileUpload' || c.type === 'FileUploadWithTag') {
@@ -1063,59 +1064,59 @@ export function mapDataElementValidationToRedux(
   }
   validations.forEach((validation) => {
     // for each validation, map to correct component and field key
-    let layoutId = findLayoutIdFromValidationIssue(layouts, validation);
-
-    if (!layoutId) {
-      layoutId = 'unmapped';
+    const layoutIds = findLayoutIdsFromValidationIssue(layouts, validation);
+    if (layoutIds.length === 0) {
+      layoutIds.push('unmapped');
     }
 
-    const { componentId, component, componentValidations } =
-      findComponentFromValidationIssue(
-        layouts[layoutId] || [],
-        validation,
-        textResources,
-      );
+    layoutIds.forEach(layoutId => {
+      const { componentId, component, componentValidations } =
+        findComponentFromValidationIssue(
+          layouts[layoutId] || [],
+          validation,
+          textResources,
+        );
 
-    if (component) {
-      // we have found a matching component
+      if (component) {
+        // we have found a matching component
+        if (!validationResult[layoutId]) {
+          validationResult[layoutId] = {};
+        }
+        if (!validationResult[layoutId][componentId]) {
+          validationResult[layoutId][componentId] = componentValidations;
+        } else {
+          const currentValidations = validationResult[layoutId][componentId];
+          Object.keys(componentValidations).forEach((key) => {
+            if (!currentValidations[key]) {
+              currentValidations[key] = componentValidations[key];
+            } else {
+              currentValidations[key].errors = currentValidations[
+                key
+              ].errors.concat(componentValidations[key].errors);
 
-      if (!validationResult[layoutId]) {
-        validationResult[layoutId] = {};
-      }
-      if (!validationResult[layoutId][componentId]) {
-        validationResult[layoutId][componentId] = componentValidations;
+              currentValidations[key].warnings = currentValidations[
+                key
+              ].warnings.concat(componentValidations[key].warnings);
+            }
+          });
+          validationResult[layoutId][componentId] = currentValidations;
+        }
       } else {
-        const currentValidations = validationResult[layoutId][componentId];
-        Object.keys(componentValidations).forEach((key) => {
-          if (!currentValidations[key]) {
-            currentValidations[key] = componentValidations[key];
-          } else {
-            currentValidations[key].errors = currentValidations[
-              key
-            ].errors.concat(componentValidations[key].errors);
+        // unmapped error
+        if (!validationResult[layoutId]) {
+          validationResult[layoutId] = {};
+        }
+        if (!validationResult[layoutId].unmapped) {
+          validationResult[layoutId].unmapped = {};
+        }
 
-            currentValidations[key].warnings = currentValidations[
-              key
-            ].warnings.concat(componentValidations[key].warnings);
-          }
-        });
-        validationResult[layoutId][componentId] = currentValidations;
+        validationResult[layoutId].unmapped[validation.field] = addValidation(
+          validationResult[layoutId].unmapped[validation.field],
+          validation,
+          textResources,
+        );
       }
-    } else {
-      // unmapped error
-      if (!validationResult[layoutId]) {
-        validationResult[layoutId] = {};
-      }
-      if (!validationResult[layoutId].unmapped) {
-        validationResult[layoutId].unmapped = {};
-      }
-
-      validationResult[layoutId].unmapped[validation.field] = addValidation(
-        validationResult[layoutId].unmapped[validation.field],
-        validation,
-        textResources,
-      );
-    }
+    });
   });
 
   return validationResult;
