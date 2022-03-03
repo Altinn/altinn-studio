@@ -3877,7 +3877,7 @@ __metadata:
     terser-webpack-plugin: ^4.2.3
     ts-jest: ^27.1.3
     ts-loader: ^8.3.0
-    typescript: ^4.6.2
+    typescript: ^4.5.5
     uuid: 8.3.2
     webpack: ^4.46.0
     webpack-cli: ^3.3.12
@@ -3997,7 +3997,7 @@ __metadata:
     eslint-plugin-react: ^7.29.2
     eslint-plugin-react-hooks: ^4.3.0
     ini: 2.0.0
-    typescript: ^4.6.2
+    typescript: ^4.5.5
   languageName: unknown
   linkType: soft
 
@@ -13760,7 +13760,7 @@ __metadata:
     terser-webpack-plugin: ^4.2.3
     ts-jest: ^27.1.3
     ts-loader: ^8.3.0
-    typescript: ^4.6.2
+    typescript: ^4.5.5
     webpack: ^4.46.0
     webpack-cli: ^3.3.12
     webpack-dev-server: ^3.11.3
@@ -14711,7 +14711,7 @@ __metadata:
     react-test-renderer: ^17.0.2
     react-truncate-markup: ^5.1.0
     ts-jest: ^27.1.3
-    typescript: ^4.6.2
+    typescript: ^4.5.5
   languageName: unknown
   linkType: soft
 
@@ -16035,7 +16035,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.6.2":
+"typescript@npm:^4.5.5":
   version: 4.6.2
   resolution: "typescript@npm:4.6.2"
   bin:
@@ -16045,7 +16045,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.6.2#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>":
   version: 4.6.2
   resolution: "typescript@patch:typescript@npm%3A4.6.2#~builtin<compat/typescript>::version=4.6.2&hash=ddd1e8"
   bin:
