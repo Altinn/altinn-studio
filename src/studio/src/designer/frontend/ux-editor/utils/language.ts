@@ -79,6 +79,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.AttachmentList: {
       return language.ux_editor.component_attachment_list;
     }
+    case ComponentTypes.NavigationBar: {
+      return language.ux_editor.component_navigation_bar;
+    }
     default: {
       return '';
     }
