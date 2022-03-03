@@ -45,7 +45,7 @@
     <PackageReference Include="Markdig" Version="0.27.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
-    <PackageReference Include="Scrutor" Version="4.0.0" />
+    <PackageReference Include="Scrutor" Version="4.1.0" />
     <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
     <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
     <PackageReference Include="RestSharp" Version="106.15.0" />
