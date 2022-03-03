@@ -26,7 +26,11 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
           classes={{ root: classNames(this.props.classes.listItem) }}
           component='div'
         >
-          <i className={this.props.icon} />
+          <ListItemIcon
+            classes={{ root: classNames(this.props.classes.listComponentIcon) }}
+          >
+            <i className={this.props.icon} />
+          </ListItemIcon>
           <ListItemText
             classes={{
               primary: classNames(this.props.classes.listItemText),
@@ -94,6 +98,9 @@ const styles = () => createStyles({
   listItemIcon: {
     marginLeft: 'auto',
     marginRight: 'auto',
+  },
+  listComponentIcon: {
+    minWidth: '40px',
   },
   helpIcon: {
     color: '#0062BA',

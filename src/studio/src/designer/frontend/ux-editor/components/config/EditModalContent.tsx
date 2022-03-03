@@ -791,7 +791,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       }
 
       default: {
-        return null;
+        return (
+          <>
+            {this.renderChangeId()}
+          </>
+        );
       }
     }
   }

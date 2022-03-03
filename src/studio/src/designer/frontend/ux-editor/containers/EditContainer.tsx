@@ -10,6 +10,7 @@ import '../styles/index.css';
 import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 const useStyles = makeStyles({
   active: {
@@ -326,12 +327,12 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   <div className={`${classes.textPrimaryDark} ${classes.formComponentTitle}`}>
                     <i
                       className={
-                        `${classes.icon} ${componentIcons[component.type]}`
+                        `${classes.icon} ${componentIcons[component.type] || 'fa fa-help-circle'}`
                       }
                     />
-                    {component.textResourceBindings.title ?
+                    {component.textResourceBindings?.title ?
                       truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
-                      : getComponentTitleByComponentType(component.type, language)}
+                      : getComponentTitleByComponentType(component.type, language) || getLanguageFromKey('ux_editor.component_unknown', language)}
                   </div>
                 }
               </ListItem>
