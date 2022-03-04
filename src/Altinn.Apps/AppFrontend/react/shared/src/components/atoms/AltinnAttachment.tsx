@@ -7,6 +7,7 @@ import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
+import { makeUrlRelativeIfSameDomain } from '../../utils/urlHelper';
 import { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 
@@ -62,19 +63,6 @@ function ListItemLink(props: any) {
     );
 }
 
-// Storage is always returning https:// links for attachments.
-// on localhost (without https) this is a problem, so we make links
-// to the same domain as window.location.host relative.
-// "https://domain.com/a/b" => "/a/b"
-const makeUrlRelativeIfSameDomain = (url: string) => {
-  if (window?.location?.protocol === 'http:') {
-    const urlStart = `https://${window.location.host}`;
-    if (url.startsWith(urlStart)) {
-      return url.substring(urlStart.length);
-    }
-  }
-  return url;
-};
 
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
