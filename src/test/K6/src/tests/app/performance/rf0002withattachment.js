@@ -25,6 +25,7 @@ import * as platformInstances from '../../../api/platform/storage/instances.js';
 import * as apps from '../../../api/platform/storage/applications.js';
 import { deleteSblInstance } from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
+import * as support from '../../../support.js';
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
@@ -54,7 +55,7 @@ export function setup() {
   var data = {};
   var totalIterations = options.iterations ? options.iterations : 1;
   attachmentDistribution = attachmentDistribution ? attachmentDistribution : '';
-  let attachmentTypes = setUpData.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
+  let attachmentTypes = support.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
   data.attachmentTypes = attachmentTypes;
   return data;
 }
