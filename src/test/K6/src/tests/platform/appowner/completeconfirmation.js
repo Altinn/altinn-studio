@@ -1,19 +1,20 @@
-/* Pre-reqisite for test for prod: 
+/* Pre-reqisite for test for prod:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script sets complete confirmation as app owner on all the instances from a csv file.
     The iteration is shared between the virtual users and each VU runs exactly same number of iternations (maxIter).
 
-    example: k6 run /src/tests/platform/storage/appowner/completeconfirmation.js 
+    example: k6 run /src/tests/platform/storage/appowner/completeconfirmation.js
     -e env=test -e appsaccesskey=*** -e maskinporten=token -e vus=**(number of virtual users)
 */
 
 import { check } from 'k6';
+import { scenario } from 'k6/execution';
 import { stopIterationOnFail } from '../../../errorcounter.js';
 import * as storageInstances from '../../../api/platform/storage/instances.js';
 import * as setUpData from '../../../setup.js';
@@ -52,7 +53,7 @@ export default function (data) {
   const instances = data.instances;
   var res, success, partyId, instanceId;
 
-  var uniqueNum = __VU * maxIter - maxIter + __ITER;
+  var uniqueNum = scenario.iterationInTest;
   uniqueNum = uniqueNum > instances.length ? Math.floor(uniqueNum % instances.length) : uniqueNum;
 
   //Get instance ids and separate party id and instance id

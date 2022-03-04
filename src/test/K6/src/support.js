@@ -40,3 +40,23 @@ export function isGuid(stringToTest) {
   var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return regexGuid.test(stringToTest);
 }
+
+//Generate array with type of attachment for all the iterations
+//based on the distribution across small, medium and large attachment
+export function buildAttachmentTypeArray(distribution, totalIterations) {
+  distribution = distribution.split(';');
+  var small = distribution[0] != null ? buildArray(totalIterations * (distribution[0] / 100), 's') : [];
+  var medium = distribution[1] != null ? buildArray(totalIterations * (distribution[1] / 100), 'm') : [];
+  var large = distribution[2] != null ? buildArray(totalIterations * (distribution[2] / 100), 'l') : [];
+  var attachmentTypes = small.concat(medium, large);
+  return shuffle(attachmentTypes);
+}
+
+//Function to build an array with the specified value and count
+function buildArray(count, value) {
+  var array = [];
+  for (var i = 0; i < count; i++) {
+    array.push(value);
+  }
+  return array;
+}

@@ -4,7 +4,6 @@ import * as config from './config.js';
 import * as headers from './buildrequestheaders.js';
 import { getParties } from './api/platform/authorization/authorization.js';
 import { addErrorCount, stopIterationOnFail } from './errorcounter.js';
-import * as support from './support.js';
 import { convertMaskinPortenToken } from './api/platform/authentication.js';
 import { generateToken } from './api/altinn-testtools/token-generator.js';
 
@@ -96,25 +95,6 @@ export function clearCookies() {
   jar.set('https://' + config.baseUrl, '.ASPXAUTH', 'test', { expires: 'Mon, 02 Jan 2010 15:04:05 MST' });
 }
 
-//Generate array with type of attachment for all the iterations
-//based on the distribution across small, medium and large attachment
-export function buildAttachmentTypeArray(distribution, totalIterations) {
-  distribution = distribution.split(';');
-  var small = distribution[0] != null ? buildArray(totalIterations * (distribution[0] / 100), 's') : [];
-  var medium = distribution[1] != null ? buildArray(totalIterations * (distribution[1] / 100), 'm') : [];
-  var large = distribution[2] != null ? buildArray(totalIterations * (distribution[2] / 100), 'l') : [];
-  var attachmentTypes = small.concat(medium, large);
-  return support.shuffle(attachmentTypes);
-}
-
-//Function to build an array with the specified value and count
-function buildArray(count, value) {
-  var array = [];
-  for (var i = 0; i < count; i++) {
-    array.push(value);
-  }
-  return array;
-}
 /**
  * generate an altinn token for TTD based on the environment
  * use exchange token if prod, and altinnTestTools for test environments
