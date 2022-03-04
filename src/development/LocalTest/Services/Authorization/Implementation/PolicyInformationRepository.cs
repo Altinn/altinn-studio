@@ -18,8 +18,6 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyInformationRepository : IPolicyInformationRepository
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
-
         private readonly IInstanceRepository _instanceRepository; 
 
         /// <summary>
@@ -27,9 +25,8 @@ namespace Altinn.Platform.Authorization.Repositories
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         /// <param name="logger">the logger</param>
-        public PolicyInformationRepository(IOptions<LocalPlatformSettings> localPlatformSettings, IInstanceRepository instanceRepository)
+        public PolicyInformationRepository(IInstanceRepository instanceRepository)
         {
-            this._localPlatformSettings = localPlatformSettings.Value;
             this._instanceRepository = instanceRepository;
         }
 

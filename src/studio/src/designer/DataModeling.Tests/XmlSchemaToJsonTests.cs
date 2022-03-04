@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 
 using DataModeling.Tests.Assertions;
@@ -68,6 +69,7 @@ namespace DataModeling.Tests
 
             // Arrange
             JsonSchemaKeywords.RegisterXsdKeywords();
+            JsonSchemaFormats.RegisterFormats();
             var converter = new XmlSchemaToJsonSchemaConverter();
 
             var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);

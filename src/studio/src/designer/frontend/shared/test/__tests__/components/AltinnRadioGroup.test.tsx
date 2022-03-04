@@ -3,8 +3,8 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import AltinnRadio from '../../../components/AltinnRadio';
-import AltinnRadioGroup from '../../../components/AltinnRadioGroup';
+import { AltinnRadio } from '../../../components/AltinnRadio';
+import { AltinnRadioGroup } from '../../../components/AltinnRadioGroup';
 
 describe('>>> AltinnRadioButtonGroup.tsx', () => {
   let mockValue: string;
@@ -19,14 +19,16 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
     mockDescription = 'mock-description';
     mockRow = true;
     mockClassName = 'mock-classname';
-    mockOnChange = () => { /**/ };
+    mockOnChange = () => {
+      /**/
+    };
   });
 
   it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
-      <AltinnRadioGroup
-        value={mockValue}
-      />,
+      <AltinnRadioGroup value={mockValue} name='radioGroup'>
+        <AltinnRadio />
+      </AltinnRadioGroup>,
     );
     expect(rendered).toMatchSnapshot();
   });
@@ -40,14 +42,17 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
         description={mockDescription}
         row={mockRow}
         className={mockClassName}
-      />,
+        name='radioGroup'
+      >
+        <AltinnRadio />
+      </AltinnRadioGroup>,
     );
     expect(rendered).toMatchSnapshot();
   });
 
   it('+++ Should render children', () => {
     const wrapper = mount(
-      <AltinnRadioGroup value={mockValue}>
+      <AltinnRadioGroup value={mockValue} name='radioGroup'>
         <AltinnRadio />
         <AltinnRadio />
       </AltinnRadioGroup>,
@@ -57,9 +62,14 @@ describe('>>> AltinnRadioButtonGroup.tsx', () => {
 
   it('+++ Should render description typography if description is supplied', () => {
     const wrapper = mount(
-      <AltinnRadioGroup value={mockValue} description={mockDescription} />,
+      <AltinnRadioGroup
+        value={mockValue}
+        description={mockDescription}
+        name='radioGroup'
+      >
+        <AltinnRadio />
+      </AltinnRadioGroup>,
     );
     expect(wrapper.find(Typography)).toHaveLength(1);
   });
-
 });

@@ -21,10 +21,6 @@
     "main": {
       "allOf": [
         {
-          "$ref": "#/$defs/g1",
-          "@xsdType": "#ref"
-        },
-        {
           "$ref": "#/$defs/ag1",
           "@xsdType": "#ref"
         },
@@ -39,6 +35,10 @@
         },
         {
           "$ref": "#/$defs/ag2",
+          "@xsdType": "#ref"
+        },
+        {
+          "$ref": "#/$defs/g1",
           "@xsdType": "#ref"
         }
       ]

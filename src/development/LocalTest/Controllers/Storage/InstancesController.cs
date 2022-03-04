@@ -664,7 +664,7 @@ namespace Altinn.Platform.Storage.Controllers
             return updatedInstance;
         }
 
-        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
+        private static Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
             {

@@ -106,6 +106,11 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         GMonth,
 
         /// <summary>
+        /// GMonthDay type
+        /// </summary>
+        GMonthDay,
+
+        /// <summary>
         /// Time period type
         /// </summary>
         TimePeriod,
@@ -134,5 +139,10 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// Base64Binary type
         /// </summary>
         Base64Binary,
+
+        /// <summary>
+        /// Duration type
+        /// </summary>
+        Duration,
     }
 }

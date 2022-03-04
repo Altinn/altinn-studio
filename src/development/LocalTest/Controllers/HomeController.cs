@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Xml;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -14,19 +16,16 @@ using Microsoft.Extensions.Options;
 
 using AltinnCore.Authentication.Constants;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.LocalApp.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Text;
-using Newtonsoft.Json;
-using LocalTest.Services.Localtest.Interface;
 
 namespace LocalTest.Controllers
 {
@@ -34,51 +33,52 @@ namespace LocalTest.Controllers
     {
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
-        private readonly ILocalTestAppSelection _appSelectionService;
+        private readonly ILocalApp _localApp;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
-            ILocalTestAppSelection appSelectionService)
+            ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
-            _applicationRepository = applicationRepository;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
-            _appSelectionService = appSelectionService;
+            _localApp = localApp;
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
-            model.TestApps = await GetAppsList();
-            Application app = await _applicationRepository.FindOne("", "");
+            try
+            {
+                model.TestApps = await GetAppsList();
+            }
+            catch (HttpRequestException e)
+            {
+                model.HttpException = e;
+            }
+
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
+            model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
+            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps.First().Value) : 2;
+            model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
 
-            if (!model.TestApps.Any())
+            if (!model.TestApps?.Any() ?? true)
             {
                 model.InvalidAppPath = true;
             }
 
-            if (!model.TestUsers.Any())
+            if (!model.TestUsers?.Any() ?? true)
             {
                 model.InvalidTestDataPath = true;
-            }
-
-            if (app != null)
-            {
-                model.Org = app.Org;
-                model.App = app.Id.Split("/")[1];
             }
 
             return View(model);
@@ -106,12 +106,12 @@ namespace LocalTest.Controllers
             UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
 
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);
@@ -120,13 +120,13 @@ namespace LocalTest.Controllers
             string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
             CreateJwtCookieAndAppendToResponse(token);
 
-            Application app = GetAppItem(startAppModel.AppPathSelection + "/config");
+            Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -140,7 +140,7 @@ namespace LocalTest.Controllers
             }
 
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
@@ -163,7 +163,7 @@ namespace LocalTest.Controllers
         public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = "")
         {
             List<Claim> claims = new List<Claim>();
-            string issuer = "altinn3local.no";
+            string issuer = _generalSettings.Hostname;
             claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
@@ -196,9 +196,7 @@ namespace LocalTest.Controllers
 
             foreach (string file in files)
             {
-                int userId;
-
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
+                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int userId))
                 {
                     users.Add(await _userProfileService.GetUser(userId));
                 }
@@ -226,77 +224,72 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
-
-        private async Task<IEnumerable<SelectListItem>> GetAppsList()
+        private async Task<int> GetAppAuthLevel(string appId)
         {
-            List<SelectListItem> apps = new List<SelectListItem>();
-
-            string path = this._localPlatformSettings.AppRepositoryBasePath;
-
-            if (!Directory.Exists(path))
-            {
-                return apps;
+            try {
+                var policyString = await _localApp.GetXACMLPolicy(appId);
+                var document = new XmlDocument();
+                document.LoadXml(policyString);
+                var nsMngr = new XmlNamespaceManager(document.NameTable);
+                nsMngr.AddNamespace("xacml", "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17");
+                var authLevelNode = document.SelectSingleNode("/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue", nsMngr);
+                return int.Parse(authLevelNode.InnerText);
             }
-
-            string configPath = path + "config";
-            if (Directory.Exists(configPath))
+            catch(Exception)
             {
-                Application app = GetAppItem(configPath);
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, path));
-                }
+                // Return default auth level if app auth level can't be found.
+                return 2;
             }
-
-            string[] directories =  Directory.GetDirectories(path);
-
-            foreach(string directory in directories)
-            {
-
-                Application app = GetAppItem(directory + "/App/config");
-                if (app != null)
-                {
-                    apps.Add(GetSelectItem(app, directory + "/App/"));
-                }
-            }
-
-            return apps;
         }
 
-        private SelectListItem GetSelectItem(Application app, string path)
+        private List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)
         {
-            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb")};
+            return new()
+            {
+                new()
+                {
+                    Value = "0",
+                    Text = "Nivå 0",
+                    Selected = defaultAuthLevel == 0
+                },
+                new()
+                {
+                    Value = "1",
+                    Text = "Nivå 1",
+                    Selected = defaultAuthLevel == 1
+                },
+                new()
+                {
+                    Value = "2",
+                    Text = "Nivå 2",
+                    Selected = defaultAuthLevel == 2
+                },
+                new()
+                {
+                    Value = "3",
+                    Text = "Nivå 3",
+                    Selected = defaultAuthLevel == 3
+                },
+                new()
+                {
+                    Value = "4",
+                    Text = "Nivå 4",
+                    Selected = defaultAuthLevel == 4
+                },
+            };
+        }
+
+        private async Task<List<SelectListItem>> GetAppsList()
+        {
+            var applications = await _localApp.GetApplications();
+            return applications.Select((kv) => GetSelectItem(kv.Value, kv.Key)).ToList();
+        }
+
+        private static SelectListItem GetSelectItem(Application app, string path)
+        {
+            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb") };
             return item;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        private Application GetAppItem(string configpath)
-        {
-
-            string filedata = string.Empty;
-            Application app = null;
-            string filename = configpath + "/applicationmetadata.json";
-            try
-            {
-                if (System.IO.File.Exists(filename))
-                {
-                    filedata = System.IO.File.ReadAllText(filename, Encoding.UTF8);
-                    app = JsonConvert.DeserializeObject<Application>(filedata);
-                }
-              
-                return app;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-
-        }
-
 
         /// <summary>
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.

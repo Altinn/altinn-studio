@@ -7,10 +7,11 @@ import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { ILayoutGroup } from '../layout';
 import { ITextResource } from '../../../types';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupAddButton {
   container: ILayoutGroup;
-  language: any;
+  language: ILanguage;
   textResources: ITextResource[];
   onClickAdd: () => void;
   onKeypressAdd: (event: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -25,9 +26,15 @@ const useStyles = makeStyles({
     color: theme.altinnPalette.primary.black,
     fontWeight: 'bold',
     width: '100%',
+    margin: '0 24px',
+    padding: '4px 0',
+    '@media (min-width:768px)': {
+      margin: '0',
+    },
     '&:hover': {
       cursor: 'pointer',
       borderStyle: 'solid',
+      backgroundColor: theme.altinnPalette.primary.blueLighter,
     },
     '&:focus': {
       outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
@@ -39,6 +46,8 @@ const useStyles = makeStyles({
     fontWeight: 400,
     fontSize: '1.6rem',
     borderBottom: `2px solid${theme.altinnPalette.primary.blue}`,
+    paddingBottom: '3px',
+    marginLeft: '6px',
   },
   addIcon: {
     transform: 'rotate(45deg)',

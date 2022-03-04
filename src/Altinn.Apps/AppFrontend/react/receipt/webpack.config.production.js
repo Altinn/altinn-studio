@@ -1,82 +1,27 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const path = require('path');
 
+const commonConfig = require('./webpack.common');
 
 module.exports = {
+  ...commonConfig,
   mode: 'production',
   devtool: false,
-  entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
-    "./src/index.tsx"
-  ],
-  output: {
-    filename: "receipt.js"
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
-    alias: {
-      // CUSTOM PACKAGES
-      'altinn-shared': path.resolve(__dirname, '../shared/src'),
-    }
-  },
   performance: {
     hints: false,
   },
   optimization: {
     minimize: true,
-    minimizer: [
-      new TerserPlugin(),
-    ],
+    minimizer: [new TerserPlugin()],
   },
   module: {
-    rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [{
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: "css-loader",
-            options: {
-              url: false
-            }
-          }
-        ]
-      },
+    rules: [
+      ...commonConfig.module.rules,
       {
         test: /\.tsx?/,
-        use: [
-          { loader: "ts-loader", options: { transpileOnly: true }},
-        ]
-      }
+        use: [{ loader: 'ts-loader' }],
+      },
     ],
   },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin(),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
-    }),
-    new MiniCssExtractPlugin({
-      filename: "receipt.css",
-    }),
-  ],
-}
+  plugins: [...commonConfig.plugins, new ForkTsCheckerWebpackPlugin()],
+};

@@ -3,7 +3,7 @@ import './studio';
 import './localtest';
 import './app';
 import './app-frontend';
-import 'cypress-file-upload';
+import './custom';
 import 'cypress-plugin-tab';
 import './start-app-instance';
 import 'cypress-axe';

@@ -1,10 +1,10 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-@ApiModel(description = "The text resources json file.")
+@Schema(description = "The text resources json file.")
 public class TextResources {
   private List<TextResourceElement> resources;
   private String language;

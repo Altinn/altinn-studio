@@ -21,16 +21,13 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly IDataRepository _dataRepository;
 
         public InstanceRepository(
             IOptions<LocalPlatformSettings> localPlatformSettings,
-            ILocalTestAppSelection localTestAppSelectionService,
             IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _localTestAppSelectionService = localTestAppSelectionService;
             _dataRepository = dataRepository;
         }
 
@@ -80,7 +77,7 @@ namespace LocalTest.Services.Storage.Implementation
             return null;
         }
 
-        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             List<string> validQueryParams = new List<string>
             {
@@ -178,15 +175,40 @@ namespace LocalTest.Services.Storage.Implementation
                 instances.RemoveAll(i => i.Status.IsSoftDeleted != match);
             }
 
+            if (queryParams.ContainsKey("created"))
+            {
+                RemoveForDateTime(instances, nameof(Instance.Created), queryParams.GetValueOrDefault("created"));
+            }
+
+            if (queryParams.ContainsKey("lastChanged"))
+            {
+                RemoveForDateTime(instances, nameof(Instance.LastChanged), queryParams.GetValueOrDefault("lastChanged"));
+            }
+
+            if (queryParams.ContainsKey("dueBefore"))
+            {
+                RemoveForDateTime(instances, nameof(Instance.DueBefore), queryParams.GetValueOrDefault("dueBefore"));
+            }
+
+            if (queryParams.ContainsKey("visibleAfter"))
+            {
+                RemoveForDateTime(instances, nameof(Instance.VisibleAfter), queryParams.GetValueOrDefault("visibleAfter"));
+            }
+
+            if (queryParams.ContainsKey("process.ended"))
+            {
+                RemoveForDateTime(instances, $"{nameof(Instance.Process)}.{nameof(Instance.Process.Ended)}", queryParams.GetValueOrDefault("process.ended"));
+            }
+
             instances.RemoveAll(i => i.Status.IsHardDeleted == true);
 
             instances.ForEach(async i => await PostProcess(i));
 
-            return new InstanceQueryResponse
+            return Task.FromResult(new InstanceQueryResponse
             {
                 Instances = instances,
                 Count = instances.Count,
-            };
+            });
         }
 
         public async Task<Instance> Update(Instance instance)
@@ -209,7 +231,7 @@ namespace LocalTest.Services.Storage.Implementation
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.InstanceCollectionFolder;
         }
 
-        private void PreProcess(Instance instance)
+        private static void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
             instance.Data = new List<DataElement>();
@@ -240,7 +262,7 @@ namespace LocalTest.Services.Storage.Implementation
         /// </summary>
         /// <param name="instanceId">the id to convert to cosmos</param>
         /// <returns>the guid of the instance</returns>
-        private string InstanceIdToCosmosId(string instanceId)
+        private static string InstanceIdToCosmosId(string instanceId)
         {
             string cosmosId = instanceId;
 
@@ -252,7 +274,7 @@ namespace LocalTest.Services.Storage.Implementation
             return cosmosId;
         }
 
-        private void SetReadStatus(Instance instance)
+        private static void SetReadStatus(Instance instance)
         {
             if (instance.Status.ReadStatus == ReadStatus.Read && instance.Data.Any(d => !d.IsRead))
             {
@@ -262,6 +284,58 @@ namespace LocalTest.Services.Storage.Implementation
             {
                 instance.Status.ReadStatus = ReadStatus.Unread;
             }
+        }
+
+        private static void RemoveForDateTime(List<Instance> instances, string property, string queryValue)
+        {
+            if (queryValue.StartsWith("gt:"))
+            {
+                var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) > query));
+            }
+            else if (queryValue.StartsWith("gte:"))
+            {
+                var query = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) >= query));
+            }
+            else if (queryValue.StartsWith("lt:"))
+            {
+                var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) < query));
+            }
+            else if (queryValue.StartsWith("lte:"))
+            {
+                var query = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                instances.RemoveAll(i => !(GetDateTimeValue(i, property) <= query));
+            }
+            else if (queryValue.StartsWith("eq:"))
+            {
+                var query = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                instances.RemoveAll(i => GetDateTimeValue(i, property) != query);
+            }
+            else
+            {
+                var query = ParseDateTimeIntoUtc(queryValue);
+                instances.RemoveAll(i => GetDateTimeValue(i, property) != query);
+            }
+        }
+
+        private static DateTime ParseDateTimeIntoUtc(string queryValue)
+        {
+            return DateTimeHelper.ParseAndConvertToUniversalTime(queryValue);
+        }
+
+        public static DateTime? GetDateTimeValue(object source, string property)
+        {
+            string[] props = property.Split('.');
+
+            for (int i = 0; i < props.Length; i++)
+            {
+                var prop = source.GetType().GetProperty(props[i]);
+                source = prop.GetValue(source, null);
+            }
+
+            return (DateTime?)source;
         }
     }
 }

@@ -1,0 +1,76 @@
+{
+  "id": "20b1353e-91cf-44d6-8ff7-f68993638ffe",
+  "instanceOwner": {
+    "partyId": "1337",
+    "organisationNumber": "725736800"
+  },
+  "appId": "tdd/endring-av-navn",
+  "org": "tdd",
+  "title": {
+    "nb": "Endring av navn"
+  },
+  "process": {
+    "currentTask": {
+      "elementId": "Task_2",
+      "altinnTaskType": "confirmation"
+    },
+    "started": "2020-04-29T13:53:01.7020218Z",
+    "startEvent": "StartEvent_1"
+  },
+  "status": {
+    "archived": "2020-04-29T13:53:06.117891Z",
+    "isArchived": true,
+    "isHardDeleted": false,
+    "isSoftDeleted": false
+  },
+  "appOwner": {},
+  "data": [
+    {
+      "id": "99dc0012-89fa-4968-b928-d6cc16d18d26",
+      "instanceGuid": "ba577e7f-3dfd-4ff6-b659-350308a47348",
+      "dataType": "schema_4222_160523_forms_212_20160523",
+      "contentType": "application/xml",
+      "blobStoragePath": "ttd/rf-0002/ba577e7f-3dfd-4ff6-b659-350308a47348/data/99dc0012-89fa-4968-b928-d6cc16d18d26",
+      "selfLinks": {
+        "platform": "https://platform.yt01.altinn.cloud/storage/api/v1/instances/58621971/ba577e7f-3dfd-4ff6-b659-350308a47348/data/99dc0012-89fa-4968-b928-d6cc16d18d26"
+      },
+      "size": 1993,
+      "locked": true,
+      "refs": [],
+      "created": "2020-04-29T13:53:03.0388998Z",
+      "lastChanged": "2020-04-29T13:53:05.7829624Z",
+      "lastChangedBy": "4228869"
+    },
+    {
+      "id": "8ec413e7-2f72-4e7a-8ef4-5976f42ce88f",
+      "instanceGuid": "ba577e7f-3dfd-4ff6-b659-350308a47348",
+      "dataType": "ref-data-as-pdf",
+      "filename": "RF-0002_Skattemelding_for_merverdiavgift.pdf",
+      "contentType": "application/pdf",
+      "blobStoragePath": "ttd/rf-0002/ba577e7f-3dfd-4ff6-b659-350308a47348/data/8ec413e7-2f72-4e7a-8ef4-5976f42ce88f",
+      "size": 10326,
+      "locked": false,
+      "refs": [],
+      "created": "2020-04-29T13:53:09.0214218Z",
+      "lastChanged": "2020-04-29T13:53:09.0214218Z"
+    }
+  ],
+  "presentationTexts": {
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "dataValues": {
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "visibleAfter": "2020-04-29T13:53:02.2836971Z",
+  "created": "2020-04-29T13:53:02.2836971Z",
+  "createdBy": "1337",
+  "lastChanged": "2020-04-29T13:53:09.1122622Z",
+  "lastChangedBy": "1337",
+  "_rid": "AnsTAK4aVt8czAIAAAAAAA==",
+  "_self": "dbs/AnsTAA==/colls/AnsTAK4aVt8=/docs/AnsTAK4aVt8czAIAAAAAAA==/",
+  "_etag": "\"1400ade0-0000-3c00-0000-5eaa8a220000\"",
+  "_attachments": "attachments/",
+  "_ts": 1588234786
+}

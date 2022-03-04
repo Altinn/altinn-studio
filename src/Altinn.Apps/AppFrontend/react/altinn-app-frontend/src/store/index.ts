@@ -1,34 +1,30 @@
-import { applyMiddleware,
-  compose,
-  createStore,
-  Middleware,
-  Store } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import reducers from '../reducers';
+import { appApi } from 'src/services/AppApi';
+import { configureStore, PreloadedState } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
-export const store: Store<any> = configureStore();
+const middlewares = [sagaMiddleware, appApi.middleware];
 
-function configureStore(initialState?: any): Store<any> {
-  const middlewares: Middleware[] = [sagaMiddleware];
+export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
+  const innerStore = configureStore({
+    reducer: reducers,
+    devTools: process.env.NODE_ENV !== 'production',
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+      // TODO: enable once we have cleaned up our store
+      serializableCheck: false,
+      immutableCheck: false,
+    }).concat(middlewares),
+    preloadedState
+  });
 
-  let enhancer: any;
+  setupListeners(innerStore.dispatch);
+  return innerStore;
+};
 
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line global-require
-    const { logger } = require('redux-logger');
-    middlewares.push(logger);
-    enhancer = composeWithDevTools(applyMiddleware(...middlewares));
-  } else {
-    enhancer = compose(applyMiddleware(...middlewares));
-  }
+export const store = setupStore();
 
-  const createdStore: Store<any> = createStore(
-    reducers,
-    initialState,
-    enhancer,
-  );
-
-  return createdStore;
-}
+export type RootState = ReturnType<typeof reducers>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore['dispatch'];

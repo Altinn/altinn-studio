@@ -6,7 +6,7 @@ const cdn = 'https://altinncdn.no';
 const desingerApi = `${origin}/designer/api`;
 const dataModelsApi = `${desingerApi}/${org}/${app}/dataModels`;
 
-export const repoStatusUrl = `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
+export const repoStatusUrl = `${origin}/designer/api/v1/repos/${org}/${app}/status`;
 export const languageUrl = `${origin}/designerapi/Language/GetLanguageAsJSON`;
 export const giteaSignOutUrl = `${origin}/repos/user/logout`;
 export const studioSignOutUrl = `${origin}/Home/Logout`;
@@ -19,7 +19,6 @@ export const releasesGetUrl = `${releasesPostUrl}?sortDirection=Descending`;
 export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const environmentsConfigUrl = `${cdn}/config/environments.json`;
 export const applicationMetadataUrl = `${origin}/designer/api/v1/${org}/${app}`;
-export const XSDUploadUrl = `${origin}/designer/${org}/${app}/Model/Upload`;
 
 export const getReleaseBuildPipelineLink =
   (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;

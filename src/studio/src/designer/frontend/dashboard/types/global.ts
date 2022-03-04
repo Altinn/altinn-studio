@@ -11,13 +11,12 @@ declare global {
     dataModelsMetadataState: T4;
   }
 
-  export interface IDashboardAppState
-    extends IDashboardNameSpace
-    <IDashboardState,
+  export type IDashboardAppState = IDashboardNameSpace<
+    IDashboardState,
     IFetchedLanguageState,
     IDataModellingState,
     IDataModelsMetadataState
-    > { }
+  >;
 
   export interface IAltinnWindow extends Window {
     org: string;

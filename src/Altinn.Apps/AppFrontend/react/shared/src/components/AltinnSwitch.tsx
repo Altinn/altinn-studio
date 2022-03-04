@@ -14,9 +14,6 @@ export interface IAltinnSwitchComponentProvidedProps {
   onBlurFunction?: any;
 }
 
-export interface IAltinnSwitchComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
@@ -38,8 +35,7 @@ const styles = createStyles({
   },
 });
 
-
-export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
+export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (

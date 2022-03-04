@@ -1,11 +1,11 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
-@ApiModel(description = "An altinn party object")
+@Schema(description = "An altinn party object")
 public class Party {
   private Integer partyId;
   private Integer partyTypeName;

@@ -1,4 +1,4 @@
-import { ILayoutSettings, INavigationConfig, ILayoutSets } from 'src/types';
+import { ILayoutSettings, INavigationConfig, ILayoutSets, IOption, IFileUploadersWithTag } from 'src/types';
 import { ILayouts } from '.';
 
 export interface IFormLayoutActionRejected {
@@ -41,7 +41,6 @@ export interface IUpdateCurrentViewFulfilled {
   newView: string;
   returnToView?: string;
 }
-
 export interface IUpdateFocus {
   currentComponentId: string;
   step?: number;
@@ -74,6 +73,33 @@ export interface IUpdateRepeatingGroupsEditIndex {
 export interface IUpdateRepeatingGroupsEditIndexFulfilled {
   group: string;
   index: number;
+}
+
+export interface IUpdateFileUploadersWithTagFulfilled {
+  uploaders: IFileUploadersWithTag;
+}
+
+export interface IUpdateFileUploaderWithTagEditIndex {
+  uploader: string;
+  index: number;
+  attachmentId?: string;
+}
+
+export interface IUpdateFileUploaderWithTagEditIndexFulfilled {
+  uploader: string;
+  index: number;
+}
+
+export interface IUpdateFileUploaderWithTagChosenOptions {
+  uploader: string;
+  id: string;
+  option: IOption;
+}
+
+export interface IUpdateFileUploaderWithTagChosenOptionsFulfilled {
+  uploader: string;
+  id: string;
+  option: IOption;
 }
 
 export interface ICalculatePageOrderAndMoveToNextPage {

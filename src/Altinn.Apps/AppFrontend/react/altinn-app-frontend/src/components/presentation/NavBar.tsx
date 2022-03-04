@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface INavBarProps {
-  language: any;
+  language: ILanguage;
   handleClose: (e: any) => void;
   handleBack: (e: any) => void;
   showBackArrow?: boolean;
@@ -20,7 +21,6 @@ const NavBar = (props: INavBarProps) => {
           onClick={props.handleBack}
         >
           <span className='ai-stack'>
-            <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
             <i className='ai-stack-1x ai ai-back' aria-hidden='true' />
           </span>
           <span className='hidden-button-text'>
@@ -36,7 +36,6 @@ const NavBar = (props: INavBarProps) => {
           onClick={props.handleClose}
         >
           <span className='ai-stack'>
-            <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
             <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
           </span>
           <span className='hidden-button-text'>

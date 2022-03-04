@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { SagaIterator } from 'redux-saga';
 import { call, select, all, take, put } from 'redux-saga/effects';
-import { getJsonSchemaUrl } from 'src/utils/urlHelper';
+import { getJsonSchemaUrl } from 'src/utils/appUrlHelper';
 import { IInstance } from 'altinn-shared/types';
 import { getCurrentDataTypeForApplication, isStatelessApp } from 'src/utils/appMetadata';
 import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';

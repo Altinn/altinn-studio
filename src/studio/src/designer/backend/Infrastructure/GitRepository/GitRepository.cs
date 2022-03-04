@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -134,11 +136,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             if (createDirectory)
             {
-                var fileInfo = new FileInfo(absoluteFilePath);
-                if (!Directory.Exists(fileInfo.Directory.FullName))
-                {
-                    Directory.CreateDirectory(fileInfo.Directory.FullName);
-                }
+                CreateDirectory(absoluteFilePath);
             }
 
             await WriteTextAsync(absoluteFilePath, text);
@@ -160,14 +158,23 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             if (createDirectory)
             {
-                var fileInfo = new FileInfo(absoluteFilePath);
-                if (!Directory.Exists(fileInfo.Directory.FullName))
-                {
-                    Directory.CreateDirectory(fileInfo.Directory.FullName);
-                }
+                CreateDirectory(absoluteFilePath);
             }
 
             await WriteAsync(absoluteFilePath, stream);
+        }
+
+        /// <summary>
+        /// Creates a new file or overwrites an existing and writes the text to rethe specified file path.
+        /// </summary>
+        /// <param name="relativeFilePath">File to be created/updated.</param>
+        /// <param name="obj">Object to be written to the file.</param>
+        /// <param name="createDirectory">False (default) if you don't want missing directory to be created. True will check if the directory exist and create it if it don't exist.</param>        
+        public async Task WriteObjectByRelativePathAsync(string relativeFilePath, object obj, bool createDirectory = false)
+        {
+            var studioSettingsJson = JsonSerializer.Serialize(obj, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() }, WriteIndented = true });
+
+            await WriteTextByRelativePathAsync(relativeFilePath, studioSettingsJson, createDirectory);
         }
 
         /// <summary>
@@ -292,6 +299,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             absoluteFilePath = Path.GetFullPath(absoluteFilePath);
 
             return absoluteFilePath;
+        }
+
+        private static void CreateDirectory(string absoluteFilePath)
+        {
+            var fileInfo = new FileInfo(absoluteFilePath);
+            if (!Directory.Exists(fileInfo.Directory.FullName))
+            {
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
+            }
         }
 
         private static async Task<string> ReadTextAsync(string absoluteFilePath)

@@ -102,14 +102,37 @@ namespace Altinn.Platform.Authorization.Helpers
         }
 
         /// <summary>
+        /// Creates a Rule representation based on a search and a xacmlRule found in a XacmlPolicyFile based on the search
+        /// </summary>
+        /// <param name="search">The search used to find the correct rule</param>
+        /// <param name="xacmlRule">XacmlRule found by the search param to enrich the result with Action and Resource</param>
+        /// <returns>The created Rule</returns>
+        public static Rule CreateRuleFromPolicyAndRuleMatch(RequestToDelete search, XacmlRule xacmlRule)
+        {
+            Rule rule = new Rule
+            {
+                RuleId = xacmlRule.RuleId,
+                CreatedSuccessfully = true,
+                DelegatedByUserId = search.DeletedByUserId,
+                OfferedByPartyId = search.PolicyMatch.OfferedByPartyId,
+                CoveredBy = search.PolicyMatch.CoveredBy,
+                Resource = GetResourceFromXcamlRule(xacmlRule),
+                Action = GetActionValueFromRule(xacmlRule)
+            };
+
+            return rule;
+        }
+
+        /// <summary>
         /// Builds the delegation policy path based on org and app names, as well as identifiers for the delegating and receiving entities
         /// </summary>
         /// <param name="org">The organization name/identifier</param>
         /// <param name="app">The altinn app name</param>
         /// <param name="offeredBy">The party id of the entity offering the delegated the policy</param>
-        /// <param name="coveredBy">The party or user id of the entity having received the delegated policy</param>
-        /// <returns></returns>
-        public static string GetAltinnAppDelegationPolicyPath(string org, string app, string offeredBy, string coveredBy)
+        /// <param name="coveredByUserId">The user id of the entity having received the delegated policy or null if party id</param>
+        /// <param name="coveredByPartyId">The party id of the entity having received the delegated policy or null if user id</param>
+        /// <returns>policypath matching input data</returns>
+        public static string GetAltinnAppDelegationPolicyPath(string org, string app, string offeredBy, int? coveredByUserId, int? coveredByPartyId)
         {
             if (string.IsNullOrWhiteSpace(org))
             {
@@ -126,12 +149,48 @@ namespace Altinn.Platform.Authorization.Helpers
                 throw new ArgumentException("OfferedBy was not defined");
             }
 
-            if (string.IsNullOrWhiteSpace(coveredBy))
+            if (coveredByPartyId == null && coveredByUserId == null)
             {
                 throw new ArgumentException("CoveredBy was not defined");
             }
 
-            return $"{org.AsFileName()}/{app.AsFileName()}/{offeredBy.AsFileName()}/{coveredBy.AsFileName()}/delegationpolicy.xml";
+            if (coveredByPartyId <= 0)
+            {
+                throw new ArgumentException("CoveredBy was not defined");
+            }
+
+            if (coveredByUserId <= 0)
+            {
+                throw new ArgumentException("CoveredBy was not defined");
+            }
+
+            string coveredByPrefix;
+            string coveredBy;
+            if (coveredByPartyId != null)
+            {
+                coveredByPrefix = "p";
+                coveredBy = coveredByPartyId.ToString();
+            }
+            else
+            {
+                coveredByPrefix = "u";
+                coveredBy = coveredByUserId.ToString();
+            }
+
+            return $"{org.AsFileName()}/{app.AsFileName()}/{offeredBy.AsFileName()}/{coveredByPrefix}{coveredBy.AsFileName()}/delegationpolicy.xml";
+        }
+
+        /// <summary>
+        /// Builds the delegation policy path based on input policyMatch
+        /// </summary>
+        /// <param name="policyMatch">param to build policypath from</param>
+        /// <returns>policypath matching input data</returns>
+        public static string GetAltinnAppDelegationPolicyPath(PolicyMatch policyMatch)
+        {
+            DelegationHelper.TryGetResourceFromAttributeMatch(policyMatch.Resource, out string org, out string app);
+            DelegationHelper.GetCoveredByFromMatch(policyMatch.CoveredBy, out int? coveredByUserId, out int? coveredByPartyId);
+
+            return PolicyHelper.GetAltinnAppDelegationPolicyPath(org, app, policyMatch.OfferedByPartyId.ToString(), coveredByUserId, coveredByPartyId);
         }
 
         /// <summary>
@@ -194,11 +253,6 @@ namespace Altinn.Platform.Authorization.Helpers
                 }
             }
 
-            foreach (XacmlObligationExpression obligation in appPolicy.ObligationExpressions)
-            {
-                delegationPolicy.ObligationExpressions.Add(obligation);
-            }
-
             return delegationPolicy;
         }
 
@@ -217,13 +271,12 @@ namespace Altinn.Platform.Authorization.Helpers
             rule.RuleId = Guid.NewGuid().ToString();
             
             string coveredBy = coveredByPartyId.HasValue ? coveredByPartyId.Value.ToString() : coveredByUserId.Value.ToString();
-            XacmlRule delegationRule = new XacmlRule($"{AltinnXacmlConstants.Prefixes.RuleId}{rule.RuleId}", XacmlEffectType.Permit)
+            XacmlRule delegationRule = new XacmlRule(rule.RuleId, XacmlEffectType.Permit)
             {
-                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}"
+                Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}",
+                Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy)
             };
 
-            delegationRule.Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy);
-            
             return delegationRule;
         }
 
@@ -325,8 +378,13 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 if (rule.Effect.Equals(XacmlEffectType.Permit) && rule.Target != null)
                 {
-                    List<string> policyKeys = GetResourcePoliciesFromRule(resourcePolicies, rule);
                     List<RoleGrant> roles = GetRolesFromRule(rule);
+                    if (roles.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    List<string> policyKeys = GetResourcePoliciesFromRule(resourcePolicies, rule);
                     List<ResourceAction> actions = GetActionsFromRule(rule, roles);
 
                     foreach (string policyKey in policyKeys)
@@ -344,6 +402,29 @@ namespace Altinn.Platform.Authorization.Helpers
             }
 
             return resourcePolicies.Values.ToList();
+        }
+
+        /// <summary>
+        /// Gets the authentication level requirement from the obligation expression of the XacmlPolicy if specified 
+        /// </summary>
+        /// <param name="policy">The policy</param>
+        /// <returns>Minimum authentication level requirement</returns>
+        public static int GetMinimumAuthenticationLevelFromXacmlPolicy(XacmlPolicy policy)
+        {
+            foreach (XacmlObligationExpression oblExpr in policy.ObligationExpressions)
+            {
+                foreach (XacmlAttributeAssignmentExpression attrExpr in oblExpr.AttributeAssignmentExpressions)
+                {
+                    if (attrExpr.Category.OriginalString == AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel &&
+                        attrExpr.Property is XacmlAttributeValue attrValue &&
+                        int.TryParse(attrValue.Value, out int minAuthLevel))
+                    {
+                        return minAuthLevel;
+                    }
+                }
+            }
+
+            return 0;
         }
 
         private static void AddActionsToResourcePolicy(List<ResourceAction> actions, ResourcePolicy resourcePolicy)
@@ -368,6 +449,41 @@ namespace Altinn.Platform.Authorization.Helpers
                     }
                 }
             }
+        }
+
+        private static AttributeMatch GetActionValueFromRule(XacmlRule rule)
+        {
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    XacmlMatch action = allOf.Matches.FirstOrDefault(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Action));
+
+                    if (action != null)
+                    {
+                        return new AttributeMatch { Id = action.AttributeDesignator.AttributeId.OriginalString, Value = action.AttributeValue.Value };
+                    }                    
+                }
+            }
+
+            return null;
+        }
+
+        private static List<AttributeMatch> GetResourceFromXcamlRule(XacmlRule rule)
+        {
+            List<AttributeMatch> result = new List<AttributeMatch>();
+            foreach (XacmlAnyOf anyOf in rule.Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches.Where(m => m.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
+                    {
+                        result.Add(new AttributeMatch { Id = xacmlMatch.AttributeDesignator.AttributeId.OriginalString, Value = xacmlMatch.AttributeValue.Value });                        
+                    }
+                }
+            }
+
+            return result;
         }
 
         private static List<ResourceAction> GetActionsFromRule(XacmlRule rule, List<RoleGrant> roles)

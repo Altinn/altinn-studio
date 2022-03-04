@@ -125,14 +125,14 @@ namespace LocalTest.Services.Storage.Implementation
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.DataCollectionFolder;
         }
 
-        private async Task<string> ReadFileAsString(string path)
+        private static async Task<string> ReadFileAsString(string path)
         {
             Stream stream = await ReadFileAsStream(path);
             using StreamReader reader = new StreamReader(stream);
             return await reader.ReadToEndAsync();
         }
 
-        private async Task<Stream> ReadFileAsStream(string path)
+        private static async Task<Stream> ReadFileAsStream(string path)
         {
             try
             {
@@ -150,12 +150,12 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private Stream ReadFileAsStreamInternal(string path)
+        private static Stream ReadFileAsStreamInternal(string path)
         {
             return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
-        private async Task WriteToFile(string path, string content)
+        private static async Task WriteToFile(string path, string content)
         {
             await using MemoryStream stream = new MemoryStream();
             await using StreamWriter writer = new StreamWriter(stream, Encoding.Default);
@@ -165,9 +165,9 @@ namespace LocalTest.Services.Storage.Implementation
             await WriteToFile(path, stream);
         }
 
-        private async Task<long> WriteToFile(string path, Stream stream)
+        private static async Task<long> WriteToFile(string path, Stream stream)
         {
-            if (!(stream is MemoryStream memStream))
+            if (stream is not MemoryStream memStream)
             {
                 memStream = new MemoryStream(); // lgtm [cs/local-not-disposed]
                 await stream.CopyToAsync(memStream);
@@ -195,7 +195,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
         }
 
-        private async Task<long> WriteToFileInternal(string path, MemoryStream stream)
+        private static async Task<long> WriteToFileInternal(string path, MemoryStream stream)
         {
             long fileSize;
             await using (FileStream streamToWriteTo = File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))

@@ -1,4 +1,4 @@
-import { ILanguage, UiSchemaItem } from './types';
+import { CombinationKind, ILanguage, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
@@ -9,6 +9,9 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
       stack.push(item);
       if (item.properties instanceof Array && depth > 0) {
         flat(item.properties, depth - 1, stack);
+      }
+      if (item.combination instanceof Array && depth > 0) {
+        flat(item.combination, depth - 1, stack);
       }
     }
   }
@@ -35,6 +38,28 @@ export const splitParentPathAndName = (path: string): [string | null, string | n
     const name = path.substring(index + 12);
     return [p, name];
   }
+
+  if (path.match(/\/anyOf\//)) {
+    const index = path.lastIndexOf('/anyOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
+  if (path.match(/\/allOf\//)) {
+    const index = path.lastIndexOf('/allOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
+  if (path.match(/\/oneOf\//)) {
+    const index = path.lastIndexOf('/oneOf/');
+    const p = path.substring(0, index);
+    const name = path.substring(index + 7);
+    return [p, name];
+  }
+
   return [null, null];
 };
 
@@ -100,8 +125,20 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         item = uiSchemaItem.value;
         break;
       }
+      case 'combination': {
+        if (uiSchemaItem[key]?.length) {
+          const combinationKind = uiSchemaItem.combinationKind;
+          item[combinationKind] = [];
+          uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
+            item[combinationKind].push(createJsonSchemaItem(property));
+          });
+        }
+        break;
+      }
       case 'path':
       case 'displayName':
+      case 'combinationItem':
+      case 'combinationKind':
         break;
       default:
         item[key] = uiSchemaItem[key];
@@ -112,7 +149,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
 }
 
 export function buildUISchema(schema: any, rootPath: string, includeDisplayName: boolean = true): UiSchemaItem[] {
-  const result : UiSchemaItem[] = [];
+  const result: UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -141,7 +178,8 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
       });
     } else if (typeof item === 'object' && item !== null) {
       const {
-        title, description, type, enum: enums, items, ...restrictions
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
       } = item;
       result.push({
         path,
@@ -152,6 +190,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
         type,
         items,
         enum: enums,
+        ...mapJsonSchemaCombinationToUiSchemaItem(item, path),
       });
     } else {
       result.push({
@@ -167,23 +206,80 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName:
   return result;
 }
 
-export const buildUiSchemaForItemWithProperties = (schema: {[key: string]: {[key: string]: any}},
+export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any }, parentPath: string) => {
+  let combinationKind: CombinationKind;
+  if (item.anyOf) {
+    combinationKind = 'anyOf';
+  } else if (item.allOf) {
+    combinationKind = 'allOf';
+  } else if (item.oneOf) {
+    combinationKind = 'oneOf';
+  } else {
+    return null;
+  }
+  const combination = item[combinationKind]?.map(
+    (child: UiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
+      child, index, combinationKind, parentPath,
+    ),
+  );
+  return {
+    combination,
+    combinationKind,
+  };
+};
+
+export const mapCombinationItemTypeToUiSchemaItem = (
+  item: UiSchemaItem, index: number, key: CombinationKind, parentPath: string,
+) => {
+  return {
+    ...item,
+    path: `${parentPath}/${key}/${index}`,
+    displayName: item.$ref !== undefined ? 'ref' : 'Inline object',
+    combinationItem: true,
+  };
+};
+
+export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
+
+export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
+  return !!(item?.combination?.some(nullableType));
+};
+
+export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKind): UiSchemaItem[] => {
+  // example case, going from oneOf to allOf
+  // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
+  // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0
+  return children.map((child) => {
+    const splitPath = child.path.split('/');
+    splitPath[splitPath.length - 2] = toType;
+    const mappedPath = splitPath.join('/');
+    return {
+      ...child,
+      path: mappedPath,
+    };
+  });
+};
+
+export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [key: string]: any } },
   name: string, displayName?: string): UiSchemaItem => {
   const rootProperties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
     const currentProperty = schema.properties[key];
     const {
-      type, title, description, properties, enum: enums, items, ...restrictions
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
+    const path = `${name}/properties/${key}`;
     const item: UiSchemaItem = {
-      path: `${name}/properties/${key}`,
+      path,
       displayName: key,
       type,
       title,
       enum: enums,
       items,
       description,
+      ...(mapJsonSchemaCombinationToUiSchemaItem(currentProperty, path)),
     };
 
     if (currentProperty.$ref) {

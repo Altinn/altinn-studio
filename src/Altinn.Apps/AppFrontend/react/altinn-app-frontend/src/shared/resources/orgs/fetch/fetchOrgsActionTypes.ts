@@ -1,5 +1,5 @@
-const moduleName: string = 'ORGS_DATA';
+const moduleName = 'ORGS_DATA';
 
-export const FETCH_ORGS: string = `${moduleName}.FETCH_ORGS`;
-export const FETCH_ORGS_FULFILLED: string = `${moduleName}.FETCH_ORGS_FULFILLED`;
-export const FETCH_ORGS_REJECTED: string = `${moduleName}.FETCH_ORGS_REJECTED`;
+export const FETCH_ORGS = `${moduleName}.FETCH_ORGS`;
+export const FETCH_ORGS_FULFILLED = `${moduleName}.FETCH_ORGS_FULFILLED`;
+export const FETCH_ORGS_REJECTED = `${moduleName}.FETCH_ORGS_REJECTED`;

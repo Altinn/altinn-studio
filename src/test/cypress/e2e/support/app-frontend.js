@@ -11,7 +11,9 @@ const mui = new Common();
  */
 Cypress.Commands.add('navigateToChangeName', () => {
   cy.intercept('**/active', []).as('noActiveInstances');
+  cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createInstace');
   cy.startAppInstance(Cypress.env('multiData2Stage'));
+  cy.wait('@createInstace');
   cy.get(appFrontend.closeButton).should('be.visible');
   cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
   cy.get(appFrontend.sendinButton).then((button) => {
@@ -45,6 +47,7 @@ Cypress.Commands.add('completeChangeNameForm', (firstName, lastName) => {
         .then(() => {
           cy.get(mui.selectedDate).should('be.visible').click();
         });
+      cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.pdf', { force: true });
       cy.contains(mui.button, texts.next).click();
     });
 });
@@ -77,8 +80,15 @@ Cypress.Commands.add('compelteTask3Form', () => {
 
 Cypress.Commands.add('navigateToTask4', () => {
   cy.compelteTask3Form();
-  cy.get(appFrontend.sendinButton).should('be.visible').click();
-  cy.get(appFrontend.confirmContainer).should('be.visible');
+  cy.url().then((url) => {
+    var instanceId = url.split('/').slice(-2).join('/');
+    cy.intercept('GET', `**/instances/${instanceId}`).as('getInstance');
+    cy.intercept('GET', `**/instances/${instanceId}/data/**`).as('getInstanceData');
+    cy.get(appFrontend.sendinButton).should('be.visible').click();
+    cy.wait('@getInstance');
+    cy.wait('@getInstanceData');
+    cy.get(appFrontend.confirm.container).should('be.visible');
+  });
 });
 
 Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
@@ -90,8 +100,8 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment) => {
     .find(appFrontend.group.next)
     .should('be.visible')
     .click();
-  cy.get(appFrontend.group.addNewItem).should('be.visible').focus().click();
-  cy.get(appFrontend.group.comments).type(comment).blur();
+  cy.get(appFrontend.group.addNewItem).should('not.exist');
+  cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();
   cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 });

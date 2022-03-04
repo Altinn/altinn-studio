@@ -1,0 +1,44 @@
+{
+  "Request": {
+    "ReturnPolicyIdList": true,
+    "AccessSubject": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:userid",
+            "Value": "20001336"
+          }
+        ]
+      }
+    ],
+    "Action": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+            "Value": "Read",
+            "DataType": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ]
+      }
+    ],
+    "Resource": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:org",
+            "Value": "org1"
+          },
+          {
+            "AttributeId": "urn:altinn:app",
+            "Value": "app1"
+          },
+          {
+            "AttributeId": "urn:altinn:partyid",
+            "Value": "50001337"
+          }
+        ]
+      }
+    ]
+  }
+}

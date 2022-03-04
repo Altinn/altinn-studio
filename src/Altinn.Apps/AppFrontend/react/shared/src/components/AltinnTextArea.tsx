@@ -60,7 +60,7 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
         container={true}
         direction={'row'}
         style={{
-          width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+          width: widthPercentage ? `${widthPercentage}%` : '100%',
         }}
       >
         <textarea

@@ -19,6 +19,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     public partial class PayloadCommitVerification
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="PayloadCommitVerification"/> class.
+        /// </summary>
+        public PayloadCommitVerification()
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommitVerification" /> class.
         /// </summary>
         /// <param name="Payload">Payload.</param>

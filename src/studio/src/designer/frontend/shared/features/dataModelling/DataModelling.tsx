@@ -4,107 +4,119 @@ import { SchemaEditor } from '@altinn/schema-editor/index';
 import { ILanguage } from '@altinn/schema-editor/types';
 import { getLanguageFromKey } from '../../utils/language';
 import { deleteDataModel, fetchDataModel, createDataModel, saveDataModel } from './sagas';
-import { Create, Delete, SchemaSelect } from './components';
+import { Create, Delete, SchemaSelect, XSDUpload } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { AltinnSpinner } from '../../components';
-import shouldSelectPreferredOption from './functions/shouldSelectPreferredOption';
+import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import { IMetadataOption } from './functions/types';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
-  preferredOptionLabel?: { label: string, clear: () => void };
+  org: string;
+  repo: string;
   createPathOption?: boolean;
 }
 
-function DataModelling(props: IDataModellingContainerProps): JSX.Element {
-  const { language, createPathOption } = props;
+type shouldSelectFirstEntryProps = {
+  metadataOptions?: IMetadataOption[];
+  selectedOption?: any;
+  metadataLoadingState: LoadingState;
+};
+
+export const shouldSelectFirstEntry = ({
+  metadataOptions,
+  selectedOption,
+  metadataLoadingState,
+}: shouldSelectFirstEntryProps) => {
+  return (
+    metadataOptions?.length > 0 && selectedOption === undefined && metadataLoadingState === LoadingState.ModelsLoaded
+  );
+};
+
+function DataModelling({ language, org, repo, createPathOption }: IDataModellingContainerProps): JSX.Element {
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
-  const [selectedOption, setSelectedOption] = React.useState(null);
-  const [lastFetchedOption, setLastFetchedOption] = React.useState(null);
+  const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
+  const [selectedOption, setSelectedOption] = React.useState(undefined);
 
-  const onSchemaSelected = React.useCallback((option: IMetadataOption) => {
-    if (props.preferredOptionLabel) {
-      props.preferredOptionLabel.clear();
-    }
-    setSelectedOption(option);
-  }, [props.preferredOptionLabel]);
+  const uploadedOrCreatedFileName = React.useRef(null);
+  const prevFetchedOption = React.useRef(null);
 
-  const selectPreferredOption = React.useCallback(() => {
-    const option = findPreferredMetadataOption(metadataOptions, props.preferredOptionLabel?.label);
-    if (option && !schemaPathIsSame(selectedOption, option)) {
-      onSchemaSelected(option);
-    }
-  }, [metadataOptions, props.preferredOptionLabel?.label, selectedOption, onSchemaSelected]);
+  const modelNames = metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
 
   React.useEffect(() => {
-    if (!schemaPathIsSame(lastFetchedOption, selectedOption)) {
+    if (metadataLoadingState === LoadingState.LoadingModels) {
+      setSelectedOption(undefined);
+    } else if (shouldSelectFirstEntry({ metadataOptions, selectedOption, metadataLoadingState })) {
+      setSelectedOption(metadataOptions[0]);
+    } else {
+      const option = findPreferredMetadataOption(metadataOptions, uploadedOrCreatedFileName.current);
+      if (option) {
+        setSelectedOption(option);
+        uploadedOrCreatedFileName.current = null;
+      }
+    }
+  }, [metadataOptions, selectedOption, metadataLoadingState]);
+
+  React.useEffect(() => {
+    if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption }));
-      setLastFetchedOption(selectedOption);
+      prevFetchedOption.current = selectedOption;
     }
-  }, [selectedOption, lastFetchedOption, dispatch]);
+  }, [selectedOption, dispatch]);
 
-  React.useEffect(() => { // selects an option that exists in the dataModels-metadata
-    if (!shouldSelectPreferredOption(metadataOptions, selectedOption, setSelectedOption)) {
-      return;
-    }
-    selectPreferredOption();
-  }, [metadataOptions, selectedOption, props.preferredOptionLabel, selectPreferredOption]);
-
-  const onSaveSchema = (schema: any) => {
+  const handleSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
   };
 
-  const onDeleteSchema = () => {
+  const handleDeleteSchema = () => {
     dispatch(deleteDataModel({ metadata: selectedOption }));
-    setSelectedOption(null);
   };
 
-  const createAction = (model: {
-    name: string,
-    relativeDirectory?: string,
-  }) => {
+  const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
     dispatch(createDataModel(model));
-    setSelectedOption({ label: model.name });
+    uploadedOrCreatedFileName.current = model.name;
   };
 
-  const getModelNames = () => {
-    return metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+  const handleXSDUploaded = (filename: string) => {
+    const lowerCaseFileName = filename.toLowerCase();
+    const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
+    const schemaName = filename.substr(0, filenameWithoutXsd.length);
+
+    uploadedOrCreatedFileName.current = schemaName;
+    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
   return (
     <SchemaEditor
       language={language}
       schema={jsonSchema}
-      onSaveSchema={onSaveSchema}
+      onSaveSchema={handleSaveSchema}
       name={selectedOption?.label}
       LoadingComponent={<AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />}
     >
-      {props.children}
+      <XSDUpload language={language} onXSDUploaded={handleXSDUploaded} org={org} repo={repo} />
+
       <Create
         language={language}
-        createAction={createAction}
-        dataModelNames={getModelNames()}
+        createAction={handleCreateSchema}
+        dataModelNames={modelNames}
         createPathOption={createPathOption}
       />
-      <SchemaSelect
-        selectedOption={selectedOption}
-        onChange={onSchemaSelected}
-        options={metadataOptions}
-      />
+      <SchemaSelect selectedOption={selectedOption} onChange={setSelectedOption} options={metadataOptions} />
       <Delete
         schemaName={selectedOption?.value && selectedOption?.label}
-        deleteAction={onDeleteSchema}
+        deleteAction={handleDeleteSchema}
         language={language}
       />
     </SchemaEditor>
   );
 }
 export default DataModelling;
+
 DataModelling.defaultProps = {
-  preferredOptionLabel: undefined,
   createPathOption: false,
 };

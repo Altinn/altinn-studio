@@ -3,12 +3,10 @@
   "baseUrl": "https://staging.altinn.studio",
   "env": {
     "autoTestUser": "AutoTest",
-    "noDeployUser": "automatedtest@email.com",    
     "deployApp": "ttd/autodeploy-v3",
-    "compilerErrorApp": "ttd/compile-error-app",
     "designerApp": "AutoTest/auto-designer-app",
     "withoutDataModelApp": "AutoTest/appwithout-dm",
-    "rulesApp": "AutoTest/rulesservice"
+    "appOwner": "Testdepartementet"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

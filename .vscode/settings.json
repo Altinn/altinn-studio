@@ -1,14 +1,12 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "[csharp]": {
-    "editor.tabSize": 4,
+    "editor.tabSize": 4
   },
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
-  "editor.rulers": [
-    120
-  ],
+  "editor.rulers": [80],
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
@@ -18,16 +16,11 @@
     "**/Debug": true
   },
   "typescript.surveys.enabled": false,
-  "cSpell.words": [
-    "api",
-    "i",
-    "kubernetes",
-    "wrapper"
-  ],
+  "cSpell.words": ["api", "i", "kubernetes", "wrapper"],
   "java.configuration.updateBuildConfiguration": "interactive",
   "eslint.workingDirectories": [
     { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
-    { "directory": "./src/Altinn.Apps/AppFrontend/react", "changeProcessCWD": true}
+    { "directory": "./src/Altinn.Apps/AppFrontend/react", "changeProcessCWD": true }
   ],
-  "editor.codeActionsOnSave": {}
+  "editor.codeActionsOnSave": { "source.fixAll": true }
 }

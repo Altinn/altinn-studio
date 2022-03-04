@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { IRouteProps } from 'config/routes';
 import { DataModelling } from 'app-shared/features';
-import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import { useDispatch } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core';
-import XSDUploader from '../components/XSDUploader';
+import { useSelector } from 'react-redux';
 
 interface IDataModellingContainerProps extends IRouteProps {
   language: any;
@@ -20,29 +18,24 @@ const useStyles = makeStyles(
   }),
 );
 
-export default function DataModellingContainer(props: IDataModellingContainerProps): JSX.Element {
+const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
   const classes = useStyles();
-  const [preferredOption, setPreferredOption] = React.useState<string>(null);
-  const dispatch = useDispatch();
-  const onXSDUploaded = (filename: string) => {
-    const lowerCaseFileName = filename.toLowerCase();
-    const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substr(0, filenameWithoutXsd.length);
-    setPreferredOption(schemaName);
-    dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-  };
-  const preferredOptionLabel = preferredOption && { label: preferredOption, clear: () => setPreferredOption(null) };
+  const { org, repo } = useSelector((state: any) => {
+    return {
+      org: state.applicationMetadataState.applicationMetadata.org,
+      repo: state.serviceInformation.serviceNameObj.name,
+    };
+  });
+
   return (
     <div className={classes.root}>
       <DataModelling
-        language={props.language}
-        preferredOptionLabel={preferredOptionLabel}
-      >
-        <XSDUploader
-          language={props.language}
-          onXSDUploaded={(filename: string) => onXSDUploaded(filename)}
-        />
-      </DataModelling>
+        language={language}
+        org={org}
+        repo={repo}
+      />
     </div>
   );
-}
+};
+
+export default DataModellingContainer;

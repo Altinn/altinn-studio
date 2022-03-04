@@ -15,9 +15,6 @@ export interface IAltinnBreadcrumbComponentProvidedProps extends WithStyles<type
   className?: any;
 }
 
-export interface IAltinnBreadcrumbComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = () => createStyles({
@@ -45,7 +42,7 @@ const styles = () => createStyles({
 });
 
 export class AltinnBreadcrumb extends
-  React.Component<IAltinnBreadcrumbComponentProvidedProps, IAltinnBreadcrumbComponentState> {
+  React.Component<IAltinnBreadcrumbComponentProvidedProps> {
 
   public render() {
     const { classes } = this.props;

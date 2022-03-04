@@ -1,27 +1,20 @@
-/* eslint-disable jsx-a11y/control-has-associated-label */
-import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
-import '../../styles/shared.css';
-import classNames from 'classnames';
+import React from 'react';
+import cn from 'classnames';
 import { makeStyles } from '@material-ui/core';
+
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { IComponentProps } from '..';
 
-export interface IDropdownProps {
-  formData: string;
-  getTextResourceAsString: (resourceKey: string) => string;
-  handleDataChange: (value: string) => void;
-  id: string;
-  isValid?: boolean;
+import '../../styles/shared.css';
+import { IMapping } from 'src/types';
+import { getOptionLookupKey } from 'src/utils/options';
+import { AltinnSpinner } from 'altinn-shared/components';
+
+export interface IDropdownProps extends IComponentProps {
   optionsId: string;
-  readOnly: boolean;
+  mapping?: IMapping;
   preselectedOptionIndex?: number;
-}
-
-export interface IDropdownState {
-  title: string;
-  options: any[];
-  name: string;
 }
 
 const useStyles = makeStyles({
@@ -33,53 +26,84 @@ const useStyles = makeStyles({
   },
 });
 
-function DropdownComponent(props: IDropdownProps) {
+const optionStyle = {
+  display: 'none',
+};
+
+function DropdownComponent({
+  optionsId,
+  formData,
+  preselectedOptionIndex,
+  handleDataChange,
+  id,
+  readOnly,
+  isValid,
+  getTextResourceAsString,
+  mapping,
+}: IDropdownProps) {
   const classes = useStyles();
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = useAppSelector(
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+  );
+  const fetchingOptions = useAppSelector(
+    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+  );
+  const hasSelectedInitial = React.useRef(false);
+  const optionsHasChanged = useHasChangedIgnoreUndefined(options);
 
   React.useEffect(() => {
-    returnState();
-  }, [options]);
-
-  const returnState = () => {
-    if (
-      !props.formData &&
-      props.preselectedOptionIndex >= 0 &&
+    const shouldSelectOptionAutomatically =
+      !formData?.simpleBinding &&
       options &&
-      props.preselectedOptionIndex < options.length
-    ) {
-      props.handleDataChange(options[props.preselectedOptionIndex].value);
+      preselectedOptionIndex >= 0 &&
+      preselectedOptionIndex < options.length &&
+      hasSelectedInitial.current === false;
+
+    if (shouldSelectOptionAutomatically) {
+      handleDataChange(options[preselectedOptionIndex].value);
+      hasSelectedInitial.current = true;
     }
+  }, [options, formData, preselectedOptionIndex, handleDataChange]);
+
+  React.useEffect(() => {
+    if (optionsHasChanged && formData.simpleBinding) {
+      // New options have been loaded, we have to reset form data.
+      // We also skip any required validations
+      handleDataChange(undefined, 'simpleBinding', true);
+    }
+  }, [handleDataChange, optionsHasChanged, formData]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    handleDataChange(event.target.value);
   };
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
-  };
-
-  const handleOnBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
-    props.handleDataChange(event.target.value);
+  const handleBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
+    handleDataChange(event.target.value);
   };
 
   return (
-    <select
-      id={props.id}
-      value={props.formData}
-      disabled={props.readOnly}
-      className={classNames(classes.select, 'custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
-      onChange={handleOnChange}
-      onBlur={handleOnBlur}
-    >
-      <option style={{ display: 'none' }}/>
-      {options?.map((option, index) => (
-        <option
-          // eslint-disable-next-line react/no-array-index-key
-          key={index}
-          value={option.value}
+    <>
+      {fetchingOptions ?
+        <AltinnSpinner /> :
+        <select
+          id={id}
+          value={formData?.simpleBinding}
+          disabled={readOnly}
+          className={cn(classes.select, 'custom-select a-custom-select', {
+            'validation-error': !isValid,
+            'disabled !important': readOnly,
+          })}
+          onChange={handleChange}
+          onBlur={handleBlur}
         >
-          {props.getTextResourceAsString(option.label)}
-        </option>
-      ))}
-    </select>
+          <option style={optionStyle} />
+          {options?.map((option, index) => (
+            <option key={index} value={option.value}>
+              {getTextResourceAsString(option.label)}
+            </option>
+          ))}
+        </select>}
+    </>
   );
 }
 export default DropdownComponent;

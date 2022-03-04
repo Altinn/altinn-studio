@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 /// <reference path="../../support/index.d.ts" />
 
-import * as loginPage from '../../pageobjects/loginandreg';
+import { login, registration } from '../../pageobjects/loginandreg';
 
 /**
  * Setup test script that is run before all the tests
@@ -9,7 +9,7 @@ import * as loginPage from '../../pageobjects/loginandreg';
  *    Create an org
  *    Create user in studio
  *    Make the user as owner of the org
- * command: npm run before:all
+ * command: yarn run before:all
  */
 context('Before all tests', () => {
   before(() => {
@@ -22,16 +22,21 @@ context('Before all tests', () => {
 
   it('Create User', () => {
     cy.visit('/');
-    cy.get(loginPage.loginButton).click();
-    cy.get(loginPage.singUp).click();
-    cy.get(loginPage.userName).type(Cypress.env('userName'));
-    cy.get(loginPage.email).type(Cypress.env('testEmail'));
-    cy.get(loginPage.userPwd).type(Cypress.env('userPwd'));
-    cy.get(loginPage.reTypePwd).type(Cypress.env('userPwd'));
-    cy.get(loginPage.submit).click();
+    cy.get(login.loginButton).click();
+    cy.get(login.form).find(registration.singUp).click();
+    cy.get(login.userName).type(Cypress.env('autoTestUser'));
+    cy.get(registration.email).type(Cypress.env('testEmail'));
+    cy.get(login.userPwd).type(Cypress.env('autoTestUserPwd'), { log: false });
+    cy.get(registration.reTypePwd).type(Cypress.env('autoTestUserPwd'), { log: false });
+    cy.get(login.submit).click();
   });
 
   it('Make an user owner of an org', () => {
-    cy.makeuserowner(Cypress.env('appOwner'), Cypress.env('userName'), Cypress.env('accessToken'));
+    cy.makeuserowner(Cypress.env('appOwner'), Cypress.env('autoTestUser'), Cypress.env('accessToken'));
+  });
+
+  it('Create apps for the testuser', () => {
+    cy.createrepository(Cypress.env('adminUser'), 'auto-app', Cypress.env('accessToken'));
+    cy.createrepository(Cypress.env('adminUser'), 'test-app', Cypress.env('accessToken'));
   });
 });

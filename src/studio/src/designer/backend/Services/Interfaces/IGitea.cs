@@ -23,6 +23,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
+        /// List an organization's repos
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetOrgRepos(string org);
+
+        /// <summary>
+        /// List the repos that the authenticated user has starred
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<RepositoryClient.Model.Repository>> GetStarred();
+
+        /// <summary>
+        /// Adds a star to the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository to star</param>
+        /// <param name="repository">The repository to star</param>
+        Task<bool> PutStarred(string org, string repository);
+
+        /// <summary>
+        /// Deletes the star marking from the given repository.
+        /// </summary>
+        /// <param name="org">The organization that owns the repository</param>
+        /// <param name="repository">The repository to remove the star from</param>
+        Task<bool> DeleteStarred(string org, string repository);
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -38,6 +64,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="page">the page to search</param>
         /// <returns>The repositories matching the search</returns>
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
+
+        /// <summary>
+        /// Search the repository for the given searchOptions
+        /// </summary>
+        /// <param name="searchOption">the search options</param>
+        Task<SearchResults> SearchRepo(SearchOptions searchOption);
 
         /// <summary>
         /// Fetch the repository information of a given org and repository.

@@ -50,6 +50,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the validation status.
         /// </summary>
         [JsonProperty(PropertyName = "validated")]
-        public ValidationStatus Validated { get; set; } 
+        public ValidationStatus Validated { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last flowtype.
+        /// </summary>
+        [JsonProperty(PropertyName = "flowType")]
+        public string FlowType { get; set; }
     }
 }

@@ -1,10 +1,11 @@
+import { ILanguage } from 'altinn-shared/types';
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFetchLanguageFulfilled, IFetchLanguageRejected } from './fetch/fetchLanguageActions';
 import * as LanguageActionTypes from './fetch/fetchLanguageActionTypes';
 
 export interface ILanguageState {
-  language: any;
+  language: ILanguage;
   error: Error;
 }
 

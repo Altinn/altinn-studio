@@ -48,20 +48,6 @@
       "allOf": [
         {
           "properties": {
-            "e1": {
-              "type": "string",
-              "@xsdType": "string",
-              "@xsdUnhandledAttributes": {
-                "seres:guid": "http://seres.no/guid/Altinn3/Test/485901"
-              }
-            }
-          },
-          "required": [
-            "e1"
-          ]
-        },
-        {
-          "properties": {
             "a1": {
               "type": "string",
               "@xsdType": "string",
@@ -87,6 +73,20 @@
           },
           "required": [
             "a4"
+          ]
+        },
+        {
+          "properties": {
+            "e1": {
+              "type": "string",
+              "@xsdType": "string",
+              "@xsdUnhandledAttributes": {
+                "seres:guid": "http://seres.no/guid/Altinn3/Test/485901"
+              }
+            }
+          },
+          "required": [
+            "e1"
           ]
         }
       ]

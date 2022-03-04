@@ -15,9 +15,6 @@ export interface IAltinnDropdownComponentProvidedProps {
   disabled: boolean;
 }
 
-export interface IAltinnDropdownComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = createStyles({
@@ -47,7 +44,7 @@ const styles = createStyles({
   },
 });
 
-export class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps, IAltinnDropdownComponentState> {
+export class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (

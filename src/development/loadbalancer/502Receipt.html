@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt is not running</title>
+</head>
+<body>
+  <h1>502 Bad Gateway</h1>
+  <h2>Receipt is not running</h2>
+  <p>Please ensure that Receipt is running on port 5060</p>
+  <pre>
+    Open a terminal in src/Altinn.Platform/Altinn.Platform.Receipt
+    run yarn --immutable
+    run yarn run gulp-install-deps
+    run yarn run gulp (if running for the first time, otherwise this can be skipped)
+    run yarn run gulp-develop if need for changing fronend code, dotnet run if only needing standard receipt
+  </pre>
+</body>
+</html>

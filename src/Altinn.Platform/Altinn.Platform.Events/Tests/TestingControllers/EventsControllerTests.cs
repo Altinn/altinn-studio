@@ -33,17 +33,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
         /// <summary>
         /// Represents a collection of integration tests of the <see cref="EventsController"/>.
         /// </summary>
-        public class EventsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+        public class EventsControllerTests : IClassFixture<WebApplicationFactory<EventsController>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<Startup> _factory;
+            private readonly WebApplicationFactory<EventsController> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
+            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TEventsController}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-            public EventsControllerTests(WebApplicationFactory<Startup> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TEventsController}"/> to use when setting up the test server.</param>
+            public EventsControllerTests(WebApplicationFactory<EventsController> factory)
             {
                 _factory = factory;
             }
@@ -620,8 +620,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string responseString = await response.Content.ReadAsStringAsync();
                 List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
 
-                string test = response.Headers.GetValues("next").First();
-
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(expectedCount, actual.Count);
@@ -690,7 +688,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private HttpClient GetTestClient(IEventsService eventsService)
             {
-                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
@@ -708,7 +705,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 return client;
             }
 
-            private CloudEvent GetCloudEvent()
+            private static CloudEvent GetCloudEvent()
             {
                 CloudEvent cloudEvent = new CloudEvent
                 {

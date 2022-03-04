@@ -3,7 +3,7 @@ import { call, delay, takeLatest, select } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
 import { ProcessTaskType, IRuntimeState } from '../../../../types';
-import { getProcessStateUrl } from '../../../../utils/urlHelper';
+import { getProcessStateUrl } from '../../../../utils/appUrlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessDispatcher from '../processDispatcher';
 import { IProcessState } from '../processReducer';

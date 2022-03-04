@@ -60,7 +60,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting party with party Id {PartyId} failed with statuscode {StatusCode}", partyId, response.StatusCode);
             }
 
             return null;
@@ -83,7 +83,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting party by lookup value failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting party by lookup value failed with statuscode {StatusCode}", response.StatusCode);
             }
 
             return null;
@@ -104,7 +104,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting party id by lookup value failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting party id by lookup value failed with statuscode {StatusCode}", response.StatusCode);
             }
 
             return -1;

@@ -24,6 +24,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
     public partial class PayloadUser
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="PayloadUser"/> class.
+        /// </summary>
+        public PayloadUser()
+        {
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PayloadUser" /> class.
         /// </summary>
         /// <param name="Email">Email.</param>

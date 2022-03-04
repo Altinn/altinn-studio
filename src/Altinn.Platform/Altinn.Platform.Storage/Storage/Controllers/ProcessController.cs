@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -83,10 +84,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                string message = $"Unable to find instance {instanceId} to update: {e}";
-                _logger.LogError(message);
-
-                return NotFound(message);
+                _logger.LogError(e, "Unable to find instance {instanceId} to update", instanceId);
+                return NotFound($"Unable to find instance {instanceId} to update");
             }
 
             if (existingInstance == null)
@@ -95,6 +94,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
+            string taskId = null;
+
+            if (processState?.CurrentTask?.FlowType != null && !processState.CurrentTask.FlowType.Equals("CompleteCurrentMoveToNext"))
+            {
+                altinnTaskType = processState.CurrentTask.AltinnTaskType;
+                taskId = processState.CurrentTask.ElementId;
+            }
 
             string action;
 
@@ -112,7 +118,7 @@ namespace Altinn.Platform.Storage.Controllers
                     break;
             }
 
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action);
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action, taskId);
 
             if (!authorized)
             {
@@ -120,7 +126,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Archiving instance if process was ended
-            if (existingInstance.Process.Ended == null && processState.Ended != null)
+            if (existingInstance.Process.Ended == null && processState?.Ended != null)
             {
                 existingInstance.Status ??= new InstanceStatus();
                 existingInstance.Status.IsArchived = true;
@@ -139,7 +145,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
+                _logger.LogError(e, "Unable to update instance object {instanceId}.", instanceId);
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
             }
 
@@ -173,7 +179,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to retriece process history for instance object {instanceId}. Due to {e}");
+                _logger.LogError(e, "Unable to retriece process history for instance object {instanceId}", instanceId);
                 return StatusCode(500, $"Unable to retriece process history for instance object {instanceId}: {e.Message}");
             }
         }

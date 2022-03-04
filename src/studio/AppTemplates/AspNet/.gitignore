@@ -157,9 +157,6 @@ publish/
 # NuGet package restore lockfiles
 project.lock.json
 
-# yarn lock file
-yarn.lock
-
 # Windows Azure Build Output
 csx/
 *.build.csdef

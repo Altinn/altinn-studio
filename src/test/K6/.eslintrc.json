@@ -2,7 +2,10 @@
   "globals": {
     "__ENV": "readonly"
   },
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false
+  },
   "ignorePatterns": ["src/data", "src/reports"],
   "rules": {
     "import/no-unresolved": "off",

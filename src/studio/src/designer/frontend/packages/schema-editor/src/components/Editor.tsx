@@ -5,7 +5,7 @@ import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { ILanguage, ISchema, ISchemaState, PropertyType, UiSchemaItem } from '../types';
+import { ILanguage, ISchema, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema, addRootItem, setSchemaName, setSelectedTab } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getDomFriendlyID, getTranslation } from '../utils';
@@ -122,11 +122,13 @@ export const Editor = (props: IEditorProps) => {
   };
 
   React.useEffect(() => {
-    dispatch(setSchemaName({ name }));
+    if (name) {
+      dispatch(setSchemaName({ name }));
+    }
   }, [dispatch, name]);
 
   React.useEffect(() => {
-    if (jsonSchema) {
+    if (jsonSchema && name) {
       dispatch(setUiSchema({ name }));
     }
   }, [dispatch, jsonSchema, name]);
@@ -145,12 +147,16 @@ export const Editor = (props: IEditorProps) => {
     setMenuAnchorEl(null);
   };
 
-  const handleAddProperty = (type: PropertyType) => {
+  const handleAddProperty = (type: ObjectKind) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'properties',
-      type: (type === 'field' ? 'object' : undefined),
-      $ref: (type === 'reference' ? '' : undefined),
+      props: {
+        type: (type === 'field' ? 'object' : undefined),
+        $ref: (type === 'reference' ? '' : undefined),
+        combination: (type === 'combination') ? [] : undefined,
+        combinationKind: (type === 'combination') ? 'allOf' : undefined,
+      }
     }));
     setMenuAnchorEl(null);
   };
@@ -160,19 +166,21 @@ export const Editor = (props: IEditorProps) => {
     dispatch(addRootItem({
       name: 'name',
       location: 'definitions',
-      type: 'object',
+      props: {
+        type: 'object',
+      }
     }));
   };
 
-  const handlePropertiesNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
+  const handlePropertiesNodeExpanded = (_x: React.ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
-  const handleDefinitionsNodeExpanded = (_x: React.ChangeEvent<{}>, nodeIds: string[]) => {
+  const handleDefinitionsNodeExpanded = (_x: React.ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
-  const handleTabChanged = (_x: React.ChangeEvent<{}>, value: string) => {
+  const handleTabChanged = (_x: React.ChangeEvent<unknown>, value: 'definitions' | 'properties') => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
 
@@ -196,7 +204,7 @@ export const Editor = (props: IEditorProps) => {
                   aria-label='model-tabs'
                 >
                   <SchemaTab
-                    label='models'
+                    label='model'
                     language={language}
                     value='properties'
                   />
@@ -290,6 +298,12 @@ export const Editor = (props: IEditorProps) => {
           text={getTranslation('reference', language)}
           iconClass='fa fa-datamodel-ref'
           id='add-reference-button'
+        />
+        <AltinnMenuItem
+          onClick={() => handleAddProperty('combination')}
+          text={getTranslation('combination', language)}
+          iconClass='fa fa-group'
+          id='add-combination-button'
         />
       </AltinnMenu>
     </div>

@@ -14,7 +14,7 @@ export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/
 export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';
 export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamodel`;
 export const dataModelXsdUrl = `${origin}/designer/${org}/${app}/Model/GetXsd`;
-export const orgsListUrl: string = 'https://altinncdn.no/orgs/altinn-orgs.json';
+export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 export const repositoryGitUrl = `${origin}/repos/${org}/${app}.git`;
 export const repositoryUrl = `${origin}/repos/${org}/${app}`;
 export const baseHostnameAltinnProd = 'altinn.no';
@@ -40,6 +40,11 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
 
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
 };
+
+export const returnUrlFromQueryParameter = (): string => {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('returnUrl');
+}
 
 export const returnUrlToArchive = (url: string): string => {
   const baseUrl = returnBaseUrlToAltinn(url);

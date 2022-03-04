@@ -111,7 +111,7 @@ export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, a
 
 //Function to add subscription key to the header when sent as env variable from command line
 //and endpoint is a platform endpoint
-function addSubscriptionKey(params, subscriptionKey, api) {
+export function addSubscriptionKey(params, subscriptionKey, api) {
   if (subscriptionKey != null && api == 'platform') {
     if (params['headers'] == null) {
       params['headers'] = {};

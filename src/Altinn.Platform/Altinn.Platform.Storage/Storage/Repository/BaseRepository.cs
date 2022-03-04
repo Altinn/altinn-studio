@@ -6,6 +6,7 @@ namespace Altinn.Platform.Storage.Repository
 
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Extensions;
+
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Extensions.Hosting;
@@ -82,6 +83,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 ConnectionMode = ConnectionMode.Gateway,
                 ConnectionProtocol = Protocol.Https,
+                IdleTcpConnectionTimeout = new TimeSpan(0, 10, 0)
             };
 
             DocumentClient client = new DocumentClient(new Uri(_cosmosSettings.EndpointUri), _cosmosSettings.PrimaryKey, connectionPolicy);

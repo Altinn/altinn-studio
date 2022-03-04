@@ -1,0 +1,121 @@
+﻿<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xml:lang="nb" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.23" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2017-09-21T08:41:20.811+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/NKR/EttersendVedlegg_M/2017" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="NKR" />
+      <xsd:attribute name="modellnavn" fixed="EttersendVedlegg_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="nb" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="EttersendVedlegg_M" />
+  <xsd:complexType name="EttersendVedlegg_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/NKR/Meldingsmodell/EttersendVedlegg_M/626454">
+    <xsd:sequence>
+      <xsd:element name="InnsendteData" type="InnsendteData" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/NKR/Meldingsdel/InnsendteData/626452" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="5244" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="42360" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="InnsendteData" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/NKR/Meldingsdel/InnsendteData/626452">
+    <xsd:sequence>
+      <xsd:element name="prosjektdata" type="Prosjektdata" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/NKR/Relasjonsegenskap/prosjektdata/637514" />
+      <xsd:element name="skjemainformasjon" type="Skjemainformasjon" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/NKR/Relasjonsegenskap/skjemainformasjon/637515" />
+      <xsd:element name="vedlegg" type="Vedlegg" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/NKR/Relasjonsegenskap/vedlegg/631149" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Prosjektdata" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/NKR/Dataobjekttype/Prosjektdata/636671">
+    <xsd:sequence>
+      <xsd:element name="prosjektnummer" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/prosjektnummer/636670" />
+      <xsd:element name="prosjekttittel" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/prosjekttittel/636669" />
+      <xsd:element name="gjennomforingsperiode" type="PeriodeOppdatering" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/gjennomforingsperiode/637683" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="PeriodeOppdatering" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/NKR/Datakomplekstype/PeriodeOppdatering/637682">
+    <xsd:sequence>
+      <xsd:element name="gammel" type="Periode" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/gammel/637681" />
+      <xsd:element name="ny" type="Periode" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/ny/637680" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Periode" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/NKR/Datakomplekstype/Periode/624738">
+    <xsd:sequence>
+      <xsd:element name="enkeltDato" type="Dato" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/enkeltDato/624737" />
+      <xsd:element name="enkeltAar" type="AArstall" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/enkeltAar/624736" />
+      <xsd:element name="fraDato" type="Dato" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/fraDato/624735" />
+      <xsd:element name="tilDato" type="Dato" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/tilDato/624734" />
+      <xsd:element name="tilMaanedAar" type="AArOgMaaned" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/tilMaanedAar/624733" />
+      <xsd:element name="fraMaanedAar" type="AArOgMaaned" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/fraMaanedAar/624732" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Skjemainformasjon" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/NKR/Dataobjekttype/Skjemainformasjon/636668">
+    <xsd:sequence>
+      <xsd:element name="meldingTilBruker" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/meldingTilBruker/636667" />
+      <xsd:element name="sendt" type="Dato" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/sendt/636666" />
+      <xsd:element name="svarfrist" type="Dato" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/svarfrist/636665" />
+      <xsd:element name="obligatoriskVedlegg" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/obligatoriskVedlegg/638589" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Vedlegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/NKR/Dataobjekttype/Vedlegg/626966">
+    <xsd:sequence>
+      <xsd:element name="nettlenker" type="EnkeltVedlegg" nillable="true" minOccurs="0" maxOccurs="unbounded" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/nettlenker/629858" />
+      <xsd:element name="fysiskeVedlegg" type="EnkeltVedlegg" nillable="true" minOccurs="0" maxOccurs="unbounded" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/fysiskeVedleggNavn/629857" />
+      <xsd:element name="elektroniske" type="ElektroniskVedlegg" nillable="true" minOccurs="0" maxOccurs="unbounded" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/elektroniske/638590" />
+      <xsd:element name="ferdigstilt" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/ferdigstilt/640087" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="EnkeltVedlegg" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/NKR/Datakomplekstype/EnkeltVedlegg/630439">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/navn/630438" />
+      <xsd:element name="kommentar" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/kommentar/630437" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ElektroniskVedlegg" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/NKR/Datakomplekstype/ElektroniskVedlegg/638588">
+    <xsd:sequence>
+      <xsd:element name="typeId" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/tipeId/638587" />
+      <xsd:element name="typeNavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/typeNavn/638586" />
+      <xsd:element name="filnavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/NKR/DataTypeegenskap/filnavn/638585" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Tekst/616185">
+    <xsd:restriction base="Tekst_RestriksjonTekst15000Tegn" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst_RestriksjonTekst15000Tegn" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/NKR/Tegnrestriksjon/RestriksjonTekst400Tegn/621114">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="15000" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Dato" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Dato/616182">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="AArstall" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Årstall/616176">
+    <xsd:restriction base="xsd:gYear" />
+  </xsd:simpleType>
+  <xsd:simpleType name="AArOgMaaned" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/ÅrOgMåned/616161">
+    <xsd:restriction base="xsd:gYearMonth" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Alternativ" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Alternativ/616180">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Navn" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Navn/616179">
+    <xsd:restriction base="xsd:token" />
+  </xsd:simpleType>
+</xsd:schema>

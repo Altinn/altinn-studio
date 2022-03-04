@@ -44,7 +44,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The configuration object for Open ID Connect.</returns>
         [HttpGet("openid-configuration")]
-        public async Task<IActionResult> GetOpenIdConfigurationAsync()
+        [Produces("application/json")]
+        public DiscoveryDocument GetOpenIdConfigurationAsync()
         {
             string baseUrl = _generalSettings.AltinnOidcIssuerUrl;
 
@@ -72,15 +73,16 @@ namespace Altinn.Platform.Authentication.Controllers
                 IdTokenSigningAlgValuesSupported = new[] { "RS256" }
             };
 
-            return await Task.FromResult(Ok(discoveryDocument));
+            return discoveryDocument;
         }
 
         /// <summary>
         /// Returns the JSON Web Key Set to use when validating a token.
         /// </summary>
         /// <returns>The Altinn JSON Web Key Set.</returns>
+        [Produces("application/json")]
         [HttpGet("openid-configuration/jwks")]
-        public async Task<IActionResult> GetJsonWebKeySetAsync()
+        public async Task<JwksDocument> GetJsonWebKeySetAsync()
         {
             JwksDocument jwksDocument = new JwksDocument
             {
@@ -108,7 +110,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 jwksDocument.Keys.Add(jwkDocument);
             }
 
-            return Ok(jwksDocument);
+            return jwksDocument;
         }
 
         private List<string> ExportChain(X509Certificate2 cert)

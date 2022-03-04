@@ -1,32 +1,22 @@
 /* eslint-disable no-prototype-builtins */
-/* eslint-disable no-restricted-syntax */
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { ITextResource, IValidations } from 'src/types';
-import { IRuntimeState } from 'src/types';
-import { useSelector } from 'react-redux';
-import { getTextFromAppOrDefault } from '../../utils/textResource';
+import { IValidations } from 'src/types';
 import { getUnmappedErrors } from '../../utils/validation';
+import { useAppSelector } from 'src/common/hooks';
 
-export interface IErrorProps {
-  language: any;
-}
-
-const ErrorReport = (props: IErrorProps) => {
-  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
+const ErrorReport = () => {
+  const validations = useAppSelector(state => state.formValidations.validations,);
   const unmappedErrors = getUnmappedErrors(validations);
-  const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
-  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const formHasErrors: boolean = useSelector(
-    (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations),
-  );
-  const hasSubmitted = useSelector((state: IRuntimeState) => state.formData.hasSubmitted);
+  const hasUnmappedErrors = unmappedErrors.length > 0;
+  const language = useAppSelector(state => state.language.language);
+  const formHasErrors = useAppSelector(state => getFormHasErrors(state.formValidations.validations));
+  const hasSubmitted = useAppSelector(state => state.formData.hasSubmitted);
   const errorRef = useRef(null);
 
   useEffect(() => {
     if (hasSubmitted) {
-      // eslint-disable-next-line no-unused-expressions
       errorRef?.current?.focus();
     }
   }, [hasSubmitted, unmappedErrors]);
@@ -60,35 +50,44 @@ const ErrorReport = (props: IErrorProps) => {
                     aria-hidden='true'
                   />
                 </div>
-                <h2 className='a-fontReg' style={{ marginBottom: '0px', marginLeft: '12px' }}>
+                <h2
+                  className='a-fontReg'
+                  style={{ marginBottom: '0px', marginLeft: '12px' }}
+                >
                   <span className='a-iconText-text-large'>
-                    {getLanguageFromKey('form_filler.error_report_header', props.language)}
+                    {getLanguageFromKey(
+                      'form_filler.error_report_header',
+                      language,
+                    )}
                   </span>
                 </h2>
               </div>
             </div>
-            <div className='modal-body a-modal-body' style={{ paddingTop: '0px', paddingBottom: '24px' }}>
-              {hasUnmappedErrors && unmappedErrors.map((key: string) => {
-                // List unmapped errors
-                return (
-                  <h4
-                    className='a-fontReg' style={{ marginBottom: '12px' }}
-                    key={key}
-                  >
-                    <span>
-                      {getTextFromAppOrDefault(key, textResources, props.language, undefined, false)}
-                    </span>
-                  </h4>
-                );
-              })}
-              {!hasUnmappedErrors &&
+            <div
+              className='modal-body a-modal-body'
+              style={{ paddingTop: '0px', paddingBottom: '24px' }}
+            >
+              {hasUnmappedErrors &&
+                <div>
+                  <ul style={{ listStylePosition: 'inside'}}>
+                    {unmappedErrors.map((error: React.ReactNode, index: number) => {
+                      return (
+                        <li key={index}>{error}</li>
+                      );
+                    })}
+                  </ul>
+                </div>}
+              {!hasUnmappedErrors && (
                 // No errors to list, show a generic error message
                 <h4 className='a-fontReg' style={{ marginBottom: '12px' }}>
                   <span>
-                    {getLanguageFromKey('form_filler.error_report_description', props.language)}
+                    {getLanguageFromKey(
+                      'form_filler.error_report_description',
+                      language,
+                    )}
                   </span>
                 </h4>
-              }
+              )}
             </div>
           </div>
         </div>

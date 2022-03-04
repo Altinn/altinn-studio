@@ -1,47 +1,52 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Serialization;
 
-using AltinnCore.Authentication.JwtCookie;
-using AltinnCore.Authentication.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Common.PEP.Authorization;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Clients;
-using Altinn.Platform.Authorization.Services.Implementation;
-using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Register.Core;
 using Altinn.Platform.Storage.Clients;
-using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Repository;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.JwtCookie;
 
 using LocalTest.Configuration;
-using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authentication.Implementation;
+using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authorization.Implementation;
+using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
-using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.LocalApp.Implementation;
+using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.Localtest.Implementation;
+using LocalTest.Services.Localtest.Interface;
 using LocalTest.Services.Profile.Implementation;
-using LocalTest.Services.Register.Interface;
+using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
+using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
-using LocalTest.Services.Localtest.Interface;
-using LocalTest.Services.Localtest.Implementation;
-using System.Text.Json.Serialization;
-using LocalTest.Services.Authorization.Interface;
 
 namespace LocalTest
 {
@@ -72,6 +77,7 @@ namespace LocalTest
             services.Configure<Altinn.Platform.Authentication.Configuration.GeneralSettings>(Configuration.GetSection("AuthnGeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.Configure<PersonLookupSettings>(Configuration.GetSection("PersonLookupSettings"));
             services.AddSingleton<ILocalTestAppSelection, LocalTestAppSelectionSI>();
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
@@ -90,12 +96,14 @@ namespace LocalTest
             services.AddSingleton<IAuthentication, AuthenticationService>();
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
+            services.AddTransient<IPersonLookup, PersonLookupService>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
+            services.AddMemoryCache();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
@@ -131,12 +139,27 @@ namespace LocalTest
                 // Adding custom model binders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
+
+            services.AddDirectoryBrowser();
+
+            // Access local app details depending on LocalAppMode ("file" or "http")
+            if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
+            {
+                services.AddTransient<ILocalApp, LocalAppHttp>();
+            }
+            else
+            {
+                services.AddTransient<ILocalApp, LocalAppFile>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsEnvironment("docker"))
             {
                 app.UseDeveloperExceptionPage();
 
@@ -149,7 +172,19 @@ namespace LocalTest
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage",
+                ServeUnknownFileTypes = true,
+            });
+
+            app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            {
+                FileProvider = new PhysicalFileProvider(localPlatformSettings.Value.LocalTestingStorageBasePath),
+                RequestPath = "/LocalPlatformStorage"
+            });
             app.UseStaticFiles();
 
             app.UseRouting();

@@ -136,7 +136,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                     writer.WriteStartObject();
                     foreach (var pair in item.Properties)
                     {
-                        writer.WriteString(pair.key, pair.value);
+                        writer.WriteString(pair.Key, pair.Value);
                     }
 
                     writer.WriteEndObject();

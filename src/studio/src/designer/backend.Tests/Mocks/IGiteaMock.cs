@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Models;
@@ -161,6 +160,31 @@ namespace Designer.Tests.Mocks
         {
             Branch branch = new Branch { Name = branchName };
             return await Task.FromResult(branch);
+        }
+
+        public Task<IList<Repository>> GetOrgRepos(string org)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<Repository>> GetStarred()
+        {
+            return await Task.FromResult(new List<Repository> { new Repository() { Name = "repoName" } });
+        }
+
+        public Task<bool> PutStarred(string org, string repository)
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> DeleteStarred(string org, string repository)
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<SearchResults> SearchRepo(SearchOptions searchOption)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -28,11 +28,11 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Short Message
         /// </summary>
-        public string MessageShort { get; internal set; }
+        public string MessageShort { get; set; }
 
         /// <summary>
         /// Encoding of Commit
         /// </summary>
-        public string Encoding { get; internal set; }
+        public string Encoding { get; set; }
     }
 }

@@ -32,16 +32,8 @@
     "noUnusedLocals": true,
     "esModuleInterop": true
   },
-  "include": [
-    "./src/**/*"
-  ],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "src/setupTests.ts"
   ],
 }

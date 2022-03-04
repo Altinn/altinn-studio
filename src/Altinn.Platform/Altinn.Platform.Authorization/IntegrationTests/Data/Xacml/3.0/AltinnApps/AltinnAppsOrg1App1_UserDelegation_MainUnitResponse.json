@@ -1,0 +1,38 @@
+{
+  "Response": [
+    {
+      "Decision": "Permit",
+      "Status": {
+        "StatusCode": {
+          "Value": "urn:oasis:names:tc:xacml:1.0:status:ok"
+        }
+      },
+      "Obligations": [
+        {
+          "id": "urn:altinn:obligation:1",
+          "attributeAssignment": [
+            {
+              "attributeId": "urn:altinn:obligation-assignment:1",
+              "value": "4",
+              "category": "urn:altinn:minimum-authenticationlevel",
+              "dataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "issuer": null
+            }
+          ]
+        },
+        {
+          "id": "urn:altinn:obligation:2",
+          "attributeAssignment": [
+            {
+              "attributeId": "urn:altinn:obligation-assignment:2",
+              "value": "3",
+              "category": "urn:altinn:minimum-authenticationlevel-org",
+              "dataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "issuer": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

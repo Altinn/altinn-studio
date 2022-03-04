@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Authenticaiton.Extensions;
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Platform.Authorization.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -30,8 +32,16 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <param name="offeredByPartyId">the partyid of the person/org the logged in user is representing</param>
         /// <returns></returns>
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult> Get(int coveredByUserId, int offeredByPartyId)
         {
+            int? authnUserId = User.GetUserIdAsInt();
+
+            if (coveredByUserId != authnUserId)
+            {
+                return Forbid();
+            }
+
             if (coveredByUserId == 0 || offeredByPartyId == 0)
             {
                 return BadRequest();

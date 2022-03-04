@@ -12,9 +12,6 @@ export interface IAltinnSearchInputComponentProvidedProps {
   ariaLabel: string;
 }
 
-export interface IAltinnSearchInputComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = {
@@ -38,7 +35,7 @@ const styles = {
 };
 
 
-export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps, IAltinnSearchInputComponentState> {
+export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (

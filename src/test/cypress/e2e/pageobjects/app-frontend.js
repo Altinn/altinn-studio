@@ -6,10 +6,13 @@ export default class AppFrontend {
     this.startButton = '.btn';
 
     //Common
+    this.loadingAnimation = 'rect[role="presentation"]';
+    this.header = '.a-modal-header';
     this.closeButton = '.a-modal-close-icon';
     this.backButton = '.a-modal-back';
     this.attachmentIcon = '.reg-attachment';
     this.sendinButton = '#sendInButton';
+    this.instantiationButton = '#instantiation-button';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
     this.altinnError = 'div[class*="AltinnError-contentMargin"]';
@@ -18,19 +21,30 @@ export default class AppFrontend {
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
 
     this.helpText = {
-      open: '.ai-circle-plus',
-      close: '.ai-circle-minus',
+      open: '.reg-help-outline',
+      close: '.reg-help-filled',
       alert: 'div[role="alert"]',
     };
 
+    this.navMenu = '#navigation-menu';
+    this.startAgain = '#startAgain';
+
     //Receipt
-    this.receiptContainer = '#ReceiptContainer';
-    this.linkToArchive = 'a[href$="/ui/messagebox/archive"]';
+    this.receipt = {
+      container: '#ReceiptContainer',
+      linkToArchive: 'a[href$="/ui/messagebox/archive"]',
+      pdf: '#attachment-list-pdf',
+      uploadedAttachments: '#attachment-list',
+    };
 
     // Confirmation
-    this.confirmContainer = '#ConfirmContainer';
-    this.confirmBody = '#body-text';
-    this.confirmSendInButton = '#confirm-button';
+    this.confirm = {
+      container: '#ConfirmContainer',
+      body: '#body-text',
+      sendIn: '#confirm-button',
+      receiptPdf: '#attachment-list-pdf',
+      uploadedAttachments: '#attachment-list',
+    };
 
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
@@ -47,20 +61,41 @@ export default class AppFrontend {
 
     //change of name - task_2
     this.changeOfName = {
+      address: {
+        street_name: '#address_address_adresse',
+        zip_code: '#address_zip_code_adresse',
+        post_place: '#address_post_place_adresse'
+      },
       currentName: '#currentName',
       newFirstName: '#newFirstName',
       newLastName: '#newLastName',
       newMiddleName: '#newMiddleName',
+      newMiddleNameDescription: '#description-newMiddleName',
       oldFullName: '#changeNameFrom',
       newFullName: '#changeNameTo',
       confirmChangeName: '#confirmChangeName',
       reasons: '#reason',
+      reference: '#reference',
+      reference2: '#reference2',
       dateOfEffect: '#dateOfEffect',
       upload: '#fileUpload-changename',
+      uploadWithTag: {
+        uploadZone: '#fileUploadWithTags-changename',
+        editWindow: '[id^="attachment-edit-window"]',
+        tagsDropDown: '[id^="attachment-tag-dropdown"]',
+        saveTag: '[id^="attachment-save-tag-button"]',
+        delete: 'button[class*="makeStyles-deleteButton"]',
+        uploaded: '#tagFile',
+      },
       reasonRelationship: '#reasonRelationship',
       summaryNameChanges: '#nameChanges',
       mobilenummer: '#mobilnummer',
       sources: '#sources',
+      uploadingAnimation: '#loader-upload',
+      deleteAttachment: 'div[id^="attachment-delete"]',
+      uploadedTable: '#altinn-file-listfileUpload-changename',
+      uploadSuccess: '.ai-check-circle',
+      uploadDropZone: '#altinn-drop-zone-fileUpload-changename',
     };
 
     //group - task 3
@@ -70,6 +105,7 @@ export default class AppFrontend {
       subGroup: '[id^="group-subGroup"]',
       currentValue: 'input[id^="currentValue"]',
       newValue: 'input[id^="newValue"]',
+      newValueLabel: 'label[for^="newValue"]',
       addNewItem: 'div[class*="addButton"]',
       comments: 'input[id^="comments"]',
       delete: 'button[class*="makeStyles-deleteButton"]',
@@ -80,6 +116,7 @@ export default class AppFrontend {
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
+      mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
     };
 
     //Stateless-app

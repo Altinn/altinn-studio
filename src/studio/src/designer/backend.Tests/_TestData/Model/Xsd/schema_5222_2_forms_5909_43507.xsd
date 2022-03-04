@@ -1,0 +1,91 @@
+﻿<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.23" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2018-09-19T10:09:13.018+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/StatensVegvesen/PKK_KontrolloerVandel_M/2018-3" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="StatensVegvesen" />
+      <xsd:attribute name="modellnavn" fixed="PKK_KontrolloerVandel_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="PKK_KontrolloerVandel_M" />
+  <xsd:complexType name="PKK_KontrolloerVandel_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/StatensVegvesen/Meldingsmodell/PKK_KontrolloerVandel_M/660530">
+    <xsd:sequence>
+      <xsd:element name="InnrapporterteData" type="InnrapporterteData" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatensVegvesen/Meldingsdel/InnrapporterteData/660528" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="5909" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="43507" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="InnrapporterteData" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatensVegvesen/Meldingsdel/InnrapporterteData/660528">
+    <xsd:sequence>
+      <xsd:element name="innsender" type="Person" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Relasjonsegenskap/innsender/660527" />
+      <xsd:element name="region" type="Region" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Relasjonsegenskap/region/660526" />
+      <xsd:element name="infoOmVedleggetErLest" type="JaNei" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Person" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataobjekttype/Person/660543">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Navn" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Relasjonsegenskap/Navn/660542" />
+      <xsd:element name="adresse" type="Adresse" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/Adresse/660541" />
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/Foedselsnummer/660540" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Navn" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataobjekttype/Navn/660537">
+    <xsd:sequence>
+      <xsd:element name="etternavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/Etternavn/660536" />
+      <xsd:element name="fornavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/Fornavn/660535" />
+      <xsd:element name="mellomnavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/Mellomnavn/660534" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Adresse" seres:elementtype="Datakomplekstype" seres:guid="http://seres.no/guid/StatensVegvesen/Datakomplekstype/Adresse/574098">
+    <xsd:sequence>
+      <xsd:element name="adresse" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/DataTypeegenskap/adresse/574097" />
+      <xsd:element name="postnummer" type="Postnummer" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/DataTypeegenskap/postnummer/574096" />
+      <xsd:element name="poststed" type="Poststed" nillable="true" minOccurs="0" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/DataTypeegenskap/poststed/574095" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Region" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataobjekttype/Region/660546">
+    <xsd:sequence>
+      <xsd:element name="regionNavn" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/RegionNavn/660545" />
+      <xsd:element name="regionNr" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/StatensVegvesen/Dataegenskap/RegionNr/660544" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataenkeltype/Tekst/574105">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Postnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataenkeltype/Postnummer/574108">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Poststed" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataenkeltype/Poststed/574115">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatensVegvesen/Dataenkeltype/Fødselsnummer/574109">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="JaNei" seres:elementtype="Datakodeliste" seres:guid="">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Ja" seres:elementtype="Datakodeelement" seres:guid="" />
+      <xsd:enumeration value="Nei" seres:elementtype="Datakodeelement" seres:guid="" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

@@ -31,9 +31,9 @@ const useStyles = makeStyles(() => createStyles({
     borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
   },
   button: {
-    color: theme.altinnPalette.primary.black,
-    background: theme.altinnPalette.primary.blue,
-    textTransform: 'none' as 'none',
+    color: theme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.blueDark,
+    textTransform: 'none',
     transition: 'none',
     fontWeight: 400,
     fontFamily: 'Altinn-DIN',
@@ -47,16 +47,16 @@ const useStyles = makeStyles(() => createStyles({
       width: 'auto',
     },
     '&:hover': {
-      background: theme.altinnPalette.primary.blueHover,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarkHover,
+      color: theme.altinnPalette.primary.white,
       boxShadow: 'none',
     },
     '&:focus': {
-      background: theme.altinnPalette.primary.blueHover,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarkHover,
+      color: theme.altinnPalette.primary.white,
       boxShadow: 'none',
       outline: '2px solid',
-      outlineColor: theme.altinnPalette.primary.blueDark,
+      outlineColor: theme.altinnPalette.primary.blueDarker,
     },
   },
   secondaryButton: {
@@ -81,6 +81,7 @@ const useStyles = makeStyles(() => createStyles({
 
 export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
   const classes = useStyles(props);
+
   return (
     <Button
       id={props.id}
@@ -107,5 +108,7 @@ export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvi
     </Button>
   );
 });
+
+AltinnButton.displayName = 'AltinnButton';
 
 export default AltinnButton;

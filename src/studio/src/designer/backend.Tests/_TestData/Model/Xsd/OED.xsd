@@ -1,0 +1,71 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:element name="oed" type="OED_M" />
+    <xsd:complexType name="OED_M">
+        <xsd:sequence>
+            <xsd:element name="saksid" type="Tekst" />
+            <xsd:element name="Arvelater" type="Arvelater" />
+            <xsd:element name="arvtakere" type="Arving" maxOccurs="50" />
+            <xsd:element name="fullmektigErValgt" type="Tekst" />
+            <xsd:element name="fullmektig" type="Person" />
+            <xsd:element name="skifteattest" type="Tekst" />
+            <xsd:element name="privatSkifte" type="Tekst" />
+            <xsd:element name="nattbordTestament" type="Tekst" />
+            <xsd:element name="testament" type="Tekst" />
+            <xsd:element name="kontaktperson" type="Person" />
+            <xsd:element name="aktiva" type="Aktiva" />
+            <xsd:element name="hendelser" type="Tekst" />
+            <xsd:element name="forpliktelse" type="Tekst" />
+            <xsd:element name="sivilstand" type="Heltall" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Arvelater">
+        <xsd:sequence>
+            <xsd:element name="arvelater" type="Person" />
+            <xsd:element name="dødsdato" type="Dato" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Arving">
+        <xsd:sequence>
+            <xsd:element name="arving" type="Person" />
+            <xsd:element name="reservasjon" type="Tekst" />
+            <xsd:element name="signatur" type="Tekst" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Person">
+        <xsd:sequence>
+            <xsd:element name="userid" type="Heltall" />
+            <xsd:element name="party" type="Heltall" />
+            <xsd:element name="fødselsnummer" type="Tekst" />
+            <xsd:element name="fornavn" type="Tekst" />
+            <xsd:element name="mellomnavn" type="Tekst" />
+            <xsd:element name="etternavn" type="Tekst" />
+            <xsd:element name="adresse" type="Adresse" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Adresse">
+        <xsd:sequence>
+            <xsd:element name="adresse" type="Tekst" />
+            <xsd:element name="postnummer" type="Tekst" />
+            <xsd:element name="poststed" type="Tekst" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Aktiva">
+        <xsd:sequence>
+            <xsd:element name="bank" type="Tekst" />
+            <xsd:element name="kontonummer" type="Tekst" />
+            <xsd:element name="antallMillioner" type="Tall" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="Dato">
+        <xsd:restriction base="xsd:date" />
+    </xsd:simpleType>
+    <xsd:simpleType name="Tall">
+        <xsd:restriction base="xsd:decimal" />
+    </xsd:simpleType>
+    <xsd:simpleType name="Heltall">
+        <xsd:restriction base="xsd:integer" />
+    </xsd:simpleType>
+    <xsd:simpleType name="Tekst">
+        <xsd:restriction base="xsd:string" />
+    </xsd:simpleType>
+</xsd:schema>

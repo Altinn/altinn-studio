@@ -137,7 +137,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
             Assert.Equal(expectedCount, actual.Count);
         }
 
-        private CloudEvent GetCloudEvent()
+        private static CloudEvent GetCloudEvent()
         {
             CloudEvent cloudEvent = new CloudEvent
             {

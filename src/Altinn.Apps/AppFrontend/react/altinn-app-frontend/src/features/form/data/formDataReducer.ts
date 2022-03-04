@@ -9,7 +9,7 @@ import { IFetchFormDataFulfilled,
   IUpdateFormDataFulfilled } from './formDataTypes';
 
 export interface IFormData {
-  [dataFieldKey: string]: any;
+  [dataFieldKey: string]: string;
 }
 
 export interface IFormDataState {

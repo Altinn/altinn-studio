@@ -4,12 +4,11 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import DataModelling from '../../../../features/dataModelling';
-import CreateNewWrapper from '../../../../features/dataModelling/components/CreateNewWrapper';
-import { SchemaSelect } from '../../../../features/dataModelling/components';
-import DeleteWrapper from '../../../../features/dataModelling/components/DeleteWrapper';
+import DataModelling, { shouldSelectFirstEntry } from '../../../../features/dataModelling/DataModelling';
+import { SchemaSelect, XSDUpload, Create, Delete } from '../../../../features/dataModelling/components';
+import { LoadingState } from '../../../../features/dataModelling/sagas/metadata';
 
-describe('DataModelling.tsx', () => {
+describe('Shared > DataModelling', () => {
   const language = { administration: Object({ first: 'some text', second: 'other text' }) };
   let wrapper: any = null;
   let store: any;
@@ -29,6 +28,7 @@ describe('DataModelling.tsx', () => {
           fileType: '.json',
         },
       ],
+      loadState: LoadingState.ModelsLoaded,
     },
     dataModelling: {
       schema: {},
@@ -45,129 +45,176 @@ describe('DataModelling.tsx', () => {
       },
     },
   };
-  let preferredLabel: { label: string, clear: () => void } = null;
-  const clear = jest.fn();
 
   beforeEach(() => {
     wrapper = null;
-    preferredLabel = null;
     store = configureStore()(initialState);
     store.dispatch = jest.fn(dispatchMock);
-    clear.mockReset();
-  });
-  const mountComponent = (props?: any) => mount(
-    React.createElement(({ preferredOptionLabel }: any = {}) => (
-      <Provider store={store} >
-        <DataModelling
-          language={language}
-          preferredOptionLabel={preferredOptionLabel || undefined}
-        />
-      </Provider>
-    ), props),
-  );
-  it('has the toolbar', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-    const createNewWrapper = wrapper.find(CreateNewWrapper);
-    expect(createNewWrapper).toHaveLength(1);
-    const schemaSelect = wrapper.find(SchemaSelect);
-    expect(schemaSelect).toHaveLength(1);
-    const deleteWrapper = wrapper.find(DeleteWrapper);
-    expect(deleteWrapper).toHaveLength(1);
   });
 
-  it('selects the preferred model', () => {
-    preferredLabel = {
-      label: modelName2,
-      clear: () => {
-        preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
-        clear();
-      },
-    };
-    expect(clear).toHaveBeenCalledTimes(0);
-    act(() => {
-      wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
-    });
-    wrapper.update();
-    expect(clear).toHaveBeenCalledTimes(1);
-    const schemaSelect = wrapper.find(SchemaSelect);
-    expect(schemaSelect).toHaveLength(1);
-    const dataModelling = wrapper.find(DataModelling);
-    expect(dataModelling).toHaveLength(1);
-    expect(schemaSelect.find('Select').props().value.label).toBe(modelName2);
-    expect(dataModelling.find('SchemaEditorApp').props().name).toBe(modelName2);
-  });
-
-  it('does not run clear after preferred model has been selected', () => {
-    expect(clear).toHaveBeenCalledTimes(0);
-    preferredLabel = {
-      label: modelName2,
-      clear: () => {
-        preferredLabel = undefined; // note that a clear function should set state that causes the preferred label
-        clear();
-      },
-    };
-    act(() => {
-      wrapper = mountComponent({ preferredOptionLabel: preferredLabel });
-    });
-    wrapper.update();
-    expect(preferredLabel).toBeUndefined(); // the clear function has removed the outside prop
-    act(() => { // update the props to reflect changes in outside props.
-      wrapper.setProps({
-        preferredOptionLabel: preferredLabel,
-      });
-    });
-    // assert the state and do changes.
-    let dataModelling = wrapper.find(DataModelling);
-    const schemaSelect = wrapper.find(SchemaSelect);
-    const select = schemaSelect.find('Select');
-    let schemaEditor = dataModelling.find('SchemaEditorApp');
-    expect(schemaEditor.props().name).toBe(modelName2);
-    const options = select.props().options;
-    act(() => {
-      select.props().onChange(options[0]); // change the selection to invoke possible calls to clear
-    });
-    wrapper.update(); // update selectors
-    dataModelling = wrapper.find(DataModelling);
-    schemaEditor = dataModelling.find('SchemaEditorApp');
-    expect(clear).toHaveBeenCalledTimes(1);
-    expect(schemaEditor.props().name).toBe(modelName);
-  });
-
-  it('dispatches correctly when running createAction', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-    wrapper.update();
-    const createNew = wrapper.find('CreateNewWrapper');
-    act(() => {
-      createNew.props().createAction({ name: 'test' });
-    });
-    wrapper.update();
-    expect(store.dispatch).toHaveBeenCalledTimes(2);
-    expect(store.dispatch).toHaveBeenCalledWith(
-      {
-        type: 'dataModelling/createDataModel',
-        payload: {
-          name: 'test',
-        },
-      },
+  const mountComponent = (props?: any) =>
+    mount(
+      React.createElement(
+        () => (
+          <Provider store={store}>
+            <DataModelling language={language} org='test-org' repo='test-repo' />
+          </Provider>
+        ),
+        props,
+      ),
     );
+
+  it('should fetch models on mount', () => {
+    act(() => {
+      mountComponent();
+    });
+
+    expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
 
-  it('dispatches correctly when delete is called', () => {
+  it('should show all items in the toolbar', () => {
     act(() => {
       wrapper = mountComponent();
     });
-    wrapper.update();
-    const deleteWrapper = wrapper.find('DeleteWrapper');
+
+    expect(wrapper.find(XSDUpload).exists()).toBe(true);
+    expect(wrapper.find(Create).exists()).toBe(true);
+    expect(wrapper.find(SchemaSelect).exists()).toBe(true);
+    expect(wrapper.find(Delete).exists()).toBe(true);
+  });
+
+  it('should dispatch dataModelsMetadata/getDataModelsMetadata when file is uploaded', () => {
+    const uploadedFilename = 'uploaded.xsd';
+
     act(() => {
-      deleteWrapper.props().deleteAction();
+      wrapper = mountComponent();
     });
+
+    wrapper.update();
+
+    act(() => {
+      wrapper.find(XSDUpload).props().onXSDUploaded(uploadedFilename);
+    });
+
+    wrapper.update();
+
+    expect(store.dispatch).toHaveBeenLastCalledWith({
+      type: 'dataModelsMetadata/getDataModelsMetadata',
+      payload: undefined,
+    });
+  });
+
+  it('should dispatch dataModelling/createDataModel when running createAction', () => {
+    const newModel = { name: 'test' };
+
+    act(() => {
+      wrapper = mountComponent();
+    });
+
+    wrapper.update();
+
+    act(() => {
+      wrapper.find(Create).props().createAction(newModel);
+    });
+
+    expect(store.dispatch).toHaveBeenCalledTimes(2);
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: 'dataModelling/createDataModel',
+      payload: newModel,
+    });
+  });
+
+  it('should dispatch dataModelsMetadata/getDataModelsMetadata when delete is called', () => {
+    act(() => {
+      wrapper = mountComponent();
+    });
+
+    wrapper.update();
+
+    act(() => {
+      wrapper.find(Delete).props().deleteAction();
+    });
+
     expect(store.dispatch).toHaveBeenCalledWith({
       type: 'dataModelling/deleteDataModel',
       payload: initialStoreCall.payload,
+    });
+  });
+
+  describe('Shared > DataModelling > shouldSelectFirstEntry', () => {
+    it('should return true when metadataOptions.length is greater than 0, selectedOption is undefined and metadataLoadingState is ModelsLoaded', () => {
+      expect(
+        shouldSelectFirstEntry({
+          metadataOptions: [
+            {
+              label: 'option 1',
+              value: {
+                repositoryRelativeUrl: '',
+                fileName: 'option 1.xsd',
+              },
+            },
+          ],
+          selectedOption: undefined,
+          metadataLoadingState: LoadingState.ModelsLoaded,
+        }),
+      ).toBe(true);
+    });
+
+    it('should return false when metadataOptions.length is greater than 0, selectedOption is set and metadataLoadingState is ModelsLoaded', () => {
+      expect(
+        shouldSelectFirstEntry({
+          metadataOptions: [
+            {
+              label: 'option 1',
+              value: {
+                repositoryRelativeUrl: '',
+                fileName: 'option 1.xsd',
+              },
+            },
+          ],
+          selectedOption: {
+            label: 'some-label',
+          },
+          metadataLoadingState: LoadingState.ModelsLoaded,
+        }),
+      ).toBe(false);
+    });
+
+    it('should return false when metadataOptions.length is greater than 0, selectedOption is undefined and metadataLoadingState is not ModelsLoaded', () => {
+      expect(
+        shouldSelectFirstEntry({
+          metadataOptions: [
+            {
+              label: 'option 1',
+              value: {
+                repositoryRelativeUrl: '',
+                fileName: 'option 1.xsd',
+              },
+            },
+          ],
+          selectedOption: undefined,
+          metadataLoadingState: LoadingState.LoadingModels,
+        }),
+      ).toBe(false);
+    });
+
+    it('should return false when metadataOptions not set, selectedOption is undefined and metadataLoadingState is ModelsLoaded', () => {
+      expect(
+        shouldSelectFirstEntry({
+          selectedOption: undefined,
+          metadataLoadingState: LoadingState.ModelsLoaded,
+        }),
+      ).toBe(false);
+    });
+
+    it('should return false when metadataOptions is 0, selectedOption is undefined and metadataLoadingState is ModelsLoaded', () => {
+      expect(
+        shouldSelectFirstEntry({
+          metadataOptions: [],
+          selectedOption: undefined,
+          metadataLoadingState: LoadingState.ModelsLoaded,
+        }),
+      ).toBe(false);
     });
   });
 });

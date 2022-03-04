@@ -1,11 +1,7 @@
-using System;
-using System.Threading.Tasks;
-
 using KubernetesWrapper.Services.Interfaces;
 
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace KubernetesWrapper.Controllers
 {

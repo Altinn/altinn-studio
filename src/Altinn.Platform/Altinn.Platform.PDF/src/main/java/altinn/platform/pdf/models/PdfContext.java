@@ -1,7 +1,6 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotEmpty;
@@ -10,49 +9,49 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.SortedMap;
 
-@ApiModel(description = "The PDF context which the PDF is generated from.")
+@Schema(description = "The PDF context which the PDF is generated from.")
 public class PdfContext {
 
-  @ApiModelProperty(notes = "The text resources json file")
+  @Schema(description = "The text resources json file")
   @NotNull
   private TextResources textResources;
 
-  @ApiModelProperty(notes = "The form layout json file")
+  @Schema(description = "The form layout json file")
   private FormLayout formLayout;
 
-  @ApiModelProperty(notes = "A dictionary of form layouts.")
+  @Schema(description = "A dictionary of form layouts.")
   @Nullable
   private SortedMap<String, FormLayout> formLayouts;
 
-  @ApiModelProperty(notes = "The xml data file, note: must be base 64 encoded")
+  @Schema(description = "The xml data file, note: must be base 64 encoded")
   @NotNull
   @NotEmpty
   private String data;
 
-  @ApiModelProperty(notes = "The instance metadata json file")
+  @Schema(description = "The instance metadata json file")
   @NotNull
   private Instance instance;
 
-  @ApiModelProperty(notes = "The party of the instance owner")
+  @Schema(description = "The party of the instance owner")
   @NotNull
   private Party party;
 
-  @ApiModelProperty(notes = "The party party of the currently active user")
+  @Schema(description = "The party party of the currently active user")
   @Nullable
   private Party userParty;
 
-  @ApiModelProperty(notes = "The profile of the active user")
+  @Schema(description = "The profile of the active user")
   @Nullable
   private UserProfile userProfile;
 
-  @ApiModelProperty(notes = "The language to generate the pdf in. Two-letter ISO standard")
+  @Schema(description = "The language to generate the pdf in. Two-letter ISO standard")
   private String language;
 
-  @ApiModelProperty(notes = "The dictionary containing all option sets")
+  @Schema(description = "The dictionary containing all option sets")
   @Nullable
   private Map<String, Map<String,String>> optionsDictionary;
 
-  @ApiModelProperty(notes = "The layout settings")
+  @Schema(description = "The layout settings")
   @Nullable
   private LayoutSettings layoutSettings;
 

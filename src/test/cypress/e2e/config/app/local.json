@@ -2,7 +2,8 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "http://altinn3local.no/",
   "env": {
-    "userFullName": "Ola Nordmann"    
+    "userFullName": "Ola Nordmann",
+    "firstName": "Ola"
   },
   "defaultCommandTimeout": 20000,
   "requestTimeout": 20000

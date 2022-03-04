@@ -56,15 +56,9 @@ namespace Altinn.Studio.Designer.Controllers
         [ActionName("ApplicationMetadata")]
         public ActionResult UpdateApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
         {
-            if (_repository.UpdateApplication(org, app, applicationMetadata))
-            {
-                Application updatedApplicationMetadata = _repository.GetApplication(org, app);
-                return Ok(updatedApplicationMetadata);
-            }
-            else
-            {
-                return StatusCode(500);
-            }
+            _repository.UpdateApplication(org, app, applicationMetadata);
+            Application updatedApplicationMetadata = _repository.GetApplication(org, app);
+            return Ok(updatedApplicationMetadata);
         }
 
         /// <summary>

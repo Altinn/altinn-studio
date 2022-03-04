@@ -87,7 +87,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
             return null;
         }
 
-        private string GetEventsPath()
+        private static string GetEventsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(EventsServiceMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "events");

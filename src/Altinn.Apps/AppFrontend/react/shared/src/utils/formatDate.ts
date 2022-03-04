@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 export function formatNameAndDate(name: string, date: string) {
   const returnDate = date ? moment.utc(new Date(date)).local().format('DD.MM.YYYY HH:mm') : date;

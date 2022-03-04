@@ -126,7 +126,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
         /// <param name="namespaces">The namespaces declared at the root level of the xml schema</param>
         /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
-        public static JsonSchemaBuilder XsdNamespaces(this JsonSchemaBuilder builder, IEnumerable<(string name, string ns)> namespaces)
+        public static JsonSchemaBuilder XsdNamespaces(this JsonSchemaBuilder builder, IEnumerable<(string Name, string Ns)> namespaces)
         {
             builder.Add(new XsdNamespacesKeyword(namespaces));
             return builder;

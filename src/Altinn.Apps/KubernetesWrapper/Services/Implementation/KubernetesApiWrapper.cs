@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 using k8s;
 using k8s.Models;
 
 using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
-
-using Microsoft.Extensions.Logging;
 
 namespace KubernetesWrapper.Services.Implementation
 {

@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<melding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" dataFormatProvider="SERES" dataFormatId="6900" dataFormatVersion="46864">
+  <Skjemainnhold>
+    <metadata>
+      <tjeneste>rrh.ktr.reelle</tjeneste>
+      <tjenestehandling>endring</tjenestehandling>
+    </metadata>
+    <reelleRettigheter>
+      <rettighetId>caf21bc1-8300-4358-b24c-bf140ce1ccbf</rettighetId>
+      <rettighetDataId>e6db432e-52ae-432c-a156-6ca2c1cf4b00</rettighetDataId>
+      <endretDato>2022-01-03T14:55:32.213810+01:00</endretDato>
+      <status>statusreellrettighet.regi</status>
+      <registreringspliktig>
+        <organisasjonsnummer>910423185</organisasjonsnummer>
+        <navn>EAS Health Consulting Svolvær</navn>
+        <organisasjonsform>AS</organisasjonsform>
+      </registreringspliktig>
+      <statusReelleRettighetshavere>harReelleRettighetshavere</statusReelleRettighetshavere>
+      <kontrollererJuridiskPersonOver75 xsi:nil="true" />
+      <erJuridiskPersonUtenlandskVirksomhet xsi:nil="true" />
+      <kanIkkeIdentifisereFlereReelleRettighetshavere>false</kanIkkeIdentifisereFlereReelleRettighetshavere>
+      <reellRettighetshaver>
+        <fodselsnummer>03821848961</fodselsnummer>
+        <navn>OPPRØMT BRUDEKJOLE</navn>
+        <statsborgerskap>NOR</statsborgerskap>
+        <bostedsland>SE</bostedsland>
+        <posisjonEier>posisjontype.eier</posisjonEier>
+        <posisjonEierStorrelseIntervall>storrelseintervall.int3</posisjonEierStorrelseIntervall>
+        <posisjonEierGrunnlag>grunnlagtype.anne</posisjonEierGrunnlag>
+        <posisjonEierGrunnlagBeskrivelseAnnenMate>TEST Beskrivelse kontroll på annen måte </posisjonEierGrunnlagBeskrivelseAnnenMate>
+        <posisjonKont>posisjontype.kont</posisjonKont>
+        <posisjonKontStorrelseIntervall>storrelseintervall.int1</posisjonKontStorrelseIntervall>
+        <posisjonKontGrunnlag>grunnlagtype.dire</posisjonKontGrunnlag>
+        <posisjonBeskrivelse>Eierandel 75% - 100%Kontroll av stemmmer 75% - 100%</posisjonBeskrivelse>
+        <grunnlagBeskrivelse>Kontroll på annen måte Direkte </grunnlagBeskrivelse>
+      </reellRettighetshaver>
+      <reellRettighetshaver>
+        <fodselsdato>1983-03-24</fodselsdato>
+        <navn>Gill Bates</navn>
+        <statsborgerskap>DE</statsborgerskap>
+        <bostedsland>US</bostedsland>
+        <posisjonEier>posisjontype.eier</posisjonEier>
+        <posisjonEierStorrelseIntervall>storrelseintervall.int1</posisjonEierStorrelseIntervall>
+        <posisjonEierGrunnlag>grunnlagtype.dire</posisjonEierGrunnlag>
+        <posisjonKont>posisjontype.kont</posisjonKont>
+        <posisjonKontStorrelseIntervall>storrelseintervall.int1</posisjonKontStorrelseIntervall>
+        <posisjonKontGrunnlag>grunnlagtype.anne</posisjonKontGrunnlag>
+        <posisjonBeskrivelse>Eierandel 25,01%-49,99%Kontroll av stemmmer 25,01%-49,99%</posisjonBeskrivelse>
+        <grunnlagBeskrivelse>Direkte Kontroll på annen måte </grunnlagBeskrivelse>
+      </reellRettighetshaver>
+      <reellRettighetshaver>
+        <fodselsdato>1987-03-04</fodselsdato>
+        <navn>Ærfugl Ørnfrid Måsedott</navn>
+        <statsborgerskap>DE</statsborgerskap>
+        <bostedsland>NO</bostedsland>
+        <posisjonKont>posisjontype.kont</posisjonKont>
+        <posisjonKontStorrelseIntervall>storrelseintervall.int1</posisjonKontStorrelseIntervall>
+        <posisjonKontGrunnlag>grunnlagtype.anne</posisjonKontGrunnlag>
+        <posisjonBeskrivelse>Kontroll av stemmmer </posisjonBeskrivelse>
+        <grunnlagBeskrivelse>Kontroll på annen måte </grunnlagBeskrivelse>
+      </reellRettighetshaver>
+      <reellRettighetshaver>
+        <fodselsdato>1973-05-23</fodselsdato>
+        <navn>Tronald Dump</navn>
+        <statsborgerskap>SE</statsborgerskap>
+        <bostedsland>DE</bostedsland>
+        <posisjonEier>posisjontype.eier</posisjonEier>
+        <posisjonEierStorrelseIntervall>storrelseintervall.int1</posisjonEierStorrelseIntervall>
+        <posisjonEierGrunnlag>grunnlagtype.dire</posisjonEierGrunnlag>
+        <posisjonKont>posisjontype.kont</posisjonKont>
+        <posisjonKontStorrelseIntervall>storrelseintervall.int1</posisjonKontStorrelseIntervall>
+        <posisjonKontGrunnlag>grunnlagtype.indi</posisjonKontGrunnlag>
+        <posisjonRuas>posisjontype.ruas</posisjonRuas>
+        <posisjonRuasGrunnlag>grunnlagtype.anne</posisjonRuasGrunnlag>
+        <posisjonBeskrivelse>Eierandel 25,01%-49,99%Kontroll av stemmmer 25,01%-49,99%Avsette eller utpeke styremedlemmer </posisjonBeskrivelse>
+        <grunnlagBeskrivelse>Direkte Indirekte Kontroll på annen måte </grunnlagBeskrivelse>
+      </reellRettighetshaver>
+      <reellRettighetshaver>
+        <fodselsdato>1965-12-31</fodselsdato>
+        <navn>Hildebart Silkeputer</navn>
+        <statsborgerskap>SE</statsborgerskap>
+        <bostedsland>SE</bostedsland>
+        <posisjonRuas>posisjontype.ruas</posisjonRuas>
+        <posisjonRuasGrunnlag>grunnlagtype.dire</posisjonRuasGrunnlag>
+        <posisjonAnne>posisjontype.anne</posisjonAnne>
+        <posisjonAnneBeskrivelseAnnenMate>Test av posisjon.beskrivelseAnnenMate: Hildebart kan utøve kontroll på en mystisk måte.</posisjonAnneBeskrivelseAnnenMate>
+        <posisjonAnneGrunnlag>grunnlagtype.anne</posisjonAnneGrunnlag>
+        <posisjonAnneGrunnlagBeskrivelseAnnenMate>Test av grunnlag.beskrivelseAnnenMate: Bla bla</posisjonAnneGrunnlagBeskrivelseAnnenMate>
+        <posisjonBeskrivelse>Avsette eller utpeke styremedlemmer Avsette eller utpeke styremedlemmer </posisjonBeskrivelse>
+        <grunnlagBeskrivelse>Direkte Kontroll på annen måte </grunnlagBeskrivelse>
+      </reellRettighetshaver>
+    </reelleRettigheter>
+  </Skjemainnhold>
+</melding>

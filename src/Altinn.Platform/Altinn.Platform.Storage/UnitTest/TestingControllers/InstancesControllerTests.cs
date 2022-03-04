@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Fixture;
@@ -36,17 +37,17 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public class InstancesControllerTests : IClassFixture<TestApplicationFactory<Startup>>
+    public class InstancesControllerTests : IClassFixture<TestApplicationFactory<InstancesController>>
     {
         private const string BasePath = "storage/api/v1/instances";
 
-        private readonly TestApplicationFactory<Startup> _factory;
+        private readonly TestApplicationFactory<InstancesController> _factory;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="factory">The web application factory.</param>
-        public InstancesControllerTests(TestApplicationFactory<Startup> factory)
+        public InstancesControllerTests(TestApplicationFactory<InstancesController> factory)
         {
             _factory = factory;
         }
@@ -345,7 +346,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 3;
+            int expectedNoInstances = 4;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -371,7 +372,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 3;
+            int expectedNoInstances = 4;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -397,7 +398,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 10;
+            int expectedNoInstances = 11;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -1400,7 +1401,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
 
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

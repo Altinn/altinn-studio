@@ -2,14 +2,14 @@ import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
 import { IRuntimeState, IValidationIssue } from 'src/types';
-import { getDataValidationUrl } from 'src/utils/urlHelper';
-import { getCurrentTaskDataElementId } from 'altinn-shared/utils';
+import { getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import { mapDataElementValidationToRedux, mergeValidationObjects } from '../../../../utils/validation';
 import { runSingleFieldValidation,
   runSingleFieldValidationFulfilled,
   runSingleFieldValidationRejected,
   setCurrentSingleFieldValidation } from '../validationSlice';
+import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 
 export function* runSingleFieldValidationSaga(): SagaIterator {
   const state: IRuntimeState = yield select();

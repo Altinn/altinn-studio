@@ -57,6 +57,15 @@
       "allOf": [
         {
           "properties": {
+            "a1": {
+              "type": "integer",
+              "@xsdType": "int",
+              "@xsdAttribute": true
+            }
+          }
+        },
+        {
+          "properties": {
             "be1": {
               "type": "string",
               "@xsdType": "string"
@@ -65,15 +74,6 @@
           "required": [
             "be1"
           ]
-        },
-        {
-          "properties": {
-            "a1": {
-              "type": "integer",
-              "@xsdType": "int",
-              "@xsdAttribute": true
-            }
-          }
         }
       ]
     }

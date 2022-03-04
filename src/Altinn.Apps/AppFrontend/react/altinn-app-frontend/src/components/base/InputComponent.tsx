@@ -4,12 +4,12 @@ import NumberFormat, { NumberFormatProps } from 'react-number-format';
 import { Input } from '@material-ui/core';
 
 import '../../styles/shared.css';
+import { IComponentProps } from '..';
 
-export interface IInputBaseProps {
+export interface IInputBaseProps  {
   id: string;
   readOnly: boolean;
   required: boolean;
-  formatting?: IInputFormatting;
   handleDataChange: (value: any) => void;
 }
 
@@ -18,9 +18,8 @@ export interface IInputFormatting {
   align?: 'right' | 'center' | 'left';
 }
 
-export interface IInputProps extends IInputBaseProps {
-  formData: any;
-  isValid?: boolean
+export interface IInputProps extends IComponentProps {
+  formatting?: IInputFormatting;
 }
 
 export interface IBasicInputProps extends IInputBaseProps {
@@ -33,15 +32,11 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
   inputRef: ((el: HTMLInputElement) => void) | React.Ref<any>;
   name: any;
   onChange: (e: any) => void;
+  formatting?: IInputFormatting;
 }
 
 function NumberFormatCustom(props: IFormattedNumberInputProps) {
-  const {
-    inputRef,
-    onChange,
-    formatting,
-    ...rest
-  } = props;
+  const { inputRef, onChange, formatting, ...rest } = props;
 
   return (
     <NumberFormat
@@ -65,16 +60,15 @@ function NumberFormatCustom(props: IFormattedNumberInputProps) {
 export function BasicInputComponent(props: IBasicInputProps) {
   return (
     <>
-      <input
-        data-testid={props.id}
-        {...props}
-      />
+      <input data-testid={props.id} {...props} />
     </>
   );
 }
 
 export function InputComponent(props: IInputProps) {
-  const [value, setValue] = React.useState(props.formData ? props.formData : '');
+  const [value, setValue] = React.useState(
+    props.formData?.simpleBinding ?? '',
+  );
   const {
     id,
     readOnly,
@@ -86,8 +80,8 @@ export function InputComponent(props: IInputProps) {
   } = props;
 
   React.useEffect(() => {
-    setValue(formData || '');
-  }, [formData]);
+    setValue(formData?.simpleBinding ?? '');
+  }, [formData?.simpleBinding]);
 
   const onDataChanged = (e: any) => {
     setValue(e.target.value);
@@ -109,10 +103,15 @@ export function InputComponent(props: IInputProps) {
       disableUnderline={true}
       value={value}
       aria-describedby={`description-${props.id}`}
-      inputComponent={formatting?.number ? NumberFormatCustom : BasicInputComponent}
+      inputComponent={
+        formatting?.number ? NumberFormatCustom : BasicInputComponent
+      }
       inputProps={{
         formatting,
-        className: classNames('form-control', { 'validation-error': !isValid, disabled: readOnly }),
+        className: classNames('form-control', {
+          'validation-error': !isValid,
+          disabled: readOnly,
+        }),
         style: {
           textAlign: formatting?.align,
         },

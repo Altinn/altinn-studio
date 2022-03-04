@@ -68,13 +68,11 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         [Fact]
         public void Is_Valid_Xml()
         {
-            using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
-                Arkivmelding arkivmelding = (Arkivmelding)serializer.Deserialize(fs);
-                Assert.NotNull(arkivmelding);
-                Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
-            }
+            using FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml");
+            XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
+            Arkivmelding arkivmelding = (Arkivmelding)serializer.Deserialize(fs);
+            Assert.NotNull(arkivmelding);
+            Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
         }
 
         /// <summary>
@@ -84,10 +82,8 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         [Fact]
         public void Read_Not_Empty_XML_Test_Data()
         {
-            using (FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml"))
-            {
-                Assert.True(fs.Length > 0);
-            }
+            using FileStream fs = File.OpenRead(@"TestData\arkivmelding.xml");
+            Assert.True(fs.Length > 0);
         }
 
         /// <summary>
@@ -112,7 +108,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void Get_Capabilities_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(string.Empty));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.GetCapabilities(string.Empty, null));
         }
 
         /// <summary>
@@ -123,7 +119,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void Upload_Attachment_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.UploadAttachment(null, string.Empty, string.Empty));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.UploadAttachment(null, string.Empty, string.Empty, null));
         }
 
         /// <summary>
@@ -134,7 +130,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void Create_Message_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.CreateMessage(null));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.CreateMessage(null, null));
         }
 
         /// <summary>
@@ -145,7 +141,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void Send_Message_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SendMessage(null));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SendMessage(null, null));
         }
 
         /// <summary>
@@ -156,7 +152,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void SubscribeeFormidling_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SubscribeeFormidling(null));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SubscribeeFormidling(null, null));
         }
 
         /// <summary>
@@ -167,7 +163,7 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
         public async void UnSubscribeeFormidling_Invalid_Input()
         {
             var service = _serviceProvider.GetService<IEFormidlingClient>();
-            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.UnSubscribeeFormidling(0));
+            ArgumentNullException ex = await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.UnSubscribeeFormidling(0, null));
         }
 
         /// <summary>
@@ -234,14 +230,12 @@ namespace Altinn.EFormidlingClient.Tests.ClientUnitTest
             XmlSerializer serializer = new XmlSerializer(typeof(Arkivmelding));
             serializer.Serialize(stream, arkivmelding);
 
-            using (MemoryStream ms = stream)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                var verifiedArkivmelding = serializer.Deserialize(stream) as Arkivmelding;
+            using MemoryStream ms = stream;
+            stream.Seek(0, SeekOrigin.Begin);
+            var verifiedArkivmelding = serializer.Deserialize(stream) as Arkivmelding;
 
-                Assert.NotNull(arkivmelding);
-                Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
-            }
+            Assert.NotNull(arkivmelding);
+            Assert.Equal(typeof(Arkivmelding), arkivmelding.GetType());
         }
     }
 

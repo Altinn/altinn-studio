@@ -88,7 +88,9 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        type: 'object',
+        props: {
+          type: 'object',
+        }
       },
     });
   });
@@ -102,7 +104,9 @@ describe('>>> Editor.tsx', () => {
       payload: {
         name: 'name',
         location: 'properties',
-        $ref: '',
+        props: {
+          $ref: '',
+        }
       },
     });
   });
@@ -118,12 +122,14 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#add-property-to-node-button').hostNodes().simulate('click');
+    wrapper.find('#add-field-to-node-button').hostNodes().simulate('click');
     expect(mockStore.dispatch).toBeCalledWith({
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        type: 'object',
+        props: {
+          type: 'object',
+        }
       },
     });
   });
@@ -144,7 +150,9 @@ describe('>>> Editor.tsx', () => {
       type: 'schemaEditor/addProperty',
       payload: {
         path: '#/properties/mockItem',
-        $ref: '',
+        props: {
+          $ref: '',
+        }
       },
     });
   });
@@ -178,7 +186,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
 
@@ -199,7 +207,7 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
+    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
     expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
   });
 
@@ -220,7 +228,72 @@ describe('>>> Editor.tsx', () => {
     mockStore.dispatch = jest.fn();
     const wrapper = mountComponent();
     wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-property-to-node-button')).toBe(false);
-    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+    expect(wrapper.find('#add-field-to-node-button')).toHaveLength(0)
+    expect(wrapper.find('#add-reference-to-node-button')).toHaveLength(0)
+  });
+
+  it('+++ should show menu with option field, reference, and combination when pressing add', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    expect(wrapper.find('#add-field-button').hostNodes()).toHaveLength(1)
+    expect(wrapper.find('#add-reference-button').hostNodes()).toHaveLength(1)
+    expect(wrapper.find('#add-combination-button').hostNodes()).toHaveLength(1)
+  });
+
+  it('+++ should trigger correct dispatch when adding combination to root', () => {
+    const wrapper = mountComponent();
+    wrapper.find('#add-button').hostNodes().simulate('click');
+    wrapper.find('#add-combination-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addRootItem',
+      payload: {
+        name: 'name',
+        location: 'properties',
+        props: {
+          combination: [],
+          combinationKind: 'allOf'
+        }
+      },
+    });
+  });
+
+  it('+++ should show context menu and trigger correct dispatch when adding a combination on a specific node', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    wrapper.find('#add-combination-to-node-button').hostNodes().simulate('click');
+    expect(mockStore.dispatch).toBeCalledWith({
+      type: 'schemaEditor/addProperty',
+      payload: {
+        path: '#/properties/mockItem',
+        props: {
+          combination: [],
+          combinationKind: 'allOf'
+        }
+      },
+    });
+  });
+
+  it('+++ should only be possible to add a reference to a combination type', () => {
+    const customState = {
+      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+      uiSchema: buildUISchema({ mockItem: { allOf: [], name: 'allOfTest' } }, '#/properties'),
+    };
+    mockStore = createStore(reducer,
+      { ...mockInitialState,
+        ...customState });
+    mockStore.dispatch = jest.fn();
+    const wrapper = mountComponent();
+    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
+    expect(wrapper.find('#add-field-to-node-button').hostNodes()).toHaveLength(0);
+    expect(wrapper.find('#add-reference-to-node-button').hostNodes()).toHaveLength(1);
+    expect(wrapper.find('#add-combination-to-node-button').hostNodes()).toHaveLength(0);
   });
 });

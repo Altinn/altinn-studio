@@ -35,10 +35,12 @@
     },
     "t05": {
       "type": "string",
+      "format":  "year-month",
       "@xsdType": "gYearMonth"
     },
     "t06": {
       "type": "string",
+      "format":  "year",
       "@xsdType": "gYear"
     },
     "t07": {

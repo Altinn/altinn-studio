@@ -1,8 +1,6 @@
-/* eslint-disable no-undef */
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
-// eslint-disable-next-line import/no-named-as-default
-import MessageComponent from '../components/message/MessageComponent';
+import { MessageComponent } from '../components/message/MessageComponent';
 
 export const styles = {
   inputHelper: {
@@ -13,16 +11,13 @@ export const styles = {
 };
 
 export function renderPropertyLabel(textKey: string) {
-  return (
-    <Typography style={styles.inputHelper}>
-      {textKey}
-    </Typography>
-  );
+  return <Typography style={styles.inputHelper}>{textKey}</Typography>;
 }
 
-export function noOptionsMessage(language: any): string {
-  return language.general.no_options;
-}
+const messageComponentStyle = {
+  display: 'block',
+  width: 'fit-content',
+};
 
 export function renderValidationMessagesForComponent(
   validationMessages: any,
@@ -33,24 +28,41 @@ export function renderValidationMessagesForComponent(
   }
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors && validationMessages.errors.length > 0) {
-    validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
+    validationMessageElements.push(
+      renderValidationMessages(
+        validationMessages.errors,
+        `error_${id}`,
+        'error',
+      ),
+    );
   }
 
   if (validationMessages.warnings && validationMessages.warnings.length > 0) {
-    validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `message_${id}`, 'message'));
+    validationMessageElements.push(
+      renderValidationMessages(
+        validationMessages.warnings,
+        `message_${id}`,
+        'message',
+      ),
+    );
   }
-  return validationMessageElements.length > 0 ? validationMessageElements : null;
+  return validationMessageElements.length > 0
+    ? validationMessageElements
+    : null;
 }
 
 export function renderValidationMessages(
-  messages: (string | React.ReactElement<any, string | React.JSXElementConstructor<any>>[])[],
+  messages: (
+    | string
+    | React.ReactElement<any, string | React.JSXElementConstructor<any>>[]
+  )[],
   id: string,
   messageType: any,
 ) {
   return (
     <MessageComponent
       messageType={messageType}
-      style={{ display: 'block', width: 'fit-content' }}
+      style={messageComponentStyle}
       key={messageType}
       id={id}
     >
@@ -58,13 +70,12 @@ export function renderValidationMessages(
         {messages.map((message: any, idx: number) => {
           if (typeof message === 'string') {
             return (
-              <li key={`validationMessage-${id}-${message}`}><p role='alert'>{message}</p></li>
+              <li key={`validationMessage-${id}-${message}`}>
+                <p role='alert'>{message}</p>
+              </li>
             );
           }
-          return (
-            // eslint-disable-next-line react/no-array-index-key
-            <li key={`validationMessage-${id}-${idx}`}>{message}</li>
-          );
+          return <li key={`validationMessage-${id}-${idx}`}>{message}</li>;
         })}
       </ol>
     </MessageComponent>

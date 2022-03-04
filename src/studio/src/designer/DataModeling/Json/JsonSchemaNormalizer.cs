@@ -105,13 +105,13 @@ namespace Altinn.Studio.DataModeling.Json
                         keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), collector.Schemas.Select(NormalizeSchema));
                         break;
                     case IKeyedSchemaCollector keyedCollector:
-                        var schemas = new List<(string name, JsonSchema schema)>();
+                        var schemas = new List<(string Name, JsonSchema Schema)>();
                         foreach (var (key, s) in keyedCollector.Schemas)
                         {
                             schemas.Add((key, NormalizeSchema(s)));
                         }
 
-                        keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), schemas.ToDictionary(x => x.name, x => x.schema));
+                        keywords[i] = (IJsonSchemaKeyword)Activator.CreateInstance(keywords[i].GetType(), schemas.ToDictionary(x => x.Name, x => x.Schema));
                         break;
                 }
             }

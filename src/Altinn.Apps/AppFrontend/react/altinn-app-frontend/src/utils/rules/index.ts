@@ -1,11 +1,11 @@
-import { IFormData } from '../../features/form/data/formDataReducer';
+import { IFormDataState } from '../../features/form/data/formDataReducer';
 import { IRuleConnections } from '../../features/form/dynamics';
 import { ILayouts, ILayoutComponent } from '../../features/form/layout';
 import { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections,
-  formDataState: IFormData,
+  formDataState: Partial<IFormDataState>,
   layouts: ILayouts,
   lastUpdatedDataBinding: string,
 ) {

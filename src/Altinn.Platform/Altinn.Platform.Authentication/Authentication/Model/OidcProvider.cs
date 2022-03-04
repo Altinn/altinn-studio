@@ -74,5 +74,10 @@ namespace Altinn.Platform.Authentication.Model
         /// Defines if Altinn Authentication should include the iss in the redirect_uri
         /// </summary>
         public bool IncludeIssInRedirectUri { get; set; }
+
+        /// <summary>
+        /// Defines the default authentication method
+        /// </summary>
+        public string DefaultAuthenticationMethod { get; set; } = "SelfIdentified";
     }
 }

@@ -39,7 +39,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new ReleaseEntity
                 {
                     Build = ToBuildEntity(build)
-                }, appOwner);
+                },
+                appOwner);
         }
 
         /// <inheritdoc />
@@ -50,7 +51,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new DeploymentEntity
                 {
                     Build = ToBuildEntity(build)
-                }, appOwner);
+                },
+                appOwner);
         }
 
         private static BuildEntity ToBuildEntity(Build build)

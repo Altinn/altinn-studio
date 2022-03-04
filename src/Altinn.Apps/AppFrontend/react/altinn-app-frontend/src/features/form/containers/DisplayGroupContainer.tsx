@@ -1,8 +1,7 @@
 import { Grid, Typography, makeStyles } from '@material-ui/core';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from 'src/common/hooks';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { IRuntimeState } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 
@@ -26,16 +25,16 @@ const useStyles = makeStyles({
 
 export function DisplayGroupContainer(props: IDisplayGroupContainer) {
   const GetHiddenSelector = makeGetHidden();
-  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, { id: props.container.id }));
+  const hidden: boolean = useAppSelector(state => GetHiddenSelector(state, { id: props.container.id }));
   const classes = useStyles();
-  const title = useSelector((state: IRuntimeState) => {
+  const title = useAppSelector(state => {
     const titleKey = props.container.textResourceBindings?.title;
     if (titleKey) {
       return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
     }
     return undefined;
   });
-  const layout = useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
+  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
 
   if (hidden) {
     return null;

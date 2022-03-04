@@ -1,0 +1,52 @@
+[
+  {
+    "ruleIds": [
+      "0d0c8570-64fb-49f9-9f7d-45c057fddf94"
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app3"
+      }
+    ],
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
+    }
+  },
+  {
+    "ruleIds": [
+      "6f11dd0b-5e5d-4bd1-85f0-9796300dfded"
+    ],
+    "deletedByUserId": 20001336,
+    "policyMatch": {
+      "offeredByPartyId": 50001337,
+      "resource": [
+      {
+        "id": "urn:altinn:org",
+        "value": "org1"
+      },
+	  {
+        "id": "urn:altinn:app",
+        "value": "app3"
+      }
+    ],
+      "coveredBy": [
+        {
+          "id": "urn:altinn:userid",
+          "value": "20001337"
+        }
+      ]
+    }
+  }
+]

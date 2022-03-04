@@ -1,0 +1,274 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json;
+namespace Altinn.App.Models
+{
+  [XmlRoot(ElementName="melding")]
+  public class ReelleRettighetshavere_M
+  {
+    [XmlAttribute("dataFormatProvider")]
+    [BindNever]
+    public string dataFormatProvider {get; set; } = "SERES";
+
+    [XmlAttribute("dataFormatId")]
+    [BindNever]
+    public string dataFormatId {get; set; } = "6900";
+
+    [XmlAttribute("dataFormatVersion")]
+    [BindNever]
+    public string dataFormatVersion {get; set; } = "46864";
+
+    [XmlElement("Skjemainnhold", Order = 1)]
+    [JsonProperty("Skjemainnhold")]
+    [JsonPropertyName("Skjemainnhold")]
+    public Skjemainnhold Skjemainnhold { get; set; }
+
+  }
+
+  public class Skjemainnhold
+  {
+    [XmlElement("metadata", Order = 1)]
+    [JsonProperty("metadata")]
+    [JsonPropertyName("metadata")]
+    public Metadata metadata { get; set; }
+
+    [XmlElement("reelleRettigheter", Order = 2)]
+    [JsonProperty("reelleRettigheter")]
+    [JsonPropertyName("reelleRettigheter")]
+    public ReelleRettigheter reelleRettigheter { get; set; }
+
+  }
+
+  public class Metadata
+  {
+    [XmlElement("tjeneste", Order = 1)]
+    [JsonProperty("tjeneste")]
+    [JsonPropertyName("tjeneste")]
+    public string tjeneste { get; set; }
+
+    [XmlElement("tjenestehandling", Order = 2)]
+    [JsonProperty("tjenestehandling")]
+    [JsonPropertyName("tjenestehandling")]
+    public string tjenestehandling { get; set; }
+
+  }
+
+  public class ReelleRettigheter
+  {
+    [XmlElement("rettighetId", Order = 1)]
+    [JsonProperty("rettighetId")]
+    [JsonPropertyName("rettighetId")]
+    public string rettighetId { get; set; }
+
+    [XmlElement("rettighetDataId", Order = 2)]
+    [JsonProperty("rettighetDataId")]
+    [JsonPropertyName("rettighetDataId")]
+    public string rettighetDataId { get; set; }
+
+    [XmlElement("endretDato", Order = 3)]
+    [JsonProperty("endretDato")]
+    [JsonPropertyName("endretDato")]
+    public string endretDato { get; set; }
+
+    [XmlElement("status", Order = 4)]
+    [JsonProperty("status")]
+    [JsonPropertyName("status")]
+    public string status { get; set; }
+
+    [XmlElement("registreringspliktig", Order = 5)]
+    [JsonProperty("registreringspliktig")]
+    [JsonPropertyName("registreringspliktig")]
+    public Registreringspliktig registreringspliktig { get; set; }
+
+    [XmlElement("statusReelleRettighetshavere", Order = 6)]
+    [JsonProperty("statusReelleRettighetshavere")]
+    [JsonPropertyName("statusReelleRettighetshavere")]
+    public string statusReelleRettighetshavere { get; set; }
+
+    [XmlElement("kontrollererJuridiskPersonOver75", Order = 7)]
+    [JsonProperty("kontrollererJuridiskPersonOver75")]
+    [JsonPropertyName("kontrollererJuridiskPersonOver75")]
+    public bool? kontrollererJuridiskPersonOver75 { get; set; }
+
+    [XmlElement("erJuridiskPersonUtenlandskVirksomhet", Order = 8)]
+    [JsonProperty("erJuridiskPersonUtenlandskVirksomhet")]
+    [JsonPropertyName("erJuridiskPersonUtenlandskVirksomhet")]
+    public bool? erJuridiskPersonUtenlandskVirksomhet { get; set; }
+
+    [XmlElement("kanIkkeIdentifisereFlereReelleRettighetshavere", Order = 9)]
+    [JsonProperty("kanIkkeIdentifisereFlereReelleRettighetshavere")]
+    [JsonPropertyName("kanIkkeIdentifisereFlereReelleRettighetshavere")]
+    public bool? kanIkkeIdentifisereFlereReelleRettighetshavere { get; set; }
+
+    [XmlElement("reellRettighetshaver", Order = 10)]
+    [JsonProperty("reellRettighetshaver")]
+    [JsonPropertyName("reellRettighetshaver")]
+    public List<ReellRettighetshaver> reellRettighetshaver { get; set; }
+
+    [XmlElement("rolleinnehaver", Order = 11)]
+    [JsonProperty("rolleinnehaver")]
+    [JsonPropertyName("rolleinnehaver")]
+    public List<Rolleinnehaver> rolleinnehaver { get; set; }
+
+  }
+
+  public class Registreringspliktig
+  {
+    [XmlElement("organisasjonsnummer", Order = 1)]
+    [JsonProperty("organisasjonsnummer")]
+    [JsonPropertyName("organisasjonsnummer")]
+    public string organisasjonsnummer { get; set; }
+
+    [XmlElement("navn", Order = 2)]
+    [JsonProperty("navn")]
+    [JsonPropertyName("navn")]
+    public string navn { get; set; }
+
+    [XmlElement("organisasjonsform", Order = 3)]
+    [JsonProperty("organisasjonsform")]
+    [JsonPropertyName("organisasjonsform")]
+    public string organisasjonsform { get; set; }
+
+  }
+
+  public class ReellRettighetshaver
+  {
+    [XmlElement("fodselsnummer", Order = 1)]
+    [JsonProperty("fodselsnummer")]
+    [JsonPropertyName("fodselsnummer")]
+    public string fodselsnummer { get; set; }
+
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$")]
+    [XmlElement("fodselsdato", Order = 2)]
+    [JsonProperty("fodselsdato")]
+    [JsonPropertyName("fodselsdato")]
+    public string fodselsdato { get; set; }
+
+    [XmlElement("navn", Order = 3)]
+    [JsonProperty("navn")]
+    [JsonPropertyName("navn")]
+    public string navn { get; set; }
+
+    [XmlElement("statsborgerskap", Order = 4)]
+    [JsonProperty("statsborgerskap")]
+    [JsonPropertyName("statsborgerskap")]
+    public string statsborgerskap { get; set; }
+
+    [XmlElement("bostedsland", Order = 5)]
+    [JsonProperty("bostedsland")]
+    [JsonPropertyName("bostedsland")]
+    public string bostedsland { get; set; }
+
+    [XmlElement("posisjonEier", Order = 6)]
+    [JsonProperty("posisjonEier")]
+    [JsonPropertyName("posisjonEier")]
+    public string posisjonEier { get; set; }
+
+    [XmlElement("posisjonEierStorrelseIntervall", Order = 7)]
+    [JsonProperty("posisjonEierStorrelseIntervall")]
+    [JsonPropertyName("posisjonEierStorrelseIntervall")]
+    public string posisjonEierStorrelseIntervall { get; set; }
+
+    [XmlElement("posisjonEierGrunnlag", Order = 8)]
+    [JsonProperty("posisjonEierGrunnlag")]
+    [JsonPropertyName("posisjonEierGrunnlag")]
+    public string posisjonEierGrunnlag { get; set; }
+
+    [XmlElement("posisjonEierGrunnlagBeskrivelseAnnenMate", Order = 9)]
+    [JsonProperty("posisjonEierGrunnlagBeskrivelseAnnenMate")]
+    [JsonPropertyName("posisjonEierGrunnlagBeskrivelseAnnenMate")]
+    public string posisjonEierGrunnlagBeskrivelseAnnenMate { get; set; }
+
+    [XmlElement("posisjonKont", Order = 10)]
+    [JsonProperty("posisjonKont")]
+    [JsonPropertyName("posisjonKont")]
+    public string posisjonKont { get; set; }
+
+    [XmlElement("posisjonKontStorrelseIntervall", Order = 11)]
+    [JsonProperty("posisjonKontStorrelseIntervall")]
+    [JsonPropertyName("posisjonKontStorrelseIntervall")]
+    public string posisjonKontStorrelseIntervall { get; set; }
+
+    [XmlElement("posisjonKontGrunnlag", Order = 12)]
+    [JsonProperty("posisjonKontGrunnlag")]
+    [JsonPropertyName("posisjonKontGrunnlag")]
+    public string posisjonKontGrunnlag { get; set; }
+
+    [XmlElement("posisjonKontGrunnlagBeskrivelseAnnenMate", Order = 13)]
+    [JsonProperty("posisjonKontGrunnlagBeskrivelseAnnenMate")]
+    [JsonPropertyName("posisjonKontGrunnlagBeskrivelseAnnenMate")]
+    public string posisjonKontGrunnlagBeskrivelseAnnenMate { get; set; }
+
+    [XmlElement("posisjonRuas", Order = 14)]
+    [JsonProperty("posisjonRuas")]
+    [JsonPropertyName("posisjonRuas")]
+    public string posisjonRuas { get; set; }
+
+    [XmlElement("posisjonRuasGrunnlag", Order = 15)]
+    [JsonProperty("posisjonRuasGrunnlag")]
+    [JsonPropertyName("posisjonRuasGrunnlag")]
+    public string posisjonRuasGrunnlag { get; set; }
+
+    [XmlElement("posisjonRuasGrunnlagBeskrivelseAnnenMate", Order = 16)]
+    [JsonProperty("posisjonRuasGrunnlagBeskrivelseAnnenMate")]
+    [JsonPropertyName("posisjonRuasGrunnlagBeskrivelseAnnenMate")]
+    public string posisjonRuasGrunnlagBeskrivelseAnnenMate { get; set; }
+
+    [XmlElement("posisjonAnne", Order = 17)]
+    [JsonProperty("posisjonAnne")]
+    [JsonPropertyName("posisjonAnne")]
+    public string posisjonAnne { get; set; }
+
+    [XmlElement("posisjonAnneBeskrivelseAnnenMate", Order = 18)]
+    [JsonProperty("posisjonAnneBeskrivelseAnnenMate")]
+    [JsonPropertyName("posisjonAnneBeskrivelseAnnenMate")]
+    public string posisjonAnneBeskrivelseAnnenMate { get; set; }
+
+    [XmlElement("posisjonAnneGrunnlag", Order = 19)]
+    [JsonProperty("posisjonAnneGrunnlag")]
+    [JsonPropertyName("posisjonAnneGrunnlag")]
+    public string posisjonAnneGrunnlag { get; set; }
+
+    [XmlElement("posisjonAnneGrunnlagBeskrivelseAnnenMate", Order = 20)]
+    [JsonProperty("posisjonAnneGrunnlagBeskrivelseAnnenMate")]
+    [JsonPropertyName("posisjonAnneGrunnlagBeskrivelseAnnenMate")]
+    public string posisjonAnneGrunnlagBeskrivelseAnnenMate { get; set; }
+
+    [XmlElement("posisjonBeskrivelse", Order = 21)]
+    [JsonProperty("posisjonBeskrivelse")]
+    [JsonPropertyName("posisjonBeskrivelse")]
+    public string posisjonBeskrivelse { get; set; }
+
+    [XmlElement("grunnlagBeskrivelse", Order = 22)]
+    [JsonProperty("grunnlagBeskrivelse")]
+    [JsonPropertyName("grunnlagBeskrivelse")]
+    public string grunnlagBeskrivelse { get; set; }
+
+  }
+
+  public class Rolleinnehaver
+  {
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$")]
+    [XmlElement("fodselsdato", Order = 1)]
+    [JsonProperty("fodselsdato")]
+    [JsonPropertyName("fodselsdato")]
+    public string fodselsdato { get; set; }
+
+    [XmlElement("navn", Order = 2)]
+    [JsonProperty("navn")]
+    [JsonPropertyName("navn")]
+    public string navn { get; set; }
+
+    [XmlElement("rolle", Order = 3)]
+    [JsonProperty("rolle")]
+    [JsonPropertyName("rolle")]
+    public string rolle { get; set; }
+
+  }
+}

@@ -2,7 +2,7 @@ import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
-import { JSXElementConstructor, ReactElement } from 'react';
+import { ReactNode } from 'react';
 import Ajv from 'ajv/dist/core';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -19,6 +19,8 @@ import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueSlice';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
+import { IFormData } from 'src/features/form/data/formDataReducer';
 
 export type FormComponentType =
   | IFormAddressComponent
@@ -27,6 +29,7 @@ export type FormComponentType =
   | IFormComponent
   | IFormDropdownComponent
   | IFormFileUploaderComponent
+  | IFormFileUploaderWithTagComponent
   | IFormHeaderComponent
   | IFormInputComponent
   | IFormRadioButtonComponent
@@ -41,9 +44,18 @@ export interface IAltinnWindow extends Window {
 }
 
 export interface IComponentBindingValidation {
-  errors?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
-  warnings?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
-  fixed?: (string | ReactElement<any, string | JSXElementConstructor<any>>[])[];
+  errors?: (
+    | string
+    | ReactNode
+  )[];
+  warnings?: (
+    | string
+    | ReactNode
+  )[];
+  fixed?: (
+    | string
+    | ReactNode
+  )[];
 }
 
 export interface IComponentValidations {
@@ -118,6 +130,25 @@ export interface IFormFileUploaderComponent extends IFormComponent {
   validFileEndings?: string;
 }
 
+export interface IFormFileUploaderWithTagComponent extends IFormFileUploaderComponent {
+  options: IOption[];
+  optionsId: string;
+  mapping?: IMapping;
+}
+
+export interface IFormFileUploaderWithTag {
+  chosenOptions: IOptionsChosen;
+  editIndex: number;
+}
+
+export interface IOptionsChosen {
+  [id: string]: string;
+}
+
+export interface IFileUploadersWithTag {
+  [id: string]: IFormFileUploaderWithTag;
+}
+
 export interface IFormHeaderComponent extends IFormComponent {
   size: string;
 }
@@ -132,13 +163,13 @@ export interface IFormRadioButtonComponent extends IFormComponent {
   preselectedOptionIndex?: number;
 }
 
-export interface IFormTextAreaComponent extends IFormComponent { }
+export type IFormTextAreaComponent = IFormComponent;
 
 export interface ILayoutSets {
-   sets: ILayoutSet[];
+  sets: ILayoutSet[];
 }
 
-export interface ILayoutSet{
+export interface ILayoutSet {
   id: string;
   dataType: string;
   tasks: string[];
@@ -169,7 +200,15 @@ export interface IOption {
 }
 
 export interface IOptions {
-  [id: string]: IOption[];
+  [key: string]: IOptionData;
+}
+
+export interface IOptionData {
+  options: IOption[];
+  id: string;
+  mapping?: IMapping;
+  loading?: boolean;
+  secure?: boolean;
 }
 
 export interface IRepeatingGroup {
@@ -198,6 +237,7 @@ export interface IRuntimeStore {
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
+  applicationSettings: IApplicationSettingsState;
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
@@ -234,7 +274,7 @@ export interface ITextResource {
   id: string;
   value: string;
   unparsedValue?: string;
-  variables?:IVariable[];
+  variables?: IVariable[];
 }
 
 export interface ITextResourceBindings {
@@ -258,6 +298,7 @@ export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
+  fileUploadersWithTag?: IFileUploadersWithTag
   navigationConfig?: INavigationConfig;
   layoutOrder: string[];
   pageTriggers?: Triggers[];
@@ -312,9 +353,27 @@ export enum Triggers {
   Validation = 'validation',
   CalculatePageOrder = 'calculatePageOrder',
   ValidatePage = 'validatePage',
-  ValidateAllPages = 'validateAllPages'
+  ValidateAllPages = 'validateAllPages',
 }
 
 export interface ILabelSettings {
   optionalIndicator?: boolean;
+}
+
+export enum DateFlags {
+  Today = 'today',
+}
+
+// source, target dict
+export interface IMapping {
+  [source: string]: string;
+}
+
+export interface IFetchSpecificOptionSaga {
+  optionsId: string;
+  formData?: IFormData;
+  language?: string;
+  dataMapping?: IMapping;
+  secure?: boolean;
+  instanceId?: string;
 }

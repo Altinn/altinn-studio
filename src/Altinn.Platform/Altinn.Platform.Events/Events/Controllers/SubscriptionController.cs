@@ -226,7 +226,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Validate that the identity (user, organization or org) is authorized to create subscriptions for given consumer. Currently
         /// it needs to match. In future we need to add validation of business rules. (yet to be defined)
         /// </summary>
-        private bool AuthorizeIdentityForConsumer(Subscription eventsSubscription)
+        private static bool AuthorizeIdentityForConsumer(Subscription eventsSubscription)
         {
             if (!eventsSubscription.CreatedBy.Equals(eventsSubscription.Consumer))
             {

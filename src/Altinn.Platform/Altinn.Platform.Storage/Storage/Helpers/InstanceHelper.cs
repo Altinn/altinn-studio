@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.Helpers
             InstanceStatus status = instance.Status ?? new InstanceStatus();
             DateTime? visibleAfter = instance.VisibleAfter;
 
-            string instanceGuid = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id;
+            string instanceGuid = instance.Id.Contains('/') ? instance.Id.Split('/')[1] : instance.Id;
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
@@ -174,7 +174,10 @@ namespace Altinn.Platform.Storage.Helpers
             foreach (MessageBoxInstance instance in instances)
             {
                 string id = $"{instance.Org}-{instance.AppName}-{language}";
-                instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
+                string appTitle =
+                    textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("appName")).Select(r => r.Value).FirstOrDefault() ??
+                    textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault();
+                instance.Title = appTitle ?? instance.AppName;
 
                 if (!string.IsNullOrWhiteSpace(instance.PresentationText))
                 {

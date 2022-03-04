@@ -22,6 +22,9 @@ export function getComponentHelperTextByComponentType(type: string, language: an
     case ComponentTypes.AttachmentList: {
       return language.ux_editor.helper_text_for_attachment_list;
     }
+    case ComponentTypes.NavigationBar: {
+      return language.ux_editor.helper_text_for_nav_bar;
+    }
     default: {
       // Several components does not yet have a helper text, a default is shown.
       return language.ux_editor.helper_text_default;
@@ -39,6 +42,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     }
     case ComponentTypes.FileUpload: {
       return language.ux_editor.component_file_upload;
+    }
+    case ComponentTypes.FileUploadWithTag: {
+      return language.ux_editor.component_file_upload_with_tag;
     }
     case ComponentTypes.Header: {
       return language.ux_editor.component_header;
@@ -75,6 +81,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     }
     case ComponentTypes.AttachmentList: {
       return language.ux_editor.component_attachment_list;
+    }
+    case ComponentTypes.NavigationBar: {
+      return language.ux_editor.component_navigation_bar;
     }
     default: {
       return '';

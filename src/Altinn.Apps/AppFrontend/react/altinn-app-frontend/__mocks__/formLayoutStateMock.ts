@@ -45,15 +45,13 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
         },
       ],
     },
-    error: {
-      message: null,
-      name: null,
-    },
+    error: null,
     uiConfig: {
       autoSave: true,
       focus: null,
       hiddenFields: [],
       repeatingGroups: null,
+      fileUploadersWithTag: null,
       currentView: 'FormLayout',
       navigationConfig: {},
       layoutOrder: [],

@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
             services.AddMvc(options => options.EnableEndpointRouting = false);
 
             services.AddRazorPages();

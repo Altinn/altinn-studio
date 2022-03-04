@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import { getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IRuntimeState } from '../../../types';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function UnknownError() {
-  const language = useSelector((state: IRuntimeState) => state.language.language);
+  const language = useAppSelector(state => state.language.language);
   if (!language) {
     return null;
   }
@@ -14,12 +13,12 @@ function UnknownError() {
     const customerSupport = getParsedLanguageFromKey(
       'instantiate.unknown_error_customer_support',
       language,
-      [language.general.customer_service_phone_number],
+      [getLanguageFromKey('general.customer_service_phone_number', language)],
     );
 
     return (
       <>
-        {language.instantiate.unknown_error_text}
+        {getLanguageFromKey('instantiate.unknown_error_text', language)}
         <br />
         <br />
         {customerSupport}
@@ -29,9 +28,9 @@ function UnknownError() {
 
   return (
     <InstantiationErrorPage
-      title={`${language.instantiate.unknown_error_title}`}
+      title={getLanguageFromKey('instantiate.unknown_error_title', language)}
       content={getUnknownErrorContent()}
-      statusCode={`${language.instantiate.unknown_error_status}`}
+      statusCode={getLanguageFromKey('instantiate.unknown_error_status', language)}
     />
   );
 }

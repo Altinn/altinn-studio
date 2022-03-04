@@ -35,9 +35,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             IWebHostBuilder builder = new WebHostBuilder()
                 .ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IPolicyInformationRepository, PolicyInformationRepositoryMock>();
+                    services.AddScoped<IInstanceMetadataRepository, InstanceMetadataRepositoryMock>();
                     services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IRoles, RolesMock>();
+                    services.AddScoped<IParties, PartiesMock>();
+                    services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {

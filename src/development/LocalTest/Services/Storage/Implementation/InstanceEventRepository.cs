@@ -3,6 +3,7 @@ using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,12 +15,10 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceEventRepository : IInstanceEventRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
-        private readonly ILogger _logger;
 
-        public InstanceEventRepository(IOptions<LocalPlatformSettings> localPlatformSettings, ILogger<InstanceEventRepository> logger)
+        public InstanceEventRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localPlatformSettings = localPlatformSettings.Value;
-            _logger = logger;
         }
 
         public Task<int> DeleteAllInstanceEvents(string instanceId)
@@ -45,9 +44,42 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
         {
-            throw new NotImplementedException();
-        }
+            List<InstanceEvent> instanceEvents = new List<InstanceEvent>();
 
+            string instanceEventPath = GetInstanceEventFolder();
+
+            if (Directory.Exists(instanceEventPath))
+            {
+                string[] files = Directory.GetFiles(instanceEventPath, "*.json");
+
+                foreach (var file in files)
+                {
+                    string content = File.ReadAllText(file);
+                    InstanceEvent instanceEvent = (InstanceEvent)JsonConvert.DeserializeObject(content, typeof(InstanceEvent));
+                    if (instanceEvent != null && instanceEvent.Id != null && instanceEvent.InstanceId == instanceId)
+                    {
+                        instanceEvents.Add(instanceEvent);
+                    }
+                }
+            }
+
+            if (fromDateTime != null)
+            {
+                instanceEvents.RemoveAll(i => i.Created < fromDateTime);
+            }
+
+            if (toDateTime != null)
+            {
+                instanceEvents.RemoveAll(i => i.Created > toDateTime);
+            }
+
+            if ((eventTypes?.Length ?? 0) > 0)
+            {
+                instanceEvents = instanceEvents.Where(i => eventTypes.Contains(i.EventType)).ToList();
+            }
+
+            return Task.FromResult(instanceEvents);
+        }
 
         private string GetInstanceEventPath(string instanceId, Guid instanceEventID)
         {

@@ -52,17 +52,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             Dictionary<string, List<Rule>> expected = new Dictionary<string, List<Rule>>();
-            expected.Add($"org1/app1/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/app1/{offeredByPartyId}/u{coveredBy}/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"),
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "write", "org1", "app1", "task1"),
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1",  task: null, "event1")
             });
-            expected.Add($"org2/app1/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org2/app1/{offeredByPartyId}/u{coveredBy}/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1")
             });
-            expected.Add($"org1/App2/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/App2/{offeredByPartyId}/u{coveredBy}/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "App2")
             });
@@ -109,16 +109,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             Dictionary<string, List<Rule>> expected = new Dictionary<string, List<Rule>>();
-            expected.Add($"org1/app1/{offeredByPartyId}/20001337/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/app1/{offeredByPartyId}/u20001337/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", "task1"),
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app1")
             });
-            expected.Add($"org1/app1/{offeredByPartyId}/20001331/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/app1/{offeredByPartyId}/u20001331/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001331", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", null, "event1"),
             });
-            expected.Add($"org1/app1/{offeredByPartyId}/50001333/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/app1/{offeredByPartyId}/p50001333/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "50001333", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "read", "org1", "app1"),
             });
@@ -164,7 +164,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             };
 
             Dictionary<string, List<Rule>> expected = new Dictionary<string, List<Rule>>();
-            expected.Add($"org1/app1/{offeredByPartyId}/20001337/delegationpolicy.xml", new List<Rule>
+            expected.Add($"org1/app1/{offeredByPartyId}/u20001337/delegationpolicy.xml", new List<Rule>
             {
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", "task1"),
                 TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app1")

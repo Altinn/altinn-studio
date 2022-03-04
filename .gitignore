@@ -161,7 +161,7 @@ publish/
 project.lock.json
 
 # yarn lock file
-yarn.lock
+package-lock.json
 
 # Windows Azure Build Output
 csx/
@@ -316,6 +316,9 @@ src/studio/src/designer/backend/wwwroot/designer/css/lib
 src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
 src/studio/src/designer/backend/wwwroot/designer/css/fonts
 src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
+
+######### Testdata created by testrun #########
+src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/
 
 # Jest test coverage
 coverage

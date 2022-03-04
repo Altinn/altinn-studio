@@ -25,5 +25,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "organisationNumber")]
         public string OrganisationNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the username of the party. Null if the party is not self identified.
+        /// </summary>
+        [JsonProperty(PropertyName = "username")]
+        public string Username { get; set; }
     }
 }

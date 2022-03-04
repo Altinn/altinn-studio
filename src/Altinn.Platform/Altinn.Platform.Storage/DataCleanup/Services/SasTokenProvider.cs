@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
@@ -12,8 +13,8 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     /// </summary>
     public class SasTokenProvider : ISasTokenProvider
     {
-        private readonly ConcurrentDictionary<string, (DateTime created, string token)> _sasTokens =
-            new ConcurrentDictionary<string, (DateTime created, string token)>();
+        private readonly ConcurrentDictionary<string, (DateTime Created, string Token)> _sasTokens =
+            new ConcurrentDictionary<string, (DateTime Created, string Token)>();
 
         private readonly IKeyVaultService _keyVaultService;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
@@ -41,10 +42,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<string> GetSasToken(string org)
         {
-            (DateTime created, string token) sasToken;
-            if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.created))
+            if (_sasTokens.TryGetValue(org, out (DateTime Created, string Token) sasToken) && StillYoung(sasToken.Created))
             {
-                return sasToken.token;
+                return sasToken.Token;
             }
 
             _sasTokens.TryRemove(org, out _);
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             {
                 if (_sasTokens.TryGetValue(org, out sasToken))
                 {
-                    return sasToken.token;
+                    return sasToken.Token;
                 }
 
                 string storageAccount = string.Format(_storageAccount, org, _environment);
@@ -62,12 +62,12 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 string secretName = $"{storageAccount}-{sasDefinition}";
                 string keyVaultUri = string.Format(_keyVaultURI, org, _environment);
 
-                sasToken.token = await _keyVaultService.GetSecretAsync(keyVaultUri, secretName);
-                sasToken.created = DateTime.UtcNow;
+                sasToken.Token = await _keyVaultService.GetSecretAsync(keyVaultUri, secretName);
+                sasToken.Created = DateTime.UtcNow;
 
                 _sasTokens.TryAdd(org, sasToken);
 
-                return sasToken.token;
+                return sasToken.Token;
             }
             catch (Exception e)
             {
@@ -86,9 +86,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             _sasTokens.TryRemove(org, out _);
         }
 
-        private bool StillYoung(DateTime created)
+        private bool StillYoung(DateTime Created)
         {
-            return created.AddHours(_allowedSasTokenAgeHours) > DateTime.UtcNow;
+            return Created.AddHours(_allowedSasTokenAgeHours) > DateTime.UtcNow;
         }
     }
 }

@@ -10,24 +10,24 @@ export interface IMessageComponentProps {
   messageType: MessageType;
   message?: any;
   style?: any;
-  // eslint-disable-next-line no-undef
   children: JSX.Element;
 }
+
+const iconStyles = {
+  marginTop: '-2px',
+  fontSize: '1.8em',
+};
 
 export function MessageComponent(props: IMessageComponentProps) {
   return (
     <div
       id={props.id}
       key={props.id}
-      className={classNames(
-        'field-validation-error',
-        'a-message',
-        {
-          'a-message-info': props.messageType === 'info',
-          'a-message-error': props.messageType === 'error',
-          'a-message-success': props.messageType === 'success',
-        },
-      )}
+      className={classNames('field-validation-error', 'a-message', {
+        'a-message-info': props.messageType === 'info',
+        'a-message-error': props.messageType === 'error',
+        'a-message-success': props.messageType === 'success',
+      })}
       style={props.style}
     >
       <Grid container spacing={2}>
@@ -36,7 +36,7 @@ export function MessageComponent(props: IMessageComponentProps) {
             className={classNames({
               'fa fa-circle-exclamation': props.messageType === 'error',
             })}
-            style={{ marginTop: '-2px', fontSize: '1.8em' }}
+            style={iconStyles}
           />
         </Grid>
         <Grid item xs={10}>

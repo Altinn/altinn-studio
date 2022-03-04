@@ -103,7 +103,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Error occured when retrieving text resources for {org}-{app} in language {language}. Exception: {e}");
+                    _logger.LogError(e, "Error occured when retrieving text resources for {org}-{app} in language {language}.", org, app, language);
                 }
             }
 

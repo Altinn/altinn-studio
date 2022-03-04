@@ -6,7 +6,7 @@ import InstanceDataActions from '../../../../../shared/resources/instanceData/in
 import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
 import { post, putWithoutConfig } from '../../../../../utils/networking';
-import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/urlHelper';
+import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/appUrlHelper';
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';

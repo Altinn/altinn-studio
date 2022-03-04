@@ -1,46 +1,65 @@
 import Select from 'react-select';
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
-import { renderPropertyLabel, renderSelectTextFromResources, selectStyles } from '../../utils/render';
+import {
+  renderPropertyLabel,
+  renderSelectTextFromResources,
+  selectStyles,
+} from '../../utils/render';
 
 export interface HeaderSizeSelectProps {
-  renderChangeId: () => JSX.Element,
-  textResources: any,
-  language: any,
-  component: any,
-  handleTitleChange: (e: any) => void,
-  handleUpdateHeaderSize: (e: any) => void
+  renderChangeId: () => JSX.Element;
+  textResources: any;
+  language: any;
+  component: any;
+  handleTitleChange: (e: any) => void;
+  handleUpdateHeaderSize: (e: any) => void;
 }
 
-const HeaderSizeSelect: React.FunctionComponent<HeaderSizeSelectProps> = (props: HeaderSizeSelectProps) => {
-  const {
-    renderChangeId, handleTitleChange, handleUpdateHeaderSize,
-  } = props;
+enum HeaderSize {
+  S = 'h4',
+  M = 'h3',
+  L = 'h2',
+}
+
+export const HeaderSizeSelect = ({
+  renderChangeId,
+  handleTitleChange,
+  handleUpdateHeaderSize,
+  language,
+  textResources,
+  component,
+}: HeaderSizeSelectProps) => {
   const sizes = [
-    { value: 'S', label: props.language.ux_editor.modal_header_type_h4 },
-    { value: 'M', label: props.language.ux_editor.modal_header_type_h3 },
-    { value: 'L', label: props.language.ux_editor.modal_header_type_h2 },
+    { value: HeaderSize.S, label: language.ux_editor.modal_header_type_h4 },
+    { value: HeaderSize.M, label: language.ux_editor.modal_header_type_h3 },
+    { value: HeaderSize.L, label: language.ux_editor.modal_header_type_h2 },
   ];
+  const selectedHeaderSize =
+    HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
+
+  const selectedValue = selectedHeaderSize
+    ? sizes.find((size) => size.value === selectedHeaderSize)
+    : sizes[0];
+
   return (
-    <Grid
-      container={true}
-      spacing={0}
-      direction='column'
-    >
+    <Grid container={true} spacing={0} direction='column'>
       {renderChangeId()}
-      {renderSelectTextFromResources('modal_properties_header_helper',
-        handleTitleChange,
-        props.textResources,
-        props.language,
-        props.component.textResourceBindings?.title,
-        props.component.textResourceBindings?.title)}
-      <Grid item={true} xs={12}>
-        {renderPropertyLabel(props.language.ux_editor.modal_header_type_helper)}
+      <div data-testid='header-resource-select-wrapper'>
+        {renderSelectTextFromResources(
+          'modal_properties_header_helper',
+          handleTitleChange,
+          textResources,
+          language,
+          component.textResourceBindings?.title,
+          component.textResourceBindings?.title,
+        )}
+      </div>
+      <Grid item={true} xs={12} data-testid='header-size-select-wrapper'>
+        {renderPropertyLabel(language.ux_editor.modal_header_type_helper)}
         <Select
           styles={selectStyles}
-          defaultValue={props.component.size ?
-            sizes.find((size) => size.value === props.component.size) :
-            sizes[0]}
+          defaultValue={selectedValue}
           onChange={handleUpdateHeaderSize}
           options={sizes}
         />

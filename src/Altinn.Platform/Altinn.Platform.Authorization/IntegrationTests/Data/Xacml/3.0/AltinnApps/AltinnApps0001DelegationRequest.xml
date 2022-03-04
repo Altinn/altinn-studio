@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Request xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd" ReturnPolicyIdList="false" CombinedDecision="false" xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Attributes Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+    <Attribute IncludeInResult="false" AttributeId="urn:altinn:userid">
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">20001337</AttributeValue>
+    </Attribute>
+  </Attributes>
+  <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
+    <Attribute IncludeInResult="false" AttributeId="urn:altinn:instance-id">
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713</AttributeValue>
+    </Attribute>
+  </Attributes>
+  <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
+    <Attribute IncludeInResult="false" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id">
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+    </Attribute>
+  </Attributes>
+  <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment" />
+</Request>

@@ -24,13 +24,13 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <summary>
         /// The xsd namespace properties in order.
         /// </summary>
-        public IReadOnlyList<(string prefix, string ns)> Namespaces { get; }
+        public IReadOnlyList<(string Prefix, string Ns)> Namespaces { get; }
 
         /// <summary>
         /// Creates a new <see cref="XsdNamespacesKeyword"/>.
         /// </summary>
         /// <param name="namespaces">The namespaces.</param>
-        public XsdNamespacesKeyword(IEnumerable<(string prefix, string ns)> namespaces)
+        public XsdNamespacesKeyword(IEnumerable<(string Prefix, string Ns)> namespaces)
         {
             Namespaces = namespaces as List<(string, string)> ?? namespaces.ToList();
         }

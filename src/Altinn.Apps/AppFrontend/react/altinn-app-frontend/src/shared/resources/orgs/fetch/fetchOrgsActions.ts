@@ -1,11 +1,10 @@
+import { IAltinnOrgs } from 'altinn-shared/types';
 import { Action } from 'redux';
 import * as ActionTypes from './fetchOrgsActionTypes';
 
-export interface IFetchOrgs extends Action {
-
-}
+export type IFetchOrgs = Action;
 export interface IFetchOrgsFulfilled extends Action {
-  orgs: any;
+  orgs: IAltinnOrgs;
 }
 export interface IFetchOrgsRejected extends Action {
   error: Error;

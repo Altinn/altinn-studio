@@ -24,13 +24,13 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <summary>
         /// The xsd schema attributes in order.
         /// </summary>
-        public IReadOnlyList<(string name, string value)> Properties { get; }
+        public IReadOnlyList<(string Name, string Value)> Properties { get; }
 
         /// <summary>
         /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
         /// </summary>
         /// <param name="values">The schema attributes.</param>
-        public XsdSchemaAttributesKeyword(params (string name, string value)[] values)
+        public XsdSchemaAttributesKeyword(params (string Name, string Value)[] values)
         {
             Properties = values.ToList();
         }
@@ -39,7 +39,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// Creates a new <see cref="XsdSchemaAttributesKeyword"/>.
         /// </summary>
         /// <param name="values">The schema attributes.</param>
-        public XsdSchemaAttributesKeyword(IEnumerable<(string name, string value)> values)
+        public XsdSchemaAttributesKeyword(IEnumerable<(string Name, string Value)> values)
         {
             Properties = values as List<(string, string)> ?? values.ToList();
         }

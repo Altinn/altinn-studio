@@ -21,9 +21,11 @@ export enum ComponentTypes {
   RadioButtons = 'RadioButtons',
   TextArea = 'TextArea',
   FileUpload = 'FileUpload',
+  FileUploadWithTag = 'FileUploadWithTag',
   Button = 'Button',
   AddressComponent = 'AddressComponent',
   Group = 'Group',
+  NavigationBar = 'NavigationBar',
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
 }
@@ -39,9 +41,11 @@ export const componentIcons: IComponentIcon = {
   RadioButtons: 'fa fa-radio-button',
   TextArea: 'fa fa-long-answer',
   FileUpload: 'fa fa-attachment',
+  FileUploadWithTag: 'fa fa-attachment',
   Button: 'fa fa-button',
   AddressComponent: 'fa fa-address',
   Group: 'fa fa-group',
+  NavigationBar: 'fa fa-page-navigation',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
 };
@@ -50,6 +54,9 @@ export const textComponents: IComponent[] = [
   {
     name: ComponentTypes.Header,
     Icon: componentIcons.Header,
+    customProperties: {
+      size: "L",
+    },
   },
   {
     name: ComponentTypes.Paragraph,
@@ -106,6 +113,16 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
+    name: ComponentTypes.FileUploadWithTag,
+    Icon: componentIcons.FileUploadWithTag,
+    customProperties: {
+      maxFileSizeInMB: 25,
+      maxNumberOfAttachments: 1,
+      minNumberOfAttachments: 1,
+      required: true,
+    },
+  },
+  {
     name: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
@@ -152,6 +169,10 @@ export const advancedComponents: IComponent[] = [
       children: [],
     },
   },
+  {
+    name: ComponentTypes.NavigationBar,
+    Icon: componentIcons.NavigationBar,
+  }
 ];
 
 const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);

@@ -34,8 +34,30 @@ describe('Summary', () => {
           .then((summaryDate) => {
             cy.get(summaryDate).children(mui.gridItem).find(mui.buttonIcon).should('exist').and('be.visible').click();
             cy.get(appFrontend.changeOfName.dateOfEffect).clear();
+            cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.pdf', { force: true });
+            cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('e2e/fixtures/test.pdf', {
+              force: true,
+            });
+            cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('be.visible').select('address');
+            cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).should('be.visible').click();
             cy.contains(mui.button, texts.backToSummary).should('be.visible').click();
           });
+      });
+
+    //Summary of attachment components
+    cy.get(appFrontend.changeOfName.summaryNameChanges)
+      .should('exist')
+      .siblings()
+      .then((summary) => {
+        cy.get(summary)
+          .contains(mui.gridContainer, texts.uplodDocs)
+          .contains(mui.gridItem, 'test.pdf')
+          .should('be.visible');
+        cy.get(summary)
+          .contains(mui.gridContainer, texts.uploadWithTag)
+          .contains(mui.gridItem, 'test.pdf')
+          .should('be.visible')
+          .and('contain.text', 'Adresse');
       });
 
     //Summary displays error when required field is not filled
@@ -66,6 +88,23 @@ describe('Summary', () => {
       .then((summaryDate) => {
         cy.get(summaryDate).contains(texts.dateOfEffect).should('not.have.css', 'color', 'rgb(226, 59, 83)');
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredField).should('not.exist');
+      });
+  });
+
+  it('is possible to view summary of repeating group', () => {
+    cy.compelteTask3Form();
+    cy.get(appFrontend.group.mainGroupSummary).should('be.visible').and('have.length', 1);
+    cy.get(appFrontend.group.mainGroupSummary)
+      .first()
+      .children(mui.gridItem)
+      .then((item) => {
+        cy.get(item).should('have.length', 4);
+        cy.get(item).find(mui.buttonIcon).should('have.length', 3);
+        cy.get(item)
+          .eq(1)
+          .children(mui.gridContainer)
+          .should('have.css', 'border-bottom', '1px dashed rgb(0, 143, 214)');
+        cy.get(item).eq(3).should('contain.text', 'automation');
       });
   });
 });

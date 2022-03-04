@@ -1,43 +1,29 @@
 import * as React from 'react';
-import AltinnError from '../shared/components/altinnError';
+import UnknownError from 'src/features/instantiate/containers/UnknownError';
 
 interface IErrorBoundary {
   hasError: boolean;
-  error: Error;
 }
 
 class ErrorBoundary extends React.Component<any, IErrorBoundary> {
-  private static getDerivedStateFromError(error: Error) {
-    return {
-      error,
-      hasError: true,
-    };
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
   }
 
-  // eslint-disable-next-line react/state-in-constructor
-  public state = {
-    hasError: false,
-    error: null,
-  };
-
-  public componentDidCatch(error: Error, info: object) {
-    console.error(error, info);
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
-  public render() {
-    const { error, hasError } = this.state;
-    if (hasError) {
-      return (
-        <AltinnError
-          statusCode='400'
-          title='Error'
-          content={error}
-          url={`${window.location.host}`}
-          urlText='Altinn Runtime'
-          urlTextSuffix='Altinn Runtime'
-        />
-      );
+  componentDidCatch(error, errorInfo) {
+    console.error(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return  <UnknownError />;
     }
+
     return this.props.children;
   }
 }

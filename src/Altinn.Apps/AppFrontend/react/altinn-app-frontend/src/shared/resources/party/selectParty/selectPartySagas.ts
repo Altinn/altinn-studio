@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { IAltinnWindow } from 'src/types';
 import { putWithoutConfig } from '../../../../utils/networking';
-import { updateCookieUrl } from '../../../../utils/urlHelper';
+import { updateCookieUrl } from '../../../../utils/appUrlHelper';
 import PartyActions from '../partyActions';
 import { ISelectParty } from './selectPartyActions';
 import * as SelectPartyActionTypes from './selectPartyActionTypes';

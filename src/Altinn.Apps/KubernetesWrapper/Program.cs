@@ -1,34 +1,77 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+using System.Reflection;
 
-namespace KubernetesWrapper
+using KubernetesWrapper.Services.Implementation;
+using KubernetesWrapper.Services.Interfaces;
+
+using Microsoft.OpenApi.Models;
+
+using Swashbuckle.AspNetCore.SwaggerGen;
+
+var builder = WebApplication.CreateBuilder(args);
+
+RegisterServices(builder.Services);
+
+var app = builder.Build();
+
+ConfigureApp(app);
+
+app.Run();
+
+static void ConfigureApp(WebApplication app)
 {
-    /// <summary>
-    /// This is the main entry point
-    /// </summary>
-    public static class Program
+    if (!app.Environment.IsDevelopment())
     {
-        /// <summary>
-        /// The main method
-        /// </summary>
-        /// <param name="args">The Arguments</param>
-        public static void Main(string[] args)
-        {
-            CreateWebHostBuilder(args).Build().Run();
-        }
+        app.UseHsts();
+    }
+    else
+    {
+        app.UseDeveloperExceptionPage();
+    }
 
-        /// <summary>
-        /// Configure the configuration builder
-        /// </summary>
-        /// <param name="args">arguments for creating build configuration</param>
-        /// <returns>The web host builder</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+    app.UseSwagger(o => o.RouteTemplate = "kuberneteswrapper/swagger/{documentName}/swagger.json");
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/kuberneteswrapper/swagger/v1/swagger.json", "Altinn Platform kuberneteswrapper API");
+        c.RoutePrefix = "kuberneteswrapper/swagger";
+    });
+
+    // app.UseRouting();
+    app.UseCors();
+    app.MapControllers();
+}
+
+static void RegisterServices(IServiceCollection services)
+{
+    services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(builder =>
+        {
+            builder.AllowAnyOrigin();
+            builder.WithMethods("GET");
+            builder.AllowAnyHeader();
+        });
+    });
+    services.AddControllers();
+    services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
+
+    services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Kuberneteswrapper", Version = "v1" });
+        IncludeXmlComments(c);
+    });
+}
+
+static void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
+{
+    try
+    {
+        string xmlFile = $"{Assembly.GetEntryAssembly().GetName().Name}.xml";
+        string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        swaggerGenOptions.IncludeXmlComments(xmlPath);
+    }
+    catch
+    {
+        // not critical for the application
     }
 }

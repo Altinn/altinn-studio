@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
 
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
+            _logger.LogInformation("// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {request}", JsonConvert.SerializeObject(xacmlJsonRequest));
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
 
             foreach (XacmlJsonResult result in response.Response)
@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Authorizes a given action on an instance.
         /// </summary>
         /// <returns>true if the user is authorized.</returns>
-        public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action)
+        public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action, string task = null)
         {
             string org = instance.Org;
             string app = instance.AppId.Split('/')[1];
@@ -147,14 +147,14 @@ namespace Altinn.Platform.Storage.Helpers
             else
             {
                 Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid, task);
             }
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Authorization Helper // Authorize instance action failed for request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation("// Authorization Helper // Authorize instance action failed for request: {request}.", JsonConvert.SerializeObject(request));
                 return false;
             }
 
@@ -213,7 +213,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest

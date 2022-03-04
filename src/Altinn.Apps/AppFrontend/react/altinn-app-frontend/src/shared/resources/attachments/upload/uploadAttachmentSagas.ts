@@ -7,7 +7,7 @@ import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import { IRuntimeState } from '../../../../types';
 import { post } from '../../../../utils/networking';
-import { fileUploadUrl } from '../../../../utils/urlHelper';
+import { fileUploadUrl } from '../../../../utils/appUrlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
@@ -58,8 +58,10 @@ export function* uploadAttachmentSaga(
         name: file.name,
         size: file.size,
         uploaded: true,
+        tags: [],
         id: response.data.id,
         deleting: false,
+        updating: false,
       };
       yield call(AttachmentDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);

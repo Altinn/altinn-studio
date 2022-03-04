@@ -25,13 +25,13 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <summary>
         /// The xsd restrictions in order.
         /// </summary>
-        public IReadOnlyList<(string name, JsonElement value)> Restrictions { get; }
+        public IReadOnlyList<(string Name, JsonElement Value)> Restrictions { get; }
 
         /// <summary>
         /// Creates a new <see cref="XsdRestrictionsKeyword"/>.
         /// </summary>
         /// <param name="restrictions">The restrictions.</param>
-        public XsdRestrictionsKeyword(params (string name, JsonElement value)[] restrictions)
+        public XsdRestrictionsKeyword(params (string Name, JsonElement Value)[] restrictions)
         {
             Restrictions = restrictions.ToList();
         }
@@ -40,7 +40,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// Creates a new <see cref="XsdRestrictionsKeyword"/>.
         /// </summary>
         /// <param name="restrictions">The restrictions.</param>
-        public XsdRestrictionsKeyword(IEnumerable<(string name, JsonElement value)> restrictions)
+        public XsdRestrictionsKeyword(IEnumerable<(string Name, JsonElement Value)> restrictions)
         {
             Restrictions = restrictions as List<(string, JsonElement)> ?? restrictions.ToList();
         }

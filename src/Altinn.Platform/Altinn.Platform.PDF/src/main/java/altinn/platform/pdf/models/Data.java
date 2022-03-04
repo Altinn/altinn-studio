@@ -1,5 +1,7 @@
 package altinn.platform.pdf.models;
 
+import java.util.List;
+
 public class Data {
   private String id;
   private String dataType;
@@ -10,6 +12,7 @@ public class Data {
   private String created;
   private String lastChanged;
   private String filename;
+  private List<String> tags;
 
   public String getId() {
     return id;
@@ -77,5 +80,13 @@ public class Data {
 
   public void setFilename(String filename) {
     this.filename = filename;
+  }
+
+  public List<String> getTags() {
+    return tags;
+  }
+
+  public void setTags(List<String> tags) {
+    this.tags = tags;
   }
 }

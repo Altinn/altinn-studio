@@ -1,12 +1,11 @@
-/* eslint-disable no-shadow */
 import { AddressComponent } from './advanced/AddressComponent';
 import { AttachmentListComponent } from './base/AttachmentListComponent';
 import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-// eslint-disable-next-line import/no-cycle
 import DatepickerComponent from './base/DatepickerComponent';
 import DropdownComponent from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
+import { FileUploadComponent } from './base/FileUpload/FileUploadComponent';
+import { FileUploadWithTagComponent } from './base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
@@ -14,10 +13,15 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { ImageComponent } from './base/ImageComponent';
 import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
+import { NavigationBar } from './base/NavigationBar';
+import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
+import { IGenericComponentProps } from './GenericComponent';
+import { IComponentFormData } from 'src/utils/formComponentUtils';
+import { ILanguage } from 'altinn-shared/types';
 
 export interface IComponent {
   name: string;
-  Tag: any;
+  Tag: (props: IComponentProps) => JSX.Element;
   Type: ComponentTypes;
   customProperties?: any;
 }
@@ -35,12 +39,14 @@ export enum ComponentTypes {
   RadioButton,
   TextArea,
   FileUpload,
+  FileUploadWithTag,
   Button,
   Group,
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   AddressComponent,
   NavigationButtons,
+  InstantiationButton,
   AttachmentList,
+  NavigationBar,
 }
 
 export const textComponents: IComponent[] = [
@@ -124,6 +130,11 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.FileUpload,
   },
   {
+    name: 'FileUploadWithTag',
+    Tag: FileUploadWithTagComponent,
+    Type: ComponentTypes.FileUploadWithTag,
+  },
+  {
     name: 'Button',
     Tag: ButtonComponent,
     Type: ComponentTypes.Button,
@@ -134,9 +145,19 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.NavigationButtons,
   },
   {
+    name: 'InstantiationButton',
+    Tag: InstantiationButtonComponent,
+    Type: ComponentTypes.InstantiationButton,
+  },
+  {
     name: 'AttachmentList',
     Tag: AttachmentListComponent,
     Type: ComponentTypes.AttachmentList,
+  },
+  {
+    name: 'NavigationBar',
+    Tag: NavigationBar,
+    Type: ComponentTypes.NavigationBar,
   },
 ];
 
@@ -152,6 +173,23 @@ export const advancedComponents: IComponent[] = [
   },
 ];
 
-const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
+export interface IComponentProps extends IGenericComponentProps {
+  handleDataChange: (value: string, key?: string, skipValidation?: boolean) => void;
+  handleFocusUpdate: (componentId: string, step?: number) => void;
+  getTextResource: (key: string) => React.ReactNode;
+  getTextResourceAsString: (key: string) => string;
+  formData: IComponentFormData;
+  isValid: boolean;
+  language: ILanguage;
+  shouldFocus: boolean;
+  text: React.ReactNode;
+  label: () => JSX.Element;
+  legend: () => JSX.Element;
+}
+
+const components: IComponent[] = textComponents.concat(
+  schemaComponents,
+  advancedComponents,
+);
 
 export default components;

@@ -122,7 +122,7 @@ namespace Altinn.Platform.Authentication.Controllers
             return new X509Certificate2(pfxBytes);
         }
 
-        private List<string> ExportChain(X509Certificate2 cert)
+        private static List<string> ExportChain(X509Certificate2 cert)
         {
             List<string> result = new List<string>();
 

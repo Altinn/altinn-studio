@@ -1,8 +1,9 @@
+import { ILanguage } from 'altinn-shared/types';
 import { Action } from 'redux';
 import * as ActionTypes from './fetchLanguageActionTypes';
 
 export interface IFetchLanguageFulfilled extends Action {
-  language: any;
+  language: ILanguage;
 }
 export interface IFetchLanguageRejected extends Action {
   error: Error;
@@ -15,7 +16,7 @@ export function fetchLanguage(): Action {
 }
 
 export function fetchLanguageFulfilled(
-  language: any,
+  language: ILanguage,
 ): IFetchLanguageFulfilled {
   return {
     type: ActionTypes.FETCH_LANGUAGE_FULFILLED,

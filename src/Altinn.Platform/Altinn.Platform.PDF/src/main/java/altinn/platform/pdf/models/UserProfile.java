@@ -1,8 +1,8 @@
 package altinn.platform.pdf.models;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(description = "The profile")
+@Schema(description = "The profile")
 public class UserProfile {
   private ProfileSettingPreference profileSettingPreference;
 

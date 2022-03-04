@@ -131,17 +131,17 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Gets a list of resource policies for the list of org/apps
         /// </summary>
-        /// <param name="orgAppList">The list of org/apps</param>
+        /// <param name="appIdList">The list of org/apps</param>
         /// <param name="language">The language (not in use yet; exactly how is yet to be determined)</param>
         /// <returns>A list resourcePolicyResponses</returns>
         [AllowAnonymous]
         [HttpPost("/authorization/api/v1/policies/GetPolicies")]
-        public async Task<ActionResult> GetResourcePolicies([FromBody]List<List<AttributeMatch>> orgAppList, [FromQuery] string language)
+        public async Task<ActionResult> GetResourcePolicies([FromBody]List<List<AttributeMatch>> appIdList, [FromQuery] string language)
         {
             List<ResourcePolicyResponse> resourcePolicyResponses = new List<ResourcePolicyResponse>();
-            foreach (var attributeMatches in orgAppList)
+            foreach (var attributeMatches in appIdList)
             {
-                ResourcePolicyResponse response = new ResourcePolicyResponse { OrgApp = attributeMatches };
+                ResourcePolicyResponse response = new ResourcePolicyResponse { AppId = attributeMatches };
                 resourcePolicyResponses.Add(response);
                 string org = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.OrgAttribute)?.Value;
                 string app = attributeMatches.FirstOrDefault(match => match.Id == XacmlRequestAttribute.AppAttribute)?.Value;
@@ -165,7 +165,17 @@ namespace Altinn.Platform.Authorization.Controllers
                     continue;
                 }
 
-                response.ResourcePolicies = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
+                response.MinimumAuthenticationLevel = PolicyHelper.GetMinimumAuthenticationLevelFromXacmlPolicy(policy);
+                response.ResourcePolicies = new List<ResourcePolicy>();
+                List<ResourcePolicy> list = PolicyHelper.GetResourcePoliciesFromXacmlPolicy(policy, language);
+                foreach (ResourcePolicy resourcePolicy in list)
+                {
+                    if (resourcePolicy.Resource.First(a => a.Id == XacmlRequestAttribute.OrgAttribute).Value == org
+                        && resourcePolicy.Resource.First(a => a.Id == XacmlRequestAttribute.AppAttribute).Value == app)
+                    {
+                        response.ResourcePolicies.Add(resourcePolicy);
+                    }
+                }
             }
 
             return Ok(resourcePolicyResponses);
