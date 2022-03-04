@@ -2986,15 +2986,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-redux@npm:^7.1.23":
-  version: 7.1.23
-  resolution: "@types/react-redux@npm:7.1.23"
+"@types/react-redux@npm:^7.1.22":
+  version: 7.1.22
+  resolution: "@types/react-redux@npm:7.1.22"
   dependencies:
     "@types/hoist-non-react-statics": ^3.3.0
     "@types/react": "*"
     hoist-non-react-statics: ^3.3.0
     redux: ^4.0.0
-  checksum: 7cedb0f20806ce67255f676fab2d4d9534c12705d43636df95224cfa77fdf5a2e792dc76c6e072c02cad1c88030aea822c14f36fe85d459b898ee68fcff6f05c
+  checksum: eef458c0cda27eabd8d458b7fc40553aab8d2f218145b896b9059b86d88680ae479079aee13683f2a0f35774f20346b732e91182252402bd8777455e004561c9
   languageName: node
   linkType: hard
 
@@ -3825,7 +3825,7 @@ __metadata:
     "@types/lodash.isequal": ^4.5.5
     "@types/react": 17.0.39
     "@types/react-dom": ^17.0.13
-    "@types/react-redux": ^7.1.23
+    "@types/react-redux": ^7.1.22
     "@types/react-router-dom": ^5.3.3
     "@types/react-test-renderer": ^17.0.1
     "@types/redux-mock-store": ^1.0.3
@@ -3877,7 +3877,7 @@ __metadata:
     terser-webpack-plugin: ^4.2.3
     ts-jest: ^27.1.3
     ts-loader: ^8.3.0
-    typescript: ^4.5.5
+    typescript: ^4.6.2
     uuid: 8.3.2
     webpack: ^4.46.0
     webpack-cli: ^3.3.12
@@ -3994,10 +3994,10 @@ __metadata:
     eslint-import-resolver-typescript: ^2.5.0
     eslint-plugin-import: ^2.25.4
     eslint-plugin-jsx-a11y: ^6.5.1
-    eslint-plugin-react: ^7.29.2
+    eslint-plugin-react: ^7.29.3
     eslint-plugin-react-hooks: ^4.3.0
     ini: 2.0.0
-    typescript: ^4.5.5
+    typescript: ^4.6.2
   languageName: unknown
   linkType: soft
 
@@ -6958,9 +6958,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.29.2":
-  version: 7.29.2
-  resolution: "eslint-plugin-react@npm:7.29.2"
+"eslint-plugin-react@npm:^7.29.3":
+  version: 7.29.3
+  resolution: "eslint-plugin-react@npm:7.29.3"
   dependencies:
     array-includes: ^3.1.4
     array.prototype.flatmap: ^1.2.5
@@ -6978,7 +6978,7 @@ __metadata:
     string.prototype.matchall: ^4.0.6
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: fcd793c0fd8e4570dcf8f70dd4afae9882303f4a4b650e09dac2f85fdc0b28747cb97b79832f4b8f4eabdbfb9edf69dc0ff04e8b7f33e0bb8e3f024185f4b037
+  checksum: 5a7b0b5700a3ed9bc52f5e7caab31a60bba586d356d07b49aa78c4b7b83fb54f2e4f6d59f61a9a315f1f89ea74f422a41846ff3432647dd1e8ae629a96dc2814
   languageName: node
   linkType: hard
 
@@ -9960,18 +9960,6 @@ __metadata:
     pretty-format: ^27.5.1
     throat: ^6.0.1
   checksum: b716adf253ceb73db661936153394ab90d7f3a8ba56d6189b7cd4df8e4e2a4153b4e63ebb5d36e29ceb0f4c211d5a6f36ab7048c6abbd881c8646567e2ab8e6d
-  languageName: node
-  linkType: hard
-
-"jest-junit@npm:^12.3.0":
-  version: 12.3.0
-  resolution: "jest-junit@npm:12.3.0"
-  dependencies:
-    mkdirp: ^1.0.4
-    strip-ansi: ^5.2.0
-    uuid: ^8.3.2
-    xml: ^1.0.1
-  checksum: b1527eecba967b5f4f021117a14cb5c7cf6b5d99cd0efb50078198ec22a751afde0559db3fd9ff5485959d238787109277fdc8c591d566e270ae742748443407
   languageName: node
   linkType: hard
 
@@ -13760,7 +13748,7 @@ __metadata:
     terser-webpack-plugin: ^4.2.3
     ts-jest: ^27.1.3
     ts-loader: ^8.3.0
-    typescript: ^4.5.5
+    typescript: ^4.6.2
     webpack: ^4.46.0
     webpack-cli: ^3.3.12
     webpack-dev-server: ^3.11.3
@@ -14698,7 +14686,7 @@ __metadata:
     jest: ^27.5.1
     jest-environment-enzyme: ^7.1.2
     jest-enzyme: ^7.1.2
-    jest-junit: ^12.3.0
+    jest-junit: ^13.0.0
     jsdom: ^16.7.0
     marked: ^4.0.12
     moment: ^2.29.1
@@ -14711,7 +14699,7 @@ __metadata:
     react-test-renderer: ^17.0.2
     react-truncate-markup: ^5.1.0
     ts-jest: ^27.1.3
-    typescript: ^4.5.5
+    typescript: ^4.6.2
   languageName: unknown
   linkType: soft
 
@@ -16035,7 +16023,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.5.5":
+"typescript@npm:^4.6.2":
   version: 4.6.2
   resolution: "typescript@npm:4.6.2"
   bin:
@@ -16045,7 +16033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.6.2#~builtin<compat/typescript>":
   version: 4.6.2
   resolution: "typescript@patch:typescript@npm%3A4.6.2#~builtin<compat/typescript>::version=4.6.2&hash=ddd1e8"
   bin:
