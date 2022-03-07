@@ -213,7 +213,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             return await Task.FromResult(new HttpResponseMessage { Content = stringContent });
         }
 
-        private string ConvertToBase64(string text)
+        private static string ConvertToBase64(string text)
         {
             var bytes = Encoding.UTF8.GetBytes(text);
             return Convert.ToBase64String(bytes);
