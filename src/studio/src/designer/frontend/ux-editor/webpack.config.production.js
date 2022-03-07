@@ -1,4 +1,3 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -68,10 +67,6 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       async: false,
-    }),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
       filename: "ui-editor.css",

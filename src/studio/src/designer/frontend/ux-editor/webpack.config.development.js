@@ -1,4 +1,3 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -32,15 +31,6 @@ module.exports = {
         use: {
           loader: "babel-loader",
         }
-      },
-      {
-        test: /\.html$/,
-        use: [{
-          loader: "html-loader",
-          options: {
-            minimize: true
-          }
-        }]
       },
       {
         test: /\.scss$/,
@@ -92,10 +82,6 @@ module.exports = {
       }
     }),
     new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
-    }),
     new MiniCssExtractPlugin({
       filename: "ui-editor.css",
     }),
