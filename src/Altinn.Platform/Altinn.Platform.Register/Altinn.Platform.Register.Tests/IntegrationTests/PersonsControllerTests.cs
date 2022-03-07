@@ -55,7 +55,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
             testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
             testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
-            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+            testRequest.Headers.Add("X-Ai-LastName", ConvertToBase64("lastname"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(testRequest);
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
             testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
             testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
-            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+            testRequest.Headers.Add("X-Ai-LastName", ConvertToBase64("lastname"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(testRequest);
@@ -147,7 +147,7 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
             testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
             testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
-            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+            testRequest.Headers.Add("X-Ai-LastName", ConvertToBase64("lastname"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(testRequest);
@@ -178,7 +178,26 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
             testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
             testRequest.Headers.Add("X-Ai-NationalIdentityNumber", "personnumber");
-            testRequest.Headers.Add("X-Ai-LastName", "lastname");
+            testRequest.Headers.Add("X-Ai-LastName", ConvertToBase64("lastname"));
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(testRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetPerson_AuthenticationLevelTooLow_ReturnsForbidden()
+        {
+            // Arrange
+            string token = PrincipalUtil.GetToken(1, 1);
+
+            HttpClient client = _webApplicationFactorySetup.GetTestServerClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage testRequest = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/persons/");
+            testRequest.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(testRequest);
@@ -192,6 +211,12 @@ namespace Altinn.Platform.Register.Tests.IntegrationTests
             string content = JsonSerializer.Serialize(obj);
             StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
             return await Task.FromResult(new HttpResponseMessage { Content = stringContent });
+        }
+
+        private static string ConvertToBase64(string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            return Convert.ToBase64String(bytes);
         }
     }
 }

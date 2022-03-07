@@ -18,6 +18,7 @@ namespace Altinn.Platform.Register.Controllers
     /// The <see cref="PersonsController"/> provides the API endpoints related to persons.
     /// </summary>
     [Authorize(Policy = "PlatformAccess")]
+    [Authorize(Policy = "AuthorizationLevel2")]
     [Route("register/api/v1/persons")]
     public class PersonsController : ControllerBase
     {
@@ -36,10 +37,10 @@ namespace Altinn.Platform.Register.Controllers
         /// Gets the <see cref="Person"/> with the given national identity number.
         /// </summary>
         /// <remarks>
-        /// This method can be used to retrieve the party and person object for an identified person with
-        /// a national identity number. The service will track the number of invalid input combinations and
-        /// block further requests if the number of failed lookups have exceeded a configurable number. The
-        /// user will be prevented from performing new searches for a configurable number of seconds.
+        /// This endpoint can be used to retrieve the person object for an identified person. The service
+        /// will track the number of failed lookup attempts and block further requests if the number of failed
+        /// lookups have exceeded a configurable number. The user will be prevented from performing new searches
+        /// for a configurable number of seconds.
         /// </remarks>
         /// <returns>The party of the identified person.</returns>
         [HttpGet]
