@@ -1,13 +1,16 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.Api.Middleware;
+using Altinn.App.Core.Health;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
+
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +24,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Newtonsoft.Json.Linq;
+
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.App
@@ -66,6 +71,7 @@ namespace Altinn.App
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
                 });
             services.AddMemoryCache();
+            services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
@@ -173,6 +179,8 @@ namespace Altinn.App
             {
                 endpoints.MapControllers();
             });
+
+            app.UseHealthChecks("/health");
         }
 
         private void IncludeXmlComments(SwaggerGenOptions options)
