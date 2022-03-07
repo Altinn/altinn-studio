@@ -1,75 +1,45 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const path = require('path');
+const commonConfig = require('./webpack.common');
 
 module.exports = {
+  ...commonConfig,
   mode: 'production',
   devtool: false,
-  entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
-    "./index.tsx"
-  ],
-  output: {
-    filename: "ui-editor.js"
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
-    alias: {
-      "app-shared": path.resolve(__dirname, "../shared/")
-    }
-  },
   performance: {
     hints: false,
   },
   optimization: {
     minimize: true,
-    minimizer: [
-      new TerserPlugin(),
-    ],
+    minimizer: [new TerserPlugin()],
   },
   module: {
-    rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
+    rules: [
+      ...common.module.rules,
       {
         test: /\.css$/,
-        use: [{
+        use: [
+          {
             loader: MiniCssExtractPlugin.loader,
           },
           {
-            loader: "css-loader",
+            loader: 'css-loader',
             options: {
-              url: false
-            }
-          }
-        ]
+              url: false,
+            },
+          },
+        ],
       },
       {
         test: /\.tsx?/,
-        loader: "ts-loader",
-      }
+        loader: 'ts-loader',
+      },
     ],
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       async: false,
     }),
-    new MiniCssExtractPlugin({
-      filename: "ui-editor.css",
-    }),
   ],
-}
+};

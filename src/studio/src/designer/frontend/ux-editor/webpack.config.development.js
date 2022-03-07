@@ -1,65 +1,40 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const path = require('path');
+const commonConfig = require('./webpack.common');
 
 module.exports = {
+  ...commonConfig,
   mode: 'development',
   devtool: 'eval',
-  entry: [
-    "core-js/modules/es.object.assign",
-    "core-js/modules/es.array.find-index",
-    "core-js/modules/es.array.find",
-    "./index.tsx"
-  ],
-  output: {
-    filename: "ui-editor.js"
-  },
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
-    alias: {
-      "app-shared": path.resolve(__dirname, "../shared/")
-    }
-  },
   performance: {
     hints: 'warning',
   },
   module: {
-    rules: [{
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        }
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
-      },
+    rules: [
+      ...common.module.rules,
       {
         test: /\.svg$/,
         use: {
-          loader: "svg-inline-loader",
-        }
+          loader: 'svg-inline-loader',
+        },
       },
       {
         test: /\.css$/,
-        use: [{
+        use: [
+          {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              url: false
-            }
+              url: false,
+            },
           },
           {
-            loader: "css-loader",
+            loader: 'css-loader',
             options: {
-              url: false
-            }
+              url: false,
+            },
           },
-        ]
+        ],
       },
       {
         test: /\.tsx?/,
@@ -69,24 +44,26 @@ module.exports = {
         },
       },
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.js$/,
-        loader: "source-map-loader",
-      }
+        loader: 'source-map-loader',
+      },
     ],
   },
   plugins: [
+    ...common.plugins,
     new ForkTsCheckerWebpackPlugin({
       eslint: {
-        files: './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}'
-      }
+        files:
+          './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}',
+      },
     }),
-    new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
-    new MiniCssExtractPlugin({
-      filename: "ui-editor.css",
+    new ForkTsCheckerNotifierWebpackPlugin({
+      title: 'TypeScript',
+      excludeWarnings: false,
     }),
   ],
   devServer: {
     historyApiFallback: true,
-  }
-}
+  },
+};
