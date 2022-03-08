@@ -14,6 +14,9 @@ namespace LocalTest.Services.Profile.Implementation
     /// </summary>
     public class UserProfilesWrapper : IUserProfiles
     {
+        // Temporary hack to allow testing with different languages in localtest
+        public static string STATIC_LANGUAGE_OVERRIDE {get; set;} = "";
+
         private readonly LocalPlatformSettings _localPlatformSettings;
 
         private readonly LocalTest.Services.Register.Interface.IParties _partiesService;
@@ -33,6 +36,11 @@ namespace LocalTest.Services.Profile.Implementation
             {
                 string content = File.ReadAllText(path);
                 user = (UserProfile)JsonConvert.DeserializeObject(content, typeof(UserProfile));
+            }
+
+            if(!string.IsNullOrWhiteSpace(STATIC_LANGUAGE_OVERRIDE))
+            {
+                user.ProfileSettingPreference.Language = STATIC_LANGUAGE_OVERRIDE;
             }
 
             user.Party = await _partiesService.GetParty(user.PartyId);
