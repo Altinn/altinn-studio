@@ -1,10 +1,10 @@
 apiVersion: v1
 description: A Helm chart for Kubernetes
-# name can only be lowercase. It is used in the templats.
+# name can only be lowercase. It is used in the templates.
 name: deployment
 version: 1.1.0
 
 dependencies:
 - name: deployment
   repository: https://charts.altinn.studio/
-  version: 2.0.0
+  version: 2.1.0
