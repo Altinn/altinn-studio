@@ -108,3 +108,22 @@ export function customEncodeURI(uri: string): string {
 export const logoutUrlAltinn = (url: string): string => {
   return `${returnBaseUrlToAltinn(url)}ui/authentication/LogOut`;
 };
+
+// Storage is always returning https:// links for attachments.
+// on localhost (without https) this is a problem, so we make links
+// to the same domain as window.location.host relative.
+// "https://domain.com/a/b" => "/a/b"
+export const makeUrlRelativeIfSameDomain = (
+  url: string,
+  location: Location = window.location,
+) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === location.hostname) {
+      return parsed.pathname + parsed.search + parsed.hash;
+    }
+  } catch (e) {
+    //ignore invalid (or dummy) urls
+  }
+  return url;
+};

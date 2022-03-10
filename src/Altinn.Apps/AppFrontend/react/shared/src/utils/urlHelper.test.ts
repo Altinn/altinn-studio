@@ -6,6 +6,7 @@ import {
   returnBaseUrlToAltinn,
   customEncodeURI,
   logoutUrlAltinn,
+  makeUrlRelativeIfSameDomain,
 } from './urlHelper';
 
 describe('Shared urlHelper.ts', () => {
@@ -124,5 +125,38 @@ describe('Shared urlHelper.ts', () => {
     expect(logoutUrlAltinn(originProd)).toContain(
       'altinn.no/ui/authentication/LogOut',
     );
+  });
+
+  test('makeUrlRelativeIfSameDomain()', () => {
+    // Simple testcase make relative
+    expect(
+      makeUrlRelativeIfSameDomain('https://altinn3local.no/asdf', {
+        hostname: 'altinn3local.no',
+      } as Location),
+    ).toBe('/asdf');
+    // Simple testcase domains don't match
+    expect(
+      makeUrlRelativeIfSameDomain('https://altinn3local.no/asdf', {
+        hostname: 'altinn3localno',
+      } as Location),
+    ).toBe('https://altinn3local.no/asdf');
+    // Test with dummyurl
+    expect(
+      makeUrlRelativeIfSameDomain('dummyurl', {
+        hostname: 'altinn3local.no',
+      } as Location),
+    ).toBe('dummyurl');
+
+    // Test with non-standard port
+    expect(
+      makeUrlRelativeIfSameDomain('http://altinn3local.no:8080/', {
+        hostname: 'altinn3local.no',
+      } as Location),
+    ).toBe('/');
+    expect(
+      makeUrlRelativeIfSameDomain('http://altinn3local.no:8080/', {
+        hostname: 'altinn3local.no',
+      } as Location),
+    ).toBe('/');
   });
 });
