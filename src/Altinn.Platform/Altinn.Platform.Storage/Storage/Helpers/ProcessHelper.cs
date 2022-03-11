@@ -51,7 +51,7 @@ namespace Altinn.Platform.Storage.Helpers
 
                         if (task_1 != null)
                         {
-                            task_1.Started = instanceEvent.Created;            
+                            task_1.Started = instanceEvent.Created;
                         }
                         else
                         {
