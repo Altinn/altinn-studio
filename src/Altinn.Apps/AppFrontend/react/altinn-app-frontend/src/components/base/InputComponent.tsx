@@ -114,7 +114,7 @@ export function InputComponent(props: IInputProps) {
       }
       inputProps={{
         formatting,
-        className: classNames(classes.input, 'form-control', {
+        className: classNames('form-control', classes.input, {
           'validation-error': !isValid,
           disabled: readOnly,
         }),
