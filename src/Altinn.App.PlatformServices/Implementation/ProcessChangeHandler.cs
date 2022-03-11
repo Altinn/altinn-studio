@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.Core.Interface;
@@ -11,16 +12,17 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Process;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Interface;
-using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Implementation
 {
@@ -37,8 +39,8 @@ namespace Altinn.App.Core.Implementation
         private readonly ProcessHelper _processHelper;
         private readonly ILogger<ProcessChangeHandler> _logger;
         private readonly IValidation _validationService;
-
         private readonly IEvents _eventsService;
+        private readonly IProfile _profileClient;
         private readonly AppSettings _appSettings;
 
         /// <summary>
@@ -51,6 +53,7 @@ namespace Altinn.App.Core.Implementation
             IInstance instanceClient,
             IValidation validationService,
             IEvents eventsService,
+            IProfile profileClient,
             IOptions<AppSettings> appSettings)
         {
             _altinnApp = altinnApp;
@@ -61,13 +64,14 @@ namespace Altinn.App.Core.Implementation
             _processHelper = new ProcessHelper(bpmnStream);
             _validationService = validationService;
             _eventsService = eventsService;
+            _profileClient = profileClient;
             _appSettings = appSettings.Value;
         }
 
         /// <inheritdoc />
         public async Task<ProcessChangeContext> HandleMoveToNext(ProcessChangeContext processChange)
         {
-            processChange.ProcessStateChange = ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
+            processChange.ProcessStateChange = await ProcessNext(processChange.Instance, processChange.RequestedProcessElementId, processChange.User);
             if (processChange.ProcessStateChange != null)
             {
                 processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
@@ -82,10 +86,10 @@ namespace Altinn.App.Core.Implementation
         public async Task<ProcessChangeContext> HandleStart(ProcessChangeContext processChange)
         {
             // start process
-            ProcessStateChange startChange = ProcessStart(processChange.Instance, processChange.ProcessFlowElements[0], processChange.User);
+            ProcessStateChange startChange = await ProcessStart(processChange.Instance, processChange.ProcessFlowElements[0], processChange.User);
             InstanceEvent startEvent = CopyInstanceEventValue(startChange.Events.First());
 
-            ProcessStateChange nextChange = ProcessNext(processChange.Instance, processChange.ProcessFlowElements[1], processChange.User);
+            ProcessStateChange nextChange = await ProcessNext(processChange.Instance, processChange.ProcessFlowElements[1], processChange.User);
             InstanceEvent goToNextEvent = CopyInstanceEventValue(nextChange.Events.First());
 
             ProcessStateChange processStateChange = new ProcessStateChange
@@ -100,7 +104,7 @@ namespace Altinn.App.Core.Implementation
             {
                 processChange.Instance = await UpdateProcessAndDispatchEvents(processChange);
             }
-           
+
             return processChange;
         }
 
@@ -212,7 +216,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Does not save process. Instance is updated.
         /// </summary>
-        private static ProcessStateChange ProcessStart(Instance instance, string startEvent, ClaimsPrincipal user)
+        private async Task<ProcessStateChange> ProcessStart(Instance instance, string startEvent, ClaimsPrincipal user)
         {
             if (instance.Process == null)
             {
@@ -229,7 +233,7 @@ namespace Altinn.App.Core.Implementation
 
                 List<InstanceEvent> events = new List<InstanceEvent>
                 {
-                    GenerateProcessChangeEvent(InstanceEventType.process_StartEvent.ToString(), instance, now, user),
+                    await GenerateProcessChangeEvent(InstanceEventType.process_StartEvent.ToString(), instance, now, user),
                 };
 
                 return new ProcessStateChange
@@ -243,8 +247,9 @@ namespace Altinn.App.Core.Implementation
             return null;
         }
 
-        private static InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
+        private async Task<InstanceEvent> GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
         {
+            int? userId = user.GetUserIdAsInt();
             InstanceEvent instanceEvent = new InstanceEvent
             {
                 InstanceId = instance.Id,
@@ -253,12 +258,18 @@ namespace Altinn.App.Core.Implementation
                 Created = now,
                 User = new PlatformUser
                 {
-                    UserId = user.GetUserIdAsInt(),
+                    UserId = userId,
                     AuthenticationLevel = user.GetAuthenticationLevel(),
                     OrgId = user.GetOrg()
                 },
                 ProcessInfo = instance.Process,
             };
+
+            if (string.IsNullOrEmpty(instanceEvent.User.OrgId) && userId != null)
+            {
+                UserProfile up = await _profileClient.GetUserProfile((int)userId);
+                instanceEvent.User.NationalIdentityNumber = up.Party.SSN;
+            }
 
             return instanceEvent;
         }
@@ -298,7 +309,8 @@ namespace Altinn.App.Core.Implementation
                     AuthenticationLevel = e.User.AuthenticationLevel,
                     EndUserSystemId = e.User.EndUserSystemId,
                     OrgId = e.User.OrgId,
-                    UserId = e.User.UserId
+                    UserId = e.User.UserId,
+                    NationalIdentityNumber = e.User?.NationalIdentityNumber
                 }
             };
         }
@@ -306,7 +318,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Moves instance's process to nextElement id. Returns the instance together with process events.
         /// </summary>
-        public ProcessStateChange ProcessNext(Instance instance, string nextElementId, ClaimsPrincipal userContext)
+        public async Task<ProcessStateChange> ProcessNext(Instance instance, string nextElementId, ClaimsPrincipal userContext)
         {
             if (instance.Process != null)
             {
@@ -320,7 +332,7 @@ namespace Altinn.App.Core.Implementation
                     }
                 };
 
-                result.Events = MoveProcessToNext(instance, nextElementId, userContext);
+                result.Events = await MoveProcessToNext(instance, nextElementId, userContext);
                 result.NewProcessState = instance.Process;
                 return result;
             }
@@ -331,7 +343,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Assumes that nextElementId is a valid task/state
         /// </summary>
-        private List<InstanceEvent> MoveProcessToNext(
+        private async Task<List<InstanceEvent>> MoveProcessToNext(
             Instance instance,
             string nextElementId,
             ClaimsPrincipal user)
@@ -350,13 +362,13 @@ namespace Altinn.App.Core.Implementation
             if (_processHelper.IsTask(previousElementId) && sequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
             {
                 instance.Process = previousState;
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_EndTask.ToString(), instance, now, user));
+                events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_EndTask.ToString(), instance, now, user));
                 instance.Process = currentState;
             }
             else if (_processHelper.IsTask(previousElementId))
             {
                 instance.Process = previousState;
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_AbandonTask.ToString(), instance, now, user));
+                events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_AbandonTask.ToString(), instance, now, user));
                 instance.Process = currentState;
             }
 
@@ -367,10 +379,10 @@ namespace Altinn.App.Core.Implementation
                 currentState.Ended = now;
                 currentState.EndEvent = nextElementId;
 
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user));
+                events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user));
 
                 // add submit event (to support Altinn2 SBL)
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
+                events.Add(await GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
             }
             else if (_processHelper.IsTask(nextElementId))
             {
@@ -385,7 +397,7 @@ namespace Altinn.App.Core.Implementation
                     FlowType = sequenceFlowType.ToString(),
                 };
 
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user));
+                events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user));
             }
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.

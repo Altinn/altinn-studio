@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>4.30.0</Version>
-    <AssemblyVersion>4.30.0.0</AssemblyVersion>
+    <Version>4.31.1</Version>
+    <AssemblyVersion>4.31.1.0</AssemblyVersion>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
     <Description>
@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.6.2" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.8.0" />
   </ItemGroup>
 
   <ItemGroup>
