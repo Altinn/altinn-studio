@@ -11,6 +11,7 @@ using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Altinn.App.services.options;
 using Altinn.App.PlatformServices.Options;
+using Altinn.App.Core.Health;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -72,6 +73,7 @@ namespace Altinn.App
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHealthChecks().AddCheck<HealthCheck>("default_health_check");
 
             // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
@@ -171,6 +173,7 @@ namespace Altinn.App
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseHealthChecks("/health");
             app.UseStaticFiles("/ttd/frontend-test");
 
             app.UseEndpoints(endpoints =>
