@@ -14,6 +14,7 @@ namespace Altinn.Platform.Authorization.Functions.Services
     {
         private readonly IKeyVaultService _keyVaultService;
         private readonly IAccessTokenGenerator _accessTokenGenerator;
+        private readonly PlatformSettings _platformSettings;
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly KeyVaultSettings _keyVaultSettings;
         private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
@@ -21,10 +22,11 @@ namespace Altinn.Platform.Authorization.Functions.Services
         private string _accessToken;
 
         public AccessTokenProvider(IKeyVaultService keyVaultService, IAccessTokenGenerator accessTokenGenerator,
-            IOptions<AccessTokenSettings> accessTokenSettings, IOptions<KeyVaultSettings> keyVaultSettings)
+            IOptions<AccessTokenSettings> accessTokenSettings, IOptions<KeyVaultSettings> keyVaultSettings, IOptions<PlatformSettings> platformSettings)
         {
             _keyVaultService = keyVaultService;
             _accessTokenGenerator = accessTokenGenerator;
+            _platformSettings = platformSettings.Value;
             _accessTokenSettings = accessTokenSettings.Value;
             _keyVaultSettings = keyVaultSettings.Value;
         }
@@ -39,7 +41,7 @@ namespace Altinn.Platform.Authorization.Functions.Services
                 {
                     string certBase64 = await _keyVaultService.GetCertificateAsync(_keyVaultSettings.KeyVaultURI, _keyVaultSettings.PlatformCertSecretId);
                     _accessToken = _accessTokenGenerator.GenerateAccessToken(
-                        "platform",
+                        _platformSettings.AccessTokenIssuer,
                         "platform.authorization",
                         new X509Certificate2(Convert.FromBase64String(certBase64), (string)null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable));
                 }

@@ -41,27 +41,32 @@ namespace Altinn.Platform.Authorization.Functions.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning(
-                        "Failed to post delegation events to bridge. resultCode={resultCode} reasonPhrase={reasonPhrase} resultBody={resultBody} numEventsSent={numEventsSent} changeIds={changeIds}",
+                        "Bridge returned non-success. resultCode={resultCode} reasonPhrase={reasonPhrase} resultBody={resultBody} numEventsSent={numEventsSent} changeIds={changeIds}",
                         response.StatusCode,
                         response.ReasonPhrase,
                         await response.Content.ReadAsStringAsync(),
                         delegationChangeEventList.DelegationChangeEvents.Count,
                         GetChangeIdsForLog(delegationChangeEventList));
+
+                    // Throw exception to ensure requeue of the event list
+                    throw new BridgeRequestFailedException();
                 }
 
-                // Throw exception to ensure requeue of the event list
-                throw new BridgeRequestFailedException();
+            }
+            catch (BridgeRequestFailedException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(
-                    "Exception thrown while attempting to post delegation events to bridge. exception={exception} message={message} numEventsSent={numEventsSent} changeIds={changeIds}",
+                    "Exception thrown while attempting to post delegation events to Bridge. exception={exception} message={message} numEventsSent={numEventsSent} changeIds={changeIds}",
                     ex.GetType().Name,
                     ex.Message,
                     delegationChangeEventList.DelegationChangeEvents.Count,
                     GetChangeIdsForLog(delegationChangeEventList));
 
-                throw;
+                throw new BridgeRequestFailedException();
             }
         }
 

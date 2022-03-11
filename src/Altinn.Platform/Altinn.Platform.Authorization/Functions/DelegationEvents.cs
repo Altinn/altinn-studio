@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Functions.Exceptions;
 using Altinn.Platform.Authorization.Functions.Models;
 using Altinn.Platform.Authorization.Functions.Services.Interfaces;
 using Microsoft.Azure.WebJobs;
@@ -14,9 +17,9 @@ namespace Altinn.Platform.Authorization.Functions
         }
 
         [FunctionName(nameof(DelegationEvents))]
-        public void Run([QueueTrigger("delegationevents", Connection = "QueueStorage")] DelegationChangeEventList delegationChangeEvent)
+        public async Task RunAsync([QueueTrigger("delegationevents", Connection = "QueueStorage")] DelegationChangeEventList delegationChangeEvent)
         {
-            _eventPusherService.PushEvents(delegationChangeEvent);
+            await _eventPusherService.PushEvents(delegationChangeEvent);
         }
     }
 }
