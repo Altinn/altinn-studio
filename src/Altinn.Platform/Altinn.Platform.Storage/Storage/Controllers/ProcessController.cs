@@ -179,8 +179,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to retriece process history for instance object {instanceId}", instanceId);
-                return StatusCode(500, $"Unable to retriece process history for instance object {instanceId}: {e.Message}");
+                _logger.LogError(e, "Unable to retrieve process history for instance object {instanceId}", instanceId);
+                return StatusCode(500, $"Unable to retrieve process history for instance object {instanceId}: {e.Message}");
             }
         }
     }
