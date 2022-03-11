@@ -32,7 +32,7 @@ namespace Altinn.Platform.Receipt.Health
             Next.Process(item);
         }
 
-        private bool ExcludeItemTelemetry(ITelemetry item)
+        private static bool ExcludeItemTelemetry(ITelemetry item)
         {
             RequestTelemetry request = item as RequestTelemetry;
 

@@ -64,10 +64,12 @@ namespace Altinn.Platform.Events.Authorization
         /// </summary>
         public static XacmlJsonRequestRoot CreateDecisionRequest(CloudEvent cloudEvent, string subject)
         {
-            XacmlJsonRequest request = new XacmlJsonRequest();
-            request.AccessSubject = new List<XacmlJsonCategory>();
-            request.Action = new List<XacmlJsonCategory>();
-            request.Resource = new List<XacmlJsonCategory>();
+            XacmlJsonRequest request = new XacmlJsonRequest
+            {
+                AccessSubject = new List<XacmlJsonCategory>(),
+                Action = new List<XacmlJsonCategory>(),
+                Resource = new List<XacmlJsonCategory>()
+            };
 
             string org = null;
             string app = null;
@@ -95,16 +97,22 @@ namespace Altinn.Platform.Events.Authorization
 
         private static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
         {
-            XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
-            actionAttributes.Attribute = new List<XacmlJsonAttribute>();
-            actionAttributes.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
+            XacmlJsonCategory actionAttributes = new XacmlJsonCategory
+            {
+                Attribute = new List<XacmlJsonAttribute>
+                {
+                    DecisionHelper.CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult)
+                }
+            };
             return actionAttributes;
         }
 
         private static XacmlJsonCategory CreateEventsResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
         {
-            XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
-            resourceCategory.Attribute = new List<XacmlJsonAttribute>();
+            XacmlJsonCategory resourceCategory = new XacmlJsonCategory
+            {
+                Attribute = new List<XacmlJsonAttribute>()
+            };
 
             if (!string.IsNullOrWhiteSpace(instanceOwnerPartyId))
             {
@@ -133,8 +141,10 @@ namespace Altinn.Platform.Events.Authorization
 
         private static XacmlJsonCategory CreateSubjectCategory(string consumer)
         {
-            XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
-            subjectAttributes.Attribute = CreateSubjectAttributes(consumer);
+            XacmlJsonCategory subjectAttributes = new XacmlJsonCategory
+            {
+                Attribute = CreateSubjectAttributes(consumer)
+            };
 
             return subjectAttributes;
         }

@@ -7,6 +7,7 @@ import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
+import { makeUrlRelativeIfSameDomain } from '../../utils/urlHelper';
 import { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 
@@ -62,6 +63,7 @@ function ListItemLink(props: any) {
     );
 }
 
+
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
     <>
@@ -75,7 +77,7 @@ export function AltinnAttachment(props: IAltinnAttachmentProps) {
               },
               props.classes.a,
               )}
-            href={attachment.url}
+            href={makeUrlRelativeIfSameDomain(attachment.url)}
             key={index}
           >
             <ListItemIcon>

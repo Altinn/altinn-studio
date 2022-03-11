@@ -64,7 +64,7 @@ namespace Altinn.Platform.Events.Services
             }
             else
             {
-                _logger.LogError($"// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+                _logger.LogError("// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}", partyId, response.StatusCode);
             }
 
             return party;
@@ -92,7 +92,7 @@ namespace Altinn.Platform.Events.Services
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Response {response}. \n Reason {reason}.");
+                _logger.LogError("// RegisterService // PartyLookup // Failed to lookup party in platform register. Response {response}. \n Reason {reason}.", response, reason);
 
                 throw await PlatformHttpException.CreateAsync(response);
             }

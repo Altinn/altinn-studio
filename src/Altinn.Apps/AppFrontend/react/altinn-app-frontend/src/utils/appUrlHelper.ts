@@ -203,10 +203,17 @@ export interface IGetOptionsUrlParams {
   dataMapping?: IMapping;
   formData?: IFormData;
   language?: string;
+  secure?: boolean;
+  instanceId?: string;
 }
 
-export const getOptionsUrl = ({ optionsId, dataMapping, formData, language }: IGetOptionsUrlParams) => {
-  const url = new URL(`${appPath}/api/options/${optionsId}`);
+export const getOptionsUrl = ({ optionsId, dataMapping, formData, language, secure, instanceId }: IGetOptionsUrlParams) => {
+  let url: URL;
+  if (secure) {
+    url = new URL(`${appPath}/instances/${instanceId}/options/${optionsId}`);
+  } else {
+    url = new URL(`${appPath}/api/options/${optionsId}`);
+  }
   let params: Record<string, string> = {};
 
   if (language) {

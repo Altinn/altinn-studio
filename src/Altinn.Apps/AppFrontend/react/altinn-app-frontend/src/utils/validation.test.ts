@@ -421,695 +421,750 @@ describe('utils > validation', () => {
     ];
   });
 
-  it('+++ should count total number of errors correctly', () => {
-    const result = validation.getErrorCount(
-      mockFormValidationResult.validations,
-    );
-    expect(result).toEqual(4);
-  });
-
-  it('+++ canFormBeSaved should validate correctly', () => {
-    const apiModeComplete = 'Complete';
-    const falseResult = validation.canFormBeSaved(
-      mockFormValidationResult,
-      apiModeComplete,
-    );
-    const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
-    const trueResult2 = validation.canFormBeSaved(null);
-    const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
-    expect(falseResult).toBeFalsy();
-    expect(falseResult2).toBeFalsy();
-    expect(trueResult2).toBeTruthy();
-    expect(trueResult3).toBeTruthy();
-  });
-
-  it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
-    const componentSpesificValidations = validation.validateFormComponents(
-      mockFormAttachments.attachments,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockFormData,
-      mockLanguage.language,
-      [],
-    );
-
-    const mockResult = {
-      FormLayout: {
-        componentId_7: {
-          simpleBinding: {
-            errors: ['For å fortsette må du laste opp 2 vedlegg'],
-            warnings: [],
-          },
-        },
-      },
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateFormComponents should return error on fileUpload if its no file', () => {
-    mockFormAttachments = {
-      attachments: null,
-    };
-    const componentSpesificValidations = validation.validateFormComponents(
-      mockFormAttachments.attachments,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockFormData,
-      mockLanguage.language,
-      [],
-    );
-
-    const mockResult = {
-      FormLayout: {
-        componentId_7: {
-          simpleBinding: {
-            errors: ['For å fortsette må du laste opp 2 vedlegg'],
-            warnings: [],
-          },
-        },
-      },
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateFormComponents should not return error on fileUpload if its enough files', () => {
-    mockLayout = {
-      FormLayout: [
-        {
-          type: 'FileUpload',
-          id: 'componentId_4',
-          dataModelBindings: {},
-          maxNumberOfAttachments: '1',
-          minNumberOfAttachments: '0',
-        },
-      ],
-    };
-    const componentSpesificValidations = validation.validateFormComponents(
-      mockFormAttachments.attachments,
-      mockLayout,
-      Object.keys(mockLayout),
-      mockFormData,
-      mockLanguage.language,
-      [],
-    );
-
-    const mockResult = {
-      FormLayout: {},
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateFormComponents should not return error if element is hidden', () => {
-    mockLayout = {
-      FormLayout: [
-        {
-          type: 'FileUpload',
-          id: 'componentId_4',
-          dataModelBindings: {},
-          maxNumberOfAttachments: '1',
-          minNumberOfAttachments: '0',
-        },
-      ],
-    };
-    const componentSpesificValidations = validation.validateFormComponents(
-      mockFormAttachments.attachments,
-      mockLayout,
-      Object.keys(mockLayout),
-      mockFormData,
-      mockLanguage.language,
-      ['componentId_4'],
-    );
-
-    const mockResult = {
-      FormLayout: {},
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateFormComponents should not return error if element is part of layout not present in layoutOrder (sporvalg)', () => {
-    mockLayout = {
-      FormLayout: [
-        {
-          type: 'FileUpload',
-          id: 'componentId_4',
-          dataModelBindings: {},
-          maxNumberOfAttachments: '1',
-          minNumberOfAttachments: '0',
-        },
-      ],
-    };
-    const componentSpesificValidations = validation.validateFormComponents(
-      mockFormAttachments.attachments,
-      mockLayout,
-      [],
-      mockFormData,
-      mockLanguage.language,
-      [],
-    );
-
-    expect(componentSpesificValidations).toEqual({});
-  });
-
-  it('+++ validateEmptyFields should return error if empty fields are required', () => {
-    const repeatingGroups = {
-      group1: {
-        count: 0,
-        editIndex: -1,
-      },
-    };
-    const componentSpesificValidations = validation.validateEmptyFields(
-      mockFormData,
-      mockLayout,
-      Object.keys(mockLayout),
-      mockLanguage.language,
-      [],
-      repeatingGroups,
-    );
-
-    const mockResult = {
-      FormLayout: {
-        componentId_3: {
-          simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
-        },
-        'componentId_4-0': {
-          simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
-        },
-        componentId_6: {
-          address: { errors: ['Feltet er påkrevd'], warnings: [] },
-          postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
-          zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
-        },
-      },
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateEmptyFields should not return error for repeating group if child is hidden', () => {
-    const repeatingGroups = {
-      group1: {
-        count: 0,
-        editIndex: -1,
-      },
-    };
-    const componentSpesificValidations = validation.validateEmptyFields(
-      mockFormData,
-      mockLayout,
-      Object.keys(mockLayout),
-      mockLanguage.language,
-      ['componentId_4-0'],
-      repeatingGroups,
-    );
-
-    const mockResult = {
-      FormLayout: {
-        componentId_3: {
-          simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
-        },
-        componentId_6: {
-          address: { errors: ['Feltet er påkrevd'], warnings: [] },
-          postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
-          zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
-        },
-      },
-    };
-
-    expect(componentSpesificValidations).toEqual(mockResult);
-  });
-
-  it('+++ validateEmptyFields should not return error if component is not part of layout order (sporvalg)', () => {
-    const repeatingGroups = {
-      group1: {
-        count: 0,
-        editIndex: -1,
-      },
-    };
-    const componentSpesificValidations = validation.validateEmptyFields(
-      mockFormData,
-      mockLayout,
-      [],
-      mockLanguage.language,
-      [],
-      repeatingGroups,
-    );
-
-    expect(componentSpesificValidations).toEqual({});
-  });
-
-  it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
-    const component = mockLayout.FormLayout.find(
-      (c) => c.id === 'componentId_3',
-    );
-    const validations = {};
-    validations[component.id] = validation.validateEmptyField(
-      mockFormData,
-      component.dataModelBindings,
-      mockLanguage.language,
-    );
-
-    const mockResult = {
-      componentId_3: {
-        simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
-      },
-    };
-
-    expect(validations).toEqual(mockResult);
-  });
-
-  it('+++ validateEmptyField should find all errors in an AddressComponent', () => {
-    const component = mockLayout.FormLayout.find(
-      (c) => c.id === 'componentId_6',
-    );
-    const validations = {};
-    validations[component.id] = validation.validateEmptyField(
-      mockFormData,
-      component.dataModelBindings,
-      mockLanguage.language,
-    );
-
-    const mockResult = {
-      componentId_6: {
-        address: { errors: ['Feltet er påkrevd'], warnings: [] },
-        postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
-        zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
-      },
-    };
-
-    expect(validations).toEqual(mockResult);
-  });
-
-  it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidations =
-      validation.mapDataElementValidationToRedux(
-        mockDataElementValidations,
-        mockLayoutState.layouts,
-        [],
+  describe('getErrorCount', () => {
+    it('should count total number of errors correctly', () => {
+      const result = validation.getErrorCount(
+        mockFormValidationResult.validations,
       );
-    const expected = getMockValidationState(true);
-    expect(mappedDataElementValidations).toEqual(expected);
-  });
-
-  it('+++ validateFormData should return error if form data is invalid', () => {
-    const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(
-      mockFormData,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockValidator,
-      mockLanguage.language,
-      [],
-    );
-    expect(mockResult).toEqual(mockFormValidationResult);
-  });
-
-  it('+++ validateFormData should return no errors if form data is valid', () => {
-    const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(
-      mockValidFormData,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockValidator,
-      mockLanguage,
-      [],
-    );
-    expect(mockResult.validations).toEqual({});
-  });
-
-  it('+++ validateFormData should return custom error message when this is defined', () => {
-    const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockTexts = [
-      { id: 'custom_error', value: 'This is a custom error message' },
-    ];
-    const formData = {
-      ...mockValidFormData,
-      dataModelField_custom: 'abcdefg',
-    };
-
-    const mockResult = validation.validateFormData(
-      formData,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockValidator,
-      mockLanguage,
-      mockTexts,
-    );
-    expect(mockResult.validations).toEqual({
-      FormLayout: {
-        componentId_customError: {
-          simpleBinding: {
-            errors: [getParsedTextResourceByKey('custom_error', mockTexts)],
-          },
-        },
-      },
+      expect(result).toEqual(4);
     });
   });
 
-  it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
-    const data: any = {
-      dataModelField_1: 'abc',
-    };
-    const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(
-      data,
-      mockLayoutState.layouts,
-      Object.keys(mockLayoutState.layouts),
-      mockValidator,
-      mockLanguage,
-      [],
-    );
-    expect(mockResult.invalidDataTypes).toBeTruthy();
+  describe('canFormBeSaved', () => {
+    it('should validate correctly', () => {
+      const apiModeComplete = 'Complete';
+      const falseResult = validation.canFormBeSaved(
+        mockFormValidationResult,
+        apiModeComplete,
+      );
+      const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
+      const trueResult2 = validation.canFormBeSaved(null);
+      const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
+      expect(falseResult).toBeFalsy();
+      expect(falseResult2).toBeFalsy();
+      expect(trueResult2).toBeTruthy();
+      expect(trueResult3).toBeTruthy();
+    });
   });
 
-  it('+++ validateFormData should not return error if form data is part of layout not present in layoutOrder (sporvalg)', () => {
-    const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(
-      mockFormData,
-      mockLayoutState.layouts,
-      [],
-      mockValidator,
-      mockLanguage.language,
-      [],
-    );
-    expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
-  });
+  describe('validateFormComponents', () => {
+    it('should return error on fileUpload if its not enough files', () => {
+      const componentSpesificValidations = validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
 
-  it('+++ getIndex should return null for field not in repeating group', () => {
-    const dataModelBinding = 'dataModelField_1';
-    expect(validation.getIndex(dataModelBinding)).toBeNull();
-  });
-
-  it('+++ getIndex should return index for field in repeating group', () => {
-    const dataModelBinding = 'group_1[2].dataModelField_1';
-    expect(validation.getIndex(dataModelBinding)).toBe('2');
-  });
-
-  it('+++ componentHasValidations should return true if component has validations', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        dummyId: {
-          simpleBinding: {
-            errors: ['Some error'],
+      const mockResult = {
+        FormLayout: {
+          componentId_7: {
+            simpleBinding: {
+              errors: ['For å fortsette må du laste opp 2 vedlegg'],
+              warnings: [],
+            },
           },
         },
-      },
-    };
-    expect(
-      validation.componentHasValidations(validations, 'FormLayout', 'dummyId'),
-    ).toBeTruthy();
-  });
+      };
 
-  it('+++ componentHasValidations should return false if component has no validations', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        dummyId: {
-          simpleBinding: {
-            errors: ['Some error'],
+      expect(componentSpesificValidations).toEqual(mockResult);
+    });
+
+    it('should return error on fileUpload if its no file', () => {
+      mockFormAttachments = {
+        attachments: null,
+      };
+      const componentSpesificValidations = validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
+
+      const mockResult = {
+        FormLayout: {
+          componentId_7: {
+            simpleBinding: {
+              errors: ['For å fortsette må du laste opp 2 vedlegg'],
+              warnings: [],
+            },
           },
         },
-      },
-    };
-    expect(
-      validation.componentHasValidations(
-        validations,
-        'FormLayout',
-        'someOtherId',
-      ),
-    ).toBeFalsy();
+      };
+
+      expect(componentSpesificValidations).toEqual(mockResult);
+    });
+
+    it('should not return error on fileUpload if its enough files', () => {
+      mockLayout = {
+        FormLayout: [
+          {
+            type: 'FileUpload',
+            id: 'componentId_4',
+            dataModelBindings: {},
+            maxNumberOfAttachments: '1',
+            minNumberOfAttachments: '0',
+          },
+        ],
+      };
+      const componentSpesificValidations = validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayout,
+        Object.keys(mockLayout),
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
+
+      const mockResult = {
+        FormLayout: {},
+      };
+
+      expect(componentSpesificValidations).toEqual(mockResult);
+    });
+
+    it('should not return error if element is hidden', () => {
+      mockLayout = {
+        FormLayout: [
+          {
+            type: 'FileUpload',
+            id: 'componentId_4',
+            dataModelBindings: {},
+            maxNumberOfAttachments: '1',
+            minNumberOfAttachments: '0',
+          },
+        ],
+      };
+      const componentSpesificValidations = validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayout,
+        Object.keys(mockLayout),
+        mockFormData,
+        mockLanguage.language,
+        ['componentId_4'],
+      );
+
+      const mockResult = {
+        FormLayout: {},
+      };
+
+      expect(componentSpesificValidations).toEqual(mockResult);
+    });
+
+    it('should not return error if element is part of layout not present in layoutOrder (sporvalg)', () => {
+      mockLayout = {
+        FormLayout: [
+          {
+            type: 'FileUpload',
+            id: 'componentId_4',
+            dataModelBindings: {},
+            maxNumberOfAttachments: '1',
+            minNumberOfAttachments: '0',
+          },
+        ],
+      };
+      const componentSpesificValidations = validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayout,
+        [],
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
+
+      expect(componentSpesificValidations).toEqual({});
+    });
   });
 
-  it('+++ componentHasValidations should return false when supplied with null values', () => {
-    expect(validation.componentHasValidations(null, null, null)).toBeFalsy();
+  describe('valiadteEmptyFields', () => {
+      it('should return error if empty fields are required', () => {
+        const repeatingGroups = {
+          group1: {
+            count: 0,
+            editIndex: -1,
+          },
+        };
+        const componentSpesificValidations = validation.validateEmptyFields(
+          mockFormData,
+          mockLayout,
+          Object.keys(mockLayout),
+          mockLanguage.language,
+          [],
+          repeatingGroups,
+        );
+
+        const mockResult = {
+          FormLayout: {
+            componentId_3: {
+              simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+            },
+            'componentId_4-0': {
+              simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+            },
+            componentId_6: {
+              address: { errors: ['Feltet er påkrevd'], warnings: [] },
+              postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
+              zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+            },
+          },
+        };
+
+        expect(componentSpesificValidations).toEqual(mockResult);
+      });
+
+      it('should not return error for repeating group if child is hidden', () => {
+        const repeatingGroups = {
+          group1: {
+            count: 0,
+            editIndex: -1,
+          },
+        };
+        const componentSpesificValidations = validation.validateEmptyFields(
+          mockFormData,
+          mockLayout,
+          Object.keys(mockLayout),
+          mockLanguage.language,
+          ['componentId_4-0'],
+          repeatingGroups,
+        );
+
+        const mockResult = {
+          FormLayout: {
+            componentId_3: {
+              simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+            },
+            componentId_6: {
+              address: { errors: ['Feltet er påkrevd'], warnings: [] },
+              postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
+              zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+            },
+          },
+        };
+
+        expect(componentSpesificValidations).toEqual(mockResult);
+      });
+
+      it('should not return error if component is not part of layout order (sporvalg)', () => {
+        const repeatingGroups = {
+          group1: {
+            count: 0,
+            editIndex: -1,
+          },
+        };
+        const componentSpesificValidations = validation.validateEmptyFields(
+          mockFormData,
+          mockLayout,
+          [],
+          mockLanguage.language,
+          [],
+          repeatingGroups,
+        );
+
+        expect(componentSpesificValidations).toEqual({});
+      });
+
+      it('should add error to validations if supplied field is required', () => {
+        const component = mockLayout.FormLayout.find(
+          (c) => c.id === 'componentId_3',
+        );
+        const validations = {};
+        validations[component.id] = validation.validateEmptyField(
+          mockFormData,
+          component.dataModelBindings,
+          mockLanguage.language,
+        );
+
+        const mockResult = {
+          componentId_3: {
+            simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+          },
+        };
+
+        expect(validations).toEqual(mockResult);
+      });
+
+      it('should find all errors in an AddressComponent', () => {
+        const component = mockLayout.FormLayout.find(
+          (c) => c.id === 'componentId_6',
+        );
+        const validations = {};
+        validations[component.id] = validation.validateEmptyField(
+          mockFormData,
+          component.dataModelBindings,
+          mockLanguage.language,
+        );
+
+        const mockResult = {
+          componentId_6: {
+            address: { errors: ['Feltet er påkrevd'], warnings: [] },
+            postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
+            zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
+          },
+        };
+
+        expect(validations).toEqual(mockResult);
+      });
   });
 
-  it('+++ repeatingGroupHasValidations should return true when components in group has errors', () => {
-    const group = {
-      id: 'group',
-      type: 'Group',
-      dataModelBindings: { group: 'group' },
-      children: ['child1', 'child2'],
-    } as unknown as ILayoutGroup;
+  describe('mapDataElementValidationToRedux', () => {
+    it('should be mapped correctly to our redux format', () => {
+      const mappedDataElementValidations =
+        validation.mapDataElementValidationToRedux(
+          mockDataElementValidations,
+          mockLayoutState.layouts,
+          [],
+        );
+      const expected = getMockValidationState(true);
+      expect(mappedDataElementValidations).toEqual(expected);
+    });
 
-    const validations: IValidations = {
-      FormLayout: {
-        'child1-0': {
-          simpleBinding: {
-            errors: ['some error'],
+    it('should support mapping to two different components on different pages', () => {
+      const mappedDataElementValidations =
+        validation.mapDataElementValidationToRedux(
+          mockDataElementValidations,
+          { ...mockLayoutState.layouts,
+            AnotherPage: [
+              {
+                type: 'Input',
+                id: 'AnotherComponent',
+                dataModelBindings: {
+                  simpleBinding: 'dataModelField_1',
+                },
+                required: true,
+                readOnly: false,
+                textResourceBindings: {},
+              },
+            ]
+          },
+          [],
+        );
+      const expected = {
+        ...getMockValidationState(true),
+        AnotherPage: {
+          AnotherComponent: {
+            simpleBinding: {
+              errors: [getParsedTextResourceByKey('Error message 1', []), getParsedTextResourceByKey('Error message 2', [])],
+              warnings: [],
+              fixed: []
+            },
+          }
+        }
+      }
+      expect(mappedDataElementValidations).toEqual(expected);
+    });
+  });
+
+  describe('validateFormData', () => {
+    it('should return error if form data is invalid', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const mockResult = validation.validateFormData(
+        mockFormData,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage.language,
+        [],
+      );
+      expect(mockResult).toEqual(mockFormValidationResult);
+    });
+
+    it('should return no errors if form data is valid', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const mockResult = validation.validateFormData(
+        mockValidFormData,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage,
+        [],
+      );
+      expect(mockResult.validations).toEqual({});
+    });
+
+    it('should return custom error message when this is defined', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const mockTexts = [
+        { id: 'custom_error', value: 'This is a custom error message' },
+      ];
+      const formData = {
+        ...mockValidFormData,
+        dataModelField_custom: 'abcdefg',
+      };
+
+      const mockResult = validation.validateFormData(
+        formData,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage,
+        mockTexts,
+      );
+      expect(mockResult.validations).toEqual({
+        FormLayout: {
+          componentId_customError: {
+            simpleBinding: {
+              errors: [getParsedTextResourceByKey('custom_error', mockTexts)],
+            },
           },
         },
-      },
-    };
+      });
+    });
 
-    const repeatingGroups: IRepeatingGroups = {
-      group: {
-        count: 0,
-        editIndex: -1,
-      },
-    };
+    it('should return invalidDataTypes=true if form data is wrong type', () => {
+      const data: any = {
+        dataModelField_1: 'abc',
+      };
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const mockResult = validation.validateFormData(
+        data,
+        mockLayoutState.layouts,
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage,
+        [],
+      );
+      expect(mockResult.invalidDataTypes).toBeTruthy();
+    });
 
-    const layout = [
-      {
+    it('should not return error if form data is part of layout not present in layoutOrder (sporvalg)', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const mockResult = validation.validateFormData(
+        mockFormData,
+        mockLayoutState.layouts,
+        [],
+        mockValidator,
+        mockLanguage.language,
+        [],
+      );
+      expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
+    });
+  });
+
+  describe('getIndex', () => {
+    it('should return null for field not in repeating group', () => {
+      const dataModelBinding = 'dataModelField_1';
+      expect(validation.getIndex(dataModelBinding)).toBeNull();
+    });
+
+    it('should return index for field in repeating group', () => {
+      const dataModelBinding = 'group_1[2].dataModelField_1';
+      expect(validation.getIndex(dataModelBinding)).toBe('2');
+    });
+  });
+
+  describe('componentHasValidations', () => {
+    it('should return true if component has validations', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          dummyId: {
+            simpleBinding: {
+              errors: ['Some error'],
+            },
+          },
+        },
+      };
+      expect(
+        validation.componentHasValidations(validations, 'FormLayout', 'dummyId'),
+      ).toBeTruthy();
+    });
+
+    it('should return false if component has no validations', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          dummyId: {
+            simpleBinding: {
+              errors: ['Some error'],
+            },
+          },
+        },
+      };
+      expect(
+        validation.componentHasValidations(
+          validations,
+          'FormLayout',
+          'someOtherId',
+        ),
+      ).toBeFalsy();
+    });
+
+    it('should return false when supplied with null values', () => {
+      expect(validation.componentHasValidations(null, null, null)).toBeFalsy();
+    });
+  });
+
+  describe('repeatingGroupHasValidations', () => {
+    it('should return true when components in group has errors', () => {
+      const group = {
         id: 'group',
         type: 'Group',
         dataModelBindings: { group: 'group' },
         children: ['child1', 'child2'],
-      } as unknown as ILayoutGroup,
-      {
-        id: 'child1',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'group.child1' },
-      } as unknown as ILayoutComponent,
-      {
-        id: 'child2',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'group.child2' },
-      } as unknown as ILayoutComponent,
-    ];
+      } as unknown as ILayoutGroup;
 
-    // this parsing is handled internally in GroupContainer. Is done manually here to test util function
-    const groupChildren = createRepeatingGroupComponents(
-      group,
-      layout.filter((element) => group.children.includes(element.id)),
-      0,
-      [],
-    );
-    expect(
-      validation.repeatingGroupHasValidations(
-        group,
-        groupChildren,
-        validations,
-        'FormLayout',
-        repeatingGroups,
-        layout,
-      ),
-    ).toBeTruthy();
-  });
-
-  it('+++ repeatingGroupHasValidations should return true when a child group has validations', () => {
-    const group = {
-      id: 'group',
-      type: 'Group',
-      dataModelBindings: { group: 'group' },
-      children: ['child1', 'group2'],
-    } as unknown as ILayoutGroup;
-
-    const validations: IValidations = {
-      FormLayout: {
-        'child2-0-0': {
-          simpleBinding: {
-            errors: ['some error'],
+      const validations: IValidations = {
+        FormLayout: {
+          'child1-0': {
+            simpleBinding: {
+              errors: ['some error'],
+            },
           },
         },
-      },
-    };
+      };
 
-    const repeatingGroups: IRepeatingGroups = {
-      group: {
-        count: 0,
-        editIndex: -1,
-      },
-      'group2-0': {
-        count: 0,
-        editIndex: -1,
-      },
-    };
+      const repeatingGroups: IRepeatingGroups = {
+        group: {
+          count: 0,
+          editIndex: -1,
+        },
+      };
 
-    const layout = [
-      {
+      const layout = [
+        {
+          id: 'group',
+          type: 'Group',
+          dataModelBindings: { group: 'group' },
+          children: ['child1', 'child2'],
+        } as unknown as ILayoutGroup,
+        {
+          id: 'child1',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'group.child1' },
+        } as unknown as ILayoutComponent,
+        {
+          id: 'child2',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'group.child2' },
+        } as unknown as ILayoutComponent,
+      ];
+
+      // this parsing is handled internally in GroupContainer. Is done manually here to test util function
+      const groupChildren = createRepeatingGroupComponents(
+        group,
+        layout.filter((element) => group.children.includes(element.id)),
+        0,
+        [],
+      );
+      expect(
+        validation.repeatingGroupHasValidations(
+          group,
+          groupChildren,
+          validations,
+          'FormLayout',
+          repeatingGroups,
+          layout,
+        ),
+      ).toBeTruthy();
+    });
+
+    it('should return true when a child group has validations', () => {
+      const group = {
         id: 'group',
         type: 'Group',
         dataModelBindings: { group: 'group' },
         children: ['child1', 'group2'],
-      } as unknown as ILayoutGroup,
-      {
-        id: 'child1',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'group.child1' },
-      } as unknown as ILayoutComponent,
-      {
-        id: 'group2',
-        type: 'Group',
-        dataModelBindings: { group: 'group.group2' },
-        children: ['child2'],
-      } as unknown as ILayoutComponent,
-      {
-        id: 'child2',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'group.group2.child2' },
-      } as unknown as ILayoutComponent,
-    ];
-    const groupChildren = createRepeatingGroupComponents(
-      group,
-      layout.filter((element) => group.children.includes(element.id)),
-      0,
-      [],
-    );
-    expect(
-      validation.repeatingGroupHasValidations(
-        group,
-        groupChildren,
-        validations,
-        'FormLayout',
-        repeatingGroups,
-        layout,
-      ),
-    ).toBeTruthy();
-  });
+      } as unknown as ILayoutGroup;
 
-  it('+++ repeatingGroupHasValidations should return false when no children has validations', () => {
-    const group = {
-      id: 'group',
-      type: 'Group',
-      dataModelBindings: { group: 'group' },
-      children: ['child1'],
-    } as unknown as ILayoutGroup;
-
-    const validations: IValidations = {
-      FormLayout: {
-        'some-random-field': {
-          simpleBinding: {
-            errors: ['some error'],
+      const validations: IValidations = {
+        FormLayout: {
+          'child2-0-0': {
+            simpleBinding: {
+              errors: ['some error'],
+            },
           },
         },
-      },
-    };
+      };
 
-    const repeatingGroups: IRepeatingGroups = {
-      group: {
-        count: 0,
-        editIndex: -1,
-      },
-    };
+      const repeatingGroups: IRepeatingGroups = {
+        group: {
+          count: 0,
+          editIndex: -1,
+        },
+        'group2-0': {
+          count: 0,
+          editIndex: -1,
+        },
+      };
 
-    const layout = [
-      {
+      const layout = [
+        {
+          id: 'group',
+          type: 'Group',
+          dataModelBindings: { group: 'group' },
+          children: ['child1', 'group2'],
+        } as unknown as ILayoutGroup,
+        {
+          id: 'child1',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'group.child1' },
+        } as unknown as ILayoutComponent,
+        {
+          id: 'group2',
+          type: 'Group',
+          dataModelBindings: { group: 'group.group2' },
+          children: ['child2'],
+        } as unknown as ILayoutComponent,
+        {
+          id: 'child2',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'group.group2.child2' },
+        } as unknown as ILayoutComponent,
+      ];
+      const groupChildren = createRepeatingGroupComponents(
+        group,
+        layout.filter((element) => group.children.includes(element.id)),
+        0,
+        [],
+      );
+      expect(
+        validation.repeatingGroupHasValidations(
+          group,
+          groupChildren,
+          validations,
+          'FormLayout',
+          repeatingGroups,
+          layout,
+        ),
+      ).toBeTruthy();
+    });
+
+    it('should return false when no children has validations', () => {
+      const group = {
         id: 'group',
         type: 'Group',
         dataModelBindings: { group: 'group' },
-        children: ['child1', 'child2'],
-      } as unknown as ILayoutGroup,
-      {
-        id: 'child1',
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'group.child1' },
-      } as unknown as ILayoutComponent,
-    ];
+        children: ['child1'],
+      } as unknown as ILayoutGroup;
 
-    const groupChildren = createRepeatingGroupComponents(
-      group,
-      layout.filter((element) => group.children.includes(element.id)),
-      0,
-      [],
-    );
-    expect(
-      validation.repeatingGroupHasValidations(
+      const validations: IValidations = {
+        FormLayout: {
+          'some-random-field': {
+            simpleBinding: {
+              errors: ['some error'],
+            },
+          },
+        },
+      };
+
+      const repeatingGroups: IRepeatingGroups = {
+        group: {
+          count: 0,
+          editIndex: -1,
+        },
+      };
+
+      const layout = [
+        {
+          id: 'group',
+          type: 'Group',
+          dataModelBindings: { group: 'group' },
+          children: ['child1', 'child2'],
+        } as unknown as ILayoutGroup,
+        {
+          id: 'child1',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'group.child1' },
+        } as unknown as ILayoutComponent,
+      ];
+
+      const groupChildren = createRepeatingGroupComponents(
         group,
-        groupChildren,
-        validations,
+        layout.filter((element) => group.children.includes(element.id)),
+        0,
+        [],
+      );
+      expect(
+        validation.repeatingGroupHasValidations(
+          group,
+          groupChildren,
+          validations,
+          'FormLayout',
+          repeatingGroups,
+          layout,
+        ),
+      ).toBeFalsy();
+    });
+
+    it('should return false when supplied with null values', () => {
+      expect(
+        validation.repeatingGroupHasValidations(
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ),
+      ).toBeFalsy();
+    });
+  });
+
+  describe('mapToComponentValidations', () => {
+    it('should map validation to correct component', () => {
+      const validations = {};
+      mapToComponentValidations(
         'FormLayout',
-        repeatingGroups,
-        layout,
-      ),
-    ).toBeFalsy();
-  });
-
-  it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
-    expect(
-      validation.repeatingGroupHasValidations(
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-      ),
-    ).toBeFalsy();
-  });
-
-  it('+++ mapToComponentValidations should map validation to correct component', () => {
-    const validations = {};
-    mapToComponentValidations(
-      'FormLayout',
-      mockLayout.FormLayout,
-      'dataModelField_2',
-      'some error',
-      validations,
-    );
-    const expectedResult = {
-      FormLayout: {
-        componentId_2: {
-          customBinding: {
-            errors: ['some error'],
+        mockLayout.FormLayout,
+        'dataModelField_2',
+        'some error',
+        validations,
+      );
+      const expectedResult = {
+        FormLayout: {
+          componentId_2: {
+            customBinding: {
+              errors: ['some error'],
+            },
           },
         },
-      },
-    };
-    expect(validations).toEqual(expectedResult);
-  });
+      };
+      expect(validations).toEqual(expectedResult);
+    });
 
-  it('+++ mapToComponentValidations should map validation to correct component for component in a repeating group', () => {
-    const validations = {};
-    mapToComponentValidations(
-      'FormLayout',
-      mockLayout.FormLayout,
-      'group_1[0].dataModelField_4',
-      'some error',
-      validations,
-    );
-    const expectedResult = {
-      FormLayout: {
-        'componentId_4-0': {
-          simpleBinding: {
-            errors: ['some error'],
+    it('should map validation to correct component for component in a repeating group', () => {
+      const validations = {};
+      mapToComponentValidations(
+        'FormLayout',
+        mockLayout.FormLayout,
+        'group_1[0].dataModelField_4',
+        'some error',
+        validations,
+      );
+      const expectedResult = {
+        FormLayout: {
+          'componentId_4-0': {
+            simpleBinding: {
+              errors: ['some error'],
+            },
           },
         },
-      },
-    };
-    expect(validations).toEqual(expectedResult);
-  });
+      };
+      expect(validations).toEqual(expectedResult);
+    });
 
-  it('+++ mapToComponentValidations should map validation to correct component for component in a nested repeating group', () => {
-    const validations = {};
-    mapToComponentValidations(
-      'FormLayout',
-      mockLayout.FormLayout,
-      'group_1[0].group_2[0].dataModelField_5',
-      'some error',
-      validations,
-    );
-    const expectedResult = {
-      FormLayout: {
-        'componentId_5-0-0': {
-          simpleBinding: {
-            errors: ['some error'],
+    it('should map validation to correct component for component in a nested repeating group', () => {
+      const validations = {};
+      mapToComponentValidations(
+        'FormLayout',
+        mockLayout.FormLayout,
+        'group_1[0].group_2[0].dataModelField_5',
+        'some error',
+        validations,
+      );
+      const expectedResult = {
+        FormLayout: {
+          'componentId_5-0-0': {
+            simpleBinding: {
+              errors: ['some error'],
+            },
           },
         },
-      },
-    };
-    expect(validations).toEqual(expectedResult);
+      };
+      expect(validations).toEqual(expectedResult);
+    });
   });
 
   describe('hasValidationsOfSeverity', () => {
@@ -1192,657 +1247,673 @@ describe('utils > validation', () => {
     });
   });
 
-  it('+++ mergeValidationObjects should merge validation objects successfully', () => {
-    const source1: IValidations = {
-      layout1: {
-        component1: {
-          binding: {
-            errors: ['some error', 'another error'],
-            warnings: ['some warning'],
+  describe('validateGroup', () => {
+    it('should detect validation errors for child components', () => {
+      const state: IRuntimeState = getInitialStateMock({
+        formDataModel: {
+          schemas: {
+            default: mockJsonSchema,
           },
+          error: null,
         },
-      },
-    };
-    const source2: IValidations = {
-      layout1: {
-        component1: {
-          binding: {
-            errors: ['some other error'],
-            warnings: ['some other warning'],
-            fixed: ['another error'],
-          },
-        },
-      },
-      layout2: {
-        component2: {
-          binding: {
-            errors: ['some error'],
-            warnings: ['some warning'],
-          },
-        },
-      },
-    };
-    const result: IValidations = validation.mergeValidationObjects(
-      source1,
-      source2,
-    );
-    expect(result.layout1.component1.binding.errors.length).toEqual(2);
-    expect(result.layout1.component1.binding.warnings.length).toEqual(2);
-    expect(result.layout2.component2.binding.errors.length).toEqual(1);
-    expect(result.layout2.component2.binding.warnings.length).toEqual(1);
-  });
-
-  it('+++ validateGroup should detect validation errors for child components', () => {
-    const state: IRuntimeState = getInitialStateMock({
-      formDataModel: {
-        schemas: {
-          default: mockJsonSchema,
-        },
-        error: null,
-      },
-      instanceData: {
-        instance: {
-          process: {
-            currentTask: {
-              elementId: 'default',
+        instanceData: {
+          instance: {
+            process: {
+              currentTask: {
+                elementId: 'default',
+              } as any,
             } as any,
           } as any,
-        } as any,
-        error: null,
-      },
-      applicationMetadata: {
+          error: null,
+        },
         applicationMetadata: {
-          dataTypes: [
-            {
-              appLogic: {},
-              taskId: 'default',
-              maxCount: 0,
-              minCount: 0,
-              allowedContentTypes: [],
-              id: 'default',
+          applicationMetadata: {
+            dataTypes: [
+              {
+                appLogic: {},
+                taskId: 'default',
+                maxCount: 0,
+                minCount: 0,
+                allowedContentTypes: [],
+                id: 'default',
+              },
+            ],
+          } as any,
+          error: null,
+        },
+        formLayout: {
+          layouts: mockLayout,
+          error: null,
+          uiConfig: {
+            currentView: 'FormLayout',
+            hiddenFields: [],
+            repeatingGroups: {
+              group1: {
+                count: 0,
+                editIndex: -1,
+              },
             },
-          ],
+          },
         } as any,
-        error: null,
-      },
-      formLayout: {
-        layouts: mockLayout,
-        error: null,
-        uiConfig: {
-          currentView: 'FormLayout',
-          hiddenFields: [],
-          repeatingGroups: {
-            group1: {
-              count: 0,
-              editIndex: -1,
+        formData: {
+          formData: mockFormData,
+        } as any,
+      });
+      const result: IValidations = validation.validateGroup('group1', state);
+      expect(result).toEqual({
+        FormLayout: {
+          'componentId_4-0': {
+            simpleBinding: {
+              errors: [
+                'Feltet er påkrevd',
+                getParsedLanguageFromKey(
+                  `validation_errors.pattern`,
+                  state.language.language,
+                  [],
+                ),
+              ],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey(
+                  `validation_errors.minLength`,
+                  state.language.language,
+                  [10],
+                ),
+              ],
+              warnings: [],
             },
           },
         },
-      } as any,
-      formData: {
-        formData: mockFormData,
-      } as any,
+      });
     });
-    const result: IValidations = validation.validateGroup('group1', state);
-    expect(result).toEqual({
-      FormLayout: {
-        'componentId_4-0': {
-          simpleBinding: {
-            errors: [
-              'Feltet er påkrevd',
-              getParsedLanguageFromKey(
-                `validation_errors.pattern`,
-                state.language.language,
-                [],
-              ),
-            ],
-            warnings: [],
-          },
-        },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: [
-              getParsedLanguageFromKey(
-                `validation_errors.minLength`,
-                state.language.language,
-                [10],
-              ),
-            ],
-            warnings: [],
-          },
-        },
-      },
-    });
-  });
 
-  it('+++ validateGroup should detect validation errors for nested group', () => {
-    const state: IRuntimeState = getInitialStateMock({
-      formDataModel: {
-        schemas: {
-          default: mockJsonSchema,
+    it('should detect validation errors for nested group', () => {
+      const state: IRuntimeState = getInitialStateMock({
+        formDataModel: {
+          schemas: {
+            default: mockJsonSchema,
+          },
+          error: null,
         },
-        error: null,
-      },
-      instanceData: {
-        instance: {
-          process: {
-            currentTask: {
-              elementId: 'default',
+        instanceData: {
+          instance: {
+            process: {
+              currentTask: {
+                elementId: 'default',
+              } as any,
             } as any,
           } as any,
-        } as any,
-        error: null,
-      },
-      applicationMetadata: {
+          error: null,
+        },
         applicationMetadata: {
-          dataTypes: [
-            {
-              appLogic: {},
-              taskId: 'default',
-              maxCount: 0,
-              minCount: 0,
-              allowedContentTypes: [],
-              id: 'default',
-            },
-          ],
-        } as any,
-        error: null,
-      },
-      formLayout: {
-        layouts: mockLayout,
-        error: null,
-        uiConfig: {
-          currentView: 'FormLayout',
-          hiddenFields: [],
-          repeatingGroups: {
-            group1: {
-              count: 0,
-              editIndex: -1,
-            },
-            group2: {
-              count: 0,
-              editIndex: -1,
-            },
-          },
-        },
-      } as any,
-      formData: {
-        formData: mockFormData,
-      } as any,
-    });
-    const result: IValidations = validation.validateGroup('group2', state);
-    expect(result).toEqual({
-      FormLayout: {
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: [
-              getParsedLanguageFromKey(
-                `validation_errors.minLength`,
-                state.language.language,
-                [10],
-              ),
+          applicationMetadata: {
+            dataTypes: [
+              {
+                appLogic: {},
+                taskId: 'default',
+                maxCount: 0,
+                minCount: 0,
+                allowedContentTypes: [],
+                id: 'default',
+              },
             ],
-            warnings: [],
+          } as any,
+          error: null,
+        },
+        formLayout: {
+          layouts: mockLayout,
+          error: null,
+          uiConfig: {
+            currentView: 'FormLayout',
+            hiddenFields: [],
+            repeatingGroups: {
+              group1: {
+                count: 0,
+                editIndex: -1,
+              },
+              group2: {
+                count: 0,
+                editIndex: -1,
+              },
+            },
+          },
+        } as any,
+        formData: {
+          formData: mockFormData,
+        } as any,
+      });
+      const result: IValidations = validation.validateGroup('group2', state);
+      expect(result).toEqual({
+        FormLayout: {
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey(
+                  `validation_errors.minLength`,
+                  state.language.language,
+                  [10],
+                ),
+              ],
+              warnings: [],
+            },
           },
         },
-      },
+      });
     });
   });
 
-  it('+++ removeGroupValidations should remove the groups validations', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+  describe('removeGroupValidations', () => {
+    it('should remove the groups validations', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group1-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'componentId_4-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
           },
         },
-        'group1-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+      };
+      const repeatingGroups: IRepeatingGroups = {
+        group1: {
+          count: 1,
+        },
+      };
+      const result: IValidations = validation.removeGroupValidationsByIndex(
+        'group1',
+        1,
+        'FormLayout',
+        mockLayout,
+        repeatingGroups,
+        validations,
+      );
+      const expected: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
           },
         },
-        'componentId_4-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    const repeatingGroups: IRepeatingGroups = {
-      group1: {
-        count: 1,
-      },
-    };
-    const result: IValidations = validation.removeGroupValidationsByIndex(
-      'group1',
-      1,
-      'FormLayout',
-      mockLayout,
-      repeatingGroups,
-      validations,
-    );
-    const expected: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    expect(result).toEqual(expected);
-  });
+      };
+      expect(result).toEqual(expected);
+    });
 
-  it('+++ removeGroupValidations should shift validations if nessesary', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+    it('should shift validations if nessesary', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group1-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group1-2': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'componentId_4-2': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'group1-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+      };
+      const repeatingGroups: IRepeatingGroups = {
+        group1: {
+          count: 2,
+        },
+      };
+      const result: IValidations = validation.removeGroupValidationsByIndex(
+        'group1',
+        1,
+        'FormLayout',
+        mockLayout,
+        repeatingGroups,
+        validations,
+      );
+      const expected: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group1-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'componentId_4-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'group1-2': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'componentId_4-2': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    const repeatingGroups: IRepeatingGroups = {
-      group1: {
-        count: 2,
-      },
-    };
-    const result: IValidations = validation.removeGroupValidationsByIndex(
-      'group1',
-      1,
-      'FormLayout',
-      mockLayout,
-      repeatingGroups,
-      validations,
-    );
-    const expected: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
-        },
-        'group1-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'componentId_4-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    expect(result).toEqual(expected);
-  });
+      };
+      expect(result).toEqual(expected);
+    });
 
-  it('+++ removeGroupValidations should shift a nested repeting group', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+    it('should shift a nested repeting group', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group2-0-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group2-0-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'group2-0-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+      };
+      const repeatingGroups: IRepeatingGroups = {
+        group1: {
+          count: 0,
+        },
+        'group2-0': {
+          count: 1,
+          baseGroupId: 'group2',
+        },
+      };
+      const result: IValidations = validation.removeGroupValidationsByIndex(
+        'group2-0',
+        0,
+        'FormLayout',
+        mockLayout,
+        repeatingGroups,
+        validations,
+      );
+      const expected = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group2-0-0': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-0': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'group2-0-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    const repeatingGroups: IRepeatingGroups = {
-      group1: {
-        count: 0,
-      },
-      'group2-0': {
-        count: 1,
-        baseGroupId: 'group2',
-      },
-    };
-    const result: IValidations = validation.removeGroupValidationsByIndex(
-      'group2-0',
-      0,
-      'FormLayout',
-      mockLayout,
-      repeatingGroups,
-      validations,
-    );
-    const expected = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
-        },
-        'group2-0-0': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'componentId_5-0-0': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    expect(result).toEqual(expected);
-  });
+      };
+      expect(result).toEqual(expected);
+    });
 
-  it('+++ removeGroupValidations should remove a groups child groups validations', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+    it('should remove a groups child groups validations', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group2-0-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd 1'],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd 2'],
+              warnings: [],
+            },
           },
         },
-        'group2-0-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
+      };
+      const repeatingGroups: IRepeatingGroups = {
+        group1: {
+          count: 0,
         },
-        'componentId_5-0-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd 1'],
-            warnings: [],
-          },
+        'group2-0': {
+          count: 1,
+          baseGroupId: 'group2',
         },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd 2'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    const repeatingGroups: IRepeatingGroups = {
-      group1: {
-        count: 0,
-      },
-      'group2-0': {
-        count: 1,
-        baseGroupId: 'group2',
-      },
-    };
-    const result: IValidations = validation.removeGroupValidationsByIndex(
-      'group1',
-      0,
-      'FormLayout',
-      mockLayout,
-      repeatingGroups,
-      validations,
-    );
-    const expected: IValidations = {
-      FormLayout: {},
-    };
-    expect(result).toEqual(expected);
-  });
+      };
+      const result: IValidations = validation.removeGroupValidationsByIndex(
+        'group1',
+        0,
+        'FormLayout',
+        mockLayout,
+        repeatingGroups,
+        validations,
+      );
+      const expected: IValidations = {
+        FormLayout: {},
+      };
+      expect(result).toEqual(expected);
+    });
 
-  it('+++ removeGroupValidations should shift child groups when deleting a parent group index', () => {
-    const validations: IValidations = {
-      FormLayout: {
-        'group1-0': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+    it('should shift child groups when deleting a parent group index', () => {
+      const validations: IValidations = {
+        FormLayout: {
+          'group1-0': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'group2-0-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            },
+          },
+          'componentId_5-1-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'group2-1-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'group2-0-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
+      };
+      const repeatingGroups: IRepeatingGroups = {
+        group1: {
+          count: 1,
+        },
+        'group2-0': {
+          count: 1,
+          baseGroupId: 'group2',
+        },
+        'group2-1': {
+          count: 1,
+          baseGroupId: 'group2',
+        },
+      };
+      const result: IValidations = validation.removeGroupValidationsByIndex(
+        'group1',
+        0,
+        'FormLayout',
+        mockLayout,
+        repeatingGroups,
+        validations,
+      );
+      const expected: IValidations = {
+        FormLayout: {
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
+          },
+          'group2-0-1': {
+            simpleBinding: {
+              errors: ['Should be shifted'],
+              warnings: [],
+            },
           },
         },
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: ['Feltet er påkrevd'],
-            warnings: [],
-          },
-        },
-        'componentId_5-1-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'group2-1-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    const repeatingGroups: IRepeatingGroups = {
-      group1: {
-        count: 1,
-      },
-      'group2-0': {
-        count: 1,
-        baseGroupId: 'group2',
-      },
-      'group2-1': {
-        count: 1,
-        baseGroupId: 'group2',
-      },
-    };
-    const result: IValidations = validation.removeGroupValidationsByIndex(
-      'group1',
-      0,
-      'FormLayout',
-      mockLayout,
-      repeatingGroups,
-      validations,
-    );
-    const expected: IValidations = {
-      FormLayout: {
-        'componentId_5-0-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-        'group2-0-1': {
-          simpleBinding: {
-            errors: ['Should be shifted'],
-            warnings: [],
-          },
-        },
-      },
-    };
-    expect(result).toEqual(expected);
-  });
-
-  it('getUniqueNewElements should return new elements that are not in original array', () => {
-    const originalArray = [1, 2, { test: 'Hello' }];
-    const newArray = [1, 4, 5, { test: 'Hello' }, { test: 'something' }];
-    const expected = [4, 5, { test: 'something' }];
-    const actual = validation.getUniqueNewElements(originalArray, newArray);
-    expect(actual).toEqual(expected);
-  });
-
-  it('mergeComponentBindingValidations should return merged validation object', () => {
-    const original: IComponentBindingValidation =
-      mockReduxFormat.FormLayout.componentId_1.simpleBinding;
-    const newValidations: IComponentBindingValidation = {
-      errors: ['newError'],
-      warnings: ['warning'],
-    };
-
-    const merged = validation.mergeComponentBindingValidations(
-      original,
-      newValidations,
-    );
-    expect(merged).toEqual({
-      errors: original.errors.concat(newValidations.errors),
-      warnings: newValidations.warnings,
+      };
+      expect(result).toEqual(expected);
     });
   });
 
-  it('mergeValidationObjects should return merged validation object', () => {
-    const componentValidation: IComponentValidations = {
-      simpleBinding: {
-        errors: ['This is a new error'],
-        warnings: ['warning!'],
-      },
-    };
-    const newValidations: IValidations = {
-      FormLayout: {
-        componentId_new: componentValidation,
-        componentId_1: componentValidation,
-      },
-    };
+  describe('getUniqueNewElements', () => {
+    it('should return new elements that are not in original array', () => {
+      const originalArray = [1, 2, { test: 'Hello' }];
+      const newArray = [1, 4, 5, { test: 'Hello' }, { test: 'something' }];
+      const expected = [4, 5, { test: 'something' }];
+      const actual = validation.getUniqueNewElements(originalArray, newArray);
+      expect(actual).toEqual(expected);
+    });
+  });
 
-    const merged = validation.mergeValidationObjects(
-      mockReduxFormat,
-      newValidations,
-    );
-    expect(merged).toEqual({
-      ...mockReduxFormat,
-      FormLayout: {
-        ...mockReduxFormat.FormLayout,
-        componentId_1: {
-          simpleBinding: {
-            errors:
-              mockReduxFormat.FormLayout.componentId_1.simpleBinding.errors.concat(
-                componentValidation.simpleBinding.errors,
-              ),
-            warnings: componentValidation.simpleBinding.warnings,
+  describe('mergeComponentBindingValidations', () => {
+    it('should return merged validation object', () => {
+      const original: IComponentBindingValidation =
+        mockReduxFormat.FormLayout.componentId_1.simpleBinding;
+      const newValidations: IComponentBindingValidation = {
+        errors: ['newError'],
+        warnings: ['warning'],
+      };
+
+      const merged = validation.mergeComponentBindingValidations(
+        original,
+        newValidations,
+      );
+      expect(merged).toEqual({
+        errors: original.errors.concat(newValidations.errors),
+        warnings: newValidations.warnings,
+      });
+    });
+  });
+
+  describe('mergeValidationObjects', () => {
+    it('should return merged validation object', () => {
+      const componentValidation: IComponentValidations = {
+        simpleBinding: {
+          errors: ['This is a new error'],
+          warnings: ['warning!'],
+        },
+      };
+      const newValidations: IValidations = {
+        FormLayout: {
+          componentId_new: componentValidation,
+          componentId_1: componentValidation,
+        },
+      };
+
+      const merged = validation.mergeValidationObjects(
+        mockReduxFormat,
+        newValidations,
+      );
+      expect(merged).toEqual({
+        ...mockReduxFormat,
+        FormLayout: {
+          ...mockReduxFormat.FormLayout,
+          componentId_1: {
+            simpleBinding: {
+              errors:
+                mockReduxFormat.FormLayout.componentId_1.simpleBinding.errors.concat(
+                  componentValidation.simpleBinding.errors,
+                ),
+              warnings: componentValidation.simpleBinding.warnings,
+            },
+          },
+          componentId_new: componentValidation,
+        },
+      });
+    });
+
+    it('should merge validation objects successfully', () => {
+      const source1: IValidations = {
+        layout1: {
+          component1: {
+            binding: {
+              errors: ['some error', 'another error'],
+              warnings: ['some warning'],
+            },
           },
         },
-        componentId_new: componentValidation,
-      },
+      };
+      const source2: IValidations = {
+        layout1: {
+          component1: {
+            binding: {
+              errors: ['some other error'],
+              warnings: ['some other warning'],
+              fixed: ['another error'],
+            },
+          },
+        },
+        layout2: {
+          component2: {
+            binding: {
+              errors: ['some error'],
+              warnings: ['some warning'],
+            },
+          },
+        },
+      };
+      const result: IValidations = validation.mergeValidationObjects(
+        source1,
+        source2,
+      );
+      expect(result.layout1.component1.binding.errors.length).toEqual(2);
+      expect(result.layout1.component1.binding.warnings.length).toEqual(2);
+      expect(result.layout2.component2.binding.errors.length).toEqual(1);
+      expect(result.layout2.component2.binding.warnings.length).toEqual(1);
     });
   });
 
-  it('getSchemaPart should return items based in a oneOf ref on root', () => {
-    const nestedPathResult = validation.getSchemaPart(
-      '#/$defs/skjema/properties/alder/maximum',
-      oneOfOnRootSchema,
-    );
-    expect(nestedPathResult).toEqual({
-      type: 'number',
-      minimum: 0,
-      maximum: 10,
+  describe('getSchemaPart', () => {
+    it('should return items based in a oneOf ref on root', () => {
+      const nestedPathResult = validation.getSchemaPart(
+        '#/$defs/skjema/properties/alder/maximum',
+        oneOfOnRootSchema,
+      );
+      expect(nestedPathResult).toEqual({
+        type: 'number',
+        minimum: 0,
+        maximum: 10,
+      });
+    });
+
+    it('should return item based on ref on root', () => {
+      const result = validation.getSchemaPart(
+        '#/definitions/Skjema/properties/person/properties/age/minimum',
+        refOnRootSchema,
+      );
+      expect(result).toEqual({
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+      });
+    });
+
+    it('should handle complex schema', () => {
+      const result = validation.getSchemaPart(
+        '#/$defs/Navn/maxLength',
+        complexSchema,
+      );
+      expect(result).toEqual({
+        type: 'string',
+        '@xsdType': 'string',
+        '@xsdUnhandledAttributes': {
+          'seres:elementtype': 'Dataenkeltype',
+          'seres:guid':
+            'https://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007',
+        },
+      });
     });
   });
 
-  it('getSchemaPart should return item based on ref on root', () => {
-    const result = validation.getSchemaPart(
-      '#/definitions/Skjema/properties/person/properties/age/minimum',
-      refOnRootSchema,
-    );
-    expect(result).toEqual({
-      type: 'integer',
-      minimum: 0,
-      maximum: 100,
+  describe('getSchemaPartOldGenerator', () => {
+    it('should return definition from parent schema', () => {
+      const result = validation.getSchemaPartOldGenerator(
+        '#/definitions/Name/minimum',
+        refOnRootSchema,
+        '#/definitions/Skjema',
+      );
+      expect(result).toEqual({
+        type: 'string',
+        minimum: 5,
+        maximum: 10,
+      });
+    });
+
+    it('should return property from sub schema', () => {
+      const result = validation.getSchemaPartOldGenerator(
+        '#/properties/person/properties/age/maximum',
+        refOnRootSchema,
+        '#/definitions/Skjema',
+      );
+      expect(result).toEqual({
+        type: 'integer',
+        minimum: 0,
+        maximum: 100,
+      });
     });
   });
 
-  it('getSchemaPart should handle complex schema', () => {
-    const result = validation.getSchemaPart(
-      '#/$defs/Navn/maxLength',
-      complexSchema,
-    );
-    expect(result).toEqual({
-      type: 'string',
-      '@xsdType': 'string',
-      '@xsdUnhandledAttributes': {
-        'seres:elementtype': 'Dataenkeltype',
-        'seres:guid':
-          'https://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007',
-      },
-    });
-  });
-
-  it('getSchemaPartOldGenerator should return definition from parent schema', () => {
-    const result = validation.getSchemaPartOldGenerator(
-      '#/definitions/Name/minimum',
-      refOnRootSchema,
-      '#/definitions/Skjema',
-    );
-    expect(result).toEqual({
-      type: 'string',
-      minimum: 5,
-      maximum: 10,
-    });
-  });
-
-  it('getSchemaPartOldGenerator should return property from sub schema', () => {
-    const result = validation.getSchemaPartOldGenerator(
-      '#/properties/person/properties/age/maximum',
-      refOnRootSchema,
-      '#/definitions/Skjema',
-    );
-    expect(result).toEqual({
-      type: 'integer',
-      minimum: 0,
-      maximum: 100,
-    });
-  });
-
-  it('getUnmappedErrors should return unmapped errors', () => {
-    const validations: IValidations = {
-      unmapped: {
+  describe('getUnmappedErrors', () => {
+    it('should return unmapped errors', () => {
+      const validations: IValidations = {
         unmapped: {
           unmapped: {
-            errors: ['unmapped1', 'unmapped2'],
+            unmapped: {
+              errors: ['unmapped1', 'unmapped2'],
+            },
           },
         },
-      },
-    };
-    const result = validation.getUnmappedErrors(validations);
-    const expected = ['unmapped1', 'unmapped2'];
-    expect(result).toEqual(expected);
+      };
+      const result = validation.getUnmappedErrors(validations);
+      const expected = ['unmapped1', 'unmapped2'];
+      expect(result).toEqual(expected);
+    });
   });
 });

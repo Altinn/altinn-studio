@@ -204,10 +204,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// <param name="instance">the instance to preprocess</param>
         private static void PostProcess(Instance instance)
         {
-            Guid instanceGuid = Guid.Parse(instance.Id);
-            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
-
-            instance.Id = instanceId;
+            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
             if (instance.Data != null && instance.Data.Any())
             {
                 SetReadStatus(instance);

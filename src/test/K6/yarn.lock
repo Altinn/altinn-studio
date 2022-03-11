@@ -30,9 +30,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.17.4":
-  version: 7.17.4
-  resolution: "@babel/core@npm:7.17.4"
+"@babel/core@npm:^7.17.5":
+  version: 7.17.5
+  resolution: "@babel/core@npm:7.17.5"
   dependencies:
     "@ampproject/remapping": ^2.1.0
     "@babel/code-frame": ^7.16.7
@@ -49,7 +49,7 @@ __metadata:
     gensync: ^1.0.0-beta.2
     json5: ^2.1.2
     semver: ^6.3.0
-  checksum: d367259b188fde69493fea407a1c134d6bb7a0d859cbe2c0f0d1f2464143bdee0fdfd3c8d45a2cdabdf321b95dd392cbc4f55e2d0c41a842a581d37fee4cef64
+  checksum: c5e7dddb4feaacb91175d22a6edc8e93804242328a82b80732c6e84a0647bc0a9c9d5b05f3ce13138b8e59bf7aba4ff9f7b7446302f141f243ba51df02c318a5
   languageName: node
   linkType: hard
 
@@ -360,9 +360,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@eslint/eslintrc@npm:1.1.0"
+"@eslint/eslintrc@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@eslint/eslintrc@npm:1.2.0"
   dependencies:
     ajv: ^6.12.4
     debug: ^4.3.2
@@ -373,7 +373,7 @@ __metadata:
     js-yaml: ^4.1.0
     minimatch: ^3.0.4
     strip-json-comments: ^3.1.1
-  checksum: 784aa2157e2808b52bbbaf1d1cfca9a6ba0b2faaa3696eb7a1229d4b357400fbd8a6aa09a16e7ae0868ea075d3a8f365cf5928b6d05a1df47f40a1167423a4fa
+  checksum: a5e51dcf02627363567094456d7880b46b6a14a285d7a057f083ca903bdd862483bb6314cbc9fb6fa2d2c4537d50e0d28bd5e39650840241ae4796faaec65d2e
   languageName: node
   linkType: hard
 
@@ -708,11 +708,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.9.0":
-  version: 8.9.0
-  resolution: "eslint@npm:8.9.0"
+"eslint@npm:^8.10.0":
+  version: 8.10.0
+  resolution: "eslint@npm:8.10.0"
   dependencies:
-    "@eslint/eslintrc": ^1.1.0
+    "@eslint/eslintrc": ^1.2.0
     "@humanwhocodes/config-array": ^0.9.2
     ajv: ^6.10.0
     chalk: ^4.0.0
@@ -749,7 +749,7 @@ __metadata:
     v8-compile-cache: ^2.0.3
   bin:
     eslint: bin/eslint.js
-  checksum: 8efecdb9752ee6cb4d2787a14e00cbeab29562ed95dd71c6f3f8ac410426a067d5aa659416d2290e46ca44bc5607e6a6e6c62f814694d8639f80666f522022a7
+  checksum: 8b31ab3de5b48b6828bf13c09c9e62ee0045fa0afa017efaa73eedcf4dc33bc204ee4c467d4677e37967d1645f73816ddef4271422e691fded352040f8f83093
   languageName: node
   linkType: hard
 
@@ -1051,9 +1051,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "k6-api-tests@workspace:."
   dependencies:
-    "@babel/core": ^7.17.4
+    "@babel/core": ^7.17.5
     "@babel/eslint-parser": ^7.17.0
-    eslint: ^8.9.0
+    eslint: ^8.10.0
     prettier: ^2.5.1
   languageName: unknown
   linkType: soft

@@ -67,6 +67,7 @@ export interface ISelectionComponentProps extends ILayoutComponent {
   options?: IOption[];
   optionsId?: string;
   mapping?: IMapping;
+  secure?: boolean;
 }
 
 export interface IGrid extends IGridStyling {

@@ -217,6 +217,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddAuthorization(options =>
     {
         options.AddPolicy("PlatformAccess", policy => policy.Requirements.Add(new AccessTokenRequirement()));
+        options.AddPolicy("AuthorizationLevel2", policy =>
+            policy.RequireClaim(AltinnCore.Authentication.Constants.AltinnCoreClaimTypes.AuthenticationLevel, "2", "3", "4"));
     });
 
     services.AddHttpClient<IOrganizations, OrganizationsWrapper>();

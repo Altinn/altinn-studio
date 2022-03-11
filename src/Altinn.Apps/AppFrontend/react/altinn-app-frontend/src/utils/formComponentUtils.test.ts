@@ -1,4 +1,4 @@
-import ReactHtmlParser from 'react-html-parser';
+import parseHtmlToReact from 'html-react-parser';
 
 import type { IOptions, ITextResource } from 'src/types';
 import type { IFormData } from 'src/features/form/data/formDataReducer';
@@ -8,7 +8,7 @@ import type {
 } from 'src/features/form/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
 
-import { removeStyling } from 'altinn-shared/utils/language';
+import { parseOptions } from 'altinn-shared/utils/language';
 
 import {
   atleastOneTagExists,
@@ -26,11 +26,12 @@ describe('formComponentUtils', () => {
     mockBindingInput: 'test',
     mockBindingCheckbox: 'optionValue1,optionValue2',
     'group[0].checkbox': 'repOptionValue1,repOptionValue2,repOptionValue3',
-    mockBindingCheckboxWithMapping: 'mockOptionsWithMapping1,mockOptionsWithMapping2',
+    mockBindingCheckboxWithMapping:
+      'mockOptionsWithMapping1,mockOptionsWithMapping2',
     mockBindingDropdown: 'optionValue1',
     mockBindingDropdownWithMapping: 'mockOptionsWithMapping1',
     mockBindingRadioButtons: 'optionValue1',
-    mockBindingRadioButtonsWithMapping: 'mockOptionsWithMapping1'
+    mockBindingRadioButtonsWithMapping: 'mockOptionsWithMapping1',
   };
   const mockTextResources: ITextResource[] = [
     {
@@ -60,7 +61,7 @@ describe('formComponentUtils', () => {
       options: [
         { value: 'optionValue1', label: 'textKey1' },
         { value: 'optionValue2', label: 'textKey2' },
-      ]
+      ],
     },
     mockRepOption: {
       id: 'mockRepOption',
@@ -68,16 +69,17 @@ describe('formComponentUtils', () => {
         { value: 'repOptionValue1', label: 'repTextKey1' },
         { value: 'repOptionValue2', label: 'repTextKey2' },
         { value: 'repOptionValue3', label: 'repTextKey3' },
-      ]
+      ],
     },
-    "{\"id\":\"mockOptionsWithMapping\",\"mapping\":{\"someDataField\":\"someUrlParam\"}}": {
-      id: 'mockOptionsWithMapping',
-      mapping: { someDataField: 'someUrlParam' },
-      options: [
-        { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
-        { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
-      ]
-    }
+    '{"id":"mockOptionsWithMapping","mapping":{"someDataField":"someUrlParam"}}':
+      {
+        id: 'mockOptionsWithMapping',
+        mapping: { someDataField: 'someUrlParam' },
+        options: [
+          { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
+          { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
+        ],
+      },
   };
   const mockAttachments: IAttachment[] = [
     {
@@ -174,7 +176,13 @@ describe('formComponentUtils', () => {
         optionsId: 'mockOptionsWithMapping',
         mapping: { someDataField: 'someUrlParam' },
       } as unknown as ISelectionComponentProps;
-      const result = getDisplayFormData('mockBindingCheckboxWithMapping', checkboxComponent, mockFormData, mockOptions, mockTextResources);
+      const result = getDisplayFormData(
+        'mockBindingCheckboxWithMapping',
+        checkboxComponent,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
       expect(result).toEqual('Value Mapping 1, Value Mapping 2');
     });
 
@@ -334,9 +342,7 @@ describe('formComponentUtils', () => {
       );
 
       expect(result).toEqual({
-        title: ReactHtmlParser(`<p>Value2</p>`, {
-          transform: removeStyling,
-        })[0],
+        title: parseHtmlToReact(`<span>Value2</span>`, parseOptions),
       });
     });
 

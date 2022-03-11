@@ -24,6 +24,7 @@ import {
 } from 'altinn-shared/utils/attachmentsUtils';
 import {
   getAppName,
+  getLanguageFromKey,
   getParsedLanguageFromKey,
   getTextResourceByKey,
 } from 'altinn-shared/utils/language';
@@ -128,7 +129,7 @@ function Receipt(props: WithStyles<typeof styles>) {
           'receipt_platform.log_out',
           language,
         )}
-        ariaLabelIcon={getParsedLanguageFromKey(
+        ariaLabelIcon={getLanguageFromKey(
           'receipt_platform.profile_icon_aria_label',
           language,
         )}

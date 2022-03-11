@@ -17,7 +17,6 @@ import components from '.';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { Triggers } from 'src/types';
 import FormDataActions from '../features/form/data/formDataActions';
-import RuleActions from '../features/form/rules/rulesActions';
 import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import Label from '../features/form/components/Label';
@@ -181,12 +180,6 @@ export function GenericComponent(props: IGenericComponentProps) {
         skipValidation
       }),
     );
-
-    RuleActions.checkIfRuleShouldRun(
-      props.id,
-      props.dataModelBindings[key],
-      value,
-    );
   };
 
   const handleFocusUpdate = (componentId: string, step?: number) => {
@@ -272,18 +265,6 @@ export function GenericComponent(props: IGenericComponentProps) {
     );
   };
 
-  const getText = () => {
-    if (props.type === 'Header') {
-      // disabled markdown parsing
-      return getTextResourceByKey(
-        props.textResourceBindings.title,
-        textResources,
-      );
-    }
-
-    return texts.title;
-  };
-
   const getTextResourceWrapper = (key: string) => {
     return getTextResource(key, textResources);
   };
@@ -302,7 +283,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     language,
     id,
     shouldFocus,
-    text: getText(),
+    text: texts.title,
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
