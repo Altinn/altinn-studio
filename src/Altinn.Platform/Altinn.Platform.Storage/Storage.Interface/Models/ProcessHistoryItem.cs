@@ -36,6 +36,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// The end time for process
         /// </summary>
         public DateTime? Ended { get; set; }
+
+        /// <summary>
+        /// An identifier of the entity that performed the action. Organisation number, person identification number or user name.
+        /// </summary>
+        public string PerformedBy { get; set; }
     }
 
     /// <summary>
