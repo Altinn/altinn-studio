@@ -102,7 +102,7 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       options: [],
       required: false,
-      readOnly: false,
+      readOnly: false
     },
   },
   {
@@ -112,7 +112,7 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       options: [],
       required: false,
-      readOnly: false,
+      readOnly: false
     },
   },
   {

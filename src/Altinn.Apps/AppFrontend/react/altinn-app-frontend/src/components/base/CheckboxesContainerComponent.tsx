@@ -19,6 +19,7 @@ export interface ICheckboxContainerProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;
+  vertical?: boolean;
 }
 
 interface IStyledCheckboxProps extends CheckboxProps {

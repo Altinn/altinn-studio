@@ -21,6 +21,7 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
   preselectedOptionIndex: number;
   title: string;
   mapping?: IMapping;
+  vertical?: boolean;
 }
 
 const useStyles = makeStyles((theme) => ({
