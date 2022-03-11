@@ -8,6 +8,12 @@ deployment:
   autoscaling:
     replicas:
       min: 1
+  
+  readiness:
+    enabled: true
+  
+  liveness:
+    enabled: true
 
   image:
     # Set "repository" name of your image for manual Helm install and upgrade.
