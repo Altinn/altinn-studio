@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
     {
         [Theory]
         [MemberData(nameof(InstanceEventData_ExpectedProps))]
-        public void MapsCorrectPerformedBy(InstanceEvent instanceEvent, string expectedPerformedBy, string expectedEventType)
+        public void MapInstanceEventsToProcessHistoryTest(InstanceEvent instanceEvent, string expectedPerformedBy, string expectedEventType)
         {
             ProcessHistoryItem actual = ProcessHelper.MapInstanceEventsToProcessHistory(new List<InstanceEvent> { instanceEvent }).First();
             Assert.Equal(expectedPerformedBy, actual.PerformedBy);
