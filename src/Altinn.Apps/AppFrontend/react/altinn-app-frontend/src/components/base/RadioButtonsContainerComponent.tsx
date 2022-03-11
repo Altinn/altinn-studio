@@ -81,6 +81,7 @@ export const RadioButtonContainerComponent = ({
   formData,
   legend,
   title,
+  vertical,
   shouldFocus,
   getTextResource,
   validationMessages,
@@ -90,13 +91,17 @@ export const RadioButtonContainerComponent = ({
 
   const selected = formData?.simpleBinding ?? '';
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
   const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
   React.useEffect(() => {
@@ -107,6 +112,7 @@ export const RadioButtonContainerComponent = ({
       preselectedOptionIndex < calculatedOptions.length;
     if (shouldPreselectItem) {
       const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
+
       handleDataChange(preSelectedValue);
     }
   }, [
@@ -140,15 +146,16 @@ export const RadioButtonContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      {fetchingOptions ?
-        <AltinnSpinner /> :
+      {fetchingOptions ? (
+        <AltinnSpinner />
+      ) : (
         <RadioGroup
           aria-label={title}
           name={title}
           value={selected}
           onBlur={handleBlur}
           onChange={handleChange}
-          row={radioGroupIsRow}
+          row={vertical ? !radioGroupIsRow : radioGroupIsRow}
           id={id}
         >
           {calculatedOptions.map((option: any, index: number) => (
@@ -172,7 +179,7 @@ export const RadioButtonContainerComponent = ({
             </React.Fragment>
           ))}
         </RadioGroup>
-      }
+      )}
     </FormControl>
   );
 };

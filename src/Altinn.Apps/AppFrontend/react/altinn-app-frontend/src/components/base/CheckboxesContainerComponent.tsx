@@ -84,6 +84,7 @@ export const CheckboxContainerComponent = ({
   handleDataChange,
   handleFocusUpdate,
   legend,
+  vertical,
   getTextResourceAsString,
   getTextResource,
   validationMessages,
@@ -91,18 +92,23 @@ export const CheckboxContainerComponent = ({
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultOptions;
   const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
-  const selected =
-    formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
+  const selected = formData?.simpleBinding
+    ? formData.simpleBinding.split(',')
+    : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -156,8 +162,14 @@ export const CheckboxContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup row={checkBoxesIsRow} id={id} key={`checkboxes_group_${id}`}>
-        {fetchingOptions ? <AltinnSpinner /> :
+      <FormGroup
+        row={vertical ? !checkBoxesIsRow : checkBoxesIsRow}
+        id={id}
+        key={`checkboxes_group_${id}`}
+      >
+        {fetchingOptions ? (
+          <AltinnSpinner />
+        ) : (
           <>
             {calculatedOptions.map((option, index) => (
               <React.Fragment key={option.value}>
@@ -186,7 +198,7 @@ export const CheckboxContainerComponent = ({
               </React.Fragment>
             ))}
           </>
-        }
+        )}
       </FormGroup>
     </FormControl>
   );
