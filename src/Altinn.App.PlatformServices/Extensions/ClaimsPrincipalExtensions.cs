@@ -102,7 +102,7 @@ namespace Altinn.App.PlatformServices.Extensions
         /// </summary>
         public static int? GetPartyIdAsInt(this ClaimsPrincipal user)
         {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.PartyID))
             {
                 Claim partyIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.PartyID);
                 if (partyIdClaim != null && int.TryParse(partyIdClaim.Value, out int partyId))

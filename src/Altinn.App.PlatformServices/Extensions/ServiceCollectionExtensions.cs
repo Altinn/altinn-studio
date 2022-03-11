@@ -7,6 +7,7 @@ using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Decorators;
 using Altinn.App.Services.Filters;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -42,6 +43,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
             services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
+            services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
             services.AddHttpClient<IApplication, ApplicationClient>();
             services.AddHttpClient<IAuthentication, AuthenticationClient>();
@@ -54,6 +56,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddHttpClient<IEvents, EventsClient>();
             services.AddHttpClient<IPDF, PDFClient>();
             services.AddHttpClient<IProfile, ProfileClient>();
+            services.Decorate<IProfile, ProfileClientCachingDecorator>();
             services.AddHttpClient<IRegister, RegisterClient>();
             services.AddHttpClient<IText, TextClient>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
@@ -72,7 +75,7 @@ namespace Altinn.App.PlatformServices.Extensions
         /// <param name="env">A reference to the current <see cref="IWebHostEnvironment"/> object.</param>
         public static void AddAppServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
-            // Services for Altinn App 
+            // Services for Altinn App
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddTransient<IValidation, ValidationAppSI>();
             services.AddTransient<IPrefill, PrefillSI>();

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Mocks.Services;
@@ -12,7 +14,10 @@ namespace App.IntegrationTests.Utils
     {
         private static JsonSerializerOptions serializerOptions = new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
 
         public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -137,6 +142,26 @@ namespace App.IntegrationTests.Utils
             }
 
             return null;
+        }
+
+        public static UserProfile GetProfile(int userId)
+        {
+            string path = GetUserProfilePath(userId);
+
+            if (File.Exists(path))
+            {
+                string content = File.ReadAllText(path);
+                UserProfile profile = JsonSerializer.Deserialize<UserProfile>(content, serializerOptions);
+                return profile;
+            }
+
+            return null;
+        }
+
+        private static string GetUserProfilePath(int userId)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Profile\User\", userId + @".json");
         }
 
         private static string GetApplicationPath(string org, string app)
