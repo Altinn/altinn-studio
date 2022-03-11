@@ -43,7 +43,6 @@ namespace Altinn.Platform.Storage.Helpers
                                   EventType = instanceEvent.EventType,
                                   ElementId = instanceEvent.ProcessInfo.EndEvent,
                                   PerformedBy = GetPerformedBy(instanceEvent.User)
-
                               });
                         break;
                     case InstanceEventType.process_StartTask:
