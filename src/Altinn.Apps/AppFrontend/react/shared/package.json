@@ -21,7 +21,6 @@
     "core-js": "^3.21.1",
     "diff": "^5.0.0",
     "dompurify": "^2.3.6",
-    "html-react-parser": "^1.4.8",
     "marked": "^4.0.12",
     "moment": "^2.29.1",
     "react-content-loader": "^6.1.0",
