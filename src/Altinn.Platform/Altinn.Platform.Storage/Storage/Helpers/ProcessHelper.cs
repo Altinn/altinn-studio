@@ -31,7 +31,8 @@ namespace Altinn.Platform.Storage.Helpers
                             {
                                 Occured = instanceEvent.Created,
                                 EventType = instanceEvent.EventType,
-                                ElementId = instanceEvent.ProcessInfo.StartEvent
+                                ElementId = instanceEvent.ProcessInfo.StartEvent,
+                                PerformedBy = GetPerformedBy(instanceEvent.User)
                             });
                         break;
                     case InstanceEventType.process_EndEvent:
@@ -40,7 +41,9 @@ namespace Altinn.Platform.Storage.Helpers
                               {
                                   Occured = instanceEvent.Created,
                                   EventType = instanceEvent.EventType,
-                                  ElementId = instanceEvent.ProcessInfo.EndEvent
+                                  ElementId = instanceEvent.ProcessInfo.EndEvent,
+                                  PerformedBy = GetPerformedBy(instanceEvent.User)
+
                               });
                         break;
                     case InstanceEventType.process_StartTask:
@@ -56,7 +59,8 @@ namespace Altinn.Platform.Storage.Helpers
                             {
                                 EventType = instanceEvent.EventType,
                                 ElementId = instanceEvent.ProcessInfo.CurrentTask.ElementId,
-                                Started = instanceEvent.Created
+                                Started = instanceEvent.Created,
+                                PerformedBy = GetPerformedBy(instanceEvent.User)
                             });
                         }
 
@@ -73,7 +77,8 @@ namespace Altinn.Platform.Storage.Helpers
                             {
                                 EventType = instanceEvent.EventType,
                                 ElementId = instanceEvent.ProcessInfo.CurrentTask.ElementId,
-                                Ended = instanceEvent.Created
+                                Ended = instanceEvent.Created,
+                                PerformedBy = GetPerformedBy(instanceEvent.User)
                             });
                         }
 
@@ -82,6 +87,20 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return history;
+        }
+
+        private static string GetPerformedBy(PlatformUser user)
+        {
+            if (!string.IsNullOrEmpty(user.NationalIdentityNumber))
+            {
+                return user.NationalIdentityNumber;
+            }
+            else if (!string.IsNullOrEmpty(user.OrgId))
+            {
+                return user.OrgId;
+            }
+
+            return string.Empty;
         }
     }
 }
