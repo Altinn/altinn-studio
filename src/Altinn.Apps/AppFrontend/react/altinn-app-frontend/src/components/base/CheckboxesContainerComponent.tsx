@@ -6,12 +6,18 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
-import type { IOption, IComponentValidations, IMapping } from 'src/types';
+import {
+  IOption,
+  IComponentValidations,
+  IMapping,
+  layoutStyle,
+} from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { CheckBox } from '@material-ui/icons';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
@@ -19,6 +25,7 @@ export interface ICheckboxContainerProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;
+  layout?: layoutStyle;
 }
 
 interface IStyledCheckboxProps extends CheckboxProps {
@@ -83,6 +90,7 @@ export const CheckboxContainerComponent = ({
   preselectedOptionIndex,
   handleDataChange,
   handleFocusUpdate,
+  layout,
   legend,
   getTextResourceAsString,
   getTextResource,
@@ -91,18 +99,26 @@ export const CheckboxContainerComponent = ({
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultOptions;
-  const checkBoxesIsRow = calculatedOptions.length <= 2;
+  const checkboxIsDefault = calculatedOptions.length <= 2;
+  const checkboxIsRow = layout?.includes(layoutStyle.Row);
+  const checkboxIsVertical = layout?.includes(layoutStyle.Column);
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
+
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
-  const selected =
-    formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
+  const selected = formData?.simpleBinding
+    ? formData.simpleBinding.split(',')
+    : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -134,7 +150,7 @@ export const CheckboxContainerComponent = ({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const clickedItem = event.target.name;
     const isSelected = isOptionSelected(clickedItem);
-
+    console.log('reloaded');
     if (isSelected) {
       handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
     } else {
@@ -151,13 +167,30 @@ export const CheckboxContainerComponent = ({
 
   const RenderLegend = legend;
 
+  const checkIfLayoutOptions = () => {
+    if (checkboxIsVertical) {
+      return false;
+    }
+    if (checkboxIsRow) {
+      return true;
+    } else {
+      return checkboxIsDefault;
+    }
+  };
+
   return (
     <FormControl key={`checkboxes_control_${id}`} component='fieldset'>
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup row={checkBoxesIsRow} id={id} key={`checkboxes_group_${id}`}>
-        {fetchingOptions ? <AltinnSpinner /> :
+      <FormGroup
+        row={checkIfLayoutOptions()}
+        id={id}
+        key={`checkboxes_group_${id}`}
+      >
+        {fetchingOptions ? (
+          <AltinnSpinner />
+        ) : (
           <>
             {calculatedOptions.map((option, index) => (
               <React.Fragment key={option.value}>
@@ -186,7 +219,7 @@ export const CheckboxContainerComponent = ({
               </React.Fragment>
             ))}
           </>
-        }
+        )}
       </FormGroup>
     </FormControl>
   );
