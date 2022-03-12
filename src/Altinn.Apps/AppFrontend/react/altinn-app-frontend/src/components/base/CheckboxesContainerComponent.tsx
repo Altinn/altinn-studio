@@ -17,7 +17,6 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
-import { CheckBox } from '@material-ui/icons';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
@@ -104,9 +103,7 @@ export const CheckboxContainerComponent = ({
         ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultOptions;
-  const checkboxIsDefault = calculatedOptions.length <= 2;
-  const checkboxIsRow = layout?.includes(layoutStyle.Row);
-  const checkboxIsVertical = layout?.includes(layoutStyle.Column);
+  const checkboxDefault = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
 
@@ -150,7 +147,7 @@ export const CheckboxContainerComponent = ({
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const clickedItem = event.target.name;
     const isSelected = isOptionSelected(clickedItem);
-    console.log('reloaded');
+
     if (isSelected) {
       handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
     } else {
@@ -168,13 +165,13 @@ export const CheckboxContainerComponent = ({
   const RenderLegend = legend;
 
   const checkIfLayoutOptions = () => {
-    if (checkboxIsVertical) {
+    if (layout?.includes(layoutStyle.Row)) {
       return false;
     }
-    if (checkboxIsRow) {
+    if (layout?.includes(layoutStyle.Column)) {
       return true;
     } else {
-      return checkboxIsDefault;
+      return checkboxDefault;
     }
   };
 
