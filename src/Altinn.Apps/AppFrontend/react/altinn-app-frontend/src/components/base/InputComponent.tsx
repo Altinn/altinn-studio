@@ -1,7 +1,7 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import NumberFormat, { NumberFormatProps } from 'react-number-format';
-import { Input, makeStyles } from '@material-ui/core';
+import { Input } from '@material-ui/core';
 
 import '../../styles/shared.css';
 import { IComponentProps } from '..';
@@ -35,12 +35,6 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
   formatting?: IInputFormatting;
 }
 
-const useStyles = makeStyles({
-  input: {
-    boxSizing: 'border-box',
-  },
-});
-
 function NumberFormatCustom(props: IFormattedNumberInputProps) {
   const { inputRef, onChange, formatting, ...rest } = props;
 
@@ -72,8 +66,6 @@ export function BasicInputComponent(props: IBasicInputProps) {
 }
 
 export function InputComponent(props: IInputProps) {
-  const classes = useStyles();
-
   const [value, setValue] = React.useState(props.formData?.simpleBinding ?? '');
   const {
     id,
@@ -114,7 +106,7 @@ export function InputComponent(props: IInputProps) {
       }
       inputProps={{
         formatting,
-        className: classNames('form-control', classes.input, {
+        className: classNames('form-control', {
           'validation-error': !isValid,
           disabled: readOnly,
         }),
