@@ -143,10 +143,10 @@ export const RadioButtonContainerComponent = ({
 
   const checkIfLayoutOptions = () => {
     if (layout?.includes(layoutStyle.Row)) {
-      return false;
+      return true;
     }
     if (layout?.includes(layoutStyle.Column)) {
-      return true;
+      return false;
     } else {
       return radioIsDefault;
     }
