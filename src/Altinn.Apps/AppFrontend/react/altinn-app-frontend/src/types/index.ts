@@ -341,7 +341,7 @@ export enum PresentationType {
   Stateless = 'stateless',
 }
 
-export enum layoutStyle {
+export enum LayoutStyle {
   Column = "column",
   Row = "row"
 }

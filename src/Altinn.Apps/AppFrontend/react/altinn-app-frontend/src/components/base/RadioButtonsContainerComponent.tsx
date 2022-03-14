@@ -10,7 +10,7 @@ import cn from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-import { IMapping, layoutStyle } from 'src/types';
+import { IMapping, LayoutStyle } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
 
@@ -21,7 +21,7 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
   preselectedOptionIndex: number;
   title: string;
   mapping?: IMapping;
-  layout?: layoutStyle;
+  layout?: LayoutStyle;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -97,7 +97,7 @@ export const RadioButtonContainerComponent = ({
         ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
-  const radioIsDefault = calculatedOptions.length <= 2;
+  const defaultLayout = calculatedOptions.length <= 2;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(
     (state) =>
@@ -142,13 +142,13 @@ export const RadioButtonContainerComponent = ({
   const RenderLegend = legend;
 
   const checkIfLayoutOptions = () => {
-    if (layout?.includes(layoutStyle.Row)) {
+    if (layout?.includes(LayoutStyle.Row)) {
       return true;
     }
-    if (layout?.includes(layoutStyle.Column)) {
+    if (layout?.includes(LayoutStyle.Column)) {
       return false;
     } else {
-      return radioIsDefault;
+      return calculatedOptions.length <= 2;
     }
   };
 

@@ -10,7 +10,7 @@ import {
   IOption,
   IComponentValidations,
   IMapping,
-  layoutStyle,
+  LayoutStyle,
 } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
@@ -24,7 +24,7 @@ export interface ICheckboxContainerProps extends IComponentProps {
   optionsId: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;
-  layout?: layoutStyle;
+  layout?: LayoutStyle;
 }
 
 interface IStyledCheckboxProps extends CheckboxProps {
@@ -103,7 +103,6 @@ export const CheckboxContainerComponent = ({
         ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultOptions;
-  const checkboxDefault = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
 
@@ -164,15 +163,14 @@ export const CheckboxContainerComponent = ({
 
   const RenderLegend = legend;
 
-  const checkIfLayoutOptions = () => {
-    if (layout?.includes(layoutStyle.Row)) {
+  const shouldUseRow = () => {
+    if (layout?.includes(LayoutStyle.Row)) {
       return true;
     }
-    if (layout?.includes(layoutStyle.Column)) {
+    if (layout?.includes(LayoutStyle.Column)) {
       return false;
-    } else {
-      return checkboxDefault;
     }
+    return calculatedOptions.length <= 2;
   };
 
   return (
@@ -180,11 +178,7 @@ export const CheckboxContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup
-        row={checkIfLayoutOptions()}
-        id={id}
-        key={`checkboxes_group_${id}`}
-      >
+      <FormGroup row={shouldUseRow()} id={id} key={`checkboxes_group_${id}`}>
         {fetchingOptions ? (
           <AltinnSpinner />
         ) : (
