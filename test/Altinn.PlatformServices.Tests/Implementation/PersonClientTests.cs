@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -89,7 +90,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.StartsWith("http://real.domain.com", platformRequest!.RequestUri!.ToString());
             Assert.EndsWith("persons", platformRequest!.RequestUri!.ToString());
             Assert.Equal("personnummer", platformRequest!.Headers.GetValues("X-Ai-NationalIdentityNumber").First());
-            Assert.Equal("lastname", platformRequest!.Headers.GetValues("X-Ai-LastName").First());
+            Assert.Equal(ConvertToBase64("lastname"), platformRequest!.Headers.GetValues("X-Ai-LastName").First());
 
             Assert.NotNull(actual);
         }
@@ -165,6 +166,12 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             string content = JsonSerializer.Serialize(obj);
             StringContent stringContent = new StringContent(content, Encoding.UTF8, "application/json");
             return await Task.FromResult(new HttpResponseMessage { Content = stringContent });
+        }
+
+        private static string ConvertToBase64(string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            return Convert.ToBase64String(bytes);
         }
     }
 }
