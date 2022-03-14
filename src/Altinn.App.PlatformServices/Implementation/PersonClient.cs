@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace Altinn.App.PlatformServices.Implementation
             AddAuthHeaders(request);
 
             request.Headers.Add("X-Ai-NationalIdentityNumber", nationalIdentityNumber);
-            request.Headers.Add("X-Ai-LastName", lastName);
+            request.Headers.Add("X-Ai-LastName", ConvertToBase64(lastName));
 
             var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, ct);
 
@@ -106,6 +107,12 @@ namespace Altinn.App.PlatformServices.Implementation
             }
 
             throw await PlatformHttpException.CreateAsync(response);
+        }
+
+        private static string ConvertToBase64(string text)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+            return Convert.ToBase64String(bytes);
         }
     }
 }
