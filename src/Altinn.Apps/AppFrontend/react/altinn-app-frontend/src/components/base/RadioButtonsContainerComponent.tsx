@@ -97,7 +97,6 @@ export const RadioButtonContainerComponent = ({
         ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
-  const defaultLayout = calculatedOptions.length <= 2;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(
     (state) =>

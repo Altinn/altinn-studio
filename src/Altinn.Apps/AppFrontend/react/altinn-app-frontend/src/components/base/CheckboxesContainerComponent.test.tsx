@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../../testUtils';
 import { CheckboxContainerComponent } from './CheckboxesContainerComponent';
 import type { IComponentProps } from 'src/components';
 import type { ICheckboxContainerProps } from './CheckboxesContainerComponent';
+import { LayoutStyle } from 'src/types';
 
 const render = (props: Partial<ICheckboxContainerProps> = {}) => {
   const allProps: ICheckboxContainerProps = {
@@ -44,12 +45,12 @@ const render = (props: Partial<ICheckboxContainerProps> = {}) => {
         options: {
           countries: {
             id: 'countries',
-            options: countriesOptions
+            options: countriesOptions,
           },
           loadingOptions: {
             id: 'loadingOptions',
             options: undefined,
-            loading: true
+            loading: true,
           },
         },
         error: {
@@ -66,6 +67,15 @@ const getCheckbox = ({ name, isChecked = false }) => {
     name: name,
     checked: isChecked,
   });
+};
+const shouldUseRow = (layout, calculatedOptions) => {
+  if (layout?.includes(LayoutStyle.Row)) {
+    return true;
+  }
+  if (layout?.includes(LayoutStyle.Column)) {
+    return false;
+  }
+  return calculatedOptions.length <= 2;
 };
 
 describe('CheckboxContainerComponent', () => {
@@ -94,7 +104,9 @@ describe('CheckboxContainerComponent', () => {
 
     expect(getCheckbox({ name: 'Norway' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Denmark', isChecked: true }),
+    ).toBeInTheDocument();
 
     expect(handleChange).not.toHaveBeenCalled();
   });
@@ -108,9 +120,13 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
-    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Norway', isChecked: true }),
+    ).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Denmark', isChecked: true }),
+    ).toBeInTheDocument();
 
     expect(handleChange).not.toHaveBeenCalledWith();
   });
@@ -135,7 +151,9 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
-    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Norway', isChecked: true }),
+    ).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
 
@@ -153,9 +171,13 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
-    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Norway', isChecked: true }),
+    ).toBeInTheDocument();
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
-    expect(getCheckbox({ name: 'Denmark', isChecked: true })).toBeInTheDocument();
+    expect(
+      getCheckbox({ name: 'Denmark', isChecked: true }),
+    ).toBeInTheDocument();
 
     userEvent.click(getCheckbox({ name: 'Denmark', isChecked: true }));
 
@@ -213,7 +235,7 @@ describe('CheckboxContainerComponent', () => {
 
   it('should show spinner while waiting for options', () => {
     render({
-      optionsId: 'loadingOptions'
+      optionsId: 'loadingOptions',
     });
 
     expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
@@ -221,9 +243,70 @@ describe('CheckboxContainerComponent', () => {
 
   it('should not show spinner when options are present', () => {
     render({
-      optionsId: 'countries'
+      optionsId: 'countries',
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('Should be false when column is defined as it overrides default', () => {
+    const calculatedOptions = [
+      {
+        label: '2',
+        value: '1',
+      },
+      {
+        label: '2',
+        value: '1',
+      },
+    ];
+
+    expect(shouldUseRow('column', calculatedOptions)).toBe(false);
+  });
+
+  it('Should be true when column is defined as it overrides default', () => {
+    const calculatedOptions = [
+      {
+        label: '2',
+        value: '1',
+      },
+      {
+        label: '2',
+        value: '1',
+      },
+    ];
+    expect(shouldUseRow('row', calculatedOptions)).toBe(true);
+  });
+  it('Should be true when length is 2 and layout is undefined', () => {
+    const calculatedOptions = [
+      {
+        label: '2',
+        value: '1',
+      },
+      {
+        label: '2',
+        value: '1',
+      },
+    ];
+
+    expect(shouldUseRow(undefined, calculatedOptions)).toBe(true);
+  });
+  it('Should be false when true is 3 and layout is undefined', () => {
+    const calculatedOptions = [
+      {
+        label: '2',
+        value: '1',
+      },
+      {
+        label: '2',
+        value: '1',
+      },
+      {
+        label: '2',
+        value: '1',
+      },
+    ];
+
+    expect(shouldUseRow(undefined, calculatedOptions)).toBe(false);
   });
 });
