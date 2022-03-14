@@ -79,12 +79,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public bool IsRead { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the element should trigger PDF generation
-        /// </summary>
-        [JsonProperty(PropertyName = "enablePdfCreation")]
-        public bool EnablePdfCreation { get; set; } = true;
-
-        /// <summary>
         /// Gets or sets a collection of tags associated with the data element.
         /// </summary>
         [JsonProperty(PropertyName = "tags")]
