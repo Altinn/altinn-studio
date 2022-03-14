@@ -9,5 +9,11 @@ namespace Altinn.Platform.Authorization.Functions.Configuration
         /// Base URL to Altinn Bridge
         /// </summary>
         public string BridgeApiEndpoint { get; set; }
+
+        /// <summary>
+        /// Isser to use in the generated token that will be used in calling Bridge API
+        /// </summary>
+        public string AccessTokenIssuer { get; set; }
+
     }
 }
