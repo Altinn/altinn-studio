@@ -53,12 +53,18 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public void PrefillDataModel(object dataModel, Dictionary<string, string> externalPrefill, bool continueOnError = false)
+        {
+            LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel, continueOnError);
+        }
+
+        /// <inheritdoc/>
         public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
         {
             // Prefill from external input. Only available during instansiation
             if (externalPrefill != null && externalPrefill.Count > 0)
             {
-                LoopThroughDictionaryAndAssignValuesToDataModel(externalPrefill, null, dataModel, true);
+                PrefillDataModel(dataModel, externalPrefill, true);
             }
 
             string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
