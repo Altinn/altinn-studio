@@ -127,9 +127,9 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
-            if (string.IsNullOrEmpty(goTo) && HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName] != null)
+            if (string.IsNullOrEmpty(goTo) && HttpContext.Request.Cookies[_generalSettings.AuthnGoToCookieName] != null)
             {
-                goTo = HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName];
+                goTo = HttpContext.Request.Cookies[_generalSettings.AuthnGoToCookieName];
             }
 
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
@@ -1029,7 +1029,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private void CreateGoToCookie(HttpContext httpContext, string goToUrl)
         {
-            httpContext.Response.Cookies.Append(_generalSettings.AuthnGotToCookieName, goToUrl);
+            httpContext.Response.Cookies.Append(_generalSettings.AuthnGoToCookieName, goToUrl);
         }
 
         private async Task CreateTokenCookie(UserAuthenticationModel userAuthentication)
