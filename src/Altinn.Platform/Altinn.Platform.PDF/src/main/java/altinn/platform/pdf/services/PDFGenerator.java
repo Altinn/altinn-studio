@@ -214,19 +214,45 @@ public class PDFGenerator {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
-        renderGroup(element, false);
+        if (LayoutUtils.includeComponentInPdf(element.getId(), layoutSettings)) {
+          if (element.getDataModelBindings().get("group") == null) {
+            renderGroup(element);
+          } else {
+            renderRepeatingGroup(element, false);
+          }
+        }
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
-  private void renderGroup(FormLayoutElement element, boolean childGroup) throws IOException {
-    String componentId = element.getId();
-    if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
-      return;
+  private void renderGroup(FormLayoutElement element) throws IOException {
+    for (String childId : element.getChildren()) {
+      FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+      if (childElement == null) {
+        continue;
+      }
+
+      if (childElement.getType().equalsIgnoreCase("group")) {
+        if (childElement.getDataModelBindings().get("group") == null) {
+          renderGroup(element);
+        } else {
+          renderRepeatingGroup(childElement, false);
+        }
+      } else {
+        if (LayoutUtils.includeComponentInPdf(childElement.getId(), layoutSettings)) {
+          renderLayoutElement(childElement);
+        }
+      }
     }
+  }
+
+  private void renderRepeatingGroup(FormLayoutElement element, boolean childGroup) throws IOException {
+
     String groupBinding = element.getDataModelBindings().get("group");
+
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
       for (String childId : element.getChildren()) {
         FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
@@ -258,7 +284,7 @@ public class PDFGenerator {
           }
         }
         if (childElement.getType().equalsIgnoreCase("group")) {
-          renderGroup(childElement, true);
+          renderRepeatingGroup(childElement, true);
         } else {
           if (LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
             renderLayoutElement(childElement);
@@ -463,7 +489,7 @@ public class PDFGenerator {
     List<String> returnValues = new ArrayList<>();
 
     if (element.getOptionsId() != null) {
-      if(optionsDictionary == null){
+      if (optionsDictionary == null) {
         return value;
       }
       splitFormData.forEach(formDataValue -> {
@@ -474,12 +500,12 @@ public class PDFGenerator {
     } else {
       List<Option> optionList = element.getOptions();
       splitFormData.forEach(formDataValue -> {
-        var option = optionList.stream()
-          .filter(o -> o.getValue().equals(formDataValue))
-          .findFirst()
-          .orElse(null);
-        String label = (option != null) ? option.getLabel() : value;
-        returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
+          var option = optionList.stream()
+            .filter(o -> o.getValue().equals(formDataValue))
+            .findFirst()
+            .orElse(null);
+          String label = (option != null) ? option.getLabel() : value;
+          returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
         }
       );
 
@@ -492,7 +518,7 @@ public class PDFGenerator {
     Map<String, List<String>> returnValues = new HashMap<String, List<String>>();
 
     if (element.getOptionsId() != null) {
-      if(optionsDictionary == null){
+      if (optionsDictionary == null) {
         return files;
       }
       files.forEach((name, tags) -> {
@@ -507,16 +533,16 @@ public class PDFGenerator {
     } else {
       List<Option> optionList = element.getOptions();
       files.forEach((name, tags) -> {
-        List<String> tmpTags = new ArrayList<>();
-        tags.forEach(tag -> {
-          var option = optionList.stream()
-          .filter(o -> o.getValue().equals(tag))
-          .findFirst()
-          .orElse(null);
-          String label = (option != null) ? option.getLabel() : tag;
-          tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
-        });
-        returnValues.put(name, tmpTags);
+          List<String> tmpTags = new ArrayList<>();
+          tags.forEach(tag -> {
+            var option = optionList.stream()
+              .filter(o -> o.getValue().equals(tag))
+              .findFirst()
+              .orElse(null);
+            String label = (option != null) ? option.getLabel() : tag;
+            tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
+          });
+          returnValues.put(name, tmpTags);
         }
       );
     }
@@ -568,12 +594,12 @@ public class PDFGenerator {
     currentContent.beginText();
     float indent = 10;
     currentContent.newLineAtOffset(xPoint + indent, yPoint);
-    for (String name: files.keySet()) {
+    for (String name : files.keySet()) {
       List<String> tags = files.get(name);
 
       currentContent.showText("- " + name + " - ");
-      for (String tag: tags){
-        if (tag != tags.get(tags.size() -1))
+      for (String tag : tags) {
+        if (tag != tags.get(tags.size() - 1))
           currentContent.showText(tag + ", ");
         else
           currentContent.showText(tag);
