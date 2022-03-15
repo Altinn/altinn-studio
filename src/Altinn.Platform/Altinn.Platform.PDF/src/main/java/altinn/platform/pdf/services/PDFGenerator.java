@@ -230,6 +230,11 @@ public class PDFGenerator {
   private void renderGroup(FormLayoutElement element) throws IOException {
     for (String childId : element.getChildren()) {
       FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+      if(childElement == null) {
+        continue;
+      }
+
       if (childElement.getType().equalsIgnoreCase("group")) {
         if(childElement.getDataModelBindings().get("group") == null) {
           renderGroup(element);
