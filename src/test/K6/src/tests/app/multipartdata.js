@@ -1,7 +1,7 @@
-/* 
+/*
   This test is to create an instance with form data xml using multipart request body.
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -58,6 +58,7 @@ export default function (data) {
   var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, appName);
   var success = check(res, {
     'App Get Data created by Multipart request status is 200': (r) => r.status === 200,
+    'App Get Data created by Multipart request - instanceid matches': (r) => r.json('id') == `${partyId}/${instanceId}`,
   });
   addErrorCount(success);
 
