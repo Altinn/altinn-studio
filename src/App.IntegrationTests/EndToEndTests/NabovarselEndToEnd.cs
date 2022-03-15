@@ -182,13 +182,14 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal("Task_2", processState.CurrentTask.ElementId);
             #endregion
 
-            #region GetUpdated instance to check pdf
+            #region GetUpdated instance to check that PDF was not generated
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath);
             response = await client.SendAsync(httpRequestMessage);
             responseContent = await response.Content.ReadAsStringAsync();
             instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
             IEnumerable<DataElement> lockedDataElements = instance.Data.Where(r => r.Locked == true);
             Assert.Single(lockedDataElements);
+            Assert.Equal(2, instance.Data.Count());
             #endregion
 
             #region Get Form DataElement
@@ -279,6 +280,16 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(processState.CurrentTask);
             Assert.Equal("EndEvent_1", processState.EndEvent);
+            #endregion
+
+            #region GetUpdated instance to check pdf generation for form
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, instancePath);
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = await response.Content.ReadAsStringAsync();
+            instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+            lockedDataElements = instance.Data.Where(r => r.Locked == true);
+            Assert.Equal(2, lockedDataElements.Count());
+            Assert.Equal(3, instance.Data.Count());
             #endregion
 
             TestDataUtil.DeleteInstanceAndData("dibk", "nabovarsel", 1337, new Guid(createdInstance.Id.Split('/')[1]));

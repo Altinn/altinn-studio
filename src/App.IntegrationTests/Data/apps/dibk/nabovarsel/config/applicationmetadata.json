@@ -18,7 +18,8 @@
         "autoCreate": false,
         "ClassRef": "App.IntegrationTestsRef.Data.apps.dibk.nabovarsel.Melding"
       },
-      "taskId": "Task_1"
+      "taskId": "Task_1",
+      "enablePdfCreation" : false
     },
     {
       "id": "skjema",

@@ -283,7 +283,7 @@ namespace Altinn.App.Services.Implementation
 
             foreach (DataType dataType in dataTypesToLock)
             {
-                bool generatePdf = dataType.AppLogic != null;
+                bool generatePdf = dataType.AppLogic != null && dataType.EnablePdfCreation;
 
                 foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
                 {
