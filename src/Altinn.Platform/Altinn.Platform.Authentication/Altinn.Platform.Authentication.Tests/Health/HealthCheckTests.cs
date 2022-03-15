@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.UnitTest
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

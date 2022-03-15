@@ -30,10 +30,10 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 {
     public class IntrospectionControllerTest : IClassFixture<WebApplicationFactory<IntrospectionController>>
     {
-        private WebApplicationFactory<IntrospectionController> _factory;
+        private readonly WebApplicationFactory<IntrospectionController> _factory;
         private readonly Mock<IEFormidlingAccessValidator> _eformidlingValidatorService;
-        private string _baseUrl = "/authentication/api/v1/introspection";
-        private ClaimsPrincipal _testPrincipal;
+        private readonly string _baseUrl = "/authentication/api/v1/introspection";
+        private readonly ClaimsPrincipal _testPrincipal;
         private readonly JsonSerializerOptions _options;
 
         /// <summary>

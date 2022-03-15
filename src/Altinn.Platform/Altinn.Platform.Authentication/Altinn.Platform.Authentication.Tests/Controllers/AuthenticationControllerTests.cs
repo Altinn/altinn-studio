@@ -1407,11 +1407,11 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             if (!redirectUri.Contains('?'))
             {
-                redirectUri = redirectUri + "?";
+                redirectUri += "?";
             }
             else
             {
-                redirectUri = redirectUri + "&";
+                redirectUri += "&";
             }
 
             redirectUri += "state=" + state + "&code=" + code;

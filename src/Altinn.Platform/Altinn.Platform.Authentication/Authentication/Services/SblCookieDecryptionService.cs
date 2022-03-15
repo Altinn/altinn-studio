@@ -64,7 +64,7 @@ namespace Altinn.Platform.Authentication.Services
                 throw new SblBridgeResponseException(response, "SBL Bridge replied with status: ServiceUnavailable.");
             }
 
-            _logger.LogError($"Getting the authenticated user failed with status code {response.StatusCode}");
+            _logger.LogError("Getting the authenticated user failed with status code {StatusCode}", response.StatusCode);
 
             return null;
         }
