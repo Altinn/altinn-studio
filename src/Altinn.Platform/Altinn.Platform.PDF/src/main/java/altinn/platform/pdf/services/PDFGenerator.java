@@ -215,7 +215,7 @@ public class PDFGenerator {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
         if (LayoutUtils.includeComponentInPdf(element.getId(), layoutSettings)) {
-          if (element.getDataModelBindings().get("group") == null) {
+          if (element.getDataModelBindings() == null || element.getDataModelBindings().get("group") == null) {
             renderGroup(element);
           } else {
             renderRepeatingGroup(element, false);
@@ -236,7 +236,7 @@ public class PDFGenerator {
       }
 
       if (childElement.getType().equalsIgnoreCase("group")) {
-        if (childElement.getDataModelBindings().get("group") == null) {
+        if (childElement.getDataModelBindings() == null || childElement.getDataModelBindings().get("group") == null) {
           renderGroup(element);
         } else {
           renderRepeatingGroup(childElement, false);
