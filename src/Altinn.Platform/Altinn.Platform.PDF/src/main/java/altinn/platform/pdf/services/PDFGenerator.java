@@ -3,7 +3,6 @@ package altinn.platform.pdf.services;
 import altinn.platform.pdf.models.*;
 import altinn.platform.pdf.utils.*;
 
-import com.google.gson.Gson;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -70,7 +69,6 @@ public class PDFGenerator {
   private int mcid = 1;
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
-  private String test;
   private List<String> componentsIgnoredFromGeneration = Arrays.asList(
     "Button",
     "Image",
@@ -90,8 +88,6 @@ public class PDFGenerator {
     this.pagesOutline = new PDOutlineItem();
     this.originalFormLayout = pdfContext.getFormLayout();
     this.formLayouts = pdfContext.getFormLayouts();
-    Gson gson = new Gson();
-    this.test = gson.toJson(pdfContext);
     this.optionsDictionary = pdfContext.getOptionsDictionary();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
@@ -250,7 +246,7 @@ public class PDFGenerator {
   }
 
   private void renderRepeatingGroup(FormLayoutElement element, boolean childGroup) throws IOException {
-    
+
     String groupBinding = element.getDataModelBindings().get("group");
 
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
