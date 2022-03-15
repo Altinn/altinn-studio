@@ -1,4 +1,3 @@
-import 'jest';
 import * as React from 'react';
 import { mount } from 'enzyme';
 import * as networking from '../../../../utils/networking';
@@ -27,6 +26,20 @@ describe('Shared > Navigation > Main Header > HeaderMenu', () => {
       login: 'login',
     },
   };
+  const originalLocation = window.location;
+
+  beforeEach(() => {
+    delete window.location;
+
+    window.location = {
+      ...originalLocation,
+      assign: jest.fn(),
+    }
+  });
+
+  afterEach(() => {
+    window.location = originalLocation;
+  });
 
   it('should render', () => {
     const component = mount(
@@ -48,9 +61,10 @@ describe('Shared > Navigation > Main Header > HeaderMenu', () => {
     );
     component.find('#profile-icon-button').hostNodes().simulate('click');
     component.find('#menu-logout').hostNodes().simulate('click');
-    expect(postSpy).toHaveBeenCalledWith(`${window.location.origin}/repos/user/logout`);
+    expect(postSpy).toHaveBeenCalledWith(
+      `${window.location.origin}/repos/user/logout`,
+    );
   });
-
 
   it.each(['self', 'all'])('should call setSelectedContext with reserved keyword when setting context to %p', (context) => {
     const component = mount(
