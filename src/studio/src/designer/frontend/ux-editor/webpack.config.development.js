@@ -1,10 +1,10 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const commonConfig = require('./webpack.common');
+const common = require('./webpack.common');
 
 module.exports = {
-  ...commonConfig,
+  ...common,
   mode: 'development',
   devtool: 'eval',
   performance: {

@@ -1,10 +1,10 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const commonConfig = require('./webpack.common');
+const common = require('./webpack.common');
 
 module.exports = {
-  ...commonConfig,
+  ...common,
   mode: 'production',
   devtool: false,
   performance: {
@@ -38,6 +38,7 @@ module.exports = {
     ],
   },
   plugins: [
+    ...common.plugins,
     new ForkTsCheckerWebpackPlugin({
       async: false,
     }),
