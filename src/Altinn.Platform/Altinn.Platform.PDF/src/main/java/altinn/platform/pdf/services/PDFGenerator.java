@@ -280,7 +280,7 @@ public class PDFGenerator {
           }
         }
         if (childElement.getType().equalsIgnoreCase("group")) {
-            renderRepeatingGroup(childElement, false);
+            renderRepeatingGroup(childElement, true);
         } else {
           if (LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
             renderLayoutElement(childElement);
