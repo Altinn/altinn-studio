@@ -1,19 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29009.5
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization", "Authorization\Altinn.Platform.Authorization.csproj", "{D9C0433E-738C-4E07-9F88-D71D7DF04E3F}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{D4EDBE62-E430-49E1-ACC7-65581BA9714F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{C9ABF5DB-928C-4280-B587-13E6DCE010BC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization.IntegrationTests", "IntegrationTests\Altinn.Platform.Authorization.IntegrationTests.csproj", "{977119A9-CF6D-4806-BEB2-9CFEE26C3208}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC.UnitTest", "UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{F7FECF3A-0766-46DE-94C7-F237A188FCD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Authorization.Functions", "Functions\Altinn.Platform.Authorization.Functions.csproj", "{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization.Functions", "Functions\Altinn.Platform.Authorization.Functions.csproj", "{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Authorization.Functions.UnitTest", "Functions\Tests\Altinn.Platform.Authorization.Functions.UnitTest.csproj", "{A0D319A5-0C9D-42D7-B896-643A5CBAC9D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +31,10 @@ Global
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,6 +47,10 @@ Global
 		{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3B2051B-26AE-4E5D-9B50-F7601CCCCAA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0D319A5-0C9D-42D7-B896-643A5CBAC9D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0D319A5-0C9D-42D7-B896-643A5CBAC9D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0D319A5-0C9D-42D7-B896-643A5CBAC9D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0D319A5-0C9D-42D7-B896-643A5CBAC9D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
