@@ -1,171 +1,298 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
+using System.Reflection;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+
+using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Extensions;
+using Altinn.Platform.Authentication.Filters;
+using Altinn.Platform.Authentication.Health;
+using Altinn.Platform.Authentication.Services;
+using Altinn.Platform.Authentication.Services.Interfaces;
+using Altinn.Platform.Telemetry;
+
 using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.JwtCookie;
 
-using Microsoft.AspNetCore;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
-namespace Altinn.Platform.Authentication
+ILogger logger;
+
+string applicationInsightsKeySecretName = "ApplicationInsights--InstrumentationKey";
+
+string applicationInsightsKey = string.Empty;
+
+var builder = WebApplication.CreateBuilder(args);
+
+ConfigureSetupLogging();
+
+await SetConfigurationProviders(builder.Configuration);
+
+ConfigureLogging(builder.Logging);
+
+ConfigureServices(builder.Services, builder.Configuration);
+
+var app = builder.Build();
+
+Configure();
+
+app.Run();
+
+void ConfigureSetupLogging()
 {
-    /// <summary>
-    /// This is the main method for running this asp.net core application
-    /// </summary>
-    public class Program
+    var logFactory = LoggerFactory.Create(builder =>
     {
-        private static ILogger _logger;
+        builder
+            .AddFilter("Microsoft", LogLevel.Warning)
+            .AddFilter("System", LogLevel.Warning)
+            .AddFilter("Altinn.Platform.Authentication.Program", LogLevel.Debug)
+            .AddConsole();
+    });
 
-        /// <summary>
-        /// Default protected constructor
-        /// </summary>
-        protected Program()
+    logger = logFactory.CreateLogger<Program>();
+}
+
+async Task SetConfigurationProviders(ConfigurationManager config)
+{
+    string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+
+    config.SetBasePath(basePath);
+    config.AddJsonFile(basePath + @"altinn-appsettings/altinn-dbsettings-secret.json", true, true);
+
+    if (basePath == "/")
+    {
+        // In a pod/container where the app is located in an app folder on the root of the filesystem.
+        string filePath = basePath + @"app/appsettings.json";
+        config.AddJsonFile(filePath, false, true);
+    }
+    else
+    {
+        // Running on development machine.
+        string filePath = Directory.GetCurrentDirectory() + @"/appsettings.json";
+        config.AddJsonFile(filePath, false, true);
+    }
+
+    config.AddEnvironmentVariables();
+
+    await ConnectToKeyVaultAndSetApplicationInsights(config);
+
+    config.AddCommandLine(args);
+}
+
+async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager config)
+{
+    logger.LogInformation("Program // Connect to key vault and set up application insights");
+
+    Altinn.Common.AccessToken.Configuration.KeyVaultSettings keyVaultSettings = new();
+    config.GetSection("kvSetting").Bind(keyVaultSettings);
+
+    if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
+        !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
+        !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
+        !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
+    {
+        Environment.SetEnvironmentVariable("AZURE_CLIENT_ID", keyVaultSettings.ClientId);
+        Environment.SetEnvironmentVariable("AZURE_CLIENT_SECRET", keyVaultSettings.ClientSecret);
+        Environment.SetEnvironmentVariable("AZURE_TENANT_ID", keyVaultSettings.TenantId);
+
+        try
         {
+            SecretClient client = new SecretClient(new Uri(keyVaultSettings.SecretUri), new EnvironmentCredential());
+            KeyVaultSecret secret = await client.GetSecretAsync(applicationInsightsKeySecretName);
+            applicationInsightsKey = secret.Value;
         }
-
-        /// <summary>
-        /// The main method
-        /// </summary>
-        /// <param name="args">The Arguments</param>
-        public static void Main(string[] args)
+        catch (Exception vaultException)
         {
-            ConfigureSetupLogging();
-            CreateWebHostBuilder(args).Build().Run();
-        }
-
-        /// <summary>
-        /// Configure logging for setting up application. Temporary
-        /// </summary>
-        public static void ConfigureSetupLogging()
-        {
-            // Setup logging for the web host creation
-            var logFactory = LoggerFactory.Create(builder =>
-            {
-                builder
-                    .AddFilter("Microsoft", LogLevel.Warning)
-                    .AddFilter("System", LogLevel.Warning)
-                    .AddFilter("Altinn.Platform.Authorization.Program", LogLevel.Debug)
-                    .AddConsole();
-            });
-
-            _logger = logFactory.CreateLogger<Program>();
-        }
-
-        /// <summary>
-        /// Configure the configuration builder
-        /// </summary>
-        /// <param name="args">arguments for creating build configuration</param>
-        /// <returns>The web host builder</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((hostingContext, config) =>
-            {
-                _logger.LogInformation("Program // CreateWebHostBuilder");
-
-                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
-                if (basePath == "/")
-                {
-                    config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
-                }
-                else
-                {
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
-                }
-
-                ConnectToKeyVaultAndSetApplicationInsights(config);
-
-                config.AddEnvironmentVariables();
-                config.AddCommandLine(args);
-            })
-             .ConfigureLogging(builder =>
-             {
-                 // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
-                 // Console, Debug, EventSource
-                 // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
-
-                 // Clear log providers
-                 builder.ClearProviders();
-
-                 // Setup up application insight if ApplicationInsightsKey is available
-                 if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
-                 {
-                     // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
-                     // Providing an instrumentation key here is required if you're using
-                     // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-                     // or if you want to capture logs from early in the application startup 
-                     // pipeline from Startup.cs or Program.cs itself.
-                     builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
-
-                     // Optional: Apply filters to control what logs are sent to Application Insights.
-                     // The following configures LogLevel Information or above to be sent to
-                     // Application Insights for all categories.
-                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
-
-                     // Adding the filter below to ensure logs of all severity from Program.cs
-                     // is sent to ApplicationInsights.
-                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
-
-                     // Adding the filter below to ensure logs of all severity from Startup.cs
-                     // is sent to ApplicationInsights.
-                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
-                 }
-                 else
-                 {
-                     // If not application insight is available log to console
-                     builder.AddFilter("Microsoft", LogLevel.Warning);
-                     builder.AddFilter("System", LogLevel.Warning);
-                     builder.AddConsole();
-                 }
-             })
-            .UseStartup<Startup>();
-
-        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
-        {
-            IConfiguration stageOneConfig = config.Build();
-            KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
-            stageOneConfig.GetSection("kvSetting").Bind(keyVaultSettings);
-            if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
-                !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
-                !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
-                !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
-            {
-                _logger.LogInformation("Program // Configure key vault client // App");
-
-                string connectionString = $"RunAs=App;AppId={keyVaultSettings.ClientId};" +
-                                          $"TenantId={keyVaultSettings.TenantId};" +
-                                          $"AppKey={keyVaultSettings.ClientSecret}";
-                AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString);
-                KeyVaultClient keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        azureServiceTokenProvider.KeyVaultTokenCallback));
-                config.AddAzureKeyVault(
-                    keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
-                try
-                {
-                    string appInsightsKey = Startup.VaultApplicationInsightsKey;
-
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
-
-                    Startup.ApplicationInsightsKey = secretBundle.Value;
-                }
-                catch (Exception vaultException)
-                {
-                    _logger.LogError($"Unable to read application insights key {vaultException}");
-                }
-            }
+            logger.LogError(vaultException, $"Unable to read application insights key.");
         }
     }
+}
+
+void ConfigureLogging(ILoggingBuilder logging)
+{
+    // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
+    // Console, Debug, EventSource
+    // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
+
+    // Clear log providers
+    logging.ClearProviders();
+
+    // Setup up application insight if ApplicationInsightsKey is available
+    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    {
+        // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
+        // Providing an instrumentation key here is required if you're using
+        // standalone package Microsoft.Extensions.Logging.ApplicationInsights
+        // or if you want to capture logs from early in the application startup
+        // pipeline from Startup.cs or Program.cs itself.
+        logging.AddApplicationInsights(applicationInsightsKey);
+
+        // Optional: Apply filters to control what logs are sent to Application Insights.
+        // The following configures LogLevel Information or above to be sent to
+        // Application Insights for all categories.
+        logging.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+
+        // Adding the filter below to ensure logs of all severity from Program.cs
+        // is sent to ApplicationInsights.
+        logging.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+    }
+    else
+    {
+        // If not application insight is available log to console
+        logging.AddFilter("Microsoft", LogLevel.Warning);
+        logging.AddFilter("System", LogLevel.Warning);
+        logging.AddConsole();
+    }
+}
+
+void ConfigureServices(IServiceCollection services, IConfiguration config)
+{
+    services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
+    services.AddMvc().AddControllersAsServices();
+    services.AddHealthChecks().AddCheck<HealthCheck>("authentication_health_check");
+
+    services.AddSingleton(config);
+    services.Configure<GeneralSettings>(config.GetSection("GeneralSettings"));
+    services.Configure<AltinnCore.Authentication.Constants.KeyVaultSettings>(config.GetSection("kvSetting"));
+    services.Configure<CertificateSettings>(config.GetSection("CertificateSettings"));
+    services.Configure<Altinn.Common.AccessToken.Configuration.KeyVaultSettings>(config.GetSection("kvSetting"));
+
+    services.Configure<AccessTokenSettings>(config.GetSection("AccessTokenSettings"));
+    services.ConfigureOidcProviders(config.GetSection("OidcProviders"));
+    services.ConfigureDataProtection(builder.Environment.IsDevelopment(), config.GetSection("AzureStorageConfiguration").Get<AzureStorageConfiguration>());
+    services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+         .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+         {
+             GeneralSettings generalSettings = config.GetSection("GeneralSettings").Get<GeneralSettings>();
+             options.JwtCookieName = generalSettings.JwtCookieName;
+             options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+             options.TokenValidationParameters = new TokenValidationParameters
+             {
+                 ValidateIssuerSigningKey = true,
+                 ValidateIssuer = false,
+                 ValidateAudience = false,
+                 RequireExpirationTime = true,
+                 ValidateLifetime = true,
+                 ClockSkew = TimeSpan.Zero
+             };
+
+             if (builder.Environment.IsDevelopment())
+             {
+                 options.RequireHttpsMetadata = false;
+             }
+         });
+
+    services.AddSingleton(config);
+    services.AddHttpClient<ISblCookieDecryptionService, SblCookieDecryptionService>();
+    services.AddHttpClient<IUserProfileService, UserProfileService>();
+    services.AddHttpClient<IEnterpriseUserAuthenticationService, EnterpriseUserAuthenticationService>();
+    services.AddHttpClient<IOrganisationsService, OrganisationsService>();
+    services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
+    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
+    services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
+    services.AddSingleton<IAccessTokenValidator, AccessTokenValidator>();
+    services.AddSingleton<IEFormidlingAccessValidator, EFormidlingAccessValidator>();
+    services.AddHttpClient<IOidcProvider, OidcProviderService>();
+    services.AddSingleton<IAuthentication, AuthenticationCore>();
+
+    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    {
+        services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
+        services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+        services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+        services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
+        services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+    }
+
+    services.AddAntiforgery(options =>
+    {
+        // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
+        // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
+
+        // We use this for OIDC state validation. See authentication controller. 
+        // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
+        // https://github.com/axios/axios/blob/master/lib/defaults.js
+        options.Cookie.Name = "AS-XSRF-TOKEN";
+        options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+        options.HeaderName = "X-XSRF-TOKEN";
+    });
+
+    // Add Swagger support (Swashbuckle)
+    services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Authentication", Version = "v1" });
+
+        try
+        {
+            string filePath = GetXmlCommentsPathForControllers();
+            c.IncludeXmlComments(filePath);
+        }
+        catch
+        {
+            // catch swashbuckle exception if it doesn't find the generated xml documentation file
+        }
+    });
+}
+
+static string GetXmlCommentsPathForControllers()
+{
+    // locate the xml file being generated by .NET
+    string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    return xmlPath;
+}
+
+void Configure()
+{
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+    {
+        app.UseDeveloperExceptionPage();
+
+        // Enable higher level of detail in exceptions related to JWT validation
+        IdentityModelEventSource.ShowPII = true;
+    }
+    else
+    {
+        app.UseExceptionHandler("/authentication/api/v1/error");
+    }
+
+    app.UseSwagger(o => o.RouteTemplate = "authentication/swagger/{documentName}/swagger.json");
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/authentication/swagger/v1/swagger.json", "Altinn Platform Authentication API");
+        c.RoutePrefix = "authentication/swagger";
+    });
+
+    app.UseRouting();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+        endpoints.MapHealthChecks("/health");
+    });
 }

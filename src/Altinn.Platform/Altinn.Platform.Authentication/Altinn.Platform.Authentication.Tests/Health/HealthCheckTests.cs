@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Authentication.Health;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
@@ -10,15 +13,15 @@ namespace Altinn.Platform.Authentication.UnitTest
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<HealthCheck>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<HealthCheck> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="factory">The web applicaiton factory</param>
-        public HealthCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<HealthCheck> factory)
         {
             _factory = factory;
         }
@@ -43,7 +46,6 @@ namespace Altinn.Platform.Authentication.UnitTest
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

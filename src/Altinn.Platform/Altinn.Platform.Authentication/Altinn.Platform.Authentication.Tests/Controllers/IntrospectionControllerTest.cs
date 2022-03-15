@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
@@ -27,9 +28,9 @@ using Xunit;
 
 namespace Altinn.Platform.Authentication.Tests.Controllers
 {
-    public class IntrospectionControllerTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class IntrospectionControllerTest : IClassFixture<WebApplicationFactory<IntrospectionController>>
     {
-        private WebApplicationFactory<Startup> _factory;
+        private WebApplicationFactory<IntrospectionController> _factory;
         private readonly Mock<IEFormidlingAccessValidator> _eformidlingValidatorService;
         private string _baseUrl = "/authentication/api/v1/introspection";
         private ClaimsPrincipal _testPrincipal;
@@ -39,7 +40,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Initialises a new instance of the <see cref="IntrospectionControllerTest"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>   
-        public IntrospectionControllerTest(WebApplicationFactory<Startup> factory)
+        public IntrospectionControllerTest(WebApplicationFactory<IntrospectionController> factory)
         {
             _factory = factory;
             _eformidlingValidatorService = new Mock<IEFormidlingAccessValidator>();
@@ -169,7 +170,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private HttpClient GetTestClient(IEFormidlingAccessValidator eFormidlingAccessValidatorMock)
         {
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
