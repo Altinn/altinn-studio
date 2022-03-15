@@ -58,7 +58,6 @@ export default function (data) {
   var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, appName);
   var success = check(res, {
     'App Get Data created by Multipart request status is 200': (r) => r.status === 200,
-    'App Get Data created by Multipart request - instanceid matches': (r) => r.json('id') == `${partyId}/${instanceId}`,
   });
   addErrorCount(success);
 
