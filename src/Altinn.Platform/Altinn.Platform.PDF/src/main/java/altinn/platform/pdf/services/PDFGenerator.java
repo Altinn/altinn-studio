@@ -3,6 +3,7 @@ package altinn.platform.pdf.services;
 import altinn.platform.pdf.models.*;
 import altinn.platform.pdf.utils.*;
 
+import com.google.gson.Gson;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -69,6 +70,7 @@ public class PDFGenerator {
   private int mcid = 1;
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
+  private String test;
   private List<String> componentsIgnoredFromGeneration = Arrays.asList(
     "Button",
     "Image",
@@ -88,6 +90,8 @@ public class PDFGenerator {
     this.pagesOutline = new PDOutlineItem();
     this.originalFormLayout = pdfContext.getFormLayout();
     this.formLayouts = pdfContext.getFormLayouts();
+    Gson gson = new Gson();
+    this.test = gson.toJson(pdfContext);
     this.optionsDictionary = pdfContext.getOptionsDictionary();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
@@ -214,19 +218,41 @@ public class PDFGenerator {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
-        renderGroup(element, false);
+        if (LayoutUtils.includeComponentInPdf(element.getId(), layoutSettings)) {
+          if (element.getDataModelBindings().get("group") == null) {
+            renderGroup(element);
+          } else {
+            renderRepeatingGroup(element, false);
+          }
+        }
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
-  private void renderGroup(FormLayoutElement element, boolean childGroup) throws IOException {
-    String componentId = element.getId();
-    if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
-      return;
+  private void renderGroup(FormLayoutElement element) throws IOException {
+    for (String childId : element.getChildren()) {
+      FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+      if (childElement.getType().equalsIgnoreCase("group")) {
+        if(childElement.getDataModelBindings().get("group") == null) {
+          renderGroup(element);
+        }
+        else {
+          renderRepeatingGroup(childElement, false);
+        }
+      } else {
+        if (LayoutUtils.includeComponentInPdf(childElement.getId(), layoutSettings)) {
+          renderLayoutElement(childElement);
+        }
+      }
     }
+  }
+
+  private void renderRepeatingGroup(FormLayoutElement element, boolean childGroup) throws IOException {
+    
     String groupBinding = element.getDataModelBindings().get("group");
+
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
       for (String childId : element.getChildren()) {
         FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
@@ -258,7 +284,7 @@ public class PDFGenerator {
           }
         }
         if (childElement.getType().equalsIgnoreCase("group")) {
-          renderGroup(childElement, true);
+            renderRepeatingGroup(childElement, false);
         } else {
           if (LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
             renderLayoutElement(childElement);
