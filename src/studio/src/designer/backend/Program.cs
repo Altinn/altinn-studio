@@ -1,33 +1,49 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-
-using Microsoft.AspNetCore;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Health;
+using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.TypedHttpClients;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 ILogger logger;
+
+string applicationInsightsKey = string.Empty;
 
 var builder = WebApplication.CreateBuilder(args);
 
 ConfigureSetupLogging();
 
-await SetConfigurationProviders(builder.Configuration);
+await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
 ConfigureLogging(builder.Logging);
 
-ConfigureServices(builder.Services, builder.Configuration);
+ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
-Configure();
+Configure(builder.Configuration);
 
 app.Run();
 
@@ -46,13 +62,12 @@ void ConfigureSetupLogging()
             .AddConsole();
     });
 
-    _logger = logFactory.CreateLogger<Program>();
+    logger = logFactory.CreateLogger<Program>();
 }
 
-async Task SetConfigurationProviders(ConfigurationManager config)
+async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
     config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
-    IWebHostEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
     string envName = hostingEnvironment.EnvironmentName;
 
     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -60,12 +75,10 @@ async Task SetConfigurationProviders(ConfigurationManager config)
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    IConfiguration stageOneConfig = config.Build();
-
-    string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
-    string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
-    string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
-    string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri");
+    string appId = config.GetValue<string>("KvSetting:ClientId");
+    string tenantId = config.GetValue<string>("KvSetting:TenantId");
+    string appKey = config.GetValue<string>("KvSetting:ClientSecret");
+    string keyVaultEndpoint = config.GetValue<string>("KvSetting:SecretUri");
 
     if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
         && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
@@ -82,11 +95,11 @@ async Task SetConfigurationProviders(ConfigurationManager config)
             SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                 keyVaultEndpoint, secretId).Result;
 
-            Startup.ApplicationInsightsKey = secretBundle.Value;
+            applicationInsightsKey = secretBundle.Value;
         }
         catch (Exception vaultException)
         {
-            _logger.LogError($"Could not find secretBundle for application insights {vaultException}");
+            logger.LogError($"Could not find secretBundle for application insights {vaultException}");
         }
     }
 
@@ -101,7 +114,7 @@ async Task SetConfigurationProviders(ConfigurationManager config)
     }
 }
 
-void ConfigureLogging(ILoggingBuilder loggingBuilder)
+void ConfigureLogging(ILoggingBuilder builder)
 {
     // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
     // Console, Debug, EventSource
@@ -111,14 +124,14 @@ void ConfigureLogging(ILoggingBuilder loggingBuilder)
     builder.ClearProviders();
 
     // Setup up application insight if ApplicationInsightsKey is available
-    if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+    if (!string.IsNullOrEmpty(applicationInsightsKey))
     {
         // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
         // Providing an instrumentation key here is required if you're using
         // standalone package Microsoft.Extensions.Logging.ApplicationInsights
         // or if you want to capture logs from early in the application startup
         // pipeline from Startup.cs or Program.cs itself.
-        builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
+        builder.AddApplicationInsights(applicationInsightsKey);
 
         // Optional: Apply filters to control what logs are sent to Application Insights.
         // The following configures LogLevel Information or above to be sent to
@@ -128,10 +141,6 @@ void ConfigureLogging(ILoggingBuilder loggingBuilder)
         // Adding the filter below to ensure logs of all severity from Program.cs
         // is sent to ApplicationInsights.
         builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
-
-        // Adding the filter below to ensure logs of all severity from Startup.cs
-        // is sent to ApplicationInsights.
-        builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
     }
     else
     {
@@ -142,7 +151,7 @@ void ConfigureLogging(ILoggingBuilder loggingBuilder)
     }
 }
 
-void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+void ConfigureServices(IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
 {
     logger.LogInformation($"// Program.cs // ConfigureServices // Attempting to configure services.");
 
@@ -151,26 +160,26 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    services.RegisterServiceImplementations(Configuration);
+    services.RegisterServiceImplementations(configuration);
 
     services.AddHttpContextAccessor();
     services.AddMemoryCache();
     services.AddResponseCompression();
     services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
 
-    CreateDirectory();
+    CreateDirectory(configuration);
 
-    services.ConfigureDataProtection(Configuration, _logger);
+    services.ConfigureDataProtection(configuration, logger);
     services.ConfigureMvc();
-    services.ConfigureSettings(Configuration);
+    services.ConfigureSettings(configuration);
 
-    services.RegisterTypedHttpClients(Configuration);
-    services.ConfigureAuthentication(Configuration, CurrentEnvironment);
+    services.RegisterTypedHttpClients(configuration);
+    services.ConfigureAuthentication(configuration, env);
 
     // Add application insight telemetry
-    if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+    if (!string.IsNullOrEmpty(applicationInsightsKey))
     {
-        services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+        services.AddApplicationInsightsTelemetry(applicationInsightsKey);
         services.ConfigureTelemetryModule<EventCounterCollectionModule>(
             (module, o) =>
             {
@@ -185,6 +194,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
     }
+
+    services.AddLocalization(options => options.ResourcesPath = "Resources");
 
     services.ConfigureLocalization();
     services.AddPolicyBasedAuthorization();
@@ -204,40 +215,39 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     logger.LogInformation($"// Program.cs // ConfigureServices // Configuration complete");
 }
 
-void Configure()
+void Configure(IConfiguration configuration)
 {
     logger.LogInformation($"// Program.cs // Configure // Attempting to configure env.");
-    if (env.IsDevelopment() || env.IsStaging())
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
-        appBuilder.UseExceptionHandler("/error-local-development");
+        app.UseExceptionHandler("/error-local-development");
     }
     else
     {
-        appBuilder.UseExceptionHandler("/error");
+        app.UseExceptionHandler("/error");
     }
 
-    if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+    if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
     {
         ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
         string connectionString = string.Format(
-            Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
-            Configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
-
-        appBuilder.UseYuniql(
+            configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+            configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
+        app.UseYuniql(
             new PostgreSqlDataService(traceService),
             new PostgreSqlBulkImportService(traceService),
             traceService,
             new Yuniql.AspNetCore.Configuration
             {
-                Workspace = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                Workspace = Path.Combine(Environment.CurrentDirectory, configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
                 ConnectionString = connectionString,
                 IsAutoCreateDatabase = false,
                 IsDebug = true
             });
     }
 
-    appBuilder.UseStaticFiles(new StaticFileOptions
+    app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
         {
@@ -251,41 +261,41 @@ void Configure()
     });
 
     const string swaggerRoutePrefix = "designer/swagger";
-    appBuilder.UseSwagger(c =>
+    app.UseSwagger(c =>
     {
         c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
     });
-    appBuilder.UseSwaggerUI(c =>
+    app.UseSwaggerUI(c =>
     {
         c.RoutePrefix = swaggerRoutePrefix;
         c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
     });
 
-    appBuilder.UseRouting();
+    app.UseRouting();
 
-    if (!env.IsDevelopment())
+    if (!app.Environment.IsDevelopment())
     {
-        appBuilder.UseHsts();
-        appBuilder.UseHttpsRedirection();
+        app.UseHsts();
+        app.UseHttpsRedirection();
     }
 
-    appBuilder.UseAuthentication();
-    appBuilder.UseAuthorization();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-    appBuilder.UseResponseCompression();
-    appBuilder.UseRequestLocalization();
+    app.UseResponseCompression();
+    app.UseRequestLocalization();
 
-    appBuilder.UseEndpoints(endpoints =>
+    app.UseEndpoints(endpoints =>
     {
-                // ------------------------- DEV ----------------------------- //
-                endpoints.MapControllerRoute(
-            name: "orgRoute",
-            pattern: "designer/{org}/{controller}/{action=Index}/",
-            defaults: new { controller = "Config" },
-            constraints: new
-            {
-                controller = "Config|Datamodels",
-            });
+        // ------------------------- DEV ----------------------------- //
+        endpoints.MapControllerRoute(
+    name: "orgRoute",
+    pattern: "designer/{org}/{controller}/{action=Index}/",
+    defaults: new { controller = "Config" },
+    constraints: new
+    {
+        controller = "Config|Datamodels",
+    });
 
         endpoints.MapControllerRoute(
                 name: "serviceDevelopmentRoute",
@@ -325,19 +335,44 @@ void Configure()
                 pattern: "{controller}/{action}/",
                 defaults: new { controller = "RedirectController" });
 
-                // -------------------------- DEFAULT ------------------------- //
-                endpoints.MapControllerRoute(
-           name: "defaultRoute2",
-           pattern: "{controller}/{action=StartPage}/{id?}",
-           defaults: new { controller = "Home" });
+        // -------------------------- DEFAULT ------------------------- //
+        endpoints.MapControllerRoute(
+   name: "defaultRoute2",
+   pattern: "{controller}/{action=StartPage}/{id?}",
+   defaults: new { controller = "Home" });
 
         endpoints.MapControllerRoute(
             name: "defaultRoute",
             pattern: "{action=StartPage}/{id?}",
             defaults: new { controller = "Home" });
 
-                // ---------------------- MONITORING -------------------------- //
-                endpoints.MapHealthChecks("/health");
+        // ---------------------- MONITORING -------------------------- //
+        endpoints.MapHealthChecks("/health");
     });
     logger.LogInformation($"// Program.cs // Configure // Configuration complete");
+}
+
+void CreateDirectory(IConfiguration configuration)
+{
+    Console.WriteLine($"// Program.cs // CreateDirectory // Trying to create directory");
+
+    // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
+    // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+    string repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ??
+                         configuration["ServiceRepositorySettings:RepositoryLocation"];
+
+    if (!Directory.Exists(repoLocation))
+    {
+        Directory.CreateDirectory(repoLocation);
+        Console.WriteLine($"// Program.cs // CreateDirectory // Successfully created directory");
+    }
+}
+
+static string GetXmlCommentsPathForControllers()
+{
+    // locate the xml file being generated by .NET
+    string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
+    string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+    return xmlPath;
 }
