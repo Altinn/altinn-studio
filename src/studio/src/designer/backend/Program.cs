@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
+using AltinnCore.Authentication.Constants;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -31,9 +32,9 @@ ILogger logger;
 
 string applicationInsightsKey = string.Empty;
 
-var builder = WebApplication.CreateBuilder(args);
-
 ConfigureSetupLogging();
+
+var builder = WebApplication.CreateBuilder(args);
 
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
@@ -67,33 +68,42 @@ void ConfigureSetupLogging()
 
 async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
+    string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+    config.SetBasePath(basePath);
     config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
     string envName = hostingEnvironment.EnvironmentName;
 
-    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+    if (basePath == "/")
+    {
+        config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+    }
+    else
+    {
+        config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+    }
 
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    string appId = config.GetValue<string>("KvSetting:ClientId");
-    string tenantId = config.GetValue<string>("KvSetting:TenantId");
-    string appKey = config.GetValue<string>("KvSetting:ClientSecret");
-    string keyVaultEndpoint = config.GetValue<string>("KvSetting:SecretUri");
+    KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
+    config.GetSection("kvSettings").Bind(keyVaultSettings);
 
-    if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
-        && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
+    if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
+        !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
+        !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
+        !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
+        AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(
                 azureServiceTokenProvider.KeyVaultTokenCallback));
         config.AddAzureKeyVault(
-            keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+            keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
         try
         {
             string secretId = "ApplicationInsights--InstrumentationKey";
-            SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
-                keyVaultEndpoint, secretId).Result;
+            SecretBundle secretBundle = await keyVaultClient.GetSecretAsync(
+                keyVaultSettings.SecretUri, secretId);
 
             applicationInsightsKey = secretBundle.Value;
         }
