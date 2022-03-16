@@ -1,10 +1,11 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
     Command: docker-compose run k6 run src/tests/platform/storage/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 
 import { check } from 'k6';
 import * as instances from '../../../api/platform/storage/instances.js';
+import * as appInstances from '../../../api/app/instances.js';
 import * as events from '../../../api/platform/storage/events.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
@@ -16,7 +17,6 @@ const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 let eventsJson = open('../../../data/events.json');
-let instanceJson = open('../../../data/instance.json');
 
 export const options = {
   thresholds: {
@@ -32,7 +32,7 @@ export function setup() {
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
-  var instanceId = instances.postInstance(altinnStudioRuntimeCookie, data['partyId'], appOwner, level2App, instanceJson);
+  var instanceId = appInstances.postInstance(altinnStudioRuntimeCookie, data['partyId'], appOwner, level2App);
   instanceId = instances.findInstanceId(instanceId.body);
   data.instanceId = instanceId;
   return data;
@@ -42,6 +42,7 @@ export function setup() {
 export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
+  const ssn = data['ssn'];
   const instanceId = data['instanceId'];
   var eventId = '';
   var res, success;
@@ -53,13 +54,22 @@ export default function (data) {
     'POST Add Event Event Id is not null': (r) => JSON.parse(r.body).id != null,
   });
   addErrorCount(success);
-
-  eventId = JSON.parse(res.body).id;
+  eventId = res.json('id');
 
   //Test to get an instance event by id from an instance with storage api and validate the response
   res = events.getEvent(runtimeToken, partyId, instanceId, eventId);
   success = check(res, {
-    'GET Instance Event status is 200': (r) => r.status === 200,
+    'GET Instance Event by id - status is 200': (r) => r.status === 200,
+    'GET Instance Event by id - event id matches': (r) => r.json('id') === eventId,
+  });
+  addErrorCount(success);
+
+  //Test to get all instance events by type from an instance with storage api and validate the response
+  res = events.getEventByType(runtimeToken, partyId, instanceId, 'created');
+  success = check(res, {
+    'GET Instance Events by EventType - status is 200': (r) => r.status === 200,
+    'GET Instance Events by EventType - event type is created': (r) => r.json('instanceEvents.0.eventType') === 'created',
+    'GET Instance Events by EventType - event id matches': (r) => r.json('instanceEvents.0.id') === eventId,
   });
   addErrorCount(success);
 
@@ -70,10 +80,11 @@ export default function (data) {
   });
   addErrorCount(success);
 
-  //Test to get all instance events by type from an instance with storage api and validate the response
-  res = events.getEventByType(runtimeToken, partyId, instanceId, 'created');
+  //process events is updated with national identity number
+  res = events.getEventByType(runtimeToken, partyId, instanceId, 'process_StartTask');
   success = check(res, {
-    'GET Instance Events by EventType status is 200': (r) => r.status === 200,
+    'GET Instance Events by EventType - status is 200': (r) => r.status === 200,
+    'GET Instance Events by EventType - national id number is ssn': (r) => r.json('instanceEvents.0.user.nationalIdentityNumber') == ssn,
   });
   addErrorCount(success);
 }

@@ -1,11 +1,12 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/storage/process.js 
+    Command: docker-compose run k6 run /src/tests/platform/storage/process.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
 import { check } from 'k6';
 import * as instances from '../../../api/platform/storage/instances.js';
+import * as appInstances from '../../../api/app/instances.js';
 import * as process from '../../../api/platform/storage/process.js';
 import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
@@ -16,7 +17,6 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-let instanceJson = open('../../../data/instance.json');
 
 export const options = {
   thresholds: {
@@ -32,7 +32,7 @@ export function setup() {
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
-  var instanceId = instances.postInstance(altinnStudioRuntimeCookie, data['partyId'], appOwner, level2App, instanceJson);
+  var instanceId = appInstances.postInstance(altinnStudioRuntimeCookie, data['partyId'], appOwner, level2App);
   instanceId = instances.findInstanceId(instanceId.body);
   data.instanceId = instanceId;
   return data;
@@ -42,6 +42,7 @@ export function setup() {
 export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
+  const ssn = data['ssn'];
   const instanceId = data['instanceId'];
   var res, success;
 
@@ -59,7 +60,12 @@ export default function (data) {
   res = process.getProcessHistory(runtimeToken, partyId, instanceId);
   success = check(res, {
     'GET Process history status is 200': (r) => r.status === 200,
+    'Platform - GET Process history - performedBy is SSN': (r) => {
+      var processHistory = r.json('processHistory');
+      return processHistory.every((process) => process.performedBy == ssn);
+    },
   });
+
   addErrorCount(success);
 }
 
