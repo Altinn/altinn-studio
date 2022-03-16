@@ -188,13 +188,16 @@ function DatepickerComponent({
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
-      const dateString =
+      const validDate = isValidDate(dateValue); // the date can have a valid format but not pass min/max validation
+      setDate(dateValue);
+      if (validDate) {
+        const dateString =
         timeStamp === true
           ? dateValue?.toISOString(true)
           : dateValue.format(DatePickerSaveFormatNoTimestamp);
-      setValidDate(isValidDate(dateValue)); // the date can have a valid format but not pass min/max validation
-      handleDataChange(dateString);
-      setDate(dateValue);
+        handleDataChange(dateString);
+      }
+
     } else if (!dateValue) {
       setDate(null);
       setValidDate(true);
@@ -232,7 +235,9 @@ function DatepickerComponent({
       const saveDate = isDateEmpty() ? '' : dateString;
       handleDataChange(saveDate);
     } else {
-      handleDataChange('');
+      if (formData?.simpleBinding) {
+        handleDataChange('');
+      }
     }
   };
 
