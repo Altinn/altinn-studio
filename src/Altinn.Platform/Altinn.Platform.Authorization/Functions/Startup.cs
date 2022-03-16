@@ -1,14 +1,15 @@
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Authorization.Functions.Clients;
+using Altinn.Platform.Authorization.Functions.Clients.Interfaces;
 using Altinn.Platform.Authorization.Functions.Configuration;
 using Altinn.Platform.Authorization.Functions.Factories;
 using Altinn.Platform.Authorization.Functions.Services;
 using Altinn.Platform.Authorization.Functions.Services.Interfaces;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.WebJobs.Host.Queues;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 [assembly: FunctionsStartup(typeof(Altinn.Platform.Authorization.Functions.Startup))]
 
@@ -39,8 +40,9 @@ namespace Altinn.Platform.Authorization.Functions
             builder.Services.AddSingleton<IAccessTokenGenerator, AccessTokenGenerator>();
             builder.Services.AddSingleton<IAccessTokenProvider, AccessTokenProvider>();
             builder.Services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            builder.Services.AddSingleton<IEventMapperService, EventMapperService>();
             builder.Services.AddSingleton<IEventPusherService, EventPusherService>();
-            builder.Services.AddHttpClient<BridgeClient>();
+            builder.Services.AddHttpClient<IBridgeClient, BridgeClient>();
         }
     }
 }
