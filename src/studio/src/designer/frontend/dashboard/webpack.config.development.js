@@ -14,17 +14,6 @@ module.exports = {
     rules: [
       ...commonConfig.module.rules,
       {
-        test: /\.html$/,
-        use: [
-          {
-            loader: 'html-loader',
-            options: {
-              minimize: true,
-            },
-          },
-        ],
-      },
-      {
         test: /\.svg$/,
         use: {
           loader: 'svg-inline-loader',

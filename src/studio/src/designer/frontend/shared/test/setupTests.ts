@@ -11,9 +11,7 @@ global['document'] = document;
 global['window'] = document.defaultView;
 
 global.window.resizeTo = (width, height) => {
-  // @ts-ignore
   global.window['innerWidth'] = width || global.window.innerWidth;
-  // @ts-ignore
   global.window['innerHeight'] = height || global.window.innerHeight;
   global.window.dispatchEvent(new Event('resize'));
 };

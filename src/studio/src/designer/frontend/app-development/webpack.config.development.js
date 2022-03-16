@@ -1,4 +1,3 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
@@ -14,17 +13,6 @@ module.exports = {
   module: {
     rules: [
       ...commonConfig.module.rules,
-      {
-        test: /\.html$/,
-        use: [
-          {
-            loader: 'html-loader',
-            options: {
-              minimize: true,
-            },
-          },
-        ],
-      },
       {
         test: /\.svg$/,
         use: {
@@ -53,10 +41,6 @@ module.exports = {
     new ForkTsCheckerNotifierWebpackPlugin({
       title: 'TypeScript',
       excludeWarnings: false,
-    }),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html',
     }),
   ],
   devServer: {
