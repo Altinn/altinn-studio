@@ -14,6 +14,9 @@ namespace Altinn.Studio.Designer.Configuration
         /// Debug enabled 
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
+        public bool IsTraceSensitiveData { get; set; } = false;
+        public string TraceToDirectory { get; set; } = "";
+        public bool IsTraceToFile { get; set; } = false;
 
         /// <summary>
         /// Info
