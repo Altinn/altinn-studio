@@ -188,7 +188,7 @@ describe('DatepickerComponent', () => {
 
     userEvent.type(inputField, `12.13.${Number(currentYearNumeric) + 1}`);
     fireEvent.blur(inputField);
-    
+
     expect(handleDataChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(
@@ -220,7 +220,7 @@ describe('DatepickerComponent', () => {
 
   it('should show error message when typed date is on an invalid format and call handleDataChange with empy value if formdata is present', () => {
     const handleDataChange = jest.fn();
-    render({ handleDataChange, formData: { simpleBinding: '12.12.2022'} });
+    render({ handleDataChange, formData: { simpleBinding: '12.12.2022' } });
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(
