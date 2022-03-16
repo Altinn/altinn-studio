@@ -131,7 +131,14 @@ function DatepickerComponent({
   }, [date]);
 
   const getValidationMessages = React.useCallback(() => {
-    const checkDate = isDateEmpty() ? '' : date?.toISOString();
+    let checkDate: string;
+    if (!date || isDateEmpty()) {
+      checkDate = '';
+    } else if (date && date.isValid()) {
+      checkDate = date.toISOString();
+    } else if (date) {
+      checkDate = null;
+    }
     const validations: IComponentBindingValidation = validateDatepickerFormData(
       checkDate,
       calculatedMinDate,
@@ -172,10 +179,6 @@ function DatepickerComponent({
     setDate(dateValue);
   }, [formData?.simpleBinding]);
 
-  React.useEffect(() => {
-    setValidationMessages(getValidationMessages());
-  }, [getValidationMessages]);
-
   const handleDateChange = (dateValue: moment.Moment) => {
     dateValue
       ?.set('hour', 12)
@@ -196,6 +199,8 @@ function DatepickerComponent({
       setDate(null);
       setValidDate(true);
       handleDataChange('');
+    } else if (dateValue && !dateValue.isValid()) {
+      setDate(dateValue);
     }
   };
 
@@ -216,11 +221,8 @@ function DatepickerComponent({
   };
 
   const handleBlur = () => {
-    if (date) {
-      setValidDate(isValidDate(date));
-    } else {
-      setValidDate(true);
-    }
+    const validDate = isValidDate(date);
+    setValidDate(validDate);
     setValidationMessages(getValidationMessages());
     if (validDate) {
       const dateString =
@@ -229,15 +231,17 @@ function DatepickerComponent({
           : date?.toISOString(true);
       const saveDate = isDateEmpty() ? '' : dateString;
       handleDataChange(saveDate);
+    } else {
+      handleDataChange('');
     }
   };
 
   const mobileOnlyProps = isMobile
     ? {
-        cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
-        clearLabel: getLanguageFromKey('date_picker.clear_label', language),
-        todayLabel: getLanguageFromKey('date_picker.today_label', language),
-      }
+      cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
+      clearLabel: getLanguageFromKey('date_picker.clear_label', language),
+      todayLabel: getLanguageFromKey('date_picker.today_label', language),
+    }
     : {};
 
   return (
