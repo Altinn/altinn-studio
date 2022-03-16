@@ -75,7 +75,7 @@ export function renderValidationMessages(
               </li>
             );
           }
-          return <li key={`validationMessage-${id}-${idx}`}>{message}</li>;
+          return <li role='alert' key={`validationMessage-${id}-${idx}`}>{message}</li>;
         })}
       </ol>
     </MessageComponent>
