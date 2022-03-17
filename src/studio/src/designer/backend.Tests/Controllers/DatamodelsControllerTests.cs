@@ -106,12 +106,12 @@ namespace Designer.Tests.Controllers
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json"))
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -151,12 +151,12 @@ namespace Designer.Tests.Controllers
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json"))
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -196,12 +196,12 @@ namespace Designer.Tests.Controllers
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json"))
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/RA-0678_M.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/RA-0678_M.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -333,7 +333,7 @@ namespace Designer.Tests.Controllers
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{repository}/datamodels/{modelPath}";
-
+            Console.WriteLine(url);
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -584,7 +584,7 @@ namespace Designer.Tests.Controllers
         [InlineData("test<", "", false)]
         [InlineData("test>", "", false)]
         [InlineData("test|", "", false)]
-        [InlineData("test\"", "", false)]
+        [InlineData("test\\\"", "", false)]
         public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
         {
             var client = GetTestClient();
