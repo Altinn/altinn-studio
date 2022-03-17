@@ -200,7 +200,6 @@ function DatepickerComponent({
 
     } else if (!dateValue) {
       setDate(null);
-      setValidDate(true);
       handleDataChange('');
     } else if (!dateValue.isValid()) {
       setDate(dateValue);
