@@ -171,7 +171,7 @@ namespace Designer.Tests.Services
             await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
 
             // Assert
-            string developerClonePath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}\\{developer}\\{org}";
+            string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
             int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains("apps-test-2021"));
 
             TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
@@ -287,7 +287,7 @@ namespace Designer.Tests.Services
             sourceControlMock ??= new ISourceControlMock();
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
