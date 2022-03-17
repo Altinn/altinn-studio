@@ -72,7 +72,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
-            await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"..\should.not.exist", "some content"));
+            await Assert.ThrowsAsync<ArgumentException>(async () => await gitRepository.WriteTextByRelativePathAsync(@"../should.not.exist", "some content"));
         }
 
         [Fact]
@@ -119,9 +119,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
         [Theory]
         [InlineData(@"App/models/HvemErHvem.json")]
-        [InlineData(@"App\models\HvemErHvem.json")]
+        [InlineData(@"App\models\HvemErHvem.json")] //Windows only test?
         [InlineData(@"/App/models/HvemErHvem.json")]
-        [InlineData(@"\App\models\HvemErHvem.json")]
+        [InlineData(@"\App\models\HvemErHvem.json")] //Windows only test?
         public void FileExistsByRelativePath_FileExits_ShouldReturnTrue(string relativePath)
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
