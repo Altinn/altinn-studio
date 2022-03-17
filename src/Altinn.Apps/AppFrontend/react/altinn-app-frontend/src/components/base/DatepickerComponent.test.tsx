@@ -196,7 +196,7 @@ describe('DatepickerComponent', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show error message when typed date is on invlid format but not call handleDataChange when formdata is NOT present ', () => {
+  it('should show error message when typed date is on invalid format but not call handleDataChange when formdata is NOT present ', () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange });
 
