@@ -134,9 +134,9 @@ function DatepickerComponent({
     let checkDate: string;
     if (!date || isDateEmpty()) {
       checkDate = '';
-    } else if (date && date.isValid()) {
+    } else if (date.isValid()) {
       checkDate = date.toISOString();
-    } else if (date) {
+    } else {
       checkDate = null;
     }
     const validations: IComponentBindingValidation = validateDatepickerFormData(
@@ -202,7 +202,7 @@ function DatepickerComponent({
       setDate(null);
       setValidDate(true);
       handleDataChange('');
-    } else if (dateValue && !dateValue.isValid()) {
+    } else if (!dateValue.isValid()) {
       setDate(dateValue);
     }
   };
