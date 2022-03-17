@@ -179,6 +179,10 @@ function DatepickerComponent({
     setDate(dateValue);
   }, [formData?.simpleBinding]);
 
+  React.useEffect(() => {
+    setValidationMessages(getValidationMessages());
+  }, [getValidationMessages]);
+
   const handleDateChange = (dateValue: moment.Moment) => {
     dateValue
       ?.set('hour', 12)
@@ -202,7 +206,7 @@ function DatepickerComponent({
       setDate(null);
       setValidDate(true);
       handleDataChange('');
-    } else if (!dateValue.isValid()) {
+    } else if (dateValue.parsingFlags().charsLeftOver == 0 && !dateValue.isValid()) {
       setDate(dateValue);
     }
   };
