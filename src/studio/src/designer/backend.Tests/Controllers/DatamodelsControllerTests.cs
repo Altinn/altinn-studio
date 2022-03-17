@@ -617,7 +617,7 @@ namespace Designer.Tests.Controllers
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
                 configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
@@ -633,9 +633,9 @@ namespace Designer.Tests.Controllers
                     Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
                     Returns<string, string, string>(async (org, repo, path) =>
                     {
-                        string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo);
+                        string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo, path);
 
-                        Stream fs = File.OpenRead(repopath + path);
+                        Stream fs = File.OpenRead(repopath);
                         return await Task.FromResult(fs);
                     });
                 repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();

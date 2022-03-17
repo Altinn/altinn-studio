@@ -138,7 +138,7 @@ namespace Designer.Tests.Controllers
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
                 builder.ConfigureTestServices(services =>
