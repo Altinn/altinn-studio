@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/instances.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/instances.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -56,6 +56,7 @@ export default function (data) {
   res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, appName);
   success = check(res, {
     'App GET Instance by Id status is 200': (r) => r.status === 200,
+    'App GET Instance by Id - instanceid matches': (r) => r.json('id') == `${partyId}/${instanceId}`,
   });
   addErrorCount(success);
 
@@ -132,6 +133,7 @@ export default function (data) {
   res = appInstances.postSimplifiedInstantiation(runtimeToken, appOwner, appName, instanceInfo);
   success = check(res, {
     'Copy an archived instance - status is 201': (r) => r.status === 201,
+    'Copy an archived instance - instanceid is not null': (r) => r.json('id') != null,
   });
   addErrorCount(success);
 
