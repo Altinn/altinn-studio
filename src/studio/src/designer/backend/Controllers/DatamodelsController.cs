@@ -190,31 +190,24 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("post")]
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogInformation("ModelState is not valid");
-                    return BadRequest(ModelState);
-                }
-
-                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-                var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
-
-                // Sets the location header and content-type manually instead of using CreatedAtAction
-                // because the latter overrides the content type and sets it to text/plain.
-                var baseUrl = GetBaseUrl();
-                var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
-                Response.Headers.Add("Location", locationUrl);
-                Response.StatusCode = (int)HttpStatusCode.Created;
-
-                return Content(model, "application/json");
+                _logger.LogInformation("ModelState is not valid");
+                return BadRequest(ModelState);
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error creating model");
-                throw e;
-            }
+            _logger.LogInformation("ModelState is valid");
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+
+            // Sets the location header and content-type manually instead of using CreatedAtAction
+            // because the latter overrides the content type and sets it to text/plain.
+            var baseUrl = GetBaseUrl();
+            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
+            Response.Headers.Add("Location", locationUrl);
+            Response.StatusCode = (int)HttpStatusCode.Created;
+
+            return Content(model, "application/json");
         }
 
         private string GetBaseUrl()
