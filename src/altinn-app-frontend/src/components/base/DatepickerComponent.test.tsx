@@ -154,8 +154,9 @@ describe('DatepickerComponent', () => {
     expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  it('should show error message when input is before today, and minDate is today', () => {
-    render({ minDate: 'today', required: true });
+  it('should show error message when input is before today, and minDate is today and not call handleDataChange', () => {
+    const handleDataChange = jest.fn();
+    render({ handleDataChange, minDate: 'today', required: true });
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(
@@ -167,14 +168,16 @@ describe('DatepickerComponent', () => {
     userEvent.type(inputField, `12.13.${Number(currentYearNumeric) - 1}`);
     fireEvent.blur(inputField);
 
+    expect(handleDataChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(
       screen.getByText('date_picker.min_date_exeeded'),
     ).toBeInTheDocument();
   });
 
-  it('should show error message when input is after today, and maxDate is today', () => {
-    render({ maxDate: 'today', required: true });
+  it('should show error message when input is after today, and maxDate is today and not call handleDataChange', () => {
+    const handleDataChange = jest.fn();
+    render({ handleDataChange, maxDate: 'today', required: true });
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(
@@ -186,9 +189,56 @@ describe('DatepickerComponent', () => {
     userEvent.type(inputField, `12.13.${Number(currentYearNumeric) + 1}`);
     fireEvent.blur(inputField);
 
+    expect(handleDataChange).not.toHaveBeenCalled();
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(
       screen.getByText('date_picker.max_date_exeeded'),
     ).toBeInTheDocument();
+  });
+
+  it('should show error message when typed date is on invalid format but not call handleDataChange when formdata is NOT present ', () => {
+    const handleDataChange = jest.fn();
+    render({ handleDataChange });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('date_picker.invalid_date_message'),
+    ).not.toBeInTheDocument();
+
+    const inputField = screen.getByRole('textbox');
+
+    userEvent.type(inputField, '45.45.4545');
+    fireEvent.blur(inputField);
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(
+      screen.getByText('date_picker.invalid_date_message'),
+    ).toBeInTheDocument();
+
+    expect(handleDataChange).not.toHaveBeenCalled();
+  });
+
+  it('should show error message when typed date is on an invalid format and call handleDataChange with empy value if formdata is present', () => {
+    const handleDataChange = jest.fn();
+    render({ handleDataChange, formData: { simpleBinding: '12.12.2022' } });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('date_picker.invalid_date_message'),
+    ).not.toBeInTheDocument();
+
+    const inputField = screen.getByRole('textbox');
+
+    userEvent.clear(inputField);
+    userEvent.type(inputField, `45.45.4545`);
+    fireEvent.blur(inputField);
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    expect(
+      screen.getByText('date_picker.invalid_date_message'),
+    ).toBeInTheDocument();
+
+    expect(handleDataChange).toHaveBeenCalledWith('');
   });
 });
