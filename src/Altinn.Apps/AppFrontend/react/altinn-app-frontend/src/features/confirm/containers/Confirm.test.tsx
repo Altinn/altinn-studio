@@ -9,7 +9,7 @@ import { renderWithProviders } from '../../../../testUtils';
 import Confirm, {
   returnConfirmSummaryObject,
 } from 'src/features/confirm/containers/Confirm';
-import { IParty } from 'altinn-shared/types';
+import type { IParty } from 'altinn-shared/types';
 
 describe('features > confirm > Confirm', () => {
   it('should show spinner when loading required data', () => {
