@@ -194,6 +194,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogInformation("ModelState is not valid");
                     return BadRequest(ModelState);
                 }
 
