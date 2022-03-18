@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -57,8 +58,9 @@ namespace Designer.Tests.Factories.ModelFactory
             // Assert
             Assert.NotNull(modelMetadata);
             Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
-            Assert.Equal(text, textOrgXml);
-            Assert.Equal(orgClasses, classes.Replace("\r", string.Empty).Replace("\n", "\r\n"));
+            string expectedSanitized = Regex.Replace(textOrgXml, @">(\s+)<", "><");
+            Assert.Equal(text, expectedSanitized);
+            Assert.Equal(orgClasses, classes);
         }
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)

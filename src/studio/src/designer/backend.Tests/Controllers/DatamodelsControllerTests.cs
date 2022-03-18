@@ -585,6 +585,7 @@ namespace Designer.Tests.Controllers
         [InlineData("test>", "", false)]
         [InlineData("test|", "", false)]
         [InlineData("test\\\"", "", false)]
+        [InlineData("test/", "", false)]
         public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
         {
             var client = GetTestClient();
