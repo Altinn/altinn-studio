@@ -732,8 +732,7 @@ namespace Altinn.Platform.Authentication.Controllers
             UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel()
             {
                 IsAuthenticated = true,
-                ProviderClaims = new Dictionary<string,
-                List<string>>(),
+                ProviderClaims = new Dictionary<string, List<string>>(),
                 Iss = provider.IssuerKey,
                 AuthenticationMethod = AuthenticationMethod.NotDefined
             };
