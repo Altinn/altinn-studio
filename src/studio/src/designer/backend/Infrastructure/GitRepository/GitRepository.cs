@@ -108,15 +108,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // Should try to fix this as this method is more performant than ReadAllTextAsync.
             // return await ReadTextAsync(absoluteFilePath)
             Console.WriteLine($"Reading file {absoluteFilePath}, relative path {relativeFilePath}");
-            File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
 
             try
             {
+                File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
                 return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
             }
             catch (IOException)
             {
                 Thread.Sleep(1000);
+                File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
                 return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8);
             }
         }
