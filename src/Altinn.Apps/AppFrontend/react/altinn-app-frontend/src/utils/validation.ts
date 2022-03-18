@@ -536,7 +536,6 @@ export function validateDatepickerFormData(
   language: ILanguage,
 ): IComponentBindingValidation {
   const validations: IComponentBindingValidation = { errors: [], warnings: [] };
-  const messages: string[] = [];
   const date = formData ? moment(formData) : null;
 
   if (formData === null) {
@@ -549,13 +548,11 @@ export function validateDatepickerFormData(
   }
 
   if (date && date.isBefore(minDate)) {
-    messages.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
+    validations.errors.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
   } else if (date && date.isAfter(maxDate)) {
-    messages.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
+    validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
   }
-  messages.forEach((message: string) => {
-    validations.errors.push(message);
-  });
+
   return validations;
 }
 
