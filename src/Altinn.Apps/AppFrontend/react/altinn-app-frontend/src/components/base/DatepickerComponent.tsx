@@ -131,7 +131,14 @@ function DatepickerComponent({
   }, [date]);
 
   const getValidationMessages = React.useCallback(() => {
-    const checkDate = isDateEmpty() ? '' : date?.toISOString();
+    let checkDate: string;
+    if (!date || isDateEmpty()) {
+      checkDate = '';
+    } else if (date.isValid()) {
+      checkDate = date.toISOString();
+    } else {
+      checkDate = null;
+    }
     const validations: IComponentBindingValidation = validateDatepickerFormData(
       checkDate,
       calculatedMinDate,
@@ -185,17 +192,21 @@ function DatepickerComponent({
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
-      const dateString =
+      setDate(dateValue);
+      if (isValidDate(dateValue)) {
+        // the date can have a valid format but not pass min/max validation
+        const dateString =
         timeStamp === true
           ? dateValue?.toISOString(true)
           : dateValue.format(DatePickerSaveFormatNoTimestamp);
-      setValidDate(isValidDate(dateValue)); // the date can have a valid format but not pass min/max validation
-      handleDataChange(dateString);
-      setDate(dateValue);
+        handleDataChange(dateString);
+      }
+
     } else if (!dateValue) {
       setDate(null);
-      setValidDate(true);
       handleDataChange('');
+    } else if (dateValue.parsingFlags().charsLeftOver == 0 && !dateValue.isValid()) {
+      setDate(dateValue);
     }
   };
 
@@ -216,28 +227,29 @@ function DatepickerComponent({
   };
 
   const handleBlur = () => {
-    if (date) {
-      setValidDate(isValidDate(date));
-    } else {
-      setValidDate(true);
-    }
+    const dateIsValid = isValidDate(date);
+    setValidDate(dateIsValid);
     setValidationMessages(getValidationMessages());
-    if (validDate) {
+    if (dateIsValid) {
       const dateString =
         timeStamp === false
           ? date?.format(DatePickerSaveFormatNoTimestamp)
           : date?.toISOString(true);
       const saveDate = isDateEmpty() ? '' : dateString;
       handleDataChange(saveDate);
+    } else {
+      if (formData?.simpleBinding) {
+        handleDataChange('');
+      }
     }
   };
 
   const mobileOnlyProps = isMobile
     ? {
-        cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
-        clearLabel: getLanguageFromKey('date_picker.clear_label', language),
-        todayLabel: getLanguageFromKey('date_picker.today_label', language),
-      }
+      cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
+      clearLabel: getLanguageFromKey('date_picker.clear_label', language),
+      todayLabel: getLanguageFromKey('date_picker.today_label', language),
+    }
     : {};
 
   return (
