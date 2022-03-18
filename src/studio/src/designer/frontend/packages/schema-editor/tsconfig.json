@@ -31,14 +31,6 @@
     "src"
   ],
   "exclude": [
-    "node_modules",
-    "public",
-    "build",
-    "test",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "setupTests.ts"
+    "node_modules"
   ]
 }

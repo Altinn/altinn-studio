@@ -20,7 +20,7 @@ export function en() {
       body: 'You are ready to submit {0}. Before you submit, we recomment that you look over and verify your responses. You cannot change your responses after submitting.',
       button_text: 'Submit',
       deadline: 'Deadline',
-      sender: 'Person',
+      sender: 'Party',
       title: 'Check your responses before submitting',
     },
     date_picker: {

@@ -1,0 +1,129 @@
+{
+	"info": {
+		"_postman_id": "e21cbde2-7591-4f52-aae9-f9cecce67e65",
+		"name": "Organization",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "exchange maskinporten token for service owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{maskinportentoken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "default",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/exchange/maskinporten",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"exchange",
+								"maskinporten"
+							],
+							"query": [
+								{
+									"key": "test",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "exchange maskinporten token for enterprise certificate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if(pm.response.code === 200) pm.environment.set(\"AltinnStudioRuntime\", pm.response.text());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{maskinportentoken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Altinn-EnterpriseUser-Authentication",
+								"value": "{{ECuserEncodedCredentials}}",
+								"description": "base 64 encoded string of enterprise certificate user's username:password",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "default",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/exchange/maskinporten",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"exchange",
+								"maskinporten"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
