@@ -104,13 +104,13 @@ namespace Designer.Tests.Utils
         public static string GetTestDataDirectory()
         {
             var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData")) + "/";
+            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData")) + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoriesRootDirectory()
         {
             var unitTestFolder = GetTestDataDirectory();
-            return Path.Combine(unitTestFolder, "Repositories") + "/";
+            return Path.Combine(unitTestFolder, "Repositories") + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoryDirectory(string org, string repository, string developer)
