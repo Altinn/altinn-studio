@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,7 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -34,16 +36,18 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
+        private readonly ILogger<DatamodelsController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, ILogger<DatamodelsController> logger)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -186,22 +190,30 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("post")]
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+
+                // Sets the location header and content-type manually instead of using CreatedAtAction
+                // because the latter overrides the content type and sets it to text/plain.
+                var baseUrl = GetBaseUrl();
+                var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
+                Response.Headers.Add("Location", locationUrl);
+                Response.StatusCode = (int)HttpStatusCode.Created;
+
+                return Content(model, "application/json");
             }
-
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
-
-            // Sets the location header and content-type manually instead of using CreatedAtAction
-            // because the latter overrides the content type and sets it to text/plain.
-            var baseUrl = GetBaseUrl();
-            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/{relativePath}";
-            Response.Headers.Add("Location", locationUrl);
-            Response.StatusCode = (int)HttpStatusCode.Created;
-
-            return Content(model, "application/json");
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating model");
+                throw e;
+            }
         }
 
         private string GetBaseUrl()
