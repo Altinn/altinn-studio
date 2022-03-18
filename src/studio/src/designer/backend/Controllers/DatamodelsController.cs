@@ -195,8 +195,8 @@ namespace Altinn.Studio.Designer.Controllers
                 _logger.LogInformation("ModelState is not valid");
                 return BadRequest(ModelState);
             }
-            _logger.LogInformation("ModelState is valid");
 
+            _logger.LogInformation("ModelState is valid");
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
