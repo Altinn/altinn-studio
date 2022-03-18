@@ -9,7 +9,7 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
+import type { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
