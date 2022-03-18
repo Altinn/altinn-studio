@@ -107,6 +107,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // and that the BOM bytes isn't removed on read in the ReadTextAsync method.
             // Should try to fix this as this method is more performant than ReadAllTextAsync.
             // return await ReadTextAsync(absoluteFilePath)
+            Console.WriteLine($"Reading file {absoluteFilePath}, relative path {relativeFilePath}");
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
 
             try
@@ -295,9 +296,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             // We do this to avoid paths like c:\altinn\repositories\developer\org\repo\..\..\somefile.txt
             // By first combining the paths, the getting the full path you will get c:\altinn\repositories\developer\org\repo\somefile.txt
             // This also makes it easier to avoid people trying to get outside their repository directory.
-            var absoluteFilePath = Path.Combine(new string[] { RepositoryDirectory, relativeFilePath });
+            relativeFilePath = relativeFilePath.Replace('\\', Path.DirectorySeparatorChar);
+            var absoluteFilePath = Path.Combine(RepositoryDirectory, relativeFilePath);
             absoluteFilePath = Path.GetFullPath(absoluteFilePath);
-
             return absoluteFilePath;
         }
 
