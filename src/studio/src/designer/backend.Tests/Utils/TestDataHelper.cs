@@ -200,7 +200,7 @@ namespace Designer.Tests.Utils
 
         public static string CreateEmptyDirectory(string path)
         {
-            string fullPath = $"{GetTestDataRepositoriesRootDirectory()}/{path}";
+            string fullPath = Path.Combine(GetTestDataRepositoriesRootDirectory(), path);
             Directory.CreateDirectory(fullPath);
 
             return fullPath;
@@ -274,7 +274,7 @@ namespace Designer.Tests.Utils
                     await CopyDirectory(subDir, originalPath, true);
                     Directory.Delete(subDir, true);
                 }
-            }            
+            }
         }
 
         public static void CleanUpLocalBranches(string org, string repository, string developer)

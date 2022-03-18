@@ -165,7 +165,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void CopyRepository_DirDoestNotExists_DirCreatedAndFilesCopied()
         {
             // Arrange
-            string targetPath = $"{TestDataHelper.GetTestDataRepositoriesRootDirectory()}/newClonedApp";
+            string targetPath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), newClonedApp);
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
 
             try
