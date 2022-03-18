@@ -9,7 +9,7 @@ import {
   AltinnButton,
   AltinnLoader,
 } from 'altinn-shared/components';
-import { IParty } from 'altinn-shared/types';
+import type { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
@@ -46,8 +46,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export interface ISummaryData {
-  languageData?: any;
-  instanceOwnerParty?: any;
+  languageData?: ILanguage;
+  instanceOwnerParty?: IParty;
+  textResources?: ITextResource[];
 }
 
 const loaderStyles = {
@@ -59,6 +60,7 @@ const loaderStyles = {
 export const returnConfirmSummaryObject = ({
   languageData,
   instanceOwnerParty,
+  textResources
 }: ISummaryData) => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
@@ -68,7 +70,13 @@ export const returnConfirmSummaryObject = ({
   }
 
   return {
-    [getLanguageFromKey('confirm.sender', languageData)]: sender,
+    [getTextFromAppOrDefault(
+      'confirm.sender',
+      textResources,
+      languageData,
+      null,
+      true,
+    )]: sender,
   };
 };
 
@@ -106,6 +114,7 @@ const Confirm = () => {
       return returnConfirmSummaryObject({
         languageData: language,
         instanceOwnerParty,
+        textResources,
       });
     }
 
