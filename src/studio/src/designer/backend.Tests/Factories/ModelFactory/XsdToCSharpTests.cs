@@ -58,9 +58,11 @@ namespace Designer.Tests.Factories.ModelFactory
             // Assert
             Assert.NotNull(modelMetadata);
             Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
-            string expectedSanitized = Regex.Replace(textOrgXml, @">(\s+)<", "><");
-            Assert.Equal(text, expectedSanitized);
-            Assert.Equal(orgClasses, classes);
+            string expectedTextSanitized = Regex.Replace(textOrgXml, @">(\s+)<", "><");
+            Assert.Equal(expectedTextSanitized, text);
+            string expectedClassesSanitized = Regex.Replace(orgClasses, @">(\s+)<", "><");
+            string actualClassesSanitized = Regex.Replace(classes, @">(\s+)<", "><");
+            Assert.Equal(expectedClassesSanitized, actualClassesSanitized);
         }
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
