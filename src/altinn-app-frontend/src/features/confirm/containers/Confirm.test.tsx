@@ -9,6 +9,7 @@ import { renderWithProviders } from '../../../../testUtils';
 import Confirm, {
   returnConfirmSummaryObject,
 } from 'src/features/confirm/containers/Confirm';
+import type { IParty } from 'altinn-shared/types';
 
 describe('features > confirm > Confirm', () => {
   it('should show spinner when loading required data', () => {
@@ -90,10 +91,10 @@ describe('features > confirm > Confirm', () => {
       const result = returnConfirmSummaryObject({
         languageData: {},
         instanceOwnerParty: {
-          partyId: 50001,
+          partyId: '50001',
           name: 'Ola Privatperson',
           ssn: '01017512345',
-        },
+        } as IParty,
       });
 
       expect(result).toEqual({
@@ -105,11 +106,11 @@ describe('features > confirm > Confirm', () => {
       const result = returnConfirmSummaryObject({
         languageData: {},
         instanceOwnerParty: {
-          partyId: 50001,
+          partyId: '50001',
           name: 'Ola Privatperson',
           ssn: '01017512345',
-          orgNumber: '987654321',
-        },
+          orgNumber: 987654321,
+        } as IParty,
       });
 
       expect(result).toEqual({
@@ -121,10 +122,10 @@ describe('features > confirm > Confirm', () => {
       const result = returnConfirmSummaryObject({
         languageData: {},
         instanceOwnerParty: {
-          partyId: 50001,
+          partyId: '50001',
           name: 'Ola Bedrift',
-          orgNumber: '987654321',
-        },
+          orgNumber: 987654321,
+        } as IParty,
       });
 
       expect(result).toEqual({
@@ -136,9 +137,9 @@ describe('features > confirm > Confirm', () => {
       const result = returnConfirmSummaryObject({
         languageData: {},
         instanceOwnerParty: {
-          partyId: 50001,
+          partyId: '50001',
           name: 'Ola Bedrift',
-        },
+        } as IParty,
       });
 
       expect(result).toEqual({
@@ -153,6 +154,22 @@ describe('features > confirm > Confirm', () => {
 
       expect(result).toEqual({
         'confirm.sender': '',
+      });
+    });
+
+    it('should return custom value for confirm.sender if key is supplied in text resources', () => {
+      const result = returnConfirmSummaryObject({
+        languageData: {},
+        textResources: [{ id: 'confirm.sender', value: 'Some custom value'}],
+        instanceOwnerParty: {
+          partyId: '50001',
+          name: 'Ola Privatperson',
+          ssn: '01017512345',
+        } as IParty,
+      });
+
+      expect(result).toEqual({
+        'Some custom value': '01017512345-Ola Privatperson',
       });
     });
   });
