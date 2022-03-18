@@ -272,7 +272,7 @@ namespace Designer.Tests.Services
                 Directory.CreateDirectory(Path.Combine(remoteRepoPath, ".git"));
                 if (File.Exists(configPath))
                 {
-                    File.Copy(configPath, newPath+ "/config");
+                    File.Copy(configPath, newPath+ Path.DirectorySeparatorChar + "config");
                 }
             }
         }
