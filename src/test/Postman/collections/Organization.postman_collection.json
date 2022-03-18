@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "e21cbde2-7591-4f52-aae9-f9cecce67e65",
-		"name": "App-Owner",
+		"name": "Organization",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
