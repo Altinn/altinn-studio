@@ -118,8 +118,10 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Application> Update(Application item)
+        public async Task<Application> Update(Application cachedApplication)
         {
+            Application item = DeepClone(cachedApplication);
+
             PreProcess(item);
 
             Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id);
@@ -261,6 +263,13 @@ namespace Altinn.Platform.Storage.Repository
         private static void PostProcess(List<Application> applications)
         {
             applications.ForEach(a => PostProcess(a));
+        }
+
+        private Application DeepClone(Application item)
+        {
+            string application = JsonConvert.SerializeObject(item, Formatting.Indented);
+
+            return JsonConvert.DeserializeObject<Application>(application);
         }
     }
 }
