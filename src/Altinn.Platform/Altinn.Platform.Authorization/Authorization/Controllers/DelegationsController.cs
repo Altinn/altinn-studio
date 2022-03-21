@@ -126,6 +126,12 @@ namespace Altinn.Platform.Authorization.Controllers
                 offeredByPartyIds.Add(ruleQuery.OfferedByPartyId);
             }
 
+            if (offeredByPartyIds.Count == 0)
+            {
+                _logger.LogInformation($"Unable to get the rules: Missing offeredbyPartyId value.");
+                return StatusCode(400, $"Unable to get the rules: Missing offeredbyPartyId value.");
+            }
+
             if (offeredByPartyIds.Count == 0 && coveredByPartyIds.Count == 0 && coveredByUserIds.Count == 0)
             {
                 _logger.LogInformation($"Unable to get the rules: Missing offeredby and coveredby values.");
