@@ -9,7 +9,7 @@
     },
     "logLevel": {
       "default": "Information",
-      "Function": "Error",
+      "Function": "Information",
       "Altinn.Platform.Storage.DataCleanup.Services.CosmosService": "Error",
       "Altinn.Platform.Storage.DataCleanup.Services.BlobService": "Error",
       "Altinn.Platform.Storage.DataCleanup.Services.BackupBlobService": "Error",
