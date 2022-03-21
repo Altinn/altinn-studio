@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,7 +20,6 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -36,18 +34,16 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
-        private readonly ILogger<DatamodelsController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, ILogger<DatamodelsController> logger)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
-            _logger = logger;
         }
 
         /// <summary>
@@ -192,11 +188,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogInformation("ModelState is not valid");
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation("ModelState is valid");
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
