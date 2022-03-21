@@ -22,9 +22,12 @@ namespace Altinn.Platform.Authentication.Services
         /// </summary>
         public Task<OidcCodeResponse> GetTokens(string authorizationCode, OidcProvider provider, string redirect_uri)
         {
-            OidcCodeResponse codeResponse = new OidcCodeResponse();
-            codeResponse.AccessToken = authorizationCode;
-            codeResponse.IdToken = authorizationCode;
+            OidcCodeResponse codeResponse = new OidcCodeResponse
+            {
+                AccessToken = authorizationCode,
+                IdToken = authorizationCode
+            };
+
             return Task.FromResult(codeResponse);
         }
     }
