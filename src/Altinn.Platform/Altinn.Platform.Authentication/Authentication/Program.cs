@@ -122,6 +122,16 @@ async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager confi
         {
             logger.LogError(vaultException, $"Unable to read application insights key.");
         }
+
+        try
+        {
+            config.AddAzureKeyVault(
+                 keyVaultSettings.SecretUri, keyVaultSettings.ClientId, keyVaultSettings.ClientSecret);
+        }
+        catch (Exception vaultException)
+        {
+            logger.LogError(vaultException, $"Unable to add key vault secrets to config.");
+        }
     }
 }
 
