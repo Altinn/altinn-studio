@@ -36,6 +36,8 @@ namespace LocalTest.Configuration
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
 
+        public string ApplicationsDataFolder { get; set; } = "applications/";
+
         public string DataCollectionFolder { get; set; } = "data/";
 
         public string EventsCollectionFolder { get; set; } = "events/";

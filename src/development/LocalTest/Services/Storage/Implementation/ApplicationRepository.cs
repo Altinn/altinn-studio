@@ -1,26 +1,24 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
-using LocalTest.Services.Localtest.Interface;
-using LocalTest.Services.LocalApp.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace LocalTest.Services.Storage.Implementation
 {
     public class ApplicationRepository : IApplicationRepository
     {
-        private readonly ILocalApp _localApp;
+        private readonly LocalPlatformSettings _localPlatformSettings;
 
-        public ApplicationRepository( ILocalApp localApp)
+        public ApplicationRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
-            _localApp = localApp;
+            _localPlatformSettings = localPlatformSettings.Value;
         }
 
         public Task<Application> Create(Application item)
@@ -35,13 +33,17 @@ namespace LocalTest.Services.Storage.Implementation
 
         public async Task<Application> FindOne(string appId, string org)
         {
-            var application = await _localApp.GetApplicationMetadata(appId);
-            if (application == null)
+            var filename = GetApplicationsDirectory() + appId + ".json";
+            if (File.Exists(filename))
             {
-                throw new Exception($"applicationmetadata for '{appId} not found'");
+                var application = JsonSerializer.Deserialize<Application>(await File.ReadAllTextAsync(filename));
+                if (application is not null)
+                {
+                    return application;
+                }
             }
-            
-            return application;
+
+            throw new Exception($"applicationmetadata for '{appId} not found'");
         }
 
         public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
@@ -49,24 +51,43 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<List<Application>> FindByOrg(string org)
+        public async Task<List<Application>> FindByOrg(string org)
         {
-            throw new NotImplementedException();
+            var apps = new List<Application>();
+            foreach (var app in Directory.GetFiles(GetApplicationsDirectory() + org))
+            {
+                apps.Add(JsonSerializer.Deserialize<Application>(await File.ReadAllTextAsync(app)));
+            }
+
+            return apps;
         }
 
-        public Task<Application> Update(Application item)
+        public async Task<Application> Update(Application item)
         {
-            throw new NotImplementedException();
+            Directory.CreateDirectory(GetApplicationsDirectory()+item.Id.Split('/')[0]);
+            await File.WriteAllTextAsync(GetApplicationsDirectory() + item.Id + ".json", JsonSerializer.Serialize(item, new() { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
+            return item;
         }
 
-        public Task<List<Application>> FindAll()
+        public async Task<List<Application>> FindAll()
         {
-            throw new NotImplementedException();
+            var apps = new List<Application>();
+            foreach (var org in (new DirectoryInfo(GetApplicationsDirectory()).GetDirectories()))
+            {
+                apps.AddRange(await FindByOrg(org.Name));
+            }
+
+            return apps;
         }
 
         public Task<Dictionary<string, string>> GetAllAppTitles()
         {
             throw new NotImplementedException();
+        }
+
+        public string GetApplicationsDirectory()
+        {
+            return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.DocumentDbFolder + _localPlatformSettings.ApplicationsDataFolder;
         }
     }
 }
