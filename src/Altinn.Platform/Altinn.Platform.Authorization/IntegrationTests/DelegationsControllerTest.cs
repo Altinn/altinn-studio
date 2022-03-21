@@ -994,6 +994,26 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
+        /// Test case: GetRules with missing values in the request
+        /// Expected: GetRules returns a BadRequest response
+        /// </summary>
+        [Fact]
+        public async Task GetRules_MissingOfferedByInRequest()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/GetRules/GetRules_MissingOfferedByInRequestRequest.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
         /// Test case: GetRules for a coveredby that does not have any rules
         /// Expected: GetRules returns an empty list
         /// </summary>
