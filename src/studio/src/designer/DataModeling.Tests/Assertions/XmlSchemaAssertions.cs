@@ -31,21 +31,21 @@ namespace DataModeling.Tests.Assertions
 
         private static void IsEquivalentTo(XmlSerializerNamespaces expected, XmlSerializerNamespaces actual)
         {
-            Dictionary<string, XmlQualifiedName> actualNamespaces = actual.ToArray().ToDictionary(ns => ns.Namespace);
+            Dictionary<string, XmlQualifiedName> actualNamespaces = actual.ToArray().ToDictionary(ns => $"{ns.Name}:{ns.Namespace}");
 
             foreach (XmlQualifiedName expectedNs in expected.ToArray())
             {
-                if (!actualNamespaces.TryGetValue(expectedNs.Namespace, out XmlQualifiedName actualNs))
+                if (!actualNamespaces.TryGetValue($"{expectedNs.Name}:{expectedNs.Namespace}", out XmlQualifiedName actualNs))
                 {
                     throw new ContainsException(expectedNs.Namespace, actual);
                 }
 
-                actualNamespaces.Remove(actualNs.Namespace);
+                actualNamespaces.Remove($"{actualNs.Name}:{actualNs.Namespace}");
             }
 
-            if (actualNamespaces.Count > 0 && actualNamespaces.First().Key != "http://www.w3.org/2001/XMLSchema-instance")
+            if (actualNamespaces.Count > 0 && (actualNamespaces.First().Key != "xsi:http://www.w3.org/2001/XMLSchema-instance" && actualNamespaces.First().Key != "xs:http://www.w3.org/2001/XMLSchema"))
             {
-                throw new DoesNotContainException(expected, actualNamespaces.First().Value.ToString());
+                throw new DoesNotContainException(expected, $"{actualNamespaces.First().Key.ToString()}: {actualNamespaces.First().Value.ToString()}");
             }
         }
 
@@ -270,7 +270,7 @@ namespace DataModeling.Tests.Assertions
         private static void Equal(XmlSchemaAttributeGroup expected, XmlSchemaAttributeGroup actual)
         {
             AnnotatedEqual(expected, actual);
-            
+
             Assert.Equal(expected.Name, actual.Name);
             IsEquivalentTo(expected.Attributes, actual.Attributes);
             IsEquivalentTo(expected.AnyAttribute, actual.AnyAttribute);
@@ -340,7 +340,7 @@ namespace DataModeling.Tests.Assertions
         private static void Equal(XmlSchemaElement expected, XmlSchemaElement actual)
         {
             ParticleEqual(expected, actual);
-            
+
             Assert.Equal(expected.IsAbstract, actual.IsAbstract);
             Assert.Equal(expected.Block, actual.Block);
             Assert.Equal(expected.DefaultValue, actual.DefaultValue);
