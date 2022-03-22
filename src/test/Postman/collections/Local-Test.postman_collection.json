@@ -118,7 +118,7 @@
 					"response": []
 				},
 				{
-					"name": "Get user details Copy",
+					"name": "Get user details",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -326,13 +326,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NTE4NDI4LCJleHAiOjE1Nzk1OTg2NDgsImlhdCI6MTU3OTUxODQyOH0.A0y5JJtOxklh3lOi14j5RDywNXnIc2ELiNA01V5Ug-kcYOx5E6-mmEcgoe2HKqHGtts5airuvx05w1aFcOV99idf2dd3p4ulhVHfan2Ktpjxi7m3dQ_1z5kYXf89c3eVrhs0W-8YykbxJDYDX_tHjgLHt2uKtD3APlhEVoPYNLR8obH8SZor6wcpU0oJ2j2hbaTWVjidgxjRuoLat2l9REREN-N8jop57hnLVQjCGqoiJDPLQ9TZT6RM4VG9tV0hUVoDgcOnaR-TcTmAxJZviO7EmjuxoCcRm5jlSYuWoAEV1ooRs1yJN2RkUfuZac-_uDFlcik8nSilKf8KPa0OvA",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "http://altinn3local.no/{{appOwner}}/{{appName}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
 					"protocol": "http",
@@ -367,13 +361,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NjAxODM4LCJleHAiOjE1Nzk2ODIwNTgsImlhdCI6MTU3OTYwMTgzOH0.i9iUpboTU4cmn1S7JQ-uzN-8BTOjv8fHLwzQCDfY2NKmfKX137OnX4yf15PM4dHR_K8i7x9s2fbiM-ThfLDZlTL8chyRuJ3vt_tTDOHe50JUyP2t_wmIwwNcD5O5q7prJ7FIO1MNsHcgBSouWDfz2sl7utqH9xgYT5L6AyS1iRDS4z7O-48V25W8ryTFBfm8Vgcw3AJrSfQxJe37QQ1DFggcW9-RI0oam2J8KoLfNFPkM6wENKSlALTD7ug0whvrqcl6vMGYXyUtrbbXgVi3ny1Osml4C8Yi1Ic6qUQRwQC--CU6oyX9vuOuItCt5alZdwnFWChDhNaQPywt21Zs2g",
-						"type": "text"
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "http://altinn3local.no/{{appOwner}}/{{appName}}/instances/{{instanceOwnerId}}/{{instanceId}}",
 					"protocol": "http",
@@ -431,11 +419,6 @@
 				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer  eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NjAxODM4LCJleHAiOjE1Nzk2ODIwNTgsImlhdCI6MTU3OTYwMTgzOH0.i9iUpboTU4cmn1S7JQ-uzN-8BTOjv8fHLwzQCDfY2NKmfKX137OnX4yf15PM4dHR_K8i7x9s2fbiM-ThfLDZlTL8chyRuJ3vt_tTDOHe50JUyP2t_wmIwwNcD5O5q7prJ7FIO1MNsHcgBSouWDfz2sl7utqH9xgYT5L6AyS1iRDS4z7O-48V25W8ryTFBfm8Vgcw3AJrSfQxJe37QQ1DFggcW9-RI0oam2J8KoLfNFPkM6wENKSlALTD7ug0whvrqcl6vMGYXyUtrbbXgVi3ny1Osml4C8Yi1Ic6qUQRwQC--CU6oyX9vuOuItCt5alZdwnFWChDhNaQPywt21Zs2g",
-						"type": "text"
-					},
 					{
 						"key": "Content-Type",
 						"value": "multipart/form-data; boundary=\"abcdefg\"",
@@ -556,12 +539,6 @@
 			"request": {
 				"method": "POST",
 				"header": [
-					{
-						"description": "The JWT token from authentication API",
-						"key": "Authorization",
-						"type": "text",
-						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOm9yZyI6InR0ZCIsInVybjphbHRpbm46YXV0aGxldmVsIjoyLCJuYmYiOjE1Nzk4NDc4NDIsImV4cCI6MTU3OTkyODA2MiwiaWF0IjoxNTc5ODQ3ODQyfQ.0TJpsE61oDPxVf4KgE0YRvNfid8lmtCbqBczs2tgYCIu1UKZUDAvczEeQQK65z4A-DHzHFi1ORMz6KB3AlYA5Cxu8LpUtVtRSdvfnfaLlkmyuvrGzC9AyDH0nj4R2U_Jnjx26YkMxgpsgBK4ifIlTsDzKTbF96CT-_ZNgHm6vScEf74-JyK0gRoovp_ykVC5cMZ67H6Q9wyipOwf7in62OIqvYgWEq0QfzGWMvfBA7hUcUP538VQQoJzSJ4Zf7_hkClPdSF1R5bxzHkGBpvmvrojq1aLefOOgkr4dGMEeMN8nHUPHfZfPYyRufcwFzhNUDbE0XoGBzf03z_AK4H-DA"
-					},
 					{
 						"description": "Tells the API that it is a multipart request and the boundary uses",
 						"key": "Content-Type",
