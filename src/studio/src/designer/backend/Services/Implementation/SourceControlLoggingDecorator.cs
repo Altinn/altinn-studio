@@ -99,11 +99,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                return _decoratedService.CloneRemoteRepository(org, repository);
+                return _decoratedService.CloneRemoteRepository(org, repository, destinationPath, branchName);
             }
             catch (Exception ex)
             {
-                LogError(ex, "CloneRemoteRepository", org, repository);
+                LogError(ex, "CloneRemoteRepository", org, repository, destinationPath, branchName);
                 throw;
             }
         }
@@ -423,10 +423,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void LogError(Exception ex, string method, string org, string repository)
         {
+            LogError(ex, method, org, repository, repository, string.Empty);
+        }
+
+        private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
+        {
             var user = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             var debugInfo = GetDebugInfo();
 
-            _logger.LogError(ex, "Failed executing method {0} for user {1} in org {2} / repository {3}. Debug info: {4}", method, user, org, repository, debugInfo);
+            _logger.LogError(ex, "Failed executing method {0} for user {1} in org {2} / repository {3}. Destination: {5}. Branch: {5}. Debug info: {6}", method, user, org, repository, destinationPath, branch, debugInfo);
         }
 
         private object GetDebugInfo()
