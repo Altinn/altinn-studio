@@ -1,7 +1,13 @@
-import { createTheme, createStyles, FormControlLabel, FormGroup, Switch } from '@material-ui/core';
+import {
+  createTheme,
+  createStyles,
+  FormControlLabel,
+  FormGroup,
+  Switch,
+} from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSwitchComponentProvidedProps {
@@ -12,9 +18,6 @@ export interface IAltinnSwitchComponentProvidedProps {
   switchDescription?: string;
   checked?: boolean;
   onBlurFunction?: any;
-}
-
-export interface IAltinnSwitchComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -38,8 +41,7 @@ const styles = createStyles({
   },
 });
 
-// eslint-disable-next-line max-len
-export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
+export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (
@@ -55,7 +57,10 @@ export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvided
             }
             label={this.props.switchHeader}
             labelPlacement='start'
-            classes={{ label: classNames(classes.switchLabel), root: classNames(classes.switchLabelRoot) }}
+            classes={{
+              label: classNames(classes.switchLabel),
+              root: classNames(classes.switchLabelRoot),
+            }}
           />
         </FormGroup>
       </div>

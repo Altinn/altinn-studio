@@ -1,6 +1,6 @@
 import { mount } from 'enzyme';
 import toJson from 'enzyme-to-json';
-import * as React from 'react';
+import React from 'react';
 import DeleteDialog from './DeleteDialog';
 
 describe('DeleteDialog', () => {
@@ -17,12 +17,8 @@ describe('DeleteDialog', () => {
         anchor={document.body}
         language={language}
         schemaName={schemaName}
-        onCancel={() => {
-          /* intentional */
-        }}
-        onConfirm={() => {
-          /* intentional */
-        }}
+        onCancel={jest.fn()}
+        onConfirm={jest.fn()}
       />,
     );
 

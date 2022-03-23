@@ -1,11 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { DataGrid } from '@mui/x-data-grid';
 import { RepoList } from 'common/components/RepoList';
 import * as userApi from 'services/userApi';
-import type { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 
 const useSetStarredRepoMutationSpy = jest.fn();
 const useUnsetStarredRepoMutationSpy = jest.fn();

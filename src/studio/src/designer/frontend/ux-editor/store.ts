@@ -7,6 +7,7 @@ import {
 } from 'redux';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import reducers from './reducers';
+import type { IAppState } from './types/global';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 export const store: Store<IAppState> = configureStore();

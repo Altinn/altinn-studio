@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
@@ -91,7 +91,7 @@ describe('containers/EditContainer', () => {
       },
       type: 'Input',
     };
-    mockHandleActiveListChange = () => {};
+    mockHandleActiveListChange = jest.fn();
     mockStore = createStore(initialState);
   });
 

@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render } from '@testing-library/react';
-import type { IAltinnWindow } from '../types';
+import type { IAltinnWindow } from '../types/global';
 import { VersionControlContainer } from './versionControlHeader';
 
 const handlers = [

@@ -1,6 +1,6 @@
 
-import * as React from 'react';
-import * as ReactRouter from 'react-router';
+import React from 'react';
+import ReactRouter from 'react-router';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';

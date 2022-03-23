@@ -16,12 +16,12 @@ export async function get(url: string, options?: any): Promise<any> {
   }
 }
 
-export async function post(
-  url: string,
-  options?: any,
-): Promise<any> {
+export async function post(url: string, options?: any): Promise<any> {
   try {
-    const response: AxiosResponse = await axios.post(url, options ? options : null);
+    const response: AxiosResponse = await axios.post(
+      url,
+      options ? options : null,
+    );
     return response;
   } catch (err) {
     throw err;
@@ -35,7 +35,11 @@ export async function put(
   config?: AxiosRequestConfig,
 ): Promise<any> {
   try {
-    const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config ? config : null);
+    const response: AxiosResponse = await axios.put(
+      `${url}/${apiMode}`,
+      data,
+      config ? config : null,
+    );
     return response.data ? response.data : null;
   } catch (err) {
     throw err;

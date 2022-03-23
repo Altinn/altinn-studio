@@ -1,6 +1,6 @@
 import { mount } from 'enzyme';
 import { Modal, Typography, Button } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import * as renderer from 'react-test-renderer';
 import DeleteWrapper from './DeleteWrapper';
 
@@ -38,9 +38,7 @@ describe('DeleteWrapper', () => {
       <DeleteWrapper
         language={language}
         schemaName='deletable-model'
-        deleteAction={() => {
-          /* intentional */
-        }}
+        deleteAction={jest.fn()}
       />,
     );
 

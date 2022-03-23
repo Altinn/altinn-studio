@@ -1,5 +1,5 @@
 import { Button, IconButton, makeStyles } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import classNames from 'classnames';
 
 interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
@@ -49,12 +49,18 @@ export default function TopToolbarButton({
   iconSize,
 }: TopToolbarButtonProps) {
   const classes = useStyles();
-  const computedClasses = classNames([classes.toolbarButton, hideText && classes.iconButton, warning && 'warn']);
-  const icon = <i
-    className={faIcon}
-    style={{ ...(iconSize && { fontSize: iconSize }) }}
-    aria-hidden
-  />;
+  const computedClasses = classNames([
+    classes.toolbarButton,
+    hideText && classes.iconButton,
+    warning && 'warn',
+  ]);
+  const icon = (
+    <i
+      className={faIcon}
+      style={{ ...(iconSize && { fontSize: iconSize }) }}
+      aria-hidden
+    />
+  );
   if (hideText) {
     return (
       <IconButton
@@ -75,7 +81,8 @@ export default function TopToolbarButton({
       variant='text'
       disabled={disabled}
       startIcon={icon}
-    >{children}
+    >
+      {children}
     </Button>
   );
 }

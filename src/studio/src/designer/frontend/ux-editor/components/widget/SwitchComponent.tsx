@@ -1,12 +1,10 @@
-import * as React from 'react';
+import React from 'react';
 export interface ISwitchProps {
   isChecked: boolean;
   toggleChange: any;
 }
 
-export class SwitchComponent
-  extends React.Component<ISwitchProps, null> {
-
+export class SwitchComponent extends React.Component<ISwitchProps, null> {
   public render() {
     return (
       <label className='switch'>

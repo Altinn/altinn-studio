@@ -1,5 +1,5 @@
-import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
+import DOMPurify from 'dompurify';
+import marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 
 export function getLanguageFromKey(key: string, language: any) {

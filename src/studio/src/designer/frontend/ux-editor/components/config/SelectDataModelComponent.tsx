@@ -1,7 +1,7 @@
-/* eslint-disable react/no-unused-state */
-import * as React from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import type { IDataModelFieldElement, IAppState } from '../../types/global';
 
 export interface ISelectDataModelProps extends IProvidedProps {
   dataModelElements: IDataModelFieldElement[];
@@ -61,26 +61,25 @@ export class SelectDataModel extends React.Component<
     const selected = this.props.dataModelElements.find(
       (modelBinding) => modelBinding.dataBindingName === selectedId,
     );
-    return (
-      Object.keys(selected.restrictions).length === 0 ? (
-        <li className='a-dotted'>
-          <div className='row'>
-            <div className='col-12'>
-              {this.props.language.ux_editor.modal_restrictions_empty}
-            </div>
+    return Object.keys(selected.restrictions).length === 0 ? (
+      <li className='a-dotted'>
+        <div className='row'>
+          <div className='col-12'>
+            {this.props.language.ux_editor.modal_restrictions_empty}
           </div>
-        </li>)
-        :
-        Object.keys(selected.restrictions).map(
-          (key: string): React.ReactNode => (
-            <li key={key} className='a-dotted'>
-              <div className='row'>
-                <div className='col-4'>{key}</div>
-                <div className='col-8'>{selected.restrictions[key].Value}</div>
-              </div>
-            </li>
-          ),
-        )
+        </div>
+      </li>
+    ) : (
+      Object.keys(selected.restrictions).map(
+        (key: string): React.ReactNode => (
+          <li key={key} className='a-dotted'>
+            <div className='row'>
+              <div className='col-4'>{key}</div>
+              <div className='col-8'>{selected.restrictions[key].Value}</div>
+            </div>
+          </li>
+        ),
+      )
     );
   }
 
@@ -91,9 +90,17 @@ export class SelectDataModel extends React.Component<
       selectedElement,
       noOptionsMessage,
     } = this.props;
-    const dataModelElementNames = dataModelElements.filter((element) => (element.dataBindingName &&
-      ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))))
-      .map((element) => ({ value: element.dataBindingName, label: element.displayString }));
+    const dataModelElementNames = dataModelElements
+      .filter(
+        (element) =>
+          element.dataBindingName &&
+          ((!selectGroup && element.maxOccurs <= 1) ||
+            (selectGroup && element.maxOccurs > 1)),
+      )
+      .map((element) => ({
+        value: element.dataBindingName,
+        label: element.displayString,
+      }));
     return (
       <Select
         styles={selectStyles}
@@ -119,6 +126,5 @@ const mapStateToProps = (
   };
 };
 
-export const SelectDataModelComponent = connect(mapStateToProps)(
-  SelectDataModel,
-);
+export const SelectDataModelComponent =
+  connect(mapStateToProps)(SelectDataModel);

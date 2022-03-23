@@ -1,5 +1,5 @@
 import Select from 'react-select';
-import * as React from 'react';
+import React from 'react';
 import { Grid } from '@material-ui/core';
 import {
   renderPropertyLabel,

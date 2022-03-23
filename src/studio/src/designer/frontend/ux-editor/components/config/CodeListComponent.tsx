@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface ICodeListComponentProps {
@@ -14,10 +14,7 @@ export interface ICodeListComponentProps {
   language: any;
 }
 
-export interface ICodeListComponentState { }
-
-export class CodeListComponent extends React.Component<ICodeListComponentProps, ICodeListComponentState> {
-
+export class CodeListComponent extends React.Component<ICodeListComponentProps> {
   public handleMappingChange = (id: any, mappingKey: any, e: any) => {
     const codes = { target: { value: 'codes' } };
     const key = { target: { value: 'key' } };
@@ -25,7 +22,7 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
     this.props.handleMappingChange(id, 'resultObject', codes);
     this.props.handleMappingChange(id, 'valueKey', key);
     this.props.handleMappingChange(id, mappingKey, e);
-  }
+  };
 
   public renderMappingView = (id: any): JSX.Element => {
     const valueKeys: string[] = ['value1', 'value2', 'value3'];
@@ -33,7 +30,7 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
 
     return (
       <div>
-        {this.props.connection && this.props.connection.codeListId ?
+        {this.props.connection && this.props.connection.codeListId ? (
           <div className='row'>
             <div className='col-12 col'>
               <label>Label key</label>
@@ -46,38 +43,44 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
                 <option value={''}>Choose label key</option>
                 {valueKeys.map((key: any) => {
                   return (
-                    <option key={key} value={key}>{key}</option>
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
                   );
                 })}
               </select>
             </div>
           </div>
-          : null
-        }
+        ) : null}
       </div>
     );
-  }
+  };
 
   public renderCodeListView = (): JSX.Element => {
     return (
       <div>
         {/* If API is selected */}
-        {this.props.connection.codeListId ?
+        {this.props.connection.codeListId ? (
           <>
             {this.props.componentApiResponseMappingsAllIds.map((id: any) => {
               return (
                 <div className='form-group a-form-group mb-2' key={id}>
-                  <label className='a-form-label'>
-                    Mappings
-                        </label>
+                  <label className='a-form-label'>Mappings</label>
                   <div className='align-items-center row a-btn-action'>
                     <div className='col-10'>
                       {this.renderMappingView(id)}
                       <div className='row'>
                         <div className='col-12'>
                           <SelectDataModelComponent
-                            onDataModelChange={this.props.handleMappingChange.bind(null, id, 'mappingObject')}
-                            selectedElement={this.props.componentApiResponseMappingsById[id].mappingObject}
+                            onDataModelChange={this.props.handleMappingChange.bind(
+                              null,
+                              id,
+                              'mappingObject',
+                            )}
+                            selectedElement={
+                              this.props.componentApiResponseMappingsById[id]
+                                .mappingObject
+                            }
                             hideRestrictions={true}
                             language={this.props.language}
                           />
@@ -109,15 +112,13 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
               </div>
             </div>
           </>
-          :
-          // API ikke valgt
-          null
-        }
+        ) : // API ikke valgt
+        null}
       </div>
     );
-  }
+  };
 
   public render(): JSX.Element {
-    return (this.renderCodeListView());
+    return this.renderCodeListView();
   }
 }

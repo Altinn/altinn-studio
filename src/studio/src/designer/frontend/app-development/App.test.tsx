@@ -1,23 +1,15 @@
 import { App } from './App';
-import * as React from 'react';
+import React from 'react';
 import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
+import { screen } from '@testing-library/react';
 
-jest.mock('axios');
-jest.mock('./layout/LeftMenu', () => {
-  return {
-    default: () => 'LeftMenu',
-  };
-});
 jest.mock('react', () => {
   return {
     ...jest.requireActual<typeof React>('react'),
-    useRef: jest.fn().mockImplementation(() => { return { current: document.createElement('div') }}),
-  };
-});
-jest.mock('./layout/PageHeader', () => {
-  return {
-    default: () => 'PageHeader',
+    useRef: jest.fn().mockImplementation(() => {
+      return { current: document.createElement('div') };
+    }),
   };
 });
 
@@ -26,42 +18,35 @@ afterAll(() => {
 });
 
 describe('App', () => {
+  it('should present popover with options to log out or stay logged in when session about to expire ', () => {
+    renderWithProviders(<App />, {
+      preloadedState: {
+        userState: {
+          session: {
+            remainingMinutes: 6,
+          },
+        } as IUserState,
+      },
+    });
 
-  it('should present popover with options to log out or stay logged in when session about to expire ', async () => {
-    const utils = renderWithProviders(
-      <App />,
-      {
-        preloadedState: {
-          userState: {
-            session: {
-              remainingMinutes: 6,
-            },
-          } as IUserState,
-        }
-      }
-    );
-
-    expect(utils.getByText('general.sign_out')).toBeTruthy();
-    expect(utils.getByText('general.continue')).toBeTruthy();
-    expect(utils.getByText('session.inactive')).toBeTruthy();
+    expect(screen.getByText('general.sign_out')).toBeInTheDocument();
+    expect(screen.getByText('general.continue')).toBeInTheDocument();
+    expect(screen.getByText('session.inactive')).toBeInTheDocument();
   });
 
   it('should not present popover if session is over 10min', () => {
-    const utils = renderWithProviders(
-      <App />,
-      {
-        preloadedState: {
-          userState: {
-            session: {
-              remainingMinutes: 40,
-            },
-          } as IUserState,
-        }
-      }
-    );
+    renderWithProviders(<App />, {
+      preloadedState: {
+        userState: {
+          session: {
+            remainingMinutes: 40,
+          },
+        } as IUserState,
+      },
+    });
 
-    expect(utils.queryByText('general.sign_out')).toBeFalsy();
-    expect(utils.queryByText('general.continue')).toBeFalsy();
-    expect(utils.queryByText('session.inactive')).toBeFalsy();
+    expect(screen.queryByText('general.sign_out')).not.toBeInTheDocument();
+    expect(screen.queryByText('general.continue')).not.toBeInTheDocument();
+    expect(screen.queryByText('session.inactive')).not.toBeInTheDocument();
   });
 });

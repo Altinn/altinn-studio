@@ -1,8 +1,10 @@
 export {
   default as dataModelsMetadataReducer,
-  IDataModelsMetadataState,
-  IDataModelMetadataItem,
   DataModelsMetadataActions,
   LoadingState,
+} from './dataModelsMetadataSlice';
+export type {
+  IDataModelsMetadataState,
+  IDataModelMetadataItem,
 } from './dataModelsMetadataSlice';
 export { watchGetDataModelsMetadataSaga } from './get/getDataModelsMetadataSagas';

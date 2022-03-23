@@ -1,6 +1,13 @@
-import { Button, createTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import {
+  Button,
+  createTheme,
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
@@ -22,8 +29,8 @@ const styles = createStyles({
     fontWeight: 500,
   },
   btn: {
-    'textTransform': 'none',
-    'padding': 0,
+    textTransform: 'none',
+    padding: 0,
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -50,7 +57,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
   public shareChangesHandler = (event: any) => {
     const noChanges = !this.props.changesInLocalRepo;
     this.props.shareChanges(event.currentTarget, noChanges);
-  }
+  };
 
   public renderCorrectText() {
     const { classes, hasMergeConflict } = this.props;
@@ -71,17 +78,19 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark, classes.bold)}
             >
-              {getLanguageFromKey('sync_header.merge_conflict', this.props.language)}
+              {getLanguageFromKey(
+                'sync_header.merge_conflict',
+                this.props.language,
+              )}
             </Typography>
           </Grid>
         </Grid>
-
       );
     } else if (this.props.changesInLocalRepo) {
       return (
         <Grid container={true} alignItems='center'>
           <Grid item={true}>
-            {this.props.hasPushRight &&
+            {this.props.hasPushRight && (
               <AltinnIcon
                 iconClass='fa fa-upload'
                 iconColor={theme.altinnPalette.primary.blueDark}
@@ -89,7 +98,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
                 margin='0px -5px 0px -5px'
                 weight={600}
               />
-            }
+            )}
           </Grid>
           <Grid item={true}>
             <Typography
@@ -97,7 +106,10 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark, classes.bold)}
             >
-              {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
+              {getLanguageFromKey(
+                'sync_header.changes_to_share',
+                this.props.language,
+              )}
             </Typography>
           </Grid>
         </Grid>
@@ -119,7 +131,10 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark)}
             >
-              {getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
+              {getLanguageFromKey(
+                'sync_header.no_changes_to_share',
+                this.props.language,
+              )}
             </Typography>
           </Grid>
         </Grid>
@@ -133,9 +148,9 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
       <Button
         onClick={this.shareChangesHandler}
         id='share_changes_button'
-        className={classNames(classes.color_blueDark, classes.btn,
-          { [classes.clickable]: this.props.buttonOnly !== true },
-        )}
+        className={classNames(classes.color_blueDark, classes.btn, {
+          [classes.clickable]: this.props.buttonOnly !== true,
+        })}
       >
         {this.renderCorrectText()}
       </Button>

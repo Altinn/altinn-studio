@@ -1,7 +1,7 @@
 export interface IMetadataOption {
   value?: {
-    repositoryRelativeUrl: string,
+    repositoryRelativeUrl: string;
     fileName: string;
-  },
-  label: string,
+  };
+  label: string;
 }

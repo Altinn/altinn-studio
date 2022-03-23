@@ -1,4 +1,4 @@
-import type { IData } from '../types';
+import type { IData } from '../types/global';
 import { getInstancePdf, mapInstanceAttachments } from './attachmentsUtils';
 
 test('mapInstanceAttachments() returns correct attachment array', () => {

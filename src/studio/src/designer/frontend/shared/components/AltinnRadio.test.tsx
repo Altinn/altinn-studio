@@ -1,6 +1,6 @@
 import { FormControlLabel } from '@material-ui/core';
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import { AltinnRadio } from './AltinnRadio';
 
 describe('AltinnRadioButton', () => {

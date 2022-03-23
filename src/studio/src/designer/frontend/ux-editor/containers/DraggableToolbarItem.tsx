@@ -1,5 +1,5 @@
 import { Identifier } from 'dnd-core';
-import * as React from 'react';
+import React from 'react';
 import {
   ConnectDragSource,
   DragSource,
@@ -22,10 +22,9 @@ interface IDraggablePropsCollected {
 }
 
 class Draggable extends React.Component<
-  IDraggableProps &
-  IDraggablePropsCollected,
+  IDraggableProps & IDraggablePropsCollected,
   any
-  > {
+> {
   public render() {
     const { connectDragSource } = this.props;
     return connectDragSource(
@@ -39,10 +38,13 @@ class Draggable extends React.Component<
     if (event.key === 'Enter') {
       this.props.onDrop();
     }
-  }
+  };
 }
 
-export default (type: string | string[], draggableSpec: DragSourceSpec<IDraggableProps, any>) =>
+export default (
+  type: string | string[],
+  draggableSpec: DragSourceSpec<IDraggableProps, any>,
+) =>
   DragSource(
     type as Identifier,
     draggableSpec,
@@ -50,6 +52,4 @@ export default (type: string | string[], draggableSpec: DragSourceSpec<IDraggabl
       connectDragSource: connect.dragSource(),
       isDragging: monitor.isDragging(),
     }),
-  )(
-    Draggable,
-  );
+  )(Draggable);

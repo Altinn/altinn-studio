@@ -1,6 +1,6 @@
 import { Typography } from '@material-ui/core';
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import * as renderer from 'react-test-renderer';
 import { AltinnRadio } from './AltinnRadio';
 import { AltinnRadioGroup } from './AltinnRadioGroup';

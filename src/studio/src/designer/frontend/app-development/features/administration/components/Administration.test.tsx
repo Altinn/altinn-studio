@@ -1,20 +1,20 @@
-import * as React from 'react';
+import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
-import type { ICommit, IRepository } from '../../../types/global';
 import { renderWithProviders } from 'test/testUtils';
-import { IHandleServiceInformationState } from 'features/administration/handleServiceInformationSlice';
+import type { ICommit, IRepository } from '../../../types/global';
+import type { IHandleServiceInformationState } from 'features/administration/handleServiceInformationSlice';
 
-jest.mock('axios');
-jest.mock('app-shared/version-control/versionControlHeader', () => {
-  return {
-    default: () => 'VersionControlHeader',
-  };
-});
+// jest.mock('axios');
+// jest.mock('app-shared/version-control/versionControlHeader', () => {
+//   return {
+//     default: () => 'VersionControlHeader',
+//   };
+// });
 
-afterAll(() => {
-  jest.clearAllMocks();
-});
+// afterAll(() => {
+//   jest.clearAllMocks();
+// });
 
 describe('Administration', () => {
   const mockService: IRepository = {

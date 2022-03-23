@@ -1,4 +1,5 @@
-import * as React from 'react';
+/* eslint-disable react/no-find-dom-node */
+import React from 'react';
 import {
   ConnectDragSource,
   ConnectDropTarget,
@@ -29,7 +30,11 @@ const itemSource = {
 let lastHoveredIndex: number;
 
 const itemTarget = {
-  hover(props: ItemProps, monitor: DropTargetMonitor, component: Item | null): void {
+  hover(
+    props: ItemProps,
+    monitor: DropTargetMonitor,
+    component: Item | null,
+  ): void {
     switch (monitor.getItemType()) {
       case 'item': {
         if (!component) {
@@ -44,23 +49,22 @@ const itemTarget = {
           return;
         }
 
-        const otherElement = (findDOMNode(
-          component,
-        ) as Element);
+        const otherElement = findDOMNode(component) as Element;
 
         const otherElementBoundingRect = otherElement.getBoundingClientRect();
 
-        const otherElementHeight = otherElementBoundingRect.bottom - otherElementBoundingRect.top;
+        const otherElementHeight =
+          otherElementBoundingRect.bottom - otherElementBoundingRect.top;
 
         const clientOffset = monitor.getClientOffset();
         const hoverClientY = clientOffset.y - otherElementBoundingRect.top;
 
-        if (hoverClientY > (otherElementHeight / 2)) {
+        if (hoverClientY > otherElementHeight / 2) {
           // Insert under
           lastHoveredIndex = component.props.index + 1;
           return;
         }
-        if (hoverClientY < (otherElementHeight / 2)) {
+        if (hoverClientY < otherElementHeight / 2) {
           // Insert over (or at the same index and push the other component down)
           lastHoveredIndex = component.props.index;
           return;
@@ -75,27 +79,27 @@ const itemTarget = {
           return;
         }
 
-        const otherElement = (findDOMNode(
-          component,
-        ) as Element);
+        const otherElement = findDOMNode(component) as Element;
 
         const otherElementBoundingRect = otherElement.getBoundingClientRect();
 
-        const otherElementHeight = otherElementBoundingRect.bottom - otherElementBoundingRect.top;
+        const otherElementHeight =
+          otherElementBoundingRect.bottom - otherElementBoundingRect.top;
 
         const clientOffset = monitor.getClientOffset();
         const hoverClientY = clientOffset.y - otherElementBoundingRect.top;
 
-        if (hoverClientY > (otherElementHeight / 2)) {
+        if (hoverClientY > otherElementHeight / 2) {
           // Insert under
           lastHoveredIndex = component.props.index + 1;
           return;
         }
-        if (hoverClientY < (otherElementHeight / 2)) {
+        if (hoverClientY < otherElementHeight / 2) {
           // Insert over (or at the same index and push the other component down)
           lastHoveredIndex = component.props.index;
           return;
         }
+        break;
       }
       default: {
         break;
@@ -135,13 +139,9 @@ interface ItemTargetCollectedProps {
 
 class Item extends React.Component<
   ItemProps & ItemSourceCollectedProps & ItemTargetCollectedProps
-  > {
+> {
   public render() {
-    const {
-      index,
-      connectDragSource,
-      connectDropTarget,
-    } = this.props;
+    const { index, connectDragSource, connectDropTarget } = this.props;
 
     return connectDragSource(
       connectDropTarget(<div key={index}>{this.props.children}</div>),

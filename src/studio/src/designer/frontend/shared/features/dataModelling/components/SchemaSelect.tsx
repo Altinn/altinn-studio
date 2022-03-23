@@ -1,12 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 import Select from 'react-select';
 import classNames from 'classnames';
-import { IMetadataOption } from '../functions/types';
+import type { IMetadataOption } from '../functions/types';
 
 interface ISchemaSelectProps {
   selectedOption: IMetadataOption | null;
-  onChange: (optionWithMetadata: { value: any, label: string }) => void;
+  onChange: (optionWithMetadata: { value: any; label: string }) => void;
   options: IMetadataOption[];
 }
 
@@ -29,9 +29,7 @@ const useStyles = makeStyles({
   },
 });
 const SchemaSelect = (props: ISchemaSelectProps) => {
-  const {
-    onChange, selectedOption, options,
-  } = props;
+  const { onChange, selectedOption, options } = props;
 
   const classes = useStyles();
   const customStyles = {
@@ -44,7 +42,12 @@ const SchemaSelect = (props: ISchemaSelectProps) => {
     }),
   };
   const IndicatorSeparator = () => <></>;
-  const DropdownIndicator = () => <i className={classNames(['fa fa-nedtrekk', classes.chevron])} aria-hidden />;
+  const DropdownIndicator = () => (
+    <i
+      className={classNames(['fa fa-nedtrekk', classes.chevron])}
+      aria-hidden
+    />
+  );
   return (
     <Grid item xs={4}>
       <Select

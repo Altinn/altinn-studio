@@ -1,5 +1,13 @@
-import { Button, createTheme, createStyles, Grid, Typography, WithStyles, withStyles } from '@material-ui/core';
-import * as React from 'react';
+import {
+  Button,
+  createTheme,
+  createStyles,
+  Grid,
+  Typography,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core';
+import React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 

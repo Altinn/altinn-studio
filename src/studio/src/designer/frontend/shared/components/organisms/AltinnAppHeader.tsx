@@ -1,12 +1,18 @@
-
-import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
-import * as React from 'react';
-import { IParty } from '../../types';
+import {
+  AppBar,
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core';
+import React from 'react';
+import type { IParty } from '../../types/global';
 import { renderPartyName } from '../../utils/party';
 import AltinnIcon from '../AltinnIcon';
 import AltinnLogo from '../AltinnLogo';
 
-export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
+interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
   /** The party of the instance owner */
   party: IParty;
   /** The party of the currently logged in user */
@@ -49,25 +55,27 @@ const styles = createStyles({
 });
 
 export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
-  const {classes, logoColor, headerBackgroundColor: headerColor, party, userParty} = props;
+  const {
+    classes,
+    logoColor,
+    headerBackgroundColor: headerColor,
+    party,
+    userParty,
+  } = props;
   return (
     <AppBar
       position={'relative'}
-      classes={{root: classes.altinnAppHeader}}
-      style={{backgroundColor: headerColor, color: logoColor}}
+      classes={{ root: classes.altinnAppHeader }}
+      style={{ backgroundColor: headerColor, color: logoColor }}
     >
       <Grid
         container={true}
         className={classes.mainContent}
         alignItems={'center'}
       >
-        <Grid
-          container={true}
-          item={true}
-          xs={6}
-        >
+        <Grid container={true} item={true} xs={6}>
           <Grid item={true}>
-            <AltinnLogo color={logoColor}/>
+            <AltinnLogo color={logoColor} />
           </Grid>
         </Grid>
         <Grid
@@ -78,13 +86,17 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
           xs={6}
         >
           <Grid item={true}>
-            {(party && userParty && party.partyId === userParty.partyId) &&
+            {party && userParty && party.partyId === userParty.partyId && (
               <Typography className={classes.appHeaderText}>
                 {renderPartyName(userParty)}
               </Typography>
-            }
-            {(party && userParty && party.partyId !== userParty.partyId) &&
-              <Grid container={true} direction={'column'} alignItems={'flex-end'}>
+            )}
+            {party && userParty && party.partyId !== userParty.partyId && (
+              <Grid
+                container={true}
+                direction={'column'}
+                alignItems={'flex-end'}
+              >
                 <Grid item={true}>
                   <Typography className={classes.appHeaderText}>
                     {renderPartyName(userParty)}
@@ -96,25 +108,25 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
                   </Typography>
                 </Grid>
               </Grid>
-            }
+            )}
           </Grid>
           <Grid item={true}>
-            {party && party.ssn &&
+            {party && party.ssn && (
               <AltinnIcon
                 iconClass={'fa fa-private-circle-big'}
                 iconColor={logoColor}
                 iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
-            }
-            {party && party.orgNumber &&
+            )}
+            {party && party.orgNumber && (
               <AltinnIcon
                 iconClass={'fa fa-corp-circle-big'}
                 iconColor={logoColor}
                 iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
-            }
+            )}
           </Grid>
         </Grid>
       </Grid>

@@ -1,14 +1,13 @@
 import { createTheme, Paper } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnInformationPaperCompontentProvidedProps {
   classes: any;
+  children: React.ReactNode;
 }
 
-export interface IAltinnInformationPaperComponentState {
-}
 const theme = createTheme(altinnTheme);
 
 const styles = {
@@ -22,16 +21,15 @@ const styles = {
   },
 };
 
-// eslint-disable-next-line max-len
-export class AltinnInformationPaper extends React.Component<IAltinnInformationPaperCompontentProvidedProps, IAltinnInformationPaperComponentState> {
-  public render() {
-    const { classes } = this.props;
-    return (
-      <Paper elevation={0} className={classes.paper}>
-        {this.props.children}
-      </Paper>
-    );
-  }
-}
+export const AltinnInformationPaper = ({
+  classes,
+  children,
+}: IAltinnInformationPaperCompontentProvidedProps) => {
+  return (
+    <Paper elevation={0} className={classes.paper}>
+      {children}
+    </Paper>
+  );
+};
 
 export default withStyles(styles)(AltinnInformationPaper);

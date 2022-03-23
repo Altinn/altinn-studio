@@ -1,7 +1,8 @@
-import { createStyles, Select, SvgIcon, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Select, SvgIcon, withStyles } from '@material-ui/core';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import * as React from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
+import type { IAppState } from '../../types/global';
 
 export enum SelectableLists {
   All,
@@ -21,8 +22,10 @@ export interface IListSelectorState {
   selectedList: SelectableLists;
 }
 
-class ListSelector extends React.Component<IListSelectorProps, IListSelectorState> {
-
+class ListSelector extends React.Component<
+  IListSelectorProps,
+  IListSelectorState
+> {
   constructor(props: IListSelectorProps, state: IListSelectorState) {
     super(props, state);
     this.state = {
@@ -35,8 +38,13 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
       <div
         tabIndex={0}
         style={{
-          display: 'flex', verticalAlign: 'middle', minWidth: '100%', alignItems: 'center',
-          paddingBottom: '6px', paddingTop: '6px', justifyContent: 'space-between',
+          display: 'flex',
+          verticalAlign: 'middle',
+          minWidth: '100%',
+          alignItems: 'center',
+          paddingBottom: '6px',
+          paddingTop: '6px',
+          justifyContent: 'space-between',
         }}
       >
         <Select
@@ -51,12 +59,22 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
           onChange={this.props.onChange}
           IconComponent={ExpandMore}
         >
-          <option value={SelectableLists.All}>{this.props.language.ux_editor.list_all}</option>
-          <option value={SelectableLists.Favourites}>{this.props.language.ux_editor.list_favourites}</option>
+          <option value={SelectableLists.All}>
+            {this.props.language.ux_editor.list_all}
+          </option>
+          <option value={SelectableLists.Favourites}>
+            {this.props.language.ux_editor.list_favourites}
+          </option>
         </Select>
 
         <SvgIcon
-          style={{ float: 'right', display: 'inline', verticalAlign: 'middle', width: '14px', height: 'inherit' }}
+          style={{
+            float: 'right',
+            display: 'inline',
+            verticalAlign: 'middle',
+            width: '14px',
+            height: 'inherit',
+          }}
           viewBox={'0 0 14 14'}
         >
           <svg
@@ -66,10 +84,38 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
             fill='none'
             xmlns='http://www.w3.org/2000/svg'
           >
-            <rect x='0.5' y='0.5' width='5' height='5' rx='0.5' stroke='#022F51' />
-            <rect x='8.5' y='0.5' width='5' height='5' rx='0.5' stroke='#022F51' />
-            <rect x='0.5' y='8.5' width='5' height='5' rx='0.5' stroke='#022F51' />
-            <rect x='8.5' y='8.5' width='5' height='5' rx='0.5' stroke='#022F51' />
+            <rect
+              x='0.5'
+              y='0.5'
+              width='5'
+              height='5'
+              rx='0.5'
+              stroke='#022F51'
+            />
+            <rect
+              x='8.5'
+              y='0.5'
+              width='5'
+              height='5'
+              rx='0.5'
+              stroke='#022F51'
+            />
+            <rect
+              x='0.5'
+              y='8.5'
+              width='5'
+              height='5'
+              rx='0.5'
+              stroke='#022F51'
+            />
+            <rect
+              x='8.5'
+              y='8.5'
+              width='5'
+              height='5'
+              rx='0.5'
+              stroke='#022F51'
+            />
           </svg>
         </SvgIcon>
       </div>
@@ -77,33 +123,38 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
   }
 }
 
-const styles = (theme: Theme) => createStyles({
-  componentListSelector: {
-    fontSize: '12px',
-    color: '#022F51',
-    fontWeight: 'bold',
-    display: 'inherit',
-  },
-  select: {
-    paddingRight: '24px',
-    paddingBottom: '0px',
-    paddingTop: '0px',
-    minHeight: '0',
-  },
-  icon: {
-    position: 'absolute',
-    display: 'inline-block',
-  },
-});
+const styles = () =>
+  createStyles({
+    componentListSelector: {
+      fontSize: '12px',
+      color: '#022F51',
+      fontWeight: 'bold',
+      display: 'inherit',
+    },
+    select: {
+      paddingRight: '24px',
+      paddingBottom: '0px',
+      paddingTop: '0px',
+      minHeight: '0',
+    },
+    icon: {
+      position: 'absolute',
+      display: 'inline-block',
+    },
+  });
 
 const mapStateToProps: (
   state: IAppState,
   props: IListSelectorProvidedProps,
-) => IListSelectorProps = (state: IAppState, props: IListSelectorProvidedProps) => ({
+) => IListSelectorProps = (
+  state: IAppState,
+  props: IListSelectorProvidedProps,
+) => ({
   classes: props.classes,
   onChange: props.onChange,
   language: state.appData.languageState.language,
 });
 
-export const ListSelectorComponent =
-  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ListSelector));
+export const ListSelectorComponent = withStyles(styles, { withTheme: true })(
+  connect(mapStateToProps)(ListSelector),
+);

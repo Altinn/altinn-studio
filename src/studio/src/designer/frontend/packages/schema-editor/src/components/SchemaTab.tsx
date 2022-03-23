@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { makeStyles, Tab } from '@material-ui/core';
-import { ILanguage } from '../types';
+import type { ILanguage } from '../types';
 import { getTranslation } from '../utils';
 
 export interface ISchemaTabProps {
@@ -28,21 +28,21 @@ const useStyles = makeStyles((theme) => ({
   wrapper: {
     textTransform: 'none',
     fontSize: 16,
-    fontWeight: 500
+    fontWeight: 500,
   },
 }));
 
-export const SchemaTab = ((props: ISchemaTabProps) => {
-  const {
-    label, value, hide, language, ...other
-  } = props;
+export const SchemaTab = (props: ISchemaTabProps) => {
+  const { label, value, hide, language, ...other } = props;
   const classes = useStyles();
-  return <Tab
-    label={getTranslation(label, language)}
-    classes={classes}
-    id={`inspector-tab-${value}`}
-    value={value}
-    hidden={hide}
-    {...other}
-  />;
-});
+  return (
+    <Tab
+      label={getTranslation(label, language)}
+      classes={classes}
+      id={`inspector-tab-${value}`}
+      value={value}
+      hidden={hide}
+      {...other}
+    />
+  );
+};

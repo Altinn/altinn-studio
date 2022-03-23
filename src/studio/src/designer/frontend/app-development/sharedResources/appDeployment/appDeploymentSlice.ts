@@ -1,12 +1,13 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ICreateAppDeployment,
+import type {
+  ICreateAppDeployment,
   ICreateAppDeploymentErrors,
   ICreateAppDeploymentFulfilled,
   ICreateAppDeploymentRejected,
   IDeployment,
   IGetAppDeploymentsFulfilled,
-  IGetAppDeploymentsRejected } from './types';
+  IGetAppDeploymentsRejected,
+} from './types';
 
 export interface IAppDeploymentState {
   deployments: IDeployment[];
@@ -26,12 +27,17 @@ const appDeploymentSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    createAppDeploymentFulfilled: (state, action: PayloadAction<ICreateAppDeploymentFulfilled>) => {
+    createAppDeploymentFulfilled: (
+      state,
+      action: PayloadAction<ICreateAppDeploymentFulfilled>,
+    ) => {
       const { result, envName } = action.payload;
       state.deployments.unshift(result);
-      const newList = state.createAppDeploymentErrors.filter((elem: ICreateAppDeploymentErrors) => {
-        return elem.env !== envName;
-      });
+      const newList = state.createAppDeploymentErrors.filter(
+        (elem: ICreateAppDeploymentErrors) => {
+          return elem.env !== envName;
+        },
+      );
       const newListItem: ICreateAppDeploymentErrors = {
         env: envName,
         errorMessage: null,
@@ -40,11 +46,16 @@ const appDeploymentSlice = createSlice({
       newList.push(newListItem);
       state.createAppDeploymentErrors = newList;
     },
-    createAppDeploymentRejected: (state, action: PayloadAction<ICreateAppDeploymentRejected>) => {
+    createAppDeploymentRejected: (
+      state,
+      action: PayloadAction<ICreateAppDeploymentRejected>,
+    ) => {
       const { error, envName } = action.payload;
-      const newList = state.createAppDeploymentErrors.filter((elem: ICreateAppDeploymentErrors) => {
-        return elem.env !== envName;
-      });
+      const newList = state.createAppDeploymentErrors.filter(
+        (elem: ICreateAppDeploymentErrors) => {
+          return elem.env !== envName;
+        },
+      );
       const newListItem: ICreateAppDeploymentErrors = {
         env: envName,
         errorMessage: error.message,
@@ -53,12 +64,18 @@ const appDeploymentSlice = createSlice({
       newList.push(newListItem);
       state.createAppDeploymentErrors = newList;
     },
-    getAppDeploymentsFulfilled: (state, action: PayloadAction<IGetAppDeploymentsFulfilled>) => {
+    getAppDeploymentsFulfilled: (
+      state,
+      action: PayloadAction<IGetAppDeploymentsFulfilled>,
+    ) => {
       const { deployments } = action.payload;
       state.deployments = deployments.results;
       state.getAppDeploymentsError = null;
     },
-    getAppDeploymentsRejected: (state, action: PayloadAction<IGetAppDeploymentsRejected>) => {
+    getAppDeploymentsRejected: (
+      state,
+      action: PayloadAction<IGetAppDeploymentsRejected>,
+    ) => {
       const { error } = action.payload;
       state.getAppDeploymentsError = error;
     },
@@ -66,10 +83,16 @@ const appDeploymentSlice = createSlice({
 });
 
 const actions = {
-  createAppDeployment: createAction<ICreateAppDeployment>(`${moduleName}/createAppDeployment`),
+  createAppDeployment: createAction<ICreateAppDeployment>(
+    `${moduleName}/createAppDeployment`,
+  ),
   getAppDeployments: createAction(`${moduleName}/getAppDeployments`),
-  getAppDeploymentsStartInterval: createAction(`${moduleName}/getAppDeploymentsStartInterval`),
-  getAppDeploymentsStopInterval: createAction(`${moduleName}/getAppDeploymentsStopInterval`),
+  getAppDeploymentsStartInterval: createAction(
+    `${moduleName}/getAppDeploymentsStartInterval`,
+  ),
+  getAppDeploymentsStopInterval: createAction(
+    `${moduleName}/getAppDeploymentsStopInterval`,
+  ),
 };
 
 export const AppDeploymentActions = {

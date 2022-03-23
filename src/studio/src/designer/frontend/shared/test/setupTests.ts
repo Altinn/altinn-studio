@@ -1,11 +1,11 @@
 import { JSDOM } from 'jsdom';
-import  * as Enzyme from 'enzyme';
-import * as Adapter from'@wojtekmaj/enzyme-adapter-react-17';
+import Enzyme from 'enzyme';
+import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import 'jest';
 
-const {
-  document
-} = (new JSDOM('<!doctype html><html lang="no"><body>Body text<div id="root"></div></body></html>')).window;
+const { document } = new JSDOM(
+  '<!doctype html><html lang="no"><body>Body text<div id="root"></div></body></html>',
+).window;
 
 global['document'] = document;
 global['window'] = document.defaultView;

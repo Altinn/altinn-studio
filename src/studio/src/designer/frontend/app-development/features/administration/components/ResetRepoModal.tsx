@@ -1,11 +1,20 @@
-import { createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
-import * as React from 'react';
+import {
+  createTheme,
+  Grid,
+  makeStyles,
+  Popover,
+  Typography,
+} from '@material-ui/core';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import studioTheme from 'app-shared/theme/altinnStudioTheme';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { useSelector } from 'react-redux';
+import {
+  getLanguageFromKey,
+  getParsedLanguageFromKey,
+} from 'app-shared/utils/language';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { useAppSelector } from 'common/hooks';
 
 const theme = createTheme(studioTheme);
 
@@ -60,7 +69,9 @@ function ResetRepoModal(props: IResetRepoModalProps) {
   const [canDelete, setCanDelete] = React.useState<boolean>(false);
   const [deleteRepoName, setDeleteRepoName] = React.useState<string>('');
 
-  const resetting: boolean = useSelector((state: IServiceDevelopmentState) => state.repoStatus.resettingLocalRepo);
+  const resetting: boolean = useAppSelector(
+    (state) => state.repoStatus.resettingLocalRepo,
+  );
 
   React.useEffect(() => {
     if (deleteRepoName === props.repositoryName) {
@@ -107,14 +118,18 @@ function ResetRepoModal(props: IResetRepoModalProps) {
         >
           <Grid item={true} className={classes.itemSeparator}>
             <Typography className={classes.sidebarHeader}>
-              {getLanguageFromKey('administration.reset_repo_confirm_heading', props.language)}
+              {getLanguageFromKey(
+                'administration.reset_repo_confirm_heading',
+                props.language,
+              )}
             </Typography>
           </Grid>
           <Grid item={true} className={classes.sectionSeparator}>
             <Typography variant='body1'>
               {getParsedLanguageFromKey(
                 'administration.reset_repo_confirm_info',
-                props.language, [props.repositoryName],
+                props.language,
+                [props.repositoryName],
                 true,
               )}
             </Typography>
@@ -122,7 +137,10 @@ function ResetRepoModal(props: IResetRepoModalProps) {
           <Grid item={true}>
             <label htmlFor='delete-repo-name'>
               <Typography variant='body1' className={classes.blackText}>
-                {getLanguageFromKey('administration.reset_repo_confirm_repo_name', props.language)}
+                {getLanguageFromKey(
+                  'administration.reset_repo_confirm_repo_name',
+                  props.language,
+                )}
               </Typography>
             </label>
           </Grid>
@@ -135,16 +153,19 @@ function ResetRepoModal(props: IResetRepoModalProps) {
             />
           </Grid>
           <Grid container={true}>
-            {resetting ?
+            {resetting ? (
               <Grid item={true} xs={6}>
                 <AltinnSpinner />
               </Grid>
-              :
+            ) : (
               <>
                 <Grid item={true} xs={6}>
                   <AltinnButton
                     onClickFunction={onResetWrapper}
-                    btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
+                    btnText={getLanguageFromKey(
+                      'administration.reset_repo_button',
+                      props.language,
+                    )}
                     id='confirm-reset-repo-button'
                     disabled={!canDelete}
                     className={classes.confirmButton}
@@ -154,13 +175,16 @@ function ResetRepoModal(props: IResetRepoModalProps) {
                 <Grid item={true} xs={6}>
                   <AltinnButton
                     onClickFunction={onCloseWrapper}
-                    btnText={getLanguageFromKey('general.cancel', props.language)}
+                    btnText={getLanguageFromKey(
+                      'general.cancel',
+                      props.language,
+                    )}
                     secondaryButton={true}
                     className={classes.cancelButton}
                   />
                 </Grid>
               </>
-            }
+            )}
           </Grid>
         </Grid>
       </Popover>

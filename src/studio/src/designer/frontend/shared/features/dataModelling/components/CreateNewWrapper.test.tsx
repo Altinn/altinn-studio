@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import * as renderer from 'react-test-renderer';
 import { act } from 'react-dom/test-utils';
 import CreateNewWrapper from './CreateNewWrapper';

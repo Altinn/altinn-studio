@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import * as renderer from 'react-test-renderer';
 import AltinnInformationCard from './AltinnInformationCard';
 

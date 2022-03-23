@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { mount } from 'enzyme';

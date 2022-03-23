@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-const mergeConflictSelector = (state: IServiceDevelopmentState) => {
+const mergeConflictSelector = (state: any) => {
   return state.handleMergeConflict;
 };
 

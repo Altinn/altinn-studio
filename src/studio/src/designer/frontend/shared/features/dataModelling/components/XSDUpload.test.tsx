@@ -1,6 +1,6 @@
 import { mount } from 'enzyme';
 import axios from 'axios';
-import * as React from 'react';
+import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { FileSelector, AltinnSpinner } from 'app-shared/components';

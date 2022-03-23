@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { screen, act, waitForElementToBeRemoved } from '@testing-library/react';
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';

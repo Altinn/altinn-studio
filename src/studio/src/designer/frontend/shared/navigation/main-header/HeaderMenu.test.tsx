@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { mount } from 'enzyme';
 import * as networking from '../../utils/networking';
 import { HeaderContext } from './Header';

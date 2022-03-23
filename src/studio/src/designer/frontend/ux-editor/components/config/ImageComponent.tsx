@@ -1,11 +1,16 @@
 import { Grid, Typography } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import Select from 'react-select';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { renderSelectTextFromResources, renderPropertyLabel, selectStyles } from '../../utils/render';
+import {
+  renderSelectTextFromResources,
+  renderPropertyLabel,
+  selectStyles,
+} from '../../utils/render';
+import type { IFormImageComponent, FormComponentType } from '../../types/global';
 
-type ImageComponentProps = {
+interface ImageComponentProps {
   component: IFormImageComponent;
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
@@ -17,8 +22,7 @@ export const ImageComponent = ({
   language,
   handleComponentUpdate,
   textResources,
-}
-  : ImageComponentProps) => {
+}: ImageComponentProps) => {
   const alignOptions = [
     {
       value: 'flex-start',
@@ -34,7 +38,9 @@ export const ImageComponent = ({
     },
   ];
 
-  const selectedPlacement = alignOptions.filter((x) => x.value === component.image?.align);
+  const selectedPlacement = alignOptions.filter(
+    (x) => x.value === component.image?.align,
+  );
   const nbSrc = component.image?.src?.nb;
 
   const handlePlacementChange = (e: any) => {
@@ -66,27 +72,20 @@ export const ImageComponent = ({
   };
 
   return (
-    <Grid
-      spacing={2}
-      container={true}
-    >
-      <Grid
-        item={true}
-        xs={12}
-      >
+    <Grid spacing={2} container={true}>
+      <Grid item={true} xs={12}>
         <AltinnInputField
           id='image_nb_src'
           inputValue={nbSrc}
-          inputDescription={language.ux_editor.modal_properties_image_src_value_label}
+          inputDescription={
+            language.ux_editor.modal_properties_image_src_value_label
+          }
           inputFieldStyling={{ width: '100%' }}
           onChangeFunction={handleSourceChange}
         />
       </Grid>
 
-      <Grid
-        item={true}
-        xs={12}
-      >
+      <Grid item={true} xs={12}>
         <div data-testid='image-alt-text-select'>
           {renderSelectTextFromResources(
             'modal_properties_image_alt_text_label',
@@ -99,25 +98,23 @@ export const ImageComponent = ({
         </div>
       </Grid>
 
-      <Grid
-        item={true}
-        xs={3}
-      >
+      <Grid item={true} xs={3}>
         <AltinnInputField
           id='image_width'
           inputValue={component.image?.width}
-          inputDescription={language.ux_editor.modal_properties_image_width_label}
+          inputDescription={
+            language.ux_editor.modal_properties_image_width_label
+          }
           onChangeFunction={handleWidthChange}
           inputFieldStyling={{ width: '100%' }}
         />
       </Grid>
 
-      <Grid
-        item={true}
-        xs={9}
-      >
+      <Grid item={true} xs={9}>
         <div data-testid='image-placement-select'>
-          {renderPropertyLabel(language.ux_editor.modal_properties_image_placement_label)}
+          {renderPropertyLabel(
+            language.ux_editor.modal_properties_image_placement_label,
+          )}
           <Select
             styles={selectStyles}
             options={alignOptions}
@@ -129,10 +126,7 @@ export const ImageComponent = ({
         </div>
       </Grid>
 
-      <Grid
-        item={true}
-        xs={12}
-      >
+      <Grid item={true} xs={12}>
         <Typography>
           <a
             target='_blank'
@@ -140,10 +134,12 @@ export const ImageComponent = ({
             href='https://docs.altinn.studio/app/development/ux/images/'
           >
             {getLanguageFromKey(
-              'ux_editor.modal_properties_image_read_more', language,
+              'ux_editor.modal_properties_image_read_more',
+              language,
             )}
           </a>
         </Typography>
       </Grid>
-    </Grid>);
+    </Grid>
+  );
 };

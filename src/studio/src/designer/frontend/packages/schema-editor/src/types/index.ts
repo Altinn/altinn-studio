@@ -13,7 +13,14 @@ export interface ILanguage {
   [key: string]: string | ILanguage;
 }
 
-export type FieldType = 'string' | 'integer' | 'number' | 'boolean' | 'object' | 'array' | 'null';
+export type FieldType =
+  | 'string'
+  | 'integer'
+  | 'number'
+  | 'boolean'
+  | 'object'
+  | 'array'
+  | 'null';
 
 export type ObjectKind = 'combination' | 'reference' | 'field';
 
@@ -22,7 +29,7 @@ export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
 export type Restriction = {
   key: string;
   value: any;
-}
+};
 
 export interface UiSchemaItem {
   path: string;
@@ -35,16 +42,16 @@ export interface UiSchemaItem {
   required?: string[];
   title?: string;
   description?: string;
-  items?: { type?: string, $ref?: string };
+  items?: { type?: string; $ref?: string };
   enum?: string[];
   combination?: UiSchemaItem[];
   combinationKind?: CombinationKind;
-  combinationItem?: boolean,
+  combinationItem?: boolean;
 }
 
 export interface ISchema {
-  properties: { [key: string]: {[key: string]: any} };
-  definitions: { [key: string]: {[key: string]: any} };
-  $schema?: string
+  properties: { [key: string]: { [key: string]: any } };
+  definitions: { [key: string]: { [key: string]: any } };
+  $schema?: string;
   $id?: string;
 }

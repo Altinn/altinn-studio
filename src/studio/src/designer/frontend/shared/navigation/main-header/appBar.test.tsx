@@ -1,6 +1,6 @@
 import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import * as renderer from 'react-test-renderer';
 import AppBarComponent from './appBar';

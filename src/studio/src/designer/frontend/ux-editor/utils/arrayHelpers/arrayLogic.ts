@@ -7,7 +7,7 @@ export interface IUpdateArrayObj {
 
 export interface ITwoArraysObj {
   array: any[];
-  order: any [];
+  order: any[];
 }
 
 const pushOrPop = ({ array, object }: IUpdateArrayObj) => {
@@ -17,24 +17,24 @@ const pushOrPop = ({ array, object }: IUpdateArrayObj) => {
     if (tempObj) {
       array[index] = object;
     }
-    const cloneOfObj = JSON.parse(JSON.stringify({array, object}));
+    const cloneOfObj = JSON.parse(JSON.stringify({ array, object }));
     return cloneOfObj;
   } else {
     if (!tempObj) {
       array.push(object);
       array.sort(compareOrderNum);
     } else {
-      object.inEditMode ? array[index] = object : array.splice(index, 1);
+      object.inEditMode ? (array[index] = object) : array.splice(index, 1);
     }
     if (array.length > 0) {
       markFirstAndLastObject(array);
     }
-    const cloneOfObj = JSON.parse(JSON.stringify({array, object}));
+    const cloneOfObj = JSON.parse(JSON.stringify({ array, object }));
     return cloneOfObj;
   }
 };
 
-const changeOrderNum = ({array, order}: ITwoArraysObj) => {
+const changeOrderNum = ({ array, order }: ITwoArraysObj) => {
   array.forEach((component: any) => {
     if (order.indexOf(component.id) >= 0) {
       component.order = order.indexOf(component.id);
@@ -57,12 +57,18 @@ const compareOrderNum = (a: any, b: any) => {
 };
 
 const findMissing = (a: any[]) => {
-  const maximum = Math.max.apply(Math, a.map((o) => {
-    return o.order;
-  }));
-  const minimum = Math.min.apply(Math, a.map((o) => {
-    return o.order;
-  }));
+  const maximum = Math.max.apply(
+    Math,
+    a.map((o) => {
+      return o.order;
+    }),
+  );
+  const minimum = Math.min.apply(
+    Math,
+    a.map((o) => {
+      return o.order;
+    }),
+  );
   let index = 0;
   Array.from(Array(maximum).keys()).forEach((i: number) => {
     const obj = a.find((x: any) => x.order === i);
@@ -98,21 +104,15 @@ const markFirstAndLastObject = (array: any[]) => {
 };
 
 const getArray = () => {
-  return createSelector(
-    pushOrPop,
-    (obj: IUpdateArrayObj) => {
-      return obj.array;
-    },
-  );
+  return createSelector(pushOrPop, (obj: IUpdateArrayObj) => {
+    return obj.array;
+  });
 };
 
 const getSortedArray = () => {
-  return createSelector(
-    changeOrderNum,
-    (obj: ITwoArraysObj) => {
-      return obj.array;
-    },
-  );
+  return createSelector(changeOrderNum, (obj: ITwoArraysObj) => {
+    return obj.array;
+  });
 };
 
 export const addToOrDeleteFromArray = getArray;

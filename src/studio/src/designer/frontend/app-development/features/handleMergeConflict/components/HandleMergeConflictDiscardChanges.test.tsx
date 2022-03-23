@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import * as networking from 'app-shared/utils/networking';
 
 import { HandleMergeConflictDiscardChanges } from './HandleMergeConflictDiscardChanges';

@@ -1,5 +1,4 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import * as React from 'react';
+import React from 'react';
 import { MenuProps, Menu, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles(() => ({

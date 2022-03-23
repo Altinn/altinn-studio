@@ -1,5 +1,5 @@
 import { shallow } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import * as render from 'react-test-renderer';
 import ProfileMenuComponent from './profileMenu';
 

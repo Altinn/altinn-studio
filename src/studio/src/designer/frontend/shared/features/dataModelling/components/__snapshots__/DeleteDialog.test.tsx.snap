@@ -95,8 +95,8 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
       "administration": Object {},
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
+  onCancel={[MockFunction]}
+  onConfirm={[MockFunction]}
   schemaName="some-name"
 >
   <WithStyles(ForwardRef(Popover))
@@ -194,7 +194,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
         "vertical": "bottom",
       }
     }
-    onClose={[Function]}
+    onClose={[MockFunction]}
     open={true}
     transformOrigin={
       Object {
@@ -304,7 +304,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
           "root": "MuiPopover-root",
         }
       }
-      onClose={[Function]}
+      onClose={[MockFunction]}
       open={true}
       transformOrigin={
         Object {
@@ -408,7 +408,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
             </div>
           </body>
         }
-        onClose={[Function]}
+        onClose={[MockFunction]}
         open={true}
       >
         <ForwardRef(Portal)
@@ -1144,7 +1144,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                       <WithStyles(ForwardRef(Button))
                                         className="makeStyles-deleteButton-3"
                                         id="confirm-delete-button"
-                                        onClick={[Function]}
+                                        onClick={[MockFunction]}
                                         variant="contained"
                                       >
                                         <ForwardRef(Button)
@@ -1183,7 +1183,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                             }
                                           }
                                           id="confirm-delete-button"
-                                          onClick={[Function]}
+                                          onClick={[MockFunction]}
                                           variant="contained"
                                         >
                                           <WithStyles(ForwardRef(ButtonBase))
@@ -1193,7 +1193,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                             focusRipple={true}
                                             focusVisibleClassName="Mui-focusVisible"
                                             id="confirm-delete-button"
-                                            onClick={[Function]}
+                                            onClick={[MockFunction]}
                                             type="button"
                                           >
                                             <ForwardRef(ButtonBase)
@@ -1210,7 +1210,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                               focusRipple={true}
                                               focusVisibleClassName="Mui-focusVisible"
                                               id="confirm-delete-button"
-                                              onClick={[Function]}
+                                              onClick={[MockFunction]}
                                               type="button"
                                             >
                                               <button
@@ -1218,7 +1218,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                                 disabled={false}
                                                 id="confirm-delete-button"
                                                 onBlur={[Function]}
-                                                onClick={[Function]}
+                                                onClick={[MockFunction]}
                                                 onDragLeave={[Function]}
                                                 onFocus={[Function]}
                                                 onKeyDown={[Function]}
@@ -1273,7 +1273,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                       <WithStyles(ForwardRef(Button))
                                         color="primary"
                                         id="cancel-delete-button"
-                                        onClick={[Function]}
+                                        onClick={[MockFunction]}
                                       >
                                         <ForwardRef(Button)
                                           classes={
@@ -1311,7 +1311,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                           }
                                           color="primary"
                                           id="cancel-delete-button"
-                                          onClick={[Function]}
+                                          onClick={[MockFunction]}
                                         >
                                           <WithStyles(ForwardRef(ButtonBase))
                                             className="MuiButton-root MuiButton-text MuiButton-textPrimary"
@@ -1320,7 +1320,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                             focusRipple={true}
                                             focusVisibleClassName="Mui-focusVisible"
                                             id="cancel-delete-button"
-                                            onClick={[Function]}
+                                            onClick={[MockFunction]}
                                             type="button"
                                           >
                                             <ForwardRef(ButtonBase)
@@ -1337,7 +1337,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                               focusRipple={true}
                                               focusVisibleClassName="Mui-focusVisible"
                                               id="cancel-delete-button"
-                                              onClick={[Function]}
+                                              onClick={[MockFunction]}
                                               type="button"
                                             >
                                               <button
@@ -1345,7 +1345,7 @@ exports[`DeleteDialog Should match snapshot with the least amount of params 1`] 
                                                 disabled={false}
                                                 id="cancel-delete-button"
                                                 onBlur={[Function]}
-                                                onClick={[Function]}
+                                                onClick={[MockFunction]}
                                                 onDragLeave={[Function]}
                                                 onFocus={[Function]}
                                                 onKeyDown={[Function]}

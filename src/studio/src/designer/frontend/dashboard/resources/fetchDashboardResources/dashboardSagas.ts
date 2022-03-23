@@ -1,10 +1,11 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 import { get } from 'app-shared/utils/networking';
 import { dataModellingSagas } from 'app-shared/features/dataModelling/sagas';
-import { DashboardActions, IFetchDashboardInfoAction } from './dashboardSlice';
+import { DashboardActions } from './dashboardSlice';
+import type { IFetchDashboardInfoAction } from './dashboardSlice';
 
 export function* fetchServicesSaga({
   payload: { url },
@@ -41,7 +42,6 @@ export function* watchFetchCurrentUserSaga(): SagaIterator {
   yield takeLatest(DashboardActions.fetchCurrentUser, fetchCurrentUserSaga);
 }
 
-// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);

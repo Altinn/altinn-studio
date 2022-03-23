@@ -1,15 +1,13 @@
-// Extensive used in Material-UI's Grid
-
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from '../../utils/urlHelper';
-import { IMenuItem } from '../drawer/drawerMenuSettings';
+import type { IMenuItem } from '../drawer/drawerMenuSettings';
 import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
@@ -103,7 +101,10 @@ const styles = createStyles({
   },
 });
 
-class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
+class AppBarComponent extends React.Component<
+  IAppBarComponentProps,
+  IAppBarComponentState
+> {
   constructor(props: IAppBarComponentProps) {
     super(props);
     this.state = {
@@ -136,18 +137,20 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       <div className={classes.root}>
         <AppBar
           position='static'
-          className={classNames([classes.appBar, !app ? classes.appBarDashboard : classes.appBarEditor])}
+          className={classNames([
+            classes.appBar,
+            !app ? classes.appBarDashboard : classes.appBarEditor,
+          ])}
           elevation={0}
         >
           <Toolbar>
             <Grid
-              container direction='row'
-              alignItems='center' justifyContent='space-between'
+              container
+              direction='row'
+              alignItems='center'
+              justifyContent='space-between'
             >
-              <Grid
-                item xs
-                container
-              >
+              <Grid item xs container>
                 <Grid item>
                   <a href='/' className={classes.aImgStyling}>
                     <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
@@ -156,37 +159,42 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 <Hidden mdUp>
                   {!showBreadcrumbOnTablet ? null : (
                     <Grid item className={classes.breadCrumb}>
-                      {activeSubHeaderSelection && `/ ${activeSubHeaderSelection}`} /
-                      <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
+                      {activeSubHeaderSelection &&
+                        `/ ${activeSubHeaderSelection}`}{' '}
+                      /
+                      <span className={classes.breadCrumbSubApp}>
+                        {' '}
+                        {activeLeftMenuSelection}{' '}
+                      </span>
                     </Grid>
                   )}
                 </Hidden>
               </Grid>
               <Hidden smDown>
-                <Grid
-                  xs item
-                  className={classes.paper}
-                >
-                  {(org && app) ? `${org} / ${app}` : ''}
+                <Grid xs item className={classes.paper}>
+                  {org && app ? `${org} / ${app}` : ''}
                 </Grid>
               </Hidden>
               <Grid
-                item xs
-                container direction='row'
-                alignItems='center' justifyContent='flex-end'
+                item
+                xs
+                container
+                direction='row'
+                alignItems='center'
+                justifyContent='flex-end'
               >
                 {user || ''}
                 <Hidden smDown>
                   <Grid item>
-                    <ProfileMenu
-                      showlogout
-                    />
+                    <ProfileMenu showlogout />
                   </Grid>
                 </Hidden>
                 <Hidden mdUp>
                   <Grid item>
                     <TabletDrawerMenu
-                      handleTabletDrawerMenu={() => this.handleTabletDrawerMenu()}
+                      handleTabletDrawerMenu={() =>
+                        this.handleTabletDrawerMenu()
+                      }
                       tabletDrawerOpen={this.state.tabletDrawerOpen}
                       logoutButton={!logoutButton ? false : logoutButton}
                       activeSubHeaderSelection={activeSubHeaderSelection}
@@ -203,8 +211,10 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
             {this.props.showSubMenu && (
               <Toolbar>
                 <Grid
-                  container direction='row'
-                  justifyContent='center' alignItems='center'
+                  container
+                  direction='row'
+                  justifyContent='center'
+                  alignItems='center'
                 >
                   {menu.map((item) => (
                     <Grid
@@ -215,7 +225,8 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       <Link
                         to={item.link}
                         className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]: this.props.activeSubHeaderSelection ===
+                          [classes.subHeaderLinkActive]:
+                            this.props.activeSubHeaderSelection ===
                             item.activeSubHeaderSelection,
                         })}
                       >

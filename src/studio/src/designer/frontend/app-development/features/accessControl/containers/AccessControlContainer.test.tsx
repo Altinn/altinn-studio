@@ -1,5 +1,5 @@
 import { mount } from 'enzyme';
-import * as React from 'react';
+import React from 'react';
 import configureStore from 'redux-mock-store';
 import type {
   IAccessControlContainerProps,
@@ -9,12 +9,6 @@ import {
   AccessControlContainerClass,
   PartyTypes,
 } from './AccessControlContainer';
-
-jest.mock('app-shared/version-control/versionControlHeader', () => {
-  return {
-    default: () => 'VersionControlHeader',
-  };
-});
 
 describe('AccessControl', () => {
   let nextAccessContainerProps: IAccessControlContainerProps;
