@@ -27,16 +27,17 @@ export function* fetchOptionsSaga(): SagaIterator {
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId]) {
       const { optionsId, mapping, secure }  = element as ISelectionComponentProps
+      const lookupKey = getOptionLookupKey(optionsId, mapping);
       if (
         optionsId &&
-        !fetchedOptions.includes(getOptionLookupKey(optionsId, mapping))
+        !fetchedOptions.includes(lookupKey)
       ) {
         yield fork(fetchSpecificOptionSaga, {
           optionsId,
           dataMapping: mapping,
           secure,
         });
-        fetchedOptions.push(optionsId);
+        fetchedOptions.push(lookupKey);
       }
     }
   }
