@@ -182,7 +182,6 @@ namespace Designer.Tests.Services
                 await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
                 CleanUpRemoteTestData(org, sourceRepository);
             }
-
         }
 
         [Fact]

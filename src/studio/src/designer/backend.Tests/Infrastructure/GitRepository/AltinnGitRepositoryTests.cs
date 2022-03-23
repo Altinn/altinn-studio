@@ -116,7 +116,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
                 Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
-                Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio","settings.json")));
+                Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json")));
             }
             finally
             {

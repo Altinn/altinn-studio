@@ -48,9 +48,6 @@ Configure(builder.Configuration);
 
 app.Run();
 
-/// <summary>
-/// Configure logging for setting up application. Temporary
-/// </summary>
 void ConfigureSetupLogging()
 {
     // Setup logging for the web host creation
@@ -109,7 +106,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         }
         catch (Exception vaultException)
         {
-            logger.LogError($"Could not find secretBundle for application insights {vaultException}");
+            logger.LogError(vaultException, $"Could not find secretBundle for application insights");
         }
     }
 

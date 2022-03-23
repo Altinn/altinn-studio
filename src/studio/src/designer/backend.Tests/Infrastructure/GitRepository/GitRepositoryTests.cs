@@ -119,9 +119,9 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
         [Theory]
         [InlineData(@"App/models/HvemErHvem.json")]
-        [InlineData(@"App\models\HvemErHvem.json")] //Windows only test?
+        [InlineData(@"App\models\HvemErHvem.json")]
         [InlineData(@"/App/models/HvemErHvem.json")]
-        [InlineData(@"\App\models\HvemErHvem.json")] //Windows only test?
+        [InlineData(@"\App\models\HvemErHvem.json")]
         public void FileExistsByRelativePath_FileExits_ShouldReturnTrue(string relativePath)
         {
             var gitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
