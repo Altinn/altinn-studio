@@ -6,7 +6,6 @@ import {
 } from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty } from 'altinn-shared/types';
 import { checkIfAxiosError } from 'altinn-shared/utils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import Presentation from 'src/shared/containers/Presentation';
@@ -20,12 +19,6 @@ import InstantiateValidationError from './InstantiateValidationError';
 import { useAppSelector } from 'src/common/hooks';
 
 const titleKey = 'instantiate.starting';
-
-export interface IPartyValidation {
-  valid: boolean;
-  message: string;
-  validParties: IParty[];
-}
 
 const InstantiateContainer = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
