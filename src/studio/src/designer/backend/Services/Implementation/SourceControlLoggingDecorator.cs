@@ -431,7 +431,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var user = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             var debugInfo = GetDebugInfo();
 
-            _logger.LogError(ex, "Failed executing method {0} for user {1} in org {2} / repository {3}. Destination: {5}. Branch: {5}. Debug info: {6}", method, user, org, repository, destinationPath, branch, debugInfo);
+            _logger.LogError(ex, "Failed executing method {0} for user {1} in org {2} / repository {3}. Destination: {4}. Branch: {5}. Debug info: {6}", method, user, org, repository, destinationPath, branch, debugInfo);
         }
 
         private object GetDebugInfo()
