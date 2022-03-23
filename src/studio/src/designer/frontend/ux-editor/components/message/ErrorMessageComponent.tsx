@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeError, IErrorStateError } from '../../features/error/errorSlice';
 import type { IAppState } from '../../types/global';
 
-import '../../styles/ErrorMessageComponent.css';
+import './ErrorMessageComponent.css';
 
 export function ErrorMessageComponent() {
   const dispatch = useDispatch();

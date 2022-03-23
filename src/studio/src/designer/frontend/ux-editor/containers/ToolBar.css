@@ -11,10 +11,6 @@
   border: 1px solid #ddd;
 }
 
-.a-add {
-  /* padding-left: 2.5rem; */
-}
-
 .a-item+.a-item-clone {
   display: none !important;
 }

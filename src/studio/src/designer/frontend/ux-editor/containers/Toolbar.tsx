@@ -21,7 +21,7 @@ import type {
   IWidget,
 } from '../types/global';
 
-import '../styles/toolBar.css';
+import './ToolBar.css';
 
 export interface IToolbarElement {
   label: string;
