@@ -2,10 +2,10 @@ import { expectSaga, testSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
 import FormDataActions from 'src/features/form/data/formDataActions';
 import { checkIfOptionsShouldRefetchSaga, fetchOptionsSaga, fetchSpecificOptionSaga, formDataSelector, formLayoutSelector, instanceIdSelector, optionsSelector, userLanguageSelector, watchCheckIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
-import { IOptions, IRuntimeState } from 'src/types';
+import type { IOptions, IRuntimeState } from 'src/types';
 import * as networking from 'altinn-shared/utils/networking';
-import { IInstance } from 'altinn-shared/types';
-import { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
+import type { IInstance } from 'altinn-shared/types';
+import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
 
 
 describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
