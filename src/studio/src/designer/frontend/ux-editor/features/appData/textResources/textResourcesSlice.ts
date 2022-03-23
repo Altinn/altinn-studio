@@ -15,18 +15,8 @@ export interface ILoadTextResourcesFulfilled {
   textResources: any;
 }
 
-export interface ILoadTextResourcesFulfilledAction {
-  type: string;
-  payload: ILoadTextResourcesFulfilled;
-}
-
 export interface ILoadTextResourcesRejected {
   error: Error;
-}
-
-export interface ILoadTextResourcesRejectedAction {
-  type: string;
-  payload: ILoadTextResourcesRejected;
 }
 
 export interface ITextResourcesState {

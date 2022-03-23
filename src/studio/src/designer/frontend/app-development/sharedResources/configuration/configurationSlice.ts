@@ -54,7 +54,7 @@ const configurationSlice = createSlice({
       const { error } = action.payload;
       state.environments.error = error;
     },
-    getOrgsFulfilled: (state, action) => {
+    getOrgsFulfilled: (state, action: PayloadAction<IGetOrgsFulfilled>) => {
       const { orgs } = action.payload;
       state.orgs.allOrgs = orgs;
       state.orgs.error = null;

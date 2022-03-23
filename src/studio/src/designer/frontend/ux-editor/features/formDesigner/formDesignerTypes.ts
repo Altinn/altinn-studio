@@ -142,11 +142,6 @@ export interface IUpdateApplicationMetadaAction {
   fileType: string;
 }
 
-export interface IUpdateContainerIdAction {
-  currentId: string;
-  newId: string;
-}
-
 export interface IUpdateContainerIdFulfilled {
   currentId: string;
   newId: string;
