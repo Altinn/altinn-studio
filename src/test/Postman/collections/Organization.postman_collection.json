@@ -124,6 +124,250 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "AppOwner",
+			"item": [
+				{
+					"name": "GET instances with filters",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask=Task_1&created=gte:2021-12-01T13:45:14.000Z&lastChanged=gt:2021-11-27T10:44:00.000Z",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{org}}/{{app}}"
+								},
+								{
+									"key": "process.currentTask",
+									"value": "Task_1"
+								},
+								{
+									"key": "created",
+									"value": "gte:2021-12-01T13:45:14.000Z"
+								},
+								{
+									"key": "process.isComplete",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "excludeConfirmedBy",
+									"value": "ttd",
+									"disabled": true
+								},
+								{
+									"key": "lastChanged",
+									"value": "gt:2021-11-27T10:44:00.000Z"
+								},
+								{
+									"key": "status.isArchived",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "instanceOwner.partyId",
+									"value": "{{instanceOwnerId}}",
+									"disabled": true
+								},
+								{
+									"key": "status.isHardDeleted",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit sub status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"label\": \"Substatus.Label\",\r\n  \"description\": \"Substatus.Description\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/substatus",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"substatus"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "confirm Download single data id",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{subsKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/dataelements/{{dataGuid}}/confirmdownload",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"dataelements",
+								"{{dataGuid}}",
+								"confirmdownload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "confirm Download all dataelements",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Ocp-Apim-Subscription-Key",
+								"value": "{{subsKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/dataelements/confirmDownload",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"dataelements",
+								"confirmDownload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete instance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/complete",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"complete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
