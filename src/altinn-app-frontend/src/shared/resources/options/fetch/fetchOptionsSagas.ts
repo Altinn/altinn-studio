@@ -26,18 +26,18 @@ export function* fetchOptionsSaga(): SagaIterator {
   const fetchedOptions: string[] = [];
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId]) {
-      const component = element as ISelectionComponentProps;
-
+      const { optionsId, mapping, secure }  = element as ISelectionComponentProps
+      const lookupKey = getOptionLookupKey(optionsId, mapping);
       if (
-        component.optionsId &&
-        fetchedOptions.indexOf(component.optionsId) === -1
+        optionsId &&
+        !fetchedOptions.includes(lookupKey)
       ) {
         yield fork(fetchSpecificOptionSaga, {
-          optionsId: component.optionsId,
-          dataMapping: component.mapping,
-          secure: component.secure,
+          optionsId,
+          dataMapping: mapping,
+          secure,
         });
-        fetchedOptions.push(component.optionsId);
+        fetchedOptions.push(lookupKey);
       }
     }
   }
