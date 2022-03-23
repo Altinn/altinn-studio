@@ -333,7 +333,6 @@ namespace Designer.Tests.Controllers
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{repository}/datamodels/{modelPath}";
-            Console.WriteLine(url);
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
