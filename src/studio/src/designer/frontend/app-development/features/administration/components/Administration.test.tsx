@@ -5,17 +5,6 @@ import { renderWithProviders } from 'test/testUtils';
 import type { ICommit, IRepository } from '../../../types/global';
 import type { IHandleServiceInformationState } from 'features/administration/handleServiceInformationSlice';
 
-// jest.mock('axios');
-// jest.mock('app-shared/version-control/versionControlHeader', () => {
-//   return {
-//     default: () => 'VersionControlHeader',
-//   };
-// });
-
-// afterAll(() => {
-//   jest.clearAllMocks();
-// });
-
 describe('Administration', () => {
   const mockService: IRepository = {
     clone_url: '',
