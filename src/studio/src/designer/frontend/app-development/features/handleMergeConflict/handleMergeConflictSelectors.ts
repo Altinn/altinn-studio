@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
+import type { IServiceDevelopmentState } from '../../types/global';
 
-const mergeConflictSelector = (state: any) => {
+const mergeConflictSelector = (state: IServiceDevelopmentState) => {
   return state.handleMergeConflict;
 };
 

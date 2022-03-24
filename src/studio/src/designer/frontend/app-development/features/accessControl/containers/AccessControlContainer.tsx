@@ -16,7 +16,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
-import type { IServiceDevelopmentState } from '../../../types/global';
+import type { RootState } from 'store';
 
 const theme = createTheme(altinnTheme);
 
@@ -287,7 +287,7 @@ export class AccessControlContainerClass extends React.Component<
 const makeMapStateToProps = () => {
   const getApplicationMetadata = makeGetApplicationMetadata();
   return (
-    state: IServiceDevelopmentState,
+    state: RootState,
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => ({
     language: state.languageState.language,

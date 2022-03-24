@@ -18,6 +18,7 @@ import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
 import HandleMergeConflictFileListComponent from './components/HandleMergeConflictFileList';
+import type { RootState } from 'store';
 
 const theme = createTheme(altinnTheme);
 
@@ -250,12 +251,13 @@ export class HandleMergeConflictContainer extends React.Component<
 
 const makeMapStateToProps = () => {
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
-  const mapStateToProps = (state: any) => {
+  const mapStateToProps = (state: RootState) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
       language: state.languageState.language,
     };
   };
+
   return mapStateToProps;
 };
 

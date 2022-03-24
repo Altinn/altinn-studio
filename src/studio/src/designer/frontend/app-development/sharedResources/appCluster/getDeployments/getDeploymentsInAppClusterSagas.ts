@@ -7,11 +7,12 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../appClusterSlice';
-import type { IServiceDevelopmentState, IAltinnWindow } from '../../../types/global';
+import type { IAltinnWindow } from '../../../types/global';
+import type { RootState } from 'store';
 
-const SelectEnvironments = (store: IServiceDevelopmentState) =>
+const SelectEnvironments = (store: RootState) =>
   store.configuration.environments.result;
-const OrgsSelector = (store: IServiceDevelopmentState) =>
+const OrgsSelector = (store: RootState) =>
   store.configuration.orgs.allOrgs;
 
 function* getDeploymentsIntervalSaga(): SagaIterator {
