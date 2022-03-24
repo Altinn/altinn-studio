@@ -18,7 +18,7 @@ const textResources = [
   { id: 'altTextImg2', value: 'Alternative text 2' },
 ];
 
-describe('>>> ImageComponent/SourceRow', () => {
+describe('ImageComponent/SourceRow', () => {
   it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', () => {
     const handleUpdate = jest.fn();
 
