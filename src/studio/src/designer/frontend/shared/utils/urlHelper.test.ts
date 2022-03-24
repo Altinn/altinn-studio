@@ -57,12 +57,12 @@ describe('Shared urlHelper.ts', () => {
     });
 
     test('returnUrlToMessagebox() returning studio messagebox', () => {
-      const origin = 'http://altinn3.no/tdd/tjeneste-20190826-1130';
+      const origin = 'https://altinn3.no/tdd/tjeneste-20190826-1130';
       expect(returnUrlToMessagebox(origin)).toContain('altinn3.no');
     });
 
     test('returnUrlToMessagebox() returning null when unknown origin', () => {
-      const origin = 'http://www.vg.no';
+      const origin = 'https://www.vg.no';
       expect(returnUrlToMessagebox(origin)).toBe(null);
     });
   });
