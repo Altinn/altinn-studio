@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -57,8 +58,11 @@ namespace Designer.Tests.Factories.ModelFactory
             // Assert
             Assert.NotNull(modelMetadata);
             Assert.Contains($"[XmlElement(\"reelleRettigheter\", Order = 2)]", classes);
-            Assert.Equal(text, textOrgXml);
-            Assert.Equal(orgClasses, classes.Replace("\r", string.Empty).Replace("\n", "\r\n"));
+            string expectedTextSanitized = Regex.Replace(textOrgXml, @">(\s+)<", "><");
+            Assert.Equal(expectedTextSanitized, text);
+            string expectedClassesSanitized = Regex.Replace(orgClasses, @"\s+", string.Empty);
+            string actualClassesSanitized = Regex.Replace(classes, @"\s+", string.Empty);
+            Assert.Equal(expectedClassesSanitized, actualClassesSanitized);
         }
 
         private static string GenerateCSharpClasses(ModelMetadata modelMetadata)
@@ -71,8 +75,8 @@ namespace Designer.Tests.Factories.ModelFactory
         private static Stream LoadTestData(string resourceName)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(XsdToJsonSchemaTests).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            Stream resource = File.OpenRead(unitTestFolder + resourceName);
+            string resourcePath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", resourceName);
+            Stream resource = File.OpenRead(resourcePath);
 
             if (resource == null)
             {

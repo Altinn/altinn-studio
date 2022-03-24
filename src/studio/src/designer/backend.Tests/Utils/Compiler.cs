@@ -20,7 +20,7 @@ namespace Designer.Tests.Utils
 
             var compilation = CSharpCompilation.Create(Guid.NewGuid().ToString())
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithReferenceAssemblies(ReferenceAssemblyKind.Net50)
+                .WithReferenceAssemblies(ReferenceAssemblyKind.Net60)
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
                 .AddSyntaxTrees(syntaxTree);
