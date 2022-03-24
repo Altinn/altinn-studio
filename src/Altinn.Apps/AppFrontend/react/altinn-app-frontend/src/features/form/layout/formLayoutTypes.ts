@@ -26,10 +26,6 @@ export interface IUpdateAutoSave {
   autoSave: boolean;
 }
 
-export interface IUpdateAutoSaveFulfilled {
-  autoSave: boolean;
-}
-
 export interface IUpdateCurrentView {
   newView: string;
   returnToView?: string;
