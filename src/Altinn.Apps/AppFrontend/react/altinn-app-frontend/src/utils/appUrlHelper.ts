@@ -3,12 +3,10 @@ import { IAltinnWindow, IMapping } from 'src/types';
 import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
-const { org, app, reportee } = altinnWindow;
+const { org, app } = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
-export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
@@ -20,14 +18,9 @@ export const updateCookieUrl: (partyId: string) => string = (
 `;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
-export const allPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=false`;
-export const instantiateUrl = `${appPath}/instances`;
 export const currentPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
-export const currentPartyIdUrl = `${appPath}/api/authorization/parties/current`;
 export const instancesControllerUrl = `${appPath}/instances`;
-export const partySelectionUrl = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
-export const reactErrorPage = `${appPath}/#/error`;
 
 export function textResourcesUrl(language: string) {
   return `${origin}/${org}/${app}/api/v1/texts/${language}`;
@@ -53,17 +46,8 @@ export function getProcessStateUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process`;
 }
 
-export function getStartProcessUrl(instanceId?: string) {
-  return `${appPath}/instances/${instanceId || altinnWindow.instanceId
-    }/process/start`;
-}
-
 export function getCreateInstancesUrl(partyId: string) {
   return `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
-}
-
-export function getCreateDataElementUrl(instanceId: string, dataType: string) {
-  return `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 }
 
 export function getValidationUrl(instanceId: string) {

@@ -1,12 +1,12 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import NumberFormat, { NumberFormatProps } from 'react-number-format';
-import { Input } from '@material-ui/core';
+import { Input, makeStyles } from '@material-ui/core';
 
 import '../../styles/shared.css';
 import { IComponentProps } from '..';
 
-export interface IInputBaseProps  {
+export interface IInputBaseProps {
   id: string;
   readOnly: boolean;
   required: boolean;
@@ -34,6 +34,12 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
   onChange: (e: any) => void;
   formatting?: IInputFormatting;
 }
+
+const useStyles = makeStyles({
+  input: {
+    boxSizing: 'border-box',
+  },
+});
 
 function NumberFormatCustom(props: IFormattedNumberInputProps) {
   const { inputRef, onChange, formatting, ...rest } = props;
@@ -66,9 +72,9 @@ export function BasicInputComponent(props: IBasicInputProps) {
 }
 
 export function InputComponent(props: IInputProps) {
-  const [value, setValue] = React.useState(
-    props.formData?.simpleBinding ?? '',
-  );
+  const classes = useStyles();
+
+  const [value, setValue] = React.useState(props.formData?.simpleBinding ?? '');
   const {
     id,
     readOnly,
@@ -108,7 +114,7 @@ export function InputComponent(props: IInputProps) {
       }
       inputProps={{
         formatting,
-        className: classNames('form-control', {
+        className: classNames('form-control', classes.input, {
           'validation-error': !isValid,
           disabled: readOnly,
         }),

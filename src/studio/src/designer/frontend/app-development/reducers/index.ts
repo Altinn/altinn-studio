@@ -25,23 +25,6 @@ import userReducer from '../sharedResources/user/userSlice';
 import type { IUserState } from '../sharedResources/user/userSlice';
 import type { IServiceDevelopmentNameSpace } from '../types/global';
 
-export interface IServiceDevelopmentReducers
-  extends IServiceDevelopmentNameSpace<
-      Reducer<IFetchedLanguageState>,
-      Reducer<IHandleMergeConflictState>,
-      Reducer<IHandleServiceInformationState>,
-      Reducer<IApplicationMetadataState>,
-      Reducer<IAppClusterState>,
-      Reducer<IRepoStatusState>,
-      Reducer<IAppReleaseState>,
-      Reducer<IAppDeploymentState>,
-      Reducer<IConfigurationState>,
-      Reducer<IDataModellingState>,
-      Reducer<IDataModelsMetadataState>,
-      Reducer<IUserState>
-    >,
-    ReducersMapObject {}
-
 export const rootReducer = {
   languageState: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,

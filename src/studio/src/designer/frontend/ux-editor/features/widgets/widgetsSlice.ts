@@ -12,11 +12,6 @@ export interface IFetchWidgetFulfilled {
   widgets: IWidget[];
 }
 
-export interface IFetchWidgetFulfilledAction {
-  payload: IFetchWidgetFulfilled;
-  type: string;
-}
-
 const initialState: IWidgetState = {
   widgets: [],
   urls: widgetSettings.widgetUrls,

@@ -43,10 +43,14 @@ function DropdownComponent({
 }: IDropdownProps) {
   const classes = useStyles();
   const options = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.options,
   );
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
@@ -83,8 +87,9 @@ function DropdownComponent({
 
   return (
     <>
-      {fetchingOptions ?
-        <AltinnSpinner /> :
+      {fetchingOptions ? (
+        <AltinnSpinner />
+      ) : (
         <select
           id={id}
           value={formData?.simpleBinding}
@@ -102,7 +107,8 @@ function DropdownComponent({
               {getTextResourceAsString(option.label)}
             </option>
           ))}
-        </select>}
+        </select>
+      )}
     </>
   );
 }

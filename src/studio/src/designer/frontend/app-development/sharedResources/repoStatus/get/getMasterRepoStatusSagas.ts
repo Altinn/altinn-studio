@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, put, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { RepoStatusActions } from '../repoStatusSlice';
@@ -28,8 +28,3 @@ export function* watchGetMasterRepoStatusSaga(): SagaIterator {
   );
 }
 
-// WATCHES EXPORT
-export function* repoStatusSagas(): SagaIterator {
-  yield fork(watchGetMasterRepoStatusSaga);
-  // Insert all watchSagas here
-}

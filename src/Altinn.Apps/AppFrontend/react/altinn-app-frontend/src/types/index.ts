@@ -22,19 +22,6 @@ import { ITextResourcesState } from '../shared/resources/textResources/textResou
 import { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import { IFormData } from 'src/features/form/data/formDataReducer';
 
-export type FormComponentType =
-  | IFormAddressComponent
-  | IFormButtonComponent
-  | IFormCheckboxComponent
-  | IFormComponent
-  | IFormDropdownComponent
-  | IFormFileUploaderComponent
-  | IFormFileUploaderWithTagComponent
-  | IFormHeaderComponent
-  | IFormInputComponent
-  | IFormRadioButtonComponent
-  | IFormTextAreaComponent;
-
 export interface IAltinnWindow extends Window {
   app: string;
   conditionalRuleHandlerHelper: IRules;
@@ -62,50 +49,8 @@ export interface IComponentValidations {
   [id: string]: IComponentBindingValidation;
 }
 
-export interface IDataModelBinding {
-  fieldName: string;
-  parentGroup: string;
-}
-
 export interface IDataModelBindings {
   [id: string]: string;
-}
-
-export interface IDataModelFieldElement {
-  choices?: any;
-  customProperties?: any;
-  dataBindingName: string;
-  displayString: string;
-  fixedValue?: any;
-  id: string;
-  isReadOnly: boolean;
-  isTagContent: boolean;
-  jsonSchemaPointer: string;
-  maxOccurs: number;
-  minOccurs: number;
-  name: string;
-  parentElement: string;
-  restrictions: any;
-  texts: any;
-  type: string;
-  typeName?: string;
-  xmlSchemaXPath: string;
-  xName?: string;
-  xPath: string;
-  xsdValueType?: string;
-}
-
-export interface IFormAddressComponent extends IFormComponent {
-  simplified: boolean;
-}
-
-export interface IFormButtonComponent extends IFormComponent {
-  onClickAction: () => void;
-}
-
-export interface IFormCheckboxComponent extends IFormComponent {
-  options: IOption[];
-  preselectedOptionIndex?: number;
 }
 
 export interface IFormComponent {
@@ -113,11 +58,6 @@ export interface IFormComponent {
   disabled?: boolean;
   required?: boolean;
   readOnly?: boolean;
-}
-
-export interface IFormDropdownComponent extends IFormComponent {
-  options: IOption[];
-  optionsId: string;
 }
 
 export interface IFormFileUploaderComponent extends IFormComponent {
@@ -148,22 +88,6 @@ export interface IOptionsChosen {
 export interface IFileUploadersWithTag {
   [id: string]: IFormFileUploaderWithTag;
 }
-
-export interface IFormHeaderComponent extends IFormComponent {
-  size: string;
-}
-
-export interface IFormInputComponent extends IFormComponent {
-  type: string;
-  disabled?: boolean;
-}
-
-export interface IFormRadioButtonComponent extends IFormComponent {
-  options: IOption[];
-  preselectedOptionIndex?: number;
-}
-
-export type IFormTextAreaComponent = IFormComponent;
 
 export interface ILayoutSets {
   sets: ILayoutSet[];

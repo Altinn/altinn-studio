@@ -2,38 +2,12 @@ import { SagaIterator } from 'redux-saga';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import type { IFormDesignerState } from '../formDesignerReducer';
-import type {
-  IAddActiveFormContainerAction,
-  IUpdateActiveListAction,
-} from '../formDesignerTypes';
+import type { IAddActiveFormContainerAction } from '../formDesignerTypes';
 import { FormLayoutActions } from '../formLayout/formLayoutSlice';
-import { addToOrDeleteFromArray } from '../../../utils/arrayHelpers/arrayLogic';
 import type { IAppState } from '../../../types/global';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState =>
   state.formDesigner;
-
-export function* updateActiveListSaga({
-  payload,
-}: PayloadAction<IUpdateActiveListAction>): SagaIterator {
-  const { listItem, containerList } = payload;
-  let returnedList = [];
-  const func = addToOrDeleteFromArray();
-  containerList.length >= 1
-    ? (returnedList = func({ array: containerList, object: listItem }))
-    : returnedList.push(listItem);
-  if (Array.isArray(returnedList)) {
-    yield put(
-      FormLayoutActions.updateActiveListFulfilled({
-        containerList: [...returnedList],
-      }),
-    );
-  }
-}
-
-export function* watchUpdateActiveListSaga(): SagaIterator {
-  yield takeLatest(FormLayoutActions.updateActiveList, updateActiveListSaga);
-}
 
 function* addActiveFormContainerSaga({
   payload,

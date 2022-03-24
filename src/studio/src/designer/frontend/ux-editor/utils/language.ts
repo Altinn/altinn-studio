@@ -136,10 +136,3 @@ export function getTextResource(
   );
   return textResource ? textResource.value : resourceKey;
 }
-
-export function formatCreateTextLabel(
-  textToCreate: string,
-  language: any,
-): string {
-  return language.general.create.concat(' ', textToCreate);
-}

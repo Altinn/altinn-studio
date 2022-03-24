@@ -1,18 +1,5 @@
-import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { MessageComponent } from '../components/message/MessageComponent';
-
-export const styles = {
-  inputHelper: {
-    marginTop: '2.4rem',
-    fontSize: '1.6rem',
-    lineHeight: '3.2rem',
-  },
-};
-
-export function renderPropertyLabel(textKey: string) {
-  return <Typography style={styles.inputHelper}>{textKey}</Typography>;
-}
 
 const messageComponentStyle = {
   display: 'block',

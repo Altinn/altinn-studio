@@ -26,22 +26,6 @@ import type {
   IAppState,
 } from '../types/global';
 
-export interface IFormDesignerProvidedProps {
-  classes: any;
-}
-export interface IFormDesignerProps extends IFormDesignerProvidedProps {
-  language: any;
-  dataModel: IDataModelFieldElement[];
-  components: any;
-  activeList: any;
-  selectedLayout: string;
-}
-
-export interface IFormDesignerState {
-  codeEditorOpen: boolean;
-  codeEditorMode: LogicMode;
-}
-
 const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -141,11 +125,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontWeight: 500,
   },
 }));
-
-export enum LayoutItemType {
-  Container = 'CONTAINER',
-  Component = 'COMPONENT',
-}
 
 function FormDesigner() {
   const classes = useStyles(useTheme);
