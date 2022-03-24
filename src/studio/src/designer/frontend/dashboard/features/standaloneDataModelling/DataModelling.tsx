@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
 import { useAppDispatch } from 'common/hooks';
-import { IDashboardAppState } from '../../types/global';
+import type { IDashboardAppState } from '../../types/global';
 
 interface IStandaloneDataModellingProps {
   language: any;
