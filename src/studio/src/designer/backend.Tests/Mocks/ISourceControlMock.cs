@@ -41,7 +41,7 @@ namespace Designer.Tests.Mocks
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, _developer);
 
             Directory.CreateDirectory(localPath);
-            TestDataHelper.CopyDirectory(remotePath, localPath, true).ConfigureAwait(false);
+            TestDataHelper.CopyDirectory(remotePath, localPath, true).Wait();
 
             return localPath;
         }
@@ -51,7 +51,7 @@ namespace Designer.Tests.Mocks
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
 
             Directory.CreateDirectory(destination);
-            TestDataHelper.CopyDirectory(remotePath, destination, true).ConfigureAwait(false);
+            TestDataHelper.CopyDirectory(remotePath, destination, true).Wait();
 
             return destination;
         }
@@ -70,7 +70,7 @@ namespace Designer.Tests.Mocks
                 remotePath += $"_branch_{branchName}";
             }
 
-            TestDataHelper.CopyDirectory(localPath, remotePath, true).ConfigureAwait(false);
+            TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
         }
 
         public static Task CreateBranch(string org, string repository, string branchName)
@@ -142,7 +142,7 @@ namespace Designer.Tests.Mocks
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
-            TestDataHelper.CopyDirectory(localPath, remotePath, true).ConfigureAwait(false);
+            TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
         }
 
         public RepoStatus RepositoryStatus(string org, string repository)

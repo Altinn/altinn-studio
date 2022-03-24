@@ -1,6 +1,6 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { call, fork, put, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { IRepoStatusAction, RepoStatusActions } from '../repoStatusSlice';
 import { fetchRepoStatus } from '../../../features/handleMergeConflict/handleMergeConflictSlice';
@@ -32,8 +32,3 @@ export function* watchResetLocalRepoSaga(): SagaIterator {
   yield takeLatest(RepoStatusActions.resetLocalRepo, resetLocalRepoSaga);
 }
 
-// WATCHES EXPORT
-export function* repoStatusSagas(): SagaIterator {
-  yield fork(watchResetLocalRepoSaga);
-  // Insert all watchSagas here
-}

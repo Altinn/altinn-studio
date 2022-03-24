@@ -39,11 +39,11 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
     /// </summary>
-    public class AuthenticationControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class AuthenticationControllerTests : IClassFixture<WebApplicationFactory<AuthenticationController>>
     {
         private const string OrganisationIdentity = "OrganisationLogin";
 
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<AuthenticationController> _factory;
         private readonly Mock<IUserProfileService> _userProfileService;
         private readonly Mock<IOrganisationsService> _organisationsService;
         private readonly Mock<ISblCookieDecryptionService> _cookieDecryptionService;
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Initialises a new instance of the <see cref="AuthenticationControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public AuthenticationControllerTests(WebApplicationFactory<Startup> factory)
+        public AuthenticationControllerTests(WebApplicationFactory<AuthenticationController> factory)
         {
             _factory = factory;
             _userProfileService = new Mock<IUserProfileService>();
@@ -1361,7 +1361,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool forceOidc = false, string defaultOidc = "altinn")
         {
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 string configPath = GetConfigPath();
@@ -1408,11 +1407,11 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             if (!redirectUri.Contains('?'))
             {
-                redirectUri = redirectUri + "?";
+                redirectUri += "?";
             }
             else
             {
-                redirectUri = redirectUri + "&";
+                redirectUri += "&";
             }
 
             redirectUri += "state=" + state + "&code=" + code;

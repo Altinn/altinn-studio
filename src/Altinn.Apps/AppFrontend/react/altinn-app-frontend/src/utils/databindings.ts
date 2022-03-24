@@ -3,7 +3,6 @@ import { object } from 'dot-object';
 import { ILayout, ILayoutGroup } from 'src/features/form/layout';
 import { IMapping, IRepeatingGroup } from 'src/types';
 import { getParentGroup } from './validation';
-import JsonPointer from 'jsonpointer';
 import { IFormData } from 'src/features/form/data/formDataReducer';
 
 /**
@@ -39,28 +38,6 @@ export interface IData {
 export function convertModelToDataBinding(data: any): any {
   return flattenObject(data);
 }
-
-export const filterFormData = (data: any, model: any): any => {
-  const filteredResult: any = {};
-  const rootKey = Object.keys(model.properties)[0];
-  const modelPath = model.properties[rootKey].$ref.slice(1);
-  const pointer = JsonPointer.compile(modelPath);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore typings for JsonPointer are incorrect, this ignore can be removed when PR is merged/released https://github.com/janl/node-jsonpointer/pull/54
-  const root: any = pointer.get(model);
-  Object.keys(data).forEach((key: string) => {
-    const formDataKey = getKeyWithoutIndex(key);
-    const formDataRoot = formDataKey.split('.')[0];
-    const element = root.properties[formDataRoot];
-    if (
-      element &&
-      (!element['@xsdType'] || element['@xsdType'] !== 'XmlAttribute')
-    ) {
-      filteredResult[key] = data[key];
-    }
-  });
-  return filteredResult;
-};
 
 export function getKeyWithoutIndex(keyWithIndex: string): string {
   if (keyWithIndex.indexOf('[') === -1) {

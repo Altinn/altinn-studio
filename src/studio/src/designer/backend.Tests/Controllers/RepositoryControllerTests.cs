@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -25,12 +26,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class RepositoryControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class RepositoryControllerTests : IClassFixture<WebApplicationFactory<RepositoryController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<RepositoryController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
 
-        public RepositoryControllerTests(WebApplicationFactory<Startup> factory)
+        public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory)
         {
             _factory = factory;
         }
@@ -270,20 +271,21 @@ namespace Designer.Tests.Controllers
         private HttpClient GetTestClient(IRepository repositoryService)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
 
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
                 {
-                    conf.AddJsonFile("appsettings.json");
+                    conf.AddJsonFile(configPath);
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 

@@ -18,15 +18,15 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="OpenIdController"/> class.
     /// </summary>
-    public class OpenIdControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class OpenIdControllerTests : IClassFixture<WebApplicationFactory<OpenIdController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<OpenIdController> _factory;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="OpenIdControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public OpenIdControllerTests(WebApplicationFactory<Startup> factory)
+        public OpenIdControllerTests(WebApplicationFactory<OpenIdController> factory)
         {
             _factory = factory;
         }
@@ -82,8 +82,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
-
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

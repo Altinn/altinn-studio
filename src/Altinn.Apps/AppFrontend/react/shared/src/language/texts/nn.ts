@@ -18,7 +18,7 @@ export function nn() {
       body: 'Du er no  klar for å sende inn {0}. Før du sender inn vil vi anbefale å sjå over svara dine. Du kan ikkje endre svara etter at du har sendt inn.',
       button_text: 'Send inn',
       deadline: 'Frist innsending',
-      sender: 'Person',
+      sender: 'Aktør',
       title: 'Sjå over svara dine før du sender inn',
     },
     date_picker: {

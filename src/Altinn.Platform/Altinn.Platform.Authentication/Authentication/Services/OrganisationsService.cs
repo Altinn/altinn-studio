@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Exceptions;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
+
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -51,14 +54,12 @@ namespace Altinn.Platform.Authentication.Services
         /// <inheritdoc/>
         public async Task<string> LookupOrg(string orgNumber)
         {
-            Organisation organisation;
-
             if (!_memoryCache.TryGetValue(_orgDictionaryCacheKey, out Dictionary<string, Organisation> organisationDictionary))
             {
                 organisationDictionary = await HarvestOrgs();
             }
 
-            organisationDictionary.TryGetValue(orgNumber, out organisation);
+            organisationDictionary.TryGetValue(orgNumber, out Organisation organisation);
 
             return organisation?.Org;
         }
@@ -93,7 +94,7 @@ namespace Altinn.Platform.Authentication.Services
 
                     if (string.IsNullOrEmpty(orgNumber))
                     {
-                        _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");
+                        _logger.LogWarning("Organisation {candidateOrganisation} is missing orgNumber and will not be part of orgNumberToOrganisation map!", candidateOrganisation);
                     }
 
                     organisationDictionary.Add(orgNumber, candidateOrganisation);
@@ -104,7 +105,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Unable to harvest organisation data due to {ex}");
+                _logger.LogError(ex, "Unable to harvest organisation data due to exception.");
 
                 throw new OrganisationHarvestException($"Unable to harvest organisations from {_organisationListLocation}.", ex);
             }

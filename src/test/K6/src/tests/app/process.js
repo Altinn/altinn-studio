@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/process.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/process.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -51,6 +51,7 @@ export function setup() {
 export default function (data) {
   const runtimeToken = data['RuntimeToken'];
   const partyId = data['partyId'];
+  const ssn = data['ssn'];
   var instanceId = data['instanceId'];
   var dataId = data['dataId'];
   const attachmentDataType = data['attachmentDataType'];
@@ -93,6 +94,10 @@ export default function (data) {
   res = appProcess.getProcessHistory(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
     'App GET Process history': (r) => r.status === 200,
+    'App GET Process history - performedBy is SSN': (r) => {
+      var processHistory = r.json('processHistory');
+      return processHistory.every((process) => process.performedBy == ssn);
+    },
   });
 
   //Test to complete the process of an app instance and verify the response code to be 200

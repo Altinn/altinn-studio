@@ -127,6 +127,6 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Cookie to store original 
         /// </summary>
-        public string AuthnGotToCookieName { get; set; } = "authngoto";
+        public string AuthnGoToCookieName { get; set; } = "authngoto";
     }
 }

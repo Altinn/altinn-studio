@@ -30,20 +30,6 @@ export enum CollapsableMenus {
   Widgets,
 }
 
-export interface IToolbarProvidedProps {
-  classes: any;
-}
-
-export interface IToolbarProps extends IToolbarProvidedProps {
-  dataModel: IDataModelFieldElement[];
-  textResources: ITextResource[];
-  thirdPartyComponents: any;
-  activeContainer: string;
-  activeList: any[];
-  language: any;
-  order: any[];
-}
-
 export function Toolbar() {
   const dispatch = useDispatch();
   const [componentInformationPanelOpen, setComponentInformationPanelOpen] = React.useState<boolean>(false);

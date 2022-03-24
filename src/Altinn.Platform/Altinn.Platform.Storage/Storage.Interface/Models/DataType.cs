@@ -87,5 +87,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </remarks>
         [JsonProperty(PropertyName = "grouping")]
         public string Grouping { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the element should trigger PDF generation
+        /// </summary>
+        [JsonProperty(PropertyName = "enablePdfCreation")]
+        public bool EnablePdfCreation { get; set; } = true;
     }
 }

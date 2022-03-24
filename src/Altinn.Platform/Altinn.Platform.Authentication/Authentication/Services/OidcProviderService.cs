@@ -62,7 +62,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             else
             {
-                _logger.LogError($"Getting tokens from code failed with statuscode {response.StatusCode}");
+                _logger.LogError("Getting tokens from code failed with statuscode {StatusCode}", response.StatusCode);
             }
 
             return codeResponse;

@@ -2,9 +2,10 @@
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureWebJobsSecretStorageType": "files",
     "QueueStorage__queueServiceUri": "https://storageaccountrgdel8df8.queue.core.windows.net",
     "Platform:BridgeApiEndpoint": "http://devenv.altinn.no/sblbridge/authorization/api/",
+    "Platform:AccessTokenIssuer": "https://platform.at21.altinn.cloud/authentication/api/v1/openid/",
     "KeyVault:KeyVaultURI": "https://kv-delegationevents-test.vault.azure.net/"
   }
 }

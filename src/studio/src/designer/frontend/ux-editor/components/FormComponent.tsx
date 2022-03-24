@@ -36,15 +36,6 @@ export interface IFormElementProps extends IProvidedProps {
   order: any[];
 }
 
-/**
- * The component state
- */
-export interface IFormElementState {
-  component: FormComponentType;
-  activeList: any[];
-  wrapperRef: any;
-}
-
 const FormComponent = (props: IFormElementProps) => {
   const [wrapperRef, setWrapperRef] = React.useState(null);
   const dispatch = useDispatch();
