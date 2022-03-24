@@ -34,9 +34,10 @@ const iconSize = '30px';
 
 const useStyles = makeStyles({
   root: {
+    boxSizing: 'border-box',
+    height: '36px',
     fontSize: '1.6rem',
     borderWidth: '2px',
-
     borderStyle: 'solid',
     marginBottom: '0px',
     borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
@@ -50,7 +51,6 @@ const useStyles = makeStyles({
   },
   input: {
     padding: '0px',
-    height: '36px',
     marginLeft: '12px',
   },
   invalid: {
