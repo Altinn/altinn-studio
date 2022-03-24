@@ -9,7 +9,7 @@ import {
 } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import { ILayoutSettings } from 'app-shared/types';
+import { ILayoutSettings } from 'app-shared/types/global';
 import Axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { PayloadAction } from '@reduxjs/toolkit';

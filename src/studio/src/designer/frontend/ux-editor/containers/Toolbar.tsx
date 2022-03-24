@@ -15,8 +15,6 @@ import { InformationPanelComponent } from '../components/toolbar/InformationPane
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { ToolbarGroup } from './ToolbarGroup';
 import type {
-  IDataModelFieldElement,
-  ITextResource,
   IAppState,
   IWidget,
 } from '../types/global';
