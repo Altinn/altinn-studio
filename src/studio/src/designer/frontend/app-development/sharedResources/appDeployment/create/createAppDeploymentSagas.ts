@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, put, takeLatest } from 'redux-saga/effects';
+import { call, put, takeLatest } from 'redux-saga/effects';
 import { post } from 'app-shared/utils/networking';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { appDeploymentsUrl } from '../../../utils/urlHelper';
@@ -26,7 +26,3 @@ export function* watchCreateAppDeploymentSaga(): SagaIterator {
   yield takeLatest(AppDeploymentActions.createAppDeployment, createAppDeploymentSaga);
 }
 
-// eslint-disable-next-line func-names
-export default function* (): SagaIterator {
-  yield fork(watchCreateAppDeploymentSaga);
-}

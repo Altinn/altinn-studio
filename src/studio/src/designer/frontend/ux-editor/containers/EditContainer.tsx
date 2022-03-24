@@ -157,16 +157,6 @@ export interface IEditContainerProvidedProps {
   children: any;
 }
 
-export interface IEditContainerState {
-  component: IFormComponent;
-  isEditModalOpen: boolean;
-  isEditMode: boolean;
-  hideDelete: boolean;
-  hideEdit: boolean;
-  listItem: any;
-  activeList: any;
-}
-
 export function EditContainer(props: IEditContainerProvidedProps) {
   const classes = useStyles();
   const dispatch = useDispatch();

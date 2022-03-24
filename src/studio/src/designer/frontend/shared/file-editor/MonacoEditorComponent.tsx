@@ -24,10 +24,6 @@ export interface IMonacoEditorComponentState {
   monacoWrapperRef: React.RefObject<HTMLDivElement>;
 }
 
-export interface IMonacoEditorComponentWindow extends Window {
-  MonacoEnvironment: any;
-}
-
 const styles = createStyles({
   spinner: {
     color: theme.altinnPalette.primary.blue,

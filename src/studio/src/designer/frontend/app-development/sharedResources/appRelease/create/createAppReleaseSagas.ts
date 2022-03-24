@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { SagaIterator } from 'redux-saga';
-import { delay, call, fork, put, takeLatest } from 'redux-saga/effects';
+import { delay, call, put, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from '../../../utils/networking';
@@ -35,7 +35,3 @@ export function* watchCreateReleaseSaga(): SagaIterator {
   yield takeLatest(AppReleaseActions.createAppRelease, createReleaseSaga);
 }
 
-// eslint-disable-next-line func-names
-export default function* (): SagaIterator {
-  yield fork(watchCreateReleaseSaga);
-}
