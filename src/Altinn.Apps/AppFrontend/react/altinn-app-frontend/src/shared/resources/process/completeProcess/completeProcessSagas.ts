@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
+import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
 import { put } from 'altinn-shared/utils';
 import { IProcess } from 'altinn-shared/types';
 import { IRuntimeState, ProcessTaskType } from '../../../../types';
@@ -45,10 +45,4 @@ export function* watchCompleteProcessSaga(): SagaIterator {
     ProcessStateActionTypes.COMPLETE_PROCESS,
     completeProcessSaga,
   );
-}
-
-// WATCHES EXPORT
-export function* processStateSagas(): SagaIterator {
-  yield fork(watchCompleteProcessSaga);
-  // Insert all watchSagas here
 }

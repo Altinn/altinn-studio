@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Altinn.Platform.Authorization.Functions.Exceptions
+namespace Altinn.Platform.Authorization.Functions.Exceptions;
+
+/// <summary>
+/// Generic exception used to trigger re-queueing of messages
+/// </summary>
+public class BridgeRequestFailedException : Exception
 {
-    public class BridgeRequestFailedException : Exception
-    {
-    }
 }
