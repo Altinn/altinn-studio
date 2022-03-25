@@ -67,6 +67,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
 {
     logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Base path: {basePath}");
     config.SetBasePath(basePath);
     config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
     string envName = hostingEnvironment.EnvironmentName;
@@ -83,7 +84,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
+    Altinn.Common.AccessToken.Configuration.KeyVaultSettings keyVaultSettings = new Altinn.Common.AccessToken.Configuration.KeyVaultSettings();
     config.GetSection("kvSettings").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
@@ -91,7 +92,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
-        logger.LogInformation("Setting up Key Vault");
+        logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
         AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(
@@ -121,6 +122,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
             config.AddUserSecrets(assembly, true);
         }
     }
+    
     logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
 }
 
