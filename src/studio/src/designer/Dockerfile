@@ -67,10 +67,15 @@ COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
+RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
+
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0.3-alpine3.15 AS final
 EXPOSE 80
 WORKDIR /app
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    DOTNET_RUNNING_IN_CONTAINER=true
+RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
 COPY --from=build /app_output .
 COPY --from=altinn-studio-frontend /dist/app-development.js ./wwwroot/designer/js/react/app-development.js
 COPY --from=altinn-studio-frontend /dist/1.app-development.js ./wwwroot/designer/js/react/1.app-development.js
