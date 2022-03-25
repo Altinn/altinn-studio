@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
-using AltinnCore.Authentication.Constants;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -67,7 +67,6 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
 {
     logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Base path: {basePath}");
     config.SetBasePath(basePath);
     config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
     string envName = hostingEnvironment.EnvironmentName;
@@ -84,7 +83,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddEnvironmentVariables();
     config.AddCommandLine(args);
 
-    Altinn.Common.AccessToken.Configuration.KeyVaultSettings keyVaultSettings = new Altinn.Common.AccessToken.Configuration.KeyVaultSettings();
+    KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
     config.GetSection("kvSetting").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
