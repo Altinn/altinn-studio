@@ -7,8 +7,29 @@ import { renderWithProviders } from '../../../testUtils';
 import { RadioButtonContainerComponent } from './RadioButtonsContainerComponent';
 import type { IComponentProps } from 'src/components';
 import type { IRadioButtonsContainerProps } from './RadioButtonsContainerComponent';
+import { LayoutStyle } from 'src/types';
 
-const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
+const threeOptions = [
+  {
+    label: 'Norway',
+    value: 'norway',
+  },
+  {
+    label: 'Sweden',
+    value: 'sweden',
+  },
+  {
+    label: 'Denmark',
+    value: 'denmark',
+  },
+];
+
+const twoOptions = threeOptions.slice(1);
+
+const render = (
+  props: Partial<IRadioButtonsContainerProps> = {},
+  options = undefined,
+) => {
   const allProps: IRadioButtonsContainerProps = {
     options: [],
     optionsId: 'countries',
@@ -22,42 +43,32 @@ const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
     ...props,
   };
 
-  const countriesOptions = [
+  const { container } = renderWithProviders(
+    <RadioButtonContainerComponent {...allProps} />,
     {
-      label: 'Norway',
-      value: 'norway',
-    },
-    {
-      label: 'Sweden',
-      value: 'sweden',
-    },
-    {
-      label: 'Denmark',
-      value: 'denmark',
-    },
-  ];
-
-  renderWithProviders(<RadioButtonContainerComponent {...allProps} />, {
-    preloadedState: {
-      optionState: {
-        options: {
-          countries: {
-            id: 'countries',
-            options: countriesOptions,
+      preloadedState: {
+        optionState: {
+          options: {
+            countries: {
+              id: 'countries',
+              options: options || threeOptions,
+            },
+            loadingOptions: {
+              id: 'loadingOptions',
+              options: undefined,
+              loading: true,
+            },
           },
-          loadingOptions: {
-            id: 'loadingOptions',
-            options: undefined,
-            loading: true
+          error: {
+            name: '',
+            message: '',
           },
-        },
-        error: {
-          name: '',
-          message: '',
         },
       },
     },
-  });
+  );
+
+  return { container };
 };
 
 const getRadio = ({ name, isChecked = false }) => {
@@ -160,7 +171,7 @@ describe('RadioButtonsContainerComponent', () => {
 
   it('should show spinner while waiting for options', () => {
     render({
-      optionsId: 'loadingOptions'
+      optionsId: 'loadingOptions',
     });
 
     expect(screen.queryByTestId('altinn-spinner')).toBeInTheDocument();
@@ -168,9 +179,71 @@ describe('RadioButtonsContainerComponent', () => {
 
   it('should not show spinner when options are present', () => {
     render({
-      optionsId: 'countries'
+      optionsId: 'countries',
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('should show items in a row when layout is "row" and options count is 3', () => {
+    const { container } = render(
+      {
+        optionsId: 'countries',
+        layout: LayoutStyle.Row,
+      },
+      threeOptions,
+    );
+
+    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
+
+    expect(
+      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
+    ).toBe(1);
+  });
+
+  it('should show items in a row when layout is not defined, and options count is 2', () => {
+    const { container } = render(
+      {
+        optionsId: 'countries',
+      },
+      twoOptions,
+    );
+
+    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
+
+    expect(
+      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
+    ).toBe(1);
+  });
+
+  it('should show items in a column when layout is "column" and options count is 2 ', () => {
+    const { container } = render(
+      {
+        optionsId: 'countries',
+        layout: LayoutStyle.Column,
+      },
+      twoOptions,
+    );
+
+    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
+
+    expect(
+      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
+    ).toBe(0);
+  });
+
+  it('should show items in a columns when layout is not defined, and options count is 3', () => {
+    const { container } = render(
+      {
+        optionsId: 'countries',
+      },
+      threeOptions,
+    );
+
+    expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
+
+    expect(
+      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
+    ).toBe(0);
   });
 });
