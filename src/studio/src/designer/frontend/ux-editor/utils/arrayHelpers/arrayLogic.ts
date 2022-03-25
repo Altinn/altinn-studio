@@ -7,7 +7,7 @@ export interface IUpdateArrayObj {
 
 export interface ITwoArraysObj {
   array: any[];
-  order: any [];
+  order: any[];
 }
 
 const changeOrderNum = ({array, order}: ITwoArraysObj) => {
@@ -22,12 +22,18 @@ const changeOrderNum = ({array, order}: ITwoArraysObj) => {
 };
 
 const findMissing = (a: any[]) => {
-  const maximum = Math.max.apply(Math, a.map((o) => {
-    return o.order;
-  }));
-  const minimum = Math.min.apply(Math, a.map((o) => {
-    return o.order;
-  }));
+  const maximum = Math.max.apply(
+    Math,
+    a.map((o) => {
+      return o.order;
+    }),
+  );
+  const minimum = Math.min.apply(
+    Math,
+    a.map((o) => {
+      return o.order;
+    }),
+  );
   let index = 0;
   Array.from(Array(maximum).keys()).forEach((i: number) => {
     const obj = a.find((x: any) => x.order === i);
@@ -63,12 +69,9 @@ const markFirstAndLastObject = (array: any[]) => {
 };
 
 const getSortedArray = () => {
-  return createSelector(
-    changeOrderNum,
-    (obj: ITwoArraysObj) => {
-      return obj.array;
-    },
-  );
+  return createSelector(changeOrderNum, (obj: ITwoArraysObj) => {
+    return obj.array;
+  });
 };
 
 export const sortArray = getSortedArray;

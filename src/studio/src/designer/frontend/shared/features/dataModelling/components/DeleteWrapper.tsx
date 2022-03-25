@@ -1,5 +1,5 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import * as React from 'react';
+import React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
 
@@ -34,13 +34,15 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
       >
         {getLanguageFromKey('general.delete', props.language)}
       </TopToolbarButton>
-      {deleteButtonAnchor && <DeleteDialog
-        anchor={deleteButtonAnchor}
-        language={props.language}
-        schemaName={props.schemaName}
-        onConfirm={onDeleteConfirmClick}
-        onCancel={onCancelDelete}
-      />}
+      {deleteButtonAnchor && (
+        <DeleteDialog
+          anchor={deleteButtonAnchor}
+          language={props.language}
+          schemaName={props.schemaName}
+          onConfirm={onDeleteConfirmClick}
+          onCancel={onCancelDelete}
+        />
+      )}
     </>
   );
 }

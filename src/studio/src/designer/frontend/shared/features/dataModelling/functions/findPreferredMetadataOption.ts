@@ -1,6 +1,9 @@
-import { IMetadataOption } from './types';
+import type { IMetadataOption } from './types';
 
-function findPreferredMetadataOption(metadataOptions: IMetadataOption[], preferred?: string) {
+function findPreferredMetadataOption(
+  metadataOptions: IMetadataOption[],
+  preferred?: string,
+) {
   if (!metadataOptions?.length || !preferred) {
     return undefined;
   }

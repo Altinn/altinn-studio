@@ -1,6 +1,9 @@
 import Axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export async function get<ResponseType>(url: string, config?: AxiosRequestConfig): Promise<ResponseType> {
+export async function get<ResponseType>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<ResponseType> {
   const response: AxiosResponse = await Axios.get(url, config);
   return response.data as ResponseType;
 }

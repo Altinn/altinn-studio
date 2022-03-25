@@ -1,4 +1,4 @@
-export const menu = ([
+export const menu = [
   {
     key: 'Om',
     activeSubHeaderSelection: 'Om',
@@ -19,4 +19,4 @@ export const menu = ([
     activeSubHeaderSelection: 'Deploy',
     link: '/deploy',
   },
-]);
+];

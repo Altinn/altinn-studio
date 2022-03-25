@@ -1,4 +1,3 @@
-
 const fallbackLanguage = {
   general: {
     action: 'Action',
@@ -25,27 +24,37 @@ const fallbackLanguage = {
   },
   ux_editor: {
     api_connection_header: 'Api connections',
-    conditional_rendering_connection_header: 'Conditional Rendering Connections',
+    conditional_rendering_connection_header:
+      'Conditional Rendering Connections',
     form_designer: 'Form designer',
     formfiller_placeholder_user: 'OLA PRIVATPERSON',
     modal_configure_address_component_simplified: 'Simplified',
     modal_configure_api_code_list: 'Code list',
     modal_configure_api_extermnal_api: 'External API',
     modal_configure_api_header: 'Configure API connection',
-    modal_configure_conditional_rendering_configure_add_new_field_mapping: 'Add new field mapping',
-    modal_configure_conditional_rendering_configure_input_data_model_helper: 'Choose field from the data model',
-    modal_configure_conditional_rendering_configure_input_header: 'Configure input parameters',
-    modal_configure_conditional_rendering_configure_input_param_helper: 'Input param name',
-    modal_configure_conditional_rendering_configure_output_action_helper: 'Select action',
+    modal_configure_conditional_rendering_configure_add_new_field_mapping:
+      'Add new field mapping',
+    modal_configure_conditional_rendering_configure_input_data_model_helper:
+      'Choose field from the data model',
+    modal_configure_conditional_rendering_configure_input_header:
+      'Configure input parameters',
+    modal_configure_conditional_rendering_configure_input_param_helper:
+      'Input param name',
+    modal_configure_conditional_rendering_configure_output_action_helper:
+      'Select action',
     modal_configure_conditional_rendering_configure_output_field_helper:
       'that should be performed on the following fields if method returns true',
-    modal_configure_conditional_rendering_configure_output_header: 'Configure output and action',
-    modal_configure_conditional_rendering_header: 'Configure conditional rendering rule',
+    modal_configure_conditional_rendering_configure_output_header:
+      'Configure output and action',
+    modal_configure_conditional_rendering_header:
+      'Configure conditional rendering rule',
     modal_configure_conditional_rendering_helper: 'Conditional rendering rule',
-    modal_configure_rules_configure_input_data_model_helper: 'Choose field from the data model',
+    modal_configure_rules_configure_input_data_model_helper:
+      'Choose field from the data model',
     modal_configure_rules_configure_input_header: 'Configure input parameters',
     modal_configure_rules_configure_input_param_helper: 'Input param name',
-    modal_configure_rules_configure_output_header: 'Configure output parameters',
+    modal_configure_rules_configure_output_header:
+      'Configure output parameters',
     modal_configure_rules_configure_output_param_helper: 'Out param name',
     modal_configure_rules_header: 'Configure rules',
     modal_configure_rules_helper: 'Rule',
@@ -81,7 +90,7 @@ const fallbackLanguage = {
   },
   form_filler: {
     error_report_header: 'Det er et problem',
-  }
+  },
 };
 
 export default fallbackLanguage;

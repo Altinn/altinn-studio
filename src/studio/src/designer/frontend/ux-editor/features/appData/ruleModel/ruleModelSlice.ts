@@ -1,5 +1,8 @@
-/* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type {
+  IFormDesignerActionRejected,
+  IRuleModelFieldElement,
+} from '../../../types/global';
 
 export interface IRuleModelState {
   model: IRuleModelFieldElement[];
@@ -28,14 +31,20 @@ const ruleModelSlice = createSlice({
       state.fetching = true;
       state.error = null;
     },
-    fetchRuleModelFulfilled: (state, action: PayloadAction<IFetchRuleModelFulfilled>) => {
+    fetchRuleModelFulfilled: (
+      state,
+      action: PayloadAction<IFetchRuleModelFulfilled>,
+    ) => {
       const { ruleModel } = action.payload;
       state.model = ruleModel;
       state.fetched = true;
       state.fetching = false;
       state.error = null;
     },
-    fetchRuleModelRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
+    fetchRuleModelRejected: (
+      state,
+      action: PayloadAction<IFormDesignerActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.error = error;
       state.fetched = false;

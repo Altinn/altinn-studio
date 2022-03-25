@@ -1,6 +1,13 @@
-import { Button, createTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import {
+  Button,
+  createTheme,
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
@@ -19,8 +26,8 @@ const styles = createStyles({
     fontWeight: 500,
   },
   btn: {
-    'textTransform': 'none',
-    'padding': 0,
+    textTransform: 'none',
+    padding: 0,
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -37,10 +44,9 @@ const styles = createStyles({
 });
 
 class FetchChangesComponent extends React.Component<IFetchChangesComponentProps> {
-
   public fetchChangesHandler = (event: any) => {
     this.props.fetchChanges(event.currentTarget);
-  }
+  };
 
   public render() {
     const { classes } = this.props;
@@ -64,11 +70,14 @@ class FetchChangesComponent extends React.Component<IFetchChangesComponentProps>
             <Typography
               id='fetch_changes_btn'
               variant='body1'
-              className={classNames(classes.color_blueDark,
-                { [classes.bold]: this.props.changesInMaster === true },
-              )}
+              className={classNames(classes.color_blueDark, {
+                [classes.bold]: this.props.changesInMaster === true,
+              })}
             >
-              {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
+              {getLanguageFromKey(
+                'sync_header.fetch_changes',
+                this.props.language,
+              )}
             </Typography>
           </Grid>
         </Grid>

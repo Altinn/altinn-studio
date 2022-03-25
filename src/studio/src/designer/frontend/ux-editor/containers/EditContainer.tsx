@@ -1,16 +1,23 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-nested-ternary */
 import { Grid, IconButton, ListItem, makeStyles } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
-import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
+import {
+  getComponentTitleByComponentType,
+  getTextResource,
+  truncate,
+} from '../utils/language';
 import { componentIcons } from '../components';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import type {
+  FormComponentType,
+  IFormComponent,
+  IAppState,
+} from '../types/global';
 
 const useStyles = makeStyles({
   active: {
@@ -175,10 +182,18 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   });
 
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
-  const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
+  const activeList = useSelector(
+    (state: IAppState) => state.formDesigner.layout.activeList,
+  );
+  const language = useSelector(
+    (state: IAppState) => state.appData.languageState.language,
+  );
+  const orderList = useSelector((state: IAppState) =>
+    GetLayoutOrderSelector(state),
+  );
+  const textResources = useSelector(
+    (state: IAppState) => state.appData.textResources.resources,
+  );
 
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });
@@ -186,9 +201,13 @@ export function EditContainer(props: IEditContainerProvidedProps) {
 
   const handleComponentDelete = (e: any): void => {
     if (activeList.length > 1) {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: activeList }));
+      dispatch(
+        FormLayoutActions.deleteFormComponents({ components: activeList }),
+      );
     } else {
-      dispatch(FormLayoutActions.deleteFormComponents({ components: [props.id] }));
+      dispatch(
+        FormLayoutActions.deleteFormComponents({ components: [props.id] }),
+      );
     }
     dispatch(FormLayoutActions.deleteActiveList());
     e.stopPropagation();
@@ -219,7 +238,12 @@ export function EditContainer(props: IEditContainerProvidedProps) {
     if (JSON.stringify(component) !== JSON.stringify(props.component)) {
       handleSaveChange(component);
       if (props.id !== component.id) {
-        dispatch(FormLayoutActions.updateFormComponentId({ newId: component.id, currentId: props.id }));
+        dispatch(
+          FormLayoutActions.updateFormComponentId({
+            newId: component.id,
+            currentId: props.id,
+          }),
+        );
       }
     }
 
@@ -234,7 +258,12 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   };
 
   const handleSaveChange = (callbackComponent: FormComponentType): void => {
-    dispatch(FormLayoutActions.updateFormComponent({ id: props.id, updatedComponent: callbackComponent }));
+    dispatch(
+      FormLayoutActions.updateFormComponent({
+        id: props.id,
+        updatedComponent: callbackComponent,
+      }),
+    );
   };
 
   const handleKeyPress = (e: any) => {
@@ -271,7 +300,9 @@ export function EditContainer(props: IEditContainerProvidedProps) {
     return classes.gridForBtn;
   };
 
-  const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
+  const activeListIndex = activeList.findIndex(
+    (item: any) => item.id === props.id,
+  );
 
   return (
     <>
@@ -285,58 +316,79 @@ export function EditContainer(props: IEditContainerProvidedProps) {
           <Grid
             item={true}
             xs={11}
-            className={(activeList.length > 1) && (activeListIndex >= 0) ?
-              classes.gridWrapperActive : (props.partOfGroup ? '' : classes.gridWrapper)}
+            className={
+              activeList.length > 1 && activeListIndex >= 0
+                ? classes.gridWrapperActive
+                : props.partOfGroup
+                ? ''
+                : classes.gridWrapper
+            }
           >
             <div
-              className={(activeList.length > 1) && (activeListIndex >= 0) ?
-                `${classes.listBorder} ${setPlacementClass(activeListIndex)}` :
-                classes.noOutline}
+              className={
+                activeList.length > 1 && activeListIndex >= 0
+                  ? `${classes.listBorder} ${setPlacementClass(
+                      activeListIndex,
+                    )}`
+                  : classes.noOutline
+              }
             >
               <ListItem
-                className={activeListIndex > -1 || isEditMode ? classes.active :
-                  ((props.component.type === 'Group') ? 'formGroup' : classes.formComponent)}
+                className={
+                  activeListIndex > -1 || isEditMode
+                    ? classes.active
+                    : props.component.type === 'Group'
+                    ? 'formGroup'
+                    : classes.formComponent
+                }
                 onClick={handleSetActive}
                 tabIndex={0}
                 onKeyPress={handleKeyPress}
                 component='div'
               >
-                {isEditMode ?
-                  <Grid
-                    item={true}
-                    xs={12}
-                    className={classes.activeWrapper}
-                  >
+                {isEditMode ? (
+                  <Grid item={true} xs={12} className={classes.activeWrapper}>
                     <EditModalContent
                       component={JSON.parse(JSON.stringify(component))}
                       language={language}
                       handleComponentUpdate={handleComponentUpdate}
                     />
                   </Grid>
-                  :
-                  <div className={`${classes.textPrimaryDark} ${classes.formComponentTitle}`}>
+                ) : (
+                  <div
+                    className={`${classes.textPrimaryDark} ${classes.formComponentTitle}`}
+                  >
                     <i
-                      className={
-                        `${classes.icon} ${componentIcons[component.type] || 'fa fa-help-circle'}`
-                      }
+                      className={`${classes.icon} ${
+                        componentIcons[component.type] || 'fa fa-help-circle'
+                      }`}
                     />
-                    {component.textResourceBindings?.title ?
-                      truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
-                      : getComponentTitleByComponentType(component.type, language) || getLanguageFromKey('ux_editor.component_unknown', language)}
+                    {component.textResourceBindings?.title
+                      ? truncate(
+                          getTextResource(
+                            component.textResourceBindings.title,
+                            textResources,
+                          ),
+                          80,
+                        )
+                      : getComponentTitleByComponentType(
+                          component.type,
+                          language,
+                        ) ||
+                        getLanguageFromKey(
+                          'ux_editor.component_unknown',
+                          language,
+                        )}
                   </div>
-                }
+                )}
               </ListItem>
             </div>
           </Grid>
-          {!isEditMode &&
+          {!isEditMode && (
             <Grid item={true} xs={1}>
-              <Grid
-                container={true}
-                direction='row'
-                className={btnGrid()}
-              >
+              <Grid container={true} direction='row' className={btnGrid()}>
                 <Grid item={true} xs={12}>
-                  {(activeListIndex === 0 || activeList.length < 1) &&
+                  {(activeListIndex === 0 || activeList.length < 1) && (
                     <IconButton
                       type='button'
                       className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
@@ -345,11 +397,11 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                     >
                       <i className='fa fa-circletrash' />
                     </IconButton>
-                  }
+                  )}
                 </Grid>
                 <Grid item={true} xs={12}>
                   {(activeList.length < 1 ||
-                    (activeList.length === 1 && activeListIndex === 0)) &&
+                    (activeList.length === 1 && activeListIndex === 0)) && (
                     <IconButton
                       type='button'
                       className={classes.formComponentsBtn}
@@ -358,17 +410,22 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                     >
                       <i className='fa fa-edit' />
                     </IconButton>
-                  }
+                  )}
                 </Grid>
               </Grid>
-            </Grid>}
-          {isEditMode &&
+            </Grid>
+          )}
+          {isEditMode && (
             <Grid item={true} xs={1}>
               <Grid
                 container={true}
                 direction='row'
                 // eslint-disable-next-line max-len
-                className={props.partOfGroup ? classes.gridForBtnSingleActiveGroup : classes.gridForBtnSingleActive}
+                className={
+                  props.partOfGroup
+                    ? classes.gridForBtnSingleActiveGroup
+                    : classes.gridForBtnSingleActive
+                }
               >
                 <Grid item={true} xs={12}>
                   <IconButton
@@ -391,7 +448,8 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   </IconButton>
                 </Grid>
               </Grid>
-            </Grid>}
+            </Grid>
+          )}
         </Grid>
       </Grid>
     </>

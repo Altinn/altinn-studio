@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
-import { ISchemaState } from '../types';
+import type { ISchemaState } from '../types';
 import { getDomFriendlyID } from '../utils';
 
 export interface IRefSelectProps {
@@ -31,18 +31,14 @@ export const RefSelect = (props: IRefSelectProps) => {
     },
   })();
 
-  const {
-    id, onChange, value,
-  } = props;
-  const definitions: string[] = useSelector(
-    (state: ISchemaState) => state.uiSchema.filter((s) => s.path.includes('#/definitions'))
+  const { id, onChange, value } = props;
+  const definitions: string[] = useSelector((state: ISchemaState) =>
+    state.uiSchema
+      .filter((s) => s.path.includes('#/definitions'))
       .map((d) => d.path.replace('#/definitions/', '')),
   );
 
-  const onChangeValue = (
-    event: React.ChangeEvent<{}>,
-    val: unknown,
-  ) => {
+  const onChangeValue = (event: React.ChangeEvent<unknown>, val: unknown) => {
     if (!val) {
       return;
     }
@@ -61,14 +57,9 @@ export const RefSelect = (props: IRefSelectProps) => {
       disableClearable={true}
       options={definitions}
       renderInput={(params) => {
-        // eslint-disable-next-line no-param-reassign
         (params.InputProps as any).disableUnderline = true;
-        return <TextField
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...params}
-        />;
-      }
-      }
+        return <TextField {...params} />;
+      }}
     />
   );
 };

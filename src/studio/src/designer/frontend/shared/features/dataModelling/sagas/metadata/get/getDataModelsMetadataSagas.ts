@@ -8,12 +8,21 @@ function* getDataModelsMetadataSaga(): SagaIterator {
   try {
     yield call(get, sharedUrls().ensureCloneApi);
     const dataModelsMetadata = yield call(get, sharedUrls().dataModelsApi);
-    yield put(DataModelsMetadataActions.getDataModelsMetadataFulfilled({ dataModelsMetadata }));
+    yield put(
+      DataModelsMetadataActions.getDataModelsMetadataFulfilled({
+        dataModelsMetadata,
+      }),
+    );
   } catch (error) {
-    yield put(DataModelsMetadataActions.getDataModelsMetadataRejected({ error }));
+    yield put(
+      DataModelsMetadataActions.getDataModelsMetadataRejected({ error }),
+    );
   }
 }
 
 export function* watchGetDataModelsMetadataSaga(): SagaIterator {
-  yield takeLatest(DataModelsMetadataActions.getDataModelsMetadata, getDataModelsMetadataSaga);
+  yield takeLatest(
+    DataModelsMetadataActions.getDataModelsMetadata,
+    getDataModelsMetadataSaga,
+  );
 }

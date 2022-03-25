@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Button, Grid } from '@material-ui/core';
 
 export interface IRuleButtonProps {
@@ -19,12 +19,12 @@ export default function RuleButton(props: IRuleButtonProps) {
       }}
       onClick={props.onClick}
     >
-      <Grid
-        container={true}
-        direction='row'
-      >
+      <Grid container={true} direction='row'>
         <Grid item={true} xs={1}>
-          <i className='fa fa-settings a-btn-icon-symbol' style={{ width: 'auto' }} />
+          <i
+            className='fa fa-settings a-btn-icon-symbol'
+            style={{ width: 'auto' }}
+          />
         </Grid>
         <Grid
           item={true}

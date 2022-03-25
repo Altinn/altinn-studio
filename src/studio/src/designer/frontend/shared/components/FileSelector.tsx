@@ -1,12 +1,12 @@
 import { Description } from '@material-ui/icons';
-import * as React from 'react';
+import React from 'react';
 import { Button, StyledComponentProps, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import { getLanguageFromKey } from '../utils/language';
 import theme from '../theme/altinnStudioTheme';
 
 interface IFileSelectorProps extends StyledComponentProps {
-  language: any,
+  language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
   labelTextResource: string;
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
       borderBottom: `1px solid ${theme.altinnPalette.primary.blueDark}`,
       color: theme.altinnPalette.primary.white,
       background: theme.altinnPalette.primary.blueDark,
-      textTransform: 'none' as 'none',
+      textTransform: 'none',
       fontSize: 16,
       fontWeight: 400,
       borderRadius: '0',
@@ -65,7 +65,12 @@ const useStyles = makeStyles({
 
 function FileSelector(props: IFileSelectorProps) {
   const {
-    language, labelTextResource, accept, formFileName, busy, submitHandler,
+    language,
+    labelTextResource,
+    accept,
+    formFileName,
+    busy,
+    submitHandler,
   } = props;
   const classes = useStyles();
   const fileInput = React.useRef<HTMLInputElement>(null);
@@ -100,11 +105,12 @@ function FileSelector(props: IFileSelectorProps) {
         onChange={handleInputChange}
         disabled={busy}
       />
-      <label htmlFor='file-upload-picker' title={getLanguageFromKey(labelTextResource, language)}>
+      <label
+        htmlFor='file-upload-picker'
+        title={getLanguageFromKey(labelTextResource, language)}
+      >
         <Description fontSize='large' />
-        <span
-          className={classNames({ empty: !selectedFileName })}
-        >
+        <span className={classNames({ empty: !selectedFileName })}>
           {selectedFileName || getLanguageFromKey(labelTextResource, language)}
         </span>
       </label>

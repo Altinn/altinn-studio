@@ -1,10 +1,8 @@
-import { CombinationKind, ILanguage, UiSchemaItem } from './types';
-
-const JsonPointer = require('jsonpointer');
+import type { CombinationKind, ILanguage, UiSchemaItem } from './types';
+import JsonPointer from 'jsonpointer';
 
 function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
   if (input) {
-    // eslint-disable-next-line no-restricted-syntax
     for (const item of input) {
       stack.push(item);
       if (item.properties instanceof Array && depth > 0) {
@@ -148,7 +146,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName: boolean = true): UiSchemaItem[] {
+export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): UiSchemaItem[] {
   const result: UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
@@ -343,7 +341,6 @@ export const getRestrictions = (type: string) => restrictionMap.get(type);
 
 let unusedNumber = 0;
 export const getUniqueNumber = () => {
-  // eslint-disable-next-line no-plusplus
   return unusedNumber++;
 };
 export const resetUniqueNumber = () => {

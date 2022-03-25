@@ -1,5 +1,4 @@
-// eslint-disable-next-line import/no-cycle
-import { IRepository } from '../../types/global';
+import type { IRepository } from '../../types/global';
 
 export interface IFetchInitialCommitAction {
   url: string;

@@ -1,5 +1,11 @@
-import { Grid, IconButton, makeStyles, createTheme, Typography } from '@material-ui/core';
-import * as React from 'react';
+import {
+  Grid,
+  IconButton,
+  makeStyles,
+  createTheme,
+  Typography,
+} from '@material-ui/core';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
@@ -7,6 +13,7 @@ import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
 import { getLanguageFromKey } from '../../../shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
+import type { LogicMode, IAppState } from '../../types/global';
 
 const theme = createTheme(altinnTheme);
 
@@ -55,9 +62,12 @@ export interface IRightMenuProps {
 }
 
 export default function RightMenu(props: IRightMenuProps) {
-  const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
+  const [conditionalModalOpen, setConditionalModalOpen] =
+    React.useState<boolean>(false);
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+  const layoutOrder = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order,
+  );
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -70,54 +80,49 @@ export default function RightMenu(props: IRightMenuProps) {
   }
 
   function handleAddPage() {
-    const name = getLanguageFromKey('right_menu.page', props.language) + (layoutOrder.length + 1);
+    const name =
+      getLanguageFromKey('right_menu.page', props.language) +
+      (layoutOrder.length + 1);
     dispatch(FormLayoutActions.addLayout({ layout: name }));
   }
 
   return (
-    <Grid
-      container={true} direction='column'
-      className={classes.main}
-    >
-      <Grid
-        container={true} direction='row'
-        className={classes.headerSection}
-      >
+    <Grid container={true} direction='column' className={classes.main}>
+      <Grid container={true} direction='row' className={classes.headerSection}>
         <Grid item={true} xs={10}>
           {getLanguageFromKey('right_menu.pages', props.language)}
         </Grid>
         <Grid item={true} xs={2}>
           <IconButton
-            className={classes.addIcon} onClick={handleAddPage}
-            aria-label={getLanguageFromKey('right_menu.pages_add_alt', props.language)}
+            className={classes.addIcon}
+            onClick={handleAddPage}
+            aria-label={getLanguageFromKey(
+              'right_menu.pages_add_alt',
+              props.language,
+            )}
           >
-            <i className='fa fa-plus'/>
+            <i className='fa fa-plus' />
           </IconButton>
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.contentSection}
-      >
+      <Grid container={true} direction='row' className={classes.contentSection}>
         <Grid item={true} xs={12}>
           <PagesContainer />
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.headerSection}
-      >
+      <Grid container={true} direction='row' className={classes.headerSection}>
         <Grid item={true} xs={12}>
           {getLanguageFromKey('right_menu.dynamics', props.language)}
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.contentSection}
-      >
+      <Grid container={true} direction='row' className={classes.contentSection}>
         <Grid item={true} xs={12}>
           <Typography variant='caption'>
-            {getLanguageFromKey('right_menu.dynamics_description', props.language)}&nbsp;
+            {getLanguageFromKey(
+              'right_menu.dynamics_description',
+              props.language,
+            )}
+            &nbsp;
             <a
               target='_blank'
               rel='noopener noreferrer'
@@ -127,64 +132,67 @@ export default function RightMenu(props: IRightMenuProps) {
             </a>
           </Typography>
         </Grid>
-        <Grid
-          item={true} xs={12}
-          className={classes.marginTop24}
-        >
+        <Grid item={true} xs={12} className={classes.marginTop24}>
           <Typography
-            variant='caption' classes={{ root: classes.textLink }}
+            variant='caption'
+            classes={{ root: classes.textLink }}
             onClick={() => props.toggleFileEditor('Dynamics')}
           >
             {getLanguageFromKey('right_menu.dynamics_edit', props.language)}
           </Typography>
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.headerSection}
-      >
+      <Grid container={true} direction='row' className={classes.headerSection}>
         <Grid item={true} xs={10}>
           {getLanguageFromKey('right_menu.rules_calculations', props.language)}
         </Grid>
         <Grid item={true} xs={2}>
           <IconButton
-            className={classes.addIcon} onClick={() => handleModalChange('rules')}
-            aria-label={getLanguageFromKey('right_menu.rules_calculations_add_alt', props.language)}
+            className={classes.addIcon}
+            onClick={() => handleModalChange('rules')}
+            aria-label={getLanguageFromKey(
+              'right_menu.rules_calculations_add_alt',
+              props.language,
+            )}
           >
-            <i className='fa fa-plus'/>
+            <i className='fa fa-plus' />
           </IconButton>
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.contentSection}
-      >
+      <Grid container={true} direction='row' className={classes.contentSection}>
         <Grid item={true} xs={12}>
-          <RuleModal modalOpen={ruleModalOpen} handleClose={() => handleModalChange('rules')} />
+          <RuleModal
+            modalOpen={ruleModalOpen}
+            handleClose={() => handleModalChange('rules')}
+          />
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.headerSection}
-      >
+      <Grid container={true} direction='row' className={classes.headerSection}>
         <Grid item={true} xs={10}>
-          {getLanguageFromKey('right_menu.rules_conditional_rendering', props.language)}
+          {getLanguageFromKey(
+            'right_menu.rules_conditional_rendering',
+            props.language,
+          )}
         </Grid>
         <Grid item={true} xs={2}>
           <IconButton
-            className={classes.addIcon} onClick={() => handleModalChange('conditionalRendering')}
-            aria-label={getLanguageFromKey('right_menu.rules_conditional_rendering_add_alt', props.language)}
+            className={classes.addIcon}
+            onClick={() => handleModalChange('conditionalRendering')}
+            aria-label={getLanguageFromKey(
+              'right_menu.rules_conditional_rendering_add_alt',
+              props.language,
+            )}
           >
-            <i className='fa fa-plus'/>
+            <i className='fa fa-plus' />
           </IconButton>
         </Grid>
       </Grid>
-      <Grid
-        container={true} direction='row'
-        className={classes.contentSection}
-      >
+      <Grid container={true} direction='row' className={classes.contentSection}>
         <Grid item={true} xs={12}>
-          <ConditionalRenderingModal modalOpen={conditionalModalOpen} handleClose={() => handleModalChange('conditionalRendering')}/>
+          <ConditionalRenderingModal
+            modalOpen={conditionalModalOpen}
+            handleClose={() => handleModalChange('conditionalRendering')}
+          />
         </Grid>
       </Grid>
     </Grid>

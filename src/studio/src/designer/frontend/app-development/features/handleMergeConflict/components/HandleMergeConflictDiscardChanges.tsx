@@ -1,31 +1,37 @@
-/* eslint-disable react/no-access-state-in-setstate */
-/* eslint-disable react/no-unused-state */
-import { createTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
-import * as React from 'react';
+import {
+  createTheme,
+  createStyles,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core/styles';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
+import type { IAltinnWindow } from '../../../types/global';
 
 const theme = createTheme(altinnTheme);
 
-const styles = () => createStyles({
-  textDisabled: {
-    color: theme.altinnPalette.primary.grey,
-  },
-  input: {
-    marginRight: 49,
-  },
-});
+const styles = () =>
+  createStyles({
+    textDisabled: {
+      color: theme.altinnPalette.primary.grey,
+    },
+    input: {
+      marginRight: 49,
+    },
+  });
 
-export interface IHandleMergeConflictDiscardChangesProps extends WithStyles<typeof styles> {
+interface IHandleMergeConflictDiscardChangesProps
+  extends WithStyles<typeof styles> {
   disabled?: boolean;
   language: any;
 }
 
-export interface IHandleMergeConflictDiscardChangesState {
+interface IHandleMergeConflictDiscardChangesState {
   anchorEl: any;
   errorObj: any;
   networkingRes: any;
@@ -42,8 +48,10 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-export class HandleMergeConflictDiscardChanges extends
-  React.Component<IHandleMergeConflictDiscardChangesProps, IHandleMergeConflictDiscardChangesState> {
+export class HandleMergeConflictDiscardChanges extends React.Component<
+  IHandleMergeConflictDiscardChangesProps,
+  IHandleMergeConflictDiscardChangesState
+> {
   constructor(_props: IHandleMergeConflictDiscardChangesProps) {
     super(_props);
     this.state = {
@@ -60,15 +68,21 @@ export class HandleMergeConflictDiscardChanges extends
       popoverState: {
         ...this.state.popoverState,
         btnMethod: this.discardChangesConfirmed,
-        btnConfirmText: getLanguageFromKey('handle_merge_conflict.discard_changes_button_confirm',
-          this.props.language),
-        descriptionText: getLanguageFromKey('handle_merge_conflict.discard_changes_message',
-          this.props.language),
-        btnCancelText: getLanguageFromKey('handle_merge_conflict.discard_changes_button_cancel',
-          this.props.language),
+        btnConfirmText: getLanguageFromKey(
+          'handle_merge_conflict.discard_changes_button_confirm',
+          this.props.language,
+        ),
+        descriptionText: getLanguageFromKey(
+          'handle_merge_conflict.discard_changes_message',
+          this.props.language,
+        ),
+        btnCancelText: getLanguageFromKey(
+          'handle_merge_conflict.discard_changes_button_cancel',
+          this.props.language,
+        ),
       },
     });
-  }
+  };
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
@@ -84,7 +98,8 @@ export class HandleMergeConflictDiscardChanges extends
         },
       });
 
-      const discardUrl = `${window.location.origin}/` +
+      const discardUrl =
+        `${window.location.origin}/` +
         `/designer/api/v1/repos/${org}/${app}/discard`;
       const discardRes = await get(discardUrl);
 
@@ -97,7 +112,10 @@ export class HandleMergeConflictDiscardChanges extends
         },
       });
 
-      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
+      window.postMessage(
+        postMessages.forceRepoStatusCheck,
+        window.location.href,
+      );
     } catch (err) {
       this.setState({
         errorObj: err,
@@ -110,22 +128,24 @@ export class HandleMergeConflictDiscardChanges extends
 
       console.error('Discard merge error', err);
     }
-  }
+  };
 
   public handleClose = () => {
     this.setState({
       anchorEl: null,
     });
-  }
+  };
 
   public render() {
     const { popoverState } = this.state;
     return (
       <React.Fragment>
-
         <AltinnButton
           id='discardMergeChangesBtn'
-          btnText={getLanguageFromKey('handle_merge_conflict.discard_changes_button', this.props.language)}
+          btnText={getLanguageFromKey(
+            'handle_merge_conflict.discard_changes_button',
+            this.props.language,
+          )}
           onClickFunction={this.discardChangesPopover}
           secondaryButton={true}
           disabled={this.props.disabled}
@@ -146,8 +166,7 @@ export class HandleMergeConflictDiscardChanges extends
           shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
           transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         />
-
-      </React.Fragment >
+      </React.Fragment>
     );
   }
 }

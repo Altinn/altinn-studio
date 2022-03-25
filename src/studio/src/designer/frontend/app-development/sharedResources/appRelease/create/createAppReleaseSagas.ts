@@ -6,14 +6,11 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { post } from '../../../utils/networking';
 import { releasesPostUrl } from '../../../utils/urlHelper';
 import { AppReleaseActions } from '../appReleaseSlice';
-import { ICreateReleaseAction } from '../types';
+import type { ICreateReleaseAction } from '../types';
 
-function* createReleaseSaga({ payload: {
-  tagName,
-  name,
-  body,
-  targetCommitish,
-} }: PayloadAction<ICreateReleaseAction>): SagaIterator {
+function* createReleaseSaga({
+  payload: { tagName, name, body, targetCommitish },
+}: PayloadAction<ICreateReleaseAction>): SagaIterator {
   try {
     const responseData: any = yield call(post, releasesPostUrl, {
       tagName,
@@ -22,11 +19,17 @@ function* createReleaseSaga({ payload: {
       targetCommitish,
     });
     yield delay(2000);
-    yield put(AppReleaseActions.createAppReleasesFulfilled({ release: responseData }));
+    yield put(
+      AppReleaseActions.createAppReleasesFulfilled({ release: responseData }),
+    );
   } catch (error) {
     if (checkIfAxiosError(error)) {
-      const { response: { status } } = error as AxiosError;
-      yield put(AppReleaseActions.createAppReleasesRejected({ errorCode: status }));
+      const {
+        response: { status },
+      } = error as AxiosError;
+      yield put(
+        AppReleaseActions.createAppReleasesRejected({ errorCode: status }),
+      );
     }
   }
 }

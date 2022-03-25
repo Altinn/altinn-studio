@@ -1,5 +1,5 @@
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 export type User = {
@@ -70,10 +70,13 @@ const dashboardSlice = createSlice({
       const { selectedContext } = action.payload;
       state.selectedContext = selectedContext;
     },
-    repoRowsPerPageChanged: (state, action: PayloadAction<IRepoRowsPerPageChanged>) => {
+    repoRowsPerPageChanged: (
+      state,
+      action: PayloadAction<IRepoRowsPerPageChanged>,
+    ) => {
       const { repoRowsPerPage } = action.payload;
       state.repoRowsPerPage = repoRowsPerPage;
-    }
+    },
   },
 });
 

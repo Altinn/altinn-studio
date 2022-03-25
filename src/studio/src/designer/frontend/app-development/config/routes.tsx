@@ -2,12 +2,11 @@ import uieditorApp from '../../ux-editor/SubApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
-// eslint-disable-next-line import/no-named-as-default
-import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
+import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 
-export interface IRouteProps {
+interface IRouteProps {
   headerTextKey?: string;
   subtext1TextKey?: string;
   subtext2TextKey?: string;
@@ -20,7 +19,7 @@ export interface IRouteProps {
   language?: any;
 }
 
-export interface IRoute {
+interface IRoute {
   path: string;
   exact: boolean;
   activeSubHeaderSelection: string;
@@ -116,7 +115,7 @@ const routes: IRoute[] = [
     activeSubHeaderSelection: '',
     activeLeftMenuSelection: 'Mergekonflikt',
     menu: 'create',
-    subapp: HandleMergeConflictContainer,
+    subapp: HandleMergeConflictContainerComponent,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',

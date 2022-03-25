@@ -6,8 +6,8 @@ import createStyles from '@material-ui/core/styles/createStyles';
 import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
-import * as React from 'react';
-import { IAttachment } from '../../types/index.d';
+import React from 'react';
+import type { IAttachment } from '../../types/global';
 import AltinnIcon from '../AltinnIcon';
 
 const styles = createStyles({
@@ -52,64 +52,59 @@ interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
 }
 
 function ListItemLink(props: any) {
-  return (
-    <ListItem
-      button={true}
-      component='a'
-      {...props}
-    />
-    );
+  return <ListItem button={true} component='a' {...props} />;
 }
 
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
-  return(
+  return (
     <>
       <List disablePadding={Boolean(props.listDisableVerticalPadding)}>
-        {props.attachments && props.attachments.map((attachment, index) => (
-          <ListItemLink
-            className={classNames(
-              {
-                [props.classes.listItemPadding]: props.nested === true,
-                [props.classes.listItemPaddingNone]: props.nested !== true,
-              },
-              props.classes.a,
+        {props.attachments &&
+          props.attachments.map((attachment, index) => (
+            <ListItemLink
+              className={classNames(
+                {
+                  [props.classes.listItemPadding]: props.nested === true,
+                  [props.classes.listItemPaddingNone]: props.nested !== true,
+                },
+                props.classes.a,
               )}
-            href={attachment.url}
-            key={index}
-          >
-            <ListItemIcon>
-              <AltinnIcon
-                iconClass={attachment.iconClass}
-                iconColor='#000000'
-                iconSize='5rem'
+              href={attachment.url}
+              key={index}
+            >
+              <ListItemIcon>
+                <AltinnIcon
+                  iconClass={attachment.iconClass}
+                  iconColor='#000000'
+                  iconSize='5rem'
+                />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <>
+                    <Typography
+                      variant='body1'
+                      className={classNames(
+                        props.classes.inline,
+                        props.classes.primaryText,
+                      )}
+                    >
+                      {attachment.name}
+                    </Typography>
+                    <Typography
+                      variant='body1'
+                      className={props.classes.inline}
+                    >
+                      &nbsp;(last ned)
+                    </Typography>
+                  </>
+                }
+                classes={{
+                  root: classNames(props.classes.listItemTextPadding),
+                }}
               />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <>
-                  <Typography
-                    variant='body1'
-                    className={classNames(
-                    props.classes.inline,
-                    props.classes.primaryText,
-                    )}
-                  >
-                    {attachment.name}
-                  </Typography>
-                  <Typography
-                    variant='body1'
-                    className={props.classes.inline}
-                  >
-                    &nbsp;(last ned)
-                  </Typography>
-                </>
-              }
-              classes={{
-                root: classNames(props.classes.listItemTextPadding),
-              }}
-            />
-          </ListItemLink>
-        ))}
+            </ListItemLink>
+          ))}
       </List>
     </>
   );

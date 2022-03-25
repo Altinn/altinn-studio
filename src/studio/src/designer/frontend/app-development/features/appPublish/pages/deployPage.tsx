@@ -1,16 +1,21 @@
-/* eslint-disable react/jsx-max-props-per-line */
-import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
-import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import {
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core';
+import React from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
-// eslint-disable-next-line import/no-named-as-default
-import DeployContainer from '../containers/deployContainer';
+import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
+import { useAppSelector, useAppDispatch } from 'common/hooks';
+import type { IAltinnWindow } from '../../../types/global';
 
 const styles = createStyles({
   deployPaper: {
@@ -20,15 +25,17 @@ const styles = createStyles({
     paddingTop: '2.4rem',
   },
 });
-export interface IDeployPaperProps extends WithStyles<typeof styles>, RouteComponentProps {
-}
+interface IDeployPaperProps
+  extends WithStyles<typeof styles>,
+    RouteComponentProps {}
+
 function DeployPage(props: IDeployPaperProps) {
   const { org } = window as Window as IAltinnWindow;
   const { classes } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
+  const orgs: any = useAppSelector((state) => state.configuration.orgs);
+  const language: any = useAppSelector((state) => state.languageState.language);
 
   React.useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
@@ -36,28 +43,14 @@ function DeployPage(props: IDeployPaperProps) {
   }, []);
 
   const isLoading = (): boolean => {
-    return (
-      !orgs.allOrgs ||
-      !language
-    );
+    return !orgs.allOrgs || !language;
   };
 
-  // If loading
   if (isLoading()) {
     return (
-      <Grid
-        item={true}
-        className={classes.deployPaper}
-      >
-        <Grid
-          container={true}
-          direction='row'
-          justify='space-between'
-        >
-          <Grid
-            item={true}
-            xs={12}
-          >
+      <Grid item={true} className={classes.deployPaper}>
+        <Grid container={true} direction='row' justify='space-between'>
+          <Grid item={true} xs={12}>
             <AltinnContentLoader width={1200} height={600}>
               <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
               <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
@@ -70,32 +63,28 @@ function DeployPage(props: IDeployPaperProps) {
   }
 
   // If org isn't listed, or doesn't have any environments
-  if (!orgs.allOrgs[org] || !orgs.allOrgs[org].environments || !orgs.allOrgs[org].environments.length) {
+  if (
+    !orgs.allOrgs[org] ||
+    !orgs.allOrgs[org].environments ||
+    !orgs.allOrgs[org].environments.length
+  ) {
     return (
-      <Grid
-        item={true}
-        className={classes.deployPaper}
-      >
-        <Grid
-          container={true}
-          direction='row'
-          justify='space-between'
-        >
-          <Grid
-            item={true}
-            xs={12}
-          >
+      <Grid item={true} className={classes.deployPaper}>
+        <Grid container={true} direction='row' justify='space-between'>
+          <Grid item={true} xs={12}>
             <AltinnInformationCardForChildren
-              headerText={getParsedLanguageFromKey('app_publish.no_env_title', language, [])}
+              headerText={getParsedLanguageFromKey(
+                'app_publish.no_env_title',
+                language,
+                [],
+              )}
               imageSource='../../designer/img/illustration-help-2-circle.svg'
               shadow={true}
             >
               <Typography>
                 {getParsedLanguageFromKey('app_publish.no_env_1', language, [])}
               </Typography>
-              <Typography
-                className={classes.lastNoEnvironmentTextSection}
-              >
+              <Typography className={classes.lastNoEnvironmentTextSection}>
                 {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
               </Typography>
             </AltinnInformationCardForChildren>
@@ -106,25 +95,12 @@ function DeployPage(props: IDeployPaperProps) {
   }
 
   return (
-    <Grid
-      item={true}
-      className={classes.deployPaper}
-    >
-      <Grid
-        container={true}
-        direction='row'
-        justify='space-between'
-      >
-        <Grid
-          item={true}
-          xs={9}
-        >
-          <DeployContainer />
+    <Grid item={true} className={classes.deployPaper}>
+      <Grid container={true} direction='row' justify='space-between'>
+        <Grid item={true} xs={9}>
+          <DeployContainerComponent />
         </Grid>
-        <Grid
-          item={true}
-          xs={3}
-        >
+        <Grid item={true} xs={3}>
           <ReleaseContainer />
         </Grid>
       </Grid>

@@ -1,7 +1,7 @@
 import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnIconCompontentProvidedProps {
@@ -11,8 +11,6 @@ export interface IAltinnIconCompontentProvidedProps {
   iconColor: any;
 }
 
-export interface IAltinnIconComponentState {
-}
 const theme = createTheme(altinnTheme);
 
 const styles = {
@@ -21,15 +19,16 @@ const styles = {
   },
 };
 
-class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
+class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps> {
   public render() {
     return (
       <i
-        className={
-          classNames(
-            this.props.iconClass,
-          )}
-        style={{ color: this.props.isActive ? styles.activeIcon.color : this.props.iconColor }}
+        className={classNames(this.props.iconClass)}
+        style={{
+          color: this.props.isActive
+            ? styles.activeIcon.color
+            : this.props.iconColor,
+        }}
       />
     );
   }
