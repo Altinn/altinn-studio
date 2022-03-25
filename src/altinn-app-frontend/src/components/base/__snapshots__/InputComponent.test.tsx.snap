@@ -7,7 +7,7 @@ exports[`components/base/InputComponent.tsx components/base/InputComponent.tsx -
   >
     <input
       aria-describedby="description-mock-id"
-      class="MuiInputBase-input MuiInput-input form-control"
+      class="MuiInputBase-input MuiInput-input form-control makeStyles-input-1"
       data-testid="mock-id"
       id="mock-id"
       type="text"
