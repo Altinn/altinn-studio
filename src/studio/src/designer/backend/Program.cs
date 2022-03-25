@@ -91,6 +91,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
+        logger.LogInformation("Setting up Key Vault");
         AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(
