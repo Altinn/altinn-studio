@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
-using AltinnCore.Authentication.Constants;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -65,9 +65,10 @@ void ConfigureSetupLogging()
 
 async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
+    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
-    config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
@@ -83,13 +84,14 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddCommandLine(args);
 
     KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
-    config.GetSection("kvSettings").Bind(keyVaultSettings);
+    config.GetSection("kvSetting").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
         !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
         !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
         !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
     {
+        logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure KeyVault.");
         AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={keyVaultSettings.ClientId};TenantId={keyVaultSettings.TenantId};AppKey={keyVaultSettings.ClientSecret}");
         KeyVaultClient keyVaultClient = new KeyVaultClient(
             new KeyVaultClient.AuthenticationCallback(
@@ -119,6 +121,8 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
             config.AddUserSecrets(assembly, true);
         }
     }
+
+    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
 }
 
 void ConfigureLogging(ILoggingBuilder builder)
