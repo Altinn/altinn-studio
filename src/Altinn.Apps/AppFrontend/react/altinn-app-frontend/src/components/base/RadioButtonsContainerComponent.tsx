@@ -13,6 +13,7 @@ import { IComponentProps } from '..';
 import { IMapping, LayoutStyle } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { shouldUseRowLayout } from 'src/utils/layout';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
@@ -140,17 +141,6 @@ export const RadioButtonContainerComponent = ({
 
   const RenderLegend = legend;
 
-  const checkIfLayoutOptions = () => {
-    if (layout?.includes(LayoutStyle.Row)) {
-      return true;
-    }
-    if (layout?.includes(LayoutStyle.Column)) {
-      return false;
-    } else {
-      return calculatedOptions.length <= 2;
-    }
-  };
-
   return (
     <FormControl component='fieldset'>
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
@@ -165,7 +155,10 @@ export const RadioButtonContainerComponent = ({
           value={selected}
           onBlur={handleBlur}
           onChange={handleChange}
-          row={checkIfLayoutOptions()}
+          row={shouldUseRowLayout({
+            layout,
+            optionsCount: calculatedOptions.length,
+          })}
           id={id}
         >
           {calculatedOptions.map((option: any, index: number) => (

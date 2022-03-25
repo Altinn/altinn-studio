@@ -13,6 +13,8 @@ import {
   LayoutStyle,
 } from 'src/types';
 
+import { shouldUseRowLayout } from 'src/utils/layout';
+
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
@@ -163,22 +165,19 @@ export const CheckboxContainerComponent = ({
 
   const RenderLegend = legend;
 
-  const shouldUseRow = () => {
-    if (layout?.includes(LayoutStyle.Row)) {
-      return true;
-    }
-    if (layout?.includes(LayoutStyle.Column)) {
-      return false;
-    }
-    return calculatedOptions.length <= 2;
-  };
-
   return (
     <FormControl key={`checkboxes_control_${id}`} component='fieldset'>
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup row={shouldUseRow()} id={id} key={`checkboxes_group_${id}`}>
+      <FormGroup
+        row={shouldUseRowLayout({
+          layout,
+          optionsCount: calculatedOptions.length,
+        })}
+        id={id}
+        key={`checkboxes_group_${id}`}
+      >
         {fetchingOptions ? (
           <AltinnSpinner />
         ) : (
