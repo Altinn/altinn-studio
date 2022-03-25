@@ -65,6 +65,7 @@ void ConfigureSetupLogging()
 
 async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment hostingEnvironment)
 {
+    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
     config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
@@ -119,6 +120,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
             config.AddUserSecrets(assembly, true);
         }
     }
+    logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
 }
 
 void ConfigureLogging(ILoggingBuilder builder)
