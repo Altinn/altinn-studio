@@ -85,7 +85,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     config.AddCommandLine(args);
 
     Altinn.Common.AccessToken.Configuration.KeyVaultSettings keyVaultSettings = new Altinn.Common.AccessToken.Configuration.KeyVaultSettings();
-    config.GetSection("kvSettings").Bind(keyVaultSettings);
+    config.GetSection("kvSetting").Bind(keyVaultSettings);
 
     if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
         !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
@@ -122,7 +122,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
             config.AddUserSecrets(assembly, true);
         }
     }
-    
+
     logger.LogInformation($"// Program.cs // SetConfigurationProviders // Configured providers.");
 }
 
