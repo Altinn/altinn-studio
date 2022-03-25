@@ -265,6 +265,12 @@ export enum PresentationType {
   Stateless = 'stateless',
 }
 
+export enum LayoutStyle {
+  Column = "column",
+  Row = "row"
+}
+
+
 export enum Severity {
   Unspecified = 0,
   Error = 1,

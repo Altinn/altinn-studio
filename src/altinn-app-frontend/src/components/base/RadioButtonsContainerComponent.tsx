@@ -10,9 +10,10 @@ import cn from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-import { IMapping } from 'src/types';
+import { IMapping, LayoutStyle } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { shouldUseRowLayout } from 'src/utils/layout';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
@@ -21,6 +22,7 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
   preselectedOptionIndex: number;
   title: string;
   mapping?: IMapping;
+  layout?: LayoutStyle;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -79,6 +81,7 @@ export const RadioButtonContainerComponent = ({
   handleDataChange,
   preselectedOptionIndex,
   formData,
+  layout,
   legend,
   title,
   shouldFocus,
@@ -90,13 +93,16 @@ export const RadioButtonContainerComponent = ({
 
   const selected = formData?.simpleBinding ?? '';
   const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.options,
   );
   const calculatedOptions = apiOptions || options || defaultArray;
-  const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
   React.useEffect(() => {
@@ -140,15 +146,19 @@ export const RadioButtonContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      {fetchingOptions ?
-        <AltinnSpinner /> :
+      {fetchingOptions ? (
+        <AltinnSpinner />
+      ) : (
         <RadioGroup
           aria-label={title}
           name={title}
           value={selected}
           onBlur={handleBlur}
           onChange={handleChange}
-          row={radioGroupIsRow}
+          row={shouldUseRowLayout({
+            layout,
+            optionsCount: calculatedOptions.length,
+          })}
           id={id}
         >
           {calculatedOptions.map((option: any, index: number) => (
@@ -172,7 +182,7 @@ export const RadioButtonContainerComponent = ({
             </React.Fragment>
           ))}
         </RadioGroup>
-      }
+      )}
     </FormControl>
   );
 };
