@@ -68,7 +68,7 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
     logger.LogInformation($"// Program.cs // SetConfigurationProviders // Attempting to configure providers.");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
-    config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
