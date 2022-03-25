@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer;
+using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -27,13 +28,13 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class ReleasesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class ReleasesControllerTests : IClassFixture<WebApplicationFactory<ReleasesController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<ReleasesController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
         private readonly JsonSerializerOptions _options;
 
-        public ReleasesControllerTests(WebApplicationFactory<Startup> factory)
+        public ReleasesControllerTests(WebApplicationFactory<ReleasesController> factory)
         {
             _factory = factory;
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -113,7 +114,7 @@ namespace Designer.Tests.Controllers
         private List<ReleaseEntity> GetReleasesList(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleasesControllerTests).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\ReleasesCollection\{filename}");
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -126,17 +127,18 @@ namespace Designer.Tests.Controllers
         private HttpClient GetTestClient(IReleaseService releasesService, IPipelineService pipelineService)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
 
-            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
                 {
-                    conf.AddJsonFile("appsettings.json");
+                    conf.AddJsonFile(configPath);
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
                 builder.ConfigureTestServices(services =>

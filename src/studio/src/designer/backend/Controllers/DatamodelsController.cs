@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
@@ -21,7 +20,6 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -132,7 +130,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")]IFormFile thefile)
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -185,7 +183,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [Produces("application/json")]
         [HttpPost]
-        [Route("post")] 
+        [Route("post")]
         public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
         {
             if (!ModelState.IsValid)
@@ -218,7 +216,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository name</param>
         /// <param name="modelPath">The path to the file to be updated.</param>        
         [Authorize]
-        [HttpPut]        
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
         {
@@ -276,8 +274,10 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{*modelPath}")]
         public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromRoute] string modelPath)
         {
+            var decodedPath = System.Uri.UnescapeDataString(modelPath);
+
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var json = await _schemaModelService.GetSchema(org, repository, developer, modelPath);
+            var json = await _schemaModelService.GetSchema(org, repository, developer, decodedPath);
 
             return Ok(json);
         }

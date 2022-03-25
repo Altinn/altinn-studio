@@ -17,8 +17,8 @@ namespace Designer.Tests
             var userName = "testUser";
             var repositoryRootPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, userName);
             var fileName = "0678.xsd";
-            var directory = $"{repositoryRootPath}\\App\\models";
-            var filePath = $"{directory}\\0678.xsd";
+            var directory = Path.Combine(repositoryRootPath, "App", "models");
+            var filePath = Path.Combine(directory, "0678.xsd");
 
             var altinnCoreFile = AltinnCoreFile.CreateFromPath(filePath, repositoryRootPath);
 

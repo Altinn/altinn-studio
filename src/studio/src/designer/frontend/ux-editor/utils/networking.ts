@@ -1,8 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export interface IGetRequestResponse {
-  body: any;
-}
 
 export async function get(url: string, options?: any): Promise<any> {
   try {
@@ -47,6 +44,3 @@ export async function deleteCall(url: string): Promise<any> {
   return response?.data;
 }
 
-export function checkIfAxiosError(error: Error): boolean {
-  return (error as AxiosError).config !== undefined;
-}

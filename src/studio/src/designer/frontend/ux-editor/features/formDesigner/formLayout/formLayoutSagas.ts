@@ -11,7 +11,6 @@ import { ILayoutSettings } from 'app-shared/types';
 import Axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { IFormDesignerState } from '../formDesignerReducer';
 import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../../utils/formLayout';
 import { deleteCall, get, post } from '../../../utils/networking';
 import { getAddApplicationMetadataUrl,
@@ -25,7 +24,7 @@ import { getAddApplicationMetadataUrl,
   getLayoutSchemaUrl,
   getFetchFormLayoutUrl } from '../../../utils/urlHelper';
 import { ComponentTypes } from '../../../components';
-import { IAddActiveFormContainerAction,
+import {
   IAddApplicationMetadataAction,
   IAddFormComponentAction,
   IAddFormContainerAction,
@@ -39,24 +38,7 @@ import { IAddActiveFormContainerAction,
   IUpdateLayoutNameAction } from '../formDesignerTypes';
 import { FormLayoutActions } from './formLayoutSlice';
 
-const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectCurrentLayout = (state: IAppState): IFormLayout => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
-
-function* addActiveFormContainerSaga({ payload }: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
-  try {
-    const { containerId } = payload;
-    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    yield put(FormLayoutActions.addActiveFormContainerFulfilled({
-      containerId: containerId === formDesignerState.layout.activeContainer ? '' : containerId,
-    }));
-  } catch (error) {
-    yield put(FormLayoutActions.addFormComponentRejected({ error }));
-  }
-}
-
-export function* watchAddActiveFormContainerSaga(): SagaIterator {
-  yield takeLatest(FormLayoutActions.addActiveFormContainer, addActiveFormContainerSaga);
-}
 
 function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
@@ -504,22 +486,4 @@ export function* deleteLayoutSaga({ payload }: PayloadAction<IDeleteLayoutAction
 
 export function* watchDeleteLayoutSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.deleteLayout, deleteLayoutSaga);
-}
-
-export function* deleteActiveListSaga(): SagaIterator {
-  try {
-    yield put(FormLayoutActions.deleteActiveListFulfilled());
-  } catch (error) {
-    yield put(FormLayoutActions.deleteActiveListRejected({ error }));
-  }
-}
-
-export function* watchDeleteActiveListSaga(): SagaIterator {
-  yield takeLatest(
-    [
-      FormLayoutActions.deleteActiveList,
-      FormLayoutActions.updateSelectedLayout,
-    ],
-    deleteActiveListSaga,
-  );
 }

@@ -15,22 +15,6 @@ import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 
-export interface IFormDesignerProvidedProps {
-  classes: any;
-}
-export interface IFormDesignerProps extends IFormDesignerProvidedProps {
-  language: any;
-  dataModel: IDataModelFieldElement[];
-  components: any;
-  activeList: any;
-  selectedLayout: string;
-}
-
-export interface IFormDesignerState {
-  codeEditorOpen: boolean;
-  codeEditorMode: LogicMode;
-}
-
 const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -130,12 +114,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     fontWeight: 500,
   },
 }));
-
-// eslint-disable-next-line no-shadow
-export enum LayoutItemType {
-  Container = 'CONTAINER',
-  Component = 'COMPONENT',
-}
 
 function FormDesigner() {
   const classes = useStyles(useTheme);

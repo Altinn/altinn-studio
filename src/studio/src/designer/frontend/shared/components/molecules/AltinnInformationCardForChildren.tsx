@@ -13,9 +13,6 @@ export interface IAltinnInformationCardComponentProvidedProps {
   classes: any;
 }
 
-export interface IAltinnInformationCardComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
 const styles = () => createInformationCardStyles(theme, {

@@ -55,8 +55,8 @@ namespace Designer.Tests.Utils
         {
             var assembly = Assembly.GetExecutingAssembly();
             string unitTestFolder = Path.GetDirectoryName(new Uri(assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            Stream resource = File.OpenRead(unitTestFolder + resourceName);
+            string testDataFile = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", resourceName);
+            Stream resource = File.OpenRead(testDataFile);
 
             if (resource == null)
             {
@@ -104,19 +104,19 @@ namespace Designer.Tests.Utils
         public static string GetTestDataDirectory()
         {
             var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            return Path.GetFullPath(Path.Combine(unitTestFolder, @"..\..\..\_TestData\"));
+            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData")) + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoriesRootDirectory()
         {
             var unitTestFolder = GetTestDataDirectory();
-            return Path.Combine(unitTestFolder, @"Repositories\");
+            return Path.Combine(unitTestFolder, "Repositories") + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoryDirectory(string org, string repository, string developer)
         {
             var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
-            return Path.Combine(repositoriesRootDirectory, $"{developer}\\{org}\\{repository}");
+            return Path.Combine(repositoriesRootDirectory, developer, org, repository);
         }
 
         public static string GetTestDataRemoteRepositoryRootDirectory()
@@ -128,7 +128,7 @@ namespace Designer.Tests.Utils
         public static string GetTestDataRemoteRepository(string org, string repository)
         {
             var remoteRepositoryRootDirectory = GetTestDataRemoteRepositoryRootDirectory();
-            return Path.Combine(remoteRepositoryRootDirectory, $"{org}\\{repository}");
+            return Path.Combine(remoteRepositoryRootDirectory, org, repository);
         }
 
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
@@ -200,7 +200,7 @@ namespace Designer.Tests.Utils
 
         public static string CreateEmptyDirectory(string path)
         {
-            string fullPath = $"{GetTestDataRepositoriesRootDirectory()}/{path}";
+            string fullPath = Path.Combine(GetTestDataRepositoriesRootDirectory(), path);
             Directory.CreateDirectory(fullPath);
 
             return fullPath;
@@ -209,7 +209,7 @@ namespace Designer.Tests.Utils
         public static string CreateEmptyRepositoryForTest(string org, string repository, string developer)
         {
             var repositoriesRootDirectory = GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = Path.Combine(repositoriesRootDirectory, $"{developer}\\{org}\\{repository}");
+            var repositoryDirectory = Path.Combine(repositoriesRootDirectory, developer, org, repository);
             Directory.CreateDirectory(repositoryDirectory);
 
             return repositoryDirectory;
@@ -250,7 +250,7 @@ namespace Designer.Tests.Utils
 
         public static void CleanUpRemoteRepository(string org, string repository)
         {
-            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), $"{org}\\");
+            string dir = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), org);
 
             foreach (string subDir in Directory.GetDirectories(dir))
             {
@@ -263,7 +263,7 @@ namespace Designer.Tests.Utils
 
         public static async Task CleanUpReplacedRepositories(string org, string repository, string developer)
         {
-            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
 
             foreach (string subDir in Directory.GetDirectories(dir))
             {
@@ -274,12 +274,12 @@ namespace Designer.Tests.Utils
                     await CopyDirectory(subDir, originalPath, true);
                     Directory.Delete(subDir, true);
                 }
-            }            
+            }
         }
 
         public static void CleanUpLocalBranches(string org, string repository, string developer)
         {
-            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), $"{developer}\\{org}\\");
+            string dir = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org);
 
             foreach (string subDir in Directory.GetDirectories(dir))
             {

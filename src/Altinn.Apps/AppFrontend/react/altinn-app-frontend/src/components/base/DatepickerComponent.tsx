@@ -34,6 +34,8 @@ const iconSize = '30px';
 
 const useStyles = makeStyles({
   root: {
+    boxSizing: 'border-box',
+    height: '36px',
     fontSize: '1.6rem',
     borderWidth: '2px',
     borderStyle: 'solid',
@@ -48,6 +50,7 @@ const useStyles = makeStyles({
     },
   },
   input: {
+    padding: '0px',
     marginLeft: '12px',
   },
   invalid: {
