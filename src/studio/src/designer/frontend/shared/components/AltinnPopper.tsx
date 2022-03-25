@@ -1,7 +1,7 @@
 import { createTheme, createStyles, Popper } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnPopperComponentProvidedProps {
@@ -9,9 +9,6 @@ export interface IAltinnPopperComponentProvidedProps {
   styleObj?: object;
   message?: string;
   anchorEl: any;
-}
-
-export interface IAltinnPopperComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -29,7 +26,7 @@ const styles = createStyles({
   },
 });
 
-export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
+export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     const open = Boolean(this.props.anchorEl);

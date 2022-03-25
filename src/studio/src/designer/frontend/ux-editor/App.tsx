@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { hot } from 'react-hot-loader';
 import postMessages from 'app-shared/utils/postMessages';
 import { Route } from 'react-router-dom';
@@ -7,7 +7,10 @@ import { ErrorMessageComponent } from './components/message/ErrorMessageComponen
 import FormDesigner from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
 import { loadTextResources } from './features/appData/textResources/textResourcesSlice';
-import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
+import {
+  fetchWidgets,
+  fetchWidgetSettings,
+} from './features/widgets/widgetsSlice';
 import { getLoadTextResourcesUrl } from './utils/urlHelper';
 import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
@@ -46,7 +49,9 @@ export function App() {
   React.useEffect(() => {
     window.addEventListener('message', shouldRefetchFiles);
     fetchFiles();
-    return () => { window.removeEventListener('message', shouldRefetchFiles); };
+    return () => {
+      window.removeEventListener('message', shouldRefetchFiles);
+    };
   }, []);
 
   const renderFormDesigner = (): JSX.Element => {
@@ -56,11 +61,7 @@ export function App() {
   return (
     <div>
       <ErrorMessageComponent />
-      <Route
-        exact={true}
-        path='/ui-editor'
-        render={renderFormDesigner}
-      />
+      <Route exact={true} path='/ui-editor' render={renderFormDesigner} />
     </div>
   );
 }

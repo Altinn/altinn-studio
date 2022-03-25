@@ -1,7 +1,12 @@
-import { createTheme, FormControl, InputAdornment, TextField } from '@material-ui/core';
+import {
+  createTheme,
+  FormControl,
+  InputAdornment,
+  TextField,
+} from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSearchInputComponentProvidedProps {
@@ -10,9 +15,6 @@ export interface IAltinnSearchInputComponentProvidedProps {
   placeholder: any;
   onChangeFunction: any;
   ariaLabel: string;
-}
-
-export interface IAltinnSearchInputComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -37,8 +39,7 @@ const styles = {
   },
 };
 
-// eslint-disable-next-line max-len
-export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps, IAltinnSearchInputComponentState> {
+export class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (
@@ -51,11 +52,11 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
           placeholder={this.props.placeholder}
           onChange={this.props.onChangeFunction}
           inputProps={{
-            "aria-label": this.props.ariaLabel,
+            'aria-label': this.props.ariaLabel,
           }}
           InputProps={{
             disableUnderline: true,
-            startAdornment:
+            startAdornment: (
               <InputAdornment
                 position={'end'}
                 classes={{ root: classNames(classes.searchBoxIcon) }}
@@ -65,7 +66,8 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
                   title={'Søkeikon'}
                   aria-label={'Søkeikon'}
                 />
-              </InputAdornment>,
+              </InputAdornment>
+            ),
             classes: { root: classNames(classes.searchBoxInput) },
           }}
         />

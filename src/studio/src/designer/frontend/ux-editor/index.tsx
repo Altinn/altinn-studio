@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
-import App from './App';
+import AppComponent from './App';
 import { run } from './sagas';
 import { store } from './store';
 import './styles/index.css';
@@ -22,7 +22,7 @@ run();
 render(
   <Provider store={store}>
     <HashRouter>
-      <App />
+      <AppComponent />
     </HashRouter>
   </Provider>,
   document.getElementById('root'),

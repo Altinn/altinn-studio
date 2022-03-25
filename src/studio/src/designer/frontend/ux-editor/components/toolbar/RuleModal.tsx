@@ -1,11 +1,15 @@
-import * as React from 'react';
-import * as Modal from 'react-modal';
+import React from 'react';
+import Modal from 'react-modal';
 import { Typography } from '@material-ui/core';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
-import { addRuleConnection, deleteRuleConnnection } from '../../features/serviceConfigurations/serviceConfigurationSlice';
+import {
+  addRuleConnection,
+  deleteRuleConnnection,
+} from '../../features/serviceConfigurations/serviceConfigurationSlice';
+import type { IAppState } from '../../types/global';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -14,9 +18,14 @@ export interface IRuleModalProps {
 
 export default function RuleModal(props: IRuleModalProps) {
   const dispatch = useDispatch();
-  const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const ruleConnection = useSelector((state: IAppState) => state.serviceConfigurations.ruleConnection);
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const [selectedConnectionId, setSelectedConnectionId] =
+    React.useState<string>(null);
+  const ruleConnection = useSelector(
+    (state: IAppState) => state.serviceConfigurations.ruleConnection,
+  );
+  const language = useSelector(
+    (state: IAppState) => state.appData.languageState.language,
+  );
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -41,7 +50,10 @@ export default function RuleModal(props: IRuleModalProps) {
   }
 
   function renderRuleConnections(): JSX.Element {
-    if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
+    if (
+      !ruleConnection ||
+      Object.getOwnPropertyNames(ruleConnection).length === 0
+    ) {
       return (
         <Typography variant='caption'>
           {getLanguageFromKey('right_menu.rules_empty', language)}
@@ -52,6 +64,7 @@ export default function RuleModal(props: IRuleModalProps) {
       <>
         {Object.keys(ruleConnection || {}).map((key: string) => (
           <RuleButton
+            key={key}
             text={ruleConnection[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
@@ -69,20 +82,22 @@ export default function RuleModal(props: IRuleModalProps) {
         ariaHideApp={false}
         overlayClassName='react-modal-overlay'
       >
-        {selectedConnectionId ?
+        {selectedConnectionId ? (
           <RuleComponent
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
           />
-          :
+        ) : (
           <RuleComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+            deleteConnection={(connectionId: any) =>
+              handleDeleteConnection(connectionId)
+            }
           />
-        }
+        )}
       </Modal>
       {renderRuleConnections()}
     </>

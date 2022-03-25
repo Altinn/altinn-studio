@@ -1,12 +1,22 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import * as React from 'react';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
+import React from 'react';
+import {
+  getLanguageFromKey,
+  getParsedLanguageFromKey,
+} from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Divider, Grid, IconButton, makeStyles, TextField, TextFieldProps } from '@material-ui/core';
+import {
+  Button,
+  Divider,
+  Grid,
+  IconButton,
+  makeStyles,
+  TextField,
+  TextFieldProps,
+} from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
 import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
-
+import type { IAppState } from '../../../types/global';
 export interface IPageElementProps {
   name: string;
 }
@@ -30,34 +40,45 @@ const useStyles = makeStyles({
     '&:focus-within #ellipsis-button': {
       visibility: 'visible',
     },
-
   },
 });
 
-export default function PageElement({
-  name,
-}: IPageElementProps) {
+export default function PageElement({ name }: IPageElementProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+  const language = useSelector(
+    (state: IAppState) => state.appData.languageState.language,
+  );
+  const selectedLayout = useSelector(
+    (state: IAppState) => state.formDesigner.layout.selectedLayout,
+  );
+  const layoutOrder = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order,
+  );
   const [editMode, setEditMode] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>('');
   const [newName, setNewName] = React.useState<string>('');
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(null);
-  const disableUp = (layoutOrder.indexOf(name) === 0);
-  const disableDown = (layoutOrder.indexOf(name) === (layoutOrder.length - 1));
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null,
+  );
+  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(
+    null,
+  );
+  const disableUp = layoutOrder.indexOf(name) === 0;
+  const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
 
   const onPageClick = () => {
     if (selectedLayout !== name) {
-      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
+      dispatch(
+        FormLayoutActions.updateSelectedLayout({ selectedLayout: name }),
+      );
     }
   };
 
-  const onPageSettingsClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const onPageSettingsClick = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
   };
@@ -67,7 +88,10 @@ export default function PageElement({
     setMenuAnchorEl(null);
   };
 
-  const onMenuItemClick = (event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
+  const onMenuItemClick = (
+    event: React.SyntheticEvent,
+    action: 'up' | 'down' | 'edit' | 'delete',
+  ) => {
     event.stopPropagation();
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
@@ -75,7 +99,12 @@ export default function PageElement({
       setEditMode(true);
       setNewName(name);
     } else if (action === 'up' || action === 'down') {
-      dispatch(FormLayoutActions.updateLayoutOrder({ layout: name, direction: action }));
+      dispatch(
+        FormLayoutActions.updateLayoutOrder({
+          layout: name,
+          direction: action,
+        }),
+      );
     }
     setMenuAnchorEl(null);
   };
@@ -89,20 +118,35 @@ export default function PageElement({
   };
 
   const pageNameExists = (candidateName: string): boolean => {
-    return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
+    return layoutOrder.some(
+      (pageName: string) =>
+        pageName.toLowerCase() === candidateName.toLowerCase(),
+    );
   };
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleOnChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
-    const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
+    const newNameCandidate = event.target.value
+      .replace(/[/\\?%*:|"<>]/g, '-')
+      .trim();
     if (pageNameExists(newNameCandidate)) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
+      setErrorMessage(
+        getLanguageFromKey('right_menu.pages_error_unique', language),
+      );
     } else if (!newNameCandidate) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
+      setErrorMessage(
+        getLanguageFromKey('right_menu.pages_error_empty', language),
+      );
     } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_length', language));
+      setErrorMessage(
+        getLanguageFromKey('right_menu.pages_error_length', language),
+      );
     } else if (!newNameCandidate.match(nameRegex)) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_format', language));
+      setErrorMessage(
+        getLanguageFromKey('right_menu.pages_error_format', language),
+      );
     } else {
       setErrorMessage('');
       setNewName(newNameCandidate);
@@ -113,7 +157,9 @@ export default function PageElement({
     event.stopPropagation();
     if (event.key === 'Enter') {
       if (!errorMessage && name !== newName) {
-        dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+        dispatch(
+          FormLayoutActions.updateLayoutName({ oldName: name, newName }),
+        );
         setEditMode(false);
       }
     }
@@ -135,22 +181,19 @@ export default function PageElement({
   };
 
   return (
-    <Button
-      className={classes.mainButton}
-      onClick={onPageClick}
-    >
-      <Grid
-        container={true}
-        direction='row'
-      >
-        <Grid
-          item={true} xs={1}
-        >
-          {(selectedLayout === name) && <i
-            className='fa fa-arrowright' style={{
-              width: 'auto', color: '#022F51', marginBottom: '0.4rem',
-            }}
-          />}
+    <Button className={classes.mainButton} onClick={onPageClick}>
+      <Grid container={true} direction='row'>
+        <Grid item={true} xs={1}>
+          {selectedLayout === name && (
+            <i
+              className='fa fa-arrowright'
+              style={{
+                width: 'auto',
+                color: '#022F51',
+                marginBottom: '0.4rem',
+              }}
+            />
+          )}
         </Grid>
         <Grid
           item={true}
@@ -158,7 +201,7 @@ export default function PageElement({
           style={{ textAlign: 'left', paddingLeft: '1.2rem' }}
         >
           {!editMode && name}
-          {editMode &&
+          {editMode && (
             <InlineTextField
               onBlur={handleOnBlur}
               onKeyDown={handleKeyPress}
@@ -167,12 +210,9 @@ export default function PageElement({
               error={Boolean(errorMessage)}
               helperText={errorMessage}
             />
-          }
+          )}
         </Grid>
-        <Grid
-          item={true}
-          xs={2}
-        >
+        <Grid item={true} xs={2}>
           <IconButton
             onClick={onPageSettingsClick}
             className={classes.ellipsisButton}
@@ -220,9 +260,19 @@ export default function PageElement({
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
         header={getLanguageFromKey('right_menu.page_delete_header', language)}
-        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [name])}
-        confirmText={getLanguageFromKey('right_menu.page_delete_confirm', language)}
-        cancelText={getLanguageFromKey('right_menu.page_delete_cancel', language)}
+        description={getParsedLanguageFromKey(
+          'right_menu.page_delete_information',
+          language,
+          [name],
+        )}
+        confirmText={getLanguageFromKey(
+          'right_menu.page_delete_confirm',
+          language,
+        )}
+        cancelText={getLanguageFromKey(
+          'right_menu.page_delete_cancel',
+          language,
+        )}
         onClose={handleConfirmDeleteClose}
         onCancel={handleConfirmDeleteClose}
         onConfirm={handleConfirmDelete}

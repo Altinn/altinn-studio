@@ -13,6 +13,7 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
+    "esModuleInterop": true,
     "noUnusedLocals": true,
     "baseUrl": ".",
     "paths": {

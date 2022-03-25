@@ -1,5 +1,10 @@
-import { createTheme, createStyles, Typography, withStyles } from '@material-ui/core';
-import * as React from 'react';
+import {
+  createTheme,
+  createStyles,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
+import React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
@@ -11,6 +16,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
+import type { RootState } from 'store';
 
 const theme = createTheme(altinnTheme);
 
@@ -60,13 +66,14 @@ const styles = createStyles({
   },
 });
 
-export interface IAccessControlContainerProvidedProps {
+interface IAccessControlContainerProvidedProps {
   classes: any;
   applicationMetadata: any;
   dispatch?: Dispatch;
 }
 
-export interface IAccessControlContainerProps extends IAccessControlContainerProvidedProps {
+export interface IAccessControlContainerProps
+  extends IAccessControlContainerProvidedProps {
   language: any;
 }
 
@@ -82,7 +89,6 @@ export interface IPartyTypesAllowed {
   subUnit: boolean;
 }
 
-// eslint-disable-next-line no-shadow
 export enum PartyTypes {
   bankruptcyEstate = 'bankruptcyEstate',
   organisation = 'organisation',
@@ -91,8 +97,13 @@ export enum PartyTypes {
 }
 
 export class AccessControlContainerClass extends React.Component<
-  IAccessControlContainerProps, IAccessControlContainerState> {
-  public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
+  IAccessControlContainerProps,
+  IAccessControlContainerState
+> {
+  public static getDerivedStateFromProps(
+    nextProps: IAccessControlContainerProps,
+    state: IAccessControlContainerState,
+  ) {
     if (state.setStateCalled) {
       return {
         ...state,
@@ -107,13 +118,15 @@ export class AccessControlContainerClass extends React.Component<
     if (state.partyTypesAllowed !== partyTypesAllowed) {
       return {
         partyTypesAllowed,
-
       };
     }
     return null;
   }
 
-  constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
+  constructor(
+    props: IAccessControlContainerProps,
+    state: IAccessControlContainerState,
+  ) {
     super(props, state);
     const { partyTypesAllowedProps } = props.applicationMetadata;
     const partyTypesAllowed = {
@@ -134,41 +147,48 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public handlePartyTypesAllowedChange(partyType: PartyTypes) {
-    this.setState((prev) => {
-      const partyTypesAllowed = { ...prev.partyTypesAllowed };
-      partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
-      return ({
-        partyTypesAllowed,
-        setStateCalled: true,
-      });
-    }, () => {
-      this.saveApplicationMetadata();
-    });
+    this.setState(
+      (prev) => {
+        const partyTypesAllowed = { ...prev.partyTypesAllowed };
+        partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+        return {
+          partyTypesAllowed,
+          setStateCalled: true,
+        };
+      },
+      () => {
+        this.saveApplicationMetadata();
+      },
+    );
   }
 
   public saveApplicationMetadata() {
-    const newApplicationMetadata =
-      JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
+    const newApplicationMetadata = JSON.parse(
+      JSON.stringify(
+        this.props.applicationMetadata ? this.props.applicationMetadata : {},
+      ),
+    );
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
     this.props.dispatch(
-      ApplicationMetadataActions.putApplicationMetadata({ applicationMetadata: newApplicationMetadata }),
+      ApplicationMetadataActions.putApplicationMetadata({
+        applicationMetadata: newApplicationMetadata,
+      }),
     );
   }
 
   public renderMainContent = (): JSX.Element => {
-    return (
-      <>
-        {this.renderPartySection()}
-      </>
-    );
-  }
+    return <>{this.renderPartySection()}</>;
+  };
 
   public renderPartySection = (): JSX.Element => {
     const partyTypeKeys = Object.keys(PartyTypes);
     return (
       <div className={this.props.classes.contentMargin}>
         <Typography className={this.props.classes.sectionHeader}>
-          {getLanguageFromKey('access_control.party_type_header', this.props.language)}
+          {getLanguageFromKey(
+            'access_control.party_type_header',
+            this.props.language,
+          )}
         </Typography>
         <Typography className={this.props.classes.sectionContent}>
           {getLanguageFromKey('access_control.party_type', this.props.language)}
@@ -176,48 +196,73 @@ export class AccessControlContainerClass extends React.Component<
         <AltinnCheckBoxGroup row={true}>
           {partyTypeKeys.map((partyTypeKey: string) => {
             // value used for mapping internal state, key used for language reference
-            const partyTypeValue = PartyTypes[partyTypeKey as PartyTypes] as keyof IPartyTypesAllowed;
+            const partyTypeValue = PartyTypes[
+              partyTypeKey as PartyTypes
+            ] as keyof IPartyTypesAllowed;
             return (
               <AltinnFormControlLabel
                 key={partyTypeKey}
-                control={<AltinnCheckBox
-                  checked={this.state.partyTypesAllowed[partyTypeValue]}
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, partyTypeValue)}
-                />}
-                label={getLanguageFromKey(`access_control.${partyTypeKey}`, this.props.language)}
-              />);
+                control={
+                  <AltinnCheckBox
+                    checked={this.state.partyTypesAllowed[partyTypeValue]}
+                    onChangeFunction={this.handlePartyTypesAllowedChange.bind(
+                      this,
+                      partyTypeValue,
+                    )}
+                  />
+                }
+                label={getLanguageFromKey(
+                  `access_control.${partyTypeKey}`,
+                  this.props.language,
+                )}
+              />
+            );
           })}
         </AltinnCheckBoxGroup>
       </div>
     );
-  }
+  };
 
   public renderSideMenu = (): JSX.Element => {
     return (
       <>
         <Typography className={this.props.classes.sidebarHeader}>
-          {getLanguageFromKey('access_control.about_header', this.props.language)}
+          {getLanguageFromKey(
+            'access_control.about_header',
+            this.props.language,
+          )}
         </Typography>
         <div className={this.props.classes.sidebarSectionContainer}>
           <Typography className={this.props.classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_initiation_header', this.props.language)}
+            {getLanguageFromKey(
+              'access_control.test_initiation_header',
+              this.props.language,
+            )}
           </Typography>
           <Typography className={this.props.classes.infoText}>
-            {getLanguageFromKey('access_control.test_initiation', this.props.language)}
+            {getLanguageFromKey(
+              'access_control.test_initiation',
+              this.props.language,
+            )}
           </Typography>
         </div>
         <div className={this.props.classes.sidebarSectionContainer}>
           <Typography className={this.props.classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_what_header', this.props.language)}
+            {getLanguageFromKey(
+              'access_control.test_what_header',
+              this.props.language,
+            )}
           </Typography>
           <Typography className={this.props.classes.infoText}>
-            {getLanguageFromKey('access_control.test_what', this.props.language)}
+            {getLanguageFromKey(
+              'access_control.test_what',
+              this.props.language,
+            )}
           </Typography>
         </div>
       </>
     );
-  }
+  };
 
   public render() {
     return (
@@ -225,9 +270,13 @@ export class AccessControlContainerClass extends React.Component<
         aboveColumnChildren={
           <div className={this.props.classes.versionControlHeaderMargin}>
             <VersionControlHeader language={this.props.language} />
-          </div>}
+          </div>
+        }
         sideMenuChildren={this.renderSideMenu()}
-        header={getLanguageFromKey('access_control.header', this.props.language)}
+        header={getLanguageFromKey(
+          'access_control.header',
+          this.props.language,
+        )}
       >
         {this.renderMainContent()}
       </AltinnColumnLayout>
@@ -238,7 +287,7 @@ export class AccessControlContainerClass extends React.Component<
 const makeMapStateToProps = () => {
   const getApplicationMetadata = makeGetApplicationMetadata();
   return (
-    state: IServiceDevelopmentState,
+    state: RootState,
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => ({
     language: state.languageState.language,
@@ -248,4 +297,6 @@ const makeMapStateToProps = () => {
   });
 };
 
-export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));
+export default withStyles(styles)(
+  connect(makeMapStateToProps)(AccessControlContainerClass),
+);

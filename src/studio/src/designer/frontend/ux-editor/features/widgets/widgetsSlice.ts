@@ -1,7 +1,6 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { widgetSettings } from '../../utils/widgetSettings';
+import type { IWidget } from '../../types/global';
 
 export interface IWidgetState {
   widgets: IWidget[];
@@ -23,8 +22,12 @@ const widgetsSlice = createSlice({
   name: 'widgets',
   initialState,
   reducers: {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     fetchWidgets: () => {},
-    fetchWidgetsFulfilled: (state, action: PayloadAction<IFetchWidgetFulfilled>) => {
+    fetchWidgetsFulfilled: (
+      state,
+      action: PayloadAction<IFetchWidgetFulfilled>,
+    ) => {
       const { widgets } = action.payload;
       state.widgets = widgets;
       state.error = null;
@@ -33,6 +36,7 @@ const widgetsSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     fetchWidgetSettings: () => {},
     fetchWidgetSettingsFulfilled: (state, action) => {
       const { widgetUrls } = action.payload;

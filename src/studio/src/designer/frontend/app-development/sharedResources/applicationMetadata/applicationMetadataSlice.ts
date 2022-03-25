@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IApplicationMetadataState {
@@ -29,19 +28,31 @@ const applicationMetadataSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    getApplicationMetadataFulfilled: (state, action: PayloadAction<IGetApplicationMetadataFulfilled>) => {
+    getApplicationMetadataFulfilled: (
+      state,
+      action: PayloadAction<IGetApplicationMetadataFulfilled>,
+    ) => {
       const { applicationMetadata } = action.payload;
       state.applicationMetadata = applicationMetadata;
     },
-    getApplicationMetadataRejected: (state, action: PayloadAction<IApplicationMetadataActionRejected>) => {
+    getApplicationMetadataRejected: (
+      state,
+      action: PayloadAction<IApplicationMetadataActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    putApplicationMetadataFulfilled: (state, action: PayloadAction<IPutApplicationMetadata>) => {
+    putApplicationMetadataFulfilled: (
+      state,
+      action: PayloadAction<IPutApplicationMetadata>,
+    ) => {
       const { applicationMetadata } = action.payload;
       state.applicationMetadata = applicationMetadata;
     },
-    putApplicationMetadataRejected: (state, action: PayloadAction<IApplicationMetadataActionRejected>) => {
+    putApplicationMetadataRejected: (
+      state,
+      action: PayloadAction<IApplicationMetadataActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -50,7 +61,9 @@ const applicationMetadataSlice = createSlice({
 
 const actions = {
   getApplicationMetadata: createAction(`${moduleName}/getApplicationMetadata`),
-  putApplicationMetadata: createAction<IPutApplicationMetadata>(`${moduleName}/putApplicationMetadata`),
+  putApplicationMetadata: createAction<IPutApplicationMetadata>(
+    `${moduleName}/putApplicationMetadata`,
+  ),
 };
 
 export const ApplicationMetadataActions = {

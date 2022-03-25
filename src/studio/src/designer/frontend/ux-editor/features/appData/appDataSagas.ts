@@ -3,20 +3,41 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { get } from '../../utils/networking';
-import { ILoadTextResourcesAction,
+import {
+  ILoadTextResourcesAction,
   loadTextResources,
   loadTextResourcesFulfilled,
   loadTextResourcesRejected,
   addTextResources,
   addTextResourcesFulfilled,
-  addTextResourcesRejected } from './textResources/textResourcesSlice';
-import { getAddTextResourcesUrl, getFetchDataModelUrl, getFetchLanguageUrl, getFetchRuleModelUrl } from '../../utils/urlHelper';
-import { fetchDataModel, fetchDataModelFulfilled, fetchDataModelRejected } from './dataModel/dataModelSlice';
-import { fetchLanguage,
+  addTextResourcesRejected,
+} from './textResources/textResourcesSlice';
+import {
+  getAddTextResourcesUrl,
+  getFetchDataModelUrl,
+  getFetchLanguageUrl,
+  getFetchRuleModelUrl,
+} from '../../utils/urlHelper';
+import {
+  fetchDataModel,
+  fetchDataModelFulfilled,
+  fetchDataModelRejected,
+} from './dataModel/dataModelSlice';
+import {
+  fetchLanguage,
   fetchLanguageFulfilled,
   fetchLanguageRejected,
-  IFetchLanguage } from './language/languageSlice';
-import { fetchRuleModel, fetchRuleModelFulfilled, fetchRuleModelRejected } from './ruleModel/ruleModelSlice';
+  IFetchLanguage,
+} from './language/languageSlice';
+import {
+  fetchRuleModel,
+  fetchRuleModelFulfilled,
+  fetchRuleModelRejected,
+} from './ruleModel/ruleModelSlice';
+import type {
+  IDataModelFieldElement,
+  IRuleModelFieldElement,
+} from '../../types/global';
 
 function* fetchDataModelSaga(): SagaIterator {
   try {
@@ -55,14 +76,16 @@ function* fetchRuleModelSaga(): SagaIterator {
       ruleModelFields.push(innerFuncObj);
     });
 
-    Object.keys((window as any).conditionalRuleHandlerObject).forEach((functionName) => {
-      const innerFuncObj = {
-        name: functionName,
-        inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
-        type: 'condition',
-      };
-      ruleModelFields.push(innerFuncObj);
-    });
+    Object.keys((window as any).conditionalRuleHandlerObject).forEach(
+      (functionName) => {
+        const innerFuncObj = {
+          name: functionName,
+          inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
+          type: 'condition',
+        };
+        ruleModelFields.push(innerFuncObj);
+      },
+    );
 
     yield put(fetchRuleModelFulfilled({ ruleModel: ruleModelFields }));
   } catch (error) {
@@ -74,7 +97,9 @@ export function* watchFetchRuleModelSaga(): SagaIterator {
   yield takeLatest(fetchRuleModel, fetchRuleModelSaga);
 }
 
-export function* loadTextResourcesSaga({ payload }: ILoadTextResourcesAction): SagaIterator {
+export function* loadTextResourcesSaga({
+  payload,
+}: ILoadTextResourcesAction): SagaIterator {
   try {
     const { url } = payload;
     const textResources = yield call(get, url);
@@ -88,7 +113,9 @@ export function* watchLoadTextResourcesSaga(): SagaIterator {
   yield takeLatest(loadTextResources, loadTextResourcesSaga);
 }
 
-export function* fetchLanguageSaga({ payload }: PayloadAction<IFetchLanguage>): SagaIterator {
+export function* fetchLanguageSaga({
+  payload,
+}: PayloadAction<IFetchLanguage>): SagaIterator {
   try {
     const { languageCode } = payload;
     const language = yield call(get, getFetchLanguageUrl(languageCode));

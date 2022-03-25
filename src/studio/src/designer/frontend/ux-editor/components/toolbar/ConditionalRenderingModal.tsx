@@ -1,24 +1,33 @@
-/* eslint-disable max-len */
-/* eslint-disable no-undef */
-import * as React from 'react';
-import * as Modal from 'react-modal';
+import React from 'react';
+import Modal from 'react-modal';
 import { Typography } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
 import RuleButton from './RuleButton';
-import { addConditionalRenderingConnection, deleteConditionalRenderingConnnection } from '../../features/serviceConfigurations/serviceConfigurationSlice';
+import {
+  addConditionalRenderingConnection,
+  deleteConditionalRenderingConnnection,
+} from '../../features/serviceConfigurations/serviceConfigurationSlice';
+import type { IAppState } from '../../types/global';
 
 export interface IConditionalRenderingModalProps {
   modalOpen: boolean;
   handleClose: () => void;
 }
 
-export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
+export default function ConditionalRenderingModal(
+  props: IConditionalRenderingModalProps,
+) {
   const dispatch = useDispatch();
-  const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const [selectedConnectionId, setSelectedConnectionId] =
+    React.useState<string>(null);
+  const conditionalRendering = useSelector(
+    (state: IAppState) => state.serviceConfigurations.conditionalRendering,
+  );
+  const language = useSelector(
+    (state: IAppState) => state.appData.languageState.language,
+  );
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -43,7 +52,10 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
   }
 
   function renderConditionRuleConnections(): JSX.Element {
-    if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
+    if (
+      !conditionalRendering ||
+      Object.getOwnPropertyNames(conditionalRendering).length === 0
+    ) {
       return (
         <Typography variant='caption'>
           {getLanguageFromKey('right_menu.rules_empty', language)}
@@ -54,6 +66,7 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
       <>
         {Object.keys(conditionalRendering || {}).map((key: string) => (
           <RuleButton
+            key={key}
             text={conditionalRendering[key]?.selectedFunction}
             onClick={() => selectConnection(key)}
           />
@@ -70,20 +83,22 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
         ariaHideApp={false}
         overlayClassName='react-modal-overlay '
       >
-        {selectedConnectionId ?
+        {selectedConnectionId ? (
           <ConditionalRenderingComponent
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
           />
-          :
+        ) : (
           <ConditionalRenderingComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+            deleteConnection={(connectionId: any) =>
+              handleDeleteConnection(connectionId)
+            }
           />
-        }
+        )}
       </Modal>
       {renderConditionRuleConnections()}
     </>

@@ -1,10 +1,11 @@
-import * as React from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { DataModelling } from 'app-shared/features';
 import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { createStyles, Grid, withStyles } from '@material-ui/core';
 import { useAppDispatch } from 'common/hooks';
+import type { IDashboardAppState } from '../../types/global';
 
 interface IStandaloneDataModellingProps {
   language: any;

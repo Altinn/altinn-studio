@@ -1,4 +1,11 @@
-import { ILayoutSettings } from 'app-shared/types';
+import type { ILayoutSettings } from 'app-shared/types/global';
+import type {
+  IFormComponent,
+  IFormDesignerComponents,
+  ICreateFormContainer,
+  IWidget,
+  IFormLayouts,
+} from '../../types/global';
 
 export interface IFormDesignerActionRejected {
   error: Error;

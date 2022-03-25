@@ -1,5 +1,11 @@
-import { createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
-import * as React from 'react';
+import {
+  createTheme,
+  Grid,
+  makeStyles,
+  Popover,
+  Typography,
+} from '@material-ui/core';
+import React from 'react';
 import studioTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnButton from 'app-shared/components/AltinnButton';
 
@@ -50,25 +56,14 @@ export default function ConfirmModal(props: IConfirmModalProps) {
       }}
       onClose={props.onClose}
     >
-      <Grid
-        container={true} direction='column'
-        className={classes.main}
-      >
+      <Grid container={true} direction='column' className={classes.main}>
         <Grid item={true} className={classes.header}>
-          <Typography variant='h2'>
-            {props.header}
-          </Typography>
+          <Typography variant='h2'>{props.header}</Typography>
         </Grid>
         <Grid item={true} className={classes.content}>
-          <Typography variant='body1'>
-            {props.description}
-          </Typography>
+          <Typography variant='body1'>{props.description}</Typography>
         </Grid>
-        <Grid
-          container={true}
-          direction='row'
-          xs={12}
-        >
+        <Grid container={true} direction='row' xs={12}>
           <Grid item={true} xs={6}>
             <AltinnButton
               onClickFunction={props.onConfirm}

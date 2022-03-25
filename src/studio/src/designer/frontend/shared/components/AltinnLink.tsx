@@ -1,6 +1,6 @@
 import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnIcon from './AltinnIcon';
 

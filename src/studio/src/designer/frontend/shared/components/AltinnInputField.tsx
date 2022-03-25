@@ -7,7 +7,7 @@ import {
   withStyles,
 } from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from './AltinnButton';
 import ErrorPopover from './ErrorPopover';

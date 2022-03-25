@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { PopoverOrigin } from '@material-ui/core/Popover';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';

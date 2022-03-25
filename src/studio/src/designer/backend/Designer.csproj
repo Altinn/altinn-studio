@@ -15,6 +15,7 @@
     <RootNamespace>Altinn.Studio.Designer</RootNamespace>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{6D0AC0E2-5A9A-4804-AA89-48000067AEB0}</ProjectGuid>
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>

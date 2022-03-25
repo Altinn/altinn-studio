@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import {
   DataGrid,
   GridSortModel,
@@ -16,7 +16,7 @@ import { IconButton } from '@mui/material';
 import cn from 'classnames';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from 'common/components/MakeCopyModal';
@@ -122,7 +122,6 @@ const TextWithTooltip = (params: GridRenderCellParams) => {
     </div>
   );
 };
-
 
 export const RepoList = ({
   repos = defaultArray,

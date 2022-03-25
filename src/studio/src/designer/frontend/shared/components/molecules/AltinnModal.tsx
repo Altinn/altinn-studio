@@ -1,7 +1,13 @@
-import { createTheme, createStyles, IconButton, Modal, Typography } from '@material-ui/core';
+import {
+  createTheme,
+  createStyles,
+  IconButton,
+  Modal,
+  Typography,
+} from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnModalComponentProvidedProps {
@@ -72,7 +78,7 @@ const styles = createStyles({
     },
   },
   iconBtn: {
-    float: 'right' as 'right',
+    float: 'right' as const,
     marginRight: '-11px',
     marginTop: '-27px',
   },
@@ -89,7 +95,10 @@ const styles = createStyles({
   },
 });
 
-export class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
+export class AltinnModal extends React.Component<
+  IAltinnModalComponentProvidedProps,
+  IAltinnModalComponentState
+> {
   public render() {
     const { classes, printView } = this.props;
     if (!printView) {
@@ -98,28 +107,37 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
           open={this.props.isOpen}
           className={this.props.classes.scroll}
           hideBackdrop={this.props.hideBackdrop}
-          onClose={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
+          onClose={
+            this.props.allowCloseOnBackdropClick === false
+              ? null
+              : this.props.onClose
+          }
         >
           <div className={classes.modal}>
             <div className={classes.header}>
-              {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
+              {this.props.hideCloseIcon &&
+              this.props.hideCloseIcon === true ? null : (
                 <IconButton
-                  className={classNames(
-                    classes.iconBtn,
-                    { [classes.closeButtonOutsideModal]: this.props.closeButtonOutsideModal === true},
-                  )}
+                  className={classNames(classes.iconBtn, {
+                    [classes.closeButtonOutsideModal]:
+                      this.props.closeButtonOutsideModal === true,
+                  })}
                   onClick={this.props.onClose}
                 >
-                  <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                  <i
+                    tabIndex={0}
+                    className={classNames(
+                      'ai ai-exit-test',
+                      classes.iconStyling,
+                    )}
+                  />
                 </IconButton>
-              }
+              )}
               <Typography className={classes.headerText}>
                 {this.props.headerText}
               </Typography>
             </div>
-            <div className={classes.body}>
-              {this.props.children}
-            </div>
+            <div className={classes.body}>{this.props.children}</div>
           </div>
         </Modal>
       );
@@ -127,24 +145,26 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
       return (
         <div className={classes.modal}>
           <div className={classes.header}>
-            {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
+            {this.props.hideCloseIcon &&
+            this.props.hideCloseIcon === true ? null : (
               <IconButton
-                className={classNames(
-                  classes.iconBtn,
-                  { [classes.closeButtonOutsideModal]: this.props.closeButtonOutsideModal === true},
-                )}
+                className={classNames(classes.iconBtn, {
+                  [classes.closeButtonOutsideModal]:
+                    this.props.closeButtonOutsideModal === true,
+                })}
                 onClick={this.props.onClose}
               >
-                <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                <i
+                  tabIndex={0}
+                  className={classNames('ai ai-exit-test', classes.iconStyling)}
+                />
               </IconButton>
-            }
+            )}
             <Typography className={classes.headerText}>
               {this.props.headerText}
             </Typography>
           </div>
-          <div className={classes.body}>
-            {this.props.children}
-          </div>
+          <div className={classes.body}>{this.props.children}</div>
         </div>
       );
     }

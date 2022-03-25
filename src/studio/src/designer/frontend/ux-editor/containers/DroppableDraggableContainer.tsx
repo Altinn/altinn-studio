@@ -1,6 +1,7 @@
 /* eslint-disable react/no-find-dom-node */
-import * as React from 'react';
-import { ConnectDragPreview,
+import React from 'react';
+import {
+  ConnectDragPreview,
   ConnectDragSource,
   ConnectDropTarget,
   DragSource,
@@ -10,8 +11,9 @@ import { ConnectDragPreview,
   DropTarget,
   DropTargetConnector,
   DropTargetMonitor,
-  DropTargetSpec } from 'react-dnd';
-import * as ReactDOM from 'react-dom';
+  DropTargetSpec,
+} from 'react-dnd';
+import ReactDOM from 'react-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
@@ -26,19 +28,26 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
     }
     return true;
   },
-  isDragging(props: IDroppableDraggableContainerProps, monitor: DragSourceMonitor) {
+  isDragging(
+    props: IDroppableDraggableContainerProps,
+    monitor: DragSourceMonitor,
+  ) {
     return props.id === monitor.getItem().id;
   },
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
-  drop(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor, Component: React.Component) {
+  drop(
+    props: IDroppableDraggableContainerProps,
+    monitor: DropTargetMonitor,
+    Component: React.Component,
+  ) {
     if (monitor.isOver({ shallow: true })) {
       switch (monitor.getItemType()) {
         case 'TOOLBAR_ITEM': {
           const toolbarItem = monitor.getItem();
           if (!toolbarItem.onDrop) {
-            console.warn('Draggable Item doesn\'t have an onDrop-event');
+            console.warn("Draggable Item doesn't have an onDrop-event");
             break;
           }
           toolbarItem.onDrop(props.id);
@@ -47,8 +56,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
         case 'ITEM': {
           const draggedComponent = monitor.getItem();
           let hoverOverIndex = props.index;
-          const hoverBoundingRect = (ReactDOM.findDOMNode(Component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const hoverBoundingRect = (
+            ReactDOM.findDOMNode(Component) as Element
+          ).getBoundingClientRect();
+          const hoverMiddleY =
+            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
@@ -91,7 +103,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
       }
     }
   },
-  hover(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor, component: any) {
+  hover(
+    props: IDroppableDraggableContainerProps,
+    monitor: DropTargetMonitor,
+    component: any,
+  ) {
     if (!component) {
       return;
     }
@@ -102,8 +118,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           const draggedContainer = monitor.getItem();
           let hoverOverIndex = props.index;
 
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const hoverBoundingRect = (
+            ReactDOM.findDOMNode(component) as Element
+          ).getBoundingClientRect();
+          const hoverMiddleY =
+            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
@@ -143,8 +162,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
         case 'ITEM': {
           const draggedItem = monitor.getItem();
           let hoverOverIndex = props.index;
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const hoverBoundingRect = (
+            ReactDOM.findDOMNode(component) as Element
+          ).getBoundingClientRect();
+          const hoverMiddleY =
+            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
@@ -202,36 +224,38 @@ export interface IDroppableDraggableContainerProps {
   onDropContainer?: (...args: any) => void;
 }
 
-class DroppableDraggableContainer extends React.Component<IDroppableDraggableContainerProps &
-{
-  connectDragPreview: ConnectDragPreview;
-  connectDragSource: ConnectDragSource;
-  connectDropTarget: ConnectDropTarget;
-  isOver: boolean;
-},
+class DroppableDraggableContainer extends React.Component<
+  IDroppableDraggableContainerProps & {
+    connectDragPreview: ConnectDragPreview;
+    connectDragSource: ConnectDragSource;
+    connectDropTarget: ConnectDropTarget;
+    isOver: boolean;
+  },
   any
-  > {
+> {
   public render() {
-    const {
-      connectDropTarget,
-      connectDragPreview,
-      connectDragSource,
-      isOver,
-    } = this.props;
-    return connectDropTarget(connectDragPreview(connectDragSource(
-      <div
-        style={{
-          backgroundColor: isOver ? 'white' : altinnTheme.altinnPalette.primary.greyLight,
-          paddingLeft: '1.2rem',
-          paddingRight: '1.2rem',
-          paddingTop: this.props.baseContainer ? '1.2rem' : '',
-          border: this.props.parentContainerId ? '' : '1px solid #ccc',
-          marginBottom: this.props.baseContainer ? '' : '12px',
-        }}
-      >
-        {this.props.children}
-      </div>,
-    )));
+    const { connectDropTarget, connectDragPreview, connectDragSource, isOver } =
+      this.props;
+    return connectDropTarget(
+      connectDragPreview(
+        connectDragSource(
+          <div
+            style={{
+              backgroundColor: isOver
+                ? 'white'
+                : altinnTheme.altinnPalette.primary.greyLight,
+              paddingLeft: '1.2rem',
+              paddingRight: '1.2rem',
+              paddingTop: this.props.baseContainer ? '1.2rem' : '',
+              border: this.props.parentContainerId ? '' : '1px solid #ccc',
+              marginBottom: this.props.baseContainer ? '' : '12px',
+            }}
+          >
+            {this.props.children}
+          </div>,
+        ),
+      ),
+    );
   }
 }
 
@@ -251,7 +275,5 @@ export default DropTarget(
       connectDragPreview: connect.dragPreview(),
       isDragging: monitor.isDragging(),
     }),
-  )(
-    DroppableDraggableContainer,
-  ),
+  )(DroppableDraggableContainer),
 );

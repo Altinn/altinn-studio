@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IConfigurationState {
@@ -45,12 +44,18 @@ const configurationSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    getEnvironmentsFulfilled: (state, action: PayloadAction<IGetEnvironmentsFulfilled>) => {
+    getEnvironmentsFulfilled: (
+      state,
+      action: PayloadAction<IGetEnvironmentsFulfilled>,
+    ) => {
       const { result } = action.payload;
       state.environments.result = result.environments;
       state.environments.error = null;
     },
-    getEnvironmentsRejected: (state, action: PayloadAction<IConfigurationActionRejected>) => {
+    getEnvironmentsRejected: (
+      state,
+      action: PayloadAction<IConfigurationActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.environments.error = error;
     },
@@ -59,7 +64,10 @@ const configurationSlice = createSlice({
       state.orgs.allOrgs = orgs;
       state.orgs.error = null;
     },
-    getOrgsRejected: (state, action: PayloadAction<IConfigurationActionRejected>) => {
+    getOrgsRejected: (
+      state,
+      action: PayloadAction<IConfigurationActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.orgs.error = error;
     },

@@ -6,10 +6,10 @@ import {
   withStyles,
 } from '@material-ui/core';
 import axios from 'axios';
-import * as React from 'react';
+import React from 'react';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { IAltinnWindow, IGitStatus } from '../types';
+import type { IAltinnWindow, IGitStatus, IContentStatus } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';
@@ -54,7 +54,12 @@ const initialModalState = {
 };
 
 function hasLocalChanges(result: IGitStatus) {
-  return result && result.contentStatus.some(file => file.fileStatus !== 'Ignored');
+  return (
+    result &&
+    result.contentStatus.some(
+      (file: IContentStatus) => file.fileStatus !== 'Ignored',
+    )
+  );
 }
 
 class VersionControlHeader extends React.Component<
@@ -125,7 +130,7 @@ class VersionControlHeader extends React.Component<
           } else if (result) {
             this.setState({
               changesInMaster: result.behindBy !== 0,
-              changesInLocalRepo: hasLocalChanges(result)
+              changesInLocalRepo: hasLocalChanges(result),
             });
           }
         }
@@ -270,7 +275,7 @@ class VersionControlHeader extends React.Component<
                 ),
               },
             });
-          } else if (!hasLocalChanges(result) && result.aheadBy > 0 ) {
+          } else if (!hasLocalChanges(result) && result.aheadBy > 0) {
             this.setState({
               anchorEl: currentTarget,
               modalState: {
@@ -582,7 +587,7 @@ class VersionControlHeader extends React.Component<
             {this.renderCloneModal()}
           </Grid>
         ) : type === 'fetchButton' ? (
-          <div data-testid='version-control-fetch-button'          >
+          <div data-testid='version-control-fetch-button'>
             <FetchChangesComponent
               changesInMaster={this.state.changesInMaster}
               fetchChanges={this.fetchChanges}

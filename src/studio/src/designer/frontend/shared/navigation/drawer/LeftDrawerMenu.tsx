@@ -6,10 +6,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { makeStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
-import { createLeftDrawerMenuSettings, IMenuItem } from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
+import type { IMenuItem } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -23,7 +24,9 @@ export interface ILeftDrawerMenuProps {
 }
 
 export default function LeftDrawerMenu({
-  menuType, activeLeftMenuSelection, leftMenuItems,
+  menuType,
+  activeLeftMenuSelection,
+  leftMenuItems,
 }: ILeftDrawerMenuProps) {
   const classes = useStyles();
 
@@ -58,9 +61,7 @@ export default function LeftDrawerMenu({
   const menuToRender = createLeftDrawerMenuSettings(leftMenuItems)[menuType];
 
   if (!menuType || !menuToRender) {
-    return (
-      <div />
-    );
+    return <div />;
   }
 
   return (
@@ -91,11 +92,11 @@ export default function LeftDrawerMenu({
             >
               <ListItem
                 classes={{
-                  root: classNames(classes.listItem,
-                    {
-                      [classes.activeListItem]: activeLeftMenuSelection ===
-                        menuItem.activeLeftMenuSelection,
-                    }),
+                  root: classNames(classes.listItem, {
+                    [classes.activeListItem]:
+                      activeLeftMenuSelection ===
+                      menuItem.activeLeftMenuSelection,
+                  }),
                 }}
                 onMouseEnter={onMouseEnterListItem(index)}
                 onMouseLeave={onMouseLeaveListItem(index)}
@@ -103,12 +104,19 @@ export default function LeftDrawerMenu({
               >
                 <ListItemIcon>
                   <AltinnIcon
-                    isActive={activeLeftMenuSelection ===
-                      menuItem.activeLeftMenuSelection}
-                    isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
+                    isActive={
+                      activeLeftMenuSelection ===
+                      menuItem.activeLeftMenuSelection
+                    }
+                    isActiveIconColor={
+                      altinnTheme.altinnPalette.primary.blueDark
+                    }
                     iconClass={menuItem.iconClass}
-                    iconColor={iconColor[index] === undefined
-                      ? 'rgba(0, 0, 0, 0.54)' : iconColor[index]}
+                    iconColor={
+                      iconColor[index] === undefined
+                        ? 'rgba(0, 0, 0, 0.54)'
+                        : iconColor[index]
+                    }
                   />
                 </ListItemIcon>
                 <ListItemText

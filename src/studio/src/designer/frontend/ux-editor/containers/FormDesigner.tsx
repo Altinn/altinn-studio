@@ -1,7 +1,13 @@
-/* eslint-disable import/no-cycle */
-import { createTheme, Drawer, Grid, makeStyles, Theme, Typography } from '@material-ui/core';
+import {
+  createTheme,
+  Drawer,
+  Grid,
+  makeStyles,
+  Theme,
+  Typography,
+} from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +20,11 @@ import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import type {
+  IDataModelFieldElement,
+  LogicMode,
+  IAppState,
+} from '../types/global';
 
 const useTheme = createTheme(altinnTheme);
 
@@ -51,7 +62,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   item: {
     padding: 0,
-    minWidth: '240px', /* Two columns at 1024px screen size */
+    minWidth: '240px' /* Two columns at 1024px screen size */,
     overflowX: 'hidden',
   },
   icon: {
@@ -72,7 +83,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
     marginRight: '2px',
-    minWidth: '682px !important', /* Eight columns at 1024px screen size */
+    minWidth: '682px !important' /* Eight columns at 1024px screen size */,
     overflowY: 'scroll',
     [theme.breakpoints.up('md')]: {
       marginBottom: '80px',
@@ -122,21 +133,29 @@ function FormDesigner() {
   const [codeEditorOpen, setCodeEditorOpen] = React.useState<boolean>(false);
   const [codeEditorMode, setCodeEditorMode] = React.useState<LogicMode>(null);
 
-  const selectedLayout: string = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const selectedLayout: string = useSelector(
+    (state: IAppState) => state.formDesigner.layout.selectedLayout,
+  );
+  const language = useSelector(
+    (state: IAppState) => state.appData.languageState.language,
+  );
+  const dataModel = useSelector(
+    (state: IAppState) => state.appData.dataModel.model,
+  );
 
   React.useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
     dispatch(fetchServiceConfiguration());
-  }, []);
+  }, [dispatch]);
 
   const toggleCodeEditor = (mode?: LogicMode) => {
     setCodeEditorOpen(!codeEditorOpen);
     setCodeEditorMode(mode || null);
   };
 
-  const getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
+  const getDataModelSuggestions = (
+    filterText: string,
+  ): IDataModelFieldElement[] => {
     return filterDataModelForIntellisense(dataModel, filterText);
   };
 
@@ -175,14 +194,18 @@ function FormDesigner() {
           id='formFillerGrid'
         >
           <Grid
-            item={true} xs={2}
-            className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}
+            item={true}
+            xs={2}
+            className={classes.toolbarWrapper}
+            classes={{ item: classNames(classes.item) }}
           >
             <Toolbar />
           </Grid>
           <Grid
-            item={true} xs={8}
-            className={classes.mainContent} classes={{ item: classNames(classes.item) }}
+            item={true}
+            xs={8}
+            className={classes.mainContent}
+            classes={{ item: classNames(classes.item) }}
           >
             <div className={classes.versionControlHeaderMargin}>
               <VersionControlHeader language={language} />
@@ -200,16 +223,10 @@ function FormDesigner() {
               }}
             >
               <DesignView />
-              {codeEditorOpen ?
-                renderLogicEditor()
-                : null}
+              {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>
-          <Grid
-            item={true}
-            xs={2}
-            classes={{ item: classNames(classes.item) }}
-          >
+          <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
             <RightMenu
               toggleFileEditor={toggleCodeEditor}
               language={language}

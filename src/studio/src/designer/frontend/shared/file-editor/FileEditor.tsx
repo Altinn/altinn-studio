@@ -1,12 +1,16 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
-import { createTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import {
+  createTheme,
+  createStyles,
+  withStyles,
+} from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as diff from 'diff';
-import * as React from 'react';
+import { diffChars } from 'diff';
+import React from 'react';
 import MonacoEditorComponent from './MonacoEditorComponent';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
-import { IAltinnWindow } from '../types';
+import type { IAltinnWindow } from '../types/global';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 
@@ -106,11 +110,11 @@ const styles = createStyles({
     display: 'none',
   },
   formComponentsBtn: {
-    'fontSize': '0.85em',
-    'fill': theme.altinnPalette.primary.blue,
-    'paddingLeft': '0',
-    'marginTop': '0.1em',
-    'outline': 'none !important',
+    fontSize: '0.85em',
+    fill: theme.altinnPalette.primary.blue,
+    paddingLeft: '0',
+    marginTop: '0.1em',
+    outline: 'none !important',
     '&:hover': {
       background: 'none',
     },
@@ -127,7 +131,10 @@ const styles = createStyles({
   },
 });
 
-class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorState> {
+class FileEditor extends React.Component<
+  IFileEditorProvidedProps,
+  IFileEditorState
+> {
   constructor(props: IFileEditorProvidedProps) {
     super(props);
     this.state = {
@@ -147,18 +154,20 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     if (!this.props.loadFile) {
       const { org, app } = window as Window as IAltinnWindow;
       const appId = `${org}/${app}`;
-      get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-        `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
-          const files = response.split(',');
-          this.loadFileContent(files[0]);
-          this.setState((prevState: IFileEditorState) => {
-            return {
-              ...prevState,
-              availableFiles: files,
-              mounted: true,
-            };
-          });
+      get(
+        `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+          `/GetServiceFiles?fileEditorMode=${this.props.mode}`,
+      ).then((response) => {
+        const files = response.split(',');
+        this.loadFileContent(files[0]);
+        this.setState((prevState: IFileEditorState) => {
+          return {
+            ...prevState,
+            availableFiles: files,
+            mounted: true,
+          };
         });
+      });
     }
   }
 
@@ -177,36 +186,40 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     });
     const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
-    get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-      `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
-      .then((logicFileContent) => {
-        this.setState((prevState: IFileEditorState) => {
-          return {
-            ...prevState,
-            isLoading: false,
-            selectedFile: fileName,
-            value: logicFileContent,
-            valueOriginal: logicFileContent,
-          };
-        });
+    get(
+      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+        `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`,
+    ).then((logicFileContent) => {
+      this.setState((prevState: IFileEditorState) => {
+        return {
+          ...prevState,
+          isLoading: false,
+          selectedFile: fileName,
+          value: logicFileContent,
+          valueOriginal: logicFileContent,
+        };
       });
-  }
+    });
+  };
 
   public switchFile = (e: any) => {
     const fileName = e.target.value;
     this.loadFileContent(fileName);
-  }
+  };
 
   public saveFile = async (e: any) => {
-
     let stageFile = false;
-    if (this.props.stageAfterSaveFile === true && this.valueHasNoMergeConflictTags(this.state.value)) {
+    if (
+      this.props.stageAfterSaveFile === true &&
+      this.valueHasNoMergeConflictTags(this.state.value)
+    ) {
       stageFile = true;
     }
 
     const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
-    const postUrl = `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+    const postUrl =
+      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {
@@ -220,17 +233,23 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
 
     if (this.props.checkRepoStatusAfterSaveFile === true) {
-      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
+      window.postMessage(
+        postMessages.forceRepoStatusCheck,
+        window.location.href,
+      );
     }
 
     if (this.state.mounted && this.props.closeFileEditor) {
       this.props.closeFileEditor();
     }
-
-  }
-  public createCompletionSuggestions = (monaco: any, filterText: string): any[] => {
-    const dataModelSuggestions = this.props.getDataModelSuggestions ?
-      this.props.getDataModelSuggestions(filterText) : [];
+  };
+  public createCompletionSuggestions = (
+    monaco: any,
+    filterText: string,
+  ): any[] => {
+    const dataModelSuggestions = this.props.getDataModelSuggestions
+      ? this.props.getDataModelSuggestions(filterText)
+      : [];
     const suggestions = dataModelSuggestions.map((item: any) => {
       return {
         label: item.Name,
@@ -241,7 +260,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     });
 
     return suggestions;
-  }
+  };
 
   public onValueChange = (value: string) => {
     this.setState((prevState: IFileEditorState) => {
@@ -251,8 +270,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       };
     });
 
-    if (diff.diffChars(this.state.value, this.state.valueOriginal).length > 1) {
-
+    if (diffChars(this.state.value, this.state.valueOriginal).length > 1) {
       // If diff, and valueDiff is changed, change state
 
       if (this.state.valueDiff === false) {
@@ -260,17 +278,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           valueDiff: true,
         });
       }
-
     } else {
-
       if (this.state.valueDiff === true) {
         this.setState({
           valueDiff: false,
         });
       }
-
     }
-  }
+  };
 
   public getLanguageFromFileName = (): any => {
     if (this.state.selectedFile && this.state.selectedFile.length > 1) {
@@ -281,32 +296,41 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       }
     }
     return { name: null, displayName: null };
-  }
+  };
 
   public renderCloseButton = (): JSX.Element => {
     return (
-      <Grid
-        item={true}
-        xs={1}
-        className={this.props.classes.fileHeader}
-      >
+      <Grid item={true} xs={1} className={this.props.classes.fileHeader}>
         <IconButton
           type='button'
-          className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+          className={
+            this.props.classes.formComponentsBtn +
+            ' ' +
+            this.props.classes.specialBtn
+          }
           onClick={this.props.closeFileEditor}
         >
-          <i className='fa fa-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={0} />
+          <i
+            className='fa fa-circlecancel'
+            ref={this.state.fileEditorCancelRef}
+            id='fileEditorCancel'
+            tabIndex={0}
+          />
         </IconButton>
         <IconButton
           type='button'
-          className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+          className={
+            this.props.classes.formComponentsBtn +
+            ' ' +
+            this.props.classes.specialBtn
+          }
           onClick={this.saveFile}
         >
           <i className='fa fa-circlecheck' id='fileEditorCheck' tabIndex={0} />
         </IconButton>
       </Grid>
     );
-  }
+  };
 
   public renderSaveButton = (): JSX.Element => {
     return (
@@ -317,13 +341,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         justify='flex-end'
         alignItems='center'
       >
-        <Grid
-          item={true}
-        >
-          <div
-            ref={this.state.fileEditorSaveRef}
-            tabIndex={0}
-          >
+        <Grid item={true}>
+          <div ref={this.state.fileEditorSaveRef} tabIndex={0}>
             <AltinnButton
               btnText='Lagre fil'
               disabled={!this.state.valueDiff}
@@ -334,16 +353,19 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         </Grid>
       </Grid>
     );
-  }
+  };
 
   public valueHasNoMergeConflictTags = (value: string) => {
-    const match = value.indexOf('<<<<<<<') > -1 || value.indexOf('=======') > -1 || value.indexOf('>>>>>>>') > -1;
+    const match =
+      value.indexOf('<<<<<<<') > -1 ||
+      value.indexOf('=======') > -1 ||
+      value.indexOf('>>>>>>>') > -1;
     if (match) {
       return false;
     } else {
       return true;
     }
-  }
+  };
 
   public render() {
     const { classes, mode } = this.props;
@@ -351,11 +373,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     return (
       <Grid
         container={true}
-        className={
-          classNames(classes.codeEditorContent, {
-            [classes.boxShadow]: this.props.boxShadow,
-          })
-        }
+        className={classNames(classes.codeEditorContent, {
+          [classes.boxShadow]: this.props.boxShadow,
+        })}
       >
         <Grid
           item={true}
@@ -365,57 +385,61 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           alignItems='center'
           className={classes.fileHeader}
         >
-          <Grid
-            item={true}
-            xs={true}
-          >
+          <Grid item={true} xs={true}>
             <span>
               {/* If this.props.loadFile is present,
-              * if loadFile contains directories then split and show,
-              * else show the 'mode' location from 'foldertext'.
-              */}
-              {this.props.loadFile ?
+               * if loadFile contains directories then split and show,
+               * else show the 'mode' location from 'foldertext'.
+               */}
+              {this.props.loadFile ? (
                 this.props.loadFile.split('/').map((folder, index) => {
-                  {/* If one or last element, return without expand icon */ }
+                  {
+                    /* If one or last element, return without expand icon */
+                  }
                   if (this.props.loadFile.split('/').length === index + 1) {
                     return (
                       <React.Fragment key={index}>
-                        <span className={classes.file}>
-                          {folder}
-                        </span>
+                        <span className={classes.file}>{folder}</span>
                       </React.Fragment>
                     );
                   }
-                  {/* Return folder with expand icon */ }
+                  {
+                    /* Return folder with expand icon */
+                  }
                   return (
                     <React.Fragment key={index}>
-                      {folder} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
+                      {folder}{' '}
+                      <i
+                        className='fa fa-expand-alt'
+                        style={{ fontSize: '2rem' }}
+                      />
                     </React.Fragment>
                   );
                 })
-
-                :
-
+              ) : (
                 <React.Fragment>
-                  <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
+                  <i
+                    className='fa fa-expand-alt'
+                    style={{ fontSize: '2rem' }}
+                  />
                 </React.Fragment>
-
-              }
+              )}
 
               {/* If not Loadfile, show select*/}
-              {!this.props.loadFile ?
-
+              {!this.props.loadFile ? (
                 <React.Fragment>
-                  {mode} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
+                  {mode}{' '}
+                  <i
+                    className='fa fa-expand-alt'
+                    style={{ fontSize: '2rem' }}
+                  />
                   <Select
                     value={this.state.selectedFile}
-                    classes={
-                      {
-                        root: classNames(classes.selectFile),
-                        icon: classNames(classes.hideIcon),
-                        selectMenu: classNames(classes.selectMenu),
-                      }
-                    }
+                    classes={{
+                      root: classNames(classes.selectFile),
+                      icon: classNames(classes.hideIcon),
+                      selectMenu: classNames(classes.selectMenu),
+                    }}
                     onChange={this.switchFile}
                   >
                     {this.state.availableFiles.map((file: string) => {
@@ -431,11 +455,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                     })}
                   </Select>
                 </React.Fragment>
-
-                :
-
-                null
-              }
+              ) : null}
             </span>
           </Grid>
 
@@ -443,13 +463,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           {this.props.showSaveButton ? this.renderSaveButton() : null}
           {/* Contains grid items */}
           {this.props.closeFileEditor ? this.renderCloseButton() : null}
-
         </Grid>
-        <Grid
-          item={true}
-          xs={12}
-          className={classes.codeEditorContent}
-        >
+        <Grid item={true} xs={12} className={classes.codeEditorContent}>
           <MonacoEditorComponent
             createCompletionSuggestions={this.createCompletionSuggestions}
             heightPx={`${this.props.editorHeight}px`}
@@ -457,14 +472,18 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             language={language.name}
             onValueChange={this.onValueChange}
             value={this.state.value}
-            escRef={this.props.showSaveButton ? this.state.fileEditorSaveRef : this.state.fileEditorCancelRef}
+            escRef={
+              this.props.showSaveButton
+                ? this.state.fileEditorSaveRef
+                : this.state.fileEditorCancelRef
+            }
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />
         <Grid className={classes.footerContent} item={true} xs={1}>
           <span>{language.displayName}</span>
         </Grid>
-      </Grid >
+      </Grid>
     );
   }
 }

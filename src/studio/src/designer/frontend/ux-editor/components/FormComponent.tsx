@@ -1,14 +1,16 @@
-/* eslint-disable max-len */
 import { createStyles, withStyles } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import { connect, useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import type {
+  FormComponentType,
+  IDataModelFieldElement,
+  IAppState,
+} from '../types/global';
 
-const styles = createStyles({
-
-});
+const styles = createStyles({});
 
 /**
  * Properties defined for input for wrapper
@@ -49,9 +51,9 @@ const FormComponent = (props: IFormElementProps) => {
   }, []);
 
   /*
-  * Handle all types of clicks.
-  * Tracks if the click is outside of the formComponent
-  */
+   * Handle all types of clicks.
+   * Tracks if the click is outside of the formComponent
+   */
   const handleClick = (e: any) => {
     const serviceLogicMenu = document.getElementById('serviceLogicMenu');
     if (serviceLogicMenu) {
@@ -59,8 +61,7 @@ const FormComponent = (props: IFormElementProps) => {
         const key: any = Object.keys(props.order)[0];
         const order = props.order[key].indexOf(props.id);
 
-        if (wrapperRef && !wrapperRef.contains(e.target) &&
-          order === 0) {
+        if (wrapperRef && !wrapperRef.contains(e.target) && order === 0) {
           handleActiveListChange({});
         }
       }
@@ -77,7 +78,9 @@ const FormComponent = (props: IFormElementProps) => {
    * Return a given textresource from all textresources avaiable
    */
   const getTextResource = (resourceKey: string): string => {
-    const textResource = props.textResources.find((resource) => resource.id === resourceKey);
+    const textResource = props.textResources.find(
+      (resource) => resource.id === resourceKey,
+    );
     return textResource ? textResource.value : resourceKey;
   };
 
@@ -85,25 +88,31 @@ const FormComponent = (props: IFormElementProps) => {
    * Render label
    */
   const renderLabel = (): JSX.Element => {
-    if (props.component.type === 'Header' ||
+    if (
+      props.component.type === 'Header' ||
       props.component.type === 'Paragraph' ||
       props.component.type === 'Submit' ||
       props.component.type === 'ThirdParty' ||
-      props.component.type === 'AddressComponent') {
+      props.component.type === 'AddressComponent'
+    ) {
       return null;
     }
     if (!props.component.textResourceBindings) {
       return null;
     }
     if (props.component.textResourceBindings.title) {
-      const label: string = getTextResource(props.component.textResourceBindings.title);
+      const label: string = getTextResource(
+        props.component.textResourceBindings.title,
+      );
       return (
         <label className='a-form-label title-label' htmlFor={props.id}>
           {label}
-          {props.component.required ? null :
+          {props.component.required ? null : (
             // TODO: Get text key from common texts for all services.
-            <span className='label-optional'>{getTextResource('(Valgfri)')}</span>
-          }
+            <span className='label-optional'>
+              {getTextResource('(Valgfri)')}
+            </span>
+          )}
         </label>
       );
     }
@@ -115,7 +124,12 @@ const FormComponent = (props: IFormElementProps) => {
     if (Object.keys(obj).length === 0 && obj.constructor === Object) {
       dispatch(FormLayoutActions.deleteActiveList());
     } else {
-      dispatch(FormLayoutActions.updateActiveList({ listItem: obj, containerList: props.activeList }));
+      dispatch(
+        FormLayoutActions.updateActiveList({
+          listItem: obj,
+          containerList: props.activeList,
+        }),
+      );
     }
     props.sendListToParent(props.activeList);
   };
@@ -139,9 +153,7 @@ const FormComponent = (props: IFormElementProps) => {
         singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
       >
-        <div onClick={disableEditOnClickForAddedComponent}>
-          {renderLabel()}
-        </div>
+        <div onClick={disableEditOnClickForAddedComponent}>{renderLabel()}</div>
       </EditContainer>
     </div>
   );
@@ -149,7 +161,10 @@ const FormComponent = (props: IFormElementProps) => {
 
 const makeMapStateToProps = () => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
+  const mapStateToProps = (
+    state: IAppState,
+    props: IProvidedProps,
+  ): IFormElementProps => ({
     activeList: props.activeList,
     id: props.id,
     firstInActiveList: props.firstInActiveList,
@@ -157,11 +172,17 @@ const makeMapStateToProps = () => {
     classes: props.classes,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
-    component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
+    component:
+      state.formDesigner.layout.layouts[
+        state.formDesigner.layout.selectedLayout
+      ]?.components[props.id],
     order: GetLayoutOrderSelector(state),
     dataModelElement: state.appData.dataModel.model.find(
-      (element) => element.dataBindingName ===
-        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings?.simpleBinding,
+      (element) =>
+        element.dataBindingName ===
+        state.formDesigner.layout.layouts[
+          state.formDesigner.layout.selectedLayout
+        ]?.components[props.id].dataModelBindings?.simpleBinding,
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,
@@ -173,5 +194,6 @@ const makeMapStateToProps = () => {
 /**
  * Wrapper made available for other compoments
  */
-export const FormComponentWrapper =
-  withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(FormComponent));
+export const FormComponentWrapper = withStyles(styles, { withTheme: true })(
+  connect(makeMapStateToProps)(FormComponent),
+);
