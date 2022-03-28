@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
-import marked from 'marked';
+import { marked } from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 
 export function getLanguageFromKey(key: string, language: any) {
@@ -12,13 +12,18 @@ export function getLanguageFromKey(key: string, language: any) {
 
 export function getNestedObject(nestedObj: any, pathArr: string[]) {
   return pathArr.reduce(
-    (obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined),
+    (obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
     nestedObj,
   );
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-export const getParsedLanguageFromKey = (key: string, language: any, params?: any[], stringOutput?: boolean) => {
+export const getParsedLanguageFromKey = (
+  key: string,
+  language: any,
+  params?: any[],
+  stringOutput?: boolean,
+) => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
 
@@ -26,7 +31,10 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
     return paramParsed;
   }
   const dirty = marked.parse(paramParsed);
-  const clean = DOMPurify.sanitize(dirty, { ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target', 'rel'] });
+  const clean = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ['a', 'b'],
+    ALLOWED_ATTR: ['href', 'target', 'rel'],
+  });
   return ReactHtmlParser(clean);
 };
 

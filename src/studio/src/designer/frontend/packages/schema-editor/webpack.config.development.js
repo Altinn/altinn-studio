@@ -4,4 +4,7 @@ module.exports = {
   ...commonConfig,
   mode: 'development',
   devtool: 'inline-source-map',
+  devServer: {
+    hot: true,
+  },
 };
