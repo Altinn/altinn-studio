@@ -11,7 +11,9 @@ using Altinn.Platform.Authorization.IntegrationTests.Data;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Models;
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -875,6 +877,46 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             for (int i = 0; i < expected.Count; i++)
             {
                 AssertionUtil.AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Calling the POST operation for AddRules to perform a valid delegation, but pushing the delegation event to the queue fails.
+        /// Input:
+        /// List with a rule for delegation of the app error/delegationeventfail between for a single offeredby/coveredby combination resulting in a single delegation policy.
+        /// Expected Result:
+        /// Internal exception cause pushing delegation event to fail, after delegation has been stored.
+        /// Success Criteria:
+        /// AddRules returns status code Created, but a Critical Error has been logged
+        /// </summary>
+        [Fact]
+        public async Task Post_AddRules_DelegationEventQueue_Push_Exception()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Json/AddRules/DelegationEventError.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "error", "delegationeventfail", createdSuccessfully: true)
+            };
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/delegations/addrules", content);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<Rule> actual = (List<Rule>)JsonConvert.DeserializeObject(responseContent, typeof(List<Rule>));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.True(actual.TrueForAll(a => a.CreatedSuccessfully));
+            Assert.True(actual.TrueForAll(a => !string.IsNullOrEmpty(a.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            foreach (Rule rule in actual)
+            {
+                Assert.True(Guid.TryParse(rule.RuleId, out _));
             }
         }
 

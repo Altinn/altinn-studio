@@ -119,7 +119,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                                                                         && a.CoveredByPartyId == expectedEntity.CoveredByPartyId
                                                                         && a.CoveredByUserId == expectedEntity.CoveredByUserId
                                                                         && a.OfferedByPartyId == expectedEntity.OfferedByPartyId
-                                                                        && a.IsDeleted == expectedEntity.IsDeleted);
+                                                                        && a.DelegationChangeType == expectedEntity.DelegationChangeType);
                 Assert.NotNull(actualentity);
             }
         }
