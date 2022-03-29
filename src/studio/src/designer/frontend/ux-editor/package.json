@@ -43,7 +43,7 @@
     "@babel/preset-react": "^7.16.7",
     "@testing-library/jest-dom": "^5.16.3",
     "@testing-library/react": "^12.1.4",
-    "@testing-library/user-event": "^13.5.0",
+    "@testing-library/user-event": "^14.0.0",
     "@types/classnames": "^2.3.1",
     "@types/deepmerge": "^2.2.0",
     "@types/enzyme": "^3.10.11",
