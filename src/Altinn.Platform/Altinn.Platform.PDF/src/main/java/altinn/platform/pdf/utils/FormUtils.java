@@ -236,7 +236,8 @@ public class FormUtils {
   }
 
   /**
-   * Useful comments
+   * Injects the group index marker [i]
+   * behind the  group binding in the string representing the full binding.
    * **/
   public static String setGroupIndexForBinding(String fullBinding, String groupBinding, int groupIndex)
   {
