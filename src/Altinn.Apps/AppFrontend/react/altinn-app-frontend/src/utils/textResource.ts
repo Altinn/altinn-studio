@@ -1,6 +1,7 @@
 import { ITextResource } from 'src/types';
 import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 import { ILanguage } from 'altinn-shared/types';
+import { IFormData } from 'src/features/form/data/formDataReducer';
 
 export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
   if (!textResources) {
@@ -34,4 +35,8 @@ export const getTextFromAppOrDefault = (
   }
 
   return getParsedLanguageFromKey(key, language, params, stringOutput);
+};
+
+export const replaceDataBindingsWithFormData = (text: string, formData: IFormData, parentGroup: string, index: number) => {
+
 };

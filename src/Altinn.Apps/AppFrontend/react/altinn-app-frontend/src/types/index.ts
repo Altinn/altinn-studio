@@ -203,6 +203,12 @@ export interface IOptions {
   [key: string]: IOptionData;
 }
 
+export interface IOptionSource {
+  group: string;
+  label: string;
+  value: string;
+}
+
 export interface IOptionData {
   options: IOption[];
   id: string;
