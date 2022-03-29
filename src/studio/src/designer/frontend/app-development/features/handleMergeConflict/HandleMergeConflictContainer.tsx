@@ -73,11 +73,8 @@ export class HandleMergeConflictContainer extends React.Component<
   IHandleMergeConflictContainerProps,
   IHandleMergeConflictContainerState
 > {
-  constructor(
-    _props: IHandleMergeConflictContainerProps,
-    _state: IHandleMergeConflictContainerState,
-  ) {
-    super(_props, _state);
+  constructor(props: IHandleMergeConflictContainerProps) {
+    super(props);
     this.setEditorHeight = this.setEditorHeight.bind(this);
     this.state = {
       editorHeight: null,

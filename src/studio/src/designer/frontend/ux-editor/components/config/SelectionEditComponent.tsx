@@ -115,11 +115,8 @@ export class SelectionEditComponent extends React.Component<
   ISelectionEditComponentProps,
   ISelectionEditComponentState
 > {
-  constructor(
-    props: ISelectionEditComponentProps,
-    state: ISelectionEditComponentState,
-  ) {
-    super(props, state);
+  constructor(props: ISelectionEditComponentProps) {
+    super(props);
     const component =
       this.props.component.type === 'Checkboxes'
         ? (this.props.component as IFormCheckboxComponent)
