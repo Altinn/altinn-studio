@@ -24,6 +24,15 @@ module.exports = {
         test: /\.js$/,
         loader: 'source-map-loader',
       },
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: true },
+          },
+        ],
+      },
     ],
   },
   plugins: [
@@ -34,10 +43,7 @@ module.exports = {
           './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}',
       },
     }),
-    new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript',
-      excludeWarnings: false,
-    }),
+    new ForkTsCheckerNotifierWebpackPlugin(),
   ],
   devServer: {
     historyApiFallback: true,

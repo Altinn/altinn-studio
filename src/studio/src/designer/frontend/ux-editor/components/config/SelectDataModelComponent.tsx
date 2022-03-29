@@ -31,11 +31,11 @@ export class SelectDataModel extends React.Component<
   ISelectDataModelProps,
   ISelectDataModelState
 > {
-  constructor(_props: ISelectDataModelProps, _state: ISelectDataModelState) {
-    super(_props, _state);
+  constructor(props: ISelectDataModelProps) {
+    super(props);
 
     this.state = {
-      selectedElement: _props.selectedElement,
+      selectedElement: props.selectedElement,
     };
 
     this.onDataModelChange = this.onDataModelChange.bind(this);

@@ -8,28 +8,16 @@ import altinnTheme from '../../theme/altinnStudioTheme';
 
 import * as AppBarConfig from './appBarConfig';
 
-describe('AppBarComponent - src/navigation/main-header/appBar', () => {
+describe('AppBarComponent', () => {
   describe('Snapshot', () => {
-    let mockOrg: string;
-    let mockApp: string;
-    let mockActiveSubHeaderSelection: string;
-    let mockShowSubheader: boolean;
-
-    beforeEach(() => {
-      mockOrg = 'jest-test-org';
-      mockApp = 'jest-test-app';
-      mockActiveSubHeaderSelection = 'Lage';
-      mockShowSubheader = true;
-    });
-
     it('should match snapshot', () => {
       const rendered = renderer.create(
         <MemoryRouter>
           <AppBarComponent
-            org={mockOrg}
-            app={mockApp}
-            showSubMenu={mockShowSubheader}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
+            org='jest-test-org'
+            app='jest-test-app'
+            showSubMenu={true}
+            activeSubHeaderSelection='Lage'
           />
         </MemoryRouter>,
       );
@@ -37,16 +25,13 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     });
 
     it('should match snapshot with subHeader and Publisere selection active', () => {
-      mockOrg = 'other-org';
-      mockApp = 'other-app';
-      mockActiveSubHeaderSelection = 'Publisere';
       const rendered = renderer.create(
         <MemoryRouter>
           <AppBarComponent
-            org={mockOrg}
-            app={mockApp}
-            showSubMenu={mockShowSubheader}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
+            org='other-org'
+            app='other-app'
+            showSubMenu={true}
+            activeSubHeaderSelection='Publisere'
           />
         </MemoryRouter>,
       );
@@ -54,16 +39,13 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     });
 
     it('should match snapshot with subHeader and Publisere selection active', () => {
-      mockOrg = 'other-org';
-      mockApp = 'other-app';
-      mockActiveSubHeaderSelection = 'Publisere';
       const wrapper = renderer.create(
         <MemoryRouter>
           <AppBarComponent
-            org={mockOrg}
-            app={mockApp}
-            showSubMenu={mockShowSubheader}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
+            org='other-org'
+            app='other-app'
+            showSubMenu={true}
+            activeSubHeaderSelection='Publisere'
           />
         </MemoryRouter>,
       );
@@ -73,7 +55,11 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     it('should match snapshot and not render subHeader menu', () => {
       const rendered = renderer.create(
         <MemoryRouter>
-          <AppBarComponent org={mockOrg} app={mockApp} showSubMenu={false} />
+          <AppBarComponent
+            org='jest-test-org'
+            app='jest-test-app'
+            showSubMenu={false}
+          />
         </MemoryRouter>,
       );
       expect(rendered).toMatchSnapshot();
@@ -90,28 +76,18 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
   });
 
   describe('When using AppBarConfig', () => {
-    let app: any;
-    const mockOrg = 'mock-org';
-    const mockApp = 'mock-app';
-    const mockShowSubheader = true;
-
     const theme = createTheme(altinnTheme);
-
-    const tabletWidth = 1024;
-    const tabletHeight = 768;
-
-    window.resizeTo(tabletWidth, tabletHeight);
 
     AppBarConfig.menu.forEach((entry) => {
       it(`should render ${entry.key}`, () => {
-        app = mount(
+        const app = mount(
           <MemoryRouter>
             <MuiThemeProvider theme={theme}>
               <AppBarComponent
-                org={mockOrg}
-                app={mockApp}
+                org='mock-org'
+                app='mock-app'
                 showBreadcrumbOnTablet={true}
-                showSubMenu={mockShowSubheader}
+                showSubMenu={true}
                 activeSubHeaderSelection={entry.activeSubHeaderSelection}
               />
             </MuiThemeProvider>

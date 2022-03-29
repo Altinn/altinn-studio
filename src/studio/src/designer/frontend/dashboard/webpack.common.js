@@ -2,12 +2,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: [
-    'core-js/modules/es.object.assign',
-    'core-js/modules/es.array.find-index',
-    'core-js/modules/es.array.find',
-    './index.tsx',
-  ],
+  entry: './index.tsx',
   output: {
     path: path.resolve(__dirname, '../dist/dashboard'),
     filename: 'dashboard.js',
@@ -52,10 +47,6 @@ module.exports = {
             },
           },
         ],
-      },
-      {
-        test: /\.tsx?/,
-        loader: 'ts-loader',
       },
     ],
   },

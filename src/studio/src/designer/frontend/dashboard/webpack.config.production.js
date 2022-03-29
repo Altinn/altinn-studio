@@ -15,7 +15,18 @@ module.exports = {
     minimizer: [new TerserPlugin()],
   },
   module: {
-    rules: [...commonConfig.module.rules],
+    rules: [
+      ...commonConfig.module.rules,
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: false },
+          },
+        ],
+      },
+    ],
   },
   plugins: [
     ...commonConfig.plugins,

@@ -44,7 +44,8 @@ module.exports = {
     }),
   ],
   devServer: {
+    hot: true,
     historyApiFallback: true,
-    disableHostCheck: true,
+    allowedHosts: 'all',
   },
 };

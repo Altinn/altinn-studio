@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot 1`] = `
+exports[`AppBarComponent Snapshot should match snapshot 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
@@ -41,7 +41,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot and not render subHeader menu 1`] = `
+exports[`AppBarComponent Snapshot should match snapshot and not render subHeader menu 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
@@ -82,7 +82,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with no app or org 1`] = `
+exports[`AppBarComponent Snapshot should match snapshot with no app or org 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
@@ -123,7 +123,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with subHeader and Publisere selection active 1`] = `
+exports[`AppBarComponent Snapshot should match snapshot with subHeader and Publisere selection active 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
@@ -164,7 +164,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with subHeader and Publisere selection active 2`] = `
+exports[`AppBarComponent Snapshot should match snapshot with subHeader and Publisere selection active 2`] = `
 <div
   className="AppBarComponent-root-1"
 >

@@ -20,8 +20,8 @@ export interface IRuleComponentProps {
 }
 
 class Rule extends React.Component<IRuleComponentProps, any> {
-  constructor(_props: IRuleComponentProps, _state: any) {
-    super(_props, _state);
+  constructor(props: IRuleComponentProps) {
+    super(props);
     this.state = {
       selectedFunctionNr: null,
       connectionId: null,
