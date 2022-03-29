@@ -236,6 +236,20 @@ public class FormUtils {
   }
 
   /**
+   * Injects the group index marker [i]
+   * behind the group binding in the string representing the full binding.
+   * **/
+  public static String setGroupIndexForBinding(String fullBinding, String groupBinding, int groupIndex)
+  {
+    // Excluding relevant end delimiters is important to not replace an already indexed group property
+    String pattern = String.format("\\b%s\\b(?!\\[)", groupBinding);
+
+    // using replaceAll to get full regex support
+    return fullBinding.replaceAll(pattern, groupBinding + '[' + groupIndex + ']');
+  }
+
+
+  /**
    * Parses the base 64 encoded xml file and creates a Document wrapper
    * @param xmlBaseEncoded the base 64 xml string
    * @return a document wrapper for the xml file
