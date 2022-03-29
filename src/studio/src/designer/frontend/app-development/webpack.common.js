@@ -3,12 +3,7 @@ const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: [
-    'core-js/modules/es.object.assign',
-    'core-js/modules/es.array.find-index',
-    'core-js/modules/es.array.find',
-    './index.tsx',
-  ],
+  entry: './index.tsx',
   output: {
     path: path.resolve(__dirname, '../dist/app-development'),
     filename: 'app-development.js',
@@ -60,7 +55,6 @@ module.exports = {
       filename: 'app-development.css',
     }),
     new MonacoPlugin({
-      output: path.join('../app-development', 'js', 'react'),
       languages: ['typescript', 'javascript', 'csharp'],
     }),
   ],
