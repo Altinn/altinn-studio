@@ -42,13 +42,14 @@ const render = () => {
 
 describe('Dashboard > CreateService', () => {
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
+    const user = userEvent.setup();
     render();
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.loading'),
     );
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    userEvent.click(createBtn);
+    await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.field_cannot_be_empty',
@@ -76,26 +77,27 @@ describe('Dashboard > CreateService', () => {
   });
 
   it('should show error message that app name is too long when it exceeds max length', async () => {
+    const user = userEvent.setup();
     render();
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.loading'),
     );
 
-    userEvent.click(
+    await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
       }),
     );
 
-    userEvent.click(screen.getByRole('option', { name: /user_full_name/i }));
-    userEvent.type(
+    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
+    await user.type(
       screen.getByRole('textbox'),
       'this-app-name-is-longer-than-max',
     );
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    userEvent.click(createBtn);
+    await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.service_name_is_too_long',
@@ -104,23 +106,24 @@ describe('Dashboard > CreateService', () => {
   });
 
   it('should show error message that app name is invalid when it contains invalid characters', async () => {
+    const user = userEvent.setup();
     render();
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.loading'),
     );
 
-    userEvent.click(
+    await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
       }),
     );
 
-    userEvent.click(screen.getByRole('option', { name: /user_full_name/i }));
-    userEvent.type(screen.getByRole('textbox'), 'datamodels');
+    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
+    await user.type(screen.getByRole('textbox'), 'datamodels');
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    userEvent.click(createBtn);
+    await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.service_name_has_illegal_characters',
@@ -129,6 +132,7 @@ describe('Dashboard > CreateService', () => {
   });
 
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
+    const user = userEvent.setup();
     server.use(
       rest.post(
         'http://localhost/designer/api/v1/repos/user_login',
@@ -144,17 +148,17 @@ describe('Dashboard > CreateService', () => {
       screen.getByText('dashboard.loading'),
     );
 
-    userEvent.click(
+    await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
       }),
     );
 
-    userEvent.click(screen.getByRole('option', { name: /user_full_name/i }));
-    userEvent.type(screen.getByRole('textbox'), 'this-app-name-exists');
+    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
+    await user.type(screen.getByRole('textbox'), 'this-app-name-exists');
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    userEvent.click(createBtn);
+    await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.app_already_exist',
@@ -163,6 +167,7 @@ describe('Dashboard > CreateService', () => {
   });
 
   it('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
+    const user = userEvent.setup();
     server.use(
       rest.post(
         'http://localhost/designer/api/v1/repos/user_login',
@@ -178,17 +183,17 @@ describe('Dashboard > CreateService', () => {
       screen.getByText('dashboard.loading'),
     );
 
-    userEvent.click(
+    await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
       }),
     );
 
-    userEvent.click(screen.getByRole('option', { name: /user_full_name/i }));
-    userEvent.type(screen.getByRole('textbox'), 'new-app');
+    await user.click(screen.getByRole('option', { name: /user_full_name/i }));
+    await user.type(screen.getByRole('textbox'), 'new-app');
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
-    userEvent.click(createBtn);
+    await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
       'dashboard.error_when_creating_app',
