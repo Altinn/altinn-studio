@@ -11,6 +11,7 @@ module.exports = {
     hints: false,
   },
   optimization: {
+    ...commonConfig.optimization,
     minimize: true,
     minimizer: [
       new TerserPlugin({

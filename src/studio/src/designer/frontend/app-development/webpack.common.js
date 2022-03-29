@@ -8,6 +8,9 @@ module.exports = {
     path: path.resolve(__dirname, '../dist/app-development'),
     filename: 'app-development.js',
   },
+  optimization: {
+    chunkIds: 'natural',
+  },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
     alias: {
