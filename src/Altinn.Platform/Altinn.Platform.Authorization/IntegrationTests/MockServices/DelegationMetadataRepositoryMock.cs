@@ -76,6 +76,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                     break;
                 case "error/postgregetcurrentfail":
                     throw new Exception("Some exception happened");
+                case "error/delegationeventfail":
+                    result = TestDataHelper.GetDelegationChange(altinnAppId, offeredByPartyId, coveredByUserId, coveredByPartyId, changeType: DelegationChangeType.Grant);
+                    break;
                 default:
                     result = null;
                     break;

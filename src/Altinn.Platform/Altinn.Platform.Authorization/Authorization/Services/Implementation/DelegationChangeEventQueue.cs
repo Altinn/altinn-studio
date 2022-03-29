@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
@@ -10,6 +8,7 @@ using Altinn.Platform.Authorization.Models.DelegationChangeEvent;
 using Altinn.Platform.Authorization.Services.Interface;
 using Azure.Storage;
 using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -18,17 +17,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// <inheritdoc />
     public class DelegationChangeEventQueue : IDelegationChangeEventQueue
     {
-        private readonly ILogger _logger;
         private readonly AzureStorageConfiguration _storageConfig;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationChangeEventQueue"/> class.
         /// </summary>
-        /// <param name="logger">The logger.</param>
         /// <param name="storageConfig">Azure storage queue config</param>
-        public DelegationChangeEventQueue(ILogger<DelegationChangeEventQueue> logger, IOptions<AzureStorageConfiguration> storageConfig)
+        public DelegationChangeEventQueue(IOptions<AzureStorageConfiguration> storageConfig)
         {
-            _logger = logger;
             _storageConfig = storageConfig.Value;
         }
 
@@ -37,7 +33,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// Throws exception if something fails
         /// </summary>
         /// <param name="delegationChange">The delegation change stored in postgresql</param>
-        public Task Push(DelegationChange delegationChange)
+        public async Task<SendReceipt> Push(DelegationChange delegationChange)
         {
             DelegationChangeEventList dceList = new DelegationChangeEventList
             {
@@ -62,9 +58,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             StorageSharedKeyCredential queueCredentials = new StorageSharedKeyCredential(_storageConfig.DelegationEventQueueAccountName, _storageConfig.DelegationEventQueueAccountKey);
             QueueClient queueClient = new QueueClient(new Uri($"{_storageConfig.DelegationEventQueueEndpoint}/delegationevents"), queueCredentials, new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
-            queueClient.SendMessage(JsonSerializer.Serialize(dceList));
-
-            return Task.CompletedTask;
+            return await queueClient.SendMessageAsync(JsonSerializer.Serialize(dceList));
         }
     }
 }

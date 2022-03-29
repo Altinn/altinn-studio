@@ -59,6 +59,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Data\blobs\input\error\delegationeventfail\50001337\u20001336\delegationpolicy.xml" />
     <None Remove="Data\blobs\input\error\delegationeventfail\policy.xml" />
     <None Remove="Data\blobs\input\skd\taxreport\1000\u20001337\delegationpolicy.xml" />
     <None Remove="Data\Json\AddRules\DelegationEventError.json" />

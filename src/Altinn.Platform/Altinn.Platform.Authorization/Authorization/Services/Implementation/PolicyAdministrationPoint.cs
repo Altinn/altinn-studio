@@ -27,6 +27,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IPolicyRepository _policyRepository;
         private readonly IDelegationMetadataRepository _delegationRepository;
         private readonly IDelegationChangeEventQueue eventQueue;
+        private readonly int delegationChangeEventQueueErrorId = 911;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
@@ -229,14 +230,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogCritical(new EventId(911, "DelegationChangeEventQueue.Push.Error"), ex, "AddRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
+                        _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "AddRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
                     }
                     
                     return true;
-                }
-                catch (Exception ex)
-                {
-                    throw; // todo cleanup temp debug
                 }
                 finally
                 {
@@ -335,7 +332,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogCritical(new EventId(911, "DelegationChangeEventQueue.Push.Error"), ex, "DeleteRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChangeEventType: eventType, DelegationChange: {change}", change);
+                        _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "DeleteRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
                     }
                 }
             }
@@ -440,7 +437,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogCritical(new EventId(911, "DelegationChangeEventQueue.Push.Error"), ex, "DeletePolicy could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChangeEventType: {DelegationChangeEventType.RevokeLast}, DelegationChange: {change}", DelegationChangeEventType.RevokeLast, change);
+                    _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "DeletePolicy could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
                 }
 
                 return currentPolicyRules;

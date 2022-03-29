@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Models;
+using Azure.Storage.Queues.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {
@@ -13,6 +14,6 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// Throws exception if something fails
         /// </summary>
         /// <param name="delegationChange">The delegation change stored in postgresql</param>
-        Task Push(DelegationChange delegationChange);
+        Task<SendReceipt> Push(DelegationChange delegationChange);
     }
 }
