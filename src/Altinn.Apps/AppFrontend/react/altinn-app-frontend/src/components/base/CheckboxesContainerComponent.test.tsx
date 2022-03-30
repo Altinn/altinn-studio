@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../../testUtils';
 import { CheckboxContainerComponent } from './CheckboxesContainerComponent';
 import type { IComponentProps } from 'src/components';
 import type { ICheckboxContainerProps } from './CheckboxesContainerComponent';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 
 const render = (props: Partial<ICheckboxContainerProps> = {}) => {
   const allProps: ICheckboxContainerProps = {
@@ -225,5 +226,36 @@ describe('CheckboxContainerComponent', () => {
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+    const handleDataChange = jest.fn();
+
+    const checkboxesWithOptionsFromRedux: ICheckboxContainerProps = {
+      options: [],
+      preselectedOptionIndex: undefined,
+      validationMessages: {},
+      legend: 'legend',
+      handleDataChange,
+      handleFocusUpdate: jest.fn(),
+      getTextResource: (value) => value,
+      getTextResourceAsString: (value) => value,
+      source: {
+        group: "someGroup",
+        label: "option.from.rep.group.label",
+        value: "someGroup[{0}].valueField"
+      },
+      ...({} as IComponentProps),
+    };
+    renderWithProviders(<CheckboxContainerComponent {...checkboxesWithOptionsFromRedux} />, {
+      preloadedState: getInitialStateMock()
+    });
+
+    expect(getCheckbox({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+
+    userEvent.click(getCheckbox({ name: 'The value from the group is: Label for second' }));
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
   });
 });
