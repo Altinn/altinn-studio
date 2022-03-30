@@ -267,7 +267,7 @@ export function validateEmptyFieldsForLayout(
               });
               for (
                 let i = 0;
-                i <= repeatingGroups[repeatingGroupId]?.count;
+                i <= repeatingGroups[repeatingGroupId]?.index;
                 i++
               ) {
                 const componentToCheck = {
@@ -291,7 +291,7 @@ export function validateEmptyFieldsForLayout(
             });
         } else {
           const groupDataModelBinding = group.dataModelBindings.group;
-          for (let i = 0; i <= repeatingGroups[group.id]?.count; i++) {
+          for (let i = 0; i <= repeatingGroups[group.id]?.index; i++) {
             const componentToCheck = {
               ...component,
               id: `${component.id}-${i}`,
@@ -1282,7 +1282,7 @@ export function repeatingGroupHasValidations(
           return componentHasValidations(validations, currentView, element.id);
         }
         const childGroup = element as ILayoutGroup;
-        const childGroupCount = repeatingGroups[childGroup.id]?.count;
+        const childGroupIndex = repeatingGroups[childGroup.id]?.index;
         const childGroupComponents = layout.filter(
           (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
         );
@@ -1294,7 +1294,7 @@ export function repeatingGroupHasValidations(
         const deepCopyComponents = createRepeatingGroupComponents(
           childGroup,
           renderComponents,
-          childGroupCount,
+          childGroupIndex,
           [],
           hiddenFields,
         );
@@ -1566,7 +1566,7 @@ export function removeGroupValidationsByIndex(
       delete result[currentLayout][childKey];
     } else {
       // recursively call delete if we have a child group
-      const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.count;
+      const childGroupCount = repeatingGroups[`${element.id}-${index}`]?.index;
       for (let i = 0; i <= childGroupCount; i++) {
         result = removeGroupValidationsByIndex(
           `${element.id}-${index}`,
@@ -1583,8 +1583,8 @@ export function removeGroupValidationsByIndex(
 
   if (shift) {
     // Shift validations if necessary
-    if (index < repeatingGroup.count + 1) {
-      for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
+    if (index < repeatingGroup.index + 1) {
+      for (let i = index + 1; i <= repeatingGroup.index + 1; i++) {
         const key = `${id}-${i}`;
         const newKey = `${id}-${i - 1}`;
         delete result[currentLayout][key];
@@ -1639,7 +1639,7 @@ function shiftChildGroupValidation(
   const children = getGroupChildren(group.id, layout);
 
   for (let i = indexToShiftFrom; i <= highestIndexOfChildGroup + 1; i++) {
-    const givenIndexCount = repeatingGroups[`${group.id}-${i}`]?.count ?? -1;
+    const givenIndexCount = repeatingGroups[`${group.id}-${i}`]?.index ?? -1;
     for (let childIndex = 0; childIndex < givenIndexCount + 1; childIndex++) {
       const childGroupKey = `${group.id}-${i}-${childIndex}`;
       const shiftGroupKey = `${group.id}-${i - 1}-${childIndex}`;
@@ -1665,7 +1665,7 @@ export function getHighestIndexOfChildGroup(
     return -1;
   }
   let index = 0;
-  while (repeatingGroups[`${group}-${index}`]?.count !== undefined) {
+  while (repeatingGroups[`${group}-${index}`]?.index !== undefined) {
     index += 1;
   }
   return index - 1;

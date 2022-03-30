@@ -98,9 +98,9 @@ export function replaceTextResourceParams(
         const id = variableForRepeatingGroup.key.split('[{0}]')[0];
         return repeatingGroups[groupId].dataModelBinding === id;
       });
-      const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
+      const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
 
-      for (let i = 0; i <= repeatingGroupCount; ++i) {
+      for (let i = 0; i <= repeatingGroupIndex; ++i) {
         replaceValues = [];
         resource.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {

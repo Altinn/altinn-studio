@@ -584,7 +584,7 @@ describe('utils > validation', () => {
       it('should return error if empty fields are required', () => {
         const repeatingGroups = {
           group1: {
-            count: 0,
+            index: 0,
             editIndex: -1,
           },
         };
@@ -619,7 +619,7 @@ describe('utils > validation', () => {
       it('should not return error for repeating group if child is hidden', () => {
         const repeatingGroups = {
           group1: {
-            count: 0,
+            index: 0,
             editIndex: -1,
           },
         };
@@ -651,7 +651,7 @@ describe('utils > validation', () => {
       it('should not return error if component is not part of layout order (sporvalg)', () => {
         const repeatingGroups = {
           group1: {
-            count: 0,
+            index: 0,
             editIndex: -1,
           },
         };
@@ -917,7 +917,7 @@ describe('utils > validation', () => {
 
       const repeatingGroups: IRepeatingGroups = {
         group: {
-          count: 0,
+          index: 0,
           editIndex: -1,
         },
       };
@@ -980,11 +980,11 @@ describe('utils > validation', () => {
 
       const repeatingGroups: IRepeatingGroups = {
         group: {
-          count: 0,
+          index: 0,
           editIndex: -1,
         },
         'group2-0': {
-          count: 0,
+          index: 0,
           editIndex: -1,
         },
       };
@@ -1051,7 +1051,7 @@ describe('utils > validation', () => {
 
       const repeatingGroups: IRepeatingGroups = {
         group: {
-          count: 0,
+          index: 0,
           editIndex: -1,
         },
       };
@@ -1289,7 +1289,7 @@ describe('utils > validation', () => {
             hiddenFields: [],
             repeatingGroups: {
               group1: {
-                count: 0,
+                index: 0,
                 editIndex: -1,
               },
             },
@@ -1372,11 +1372,11 @@ describe('utils > validation', () => {
             hiddenFields: [],
             repeatingGroups: {
               group1: {
-                count: 0,
+                index: 0,
                 editIndex: -1,
               },
               group2: {
-                count: 0,
+                index: 0,
                 editIndex: -1,
               },
             },
@@ -1432,7 +1432,7 @@ describe('utils > validation', () => {
       };
       const repeatingGroups: IRepeatingGroups = {
         group1: {
-          count: 1,
+          index: 1,
         },
       };
       const result: IValidations = validation.removeGroupValidationsByIndex(
@@ -1487,7 +1487,7 @@ describe('utils > validation', () => {
       };
       const repeatingGroups: IRepeatingGroups = {
         group1: {
-          count: 2,
+          index: 2,
         },
       };
       const result: IValidations = validation.removeGroupValidationsByIndex(
@@ -1554,10 +1554,10 @@ describe('utils > validation', () => {
       };
       const repeatingGroups: IRepeatingGroups = {
         group1: {
-          count: 0,
+          index: 0,
         },
         'group2-0': {
-          count: 1,
+          index: 1,
           baseGroupId: 'group2',
         },
       };
@@ -1625,10 +1625,10 @@ describe('utils > validation', () => {
       };
       const repeatingGroups: IRepeatingGroups = {
         group1: {
-          count: 0,
+          index: 0,
         },
         'group2-0': {
-          count: 1,
+          index: 1,
           baseGroupId: 'group2',
         },
       };
@@ -1683,14 +1683,14 @@ describe('utils > validation', () => {
       };
       const repeatingGroups: IRepeatingGroups = {
         group1: {
-          count: 1,
+          index: 1,
         },
         'group2-0': {
-          count: 1,
+          index: 1,
           baseGroupId: 'group2',
         },
         'group2-1': {
-          count: 1,
+          index: 1,
           baseGroupId: 'group2',
         },
       };

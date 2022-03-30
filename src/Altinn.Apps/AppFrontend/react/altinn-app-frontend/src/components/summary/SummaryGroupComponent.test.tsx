@@ -71,7 +71,7 @@ describe('components/summary/MultipleChoiceSummary.tsx', () => {
         hiddenFields: [],
         repeatingGroups: {
           groupComponent: {
-            count: 0,
+            index: 0,
             dataModelBinding: 'mockGroup',
           },
         },

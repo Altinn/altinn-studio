@@ -79,9 +79,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         const lastItem = groupFormData[groupFormData.length - 1];
         const match = lastItem.match(regex);
         if (match && match[1]) {
-          const count = parseInt(match[1], 10);
+          const index = parseInt(match[1], 10);
           repeatingGroups[groupElement.id] = {
-            count,
+            index,
             dataModelBinding: groupElement.dataModelBindings?.group,
             editIndex: -1,
           };
@@ -100,10 +100,10 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
             const childGroup = groups.find(
               (element) => element.id === childGroupId,
             );
-            [...Array(count + 1)].forEach((_x: any, index: number) => {
+            [...Array(index + 1)].forEach((_x: any, index: number) => {
               const groupId = `${childGroup.id}-${index}`;
               repeatingGroups[groupId] = {
-                count: getCountForRepeatingGroup(
+                index: getIndexForRepeatingGroup(
                   formData,
                   childGroup.dataModelBindings?.group,
                   groupElement.dataModelBindings.group,
@@ -117,7 +117,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         }
       } else {
         repeatingGroups[groupElement.id] = {
-          count: -1,
+          index: -1,
           dataModelBinding: groupElement.dataModelBindings?.group,
           editIndex: -1,
         };
@@ -157,7 +157,7 @@ export function getFileUploadersWithTag(
   return fileUploaders;
 }
 
-function getCountForRepeatingGroup(
+function getIndexForRepeatingGroup(
   formData: any,
   groupBinding: string,
   parentGroupBinding: string,

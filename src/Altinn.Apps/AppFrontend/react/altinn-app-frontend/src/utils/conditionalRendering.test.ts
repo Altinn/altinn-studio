@@ -148,7 +148,7 @@ describe('conditionalRendering', () => {
     };
     const repeatingGroups = {
       group_1: {
-        count: 0,
+        index: 0,
       },
     };
 

@@ -63,7 +63,7 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
 
 
     const newOptions: IOption[] = [];
-    for (let i = 0; i <= repGroup.count; i++) {
+    for (let i = 0; i <= repGroup.index; i++) {
       const option: IOption = {
         label: replacedOptionLabels[i + 1].value,
         value: replaceOptionDataField(formData, source.value, i),

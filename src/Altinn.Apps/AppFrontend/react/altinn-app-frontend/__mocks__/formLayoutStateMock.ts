@@ -52,7 +52,7 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       hiddenFields: [],
       repeatingGroups: {
         group: {
-          count: 1,
+          index: 1,
           dataModelBinding: 'someGroup',
         }
       },

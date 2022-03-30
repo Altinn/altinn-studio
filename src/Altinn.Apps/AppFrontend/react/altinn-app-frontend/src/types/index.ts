@@ -218,7 +218,7 @@ export interface IOptionData {
 }
 
 export interface IRepeatingGroup {
-  count: number;
+  index: number;
   baseGroupId?: string;
   dataModelBinding?: string;
   editIndex?: number;
