@@ -38,10 +38,7 @@ module.exports = {
   plugins: [
     ...commonConfig.plugins,
     new ForkTsCheckerWebpackPlugin(),
-    new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript',
-      excludeWarnings: false,
-    }),
+    new ForkTsCheckerNotifierWebpackPlugin(),
   ],
   devServer: {
     hot: true,
