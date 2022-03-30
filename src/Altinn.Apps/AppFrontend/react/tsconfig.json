@@ -13,16 +13,9 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "esModuleInterop": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": [
-    "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "jest",
-    "templates"
-  ]
+  "exclude": ["node_modules"]
 }
