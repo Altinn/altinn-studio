@@ -67,6 +67,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('multipartdata')] = generateJUnitXML(data, 'app-multipartdata');
+  result[reportPath('multipartdata.xml')] = generateJUnitXML(data, 'app-multipartdata');
   return result;
 }

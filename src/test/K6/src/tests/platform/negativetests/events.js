@@ -1,6 +1,6 @@
-/* 
+/*
     Negative test script to platform events api with user token
-    Command: docker-compose run k6 run /src/tests/platform/negativetests/events.js 
+    Command: docker-compose run k6 run /src/tests/platform/negativetests/events.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
 import { check } from 'k6';
@@ -55,6 +55,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformNegativeEvents')] = generateJUnitXML(data, 'platform-negative-Events');
+  result[reportPath('platformNegativeEvents.xml')] = generateJUnitXML(data, 'platform-negative-Events');
   return result;
 }

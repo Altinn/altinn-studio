@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/altinn-ui/messagebox.js 
+    Command: docker-compose run k6 run /src/tests/altinn-ui/messagebox.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -66,6 +66,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('altinnMessagebox')] = generateJUnitXML(data, 'altinn-ui-messagebox');
+  result[reportPath('altinnMessagebox.xml')] = generateJUnitXML(data, 'altinn-ui-messagebox');
   return result;
 }

@@ -1,7 +1,7 @@
-/* 
+/*
   Test data required: username, password, app requiring level 2 login (reference app: ttd/stateless-app)
-  command to run the test: 
-  docker-compose run k6 run /src/tests/app/statelessdata.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***  
+  command to run the test:
+  docker-compose run k6 run /src/tests/app/statelessdata.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
 
 import { check } from 'k6';
@@ -57,6 +57,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('statelessdata')] = generateJUnitXML(data, 'app-statelessdata');
+  result[reportPath('statelessdata.xml')] = generateJUnitXML(data, 'app-statelessdata');
   return result;
 }

@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/receipt/receipt.js 
+    Command: docker-compose run k6 run /src/tests/platform/receipt/receipt.js
     -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
@@ -54,6 +54,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformReceipt')] = generateJUnitXML(data, 'platform-receipt');
+  result[reportPath('platformReceipt.xml')] = generateJUnitXML(data, 'platform-receipt');
   return result;
 }

@@ -1,6 +1,6 @@
-/* 
+/*
     Test script to platform events/subscriptions api with user token
-    Command: docker-compose run k6 run /src/tests/platform/events/subscriptions.js 
+    Command: docker-compose run k6 run /src/tests/platform/events/subscriptions.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=***
 */
 import { check, sleep } from 'k6';
@@ -68,6 +68,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('subscriptions')] = generateJUnitXML(data, 'platform-events-subscription');
+  result[reportPath('subscriptions.xml')] = generateJUnitXML(data, 'platform-events-subscription');
   return result;
 }

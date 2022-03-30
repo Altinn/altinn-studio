@@ -146,6 +146,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('appInstances')] = generateJUnitXML(data, 'app-Instances');
+  result[reportPath('appInstances.xml')] = generateJUnitXML(data, 'app-Instances');
   return result;
 }
