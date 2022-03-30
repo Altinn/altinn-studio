@@ -15,7 +15,7 @@ import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
-  options: IOption[];
+  options?: IOption[];
   optionsId?: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;

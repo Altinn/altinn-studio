@@ -10,13 +10,13 @@ import cn from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useGetOptions, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-import { IMapping, IOptionSource } from 'src/types';
+import { IMapping, IOption, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
-  options: any[];
+  options?: IOption[];
   optionsId?: string;
   preselectedOptionIndex: number;
   title: string;
