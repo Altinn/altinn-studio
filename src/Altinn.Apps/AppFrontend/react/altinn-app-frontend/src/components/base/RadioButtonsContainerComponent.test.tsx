@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../../testUtils';
 import { RadioButtonContainerComponent } from './RadioButtonsContainerComponent';
 import type { IComponentProps } from 'src/components';
 import type { IRadioButtonsContainerProps } from './RadioButtonsContainerComponent';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 
 const render = (props: Partial<IRadioButtonsContainerProps> = {}) => {
   const allProps: IRadioButtonsContainerProps = {
@@ -172,5 +173,36 @@ describe('RadioButtonsContainerComponent', () => {
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+    const handleDataChange = jest.fn();
+
+    const radioButtonsWithOptionsFromRedux: IRadioButtonsContainerProps = {
+      options: [],
+      optionsId: 'countries',
+      preselectedOptionIndex: undefined,
+      title: 'title',
+      legend: 'legend',
+      handleDataChange,
+      handleFocusUpdate: jest.fn(),
+      getTextResource: (value) => value,
+      source: {
+        group: "someGroup",
+        label: "option.from.rep.group.label",
+        value: "someGroup[{0}].valueField"
+      },
+      ...({} as IComponentProps),
+    };
+    renderWithProviders(<RadioButtonContainerComponent {...radioButtonsWithOptionsFromRedux} />, {
+      preloadedState: getInitialStateMock()
+    });
+
+    expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
+    expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+
+    userEvent.click(getRadio({ name: 'The value from the group is: Label for first' }));
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
   });
 });
