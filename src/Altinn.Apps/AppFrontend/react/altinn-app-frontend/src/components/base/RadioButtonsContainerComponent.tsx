@@ -8,19 +8,20 @@ import { FormLabel } from '@material-ui/core';
 import cn from 'classnames';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useAppSelector, useGetOptions, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-import { IMapping } from 'src/types';
+import { IMapping, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
   options: any[];
-  optionsId: string;
+  optionsId?: string;
   preselectedOptionIndex: number;
   title: string;
   mapping?: IMapping;
+  source?: IOptionSource;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -85,13 +86,12 @@ export const RadioButtonContainerComponent = ({
   getTextResource,
   validationMessages,
   mapping,
+  source,
 }: IRadioButtonsContainerProps) => {
   const classes = useStyles();
 
   const selected = formData?.simpleBinding ?? '';
-  const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
-  );
+  const apiOptions = useGetOptions(optionsId, mapping, source);
   const calculatedOptions = apiOptions || options || defaultArray;
   const radioGroupIsRow: boolean = calculatedOptions.length <= 2;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
