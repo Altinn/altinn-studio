@@ -15,7 +15,7 @@ __metadata:
     "@reduxjs/toolkit": ^1.8.0
     "@testing-library/jest-dom": ^5.16.3
     "@testing-library/react": ^12.1.4
-    "@testing-library/user-event": ^13.5.0
+    "@testing-library/user-event": ^14.0.0
     "@types/enzyme": ^3.10.11
     "@types/jest": ^27.4.1
     "@types/react": 17.0.43
@@ -4617,14 +4617,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^13.5.0":
-  version: 13.5.0
-  resolution: "@testing-library/user-event@npm:13.5.0"
-  dependencies:
-    "@babel/runtime": ^7.12.5
+"@testing-library/user-event@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@testing-library/user-event@npm:14.0.0"
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: 16319de685fbb7008f1ba667928f458b2d08196918002daca56996de80ef35e6d9de26e9e1ece7d00a004692b95a597cf9142fff0dc53f2f51606a776584f549
+  checksum: 171a40e680616e6a34299f9fb783dcadcd36f255256a53fe06cb71f4149715d8e5b84e65ea1c144af179f2e4b1799af92c79a8fc0c4c0ee2e94a713f2c476efd
   languageName: node
   linkType: hard
 
@@ -6410,7 +6408,6 @@ __metadata:
     eslint-plugin-jsx-a11y: ^6.5.1
     eslint-plugin-react: ^7.29.4
     eslint-plugin-react-hooks: ^4.3.0
-    ini: 2.0.0
     typescript: ^4.6.3
   languageName: unknown
   linkType: soft
@@ -9244,7 +9241,7 @@ __metadata:
     "@reduxjs/toolkit": ^1.8.0
     "@testing-library/jest-dom": ^5.16.3
     "@testing-library/react": ^12.1.4
-    "@testing-library/user-event": ^13.5.0
+    "@testing-library/user-event": ^14.0.0
     "@types/classnames": ^2.3.1
     "@types/enzyme": ^3.10.11
     "@types/jest": ^27.4.1
@@ -12734,13 +12731,6 @@ __metadata:
   version: 2.0.3
   resolution: "inherits@npm:2.0.3"
   checksum: 78cb8d7d850d20a5e9a7f3620db31483aa00ad5f722ce03a55b110e5a723539b3716a3b463e2b96ce3fe286f33afc7c131fa2f91407528ba80cea98a7545d4c0
-  languageName: node
-  linkType: hard
-
-"ini@npm:2.0.0":
-  version: 2.0.0
-  resolution: "ini@npm:2.0.0"
-  checksum: e7aadc5fb2e4aefc666d74ee2160c073995a4061556b1b5b4241ecb19ad609243b9cceafe91bae49c219519394bbd31512516cb22a3b1ca6e66d869e0447e84e
   languageName: node
   linkType: hard
 
@@ -22405,7 +22395,7 @@ __metadata:
     "@reduxjs/toolkit": ^1.8.0
     "@testing-library/jest-dom": ^5.16.3
     "@testing-library/react": ^12.1.4
-    "@testing-library/user-event": ^13.5.0
+    "@testing-library/user-event": ^14.0.0
     "@types/classnames": ^2.3.1
     "@types/deepmerge": ^2.2.0
     "@types/enzyme": ^3.10.11

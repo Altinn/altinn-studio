@@ -37,12 +37,7 @@ module.exports = {
   },
   plugins: [
     ...commonConfig.plugins,
-    new ForkTsCheckerWebpackPlugin({
-      eslint: {
-        files:
-          './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}',
-      },
-    }),
+    new ForkTsCheckerWebpackPlugin(),
     new ForkTsCheckerNotifierWebpackPlugin(),
   ],
   devServer: {

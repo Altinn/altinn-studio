@@ -17,19 +17,19 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FormUtilsTest extends TestCase {
-  public FormUtilsTest( String testName )
-  {
-    super( testName );
+  public FormUtilsTest(String testName) {
+    super(testName);
   }
 
   private Document formData;
 
-  public static Test suite()
-  {
-    return new TestSuite( altinn.platform.pdf.utils.FormUtilsTest.class );
+  public static Test suite() {
+    return new TestSuite(altinn.platform.pdf.utils.FormUtilsTest.class);
   }
 
   public void test_getFilteredLayout_componentsPartOfGroupsShouldBeFilteredOut() {
@@ -89,8 +89,8 @@ public class FormUtilsTest extends TestCase {
     int nestedCount_2 = FormUtils.getGroupCount("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[1].nested-grp-1234", formData);
 
     assertEquals(3, count);
-    assertEquals (3, nestedCount_1);
-    assertEquals (2, nestedCount_2);
+    assertEquals(3, nestedCount_1);
+    assertEquals(2, nestedCount_2);
   }
 
   public void test_getGroupCount_shouldReturnZeroForNonExistentGroup() throws IOException, SAXException, ParserConfigurationException {
@@ -160,6 +160,30 @@ public class FormUtilsTest extends TestCase {
     Document formData = readAndParseFormData();
     String result = FormUtils.getFormDataByKey("Does.Not.Exist", formData);
     assertEquals("", result);
+  }
+
+  public void test_setGroupIndexForBinding() {
+
+    Map<String, String[]> testData = new HashMap<>() {
+      {
+        // (String fullBinding, String groupBinding, int groupIndex) + expectedValued
+        put("TC_1", new String[]{"owner.ownerOrganisationId", "owner", "0", "owner[0].ownerOrganisationId"});
+        put("TC_2", new String[]{"owner", "owner", "0", "owner[0]"});
+        put("TC_3", new String[]{"ownerName", "owner", "0", "ownerName"});
+        put("TC_4", new String[]{"ownerName.ownerOrganisationId", "owner", "0", "ownerName.ownerOrganisationId"});
+        put("TC_5", new String[]{"schema.owner.ownerOrganisationId", "owner", "1", "schema.owner[1].ownerOrganisationId"});
+        put("TC_6", new String[]{"schema.owner", "owner", "1", "schema.owner[1]"});
+        put("TC_7", new String[]{".ownerPet.dog", "owner", "0", ".ownerPet.dog"});
+        put("TC_8", new String[]{"owner[1].faculty.owner", "owner", "0", "owner[1].faculty.owner[0]"});
+      }
+    };
+
+    for (Map.Entry<String, String[]> entry : testData.entrySet()) {
+      String key = entry.getKey();
+      String[] value = entry.getValue();
+      String actual = FormUtils.setGroupIndexForBinding(value[0], value[1], Integer.parseInt(value[2]));
+      assertEquals(value[3], actual);
+    }
   }
 
   private Document readAndParseFormData() throws ParserConfigurationException, IOException, SAXException {

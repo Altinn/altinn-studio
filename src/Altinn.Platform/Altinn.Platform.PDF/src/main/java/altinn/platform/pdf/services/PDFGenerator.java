@@ -279,7 +279,7 @@ public class PDFGenerator {
               String nonIndexedGroupBinding = groupBinding.replace(groupBinding.substring(indexStart, indexEnd + 1), "");
               currentBinding = currentBinding.replace(nonIndexedGroupBinding, groupBinding);
             }
-            String replacedBinding = currentBinding.replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+            String replacedBinding = FormUtils.setGroupIndexForBinding(currentBinding, groupBinding, groupIndex);
             dataBinding.setValue(replacedBinding);
           }
         }

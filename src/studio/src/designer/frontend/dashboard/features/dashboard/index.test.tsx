@@ -69,12 +69,13 @@ describe('Dashboard > index', () => {
   });
 
   it('should show search results list and hide FavoriteReposList and OrgReposList when user types into search input', async () => {
+    const user = userEvent.setup();
     render();
 
     const searchInput = screen.getByRole('textbox', {
       name: /dashboard.search/i,
     });
-    userEvent.type(searchInput, 'search');
+    await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.favourites'),
@@ -86,12 +87,13 @@ describe('Dashboard > index', () => {
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits escape while the search input is focused', async () => {
+    const user = userEvent.setup();
     render();
 
     const searchInput = screen.getByRole('textbox', {
       name: /dashboard.search/i,
     });
-    userEvent.type(searchInput, 'search');
+    await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.favourites'),
@@ -101,7 +103,7 @@ describe('Dashboard > index', () => {
     expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
     expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
 
-    userEvent.keyboard('{esc}');
+    await user.keyboard('{Escape}');
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.search_result'),
@@ -115,12 +117,13 @@ describe('Dashboard > index', () => {
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits clear button on input field', async () => {
+    const user = userEvent.setup();
     render();
 
     const searchInput = screen.getByRole('textbox', {
       name: /dashboard.search/i,
     });
-    userEvent.type(searchInput, 'search');
+    await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
       screen.getByText('dashboard.favourites'),
@@ -130,7 +133,7 @@ describe('Dashboard > index', () => {
     expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
     expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
 
-    userEvent.click(
+    await user.click(
       screen.getByRole('button', { name: /dashboard.clear_search/i }),
     );
 
@@ -145,12 +148,13 @@ describe('Dashboard > index', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should navigate to create new app when clicking new app link', () => {
+  it('should navigate to create new app when clicking new app link', async () => {
+    const user = userEvent.setup();
     render();
 
     expect(window.location.href.includes('new')).toBe(false);
 
-    userEvent.click(
+    await user.click(
       screen.getByRole('link', { name: /dashboard.new_service/i }),
     );
 
