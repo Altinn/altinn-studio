@@ -3,13 +3,14 @@ import cn from 'classnames';
 import { makeStyles } from '@material-ui/core';
 
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useAppSelector, useHasChangedIgnoreUndefined, useGetOptions } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 
 import '../../styles/shared.css';
 import type { IMapping, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface IDropdownProps extends IComponentProps {
   optionsId?: string;

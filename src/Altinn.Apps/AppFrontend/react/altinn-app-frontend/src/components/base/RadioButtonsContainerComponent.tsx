@@ -8,11 +8,12 @@ import { FormLabel } from '@material-ui/core';
 import cn from 'classnames';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector, useGetOptions, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 import { IMapping, IOption, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;

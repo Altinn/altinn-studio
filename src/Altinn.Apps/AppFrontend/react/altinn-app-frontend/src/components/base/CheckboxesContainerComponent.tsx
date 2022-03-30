@@ -9,9 +9,10 @@ import type { IComponentProps } from '..';
 import type { IOption, IComponentValidations, IMapping, IOptionSource } from 'src/types';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { useAppSelector, useGetOptions, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
