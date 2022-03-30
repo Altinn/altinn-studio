@@ -71,7 +71,7 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
       newOptions.push(option);
     }
 
-      setOptions(newOptions);
+    setOptions(newOptions);
 
   }, [applicationSettings, formData, instance, mapping, optionState, optionsId, repeatingGroups, source, textResources]);
 
