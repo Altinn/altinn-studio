@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../../testUtils';
 import DropdownComponent from './DropdownComponent';
 import type { IComponentProps } from 'src/components';
 import type { IDropdownProps } from './DropdownComponent';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 
 const render = (props: Partial<IDropdownProps> = {}) => {
   const allProps: IDropdownProps = {
@@ -136,5 +137,39 @@ describe('components/base/DropdownComponent', () => {
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+    const handleDataChange = jest.fn();
+
+    const dropdownWithOptionsFromRedux: IDropdownProps = {
+      id: 'component-id',
+      formData: {},
+      handleDataChange,
+      getTextResourceAsString: (value) => value,
+      readOnly: false,
+      isValid: true,
+      source: {
+        group: "someGroup",
+        label: "option.from.rep.group.label",
+        value: "someGroup[{0}].valueField"
+      },
+      ...({} as IComponentProps),
+    };
+    renderWithProviders(<DropdownComponent {...dropdownWithOptionsFromRedux} />, {
+      preloadedState: getInitialStateMock()
+    });
+
+    userEvent.selectOptions(screen.getByRole('combobox'), [
+      screen.getByText('The value from the group is: Label for first'),
+    ]);
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
+
+    userEvent.selectOptions(screen.getByRole('combobox'), [
+      screen.getByText('The value from the group is: Label for second'),
+    ]);
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
   });
 });

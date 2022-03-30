@@ -12,7 +12,7 @@ import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IDropdownProps extends IComponentProps {
-  optionsId: string;
+  optionsId?: string;
   mapping?: IMapping;
   preselectedOptionIndex?: number;
   source?: IOptionSource;
