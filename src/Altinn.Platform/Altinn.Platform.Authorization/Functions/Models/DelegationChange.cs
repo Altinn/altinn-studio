@@ -9,10 +9,10 @@ namespace Altinn.Platform.Authorization.Functions.Models;
 public class DelegationChange
 {
     /// <summary>
-    /// Gets or sets the policy change id
+    /// Gets or sets the delegation change id
     /// </summary>
-    [JsonPropertyName("p")]
-    public int PolicyChangeId { get; set; }
+    [JsonPropertyName("i")]
+    public int DelegationChangeId { get; set; }
 
     /// <summary>
     /// Gets or sets the altinnappid. E.g. skd/skattemelding

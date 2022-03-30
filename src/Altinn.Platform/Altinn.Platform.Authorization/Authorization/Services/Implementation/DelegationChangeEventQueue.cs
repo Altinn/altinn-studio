@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
@@ -9,22 +10,25 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Azure.Storage;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
     /// <inheritdoc />
+    [ExcludeFromCodeCoverage]
     public class DelegationChangeEventQueue : IDelegationChangeEventQueue
     {
         private readonly AzureStorageConfiguration _storageConfig;
+        private readonly IEventMapperService _eventMapperService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationChangeEventQueue"/> class.
         /// </summary>
+        /// <param name="eventMapperService">Mapper service responsible for mapping models</param>
         /// <param name="storageConfig">Azure storage queue config</param>
-        public DelegationChangeEventQueue(IOptions<AzureStorageConfiguration> storageConfig)
+        public DelegationChangeEventQueue(IEventMapperService eventMapperService, IOptions<AzureStorageConfiguration> storageConfig)
         {
+            _eventMapperService = eventMapperService;
             _storageConfig = storageConfig.Value;
         }
 
@@ -35,27 +39,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="delegationChange">The delegation change stored in postgresql</param>
         public async Task<SendReceipt> Push(DelegationChange delegationChange)
         {
-            DelegationChangeEventList dceList = new DelegationChangeEventList
-            {
-                DelegationChangeEvents = new List<DelegationChangeEvent>
-                {
-                    new DelegationChangeEvent
-                    {
-                        EventType = (DelegationChangeEventType)delegationChange.DelegationChangeType,
-                        DelegationChange = new SimpleDelegationChange
-                        {
-                            PolicyChangeId = delegationChange.DelegationChangeId,
-                            AltinnAppId = delegationChange.AltinnAppId,
-                            OfferedByPartyId = delegationChange.OfferedByPartyId,
-                            CoveredByPartyId = delegationChange.CoveredByPartyId,
-                            CoveredByUserId = delegationChange.CoveredByUserId,
-                            PerformedByUserId = delegationChange.PerformedByUserId,
-                            Created = delegationChange.Created
-                        }
-                    }
-                }
-            };
-
+            DelegationChangeEventList dceList = _eventMapperService.MapToDelegationChangeEventList(new List<DelegationChange> { delegationChange });
             StorageSharedKeyCredential queueCredentials = new StorageSharedKeyCredential(_storageConfig.DelegationEventQueueAccountName, _storageConfig.DelegationEventQueueAccountKey);
             QueueClient queueClient = new QueueClient(new Uri($"{_storageConfig.DelegationEventQueueEndpoint}/delegationevents"), queueCredentials, new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
             return await queueClient.SendMessageAsync(JsonSerializer.Serialize(dceList));

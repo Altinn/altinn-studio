@@ -24,7 +24,7 @@ public class EventMapperServiceTest
                     EventType = DelegationChangeEventType.Grant,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 1,
+                        DelegationChangeId = 1,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByPartyId = 234,
@@ -72,7 +72,7 @@ public class EventMapperServiceTest
                     EventType = DelegationChangeEventType.Grant,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 1,
+                        DelegationChangeId = 1,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByUserId = 234,
