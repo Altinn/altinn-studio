@@ -23,5 +23,10 @@ module.exports = {
       },
     ],
   },
-  plugins: [...commonConfig.plugins, new ForkTsCheckerWebpackPlugin()],
+  plugins: [
+    ...commonConfig.plugins,
+    new ForkTsCheckerWebpackPlugin({
+      async: false,
+    }),
+  ],
 };

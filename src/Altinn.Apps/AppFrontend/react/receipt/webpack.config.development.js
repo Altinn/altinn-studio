@@ -16,7 +16,12 @@ module.exports = {
 
       {
         test: /\.tsx?/,
-        use: [{ loader: 'ts-loader', options: { transpileOnly: true } }],
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: true },
+          },
+        ],
       },
       {
         enforce: 'pre',
@@ -27,15 +32,8 @@ module.exports = {
   },
   plugins: [
     ...commonConfig.plugins,
-    new ForkTsCheckerWebpackPlugin({
-      eslint: {
-        files: './src/**/*.{ts,tsx,js,jsx}',
-      },
-    }),
-    new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript',
-      excludeWarnings: false,
-    }),
+    new ForkTsCheckerWebpackPlugin(),
+    new ForkTsCheckerNotifierWebpackPlugin(),
   ],
   devServer: {
     historyApiFallback: true,
