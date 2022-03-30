@@ -1,10 +1,10 @@
-/* 
-    Pre-reqisite for test: 
+/*
+    Pre-reqisite for test:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script is to verify that get instances endpoint in storage works with a variety of filters
@@ -102,6 +102,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('appownerGetInstances5482')] = generateJUnitXML(data, 'platform-GetInstances5482');
+  result[reportPath('appownerGetInstances5482.xml')] = generateJUnitXML(data, 'platform-GetInstances5482');
   return result;
 }

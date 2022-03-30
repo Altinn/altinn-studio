@@ -140,6 +140,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('authzDelegationInheritance')] = generateJUnitXML(data, 'platform-authorization-delegation-inheritance');
+  result[reportPath('authzDelegationInheritance.xml')] = generateJUnitXML(data, 'platform-authorization-delegation-inheritance');
   return result;
 }

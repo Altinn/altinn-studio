@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password
-    Command: docker-compose run k6 run /src/tests/platform/authentication/authentication.js 
+    Command: docker-compose run k6 run /src/tests/platform/authentication/authentication.js
     -e env=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
@@ -28,6 +28,6 @@ export default function () {
 export function handleSummary(data) {
   let result = {};
   result['stdout'] = textSummary(data, { indent: ' ', enableColors: true });
-  result[reportPath('platformAuthn')] = generateJUnitXML(data, 'platform-authentication');
+  result[reportPath('platformAuthn.xml')] = generateJUnitXML(data, 'platform-authentication');
   return result;
 }

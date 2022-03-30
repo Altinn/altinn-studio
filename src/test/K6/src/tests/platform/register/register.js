@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/register/register.js 
+    Command: docker-compose run k6 run /src/tests/platform/register/register.js
     -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
@@ -56,6 +56,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformRegister')] = generateJUnitXML(data, 'platform-register');
+  result[reportPath('platformRegister.xml')] = generateJUnitXML(data, 'platform-register');
   return result;
 }

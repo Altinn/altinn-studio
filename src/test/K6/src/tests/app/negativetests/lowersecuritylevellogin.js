@@ -1,6 +1,6 @@
-/* 
+/*
   This test requires an user credentials with level 2 or lower login and an app available only for users with login level 3 and above
-  command to run the test: docker-compose run k6 run /src/tests/app/negativetests/lowersecuritylevellogin.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/negativetests/lowersecuritylevellogin.js
   -e env=*** -e org=*** -e level3app=*** -e username=*** -e userpwd=***
 */
 
@@ -48,6 +48,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('negativeLowerlevelLogin')] = generateJUnitXML(data, 'app-negativeLowerlevelLogin');
+  result[reportPath('negativeLowerlevelLogin.xml')] = generateJUnitXML(data, 'app-negativeLowerlevelLogin');
   return result;
 }
