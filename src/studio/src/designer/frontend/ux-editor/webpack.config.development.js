@@ -1,6 +1,5 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const common = require('./webpack.common');
 
 module.exports = {
@@ -50,11 +49,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    ...common.plugins,
-    new ForkTsCheckerWebpackPlugin(),
-    new ForkTsCheckerNotifierWebpackPlugin(),
-  ],
+  plugins: [...common.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
   devServer: {
     historyApiFallback: true,
   },

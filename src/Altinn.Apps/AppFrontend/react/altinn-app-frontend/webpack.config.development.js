@@ -1,5 +1,4 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const common = require('./webpack.common');
 
@@ -29,11 +28,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    ...common.plugins,
-    new ForkTsCheckerWebpackPlugin(),
-    new ForkTsCheckerNotifierWebpackPlugin(),
-  ],
+  plugins: [...common.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
   devServer: {
     historyApiFallback: true,
     allowedHosts: 'all',
