@@ -1,35 +1,28 @@
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: './index.tsx',
+  entry: './src/index.tsx',
   output: {
-    path: path.resolve(__dirname, '../dist/app-development'),
-    filename: 'app-development.js',
-  },
-  optimization: {
-    chunkIds: 'natural',
+    filename: 'altinn-app-frontend.js',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
     alias: {
-      'app-shared': path.resolve(__dirname, '../shared/'),
-      '@altinn/schema-editor': path.resolve(
-        __dirname,
-        '../packages/schema-editor/src/',
-      ),
-      utils: path.resolve(__dirname, 'utils/'),
-      services: path.resolve(__dirname, 'src/services/'),
-      common: path.resolve(__dirname, 'common/'),
+      'altinn-shared': path.resolve(__dirname, './../shared/src'),
+      src: path.resolve(__dirname, './src'),
     },
   },
   module: {
     rules: [
       {
         test: /\.jsx?/,
-        exclude: /node_modules/,
+        include: [
+          path.resolve(__dirname, './src'),
+          path.resolve(__dirname, '../node_modules/ajv'),
+          path.resolve(__dirname, '../node_modules/ajv-formats'),
+        ],
         use: {
           loader: 'babel-loader',
         },
@@ -57,10 +50,7 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
-      filename: 'app-development.css',
-    }),
-    new MonacoPlugin({
-      languages: ['typescript', 'javascript', 'csharp'],
+      filename: 'altinn-app-frontend.css',
     }),
   ],
 };
