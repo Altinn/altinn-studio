@@ -41,5 +41,11 @@ module.exports = {
     hot: true,
     historyApiFallback: true,
     allowedHosts: 'all',
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
   },
 };
