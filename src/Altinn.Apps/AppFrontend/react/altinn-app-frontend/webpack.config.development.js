@@ -32,5 +32,11 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     allowedHosts: 'all',
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
   },
 };
