@@ -20,6 +20,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     {
         private readonly AzureStorageConfiguration _storageConfig;
         private readonly IEventMapperService _eventMapperService;
+        private QueueClient _queueClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DelegationChangeEventQueue"/> class.
@@ -40,9 +41,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public async Task<SendReceipt> Push(DelegationChange delegationChange)
         {
             DelegationChangeEventList dceList = _eventMapperService.MapToDelegationChangeEventList(new List<DelegationChange> { delegationChange });
-            StorageSharedKeyCredential queueCredentials = new StorageSharedKeyCredential(_storageConfig.DelegationEventQueueAccountName, _storageConfig.DelegationEventQueueAccountKey);
-            QueueClient queueClient = new QueueClient(new Uri($"{_storageConfig.DelegationEventQueueEndpoint}/delegationevents"), queueCredentials, new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
+            QueueClient queueClient = await GetQueueClient();
             return await queueClient.SendMessageAsync(JsonSerializer.Serialize(dceList));
+        }
+
+        private async Task<QueueClient> GetQueueClient()
+        {
+            if (_queueClient == null)
+            {
+                StorageSharedKeyCredential queueCredentials = new StorageSharedKeyCredential(_storageConfig.DelegationEventQueueAccountName, _storageConfig.DelegationEventQueueAccountKey);
+                _queueClient = new QueueClient(new Uri($"{_storageConfig.DelegationEventQueueEndpoint}/delegationevents"), queueCredentials, new QueueClientOptions { MessageEncoding = QueueMessageEncoding.Base64 });
+                await _queueClient.CreateIfNotExistsAsync();
+            }
+
+            return _queueClient;
         }
     }
 }

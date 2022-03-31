@@ -48,7 +48,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(insertDelegationChangeFunc, conn);
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getCurrentDelegationChangeSql, conn);
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllDelegationChangesSql, conn);
@@ -195,7 +195,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesPartyIdsSql, conn);
@@ -224,7 +224,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesUserIdsSql, conn);
@@ -253,7 +253,7 @@ namespace Altinn.Platform.Authorization.Repositories
         {
             try
             {
-                using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
+                await using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
                 await conn.OpenAsync();
 
                 NpgsqlCommand pgcom = new NpgsqlCommand(getAllCurrentDelegationChangesOfferedByPartyIdOnlysSql, conn);

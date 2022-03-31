@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Models;
-using Altinn.Platform.Authorization.Models.DelegationChangeEvent;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Azure;
@@ -26,7 +25,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyRepository _policyRepository;
         private readonly IDelegationMetadataRepository _delegationRepository;
-        private readonly IDelegationChangeEventQueue eventQueue;
+        private readonly IDelegationChangeEventQueue _eventQueue;
         private readonly int delegationChangeEventQueueErrorId = 911;
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             _prp = policyRetrievalPoint;
             _policyRepository = policyRepository;
             _delegationRepository = delegationRepository;
-            this.eventQueue = eventQueue;
+            _eventQueue = eventQueue;
             _logger = logger;
         }
 
@@ -226,7 +225,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                     try
                     {
-                        await eventQueue.Push(change);
+                        await _eventQueue.Push(change);
                     }
                     catch (Exception ex)
                     {
@@ -328,7 +327,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                     try
                     {
-                        await eventQueue.Push(change);
+                        await _eventQueue.Push(change);
                     }
                     catch (Exception ex)
                     {
@@ -433,7 +432,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
                 try
                 {
-                    await eventQueue.Push(change);
+                    await _eventQueue.Push(change);
                 }
                 catch (Exception ex)
                 {

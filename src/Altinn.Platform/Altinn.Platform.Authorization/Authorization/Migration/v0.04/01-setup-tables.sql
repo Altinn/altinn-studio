@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS delegation.delegationChanges
 )
 TABLESPACE pg_default;
 
+-- Set start value of delegationChangeId to 100K to allow some room for manual debugging without collision
+ALTER SEQUENCE delegation.delegationchanges_delegationchangeid_seq RESTART WITH 100000 INCREMENT BY 1;
+
 -- Index: idx_altinnappid
 CREATE INDEX IF NOT EXISTS idx_altinnappid
   ON delegation.delegationChanges USING btree
