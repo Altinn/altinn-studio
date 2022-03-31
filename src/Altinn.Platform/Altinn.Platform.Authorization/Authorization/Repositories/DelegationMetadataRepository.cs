@@ -40,6 +40,7 @@ namespace Altinn.Platform.Authorization.Repositories
             _connectionString = string.Format(
                 postgresSettings.Value.ConnectionString,
                 postgresSettings.Value.AuthorizationDbPwd);
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<DelegationChangeType>("delegation.delegationchangetype");
         }
 
         /// <inheritdoc/>

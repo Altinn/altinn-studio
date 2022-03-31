@@ -1,6 +1,6 @@
 -- Enum: delegation.delegationChangeType
 DO $$ BEGIN
-    CREATE TYPE delegation.delegationChangeType AS ENUM ('Grant', 'Revoke', 'RevokeLast');
+    CREATE TYPE delegation.delegationChangeType AS ENUM ('grant', 'revoke', 'revokelast');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

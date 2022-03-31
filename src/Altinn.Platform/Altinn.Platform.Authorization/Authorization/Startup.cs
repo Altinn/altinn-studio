@@ -94,6 +94,7 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IInstanceMetadataRepository, InstanceMetadataRepository>();
             services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepository>();
             services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueue>();
+            services.AddSingleton<IEventMapperService, EventMapperService>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
