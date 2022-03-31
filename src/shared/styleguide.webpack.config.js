@@ -1,4 +1,3 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const path = require('path');
 
@@ -61,10 +60,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
-    }),
     new CheckerPlugin(),
   ],
   devServer: {
