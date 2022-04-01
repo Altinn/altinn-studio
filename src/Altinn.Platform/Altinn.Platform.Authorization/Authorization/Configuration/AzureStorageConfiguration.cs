@@ -49,5 +49,20 @@ namespace Altinn.Platform.Authorization.Configuration
         /// The blob lease timeout value in seconds
         /// </summary>
         public int BlobLeaseTimeout { get; set; }
+
+        /// <summary>
+        /// The endpoint url for the storage account for delegation event queue
+        /// </summary>
+        public string DelegationEventQueueEndpoint { get; set; }
+
+        /// <summary>
+        /// The storage account name for delegation event queue
+        /// </summary>
+        public string DelegationEventQueueAccountName { get; set; }
+
+        /// <summary>
+        /// The account key for the storage account for delegation event queue
+        /// </summary>
+        public string DelegationEventQueueAccountKey { get; set; }
     }
 }

@@ -100,6 +100,6 @@ public class EventPusherService : IEventPusherService
         return string.Join(
             ',',
             delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent =>
-                delegationChangeEvent.DelegationChange.PolicyChangeId));
+                delegationChangeEvent.DelegationChange.DelegationChangeId));
     }
 }

@@ -14,7 +14,7 @@ public class EventMapperService : IEventMapperService
         return delegationChangeEventList.DelegationChangeEvents.Select(delegationChangeEvent => new PlatformDelegationEvent()
             {
                 EventType = delegationChangeEvent.EventType,
-                PolicyChangeId = delegationChangeEvent.DelegationChange.PolicyChangeId,
+                PolicyChangeId = delegationChangeEvent.DelegationChange.DelegationChangeId,
                 Created = delegationChangeEvent.DelegationChange.Created,
                 AltinnAppId = delegationChangeEvent.DelegationChange.AltinnAppId,
                 OfferedByPartyId = delegationChangeEvent.DelegationChange.OfferedByPartyId,

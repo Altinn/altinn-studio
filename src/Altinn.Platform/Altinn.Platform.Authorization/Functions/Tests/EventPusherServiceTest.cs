@@ -100,7 +100,7 @@ public class EventPusherServiceTest
                     EventType = DelegationChangeEventType.Grant,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 1,
+                        DelegationChangeId = 1,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByPartyId = 234,
@@ -113,7 +113,7 @@ public class EventPusherServiceTest
                     EventType = DelegationChangeEventType.Revoke,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 2,
+                        DelegationChangeId = 2,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByPartyId = 234,
@@ -126,7 +126,7 @@ public class EventPusherServiceTest
                     EventType = DelegationChangeEventType.Grant,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 3,
+                        DelegationChangeId = 3,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByUserId = 345,
@@ -139,7 +139,7 @@ public class EventPusherServiceTest
                     EventType = DelegationChangeEventType.RevokeLast,
                     DelegationChange = new DelegationChange
                     {
-                        PolicyChangeId = 4,
+                        DelegationChangeId = 4,
                         AltinnAppId = "ttd/testapp",
                         OfferedByPartyId = 123,
                         CoveredByUserId = 345,

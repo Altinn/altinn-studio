@@ -65,22 +65,22 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
             return requestToDelete;
         }
 
-        public static DelegationChange GetDelegationChange(string appid, int offeredByPartyId, int performedByUserId, bool isDeleted = true, int? coveredByPartyId = null, int? coveredByUserId = null)
+        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId, int? coveredByUserId = null, int? coveredByPartyId = null, int performedByUserId = 20001336, DelegationChangeType changeType = DelegationChangeType.Grant, int changeId = 1337)
         {
             string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
-            DelegationChange result = new DelegationChange
+            return new DelegationChange
             {
-                AltinnAppId = appid,
+                DelegationChangeId = changeId,
+                DelegationChangeType = changeType,
+                AltinnAppId = altinnAppId,
                 OfferedByPartyId = offeredByPartyId,
                 CoveredByPartyId = coveredByPartyId,
                 CoveredByUserId = coveredByUserId,
                 PerformedByUserId = performedByUserId,
-                BlobStoragePolicyPath = $"{appid}/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml",
+                BlobStoragePolicyPath = $"{altinnAppId}/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml",
                 BlobStorageVersionId = "CorrectLeaseId",
-                IsDeleted = isDeleted,
                 Created = DateTime.Now
             };
-            return result;
         }
 
         public static ResourceAction GetResourceActionModel(string action, IEnumerable<string> roles)
@@ -126,24 +126,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Data
 
             policy.Title = title;
             return policy;
-        }
-
-        public static DelegationChange GetDelegationChange(string altinnAppId, int offeredByPartyId = 0, int? coveredByUserId = null, int? coveredByPartyId = null, bool isDeleted = false)
-        {
-            string coveredBy = coveredByPartyId != null ? $"p{coveredByPartyId}" : $"u{coveredByUserId}";
-            return new DelegationChange
-            {
-                AltinnAppId = altinnAppId,
-                BlobStorageVersionId = "CorrectLeaseId",
-                BlobStoragePolicyPath = $"{altinnAppId}/{offeredByPartyId}/{coveredBy}/delegationpolicy.xml",
-                CoveredByPartyId = coveredByPartyId,
-                CoveredByUserId = coveredByUserId,
-                Created = DateTime.Now,
-                IsDeleted = isDeleted,
-                OfferedByPartyId = offeredByPartyId,
-                PerformedByUserId = 20001336,
-                PolicyChangeId = new Random().Next()
-            };
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authorization.Functions.Clients;
 public class BridgeClient : IBridgeClient
 {
     private readonly IAccessTokenProvider _accessTokenProvider;
-    private const string DelegationEventEndpoint = "delegationevent";
+    private const string DelegationEventEndpoint = "platformDelegationEvents";
 
     /// <summary>
     /// Gets an instance of httpclient from httpclientfactory
