@@ -13399,42 +13399,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"receipt-react-app@workspace:receipt":
-  version: 0.0.0-use.local
-  resolution: "receipt-react-app@workspace:receipt"
-  dependencies:
-    "@babel/core": ^7.17.8
-    "@babel/polyfill": ^7.12.1
-    "@babel/preset-env": ^7.16.11
-    "@babel/preset-react": ^7.16.7
-    "@material-ui/core": ^4.12.3
-    "@testing-library/jest-dom": ^5.16.3
-    "@testing-library/react": ^12.1.4
-    "@types/jest": ^27.4.1
-    "@types/react": 17.0.43
-    "@types/react-dom": ^17.0.14
-    axios: ^0.26.1
-    cross-env: ^7.0.3
-    css-loader: ^6.7.1
-    fork-ts-checker-notifier-webpack-plugin: 6.0.0
-    fork-ts-checker-webpack-plugin: ^7.2.1
-    jest: ^27.5.1
-    mini-css-extract-plugin: ^2.6.0
-    moment: ^2.29.1
-    msw: ^0.39.2
-    react: ^17.0.2
-    react-dom: ^17.0.2
-    rimraf: ^3.0.2
-    terser-webpack-plugin: ^5.3.1
-    ts-jest: ^27.1.4
-    ts-loader: ^9.2.8
-    typescript: ^4.6.3
-    webpack: ^5.70.0
-    webpack-cli: ^4.9.2
-    webpack-dev-server: ^4.7.4
-  languageName: unknown
-  linkType: soft
-
 "rechoir@npm:^0.7.0":
   version: 0.7.1
   resolution: "rechoir@npm:0.7.1"
