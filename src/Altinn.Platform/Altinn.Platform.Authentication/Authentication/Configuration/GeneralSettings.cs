@@ -38,6 +38,11 @@ namespace Altinn.Platform.Authentication.Configuration
         public string SBLRedirectEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets the sbl logout endpoint
+        /// </summary>
+        public string SBLLogoutEndpoint { get; set; }
+
+        /// <summary>
         /// Gets or sets the platform endpoint
         /// </summary>
         public string PlatformEndpoint { get; set; }
