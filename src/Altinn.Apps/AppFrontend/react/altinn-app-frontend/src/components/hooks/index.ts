@@ -9,7 +9,7 @@ import { getOptionLookupKey, replaceOptionDataField } from "src/utils/options";
 export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IOptionSource) => {
     const formData = useAppSelector(state => state.formData.formData);
     const instance = useAppSelector(state => state.instanceData.instance);
-    const textResources = useAppSelector(state => state.textResources.resources);
+    const relevantTextResource = useAppSelector(state => state.textResources.resources.find((e => e.id === source.label)));
     const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
     const applicationSettings = useAppSelector(state => state.applicationSettings?.applicationSettings);
     const optionState = useAppSelector(state => state.optionState.options);
@@ -33,7 +33,7 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
       };
   
       const replacedOptionLabels =
-        replaceTextResourceParams(textResources.filter((e => e.id === source.label)), dataSources, repeatingGroups);
+        replaceTextResourceParams([relevantTextResource], dataSources, repeatingGroups);
   
       const repGroup = Object.values(repeatingGroups).find((group) => {
         return group.dataModelBinding === source.group;
@@ -51,7 +51,7 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
   
       setOptions(newOptions);
   
-    }, [applicationSettings, formData, instance, mapping, optionState, optionsId, repeatingGroups, source, textResources]);
+    }, [applicationSettings, formData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
   
     return options;
   }
