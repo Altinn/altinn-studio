@@ -501,7 +501,7 @@ public class PDFGenerator {
       FormLayoutElement group =
         this.repeatingGroups
           .stream()
-          .filter((FormLayoutElement e) -> e.getDataModelBindings().get("group") == element.getSource().getGroup())
+          .filter((FormLayoutElement e) -> e.getDataModelBindings().get("group").equals(element.getSource().getGroup()))
           .findFirst()
           .get();
       List<Option> optionList = OptionUtils.getOptionsFromOptionSource(element.getSource(), group, formData, textResources);
