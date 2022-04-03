@@ -2,12 +2,13 @@ import { IInstanceContext, IDataSources } from "altinn-shared/types";
 import { replaceTextResourceParams } from "altinn-shared/utils";
 import { buildInstanceContext } from "altinn-shared/utils/instanceContext";
 import { useState, useEffect } from "react";
+import { shallowEqual } from "react-redux";
 import { useAppSelector } from "src/common/hooks";
 import { IMapping, IOptionSource, IOption } from "src/types";
-import { getOptionLookupKey, replaceOptionDataField } from "src/utils/options";
+import { getOptionLookupKey, getRelevantFormDataForOptionSource, replaceOptionDataField } from "src/utils/options";
 
 export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IOptionSource) => {
-    const formData = useAppSelector(state => state.formData.formData);
+    const relevantFormData = useAppSelector(state => getRelevantFormDataForOptionSource(state.formData.formData, source), shallowEqual);
     const instance = useAppSelector(state => state.instanceData.instance);
     const relevantTextResource = useAppSelector(state => state.textResources.resources.find((e => e.id === source.label)));
     const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
@@ -27,7 +28,7 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
       const instanceContext: IInstanceContext = buildInstanceContext(instance);
   
       const dataSources: IDataSources = {
-        dataModel: formData,
+        dataModel: relevantFormData,
         applicationSettings: applicationSettings,
         instanceContext: instanceContext
       };
@@ -44,14 +45,14 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
       for (let i = 0; i <= repGroup.index; i++) {
         const option: IOption = {
           label: replacedOptionLabels[i + 1].value,
-          value: replaceOptionDataField(formData, source.value, i),
+          value: replaceOptionDataField(relevantFormData, source.value, i),
         };
         newOptions.push(option);
       }
   
       setOptions(newOptions);
   
-    }, [applicationSettings, formData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
+    }, [applicationSettings, relevantFormData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
   
     return options;
   }
