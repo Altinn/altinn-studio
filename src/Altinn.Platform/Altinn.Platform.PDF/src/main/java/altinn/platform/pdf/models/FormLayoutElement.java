@@ -17,6 +17,7 @@ public class FormLayoutElement {
   private TextResourceBindings textResourceBindings;
   private String optionsId;
   private List<Option> options;
+  private OptionSource source;
   private boolean simplified;
   private List<String> children;
   private int count;
