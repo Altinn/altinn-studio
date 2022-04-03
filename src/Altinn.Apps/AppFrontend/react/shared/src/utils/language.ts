@@ -106,9 +106,9 @@ export function replaceTextResourceParams(
           if (variable.dataSource.startsWith('dataModel')) {
             if (variable.key.indexOf('[{0}]') > -1) {
               const keyWithIndex = variable.key.replace('{0}', `${i}`);
-              replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
+              replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
             } else {
-              replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+              replaceValues.push(dataSources.dataModel[variable.key] || '');
             }
           }
         });

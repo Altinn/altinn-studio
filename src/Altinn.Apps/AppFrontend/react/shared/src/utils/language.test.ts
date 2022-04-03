@@ -42,7 +42,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     mockTextResources = [];
   });
 
-  it('+++ should replace parameter for unparsed value', () => {
+  it('should replace parameter for unparsed value', () => {
     mockTextResources = [
       {
         id: 'mockId1', value: 'This is an {0} text.', unparsedValue: 'This is an {0} text.', variables: [{ key: 'model.text.adjective', dataSource: 'dataModel.test' }],
@@ -53,7 +53,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is an ${adjectiveValue} text.`);
   });
 
-  it('+++ should replace multiple parameters', () => {
+  it('should replace multiple parameters', () => {
     mockTextResources = [
       {
         id: 'mockId1',
@@ -71,7 +71,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is an ${adjectiveValue} text, ${colorValue}.`);
   });
 
-  it('+++ should replace parameter for previously parsed value', () => {
+  it('should replace parameter for previously parsed value', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -87,7 +87,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a ${colorValue} apple.`);
   });
 
-  it('+++ should replace parameter with text key', () => {
+  it('should replace parameter with text key', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -103,7 +103,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual('This is a text with a missing param: model.text.param.');
   });
 
-  it('+++ should not replace the texts from invalid source', () => {
+  it('should not replace the texts from invalid source', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -119,7 +119,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual('This: {0} depends on an invalid source.');
   });
 
-  it('+++ should not replace texts when no variable is defined', () => {
+  it('should not replace texts when no variable is defined', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -133,7 +133,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual('mock value');
   });
 
-  it('+++ should replace texts for repeating groups', () => {
+  it('should replace texts for repeating groups', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -149,7 +149,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     ];
     const mockRepeatingGroups = {
       group1: {
-        count: 1,
+        index: 1,
         dataModelBinding: 'model.group',
       },
     };
@@ -160,7 +160,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`Hello, ${animal1Value}!`);
   });
 
-  it('+++ should replace multiple references to same value', () => {
+  it('should replace multiple references to same value', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -176,7 +176,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`);
   });
 
-  it('+++ should replace text based on appsettings', () => {
+  it('should replace text based on appsettings', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -192,7 +192,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
   });
 
-  it('+++ should replace text with key when appsettings value is missing', () => {
+  it('should replace text with key when appsettings value is missing', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -208,7 +208,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`This is a [link](doesnotexists).`);
   });
 
-  it('+++ should replace text from instance context', () => {
+  it('should replace text from instance context', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -224,7 +224,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     expect(textResource.value).toEqual(`The instance owner party id is ${instanceOwnerPartyId}`);
   });
 
-  it('+++ should replace text in a reapeating group based on appsettings', () => {
+  it('should replace text in a reapeating group based on appsettings', () => {
     mockTextResources = [
       {
         id: 'mockId',
@@ -237,7 +237,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     ];
     const mockRepeatingGroups = {
       group1: {
-        count: 1,
+        index: 1,
         dataModelBinding: 'model.group',
       },
     };
