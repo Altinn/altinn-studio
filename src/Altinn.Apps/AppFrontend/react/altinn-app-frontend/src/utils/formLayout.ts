@@ -74,14 +74,14 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
             const childGroup = groups.find(
               (element) => element.id === childGroupId,
             );
-            [...Array(index + 1)].forEach((_x: any, index: number) => {
-              const groupId = `${childGroup.id}-${index}`;
+            [...Array(index + 1)].forEach((_x: any, childGroupIndex: number) => {
+              const groupId = `${childGroup.id}-${childGroupIndex}`;
               repeatingGroups[groupId] = {
                 index: getIndexForRepeatingGroup(
                   formData,
                   childGroup.dataModelBindings?.group,
                   groupElement.dataModelBindings.group,
-                  index,
+                  childGroupIndex,
                 ),
                 baseGroupId: childGroup.id,
                 editIndex: -1,
