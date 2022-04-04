@@ -8,6 +8,8 @@ import java.util.List;
 
 public class OptionUtils {
 
+  private OptionUtils() {}
+
   public static List<Option> getOptionsFromOptionSource(OptionSource source, FormLayoutElement group, Document data, TextResources resources) {
     List<Option> options = new ArrayList<>();
     TextResourceElement label =
