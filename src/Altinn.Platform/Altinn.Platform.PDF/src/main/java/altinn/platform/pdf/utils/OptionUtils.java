@@ -18,7 +18,7 @@ public class OptionUtils {
         .stream()
         .filter(e -> e.getId().equals(source.getLabel()))
         .findFirst()
-        .get();
+        .orElseThrow();
 
     List<String> replaceValues = new ArrayList<>();
 

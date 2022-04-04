@@ -503,7 +503,7 @@ public class PDFGenerator {
           .stream()
           .filter((FormLayoutElement e) -> e.getDataModelBindings().get("group").equals(element.getSource().getGroup()))
           .findFirst()
-          .get();
+          .orElseThrow();
       List<Option> optionList = OptionUtils.getOptionsFromOptionSource(element.getSource(), group, formData, textResources);
       splitFormData.forEach(formDataValue -> {
         var option = optionList.stream()
