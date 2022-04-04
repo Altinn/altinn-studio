@@ -1,9 +1,6 @@
 # Altinn 3 app frontend
 
 React SPA used by applications developed in [altinn-studio](https://github.com/Altinn/altinn-studio). The application consists of several different features, and is responsible for presenting the UI for different steps in the workflow of an Altinn application, and interacting with the [altinn app-template](https://github.com/Altinn/app-template-dotnet).
-Together with **Altinn Apps** and **Altinn Platform**, this is a complete application development and hosting platform.
-
-Altinn Studio is available at <https://altinn.studio>.
 
 ## Prerequisites
 
