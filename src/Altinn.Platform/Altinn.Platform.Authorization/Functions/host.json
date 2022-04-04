@@ -11,10 +11,6 @@
       "Altinn.Platform.Authorization.Functions.Services.EventPusherService": "Debug"
     }
   },
-  "concurrency": { /* See https://docs.microsoft.com/en-us/azure/azure-functions/functions-concurrency#dynamic-concurrency-preview */
-    "dynamicConcurrencyEnabled": true,
-    "snapshotPersistenceEnabled": true
-  },
   "extensions": {
     "queues": {
       "maxPollingInterval": "00:00:02",
