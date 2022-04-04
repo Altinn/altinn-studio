@@ -96,7 +96,7 @@ export const RadioButtonContainerComponent = ({
   const classes = useStyles();
 
   const selected = formData?.simpleBinding ?? '';
-  const apiOptions = useGetOptions(optionsId, mapping, source);
+  const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultArray;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(

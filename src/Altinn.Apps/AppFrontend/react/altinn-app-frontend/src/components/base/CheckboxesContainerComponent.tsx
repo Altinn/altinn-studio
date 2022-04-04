@@ -98,7 +98,7 @@ export const CheckboxContainerComponent = ({
   source,
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
-  const apiOptions = useGetOptions(optionsId, mapping, source);
+  const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultOptions;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);

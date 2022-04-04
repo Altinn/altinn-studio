@@ -45,7 +45,7 @@ function DropdownComponent({
   source,
 }: IDropdownProps) {
   const classes = useStyles();
-  const options = useGetOptions(optionsId, mapping, source);
+  const options = useGetOptions({ optionsId, mapping, source });
   const fetchingOptions = useAppSelector(
     (state) =>
       state.optionState.options[getOptionLookupKey(optionsId, mapping)]
