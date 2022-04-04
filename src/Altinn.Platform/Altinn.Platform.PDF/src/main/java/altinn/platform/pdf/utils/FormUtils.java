@@ -130,7 +130,12 @@ public class FormUtils {
       .collect(Collectors.toList());
   }
 
-  private static String filterMultiPageId(String id){
+  /**
+   * Removes the page indicator on an id if it exists.
+   * @param id the component Id
+   * @return an id without the page indicator
+   */
+  public static String filterMultiPageId(String id){
     return id.contains(":") ? id.split(":")[1] : id;
   }
 
