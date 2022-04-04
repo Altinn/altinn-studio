@@ -123,11 +123,8 @@ export class AccessControlContainerClass extends React.Component<
     return null;
   }
 
-  constructor(
-    props: IAccessControlContainerProps,
-    state: IAccessControlContainerState,
-  ) {
-    super(props, state);
+  constructor(props: IAccessControlContainerProps) {
+    super(props);
     const { partyTypesAllowedProps } = props.applicationMetadata;
     const partyTypesAllowed = {
       bankruptcyEstate: !!partyTypesAllowedProps?.bankruptcyEstate,
@@ -286,13 +283,13 @@ export class AccessControlContainerClass extends React.Component<
 
 const makeMapStateToProps = () => {
   const getApplicationMetadata = makeGetApplicationMetadata();
+
   return (
     state: RootState,
     props: IAccessControlContainerProvidedProps,
   ): IAccessControlContainerProps => ({
     language: state.languageState.language,
     applicationMetadata: getApplicationMetadata(state),
-    dispatch: props.dispatch,
     ...props,
   });
 };

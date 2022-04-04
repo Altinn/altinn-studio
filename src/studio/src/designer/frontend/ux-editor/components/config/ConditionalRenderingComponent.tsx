@@ -33,8 +33,8 @@ class ConditionalRendering extends React.Component<
   IConditionalRenderingComponentProps,
   any
 > {
-  constructor(_props: any, _state: any) {
-    super(_props, _state);
+  constructor(props: IConditionalRenderingComponentProps) {
+    super(props);
     const id = uuidv1();
     this.state = {
       selectedFunctionNr: null,

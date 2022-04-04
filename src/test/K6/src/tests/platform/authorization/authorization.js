@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: test app with uploaded policy in blob, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-  Command: docker-compose run k6 run /src/tests/platform/authorization/authorization.js 
+  Command: docker-compose run k6 run /src/tests/platform/authorization/authorization.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***  -e appsaccesskey=***
 */
 import { check } from 'k6';
@@ -125,6 +125,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformAuthZ')] = generateJUnitXML(data, 'platform-authorization');
+  result[reportPath('platformAuthZ.xml')] = generateJUnitXML(data, 'platform-authorization');
   return result;
 }

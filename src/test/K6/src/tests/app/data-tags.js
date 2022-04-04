@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/data-tags.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/data-tags.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -104,6 +104,6 @@ export function teardown(data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('appDataTags')] = generateJUnitXML(data, 'app-data-tags');
+  result[reportPath('appDataTags.xml')] = generateJUnitXML(data, 'app-data-tags');
   return result;
 }

@@ -62,11 +62,11 @@ export function generateJUnitXML(data, suiteName) {
 
 /**
  * Returns string that is path to the reports based on the OS where the test in run
- * @param {String} reportName
+ * @param {String} reportName name of the file with extension
  * @returns path
  */
 export function reportPath(reportName) {
-  var path = `src/reports/${reportName}.xml`;
+  var path = `src/reports/${reportName}`;
   if (!(__ENV.OS || __ENV.AGENT_OS)) path = `/${path}`;
   return path;
 }

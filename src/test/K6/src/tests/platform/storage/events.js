@@ -100,6 +100,6 @@ export function teardown(data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformStorageEvents')] = generateJUnitXML(data, 'platform-storage-events');
+  result[reportPath('platformStorageEvents.xml')] = generateJUnitXML(data, 'platform-storage-events');
   return result;
 }

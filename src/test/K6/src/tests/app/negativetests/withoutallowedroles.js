@@ -1,6 +1,6 @@
-/* 
+/*
   This test requires two user names and password and an app
-  command to run the test: docker-compose run k6 run /src/tests/app/negativetests/withoutallowedroles.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/negativetests/withoutallowedroles.js
   -e env=*** -e org=*** -e level1app=*** -e username=*** -e userpwd=*** -e level1user=*** -e appsaccesskey=***
 */
 
@@ -64,6 +64,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('negativeWithoutAllowedRoles')] = generateJUnitXML(data, 'app-negativeWithoutAllowedRoles');
+  result[reportPath('negativeWithoutAllowedRoles.xml')] = generateJUnitXML(data, 'app-negativeWithoutAllowedRoles');
   return result;
 }

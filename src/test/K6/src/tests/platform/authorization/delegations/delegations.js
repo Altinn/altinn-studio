@@ -150,6 +150,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('authzDelegation')] = generateJUnitXML(data, 'platform-authorization-delegation');
+  result[reportPath('authzDelegation.xml')] = generateJUnitXML(data, 'platform-authorization-delegation');
   return result;
 }

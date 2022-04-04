@@ -5,7 +5,7 @@ import { HashRouter } from 'react-router-dom';
 import { App } from './App';
 import { initSagas } from './sagas';
 import { store } from './store';
-import './styles/index.css';
+import './index.css';
 
 import ErrorBoundary from './components/ErrorBoundary';
 

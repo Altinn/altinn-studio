@@ -1,17 +1,17 @@
-/* 
-    Pre-reqisite for test: 
+/*
+    Pre-reqisite for test:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script is a negative test where app owner should be forbidden to write to instance without write access
-    Test data required: username and password, deployed app that requires level 2 login 
+    Test data required: username and password, deployed app that requires level 2 login
     (reference app: ttd/apps-test) to find the party id of the user and maskinporten token
-    
-    Command: docker-compose run k6 run /src/tests/app/negativetests/appowner-writewithoutaccess.js 
+
+    Command: docker-compose run k6 run /src/tests/app/negativetests/appowner-writewithoutaccess.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
@@ -111,6 +111,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('negativeWithoutAccess')] = generateJUnitXML(data, 'app-negativeWithoutAccess');
+  result[reportPath('negativeWithoutAccess.xml')] = generateJUnitXML(data, 'app-negativeWithoutAccess');
   return result;
 }

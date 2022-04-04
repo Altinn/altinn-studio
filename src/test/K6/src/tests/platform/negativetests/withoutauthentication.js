@@ -1,6 +1,6 @@
-/* 
+/*
   This test requires an user name and password and an app
-  command to run the test: docker-compose run k6 run /src/tests/platform/negativetests/withoutauthentication.js 
+  command to run the test: docker-compose run k6 run /src/tests/platform/negativetests/withoutauthentication.js
   -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=*** -e appsaccesskey=***
 */
 
@@ -94,6 +94,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformNegativeWithoutAuthN')] = generateJUnitXML(data, 'platform-negative-withoutauthn');
+  result[reportPath('platformNegativeWithoutAuthN.xml')] = generateJUnitXML(data, 'platform-negative-withoutauthn');
   return result;
 }

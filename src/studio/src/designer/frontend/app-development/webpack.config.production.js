@@ -1,6 +1,4 @@
 const TerserPlugin = require('terser-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-
 const commonConfig = require('./webpack.common');
 
 module.exports = {
@@ -11,6 +9,7 @@ module.exports = {
     hints: false,
   },
   optimization: {
+    ...commonConfig.optimization,
     minimize: true,
     minimizer: [
       new TerserPlugin({
@@ -31,10 +30,4 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    ...commonConfig.plugins,
-    new ForkTsCheckerWebpackPlugin({
-      async: false,
-    }),
-  ],
 };

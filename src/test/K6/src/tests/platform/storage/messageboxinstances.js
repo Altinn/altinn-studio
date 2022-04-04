@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/storage/messageboxinstances.js 
+    Command: docker-compose run k6 run /src/tests/platform/storage/messageboxinstances.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -142,6 +142,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformStorageSbl')] = generateJUnitXML(data, 'platform-storage-sbl');
+  result[reportPath('platformStorageSbl.xml')] = generateJUnitXML(data, 'platform-storage-sbl');
   return result;
 }

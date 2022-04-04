@@ -88,13 +88,13 @@ export class EditModalContentComponent extends React.Component<
   IEditModalContentProps,
   IEditModalContentState
 > {
-  constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
-    super(_props, _state);
+  constructor(props: IEditModalContentProps) {
+    super(props);
     this.state = {
-      component: _props.component,
+      component: props.component,
       error: null,
       errorMessageRef: React.createRef<HTMLDivElement>(),
-      tmpId: _props.component?.id,
+      tmpId: props.component?.id,
     };
   }
 

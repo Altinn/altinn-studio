@@ -1,6 +1,4 @@
 const TerserPlugin = require('terser-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-
 const commonConfig = require('./webpack.common');
 
 module.exports = {
@@ -15,12 +13,17 @@ module.exports = {
     minimizer: [new TerserPlugin()],
   },
   module: {
-    rules: [...commonConfig.module.rules],
+    rules: [
+      ...commonConfig.module.rules,
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: false },
+          },
+        ],
+      },
+    ],
   },
-  plugins: [
-    ...commonConfig.plugins,
-    new ForkTsCheckerWebpackPlugin({
-      async: false,
-    }),
-  ],
 };

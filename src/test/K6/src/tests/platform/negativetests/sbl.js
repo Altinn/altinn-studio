@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/negativetests/sbl.js 
+    Command: docker-compose run k6 run /src/tests/platform/negativetests/sbl.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -55,6 +55,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformNegativeSBL')] = generateJUnitXML(data, 'platform-negative-sbl');
+  result[reportPath('platformNegativeSBL.xml')] = generateJUnitXML(data, 'platform-negative-sbl');
   return result;
 }

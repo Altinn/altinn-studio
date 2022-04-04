@@ -79,6 +79,6 @@ export function teardown(data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformStorageProcess')] = generateJUnitXML(data, 'platform-storage-process');
+  result[reportPath('platformStorageProcess.xml')] = generateJUnitXML(data, 'platform-storage-process');
   return result;
 }

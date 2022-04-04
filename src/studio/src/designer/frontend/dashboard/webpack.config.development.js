@@ -1,6 +1,4 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-
 const commonConfig = require('./webpack.common');
 
 module.exports = {
@@ -24,22 +22,25 @@ module.exports = {
         test: /\.js$/,
         loader: 'source-map-loader',
       },
+      {
+        test: /\.tsx?/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: { transpileOnly: true },
+          },
+        ],
+      },
     ],
   },
-  plugins: [
-    ...commonConfig.plugins,
-    new ForkTsCheckerWebpackPlugin({
-      eslint: {
-        files:
-          './{actions,config,features,reducers,sagas,sharedResources,store,types,utils}/**/*.{ts,tsx,js,jsx}',
-      },
-    }),
-    new ForkTsCheckerNotifierWebpackPlugin({
-      title: 'TypeScript',
-      excludeWarnings: false,
-    }),
-  ],
+  plugins: [...commonConfig.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
   devServer: {
     historyApiFallback: true,
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
   },
 };

@@ -124,6 +124,6 @@ export function teardown(data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('appProcess')] = generateJUnitXML(data, 'app-process');
+  result[reportPath('appProcess.xml')] = generateJUnitXML(data, 'app-process');
   return result;
 }
