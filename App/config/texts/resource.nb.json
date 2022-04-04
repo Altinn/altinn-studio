@@ -240,6 +240,15 @@
     {
       "id": "text",
       "value": "Bruke dette app for å teste stateless app <br/> 1. test <br/> 2. test"
+    },
+    {
+      "id": "feedback.title",
+      "value": "Videresende via API"
+    },
+    {
+      "id": "feedback.body",
+      "value": "Du må flytte instansen til neste prosess med et API kall til process/next."
     }
+    
   ]
 }

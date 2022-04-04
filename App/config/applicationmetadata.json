@@ -38,7 +38,7 @@
     "subUnit": false
   },
   "onEntry": { "show": "stateless" },
-  "autoDeleteOnProcessEnd": false,
+  "autoDeleteOnProcessEnd": true,
   "created": "2021-05-11T08:57:08.4231228Z",
   "createdBy": "jeeva",
   "lastChanged": "2021-05-11T08:57:08.4232208Z",
