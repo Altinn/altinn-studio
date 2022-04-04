@@ -10,37 +10,37 @@ import { getOptionLookupKey, getRelevantFormDataForOptionSource, replaceOptionDa
 export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IOptionSource) => {
     const relevantFormData = useAppSelector(state => getRelevantFormDataForOptionSource(state.formData.formData, source), shallowEqual);
     const instance = useAppSelector(state => state.instanceData.instance);
-    const relevantTextResource = useAppSelector(state => state.textResources.resources.find((e => e.id === source.label)));
+    const relevantTextResource = useAppSelector(state => state.textResources.resources.find((e => e.id === source?.label)));
     const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
     const applicationSettings = useAppSelector(state => state.applicationSettings?.applicationSettings);
     const optionState = useAppSelector(state => state.optionState.options);
     const [options, setOptions] = useState<IOption[]>(undefined);
-  
+
     useEffect(() => {
       if (optionsId) {
         setOptions(optionState[getOptionLookupKey(optionsId, mapping)]?.options);
       }
-  
+
       if (!source || !repeatingGroups) {
         return;
       }
-  
+
       const instanceContext: IInstanceContext = buildInstanceContext(instance);
-  
+
       const dataSources: IDataSources = {
         dataModel: relevantFormData,
         applicationSettings: applicationSettings,
         instanceContext: instanceContext
       };
-  
+
       const replacedOptionLabels =
         replaceTextResourceParams([relevantTextResource], dataSources, repeatingGroups);
-  
+
       const repGroup = Object.values(repeatingGroups).find((group) => {
         return group.dataModelBinding === source.group;
       });
-  
-  
+
+
       const newOptions: IOption[] = [];
       for (let i = 0; i <= repGroup.index; i++) {
         const option: IOption = {
@@ -49,10 +49,10 @@ export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IO
         };
         newOptions.push(option);
       }
-  
+
       setOptions(newOptions);
-  
+
     }, [applicationSettings, relevantFormData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
-  
+
     return options;
   }
