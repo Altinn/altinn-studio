@@ -1,8 +1,14 @@
-/* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import * as Types from './serviceConfigurationTypes';
+import type {
+  IServiceConfigurationState,
+  IAddConditionalRendering,
+  IAddRuleConnection,
+  ISetConditionalRendering,
+  ISetRuleConnection,
+} from './serviceConfigurationTypes';
+import type { IFormDesignerActionRejected } from '../../types/global';
 
-const initialState: Types.IServiceConfigurationState = {
+const initialState: IServiceConfigurationState = {
   ruleConnection: {},
   conditionalRendering: {},
   manageServiceConfiguration: {
@@ -18,14 +24,17 @@ const serviceConfigurationSlice = createSlice({
   name: 'serviceConfiguration',
   initialState,
   reducers: {
-    addConditionalRenderingConnection: (state, action: PayloadAction<Types.IAddConditionalRendering>) => {
+    addConditionalRenderingConnection: (
+      state,
+      action: PayloadAction<IAddConditionalRendering>,
+    ) => {
       const { newConnection } = action.payload;
       state.conditionalRendering = {
         ...state.conditionalRendering,
         ...newConnection,
       };
     },
-    addRuleConnection: (state, action: PayloadAction<Types.IAddRuleConnection>) => {
+    addRuleConnection: (state, action: PayloadAction<IAddRuleConnection>) => {
       const { newConnection } = action.payload;
       state.ruleConnection = {
         ...state.ruleConnection,
@@ -48,7 +57,10 @@ const serviceConfigurationSlice = createSlice({
       state.manageServiceConfiguration.fetching = false;
       state.manageServiceConfiguration.error = null;
     },
-    fetchServiceConfigurationRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
+    fetchServiceConfigurationRejected: (
+      state,
+      action: PayloadAction<IFormDesignerActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.manageServiceConfiguration.error = error;
       state.manageServiceConfiguration.fetched = false;
@@ -62,17 +74,23 @@ const serviceConfigurationSlice = createSlice({
       state.manageServiceConfiguration.saving = false;
       state.manageServiceConfiguration.error = null;
     },
-    saveServiceConfigurationRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
+    saveServiceConfigurationRejected: (
+      state,
+      action: PayloadAction<IFormDesignerActionRejected>,
+    ) => {
       const { error } = action.payload;
       state.manageServiceConfiguration.error = error;
       state.manageServiceConfiguration.saved = false;
       state.manageServiceConfiguration.saving = false;
     },
-    setConditionalRenderingConnections: (state, action: PayloadAction<Types.ISetConditionalRendering>) => {
+    setConditionalRenderingConnections: (
+      state,
+      action: PayloadAction<ISetConditionalRendering>,
+    ) => {
       const { conditionalRenderingConnections } = action.payload;
       state.conditionalRendering = { ...conditionalRenderingConnections };
     },
-    setRuleConnections: (state, action: PayloadAction<Types.ISetRuleConnection>) => {
+    setRuleConnections: (state, action: PayloadAction<ISetRuleConnection>) => {
       const { ruleConnections } = action.payload;
       state.ruleConnection = { ...ruleConnections };
     },

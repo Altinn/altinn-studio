@@ -5,8 +5,8 @@ import {
   Toolbar,
   Typography,
 } from '@material-ui/core';
-import { IGiteaOrganisation, IUser } from 'app-shared/types';
-import * as React from 'react';
+import type { IGiteaOrganisation, IUser } from '../../types/global';
+import React from 'react';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 

@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
+import type { RootState } from 'store';
 
-const applicationMetadataSelector = (state: IServiceDevelopmentState) => {
+const applicationMetadataSelector = (state: RootState) => {
   return state.applicationMetadataState.applicationMetadata;
 };
 

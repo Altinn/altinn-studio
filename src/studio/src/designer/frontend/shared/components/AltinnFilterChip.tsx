@@ -1,7 +1,7 @@
 import { Chip, createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnFilterChipComponentProvidedProps {
@@ -14,9 +14,6 @@ export interface IAltinnFilterChipComponentProvidedProps {
   deleteIcon?: any;
   onDeleteFunction?: any;
   sortIcon?: boolean;
-}
-
-export interface IAltinnFilterChipComponentState {
 }
 
 const theme = createTheme(altinnTheme);
@@ -76,12 +73,16 @@ const AltinnFilterChip = (props: IAltinnFilterChipComponentProvidedProps) => {
       variant='outlined'
       onClick={props.onclickFunction}
       onDelete={props.onDeleteFunction}
-      deleteIcon={props.sortIcon ? <i className={classNames(classes.down)} /> : props.deleteIcon}
-      className={classNames(
-        props.className,
-        classes.chip,
-        { [classes.chipActive]: props.active },
-      )}
+      deleteIcon={
+        props.sortIcon ? (
+          <i className={classNames(classes.down)} />
+        ) : (
+          props.deleteIcon
+        )
+      }
+      className={classNames(props.className, classes.chip, {
+        [classes.chipActive]: props.active,
+      })}
     />
   );
 };

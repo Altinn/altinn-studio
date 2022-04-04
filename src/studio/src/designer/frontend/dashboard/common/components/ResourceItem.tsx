@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Grid } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from 'common/hooks';

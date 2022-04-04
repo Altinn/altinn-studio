@@ -1,5 +1,12 @@
-import { createStyles, Grid, IconButton, Input, Typography, withStyles } from '@material-ui/core';
-import * as React from 'react';
+import {
+  createStyles,
+  Grid,
+  IconButton,
+  Input,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
+import React from 'react';
 import { connect } from 'react-redux';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
@@ -7,7 +14,18 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import {
+  renderSelectDataModelBinding,
+  renderSelectTextFromResources,
+} from '../../utils/render';
+import type {
+  IFormComponent,
+  IFormCheckboxComponent,
+  IFormRadioButtonComponent,
+  IAppState,
+  ICodeListListElement,
+  ITextResource,
+} from '../../types/global';
 
 const styles = createStyles({
   formComponentsBtn: {
@@ -78,7 +96,8 @@ export interface ISelectionEditComponentProvidedProps {
   handleReadOnlyChange: (event: any, checked: boolean) => void;
 }
 
-export interface ISelectionEditComponentProps extends ISelectionEditComponentProvidedProps {
+export interface ISelectionEditComponentProps
+  extends ISelectionEditComponentProvidedProps {
   language: any;
   textResources: ITextResource[];
 }
@@ -92,13 +111,19 @@ export interface ICodeListOption {
   value: ICodeListListElement;
 }
 
-export class SelectionEditComponent
-  extends React.Component<ISelectionEditComponentProps, ISelectionEditComponentState> {
-  constructor(props: ISelectionEditComponentProps, state: ISelectionEditComponentState) {
+export class SelectionEditComponent extends React.Component<
+  ISelectionEditComponentProps,
+  ISelectionEditComponentState
+> {
+  constructor(
+    props: ISelectionEditComponentProps,
+    state: ISelectionEditComponentState,
+  ) {
     super(props, state);
-    const component = this.props.component.type === 'Checkboxes'
-      ? this.props.component as IFormCheckboxComponent
-      : this.props.component as IFormRadioButtonComponent;
+    const component =
+      this.props.component.type === 'Checkboxes'
+        ? (this.props.component as IFormCheckboxComponent)
+        : (this.props.component as IFormRadioButtonComponent);
     let radioButtonSelection = '';
     if (component.optionsId) {
       radioButtonSelection = 'codelist';
@@ -121,7 +146,7 @@ export class SelectionEditComponent
     this.setState({
       radioButtonSelection: value,
     });
-  }
+  };
 
   public render() {
     return (
@@ -132,31 +157,30 @@ export class SelectionEditComponent
             this.props.handleDataModelChange,
             this.props.language,
           )}
-          {renderSelectTextFromResources('modal_properties_label_helper',
+          {renderSelectTextFromResources(
+            'modal_properties_label_helper',
             this.props.handleTitleChange,
             this.props.textResources,
             this.props.language,
             this.props.component.textResourceBindings.title,
-            this.props.component.textResourceBindings.title)}
-          {renderSelectTextFromResources('modal_properties_description_helper',
+            this.props.component.textResourceBindings.title,
+          )}
+          {renderSelectTextFromResources(
+            'modal_properties_description_helper',
             this.props.handleDescriptionChange,
             this.props.textResources,
             this.props.language,
             this.props.component.textResourceBindings.description,
-            this.props.component.textResourceBindings.description)}
-          <Grid
-            item={true} xs={12}
-            style={{ marginTop: '18px' }}
-          >
+            this.props.component.textResourceBindings.description,
+          )}
+          <Grid item={true} xs={12} style={{ marginTop: '18px' }}>
             <AltinnCheckBox
               checked={this.props.component.readOnly}
               onChangeFunction={this.props.handleReadOnlyChange}
             />
             {this.props.language.ux_editor.modal_configure_read_only}
           </Grid>
-          <Grid
-            item={true} xs={12}
-          >
+          <Grid item={true} xs={12}>
             <AltinnCheckBox
               checked={this.props.component.required}
               onChangeFunction={this.props.handleRequiredChange}
@@ -167,9 +191,13 @@ export class SelectionEditComponent
             onChange={this.handleRadioButtonChange}
             value={this.state.radioButtonSelection}
             row={true}
-            description={(this.props.type === 'RadioButtons') ?
-              this.props.language.ux_editor.modal_properties_add_radio_button_options :
-              this.props.language.ux_editor.modal_properties_add_check_box_options}
+            description={
+              this.props.type === 'RadioButtons'
+                ? this.props.language.ux_editor
+                    .modal_properties_add_radio_button_options
+                : this.props.language.ux_editor
+                    .modal_properties_add_check_box_options
+            }
           >
             <AltinnRadio
               value='codelist'
@@ -180,15 +208,22 @@ export class SelectionEditComponent
               label={this.props.language.ux_editor.modal_add_options_manual}
             />
           </AltinnRadioGroup>
-          <Grid item={true} classes={{ item: this.props.classes.gridItemWithTopMargin }}>
-            {this.state.radioButtonSelection === 'codelist' &&
+          <Grid
+            item={true}
+            classes={{ item: this.props.classes.gridItemWithTopMargin }}
+          >
+            {this.state.radioButtonSelection === 'codelist' && (
               <>
                 <AltinnInputField
                   id='modal-properties-code-list-id'
                   onChangeFunction={this.props.handleOptionsIdChange}
-                  inputValue={(this.props.component as IFormRadioButtonComponent).optionsId}
+                  inputValue={
+                    (this.props.component as IFormRadioButtonComponent)
+                      .optionsId
+                  }
                   inputDescription={getLanguageFromKey(
-                    'ux_editor.modal_properties_code_list_id', this.props.language,
+                    'ux_editor.modal_properties_code_list_id',
+                    this.props.language,
                   )}
                   inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
                   inputDescriptionStyling={{ marginTop: '24px' }}
@@ -200,62 +235,87 @@ export class SelectionEditComponent
                     href='https://docs.altinn.studio/app/development/data/options/'
                   >
                     {getLanguageFromKey(
-                      'ux_editor.modal_properties_code_list_read_more', this.props.language,
+                      'ux_editor.modal_properties_code_list_read_more',
+                      this.props.language,
                     )}
                   </a>
                 </Typography>
               </>
-            }
+            )}
             {this.state.radioButtonSelection === 'manual' &&
               this.props.component.options?.map((option, index) => {
-                const updateLabel = (e: any) => this.props.handleUpdateOptionLabel(index, e);
-                const updateValue = (e: any) => this.props.handleUpdateOptionValue(index, e);
+                const updateLabel = (e: any) =>
+                  this.props.handleUpdateOptionLabel(index, e);
+                const updateValue = (e: any) =>
+                  this.props.handleUpdateOptionValue(index, e);
                 const removeItem = () => this.props.handleRemoveOption(index);
                 const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
                 return (
                   <Grid
-                    container={true} xs={12}
-                    key={key} classes={{ container: this.props.classes.gridContainer }}
+                    container={true}
+                    xs={12}
+                    key={key}
+                    classes={{ container: this.props.classes.gridContainer }}
                   >
                     <Grid
                       xs={11}
                       item={true}
                       classes={{ item: this.props.classes.gridContentWrapper }}
                     >
-                      <Grid item={true} classes={{ item: this.props.classes.gridItem }} >
-                        <Typography classes={{ root: this.props.classes.textBold }}>
-                          {`${(this.props.type === 'RadioButtons') ?
-                            this.props.language.ux_editor.modal_radio_button_increment :
-                            this.props.language.ux_editor.modal_check_box_increment} ${index + 1}`}
+                      <Grid
+                        item={true}
+                        classes={{ item: this.props.classes.gridItem }}
+                      >
+                        <Typography
+                          classes={{ root: this.props.classes.textBold }}
+                        >
+                          {`${
+                            this.props.type === 'RadioButtons'
+                              ? this.props.language.ux_editor
+                                  .modal_radio_button_increment
+                              : this.props.language.ux_editor
+                                  .modal_check_box_increment
+                          } ${index + 1}`}
                         </Typography>
                       </Grid>
-                      <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-                        {renderSelectTextFromResources('modal_text',
+                      <Grid
+                        item={true}
+                        classes={{ item: this.props.classes.gridItem }}
+                      >
+                        {renderSelectTextFromResources(
+                          'modal_text',
                           updateLabel,
                           this.props.textResources,
                           this.props.language,
                           option.label, // Check if the component works as intended
-                          getLanguageFromKey('general.text', this.props.language))}
+                          getLanguageFromKey(
+                            'general.text',
+                            this.props.language,
+                          ),
+                        )}
                       </Grid>
                       <Grid item={true}>
                         <Typography classes={{ root: this.props.classes.text }}>
                           {this.props.language.general.value}
                         </Typography>
                         <Input
-                          classes={{ root: this.props.classes.input, focused: this.props.classes.inputFocused }}
+                          classes={{
+                            root: this.props.classes.input,
+                            focused: this.props.classes.inputFocused,
+                          }}
                           disableUnderline={true}
                           type='text'
                           fullWidth={true}
                           onChange={updateValue}
                           value={option.value}
-                          placeholder={getLanguageFromKey('general.value', this.props.language)}
+                          placeholder={getLanguageFromKey(
+                            'general.value',
+                            this.props.language,
+                          )}
                         />
                       </Grid>
                     </Grid>
-                    <Grid
-                      xs={1} container={true}
-                      direction='column'
-                    >
+                    <Grid xs={1} container={true} direction='column'>
                       <IconButton
                         type='button'
                         className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
@@ -266,39 +326,55 @@ export class SelectionEditComponent
                     </Grid>
                   </Grid>
                 );
-              })
-            }
-            {this.state.radioButtonSelection === 'manual' &&
+              })}
+            {this.state.radioButtonSelection === 'manual' && (
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <button
-                  disabled={this.props.component.options?.some(({ label }) => !label)}
-                  type='button' className='a-btn'
+                  disabled={this.props.component.options?.some(
+                    ({ label }) => !label,
+                  )}
+                  type='button'
+                  className='a-btn'
                   onClick={this.props.handleAddOption}
                 >
                   {this.props.language.ux_editor.modal_new_option}
                 </button>
               </div>
-            }
-            <Grid item={true} classes={{ item: this.props.classes.gridItemWithTopMargin }}>
+            )}
+            <Grid
+              item={true}
+              classes={{ item: this.props.classes.gridItemWithTopMargin }}
+            >
               <Typography classes={{ root: this.props.classes.text }}>
-                {(this.props.type === 'Checkboxes') ?
-                  this.props.language.ux_editor.modal_check_box_set_preselected :
-                  this.props.language.ux_editor.modal_radio_button_set_preselected}
+                {this.props.type === 'Checkboxes'
+                  ? this.props.language.ux_editor
+                      .modal_check_box_set_preselected
+                  : this.props.language.ux_editor
+                      .modal_radio_button_set_preselected}
               </Typography>
               <Input
-                classes={{ root: this.props.classes.input, focused: this.props.classes.inputFocused }}
+                classes={{
+                  root: this.props.classes.input,
+                  focused: this.props.classes.inputFocused,
+                }}
                 disableUnderline={true}
                 inputProps={{ min: 0 }}
                 type='number'
-                placeholder={this.props.language.ux_editor.modal_selection_set_preselected_placeholder}
+                placeholder={
+                  this.props.language.ux_editor
+                    .modal_selection_set_preselected_placeholder
+                }
                 fullWidth={true}
                 onChange={this.props.handlePreselectedOptionChange}
-                defaultValue={(this.props.component as IFormCheckboxComponent).preselectedOptionIndex}
+                defaultValue={
+                  (this.props.component as IFormCheckboxComponent)
+                    .preselectedOptionIndex
+                }
               />
             </Grid>
           </Grid>
         </Grid>
-      </div >
+      </div>
     );
   }
 }
@@ -314,5 +390,6 @@ const mapStateToProps = (
   };
 };
 
-// @ts-ignore
-export const SelectionEdit = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(SelectionEditComponent));
+export const SelectionEdit = withStyles(styles, { withTheme: true })(
+  connect(mapStateToProps)(SelectionEditComponent),
+);

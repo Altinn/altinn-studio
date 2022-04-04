@@ -1,12 +1,12 @@
 import { MenuItem } from '@material-ui/core';
-import * as React from 'react';
-import { CombinationKind, ILanguage } from '../types';
+import React from 'react';
+import type { CombinationKind, ILanguage } from '../types';
 import { getTranslation } from '../utils';
 import { StyledSelect } from './StyledSelect';
 
 export interface ICombinationSelectProps {
   value?: string;
-  onChange: (value: CombinationKind ) => void;
+  onChange: (value: CombinationKind) => void;
   id: string;
   language: ILanguage;
 }
@@ -25,5 +25,5 @@ export function CombinationSelect(props: ICombinationSelectProps) {
       <MenuItem value='anyOf'>{getTranslation('any_of', language)}</MenuItem>
       <MenuItem value='oneOf'>{getTranslation('one_of', language)}</MenuItem>
     </StyledSelect>
-  )
+  );
 }

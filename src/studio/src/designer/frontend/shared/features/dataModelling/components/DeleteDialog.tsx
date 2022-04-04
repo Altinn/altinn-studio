@@ -1,14 +1,23 @@
-import { Button, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
-import * as React from 'react';
-import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
+import {
+  Button,
+  Grid,
+  makeStyles,
+  Popover,
+  Typography,
+} from '@material-ui/core';
+import React from 'react';
+import {
+  getLanguageFromKey,
+  getParsedLanguageFromKey,
+} from '../../../utils/language';
 import altinnTheme from '../../../theme/altinnStudioTheme';
 
 interface IDeleteDialogProps {
-  anchor: Element,
-  language: any,
-  schemaName: string,
-  onConfirm: () => void,
-  onCancel: () => void,
+  anchor: Element;
+  language: any;
+  schemaName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 const useStyles = makeStyles({
@@ -40,7 +49,10 @@ const useStyles = makeStyles({
 
 export default function DeleteDialog(props: IDeleteDialogProps) {
   const description = getParsedLanguageFromKey(
-    'administration.delete_model_confirm', props.language, [props.schemaName], true,
+    'administration.delete_model_confirm',
+    props.language,
+    [props.schemaName],
+    true,
   );
   const classes = useStyles();
   return (
@@ -51,20 +63,15 @@ export default function DeleteDialog(props: IDeleteDialogProps) {
       anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       transformOrigin={{ horizontal: 'right', vertical: 'top' }}
     >
-      <Grid
-        container={true}
-        className={classes.root}
-      >
+      <Grid container={true} className={classes.root}>
         <Grid item>
           <div className={classes.iconWrapper}>
-            <i className='icon fa fa-circle-exclamation'/>
+            <i className='icon fa fa-circle-exclamation' />
           </div>
         </Grid>
 
         <Grid item>
-          <Typography variant='h2'>
-            {description}
-          </Typography>
+          <Typography variant='h2'>{description}</Typography>
 
           <Button
             id='confirm-delete-button'
@@ -86,5 +93,6 @@ export default function DeleteDialog(props: IDeleteDialogProps) {
           </Button>
         </Grid>
       </Grid>
-    </Popover>);
+    </Popover>
+  );
 }

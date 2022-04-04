@@ -7,7 +7,7 @@ import {
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
-import * as React from 'react';
+import React from 'react';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { PopoverOrigin } from '@material-ui/core/Popover';
 import { useAppSelector, useAppDispatch } from 'common/hooks';

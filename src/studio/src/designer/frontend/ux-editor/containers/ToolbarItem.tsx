@@ -1,9 +1,8 @@
-import * as React from 'react';
-import { DragSourceMonitor,
-  DragSourceSpec } from 'react-dnd';
-// eslint-disable-next-line import/no-cycle
+import React from 'react';
+import type { DragSourceMonitor, DragSourceSpec } from 'react-dnd';
 import { ToolbarItemComponent } from '../components/toolbar/ToolbarItemComponent';
-import createDraggable, { IDraggableProps } from './DraggableToolbarItem';
+import createDraggable from './DraggableToolbarItem';
+import type { IDraggableProps } from './DraggableToolbarItem';
 
 interface IToolbarItemProps {
   text: string;
@@ -16,8 +15,13 @@ interface IToolbarItemProps {
 }
 
 const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  beginDrag: (props: IDraggableProps, _monitor: DragSourceMonitor, _component: any) => {
+  beginDrag: (
+    props: IDraggableProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _monitor: DragSourceMonitor,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _component: any,
+  ) => {
     return { ...props };
   },
   canDrag: (props: any) => {
@@ -28,19 +32,17 @@ const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
   },
 };
 
-export const DraggableToolbarType: string = 'TOOLBAR_ITEM';
+export const DraggableToolbarType = 'TOOLBAR_ITEM';
 
-const DraggableToolbarItem = createDraggable(DraggableToolbarType, DraggableToolbarItemSpec);
+const DraggableToolbarItem = createDraggable(
+  DraggableToolbarType,
+  DraggableToolbarItemSpec,
+);
 
 export function ToolbarItem(props: IToolbarItemProps) {
-  const {
-    notDraggable,
-    onDropAction,
-    componentType,
-    onClick,
-  } = props;
+  const { notDraggable, onDropAction, componentType, onClick } = props;
   return (
-    <div >
+    <div>
       <DraggableToolbarItem
         id={null}
         index={null}

@@ -1,14 +1,14 @@
 import { createTheme, makeStyles, Typography } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
-import { useSelector } from 'react-redux';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
-import { IRepository } from 'types/global';
+import type { IRepository } from '../../../types/global';
+import { useAppSelector } from 'common/hooks';
 
-export interface IMainContentProps {
+interface IMainContentProps {
   repository: IRepository;
   appDescription: string;
   appId: string;
@@ -37,7 +37,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
   const classes = setupClasses();
   const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
   const copiedApp = Boolean(urlParams.get('copiedApp'));
-  const language = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
+  const language = useAppSelector((state) => state.languageState.language);
 
   return (
     <>

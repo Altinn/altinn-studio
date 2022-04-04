@@ -1,6 +1,6 @@
 import { createStyles, Grid, makeStyles, Paper } from '@material-ui/core';
-import * as React from 'react';
-import { ILanguage, UiSchemaItem } from '../types';
+import React from 'react';
+import type { ILanguage, UiSchemaItem } from '../types';
 import { createJsonSchemaItem, getTranslation } from '../utils';
 
 export interface IInlineObjectProps {

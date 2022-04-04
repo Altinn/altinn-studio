@@ -1,50 +1,3 @@
-/* eslint-disable camelcase */
-import { IDataModellingState } from 'app-shared/features/dataModelling/sagas';
-import { IDataModelsMetadataState } from 'app-shared/features/dataModelling/sagas/metadata';
-// eslint-disable-next-line import/no-cycle
-import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationSlice';
-import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictSlice';
-import { IAppClusterState } from '../sharedResources/appCluster/appClusterSlice';
-import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentSlice';
-import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseSlice';
-import { IFetchedLanguageState } from '../utils/fetchLanguage/languageSlice';
-import { IConfigurationState } from '../sharedResources/configuration/configurationSlice';
-import { IRepoStatusState } from '../sharedResources/repoStatus/repoStatusSlice';
-import { IUserState } from '../sharedResources/user/userSlice';
-
-declare global {
-  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
-    languageState: T1;
-    handleMergeConflict: T2;
-    serviceInformation: T3;
-    applicationMetadataState: T4;
-    appCluster: T5;
-    repoStatus: T6;
-    appReleases: T7;
-    appDeployments: T8;
-    configuration: T9;
-    dataModelling: T10;
-    dataModelsMetadataState: T11;
-    userState: T12;
-  }
-
-  export interface IServiceDevelopmentState
-    extends IServiceDevelopmentNameSpace
-    <IFetchedLanguageState,
-    IHandleMergeConflictState,
-    IHandleServiceInformationState,
-    IApplicationMetadataState,
-    IAppClusterState,
-    IRepoStatusState,
-    IAppReleaseState,
-    IAppDeploymentState,
-    IConfigurationState,
-    IDataModellingState,
-    IDataModelsMetadataState,
-    IUserState> { }
-}
-
 export interface IRepository {
   clone_url: string;
   created_at: string;
@@ -115,4 +68,11 @@ export interface IServiceDescription {
 export interface IServiceId {
   serviceId: string;
   saving: boolean;
+}
+
+export interface IAltinnWindow extends Window {
+  org: string;
+  app: string;
+  instanceId: string;
+  reportee: string;
 }

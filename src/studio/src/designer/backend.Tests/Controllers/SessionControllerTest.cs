@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -23,15 +24,15 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class SessionControllerTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class SessionControllerTest : IClassFixture<WebApplicationFactory<SessionController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<SessionController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1/session";
         private readonly Mock<IHttpContextAccessor> _contextAccessorMock = new Mock<IHttpContextAccessor>();
         private readonly IOptions<GeneralSettings> _generalSettings;
         private SessionController _controller;
 
-        public SessionControllerTest(WebApplicationFactory<Startup> factory)
+        public SessionControllerTest(WebApplicationFactory<SessionController> factory)
         {
             _factory = factory;
             _generalSettings = Options.Create(new GeneralSettings { SessionTimeoutCookieName = "timeoutCookie" });
@@ -104,7 +105,8 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient()
         {
-            Program.ConfigureSetupLogging();
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
@@ -113,11 +115,11 @@ namespace Designer.Tests.Controllers
                 });
                 builder.ConfigureAppConfiguration((context, conf) =>
                 {
-                    conf.AddJsonFile("appsettings.json");
+                    conf.AddJsonFile(configPath);
                 });
 
                 new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 

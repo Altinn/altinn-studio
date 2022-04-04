@@ -1,10 +1,11 @@
-import { createStyles,
+import {
+  createStyles,
   Grid,
   Typography,
   withStyles,
-  WithStyles } from '@material-ui/core';
-import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+  WithStyles,
+} from '@material-ui/core';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInput from 'app-shared/components/AltinnInput';
 import AltinnTextArea from 'app-shared/components/AltinnTextArea';
@@ -12,9 +13,13 @@ import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
 import theme from 'app-shared/theme/altinnAppTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
-import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
-import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import {
+  BuildResult,
+  BuildStatus,
+} from '../../../sharedResources/appRelease/types';
+import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
+import { useAppSelector, useAppDispatch } from 'common/hooks';
 
 const styles = createStyles({
   createReleaseFormItem: {
@@ -43,23 +48,29 @@ const styles = createStyles({
   },
 });
 
-export interface ICreateAppReleaseComponent extends WithStyles<typeof styles> {
-}
+type ICreateAppReleaseComponent = WithStyles<typeof styles>;
 
 function ReleaseComponent(props: ICreateAppReleaseComponent) {
   const { classes } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [tagName, setTagName] = React.useState<string>('');
   const [body, setBody] = React.useState<string>('');
 
-  const releaseState: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
-  const createReleaseErrorCode: number =
-    useSelector((state: IServiceDevelopmentState) => state.appReleases.errors.createReleaseErrorCode);
-  const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
+  const releaseState: IAppReleaseState = useAppSelector(
+    (state) => state.appReleases,
+  );
+  const createReleaseErrorCode: number = useAppSelector(
+    (state) => state.appReleases.errors.createReleaseErrorCode,
+  );
+  const repoStatus: IRepoStatusState = useAppSelector(
+    (state) => state.repoStatus,
+  );
+  const language: any = useAppSelector((state) => state.languageState.language);
 
-  const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(createReleaseErrorCode !== null);
+  const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(
+    createReleaseErrorCode !== null,
+  );
   const ref = React.useRef<React.RefObject<HTMLButtonElement>>();
 
   React.useEffect(() => {
@@ -69,10 +80,11 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   }, [createReleaseErrorCode]);
 
   function versionNameValid(): boolean {
-    // eslint-disable-next-line no-restricted-syntax
     for (const release of releaseState.releases) {
-      if (release.tagName.toLowerCase() === tagName.trim() &&
-        (release.build.result === BuildResult.succeeded || release.build.status === BuildStatus.inProgress)
+      if (
+        release.tagName.toLowerCase() === tagName.trim() &&
+        (release.build.result === BuildResult.succeeded ||
+          release.build.status === BuildStatus.inProgress)
       ) {
         return false;
       }
@@ -99,12 +111,14 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   function handleBuildVersionClick() {
     if (versionNameValid() && tagName !== '') {
-      dispatch(AppReleaseActions.createAppRelease({
-        tagName,
-        name: tagName,
-        body,
-        targetCommitish: repoStatus.branch.master.commit.id,
-      }));
+      dispatch(
+        AppReleaseActions.createAppRelease({
+          tagName,
+          name: tagName,
+          body,
+          targetCommitish: repoStatus.branch.master.commit.id,
+        }),
+      );
       setTagName('');
       setBody('');
     }
@@ -121,35 +135,31 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   return (
     <>
-      <Grid
-        container={true}
-        direction='column'
-      >
+      <Grid container={true} direction='column'>
         <Grid
           container={true}
           direction='column'
           className={classes.createReleaseFormItem}
         >
-          <Grid
-            container={true}
-            direction='column-reverse'
-            justify='flex-end'
-          >
-            {!versionNameValid() ?
+          <Grid container={true} direction='column-reverse' justify='flex-end'>
+            {!versionNameValid() ? (
               <Grid
                 className={classes.createReleaseInvalidTagNameWrapper}
                 item={true}
               >
-                <Typography
-                  className={classes.createReleaseInvalidTagNameText}
-                >
-                  {getLanguageFromKey('app_create_release.release_versionnumber_validation', language)}
+                <Typography className={classes.createReleaseInvalidTagNameText}>
+                  {getLanguageFromKey(
+                    'app_create_release.release_versionnumber_validation',
+                    language,
+                  )}
                 </Typography>
               </Grid>
-              : null
-            }
+            ) : null}
             <AltinnInput
-              label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
+              label={getLanguageFromKey(
+                'app_create_release.release_versionnumber',
+                language,
+              )}
               onChange={handleTagNameChange}
               value={tagName}
               widthPercentage={50}
@@ -163,7 +173,10 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           className={classes.createReleaseFormItem}
         >
           <AltinnTextArea
-            label={getLanguageFromKey('app_create_release.release_description', language)}
+            label={getLanguageFromKey(
+              'app_create_release.release_description',
+              language,
+            )}
             value={body}
             onChange={handleBodyChange}
             rows={4}
@@ -178,13 +191,20 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
             <AltinnButton
               btnRef={ref}
               onClickFunction={handleBuildVersionClick}
-              btnText={getLanguageFromKey('app_create_release.build_version', language)}
+              btnText={getLanguageFromKey(
+                'app_create_release.build_version',
+                language,
+              )}
             />
           </div>
         </Grid>
       </Grid>
       <AltinnPopover
-        anchorEl={createReleaseErrorCode !== null && openErrorPopover ? ref.current : null}
+        anchorEl={
+          createReleaseErrorCode !== null && openErrorPopover
+            ? ref.current
+            : null
+        }
         handleClose={handlePopoverClose}
         anchorOrigin={{
           vertical: 'bottom',
@@ -196,11 +216,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           },
         }}
       >
-        <Grid
-          container={true}
-          direction='row'
-          spacing={3}
-        >
+        <Grid container={true} direction='row' spacing={3}>
           <Grid
             item={true}
             xs={1}
@@ -208,7 +224,9 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
               padding: 0,
             }}
           >
-            <i className={`${classes.popoverErrorIcon} ai ai-circle-exclamation`}/>
+            <i
+              className={`${classes.popoverErrorIcon} ai ai-circle-exclamation`}
+            />
           </Grid>
           <Grid
             item={true}
@@ -217,22 +235,30 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
               padding: 0,
             }}
           >
-            <Typography
-              className={classes.popoverErrorText}
-            >
+            <Typography className={classes.popoverErrorText}>
               <>
-                {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
+                {getLanguageFromKey(
+                  'app_create_release_errors.build_cannot_start',
+                  language,
+                )}
                 &nbsp;
-                {/* eslint-disable-next-line react/jsx-max-props-per-line */}
-                <a href='mailto:tjenesteeier@altinn.no' target='_blank' rel='noreferrer'>
-                  {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
+                <a
+                  href='mailto:tjenesteeier@altinn.no'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  {getLanguageFromKey(
+                    'app_create_release_errors.altinn_servicedesk',
+                    language,
+                  )}
                 </a>
               </>
             </Typography>
-            <Typography
-              className={classes.popoverTechnicalErrorText}
-            >
-              {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
+            <Typography className={classes.popoverTechnicalErrorText}>
+              {getLanguageFromKey(
+                'app_create_release_errors.technical_error_code',
+                language,
+              )}
               &nbsp;
               {createReleaseErrorCode}
             </Typography>

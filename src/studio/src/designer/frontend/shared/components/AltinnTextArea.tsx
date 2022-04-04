@@ -6,7 +6,7 @@ import {
   withStyles,
   WithStyles,
 } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -25,9 +25,9 @@ const styles = createStyles({
   },
 });
 
-export interface IAltinnTextAreaProps extends
-  React.TextareaHTMLAttributes<any>,
-  WithStyles<typeof styles> {
+export interface IAltinnTextAreaProps
+  extends React.TextareaHTMLAttributes<any>,
+    WithStyles<typeof styles> {
   widthPercentage?: number;
   showLabel?: boolean;
   label: string;
@@ -35,7 +35,7 @@ export interface IAltinnTextAreaProps extends
 
 function AltinnTextArea(props: IAltinnTextAreaProps) {
   const textAreaReft = React.createRef<HTMLTextAreaElement>();
-  const {classes, label, widthPercentage, showLabel, ...rest } = props;
+  const { classes, label, widthPercentage, showLabel, ...rest } = props;
 
   function focusTextarea() {
     textAreaReft.current.focus();
@@ -48,19 +48,14 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
       onClick={focusTextarea}
       aria-label={label}
     >
-      {showLabel ?
-        <InputLabel
-          className={classes.altinnTextAreaLabel}
-        >
-          {label}
-        </InputLabel>
-        : null
-      }
+      {showLabel ? (
+        <InputLabel className={classes.altinnTextAreaLabel}>{label}</InputLabel>
+      ) : null}
       <Grid
         container={true}
         direction={'row'}
         style={{
-          width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+          width: widthPercentage ? `${widthPercentage}%` : '100%',
         }}
       >
         <textarea

@@ -24,7 +24,7 @@ This is documented in the sub section.
 5. Solution is cloned
 
 #### Platform PDF
-1. [Java 15](https://openjdk.java.net/projects/jdk/15/)
+1. [Java 17](https://jdk.java.net/17/)
 2. [Maven](https://maven.apache.org/download.cgi)
 
 ### Running Altinn Platform Register in container

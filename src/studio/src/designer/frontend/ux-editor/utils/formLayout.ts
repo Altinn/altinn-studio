@@ -1,22 +1,27 @@
-/* eslint-disable import/no-cycle */
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-restricted-syntax */
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
-import { Dispatch } from 'redux';
-import { IToolbarElement, LayoutItemType } from '../containers/Toolbar';
+import type { Dispatch } from 'redux';
+import { LayoutItemType } from '../containers/Toolbar';
+import type { IToolbarElement } from '../containers/Toolbar';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { IComponent, ComponentTypes } from '../components';
+import { ComponentTypes } from '../components';
+import type { IComponent } from '../components';
 import { getComponentTitleByComponentType } from './language';
+import type {
+  IFormLayout,
+  IFormDesignerComponents,
+  IFormDesignerContainers,
+  IFormLayoutOrder,
+  IWidget,
+  ICreateFormContainer,
+} from '../types/global';
 
-const {
-  addFormComponent,
-  addFormContainer,
-  addWidget,
-  updateActiveListOrder,
-} = FormLayoutActions;
+const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } =
+  FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
+export function convertFromLayoutToInternalFormat(
+  formLayout: any[],
+): IFormLayout {
   const convertedLayout: IFormLayout = {
     containers: {},
     components: {},
@@ -53,10 +58,12 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
   return convertedLayout;
 }
 
-export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
-  const {
-    components, containers, order,
-  } = JSON.parse(JSON.stringify(internalFormat)) as IFormLayout;
+export function convertInternalToLayoutFormat(
+  internalFormat: IFormLayout,
+): any[] {
+  const { components, containers, order } = JSON.parse(
+    JSON.stringify(internalFormat),
+  ) as IFormLayout;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
   const formLayout: any[] = [];
@@ -91,7 +98,13 @@ export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[
             ...components[componentId],
           });
         } else {
-          extractChildrenFromGroupInternal(components, containers, order, formLayout, componentId);
+          extractChildrenFromGroupInternal(
+            components,
+            containers,
+            order,
+            formLayout,
+            componentId,
+          );
         }
       });
     }
@@ -122,22 +135,34 @@ function extractChildrenFromGroupInternal(
         ...components[childId],
       });
     } else {
-      extractChildrenFromGroupInternal(components, containers, order, formLayout, childId);
+      extractChildrenFromGroupInternal(
+        components,
+        containers,
+        order,
+        formLayout,
+        childId,
+      );
     }
   });
 }
 
-export function extractChildrenFromGroup(group: any, components: any, convertedLayout: any) {
-  const {
-    id, children, ...restOfGroup
-  } = group;
+export function extractChildrenFromGroup(
+  group: any,
+  components: any,
+  convertedLayout: any,
+) {
+  const { id, children, ...restOfGroup } = group;
   restOfGroup.itemType = 'CONTAINER';
   delete restOfGroup.type;
   convertedLayout.containers[id] = restOfGroup;
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
-    const component = components.find((candidate: any) => candidate.id === componentId);
-    const location = components.findIndex((candidate: any) => candidate.id === componentId);
+    const component = components.find(
+      (candidate: any) => candidate.id === componentId,
+    );
+    const location = components.findIndex(
+      (candidate: any) => candidate.id === componentId,
+    );
     if (component.type === 'Group') {
       component.itemType = 'CONTAINER';
       components.splice(location, 1);
@@ -163,12 +188,16 @@ export const mapWidgetToToolbarElement = (
     icon: 'fa fa-3rd-party-alt',
     type: widget.displayName,
     actionMethod: (containerId: string, position: number) => {
-      dispatch(addWidget({
-        widget,
-        position,
-        containerId,
-      }));
-      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
+      dispatch(
+        addWidget({
+          widget,
+          position,
+          containerId,
+        }),
+      );
+      dispatch(
+        updateActiveListOrder({ containerList: activeList, orderList: order }),
+      );
     },
   };
 };
@@ -182,37 +211,47 @@ export const mapComponentToToolbarElement = (
 ): IToolbarElement => {
   const customProperties = c.customProperties ? c.customProperties : {};
   let actionMethod = (containerId: string, position: number) => {
-    dispatch(addFormComponent({
-      component: {
-        type: c.name,
-        itemType: LayoutItemType.Component,
-        textResourceBindings: {
-          title: c.name === 'Button' ?
-            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
-            : getComponentTitleByComponentType(c.name, language),
+    dispatch(
+      addFormComponent({
+        component: {
+          type: c.name,
+          itemType: LayoutItemType.Component,
+          textResourceBindings: {
+            title:
+              c.name === 'Button'
+                ? getLanguageFromKey(
+                    'ux_editor.modal_properties_button_type_submit',
+                    language,
+                  )
+                : getComponentTitleByComponentType(c.name, language),
+          },
+          dataModelBindings: {},
+          ...JSON.parse(JSON.stringify(customProperties)),
         },
-        dataModelBindings: {},
-        ...JSON.parse(JSON.stringify(customProperties)),
-      },
-      position,
-      containerId,
-    }));
-    dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
+        position,
+        containerId,
+      }),
+    );
+    dispatch(
+      updateActiveListOrder({ containerList: activeList, orderList: order }),
+    );
   };
 
   if (c.name === ComponentTypes.Group) {
     actionMethod = (containerId: string, index: number) => {
-      dispatch(addFormContainer({
-        container: {
-          maxCount: 0,
-          dataModelBindings: {},
-          itemType: 'CONTAINER',
-        } as ICreateFormContainer,
-        positionAfterId: null,
-        addToId: containerId,
-        callback: null,
-        destinationIndex: index,
-      }));
+      dispatch(
+        addFormContainer({
+          container: {
+            maxCount: 0,
+            dataModelBindings: {},
+            itemType: 'CONTAINER',
+          } as ICreateFormContainer,
+          positionAfterId: null,
+          addToId: containerId,
+          callback: null,
+          destinationIndex: index,
+        }),
+      );
     };
   }
   return {
@@ -228,8 +267,14 @@ export function idExists(
   components: IFormDesignerComponents,
   containers: IFormDesignerContainers,
 ): boolean {
-  return Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
-  Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1;
+  return (
+    Object.keys(containers || {}).findIndex(
+      (key) => key.toUpperCase() === id.toUpperCase(),
+    ) > -1 ||
+    Object.keys(components || {}).findIndex(
+      (key) => key.toUpperCase() === id.toUpperCase(),
+    ) > -1
+  );
 }
 
 export const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;

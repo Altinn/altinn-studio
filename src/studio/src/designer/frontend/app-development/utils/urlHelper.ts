@@ -1,6 +1,6 @@
-const {
-  location, org, app,
-} = window as Window as IAltinnWindow;
+import type { IAltinnWindow } from '../types/global';
+
+const { location, org, app } = window as Window as IAltinnWindow;
 const { origin } = location;
 const cdn = 'https://altinncdn.no';
 const desingerApi = `${origin}/designer/api`;
@@ -20,20 +20,20 @@ export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const environmentsConfigUrl = `${cdn}/config/environments.json`;
 export const applicationMetadataUrl = `${origin}/designer/api/v1/${org}/${app}`;
 
-export const getReleaseBuildPipelineLink =
-  (buildId: string) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+export const getReleaseBuildPipelineLink = (buildId: string) =>
+  `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
-export const getGitCommitLink =
-  (commitId: string) => `${origin}/repos/${org}/${app}/commit/${commitId}`;
+export const getGitCommitLink = (commitId: string) =>
+  `${origin}/repos/${org}/${app}/commit/${commitId}`;
 
-export const getAzureDevopsBuildResultUrl =
-  (buildId: string | number) => `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+export const getAzureDevopsBuildResultUrl = (buildId: string | number) =>
+  `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
 
-export const getFetchDataModelUrl =
-  (modelName: string) => `${dataModelsApi}/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
+export const getFetchDataModelUrl = (modelName: string) =>
+  `${dataModelsApi}/GetDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
-export const getSaveDataModelUrl =
-  (modelName: string) => `${dataModelsApi}/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
+export const getSaveDataModelUrl = (modelName: string) =>
+  `${dataModelsApi}/UpdateDatamodel?modelName=${encodeURIComponent(modelName)}`;
 
-export const getDeleteDataModelUrl =
-  (modelName: string) => `${dataModelsApi}/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;
+export const getDeleteDataModelUrl = (modelName: string) =>
+  `${dataModelsApi}/DeleteDatamodel?modelName=${encodeURIComponent(modelName)}`;

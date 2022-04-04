@@ -1,6 +1,16 @@
-import { Button, CircularProgress, createTheme, createStyles, Grid, Popover, TextField, Typography, withStyles } from '@material-ui/core';
+import {
+  Button,
+  CircularProgress,
+  createTheme,
+  createStyles,
+  Grid,
+  Popover,
+  TextField,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface ISyncModalComponentProps {
@@ -76,7 +86,10 @@ const styles = createStyles({
   },
 });
 
-class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISyncModalComponentState> {
+class SyncModalComponent extends React.Component<
+  ISyncModalComponentProps,
+  ISyncModalComponentState
+> {
   constructor(_props: ISyncModalComponentProps) {
     super(_props);
     this.state = {
@@ -89,26 +102,24 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
       commitMessage: '',
     });
     this.props.handleClose();
-  }
+  };
 
   public btnClickedHandler = () => {
     if (this.props.btnClick) {
       this.props.btnClick(this.state.commitMessage);
     }
-  }
+  };
 
   public handleChange = (event: any) => {
     this.setState({
       commitMessage: event.target.value,
     });
-  }
+  };
 
   public renderSpinnerOrDoneIcon() {
     const { classes } = this.props;
     if (this.props.isLoading) {
-      return (
-        <CircularProgress className={classNames(classes.spinner)} />
-      );
+      return <CircularProgress className={classNames(classes.spinner)} />;
     }
     if (this.props.shouldShowDoneIcon) {
       return (
@@ -134,28 +145,29 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
         }}
         anchorReference='anchorEl'
       >
-        <Grid
-          container={true} direction='column'
-          className={classes.popover}
-        >
-          {this.props.header &&
+        <Grid container={true} direction='column' className={classes.popover}>
+          {this.props.header && (
             <Typography variant='h3' className={classNames(classes.header)}>
               {this.props.header}
             </Typography>
-          }
+          )}
 
-          {this.props.descriptionText &&
+          {this.props.descriptionText && (
             <Typography className={classNames(classes.subHeader)}>
               {this.props.descriptionText.map((text: any, index: any) => {
                 // eslint-disable-next-line max-len
-                return this.props.descriptionText.length - 1 !== index ? (<span key={index}> {`${text}\n\n`} </span>) : <span key={index}>{text}</span>;
+                return this.props.descriptionText.length - 1 !== index ? (
+                  <span key={index}> {`${text}\n\n`} </span>
+                ) : (
+                  <span key={index}>{text}</span>
+                );
               })}
             </Typography>
-          }
+          )}
 
           {this.renderSpinnerOrDoneIcon()}
 
-          {this.props.shouldShowCommitBox &&
+          {this.props.shouldShowCommitBox && (
             <TextField
               id='test'
               multiline={true}
@@ -169,9 +181,9 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
                 },
               }}
             />
-          }
+          )}
 
-          {this.props.btnText &&
+          {this.props.btnText && (
             <Button
               variant='contained'
               color='primary'
@@ -181,7 +193,7 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
             >
               {this.props.btnText}
             </Button>
-          }
+          )}
         </Grid>
       </Popover>
     );

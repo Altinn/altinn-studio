@@ -193,7 +193,7 @@ namespace Designer.Tests.Services
         private static List<ReleaseEntity> GetReleases(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleaseServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\ReleasesCollection\{filename}");
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);

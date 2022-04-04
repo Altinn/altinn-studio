@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ThemeProvider as ThemeProviderV5, styled } from '@mui/material/styles';
 import {
   ThemeProvider as ThemeProviderV4,
@@ -16,10 +16,10 @@ import {
 } from '../resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import Header, {
-  IHeaderContext,
   HeaderContext,
   SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
+import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 
 import { userHasAccessToSelectedContext } from 'common/utils';
 import { generateClassName, themeV4, themeV5 } from 'common/utils/muiUtils';

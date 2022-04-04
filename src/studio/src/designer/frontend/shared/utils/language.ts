@@ -1,5 +1,5 @@
-import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
+import DOMPurify from 'dompurify';
+import marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 
 export function getLanguageFromKey(key: string, language: any) {
@@ -15,10 +15,6 @@ export function getNestedObject(nestedObj: any, pathArr: string[]) {
     (obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined),
     nestedObj,
   );
-}
-
-export function getUserLanguage() {
-  return 'nb';
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}

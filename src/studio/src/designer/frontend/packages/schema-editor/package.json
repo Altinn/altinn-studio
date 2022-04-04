@@ -81,7 +81,7 @@
       "js"
     ],
     "testEnvironment": "jsdom",
-    "setupFiles": [
+    "setupFilesAfterEnv": [
       "<rootDir>/test/setupTests.ts"
     ]
   },

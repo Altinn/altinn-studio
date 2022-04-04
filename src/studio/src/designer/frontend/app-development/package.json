@@ -18,7 +18,6 @@
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@reduxjs/toolkit": "^1.8.0",
-    "@types/domhandler": "^2.4.2",
     "axios": "^0.26.0",
     "classnames": "^2.3.1",
     "core-js": "^3.21.1",
@@ -90,6 +89,7 @@
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
+      "monaco-editor": "<rootDir>/test/__mocks__/fileMock.js",
       "^utils/(.*)": "<rootDir>/utils/$1",
       "^app-shared/(.*)": "<rootDir>/../shared/$1",
       "^ux-editor/(.*)": "<rootDir>/../ux-editor/$1",
@@ -105,8 +105,8 @@
       "js"
     ],
     "testEnvironment": "jsdom",
-    "setupFiles": [
-      "<rootDir>/test/setupTests.js"
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTests.ts"
     ]
   },
   "browserslist": [

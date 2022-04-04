@@ -1,5 +1,4 @@
 /* eslint-disable no-useless-escape */
-/* eslint-disable no-tabs */
 const mockString = `
 {
 	"$schema" : "http://json-schema.org/schema#",

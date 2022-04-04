@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:16.14.0-alpine3.15 AS generate-studio-frontend
+FROM node:16.14.2-alpine3.15 AS generate-studio-frontend
 
 WORKDIR /build
 
@@ -45,7 +45,7 @@ COPY --from=generate-studio-frontend /build/dist/app-development/app-development
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.css .
 
-FROM node:16.14.0-alpine3.15 AS generate-designer-js
+FROM node:16.14.2-alpine3.15 AS generate-designer-js
 WORKDIR /app
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
@@ -58,7 +58,7 @@ RUN yarn --immutable
 COPY src/designer/backend .
 RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0.406-alpine3.14 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.201-alpine3.15 AS build
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
@@ -67,10 +67,15 @@ COPY --from=generate-designer-js ./app/wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
+RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0.15-alpine3.14 AS final
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.3-alpine3.15 AS final
 EXPOSE 80
 WORKDIR /app
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    DOTNET_RUNNING_IN_CONTAINER=true
+RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib
 COPY --from=build /app_output .
 COPY --from=altinn-studio-frontend /dist/app-development.js ./wwwroot/designer/js/react/app-development.js
 COPY --from=altinn-studio-frontend /dist/1.app-development.js ./wwwroot/designer/js/react/1.app-development.js

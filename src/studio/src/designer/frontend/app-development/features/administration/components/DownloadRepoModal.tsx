@@ -1,5 +1,5 @@
 import { createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import studioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
@@ -42,7 +42,7 @@ const setupClasses = makeStyles({
   },
 });
 
-export interface IDownloadRepoModalProps {
+interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;

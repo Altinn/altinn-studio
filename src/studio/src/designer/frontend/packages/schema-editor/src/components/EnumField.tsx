@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { getDomFriendlyID, getTranslation } from '../utils';
-import { ILanguage } from '../types';
+import type { ILanguage } from '../types';
 
 export interface IEnumFieldProps {
   path: string;
@@ -66,19 +66,20 @@ export const EnumField = (props: IEnumFieldProps) => {
             disableUnderline: true,
           }}
         />
-
       </Grid>
       <Grid item xs={1} />
-      { props.onDelete &&
-      <Grid item xs={3}>
-        <IconButton
-          id={`${baseId}-delete-${props.value}`}
-          aria-label={getTranslation('delete_field', props.language)}
-          onClick={() => props.onDelete?.(props.path, props.value)}
-          className={classes.delete}
-        >
-          <DeleteOutline/>
-        </IconButton>
-      </Grid>}
-    </>);
+      {props.onDelete && (
+        <Grid item xs={3}>
+          <IconButton
+            id={`${baseId}-delete-${props.value}`}
+            aria-label={getTranslation('delete_field', props.language)}
+            onClick={() => props.onDelete?.(props.path, props.value)}
+            className={classes.delete}
+          >
+            <DeleteOutline />
+          </IconButton>
+        </Grid>
+      )}
+    </>
+  );
 };

@@ -175,7 +175,7 @@ namespace Designer.Tests.Services
         private static List<ReleaseEntity> GetReleases(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\ReleasesCollection\{filename}");
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -188,7 +188,7 @@ namespace Designer.Tests.Services
         private static List<DeploymentEntity> GetDeployments(string filename)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\Deployments\{filename}");
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
             if (File.Exists(path))
             {
                 string deployments = File.ReadAllText(path);

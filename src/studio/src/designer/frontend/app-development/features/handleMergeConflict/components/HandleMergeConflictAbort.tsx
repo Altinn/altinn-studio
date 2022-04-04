@@ -1,18 +1,17 @@
-/* eslint-disable react/no-access-state-in-setstate */
-/* eslint-disable react/no-unused-state */
-import * as React from 'react';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
+import type { IAltinnWindow } from '../../../types/global';
 
-export interface IHandleMergeConflictAbortProps {
+interface IHandleMergeConflictAbortProps {
   language: any;
   disabled?: boolean;
 }
 
-export interface IHandleMergeConflictAbortState {
+interface IHandleMergeConflictAbortState {
   anchorEl: any;
   errorObj: null;
   networkingRes: any;
@@ -29,8 +28,10 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-export class HandleMergeConflictAbort extends
-  React.Component<IHandleMergeConflictAbortProps, IHandleMergeConflictAbortState> {
+export class HandleMergeConflictAbort extends React.Component<
+  IHandleMergeConflictAbortProps,
+  IHandleMergeConflictAbortState
+> {
   constructor(_props: IHandleMergeConflictAbortProps) {
     super(_props);
     this.state = {
@@ -47,20 +48,27 @@ export class HandleMergeConflictAbort extends
       popoverState: {
         ...this.state.popoverState,
         btnMethod: this.AbortConfirmed,
-        btnConfirmText: getLanguageFromKey('handle_merge_conflict.abort_merge_button_confirm',
-          this.props.language),
-        descriptionText: getLanguageFromKey('handle_merge_conflict.abort_merge_message',
-          this.props.language),
-        btnCancelText: getLanguageFromKey('handle_merge_conflict.abort_merge_button_cancel',
-          this.props.language),
+        btnConfirmText: getLanguageFromKey(
+          'handle_merge_conflict.abort_merge_button_confirm',
+          this.props.language,
+        ),
+        descriptionText: getLanguageFromKey(
+          'handle_merge_conflict.abort_merge_message',
+          this.props.language,
+        ),
+        btnCancelText: getLanguageFromKey(
+          'handle_merge_conflict.abort_merge_button_cancel',
+          this.props.language,
+        ),
       },
     });
-  }
+  };
 
   public AbortConfirmed = async () => {
     const { org, app } = window as Window as IAltinnWindow;
 
-    const abortUrl = `${window.location.origin}` +
+    const abortUrl =
+      `${window.location.origin}` +
       `/designer/api/v1/repos/${org}/${app}/abortmerge`;
 
     // Try to abort merge and catch error
@@ -85,9 +93,11 @@ export class HandleMergeConflictAbort extends
         },
       });
 
-      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
+      window.postMessage(
+        postMessages.forceRepoStatusCheck,
+        window.location.href,
+      );
       this.handleClose();
-
     } catch (err) {
       this.setState({
         errorObj: err,
@@ -99,13 +109,13 @@ export class HandleMergeConflictAbort extends
       });
       console.error('Merge abort error', err);
     }
-  }
+  };
 
   public handleClose = () => {
     this.setState({
       anchorEl: null,
     });
-  }
+  };
 
   public render() {
     const { popoverState } = this.state;
@@ -113,7 +123,10 @@ export class HandleMergeConflictAbort extends
     return (
       <React.Fragment>
         <AltinnButton
-          btnText={getLanguageFromKey('handle_merge_conflict.abort_merge_button', this.props.language)}
+          btnText={getLanguageFromKey(
+            'handle_merge_conflict.abort_merge_button',
+            this.props.language,
+          )}
           id='abortMergeBtn'
           onClickFunction={this.AbortPopover}
           secondaryButton={true}
@@ -135,8 +148,7 @@ export class HandleMergeConflictAbort extends
           shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
           transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         />
-
-      </React.Fragment >
+      </React.Fragment>
     );
   }
 }

@@ -3,22 +3,22 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import * as React from 'react';
-import { IAltinnWindow } from '../../types';
+import React from 'react';
+import type { IAltinnWindow } from '../../types/global';
 import { altinnDocsUrl, sharedUrls } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 
-export interface IProfileMenuComponentProps {
+interface IProfileMenuComponentProps {
   showlogout?: boolean;
   classes?: any;
 }
 
-export interface IProfileMenuComponentState {
+interface IProfileMenuComponentState {
   anchorEl: any;
   open: boolean;
 }
 
-const styles = ({
+const styles = {
   paperStyle: {
     borderRadius: 1,
     minWidth: 150,
@@ -31,9 +31,12 @@ const styles = ({
     justifyContent: 'flex-end',
     paddingRight: 25,
   },
-});
+};
 
-class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, IProfileMenuComponentState> {
+class ProfileMenuComponent extends React.Component<
+  IProfileMenuComponentProps,
+  IProfileMenuComponentState
+> {
   public state = {
     anchorEl: null as any,
     open: false,
@@ -41,15 +44,15 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
 
   public handleToggle = () => {
     this.setState((state) => ({ open: !state.open }));
-  }
+  };
 
   public handleClick = (event: any) => {
     this.setState({ anchorEl: event.currentTarget });
-  }
+  };
 
   public handleClose = () => {
     this.setState({ anchorEl: null });
-  }
+  };
 
   public handleLogout = () => {
     const altinnWindow: Window = window;
@@ -58,17 +61,17 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
       window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
     });
     return true;
-  }
+  };
 
   public shouldShowRepositoryLink = () => {
     if (window) {
-      const { org, app } = (window as Window as IAltinnWindow);
+      const { org, app } = window as Window as IAltinnWindow;
       if (org && app) {
         return true;
       }
     }
     return false;
-  }
+  };
 
   public handleGiteaRepository = () => {
     this.setState({ anchorEl: null });
@@ -76,7 +79,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
       window.open(sharedUrls().repositoryUrl, '_blank');
       window.focus();
     }
-  }
+  };
 
   public render() {
     const { anchorEl } = this.state;
@@ -105,17 +108,13 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           elevation={1}
           classes={{ paper: classes.paperStyle }}
         >
-          <MenuItem
-            key='placeholder'
-            style={{ display: 'none' }}
-          />
-          {// workaround for highlighted menu item not changing.
+          <MenuItem key='placeholder' style={{ display: 'none' }} />
+          {
+            // workaround for highlighted menu item not changing.
             // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
-          {this.shouldShowRepositoryLink() &&
-            <MenuItem
-              className={classes.menuItem}
-            >
+          {this.shouldShowRepositoryLink() && (
+            <MenuItem className={classes.menuItem}>
               <a
                 href={sharedUrls().repositoryUrl}
                 target='_blank'
@@ -124,23 +123,14 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
                 Åpne repository
               </a>
             </MenuItem>
-          }
-          <MenuItem
-            className={classes.menuItem}
-          >
-            <a
-              href={altinnDocsUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
+          )}
+          <MenuItem className={classes.menuItem}>
+            <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
               Dokumentasjon
             </a>
           </MenuItem>
           {showlogout && (
-            <MenuItem
-              onClick={this.handleLogout}
-              className={classes.menuItem}
-            >
+            <MenuItem onClick={this.handleLogout} className={classes.menuItem}>
               Logout
             </MenuItem>
           )}

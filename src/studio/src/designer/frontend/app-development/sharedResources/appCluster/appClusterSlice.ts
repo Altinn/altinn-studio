@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IAppClusterState {
@@ -37,17 +36,26 @@ export interface IGetDeploymentsRejected {
 const moduleName = 'appCluster';
 const actions = {
   getDeployments: createAction<IGetDeployments>(`${moduleName}/getDeployments`),
-  getDeploymentsStartInterval: createAction(`${moduleName}/getDeploymentsStartInterval`),
-  getDeploymentsStopInterval: createAction(`${moduleName}/getDeploymentsStopInterval`),
+  getDeploymentsStartInterval: createAction(
+    `${moduleName}/getDeploymentsStartInterval`,
+  ),
+  getDeploymentsStopInterval: createAction(
+    `${moduleName}/getDeploymentsStopInterval`,
+  ),
 };
 
 const appClusterSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    getDeploymentsFulfilled: (state, action: PayloadAction<IGetDeploymentsFulfilled>) => {
+    getDeploymentsFulfilled: (
+      state,
+      action: PayloadAction<IGetDeploymentsFulfilled>,
+    ) => {
       const { result, env } = action.payload;
-      const newList = state.deploymentList.filter((elem: IEnvironmentItem) => elem.env !== env);
+      const newList = state.deploymentList.filter(
+        (elem: IEnvironmentItem) => elem.env !== env,
+      );
       const newListItem: IEnvironmentItem = {
         env,
         items: result,
@@ -59,9 +67,14 @@ const appClusterSlice = createSlice({
       newList.push(newListItem);
       state.deploymentList = newList;
     },
-    getDeploymentsRejected: (state, action: PayloadAction<IGetDeploymentsRejected>) => {
+    getDeploymentsRejected: (
+      state,
+      action: PayloadAction<IGetDeploymentsRejected>,
+    ) => {
       const { error, env } = action.payload;
-      const newList = state.deploymentList.filter((elem: IEnvironmentItem) => elem.env !== env);
+      const newList = state.deploymentList.filter(
+        (elem: IEnvironmentItem) => elem.env !== env,
+      );
       const newListItem: IEnvironmentItem = {
         env,
         items: [],
@@ -82,9 +95,7 @@ export const {
   getDeploymentsStopInterval,
 } = actions;
 
-export const {
-  getDeploymentsFulfilled,
-  getDeploymentsRejected,
-} = appClusterSlice.actions;
+export const { getDeploymentsFulfilled, getDeploymentsRejected } =
+  appClusterSlice.actions;
 
 export default appClusterSlice.reducer;
