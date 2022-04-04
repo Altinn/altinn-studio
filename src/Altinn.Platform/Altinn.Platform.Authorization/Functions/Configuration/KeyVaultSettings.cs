@@ -13,5 +13,5 @@ public class KeyVaultSettings
     /// <summary>
     /// Name of the certificate secret
     /// </summary>
-    public string PlatformCertSecretId { get; set; } = "platform-access-token-private-cert";
+    public string PlatformCertSecretId { get; set; } = "JWTCertificate";
 }
