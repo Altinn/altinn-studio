@@ -129,6 +129,12 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             {
                 Assert.Equal("https://idporten.azurewebsites.net/api/v1/logout", values.First());
             }
+
+            if (response.Headers.TryGetValues("Set-Cookie", out values))
+            {
+                Assert.Equal(".ASPXAUTH=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/", values.First());
+                Assert.Equal("AltinnStudioRuntime=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/", values.Last());
+            }
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService, bool enableOidc = false, bool forceOidc = false, string defaultOidc = "altinn")
