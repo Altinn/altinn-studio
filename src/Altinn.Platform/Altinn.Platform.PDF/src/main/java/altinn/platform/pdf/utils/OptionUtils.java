@@ -14,7 +14,7 @@ public class OptionUtils {
       resources
         .getResources()
         .stream()
-        .filter(e -> e.getId() == source.getLabel())
+        .filter(e -> e.getId().equals(source.getLabel()))
         .findFirst()
         .get();
 
