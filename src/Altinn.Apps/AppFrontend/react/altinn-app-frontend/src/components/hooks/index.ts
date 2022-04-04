@@ -4,7 +4,7 @@ import { buildInstanceContext } from "altinn-shared/utils/instanceContext";
 import { useState, useEffect } from "react";
 import { shallowEqual } from "react-redux";
 import { useAppSelector } from "src/common/hooks";
-import { IMapping, IOptionSource, IOption } from "src/types";
+import type { IMapping, IOptionSource, IOption } from "src/types";
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, replaceOptionDataField } from "src/utils/options";
 
 export const useGetOptions = (optionsId: string, mapping?: IMapping, source?: IOptionSource) => {
