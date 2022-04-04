@@ -1,12 +1,12 @@
 {
-  "name": "cypress-studio",
+  "name": "cypress-altinn-app-frontend",
   "version": "1.0.0",
-  "description": "studio tests",
+  "description": "altinn-app-frontend tests",
   "main": "index.js",
   "config": {
     "localtestPath": "C:/Repos/altinn-studio/src/development",
     "appPath": "C:/Repos/apps/frontend-test/App",
-    "frontendPath": "C:/Repos/altinn-studio/src/Altinn.Apps/AppFrontend/react"
+    "frontendPath": "C:/Repos/app-frontend-react/src"
   },
   "scripts": {
     "prettier:check": "prettier -c e2e/**/*.js",
@@ -19,9 +19,6 @@
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
     "cy:prunecache": "cypress cache prune",
-    "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js' -e environment=local,component=studio",
-    "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js' -e environment=local,component=studio",
-    "test:studio": "cypress run -b chrome -s 'e2e/integration/studio/*.js'",
     "create:testfiles": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
     "delete:reports": "rm reports/* || true",
     "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",

@@ -555,6 +555,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cypress-altinn-app-frontend@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "cypress-altinn-app-frontend@workspace:."
+  dependencies:
+    axe-core: ^4.4.1
+    cypress: ^9.5.3
+    cypress-axe: ^0.14.0
+    cypress-plugin-tab: ^1.0.5
+    eslint: ^8.12.0
+    eslint-plugin-cypress: ^2.12.1
+    fs-extra: ^10.0.1
+    path: ^0.12.7
+    prettier: ^2.6.1
+    start-server-and-test: ^1.14.0
+  languageName: unknown
+  linkType: soft
+
 "cypress-axe@npm:^0.14.0":
   version: 0.14.0
   resolution: "cypress-axe@npm:0.14.0"
@@ -573,23 +590,6 @@ __metadata:
   checksum: 87d68c8caf03bb8d330901c68caa4253442d7c5364dae92899c744286a459dd16fd47c3633288eb35940655b3079502d425c83fbb489841722c7f4d7c77dd212
   languageName: node
   linkType: hard
-
-"cypress-studio@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "cypress-studio@workspace:."
-  dependencies:
-    axe-core: ^4.4.1
-    cypress: ^9.5.3
-    cypress-axe: ^0.14.0
-    cypress-plugin-tab: ^1.0.5
-    eslint: ^8.12.0
-    eslint-plugin-cypress: ^2.12.1
-    fs-extra: ^10.0.1
-    path: ^0.12.7
-    prettier: ^2.6.1
-    start-server-and-test: ^1.14.0
-  languageName: unknown
-  linkType: soft
 
 "cypress@npm:^9.5.3":
   version: 9.5.3

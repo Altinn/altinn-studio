@@ -64,7 +64,7 @@ export default class AppFrontend {
       address: {
         street_name: '#address_address_adresse',
         zip_code: '#address_zip_code_adresse',
-        post_place: '#address_post_place_adresse'
+        post_place: '#address_post_place_adresse',
       },
       currentName: '#currentName',
       newFirstName: '#newFirstName',
