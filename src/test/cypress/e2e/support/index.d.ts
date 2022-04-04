@@ -22,11 +22,7 @@ declare namespace Cypress {
      * Custom command to make an user owner of an org using gitea api
      * @example cy.makeuserowner(ttd, testuser, token)
      */
-    makeuserowner(
-      orgname: string,
-      username: string,
-      token: string
-    ): Chainable<Element>;
+    makeuserowner(orgname: string, username: string, token: string): Chainable<Element>;
 
     /**
      * Custom command to delete an user using gitea api
@@ -62,7 +58,14 @@ declare namespace Cypress {
      * Custom command to upload an attachment to an app instance
      * @example cy.uploadAttachment(ttd, app, "512345", "fc56bb33-eb24-4583-967d-7cf2c2d5fa53", "attachment", "jwttoken")
      */
-    uploadAttachment(orgname: string, appname: string, partyId: string, instanceId: string, attachmentId: string, token: string): Chainable<Element>;
+    uploadAttachment(
+      orgname: string,
+      appname: string,
+      partyId: string,
+      instanceId: string,
+      attachmentId: string,
+      token: string,
+    ): Chainable<Element>;
 
     /**
      * Custom command to navigate to change name layout in task_2 in app: frontend-test
@@ -86,65 +89,71 @@ declare namespace Cypress {
      * Start an app instance based on the environment selected
      * @example cy.startAppInstance('appName')
      */
-     startAppInstance(appName: string): Chainable<Element>;
+    startAppInstance(appName: string): Chainable<Element>;
 
     /**
      * Navigate to the task3 of app ttd/frontend-test
      * @example cy.navigateToTask3()
      */
-      navigateToTask3(): Chainable<Element>;
+    navigateToTask3(): Chainable<Element>;
 
     /**
      * navigate to task 3 and complete task 3 form
      * @example cy.compelteTask3Form()
      */
-      compelteTask3Form(): Chainable<Element>;
+    compelteTask3Form(): Chainable<Element>;
 
     /**
      * Add an item to group component with an item in nested group
      * @example cy.addItemToGroup(1, 2, 'automation')
      */
-     addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
+    addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
 
-     /**
+    /**
      * Test for WCAG violations of impact critical, serious, moderate
      * @example cy.testWcag()
      */
-      testWcag(): Chainable<Element>;
+    testWcag(): Chainable<Element>;
 
-      /**
+    /**
      * Reset local repo of an app
      * @example cy.deleteLocalChanges('test/test-app')
      */
-       deleteLocalChanges(appId: String): Chainable<Element>;
+    deleteLocalChanges(appId: String): Chainable<Element>;
 
-       /**
+    /**
      * Get body of ifram from the DOM
      * @example cy.getIframeBody()
      */
-        getIframeBody(): Chainable<Element>;
+    getIframeBody(): Chainable<Element>;
 
-      /**
-       * check visibility of an element whose parent is found hidden by cypress
-       */
-        isVisible(): Chainable<Element>;
+    /**
+     * check visibility of an element whose parent is found hidden by cypress
+     */
+    isVisible(): Chainable<Element>;
 
-      /**
-      * Custom command to search and open an app
-      * @example cy.searchAndOpenApp('ttd/app')
-      */
-       searchAndOpenApp(appId: string): Chainable<Element>;
+    /**
+     * Custom command to search and open an app
+     * @example cy.searchAndOpenApp('ttd/app')
+     */
+    searchAndOpenApp(appId: string): Chainable<Element>;
 
-       /**
-      * Custom command to create a repo for an user
-      * @example cy.createrepository(user, app, token)
-      */
-        createrepository(username: string, appName: string, token: string): Chainable<Element>;
+    /**
+     * Custom command to create a repo for an user
+     * @example cy.createrepository(user, app, token)
+     */
+    createrepository(username: string, appName: string, token: string): Chainable<Element>;
 
-        /**
-      * Custom command to get a repo and return response
-      * @example cy.getrepo('ttd/app', token)
-      */
-         getrepo(appId: string, token: string): Chainable<Element>;
+    /**
+     * Custom command to get a repo and return response
+     * @example cy.getrepo('ttd/app', token)
+     */
+    getrepo(appId: string, token: string): Chainable<Element>;
+
+    /**
+     * Instantiate statefull instance from ttd/stateless-app
+     * @example cy.startStateFullFromStateless()
+     */
+     startStateFullFromStateless(): Chainable<Element>;
   }
 }
