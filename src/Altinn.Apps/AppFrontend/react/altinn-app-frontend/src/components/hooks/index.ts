@@ -1,4 +1,4 @@
-import { IInstanceContext, IDataSources } from "altinn-shared/types";
+import type { IInstanceContext, IDataSources } from "altinn-shared/types";
 import { replaceTextResourceParams } from "altinn-shared/utils";
 import { buildInstanceContext } from "altinn-shared/utils/instanceContext";
 import { useState, useEffect } from "react";
