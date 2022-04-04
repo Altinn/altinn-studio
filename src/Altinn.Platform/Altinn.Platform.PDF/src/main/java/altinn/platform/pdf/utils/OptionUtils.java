@@ -24,7 +24,6 @@ public class OptionUtils {
       String dataBinding = source.getValue().replace("{0}", String.valueOf(i));
       String value = FormUtils.getFormDataByKey(dataBinding, data);
 
-      replaceValues = new ArrayList<>();
       for (TextResourceVariableElement variable : label.getVariables()) {
         if (variable.getDataSource().startsWith("dataModel")) {
           replaceValues.add(FormUtils.getFormDataByKey(variable.getKey().replace("{0}", String.valueOf(i)), data));
