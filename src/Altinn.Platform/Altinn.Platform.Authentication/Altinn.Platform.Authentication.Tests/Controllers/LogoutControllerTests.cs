@@ -71,7 +71,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             IEnumerable<string> values;
             if (response.Headers.TryGetValues("location", out values))
             {
-                Assert.Equal("https://at22.altinn.cloud/ui/authentication/logout", values.First());
+                Assert.Equal("http://localhost/ui/authentication/logout", values.First());
             }
         }
 
@@ -97,7 +97,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             IEnumerable<string> values;
             if (response.Headers.TryGetValues("location", out values))
             {
-                Assert.Equal("https://at22.altinn.cloud/ui/authentication/logout", values.First());
+                Assert.Equal("http://localhost/ui/authentication/logout", values.First());
             }
         }
 
