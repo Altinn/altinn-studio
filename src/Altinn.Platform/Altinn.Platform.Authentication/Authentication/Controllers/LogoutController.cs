@@ -69,9 +69,9 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("frontchannel_logout")]
         public ActionResult FrontchannelLogout()
         {
-            Response.Cookies.Delete(_generalSettings.SblAuthCookieName);
-            Response.Cookies.Delete(_generalSettings.JwtCookieName);
-
+            CookieOptions opt = new CookieOptions() { Domain = _generalSettings.HostName, Secure = true, HttpOnly = true };
+            Response.Cookies.Delete(_generalSettings.SblAuthCookieName, opt);
+            Response.Cookies.Delete(_generalSettings.JwtCookieName, opt);
             return Ok();
         }
 
