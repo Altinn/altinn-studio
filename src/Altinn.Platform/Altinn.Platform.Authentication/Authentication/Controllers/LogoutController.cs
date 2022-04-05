@@ -84,6 +84,5 @@ namespace Altinn.Platform.Authentication.Controllers
 
             return null;
         }
-
     }
 }
