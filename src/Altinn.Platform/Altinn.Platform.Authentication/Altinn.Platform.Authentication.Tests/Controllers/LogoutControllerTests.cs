@@ -109,7 +109,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
-            claims.Add(new Claim("orgiss", "uidp", ClaimValueTypes.String, issuer));
+            claims.Add(new Claim("originaliss", "uidp", ClaimValueTypes.String, issuer));
 
             string token = PrincipalUtil.GetToken(1337, claims);
 
@@ -132,8 +132,8 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             if (response.Headers.TryGetValues("Set-Cookie", out values))
             {
-                Assert.Equal(".ASPXAUTH=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/", values.First());
-                Assert.Equal("AltinnStudioRuntime=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/", values.Last());
+                Assert.Equal(".ASPXAUTH=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=localhost; path=/", values.First());
+                Assert.Equal("AltinnStudioRuntime=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=localhost; path=/", values.Last());
             }
         }
 

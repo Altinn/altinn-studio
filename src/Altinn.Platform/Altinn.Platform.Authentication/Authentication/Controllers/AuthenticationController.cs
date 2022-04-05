@@ -56,7 +56,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
         private const string IssClaimName = "iss";
-        private const string OrginalIssClaimName = "orgiss";
+        private const string OriginalIssClaimName = "originaliss";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
         private readonly IOrganisationsService _organisationService;
@@ -1050,7 +1050,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (!string.IsNullOrEmpty(userAuthentication.Iss))
             {
-                claims.Add(new Claim(OrginalIssClaimName, userAuthentication.Iss, ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(OriginalIssClaimName, userAuthentication.Iss, ClaimValueTypes.String, issuer));
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));

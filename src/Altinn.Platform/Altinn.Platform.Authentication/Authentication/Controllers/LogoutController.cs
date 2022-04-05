@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class LogoutController : ControllerBase
     {
-        private const string OrginalIssClaimName = "orgiss";
+        private const string OriginalIssClaimName = "originaliss";
 
         private readonly GeneralSettings _generalSettings;
    
@@ -46,15 +46,16 @@ namespace Altinn.Platform.Authentication.Controllers
         public ActionResult Logout()
         {
             ClaimsPrincipal principal = HttpContext.User;
-            string orgIss = principal.GetClaim(OrginalIssClaimName);
+            string orgIss = principal.GetClaim(OriginalIssClaimName);
             OidcProvider provider = GetOidcProvider(orgIss);
             if (provider == null)
             {
                 return Redirect(_generalSettings.SBLLogoutEndpoint);
             }
 
-            Response.Cookies.Delete(_generalSettings.SblAuthCookieName);
-            Response.Cookies.Delete(_generalSettings.JwtCookieName);
+            CookieOptions opt = new CookieOptions() { Domain = _generalSettings.HostName };
+            Response.Cookies.Delete(_generalSettings.SblAuthCookieName, opt);
+            Response.Cookies.Delete(_generalSettings.JwtCookieName, opt);
 
             return Redirect(provider.LogoutEndpoint);
         }
