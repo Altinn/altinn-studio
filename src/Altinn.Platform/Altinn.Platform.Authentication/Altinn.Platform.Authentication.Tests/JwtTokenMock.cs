@@ -139,6 +139,7 @@ namespace Altinn.Platform.Authentication.Tests
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
+            validator.MapInboundClaims = false;
             return validator.ValidateToken(token, validationParameters, out _);
         }
 

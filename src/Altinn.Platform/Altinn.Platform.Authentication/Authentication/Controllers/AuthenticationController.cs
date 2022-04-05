@@ -793,7 +793,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (!string.IsNullOrEmpty(provider.ExternalIdentityClaim) && claim.Type.Equals(provider.ExternalIdentityClaim))
                 {
                     userAuthenticationModel.ExternalIdentity = claim.Value;
-                    continue;
                 }
 
                 // General claims handling
