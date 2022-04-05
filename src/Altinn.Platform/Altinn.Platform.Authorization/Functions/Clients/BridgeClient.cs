@@ -8,6 +8,7 @@ using Altinn.Platform.Authorization.Functions.Clients.Interfaces;
 using Altinn.Platform.Authorization.Functions.Configuration;
 using Altinn.Platform.Authorization.Functions.Models;
 using Altinn.Platform.Authorization.Functions.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Functions.Clients;
@@ -18,6 +19,7 @@ namespace Altinn.Platform.Authorization.Functions.Clients;
 public class BridgeClient : IBridgeClient
 {
     private readonly IAccessTokenProvider _accessTokenProvider;
+    private readonly ILogger<BridgeClient> _logger;
     private const string DelegationEventEndpoint = "platformDelegationEvents";
 
     /// <summary>
@@ -31,9 +33,11 @@ public class BridgeClient : IBridgeClient
     /// <param name="client">the http client</param>
     /// <param name="accessTokenProvider">The provider giving an access token to use against the brdige API</param>
     /// <param name="platformSettings">the platform settings configured for the authorization functions</param>
-    public BridgeClient(HttpClient client, IAccessTokenProvider accessTokenProvider, IOptions<PlatformSettings> platformSettings)
+    /// <param name="logger">The logger</param>
+    public BridgeClient(HttpClient client, IAccessTokenProvider accessTokenProvider, IOptions<PlatformSettings> platformSettings, ILogger<BridgeClient> logger)
     {
         _accessTokenProvider = accessTokenProvider;
+        _logger = logger;
         PlatformSettings settings = platformSettings.Value;
         Client = client;
         Client.BaseAddress = new Uri(settings.BridgeApiEndpoint);
@@ -57,6 +61,15 @@ public class BridgeClient : IBridgeClient
                 Authorization = new AuthenticationHeaderValue("Bearer", await _accessTokenProvider.GetAccessToken())
             }
         };
+
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug(
+                "BridgeClient posting event list to {url} with token {token} and body {body}",
+                request.RequestUri,
+                request.Headers.Authorization.ToString(),
+                await request.Content.ReadAsStringAsync());
+        }
 
         return await Client.SendAsync(request);
     }

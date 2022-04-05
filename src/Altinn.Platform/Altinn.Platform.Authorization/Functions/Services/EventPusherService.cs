@@ -67,14 +67,12 @@ public class EventPusherService : IEventPusherService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(
-                    "Bridge returned non-success. resultCode={resultCode} reasonPhrase={reasonPhrase} resultBody={resultBody} numEventsSent={numEventsSent} changeIds={changeIds} requestUri={requestUri} requestBody={requestBody}",
+                    "Bridge returned non-success. resultCode={resultCode} reasonPhrase={reasonPhrase} resultBody={resultBody} numEventsSent={numEventsSent} changeIds={changeIds}",
                     response.StatusCode,
                     response.ReasonPhrase,
                     await response.Content.ReadAsStringAsync(),
                     delegationChangeEventList.DelegationChangeEvents.Count,
-                    GetChangeIdsForLog(delegationChangeEventList),
-                    response.RequestMessage?.RequestUri,
-                    response.RequestMessage?.Content == null ? "<empty body>" : await response.RequestMessage.Content.ReadAsStringAsync());
+                    GetChangeIdsForLog(delegationChangeEventList));
 
                 // Throw exception to ensure requeue of the event list
                 throw new BridgeRequestFailedException();
