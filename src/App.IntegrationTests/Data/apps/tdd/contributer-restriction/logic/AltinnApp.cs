@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Interface;
 
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -11,7 +9,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
@@ -27,15 +24,19 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
             IAppResources appResourcesService,
             ILogger<AltinnApp> logger,
             IData dataService,
-            IProcess processService,
-            IPDF pdfService,
+            IPdfService pdfService,
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IOptions<GeneralSettings> settings,
-            IText textService,
-            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(
+                appResourcesService, 
+                logger, 
+                dataService, 
+                pdfService, 
+                prefillService, 
+                instanceService, 
+                httpContextAccessor)
         {
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();
@@ -53,11 +54,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
             return Type.GetType(classRef);
         }
 
-        public override Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
@@ -68,12 +64,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
         {
             await Task.CompletedTask;
             _validationHandler.ValidateTask(instance, taskId, validationResults);
-        }
-
-        public override async Task<bool> RunCalculation(object data)
-        {
-            await Task.CompletedTask;
-            return _calculationHandler.Calculate(data);
         }
 
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
@@ -88,21 +78,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
             _instantiationHandler.DataCreation(instance, data);
         }
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             return Task.CompletedTask;
-        }
-
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return await Task.FromResult(layoutSettings);
         }
     }
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -19,29 +17,31 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
     public class AltinnApp : AppBase, IAltinnApp
     {
         private readonly ValidationHandler _validationHandler;
-        private readonly CalculationHandler _calculationHandler;
+        private readonly DataProcessingHandler _dataProcessingHandler;
         private readonly InstantiationHandler _instantiationHandler;
-
-        private readonly GeneralSettings _settings;
 
         public AltinnApp(
             IAppResources appResourcesService,
             ILogger<AltinnApp> logger,
             IData dataService,
-            IProcess processService,
-            IPDF pdfService,
+            IPdfService pdfService,
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
             IOptions<GeneralSettings> settings,
-            IText textService,
-            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(
+                appResourcesService, 
+                logger, 
+                dataService, 
+                pdfService, 
+                prefillService, 
+                instanceService, 
+                httpContextAccessor)
         {
             _validationHandler = new ValidationHandler(settings.Value, httpContextAccessor);
-            _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
-            _settings = settings.Value;
+            _dataProcessingHandler = new DataProcessingHandler();
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -53,11 +53,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         public override Type GetAppModelType(string classRef)
         {
             return Type.GetType(classRef);
-        }
-
-        public override Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            return Task.FromResult(true);
         }
 
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
@@ -72,12 +67,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
-        public override async Task<bool> RunCalculation(object data)
-        {
-            await Task.CompletedTask;
-            return _calculationHandler.Calculate(data);
-        }
-
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             await Task.CompletedTask;
@@ -90,21 +79,31 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             _instantiationHandler.DataCreation(instance, data);
         }
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             return Task.CompletedTask;
         }
 
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is read from app
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
         {
-            return await Task.FromResult(layoutSettings);
+            return await _dataProcessingHandler.ProcessDataRead(instance, dataId, data);
+        }
+
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer when data is written to app.
+        /// </summary>
+        /// <param name="instance">Instance that data belongs to</param>
+        /// <param name="dataId">Data id for the  data</param>
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunProcessDataWrite(Instance instance, Guid? dataId, object data)
+        {
+            return await _dataProcessingHandler.ProcessDataWrite(instance, dataId, data);
         }
     }
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Configuration;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -10,7 +8,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
 {
@@ -22,7 +19,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         private readonly ILogger<App> _logger;
         private readonly ValidationHandler _validationHandler;
         private readonly InstantiationHandler _instantiationHandler;
-        private readonly PdfHandler _pdfHandler;
         private readonly DataProcessingHandler _dataProcessingHandler;
 
         /// <summary>
@@ -31,46 +27,34 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         /// <param name="appResourcesService">A service with access to local resources.</param>
         /// <param name="logger">A logger from the built in LoggingFactory.</param>
         /// <param name="dataService">A service with access to data storage.</param>
-        /// <param name="processService">A service with access to the process.</param>
         /// <param name="pdfService">A service with access to the PDF generator.</param>
         /// <param name="profileService">A service with access to profile information.</param>
         /// <param name="registerService">A service with access to register information.</param>
         /// <param name="prefillService">A service with access to prefill mechanisms.</param>
         /// <param name="instanceService">A service with access to instances</param>
-        /// <param name="settings">General settings</param>
-        /// <param name="textService">A service with access to text</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
-            IProcess processService,
-            IPDF pdfService,
+            IPdfService pdfService,
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IOptions<GeneralSettings> settings,
-            IText textService,
             IHttpContextAccessor httpContextAccessor) : base(
                 appResourcesService,
                 logger,
                 dataService,
-                processService,
                 pdfService,
                 prefillService,
                 instanceService,
-                registerService,
-                settings,
-                profileService,
-                textService,
                 httpContextAccessor)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(httpContextAccessor);
             _dataProcessingHandler = new DataProcessingHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
-            _pdfHandler = new PdfHandler();
         }
 
         /// <inheritdoc />
@@ -88,21 +72,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
             _logger.LogInformation($"GetAppModelType {classRef}");
 
             return Type.GetType(classRef);
-        }
-
-        /// <summary>
-        /// Run app event
-        /// </summary>
-        /// <remarks>DEPRECATED METHOD, USE EVENT SPECIFIC METHOD INSTEAD</remarks>
-        /// <param name="appEvent">The app event type</param>
-        /// <param name="model">The service model</param>
-        /// <param name="modelState">The model state</param>
-        /// <returns>True if the event was handled</returns>
-        public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            _logger.LogInformation($"RunAppEvent {appEvent}");
-
-            return await Task.FromResult(true);
         }
 
         /// <summary>
@@ -169,14 +138,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
             await _instantiationHandler.DataCreation(instance, data);
         }
 
-        /// <inheritdoc />
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         /// <summary>
         /// Hook to run code when process tasks is ended. 
         /// </summary>
@@ -186,17 +147,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             await Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Hook to run logic to hide pages or components when generatring PDF
-        /// </summary>
-        /// <param name="layoutSettings">The layoutsettings. Can be null and need to be created in method</param>
-        /// <param name="data">The data that there is generated PDF from</param>
-        /// <returns>Layoutsetting with possible hidden fields or pages</returns>
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }

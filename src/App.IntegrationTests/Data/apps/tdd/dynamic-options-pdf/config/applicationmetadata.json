@@ -1,0 +1,41 @@
+﻿{
+  "id": "tdd/dynamic-options-pdf",
+  "org": "tdd",
+  "title": {
+    "nb": "dynamic-options-pdf"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "FylkeKommune",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptionsPdf.Models.FylkeKommune"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2021-12-16T11:47:41.7499397Z",
+  "createdBy": "Ronny",
+  "lastChanged": "2021-12-16T11:47:41.7499413Z",
+  "lastChangedBy": "Ronny"
+}

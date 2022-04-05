@@ -160,6 +160,34 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
+        public async void OnTaskEnd_PdfIsCreated()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "dynamic-options-pdf");
+
+            Instance instance = await CreateInstance("tdd", "dynamic-options-pdf");
+
+            string instancePath = $"/tdd/dynamic-options-pdf/instances/{instance.Id}";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            DeleteInstance(instance);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Null(processState.CurrentTask);
+            Assert.NotNull(processState.Ended);
+        }
+
+        [Fact]
         public async void OnTaskEnd_EFormidlingEnabled_AllMethodsImplemented()
         {
             string token = PrincipalUtil.GetToken(1337);

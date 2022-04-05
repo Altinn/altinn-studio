@@ -1,9 +1,6 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Configuration;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -16,7 +13,6 @@ using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
@@ -33,16 +29,19 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
-            IProcess processService,
-            IPDF pdfService,
+            IPdfService pdfService,
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IHttpContextAccessor accessor,
-            IOptions<GeneralSettings> settings,
-            IText textService,
-            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(
+                appResourcesService, 
+                logger, 
+                dataService, 
+                pdfService, 
+                prefillService, 
+                instanceService, 
+                httpContextAccessor)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);
@@ -65,21 +64,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             return Type.GetType(classRef);
         }
 
-        /// <summary>
-        /// Run app event
-        /// </summary>
-        /// <remarks>DEPRECATED METHOD, USE EVENT SPECIFIC METHOD INSTEAD</remarks>
-        /// <param name="appEvent">The app event type</param>
-        /// <param name="model">The service model</param>
-        /// <param name="modelState">The model state</param>
-        /// <returns></returns>
-        public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)
-        {
-            _logger.LogInformation($"RunAppEvent {appEvent}");
-
-            return await Task.FromResult(true);
-        }
-
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateData(data, validationResults);
@@ -88,15 +72,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
-        }
-
-        /// <summary>
-        /// Is called to run custom calculation events defined by app developer.
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object data)
-        {
-            return await _calculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -113,21 +88,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             await _instantiationHandler.DataCreation(instance, data);
         }
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             return Task.CompletedTask;
-        }
-
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return await Task.FromResult(layoutSettings);
         }
     }
 }

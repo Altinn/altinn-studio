@@ -2,25 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
-
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Extensions;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models.SBD;
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using AltinnCore.Authentication.Utils;
@@ -29,8 +21,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -41,20 +31,14 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly Application _appMetadata;
         private readonly IAppResources _resourceService;
-        private readonly IProcess _processService;
         private readonly ILogger<AppBase> _logger;
-        private readonly IEFormidlingClient _eFormidlingClient;
-        private readonly string pdfElementType = "ref-data-as-pdf";
-        private readonly UserHelper _userHelper;
+        private readonly IEFormidlingClient _eFormidlingClient;        
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _appSettings;
         private readonly IData _dataClient;
-        private readonly IPDF _pdfClient;
+        private readonly IPdfService _pdfService;
         private readonly IPrefill _prefillService;
         private readonly IInstance _instanceClient;
-        private readonly IRegister _registerClient;
-        private readonly IProfile _profileClient;
-        private readonly IText _textClient;
         private readonly IAccessTokenGenerator _tokenGenerator;
         private readonly PlatformSettings _platformSettings;
 
@@ -64,15 +48,10 @@ namespace Altinn.App.Services.Implementation
         /// <param name="resourceService">The service giving access to local resources.</param>
         /// <param name="logger">A logging service.</param>
         /// <param name="dataClient">The data client.</param>
-        /// <param name="processService">The service giving access the App process.</param>
-        /// <param name="pdfClient">The pdf client.</param>
+        /// <param name="pdfService">The pdf service responsible for creating the pdf.</param>
         /// <param name="prefillService">The service giving access to prefill mechanisms.</param>
         /// <param name="instanceClient">The instance client</param>
-        /// <param name="registerClient">The register client</param>
-        /// <param name="settings">the general settings</param>
-        /// <param name="profileClient">the profile client</param>
-        /// <param name="textClient">The text client</param>
-        /// <param name="httpContextAccessor">the httpContextAccessor</param>
+        /// <param name="httpContextAccessor">The httpContextAccessor</param>
         /// <param name="eFormidlingClient">The eFormidling client</param>
         /// <param name="appSettings">The appsettings</param>
         /// <param name="platformSettings">The platform settings</param>
@@ -81,14 +60,9 @@ namespace Altinn.App.Services.Implementation
             IAppResources resourceService,
             ILogger<AppBase> logger,
             IData dataClient,
-            IProcess processService,
-            IPDF pdfClient,
+            IPdfService pdfService,
             IPrefill prefillService,
             IInstance instanceClient,
-            IRegister registerClient,
-            IOptions<GeneralSettings> settings,
-            IProfile profileClient,
-            IText textClient,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient eFormidlingClient = null,
             IOptions<AppSettings> appSettings = null,
@@ -99,14 +73,9 @@ namespace Altinn.App.Services.Implementation
             _resourceService = resourceService;
             _logger = logger;
             _dataClient = dataClient;
-            _processService = processService;
-            _pdfClient = pdfClient;
+            _pdfService = pdfService;
             _prefillService = prefillService;
             _instanceClient = instanceClient;
-            _registerClient = registerClient;
-            _userHelper = new UserHelper(profileClient, registerClient, settings);
-            _profileClient = profileClient;
-            _textClient = textClient;
             _httpContextAccessor = httpContextAccessor;
             _appSettings = appSettings?.Value;
             _eFormidlingClient = eFormidlingClient;
@@ -115,13 +84,10 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public abstract Type GetAppModelType(string dataType);
+        public abstract Type GetAppModelType(string classRef);
 
         /// <inheritdoc />
-        public abstract object CreateNewAppModel(string dataType);
-
-        /// <inheritdoc />
-        public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
+        public abstract object CreateNewAppModel(string classRef);
 
         /// <inheritdoc />
         public abstract Task RunDataValidation(object data, ModelStateDictionary validationResults);
@@ -130,21 +96,15 @@ namespace Altinn.App.Services.Implementation
         public abstract Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
 
         /// <inheritdoc />
-        public virtual Task<bool> RunCalculation(object data)
+        public virtual Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
         {
             return Task.FromResult(false);
         }
 
         /// <inheritdoc />
-        public virtual Task<bool> RunProcessDataRead(Instance instance, Guid? dataId, object data)
-        {
-            throw new NotImplementedException("RunProcessDataRead not implemented in app");
-        }
-
-        /// <inheritdoc />
         public virtual Task<bool> RunProcessDataWrite(Instance instance, Guid? dataId, object data)
         {
-            throw new NotImplementedException("RunProcessDataWrite not implemented in app");
+            return Task.FromResult(false);
         }
 
         /// <inheritdoc />
@@ -163,14 +123,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
-        public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
-
-        /// <inheritdoc />
         public abstract Task RunProcessTaskEnd(string taskId, Instance instance);
-
-        /// <inheritdoc />
-        public abstract Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
 
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
@@ -294,7 +247,7 @@ namespace Altinn.App.Services.Implementation
                     if (generatePdf)
                     {
                         Type dataElementType = GetAppModelType(dataType.AppLogic.ClassRef);
-                        Task createPdf = GenerateAndStoreReceiptPDF(instance, taskId, dataElement, dataElementType);
+                        Task createPdf = _pdfService.GenerateAndStoreReceiptPDF(instance, taskId, dataElement, dataElementType);
                         await Task.WhenAll(updateData, createPdf);
                     }
                     else
@@ -308,7 +261,7 @@ namespace Altinn.App.Services.Implementation
             {
                 if (_eFormidlingClient == null || _tokenGenerator == null)
                 {
-                    throw new ArgumentNullException("eFormidling support has not been correctly configured in App.cs. " +
+                    throw new EntryPointNotFoundException("eFormidling support has not been correctly configured in App.cs. " +
                         "Ensure that IEformidlingClient and IAccessTokenGenerator are included in the base constructor.");
                 }
 
@@ -353,7 +306,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public virtual Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
+        public virtual Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
         {
             throw new NotImplementedException("No method available for generating arkivmelding for eFormidling shipment.");
         }
@@ -410,188 +363,6 @@ namespace Altinn.App.Services.Implementation
 
                 instance.DataValues = updatedInstance.DataValues;
             }
-        }
-
-        private async Task GenerateAndStoreReceiptPDF(Instance instance, string taskId, DataElement dataElement, Type dataElementModelType)
-        {
-            string app = instance.AppId.Split("/")[1];
-            string org = instance.Org;
-            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
-            string layoutSetsString = _resourceService.GetLayoutSets();
-            LayoutSets layoutSets = null;
-            LayoutSet layoutSet = null;
-            if (!string.IsNullOrEmpty(layoutSetsString))
-            {
-                layoutSets = JsonConvert.DeserializeObject<LayoutSets>(layoutSetsString);
-                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
-            }
-
-            string layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsStringForSet(layoutSet.Id);
-
-            LayoutSettings layoutSettings = null;
-            if (!string.IsNullOrEmpty(layoutSettingsFileContent))
-            {
-                layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(layoutSettingsFileContent);
-            }
-
-            // Ensure layoutsettings are initialized in FormatPdf
-            layoutSettings ??= new();
-            layoutSettings.Pages ??= new();
-            layoutSettings.Pages.Order ??= new();
-            layoutSettings.Pages.ExcludeFromPdf ??= new();
-            layoutSettings.Components ??= new();
-            layoutSettings.Components.ExcludeFromPdf ??= new();
-
-            object data = await _dataClient.GetFormData(instanceGuid, dataElementModelType, org, app, instanceOwnerId, new Guid(dataElement.Id));
-
-            layoutSettings = await FormatPdf(layoutSettings, data);
-            XmlSerializer serializer = new XmlSerializer(dataElementModelType);
-            using MemoryStream stream = new MemoryStream();
-
-            serializer.Serialize(stream, data);
-            stream.Position = 0;
-
-            byte[] dataAsBytes = new byte[stream.Length];
-            await stream.ReadAsync(dataAsBytes);
-            string encodedXml = Convert.ToBase64String(dataAsBytes);
-
-            string language = "nb";
-            Party actingParty = null;
-            ClaimsPrincipal user = _httpContextAccessor.HttpContext.User;
-
-            int? userId = user.GetUserIdAsInt();
-
-            if (userId != null)
-            {
-                UserProfile userProfile = await _profileClient.GetUserProfile((int)userId);
-                actingParty = userProfile.Party;
-
-                if (!string.IsNullOrEmpty(userProfile.ProfileSettingPreference?.Language))
-                {
-                    language = userProfile.ProfileSettingPreference.Language;
-                }
-            }
-            else
-            {
-                string orgNumber = user.GetOrgNumber().ToString();
-                actingParty = await _registerClient.LookupParty(new PartyLookup { OrgNo = orgNumber });
-            }
-
-            // If layoutset exists pick correct layotFiles
-            string formLayoutsFileContent = layoutSet == null ? _resourceService.GetLayouts() : _resourceService.GetLayoutsForSet(layoutSet.Id);
-
-            TextResource textResource = await _resourceService.GetTexts(org, app, language);
-
-            if (textResource == null && language != "nb")
-            {
-                // fallback to norwegian if texts does not exist
-                textResource = await _resourceService.GetTexts(org, app, "nb");
-            }
-
-            string textResourcesString = JsonConvert.SerializeObject(textResource);
-            Dictionary<string, Dictionary<string, string>> optionsDictionary = await GetOptionsDictionary(formLayoutsFileContent);
-
-            PDFContext pdfContext = new PDFContext
-            {
-                Data = encodedXml,
-                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsFileContent),
-                LayoutSettings = layoutSettings,
-                TextResources = JsonConvert.DeserializeObject(textResourcesString),
-                OptionsDictionary = optionsDictionary,
-                Party = await _registerClient.GetParty(instanceOwnerId),
-                Instance = instance,
-                UserParty = actingParty,
-                Language = language
-            };
-
-            Stream pdfContent = await _pdfClient.GeneratePDF(pdfContext);
-            await StorePDF(pdfContent, instance, textResource);
-            pdfContent.Dispose();
-        }
-
-        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource)
-        {
-            string fileName = null;
-            string app = instance.AppId.Split("/")[1];
-
-            TextResourceElement titleText = 
-                textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("appName")) ??
-                textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
-            
-            if (titleText != null && !string.IsNullOrEmpty(titleText.Value))
-            {
-                fileName = titleText.Value + ".pdf";
-            }
-            else
-            {
-                fileName = app + ".pdf";
-            }
-
-            fileName = GetValidFileName(fileName);
-
-            return await _dataClient.InsertBinaryData(
-                instance.Id,
-                pdfElementType,
-                "application/pdf",
-                fileName,
-                pdfStream);
-        }
-
-        private string GetValidFileName(string fileName)
-        {
-            fileName = Uri.EscapeDataString(fileName.AsFileName(false));
-            return fileName;
-        }
-
-        private List<string> GetOptionIdsFromFormLayout(string formLayout)
-        {
-            List<string> optionsIds = new List<string>();
-            string matchString = "\"optionsId\":\"";
-
-            string[] formLayoutSubstrings = formLayout.Replace(" ", string.Empty).Split(new string[] { matchString }, StringSplitOptions.None);
-
-            for (int i = 1; i < formLayoutSubstrings.Length; i++)
-            {
-                string[] workingSet = formLayoutSubstrings[i].Split('\"');
-                string optionsId = workingSet[0];
-                optionsIds.Add(optionsId);
-            }
-
-            return optionsIds;
-        }
-
-        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout)
-        {
-            Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
-            List<string> optionsIdsList = GetOptionIdsFromFormLayout(formLayout);
-
-            foreach (string optionsId in optionsIdsList)
-            {
-                AppOptions appOptions = new AppOptions();
-
-                appOptions.Options = _resourceService.GetOptions(optionsId);
-#pragma warning disable CS0618 // Type or member is obsolete
-                appOptions = await GetOptions(optionsId, appOptions);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                if (appOptions.Options != null && !dictionary.ContainsKey(optionsId))
-                {
-                    Dictionary<string, string> options = new Dictionary<string, string>();
-                    foreach (AppOption item in appOptions.Options)
-                    {
-                        if (!options.ContainsKey(item.Label))
-                        {
-                            options.Add(item.Label, item.Value);
-                        }
-                    }
-
-                    dictionary.Add(optionsId, options);
-                }
-            }
-
-            return dictionary;
         }
 
         private async Task SendInstanceData(Instance instance, Dictionary<string, string> requestHeaders)

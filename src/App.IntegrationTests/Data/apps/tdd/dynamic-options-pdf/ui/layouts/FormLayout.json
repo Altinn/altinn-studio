@@ -1,0 +1,54 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "e5a2d367-e267-4125-a1ed-541c1e98d88f",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "label.country"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Land"
+        },
+        "optionsId": "land"
+      },
+      {
+        "id": "507d139d-b50b-4663-bf83-a1f8f4517557",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "label.county"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Fylke"
+        },
+        "required": true,
+        "optionsId": "fylker"
+      },
+      {
+        "id": "109b894c-e2cd-41c1-bb95-1858cbdbf17d",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "label.commune"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Kommune"
+        },
+        "required": true,
+        "optionsId": "kommuner",
+        "mapping": {
+          "Fylke": "fnr",
+          "Land": "country"
+        }
+      },
+      {
+        "id": "3c237a63-d088-4c67-bbf8-d60353ce7df5",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

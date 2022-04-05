@@ -1,0 +1,21 @@
+﻿{
+  "language": "en",
+  "resources": [
+    {
+      "id": "appname",
+      "value": "dynamic-options-2"
+    },
+    {
+      "id": "commune",
+      "value": "Commune"
+    },
+    {
+      "id": "country",
+      "value": "Country"
+    },
+    {
+      "id": "county",
+      "value": "County"
+    }
+  ]
+}

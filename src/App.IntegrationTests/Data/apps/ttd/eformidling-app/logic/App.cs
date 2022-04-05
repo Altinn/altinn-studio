@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.AppLogic.Print;
 using Altinn.App.AppLogic.Validation;
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -43,14 +41,11 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         /// <param name="appResourcesService">A service with access to local resources.</param>
         /// <param name="logger">A logger from the built in LoggingFactory.</param>
         /// <param name="dataService">A service with access to data storage.</param>
-        /// <param name="processService">A service with access to the process.</param>
         /// <param name="pdfService">A service with access to the PDF generator.</param>
         /// <param name="profileService">A service with access to profile information.</param>
         /// <param name="registerService">A service with access to register information.</param>
         /// <param name="prefillService">A service with access to prefill mechanisms.</param>
         /// <param name="instanceService">A service with access to instances</param>
-        /// <param name="settings">General settings</param>
-        /// <param name="textService">A service with access to text</param>
         /// <param name="httpContextAccessor">A context accessor</param>
         /// <param name="efor">The eformidling service</param>
         /// <param name="appsettings">the app settings</param>
@@ -60,14 +55,11 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
-            IProcess processService,
-            IPDF pdfService,
+            IPdfService pdfService,
             IProfile profileService,
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IOptions<GeneralSettings> settings,
-            IText textService,
             IHttpContextAccessor httpContextAccessor,
             IEFormidlingClient efor,
             IOptions<AppSettings> appsettings,
@@ -77,14 +69,9 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
                 appResourcesService,
                 logger,
                 dataService,
-                processService,
                 pdfService,
                 prefillService,
                 instanceService,
-                registerService,
-                settings,
-                profileService,
-                textService,
                 httpContextAccessor,
                 efor,
                 appsettings,
@@ -99,7 +86,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         }
 
         /// <inheritdoc />
-        public override async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
+        public override async Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
         {
             Arkivmelding arkivmelding = new Arkivmelding
             {
@@ -185,21 +172,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         }
 
         /// <summary>
-        /// Run app event
-        /// </summary>
-        /// <remarks>DEPRECATED METHOD, USE EVENT SPECIFIC METHOD INSTEAD</remarks>
-        /// <param name="appEvent">The app event type</param>
-        /// <param name="model">The service model</param>
-        /// <param name="modelState">The model state</param>
-        /// <returns>True if the event was handled</returns>
-        public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            _logger.LogInformation($"RunAppEvent {appEvent}");
-
-            return await Task.FromResult(true);
-        }
-
-        /// <summary>
         /// Run data validation event to perform custom validations on data
         /// </summary>
         /// <param name="data">An instance of the data to be validated.</param>
@@ -223,15 +195,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         }
 
         /// <summary>
-        /// Is called to run custom calculation events defined by app developer.
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object data)
-        {
-            return await _calculationHandler.Calculate(data);
-        }
-
-        /// <summary>
         /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
         /// <returns>Task with validation results</returns>
@@ -250,14 +213,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
             await _instantiationHandler.DataCreation(instance, data);
         }
 
-        /// <inheritdoc />
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         /// <summary>
         /// Hook to run code when process tasks is ended. 
         /// </summary>
@@ -267,17 +222,6 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.EFormidling
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             await Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Hook to run logic to hide pages or components when generatring PDF
-        /// </summary>
-        /// <param name="layoutSettings">The layoutsettings. Can be null and need to be created in method</param>
-        /// <param name="data">The data that there is generated PDF from</param>
-        /// <returns>Layoutsetting with possible hidden fields or pages</returns>
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return await _pdfHandler.FormatPdf(layoutSettings, data);
         }
     }
 }

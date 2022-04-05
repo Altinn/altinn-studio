@@ -1,16 +1,12 @@
 using System;
 using System.Threading.Tasks;
-
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Configuration;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
@@ -22,15 +18,17 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             IAppResources appResourcesService, 
             ILogger<AltinnApp> logger, 
             IData dataService, 
-            IProcess processService, 
-            IPDF pdfService, 
+            IPdfService pdfService, 
             IPrefill prefillService,
-            IProfile profileService,
-            IRegister registerService,
             IInstance instanceService,
-            IOptions<GeneralSettings> settings,
-            IText textService,
-            IHttpContextAccessor httpContextAccessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService, instanceService, registerService, settings, profileService, textService, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor) : base(
+                appResourcesService, 
+                logger, 
+                dataService, 
+                pdfService, 
+                prefillService, 
+                instanceService, 
+                httpContextAccessor)
         {
         }
 
@@ -45,11 +43,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             return Type.GetType(classRef);
         }
 
-        public override Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
@@ -58,11 +51,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
-        }
-
-        public override Task<bool> RunCalculation(object data)
-        {
-            return Task.FromResult(false);
         }
 
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
@@ -76,21 +64,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             await Task.CompletedTask;
         }
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-        public override Task<AppOptions> GetOptions(string id, AppOptions options)
-#pragma warning restore CS0672 // Member overrides obsolete member
-        {
-            return Task.FromResult(options);
-        }
-
         public override Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             return Task.CompletedTask;
-        }
-
-        public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-        {
-            return await Task.FromResult(layoutSettings);
         }
     }
 }

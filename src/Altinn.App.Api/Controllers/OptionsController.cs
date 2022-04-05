@@ -46,12 +46,6 @@ namespace Altinn.App.Api.Controllers
             [FromQuery] Dictionary<string, string> queryParams)
         {
             AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, queryParams);
-
-            // Kept for backwards compatibility, but should use the IAppOptionsProvider instead.
-#pragma warning disable CS0618 // Type or member is obsolete
-            appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
-#pragma warning restore CS0618 // Type or member is obsolete
-
             if (appOptions.Options == null)
             {
                 return NotFound();

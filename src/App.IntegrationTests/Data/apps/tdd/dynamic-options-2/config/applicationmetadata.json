@@ -1,0 +1,43 @@
+{
+  "id": "yabbin/dynamic-options-2",
+  "org": "yabbin",
+  "title": {
+    "nb": "dynamic-options-2"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [
+        "application/pdf"
+      ],
+      "maxCount": 0,
+      "minCount": 0,
+      "enablePdfCreation": true
+    },
+    {
+      "id": "FylkeKommune",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Flyttemelding"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1,
+      "enablePdfCreation": true
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2022-03-22T15:17:10.0257626Z",
+  "createdBy": "Ronny",
+  "lastChanged": "2022-03-22T15:17:10.0259082Z",
+  "lastChangedBy": "Ronny"
+}

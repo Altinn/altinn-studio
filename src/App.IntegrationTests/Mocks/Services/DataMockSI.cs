@@ -27,14 +27,14 @@ namespace App.IntegrationTests.Mocks.Services
             _applicationService = application;
         }
 
-        public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
-            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
+            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerPartyId, instanceGuid, dataId);
 
             Stream ms = new MemoryStream();
             using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
@@ -45,14 +45,14 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(ms);
         }
 
-        public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
         {
             throw new NotImplementedException();
         }
 
-        public Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
         {
-            string dataPath = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataId);
+            string dataPath = GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
             XmlSerializer serializer = new XmlSerializer(type);
             try
@@ -67,11 +67,11 @@ namespace App.IntegrationTests.Mocks.Services
             }
         }
 
-        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request)
         {
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
-            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
+            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
@@ -111,12 +111,12 @@ namespace App.IntegrationTests.Mocks.Services
             return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataType);
         }
 
-        public Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, string dataType)
+        public Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType)
         {
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
 
-            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
 
@@ -140,21 +140,21 @@ namespace App.IntegrationTests.Mocks.Services
             {
             }
 
-            instance.Data = GetDataElements(org, app, instanceOwnerId, instanceGuid);
+            instance.Data = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
 
             return Task.FromResult(dataElement);
         }
 
-        public Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        public Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
         {
-            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
 
-            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
             DataElement dataElement = instance.Data.FirstOrDefault(r => r.Id.Equals(dataId.ToString()));
 
@@ -250,6 +250,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
+                stream.Seek(0, SeekOrigin.Begin);
                 await stream.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
                 filesize = streamToWriteTo.Length;
