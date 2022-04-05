@@ -21,6 +21,11 @@ namespace Altinn.Platform.Authentication.Model
         public string TokenEndpoint { get; set; }
 
         /// <summary>
+        /// Logout endpoint
+        /// </summary>
+        public string LogoutEndpoint { get; set; }
+
+        /// <summary>
         /// Issuer key
         /// </summary>
         public string IssuerKey { get; set; }
