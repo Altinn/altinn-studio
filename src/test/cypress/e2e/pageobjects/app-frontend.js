@@ -46,6 +46,8 @@ export default class AppFrontend {
       uploadedAttachments: '#attachment-list',
     };
 
+    this.feedback = '#FeedbackContainer';
+
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
     this.fieldValidationWarning = '[id^="message_field"]';
