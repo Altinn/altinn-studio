@@ -90,6 +90,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.Configure<Altinn.Common.EFormidlingClient.Configuration.EFormidlingClientSettings>(configuration.GetSection("EFormidlingClientSettings"));
             services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
             AddAppOptions(services);
+            AddPdfServices(services);
 
             if (!env.IsDevelopment())
             {
@@ -113,6 +114,19 @@ namespace Altinn.App.PlatformServices.Extensions
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
+        }
+
+        private static void AddPdfServices(IServiceCollection services)
+        {
+            services.AddTransient<IPdfService, PdfService>();
+
+            // In old versions of the app the PdfHandler did not have an interface and
+            // was new'ed up in the app. We now have an interface to customize the pdf
+            // formatting and this registration is done to ensure we always have a pdf
+            // handler registered.
+            // If someone wants to customize pdf formatting the PdfHandler class in the
+            // app should be used and registered in the DI container.
+            services.AddTransient<ICustomPdfHandler, NullPdfHandler>();
         }
 
         private static void AddAppOptions(IServiceCollection services)

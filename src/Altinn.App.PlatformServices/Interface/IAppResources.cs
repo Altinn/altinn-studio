@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Altinn.App.Common.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -93,13 +91,6 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataType">The datatype</param>
         /// <returns>Returns the class ref for a given datatype. An empty string is returned if no match is found.</returns>
         string GetClassRefForLogicDataType(string dataType);
-
-        /// <summary>
-        /// Get the list of options for a specific options list by its id.
-        /// </summary>
-        /// <param name="optionId">The id of the options list to retrieve</param>
-        /// <returns>The list of options</returns>
-        List<AppOption> GetOptions(string optionId);
 
         /// <summary>
         /// Gets the layouts for the app.

@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Common.EFormidlingClient.Models.SBD;
 using Altinn.Platform.Storage.Interface.Models;
@@ -27,16 +24,10 @@ namespace Altinn.App.Services.Interface
         object CreateNewAppModel(string classRef);
 
         /// <summary>
-        /// Event that is triggered 
-        /// </summary>
-        /// <returns>Task to indicate when the event is completed</returns>
-        Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
-
-        /// <summary>
         /// Get the service Type
         /// </summary>
         /// <returns>The Type of the service model for the current service</returns>
-        Type GetAppModelType(string dataType);
+        Type GetAppModelType(string classRef);
 
         /// <summary>
         /// AppLogic must set the start event of the process model.
@@ -99,13 +90,6 @@ namespace Altinn.App.Services.Interface
         Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
 
         /// <summary>
-        /// Is called to run custom calculation events defined by app developer. Obsolete Replaced by RunProcessDataRead and RunProcessDataWrite
-        /// </summary>
-        /// <param name="data">The data to perform calculations on</param>
-        [Obsolete]
-        Task<bool> RunCalculation(object data);
-
-        /// <summary>
         /// Is called to run custom calculation events defined by app developer when data is read from app
         /// </summary>
         /// <param name="instance">Instance that data belongs to</param>
@@ -138,15 +122,6 @@ namespace Altinn.App.Services.Interface
         Task RunDataCreation(Instance instance, object data, Dictionary<string, string> prefill);
 
         /// <summary>
-        /// Gets the App Options
-        /// </summary>
-        /// <param name="id">The option id</param>
-        /// <param name="options">Possible option found by the platform itself</param>
-        /// <returns>The app options</returns>
-        [Obsolete("GetOptions method is obsolete and will be removed in the future.", false, UrlFormat = "https://docs.altinn.studio/app/development/data/options/#kodeliste-generert-runtime")]
-        Task<AppOptions> GetOptions(string id, AppOptions options);
-
-        /// <summary>
         /// Gets the current page order of the app
         /// </summary>
         /// <param name="org">The app owner.</param>
@@ -169,12 +144,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="taskId">The taskId</param>
         /// <param name="instance">The instance</param>
         Task RunProcessTaskEnd(string taskId, Instance instance);
-
-        /// <summary>
-        /// Format layoutsettings
-        /// </summary>
-        Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);
-
+        
         /// <summary>
         /// Gets a list of eFormidling shipment receivers
         /// </summary>
@@ -194,7 +164,7 @@ namespace Altinn.App.Services.Interface
         /// The metadata file should be parsed to XML before assigning it to the stream.
         /// </remarks>
         /// <returns>A touple containing the metadata file name and the metadata in a stream.</returns>
-        virtual async Task<(string, Stream)> GenerateEFormidlingMetadata(Instance instance)
+        virtual async Task<(string MetadataFilename, Stream Metadata)> GenerateEFormidlingMetadata(Instance instance)
         {
             await Task.CompletedTask;
             return (null, null);
