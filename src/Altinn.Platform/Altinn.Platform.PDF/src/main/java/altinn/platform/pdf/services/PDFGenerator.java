@@ -275,8 +275,11 @@ public class PDFGenerator {
         }
 
         if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
-          int finalGroupIndex = groupIndex;
           childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(finalChildId)).findFirst().orElse(null);
+
+          if (childElement == null) {
+            continue;
+          }
 
           String currentDataModelGroupBinding = childElement.getDataModelBindings().get("group");
 
@@ -293,6 +296,7 @@ public class PDFGenerator {
         if (childElement == null) {
           continue;
         }
+
         if (childElement.getDataModelBindings() != null && !childElement.getType().equalsIgnoreCase("group")) {
           Map<String, String> dataBindings = childElement.getDataModelBindings();
           for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
