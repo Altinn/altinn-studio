@@ -8,7 +8,8 @@
       }
     },
     "logLevel": {
-      "Altinn.Platform.Authorization.Functions.Services.EventPusherService": "Debug"
+      "Altinn.Platform.Authorization.Functions.Services.EventPusherService": "Debug",
+      "Altinn.Platform.Authorization.Functions.Clients.BridgeClient": "Debug"
     }
   },
   "extensions": {
