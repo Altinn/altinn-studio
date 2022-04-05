@@ -77,5 +77,11 @@ declare namespace Cypress {
      * check visibility of an element whose parent is found hidden by cypress
      */
     isVisible(): Chainable<Element>;
+
+    /**
+     * Instantiate statefull instance from ttd/stateless-app
+     * @example cy.startStateFullFromStateless()
+     */
+    startStateFullFromStateless(): Chainable<Element>;
   }
 }

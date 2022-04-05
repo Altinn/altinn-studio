@@ -20,5 +20,7 @@
   "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn",
   "alreadyStartedForm": "Du har allerede startet å fylle ut dette skjemaet.",
   "continueOrStartNew": "Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.",
-  "startingSoon": "Hold deg fast, nå starter vi!"
+  "startingSoon": "Hold deg fast, nå starter vi!",
+  "feedback": "Du må flytte instansen til neste prosess med et API kall til process/next",
+  "securityReasons": "Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden"
 }
