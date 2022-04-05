@@ -65,7 +65,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpGet("frontchannel_logout")]
         public ActionResult FrontchannelLogout()
         {
