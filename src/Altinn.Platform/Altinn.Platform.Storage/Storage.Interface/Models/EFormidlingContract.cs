@@ -19,6 +19,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string ServiceId { get; set; }
 
         /// <summary>
+        /// The DPF shipment type used for routing in the receiving system
+        /// </summary>
+        public string DPFShipmentType { get; set; }
+
+        /// <summary>
         /// Org number for the receiver of the shipment. 
         /// </summary>
         /// <remarks>
