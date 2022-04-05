@@ -53,7 +53,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Redirect(_generalSettings.SBLLogoutEndpoint);
             }
 
-            CookieOptions opt = new CookieOptions() { Domain = _generalSettings.HostName };
+            CookieOptions opt = new CookieOptions() { Domain = _generalSettings.HostName, Secure = true, HttpOnly = true };
             Response.Cookies.Delete(_generalSettings.SblAuthCookieName, opt);
             Response.Cookies.Delete(_generalSettings.JwtCookieName, opt);
 
