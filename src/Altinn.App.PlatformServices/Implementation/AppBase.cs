@@ -452,6 +452,11 @@ namespace Altinn.App.Services.Implementation
                 Arkivmelding = new Arkivmelding { Sikkerhetsnivaa = _appMetadata.EFormidling.SecurityLevel },
             };
 
+            if (!string.IsNullOrEmpty(_appMetadata.EFormidling.DPFShipmentType))
+            {
+                sbd.Arkivmelding.DPF = new() { ForsendelsesType = _appMetadata.EFormidling.DPFShipmentType };
+            }
+
             return sbd;
         }
 

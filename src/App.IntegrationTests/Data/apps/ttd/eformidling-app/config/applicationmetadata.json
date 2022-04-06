@@ -36,6 +36,7 @@
   ],
   "eFormidling": {
     "serviceId": "DPF",
+    "dpfShipmentType": "altinn3.skjema",
     "process": "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
     "dataTypes": [ "default" ],
     "sendAfterTaskId": "Task_2",
