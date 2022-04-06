@@ -10,9 +10,8 @@ namespace Altinn.App.PlatformServices.Options
     public interface IAppOptionsProvider
     {
         /// <summary>
-        /// The id/name of the options this provider supports ie. land, fylker, kommuner.
-        /// You can have as many providers as you like, but you should have only one per
-        /// id. 
+        /// The id/name that is used in the <c>optionsId</c> parameter in the SelectionComponents (Checkboxes, RadioButtons, Dropdown ...)
+        /// You can have as many providers as you like, but you should have only one per id.
         /// </summary>
         string Id { get; }
 
