@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.Api.Middleware;
+using Altinn.App.AppLogic.Print;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
@@ -81,9 +83,10 @@ namespace Altinn.App
             services.AddPlatformServices(Configuration, _env);
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
+            services.AddTransient<ICustomPdfHandler, PdfHandler>();
             services.AddTransient<IAltinnApp, AppLogic.App>();
             services.AddTransient<IAppOptionsProvider, ReferenceOptions>();
-            services.AddTransient<IInstanceAppOptionsProvider, TestOptionsProvider>();
+            services.AddTransient<IInstanceAppOptionsProvider, TestOptionsProvider>();            
 
             services.Configure<KestrelServerOptions>(options =>
             {
