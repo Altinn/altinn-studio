@@ -52,13 +52,13 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
   };
-  res = delegation.addRules(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  res = delegation.addRules(altinnToken, policyMatchKeys, 20001340, 50001340, 500001341, appOwner, appName, 'Task_1', 'confirm');
   success = check(res, {
     'Add delegation rule - status is 201': (r) => r.status === 201,
     'Add delegation rule - rule id is not empty': (r) => r.json('0.ruleId') != null,
     'Add delegation rule - createdSuccessfully is true': (r) => r.json('0.createdSuccessfully') === true,
-    'Add delegation rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === 123,
-    'Add delegation rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === '456',
+    'Add delegation rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === 50001340,
+    'Add delegation rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === '500001341',
   });
   addErrorCount(success);
   stopIterationOnFail('Add delegation rule Failed', success, res);
@@ -68,21 +68,21 @@ export default function (data) {
   sleep(3);
 
   //Delete the delegated read access rule
-  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 20001340, 50001340, 500001341, appOwner, appName, 'Task_1', 'read');
   success = check(res, {
     'Delete delegated rule - status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
 
   //Deleting a non existing rules fails
-  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 111, 123, 456, appOwner, appName, 'Task_1', 'read');
+  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], 20001340, 50001340, 500001341, appOwner, appName, 'Task_1', 'read');
   success = check(res, {
     'Delete a not existing rule - status is 400': (r) => r.status === 400,
   });
   addErrorCount(success);
 
   //Rules cannot be delegated with invalid app details
-  res = delegation.addRules(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, 'test', 'Task_1', 'read');
+  res = delegation.addRules(altinnToken, policyMatchKeys, 20001340, 50001340, 500001341, appOwner, 'test', 'Task_1', 'read');
   success = check(res, {
     'Add delegation rule for an invalid app - status is 400': (r) => r.status === 400,
     'Add delegation rule for an invalid app - failed': (r) => r.body == 'Delegation could not be completed',
@@ -90,7 +90,7 @@ export default function (data) {
   addErrorCount(success);
 
   //add a rule to give write access
-  res = delegation.addRules(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, appName, 'Task_1', 'write');
+  res = delegation.addRules(altinnToken, policyMatchKeys, 20001340, 50001340, 500001341, appOwner, appName, 'Task_1', 'write');
   ruleId = res.json('0.ruleId');
   sleep(3);
 
@@ -99,13 +99,13 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources, null, null);
+  res = delegation.getRules(altinnToken, policyMatchKeys, 50001340, 500001341, resources, null, null);
   success = check(res, {
     'Get delegated rule - status is 200': (r) => r.status === 200,
     'Get delegated rule - rule id matches': (r) => r.json('0.ruleId') === ruleId,
     'Get delegated rule - createdSuccessfully is false': (r) => r.json('0.createdSuccessfully') === false,
-    'Get delegated rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === 123,
-    'Get delegated rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === '456',
+    'Get delegated rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === 50001340,
+    'Get delegated rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === '500001341',
     'Get delegated rule - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
@@ -116,7 +116,7 @@ export default function (data) {
     Action: ['write'],
     Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
   };
-  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 456, 123, 'Task_1');
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 500001341, 50001340, 'Task_1');
   success = check(res, {
     'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
     'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === 'Permit',
@@ -124,7 +124,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Delete all the delegated rules from an user by a party
-  res = delegation.deletePolicy(altinnToken, policyMatchKeys, 111, 123, 456, appOwner, appName, null);
+  res = delegation.deletePolicy(altinnToken, policyMatchKeys, 20001340, 50001340, 500001341, appOwner, appName, null);
   success = check(res, {
     'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
   });
@@ -132,7 +132,7 @@ export default function (data) {
   sleep(3);
 
   //Get rules that are deleted where response should be an empty array
-  res = delegation.getRules(altinnToken, policyMatchKeys, 123, 456, resources, null, null);
+  res = delegation.getRules(altinnToken, policyMatchKeys, 20001340, 50001340, resources, null, null);
   success = check(res, {
     'Get deleted rules - status is 200': (r) => r.status === 200,
     'Get deleted rules - response is empty': (r) => r.json().length === 0,
@@ -140,7 +140,7 @@ export default function (data) {
   addErrorCount(success);
 
   //User can no longer write to app instance after delegate policy is deleted
-  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 456, 123, 'Task_1');
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, 500001341, 20001340, 'Task_1');
   success = check(res, {
     'Get PDP Decision for deleted rule - Status is 200': (r) => r.status === 200,
     'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
