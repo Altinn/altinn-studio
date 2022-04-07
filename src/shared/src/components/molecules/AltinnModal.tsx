@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex */
 import { createTheme, createStyles, IconButton, Modal, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';

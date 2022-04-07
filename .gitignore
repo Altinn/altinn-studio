@@ -273,9 +273,8 @@ Session.vim
 # Sonarqube
 .scannerwork
 
-# TSLint report
-tslint_report.json
-
+# ESLint report
+eslint_report.json
 
 
 ## -- Repositories --

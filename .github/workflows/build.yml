@@ -1,0 +1,38 @@
+name: Build and run unit tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build PR
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - name: install node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: install dependencies
+        run: yarn --immutable
+      - name: run build
+        run: yarn build
+        working-directory: src/altinn-app-frontend
+      - name: run eslint
+        run: yarn lint
+      - name: run tests
+        run: yarn test --coverage
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

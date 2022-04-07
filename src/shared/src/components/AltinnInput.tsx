@@ -92,6 +92,7 @@ function AltinnInput(props: IAltinnInputProps) {
         className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
       >
       {iconString ?
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <i data-testid="altinninput-iconString" className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
         null
       }

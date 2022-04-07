@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "outDir": "compiled",
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es6", "dom", "es7", "esnext"],
+    "sourceMap": true,
+    "allowJs": true,
+    "jsx": "react",
+    "moduleResolution": "node",
+    "rootDir": "./",
+    "resolveJsonModule": true,
+    "strictNullChecks": false,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "baseUrl": "."
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "test/cypress"],
+}
