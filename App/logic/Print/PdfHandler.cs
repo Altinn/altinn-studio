@@ -2,13 +2,15 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Models;
 using Altinn.App.Models;
 using System.Collections.Generic;
+using Altinn.App.PlatformServices.Interface;
+using System.Linq;
 
 namespace Altinn.App.AppLogic.Print
 {
     /// <summary>
     /// Handler for formatting PDF. 
     /// </summary>
-    public class PdfHandler
+    public class PdfHandler : ICustomPdfHandler
     {
         /// <summary>
         /// Method to format PDF dynamic
@@ -115,7 +117,21 @@ namespace Altinn.App.AppLogic.Print
                     "reasonNewName"});
                 }
             }
+
+            if (data.GetType() == typeof(NestedGroup))
+            {
+                UpdatePageOrder(layoutSettings.Pages.Order, (NestedGroup)data);
+            }
             return await Task.FromResult(layoutSettings);
+        }
+
+        private void UpdatePageOrder(List<string> pageOrder, NestedGroup formdata)
+        {
+            var newValue = formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value; 
+            if (newValue.HasValue && newValue > 10)
+                {
+                    pageOrder.Remove("hide");
+                }
         }
     }   
 }
