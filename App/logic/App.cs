@@ -46,8 +46,6 @@ namespace Altinn.App.AppLogic
         dataService,
         pdfService,
         prefillService,
-        registerService,
-        profileService,
         instanceService,
         httpContextAccessor)
     {

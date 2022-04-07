@@ -13,6 +13,7 @@ using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Altinn.App.services.options;
 using Altinn.App.PlatformServices.Options;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Core.Health;
 
 using Microsoft.AspNetCore.Authorization;
