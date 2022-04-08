@@ -77,10 +77,6 @@ area/receipt:
   - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
   - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/features/receipt/**/*'
 
-area/register:
-  - 'src/Altinn.Platform/Altinn.Platform.Register/**/*'
-  - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Register/**/*'
-
 area/events:
   - 'src/Altinn.Platform/Altinn.Platform.Events/**/*'
 
