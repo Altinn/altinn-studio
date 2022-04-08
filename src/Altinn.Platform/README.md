@@ -14,7 +14,7 @@ These instructions will get you a copy of the platform solution up and running o
 
 ### Prerequisites
 
-Note that Platform PDF is a Java application and requires other prerequisites. 
+Note that Platform PDF is a Java application and requires other prerequisites.
 This is documented in the sub section.
 
 1. [.NET Core 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
@@ -27,42 +27,6 @@ This is documented in the sub section.
 1. [Java 17](https://jdk.java.net/17/)
 2. [Maven](https://maven.apache.org/download.cgi)
 
-### Running Altinn Platform Register in container
-
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Register
-
-Run all parts of the solution in containers (Make sure docker is running)
-
-```cmd
-docker-compose up -d --build
-```
-
-#### Running Altinn Platform Register locally
-
-The Register components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
-
-Stop the container running Register
-
-```cmd
-docker stop altinn-platform-register
-```
-
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Register/Register, and build and run the code from there, or run the solution using you selected code editor
-
-```cmd
-dotnet run
-```
-
-The register solution is now available locally at http://localhost:5020/api/v1 and has endpoints:
-
-- organizations/{orgNr}
-  - works with orgNrs 10008387, 10008433, 810418192 and 810419962 (testdata)
-
-- parties/{partyId}
-  - works with partyIds 50004216, 50004217, 50004219, 50004232, 50002182, 50003590, 50003681 and 50002550 (testdata)
-
-- persons/{ssn}
-  - works with 01124621077, 22104511094, 24054670016 and 07069400021 (testdata)
 
 ### Running Altinn Platform Profile in container
 
