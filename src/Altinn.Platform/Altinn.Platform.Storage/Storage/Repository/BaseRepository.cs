@@ -34,10 +34,10 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="cosmosSettings">The settings object.</param>
         public BaseRepository(string collectionId, string partitionKey, IOptions<AzureCosmosSettings> cosmosSettings)
         {
-            _databaseId = _cosmosSettings.Database;
             _collectionId = collectionId;
             _partitionKey = partitionKey;
             _cosmosSettings = cosmosSettings.Value;
+            _databaseId = _cosmosSettings.Database;
         }
 
         /// <inheritdoc/>
@@ -57,21 +57,26 @@ namespace Altinn.Platform.Storage.Repository
             CosmosClientOptions options = new()
             {
                 ConnectionMode = ConnectionMode.Gateway,
-                IdleTcpConnectionTimeout = new TimeSpan(0, 10, 0)
             };
 
-            CosmosClient client = new CosmosClient(_cosmosSettings.EndpointUri, _cosmosSettings.PrimaryKey, options);
+            try
+            {
+                CosmosClient client = new CosmosClient(_cosmosSettings.EndpointUri, _cosmosSettings.PrimaryKey, options);
 
-            Database db = await client.CreateDatabaseIfNotExistsAsync(_databaseId, cancellationToken: cancellationToken);
+                Database db = await client.CreateDatabaseIfNotExistsAsync(_databaseId, cancellationToken: cancellationToken);
 
-            Container container = await db.CreateContainerIfNotExistsAsync(_collectionId, _partitionKey, cancellationToken: cancellationToken);
-            return container;
+                Container container = await db.CreateContainerIfNotExistsAsync(_collectionId, _partitionKey, cancellationToken: cancellationToken);
+                return container;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }          
         }
 
         /// <inheritdoc/> 
         public void Dispose()
-        {
-            throw new NotImplementedException();
+        {            
         }
     }
 }
