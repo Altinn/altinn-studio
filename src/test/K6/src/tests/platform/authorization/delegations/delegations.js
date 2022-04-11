@@ -59,7 +59,6 @@ export default function (data) {
   const userId1 = data.user1Data['userId'];
   const partyId1 = data.user1Data['partyId'];
   const userId2 = data.user2Data['userId'];
-  const partyId2 = data.user2Data['partyId'];
   var res, success, policyMatchKeys, ruleId, jsonPermitData, resources;
 
   //Retrieve policy of an app
