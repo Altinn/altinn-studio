@@ -43,6 +43,7 @@ public class FormLayoutElement implements Cloneable{
         this.textResourceBindings,
         this.optionsId,
         this.options,
+        this.source,
         this.simplified,
         this.children,
         this.count,
