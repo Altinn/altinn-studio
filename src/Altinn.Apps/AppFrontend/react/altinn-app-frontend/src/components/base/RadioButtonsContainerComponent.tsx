@@ -10,19 +10,22 @@ import cn from 'classnames';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-import { IMapping, LayoutStyle } from 'src/types';
+import type { IMapping, IOption, IOptionSource } from 'src/types';
+import { LayoutStyle } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
 import { shouldUseRowLayout } from 'src/utils/layout';
+import { useGetOptions } from '../hooks';
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
-  options: any[];
-  optionsId: string;
+  options?: IOption[];
+  optionsId?: string;
   preselectedOptionIndex: number;
   title: string;
   mapping?: IMapping;
   layout?: LayoutStyle;
+  source?: IOptionSource;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -88,15 +91,12 @@ export const RadioButtonContainerComponent = ({
   getTextResource,
   validationMessages,
   mapping,
+  source,
 }: IRadioButtonsContainerProps) => {
   const classes = useStyles();
 
   const selected = formData?.simpleBinding ?? '';
-  const apiOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
-        ?.options,
-  );
+  const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultArray;
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const fetchingOptions = useAppSelector(

@@ -1,13 +1,17 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { screen, fireEvent } from '@testing-library/react';
+import type { PreloadedState } from '@reduxjs/toolkit';
 
 import { renderWithProviders } from '../../../testUtils';
 
 import type { IComponentProps } from 'src/components';
 import type { ICheckboxContainerProps } from './CheckboxesContainerComponent';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import { CheckboxContainerComponent } from './CheckboxesContainerComponent';
 import { LayoutStyle } from 'src/types';
+import type { RootState } from 'src/store';
+import type { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 
 const threeOptions = [
   {
@@ -28,7 +32,7 @@ const twoOptions = threeOptions.slice(1);
 
 const render = (
   props: Partial<ICheckboxContainerProps> = {},
-  options = undefined,
+  customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: ICheckboxContainerProps = {
     options: [],
@@ -48,11 +52,12 @@ const render = (
     <CheckboxContainerComponent {...allProps} />,
     {
       preloadedState: {
+        ...getInitialStateMock(),
         optionState: {
           options: {
             countries: {
               id: 'countries',
-              options: options || threeOptions,
+              options: threeOptions,
             },
             loadingOptions: {
               id: 'loadingOptions',
@@ -65,6 +70,7 @@ const render = (
             message: '',
           },
         },
+        ...customState
       },
     },
   );
@@ -248,7 +254,6 @@ describe('CheckboxContainerComponent', () => {
         optionsId: 'countries',
         layout: LayoutStyle.Row,
       },
-      threeOptions,
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -263,7 +268,16 @@ describe('CheckboxContainerComponent', () => {
       {
         optionsId: 'countries',
       },
-      twoOptions,
+      {
+        optionState: {
+          options: {
+            countries: {
+              id: 'countries',
+              options: twoOptions,
+            },
+          },
+        } as unknown as IOptionsState,
+      }
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -279,7 +293,16 @@ describe('CheckboxContainerComponent', () => {
         optionsId: 'countries',
         layout: LayoutStyle.Column,
       },
-      twoOptions,
+      {
+        optionState: {
+          options: {
+            countries: {
+              id: 'countries',
+              options: twoOptions,
+            },
+          },
+        } as unknown as IOptionsState,
+      }
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -294,7 +317,6 @@ describe('CheckboxContainerComponent', () => {
       {
         optionsId: 'countries',
       },
-      threeOptions,
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -302,5 +324,25 @@ describe('CheckboxContainerComponent', () => {
     expect(
       container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
     ).toBe(0);
+  });
+
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+    const handleDataChange = jest.fn();
+
+    render({
+      handleDataChange,
+      source: {
+        group: "someGroup",
+        label: "option.from.rep.group.label",
+        value: "someGroup[{0}].valueField"
+      },
+    });
+
+    expect(getCheckbox({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+
+    userEvent.click(getCheckbox({ name: 'The value from the group is: Label for second' }));
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
   });
 });

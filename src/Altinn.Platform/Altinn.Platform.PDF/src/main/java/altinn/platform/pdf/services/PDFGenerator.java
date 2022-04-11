@@ -488,7 +488,7 @@ public class PDFGenerator {
 
     String value;
 
-    if (element.getOptionsId() != null || element.getOptions() != null) {
+    if (element.getOptionsId() != null || element.getOptions() != null || element.getSource() != null)  {
       value = getDisplayValueFromOptions(element);
     } else {
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
@@ -524,6 +524,22 @@ public class PDFGenerator {
           returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
         }
       );
+    } else if (element.getSource() != null) {
+      FormLayoutElement group =
+        this.repeatingGroups
+          .stream()
+          .filter((FormLayoutElement e) -> e.getDataModelBindings().get("group").equals(element.getSource().getGroup()))
+          .findFirst()
+          .orElseThrow();
+      List<Option> optionList = OptionUtils.getOptionsFromOptionSource(element.getSource(), group, formData, textResources);
+      splitFormData.forEach(formDataValue -> {
+        var option = optionList.stream()
+          .filter(o -> o.getValue().equals(formDataValue))
+          .findFirst()
+          .orElse(null);
+        String label = (option != null) ? option.getLabel() : value;
+        returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
+      });
     } else {
       List<Option> optionList = element.getOptions();
       splitFormData.forEach(formDataValue -> {
@@ -703,21 +719,11 @@ public class PDFGenerator {
             replaceValues.add(FormUtils.getFormDataByKey(variable.getKey(), formData));
           }
         }
-        res.setValue(replaceParameters(res.getValue(), replaceValues));
+        res.setValue(TextUtils.replaceParameters(res.getValue(), replaceValues));
       }
     }
 
     return resources;
-  }
-
-  private String replaceParameters(String nameString, List<String> params) {
-    int index = 0;
-    for (String param : params) {
-      nameString = nameString.replace("{" + index + "}", param);
-      index++;
-    }
-
-    return nameString;
   }
 
   private String getLanguageString(String key) {

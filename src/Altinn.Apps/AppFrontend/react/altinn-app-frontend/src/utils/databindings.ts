@@ -109,8 +109,8 @@ export function removeGroupData(
 
   deleteGroupData(result, groupDataModelBinding, index);
 
-  if (index < repeatingGroup.count + 1) {
-    for (let i = index + 1; i <= repeatingGroup.count + 1; i++) {
+  if (index < repeatingGroup.index + 1) {
+    for (let i = index + 1; i <= repeatingGroup.index + 1; i++) {
       deleteGroupData(result, groupDataModelBinding, i, true);
     }
   }

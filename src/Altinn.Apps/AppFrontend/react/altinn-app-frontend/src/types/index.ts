@@ -127,6 +127,12 @@ export interface IOptions {
   [key: string]: IOptionData;
 }
 
+export interface IOptionSource {
+  group: string;
+  label: string;
+  value: string;
+}
+
 export interface IOptionData {
   options: IOption[];
   id: string;
@@ -136,7 +142,7 @@ export interface IOptionData {
 }
 
 export interface IRepeatingGroup {
-  count: number;
+  index: number;
   baseGroupId?: string;
   dataModelBinding?: string;
   editIndex?: number;
