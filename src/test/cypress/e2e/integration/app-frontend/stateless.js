@@ -8,7 +8,9 @@ const appFrontend = new AppFrontend();
 
 describe('Stateless', () => {
   beforeEach(() => {
+    cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
     cy.startAppInstance(Cypress.env('stateless'));
+    cy.wait('@getLayoutStateless');
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
 
@@ -39,11 +41,7 @@ describe('Stateless', () => {
     var userFirstName = Cypress.env('testUserName').includes('external')
       ? Cypress.env('externalFistName')
       : Cypress.env('firstName');
-    cy.intercept('POST', '**/instances/create').as('createInstance');
-    cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
-    cy.get(appFrontend.instantiationButton).should('be.visible').click();
-    cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
-    cy.wait('@getLayoutSettings');
+    cy.startStateFullFromStateless();
     cy.get(appFrontend.stateless.name).should('have.value', userFirstName);
     cy.get(appFrontend.stateless.idnumber).should('have.value', '1364');
     cy.get(appFrontend.sendinButton).should('be.visible');

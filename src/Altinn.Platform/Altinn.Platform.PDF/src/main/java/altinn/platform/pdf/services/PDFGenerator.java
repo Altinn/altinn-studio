@@ -252,23 +252,51 @@ public class PDFGenerator {
   private void renderRepeatingGroup(FormLayoutElement element, boolean childGroup) throws IOException {
 
     String groupBinding = element.getDataModelBindings().get("group");
+    int groupOccurrence=FormUtils.getGroupCount(groupBinding, this.formData);
 
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
+
+      if( groupIndex >= groupOccurrence) {
+         continue;
+      }
+
       for (String childId : element.getChildren()) {
-        FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+        if(element.getEdit() != null && element.getEdit().isMultiPage() && childId.contains(":")) {
+            childId = FormUtils.filterMultiPageId(childId);
+          }
+
+        String finalChildId = childId;
+
+        FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(finalChildId)).findFirst().orElse(null);
         HashMap<String, String> originalDataModelBindings = new HashMap<>();
         if (childElement != null && childElement.getDataModelBindings() != null) {
           childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue()));
         }
 
         if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
-          int finalGroupIndex = groupIndex;
-          childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId + "-" + finalGroupIndex)).findFirst().orElse(null);
+          childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(finalChildId)).findFirst().orElse(null);
+
+          if (childElement == null) {
+            continue;
+          }
+
+          String currentDataModelGroupBinding = childElement.getDataModelBindings().get("group");
+
+          // cloning the child to not make changes to the original datamodelBinding
+          FormLayoutElement clonedChildElement =  (FormLayoutElement) childElement.clone();
+          clonedChildElement.getDataModelBindings().put("group", FormUtils.setGroupIndexForBinding(currentDataModelGroupBinding, groupBinding, groupIndex));
+
+
+          renderRepeatingGroup(clonedChildElement, true);
+
+          continue;
         }
 
         if (childElement == null) {
           continue;
         }
+
         if (childElement.getDataModelBindings() != null && !childElement.getType().equalsIgnoreCase("group")) {
           Map<String, String> dataBindings = childElement.getDataModelBindings();
           for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
@@ -283,9 +311,8 @@ public class PDFGenerator {
             dataBinding.setValue(replacedBinding);
           }
         }
-        if (childElement.getType().equalsIgnoreCase("group")) {
-          renderRepeatingGroup(childElement, true);
-        } else {
+
+        if (!childElement.getType().equalsIgnoreCase("group")) {
           if (LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
             renderLayoutElement(childElement);
           }

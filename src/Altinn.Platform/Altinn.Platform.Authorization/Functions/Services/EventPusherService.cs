@@ -77,6 +77,14 @@ public class EventPusherService : IEventPusherService
                 // Throw exception to ensure requeue of the event list
                 throw new BridgeRequestFailedException();
             }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Successfully posted delegationChangeEventList numEventsSent={numEventsSent} changeIds={changeIds}",
+                    delegationChangeEventList.DelegationChangeEvents.Count,
+                    GetChangeIdsForLog(delegationChangeEventList));
+            }
         }
         catch (BridgeRequestFailedException)
         {

@@ -175,6 +175,7 @@ public class FormUtilsTest extends TestCase {
         put("TC_6", new String[]{"schema.owner", "owner", "1", "schema.owner[1]"});
         put("TC_7", new String[]{".ownerPet.dog", "owner", "0", ".ownerPet.dog"});
         put("TC_8", new String[]{"owner[1].faculty.owner", "owner", "0", "owner[1].faculty.owner[0]"});
+        put("TC_9", new String[]{"owner[0].car.make", "owner[0].car", "0", "owner[0].car[0].make"});
       }
     };
 

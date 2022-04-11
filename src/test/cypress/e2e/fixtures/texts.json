@@ -23,5 +23,7 @@
   "welcome": "Velkommen til Altinn Studio",
   "appExists": "En app med det navnet finnes allerede.",
   "noDeployAccess": "Du har ikke rettigheter til å starte en deploy til AT21-miljøet. Tilgang kan delegeres av owners",
-  "startingSoon": "Hold deg fast, nå starter vi!"
+  "startingSoon": "Hold deg fast, nå starter vi!",
+  "feedback": "Du må flytte instansen til neste prosess med et API kall til process/next",
+  "securityReasons": "Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden"
 }

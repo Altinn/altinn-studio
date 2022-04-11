@@ -117,3 +117,11 @@ Cypress.Commands.add('testWcag', () => {
     { skipFailures: true },
   );
 });
+
+Cypress.Commands.add('startStateFullFromStateless', () => {
+  cy.intercept('POST', '**/instances/create').as('createInstance');
+  cy.intercept('**/api/layoutsettings/statefull').as('getLayoutSettings');
+  cy.get(appFrontend.instantiationButton).should('be.visible').click();
+  cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
+  cy.wait('@getLayoutSettings');
+});
