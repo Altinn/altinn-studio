@@ -106,7 +106,9 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       stateless: null,
     },
     textResources: {
-      resources: [],
+      resources: [
+        { id: 'option.from.rep.group.label', value: 'The value from the group is: {0}', unparsedValue: 'The value from the group is: {0}', variables: [ { dataSource: 'dataModel.skjema', key: 'someGroup[{0}].labelField' }] }
+      ],
       error: null,
       language: 'nb',
     },

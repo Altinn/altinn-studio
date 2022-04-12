@@ -102,7 +102,7 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
         hiddenFields: [],
         repeatingGroups: {
           'mock-container-id': {
-            count: 3,
+            index: 3,
           },
         },
         autoSave: false,

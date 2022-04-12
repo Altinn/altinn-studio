@@ -94,22 +94,22 @@ describe('formLayout', () => {
     };
     const expected = {
       Group1: {
-        count: 2,
+        index: 2,
         dataModelBinding: 'Group1',
         editIndex: -1,
       },
       'Group2-0': {
-        count: 0,
+        index: 0,
         baseGroupId: 'Group2',
         editIndex: -1,
       },
       'Group2-1': {
-        count: 4,
+        index: 4,
         baseGroupId: 'Group2',
         editIndex: -1,
       },
       'Group2-2': {
-        count: 1,
+        index: 1,
         baseGroupId: 'Group2',
         editIndex: -1,
       },
@@ -176,12 +176,12 @@ describe('formLayout', () => {
     };
     const expected = {
       Group1: {
-        count: 3,
+        index: 3,
         dataModelBinding: 'Group1',
         editIndex: -1,
       },
       Group2: {
-        count: 2,
+        index: 2,
         dataModelBinding: 'Group2',
         editIndex: -1,
       },
@@ -193,13 +193,13 @@ describe('formLayout', () => {
   it('removeRepeatingGroupFromUIConfig should delete given index', () => {
     const repeatingGroups: IRepeatingGroups = {
       Group: {
-        count: 1,
+        index: 1,
       },
       'Group2-0': {
-        count: 2,
+        index: 2,
       },
       'Group2-1': {
-        count: 3,
+        index: 3,
       },
     };
     const result = removeRepeatingGroupFromUIConfig(
@@ -210,10 +210,10 @@ describe('formLayout', () => {
     );
     const expected: IRepeatingGroups = {
       Group: {
-        count: 1,
+        index: 1,
       },
       'Group2-0': {
-        count: 2,
+        index: 2,
       },
     };
     expect(result).toEqual(expected);
@@ -222,13 +222,13 @@ describe('formLayout', () => {
   it('removeRepeatingGroupFromUIConfig should shift successfully', () => {
     const repeatingGroups: IRepeatingGroups = {
       Group: {
-        count: 1,
+        index: 1,
       },
       'Group2-0': {
-        count: 2,
+        index: 2,
       },
       'Group2-1': {
-        count: 3,
+        index: 3,
       },
     };
     const result = removeRepeatingGroupFromUIConfig(
@@ -239,10 +239,10 @@ describe('formLayout', () => {
     );
     const expected: IRepeatingGroups = {
       Group: {
-        count: 1,
+        index: 1,
       },
       'Group2-0': {
-        count: 3,
+        index: 3,
       },
     };
     expect(result).toEqual(expected);

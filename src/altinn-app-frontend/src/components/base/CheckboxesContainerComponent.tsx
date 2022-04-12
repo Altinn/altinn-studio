@@ -6,12 +6,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
-import {
-  IOption,
-  IComponentValidations,
-  IMapping,
-  LayoutStyle,
-} from 'src/types';
+import type { IOption, IComponentValidations, IMapping, IOptionSource } from 'src/types';
+import { LayoutStyle } from 'src/types';
 
 import { shouldUseRowLayout } from 'src/utils/layout';
 
@@ -19,13 +15,15 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
-  options: IOption[];
-  optionsId: string;
+  options?: IOption[];
+  optionsId?: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;
+  source?: IOptionSource;
   layout?: LayoutStyle;
 }
 
@@ -97,13 +95,10 @@ export const CheckboxContainerComponent = ({
   getTextResource,
   validationMessages,
   mapping,
+  source,
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
-  const apiOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
-        ?.options,
-  );
+  const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultOptions;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
