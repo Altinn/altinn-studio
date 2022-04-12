@@ -129,6 +129,22 @@
         "triggers": ["validation"]
       },
       {
+        "id": "reduxOptions",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Options fra repeterende gruppe"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonTelefonnummer-datadef-3.value"
+        },
+        "required": false,
+        "source": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788",
+          "label": "optionsFromRepeatingGroup",
+          "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        }
+      },
+      {
         "id": "nav-page-1",
         "type": "NavigationButtons",
         "textResourceBindings": {

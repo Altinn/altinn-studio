@@ -206,6 +206,20 @@
         { "key": "appId", "dataSource": "instanceContext" },
         { "key": "appUrl", "dataSource": "applicationSettings" }
       ]
+    },
+    {
+      "id": "optionsFromRepeatingGroup",
+      "value": "Endre fra: {0}, Endre til: {1}",
+      "variables": [
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",
+          "dataSource": "dataModel.nested-group"
+        },
+        {
+          "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value",
+          "dataSource": "dataModel.nested-group"
+        }
+      ]
     }
   ]
 }
