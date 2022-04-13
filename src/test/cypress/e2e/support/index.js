@@ -6,6 +6,7 @@ import './app-frontend';
 import './custom';
 import 'cypress-plugin-tab';
 import './start-app-instance';
+import './wcag';
 import 'cypress-axe';
 
 before(() => {
