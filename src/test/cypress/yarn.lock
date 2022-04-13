@@ -579,21 +579,21 @@ __metadata:
   resolution: "cypress-studio@workspace:."
   dependencies:
     axe-core: ^4.4.1
-    cypress: ^9.5.3
+    cypress: ^9.5.4
     cypress-axe: ^0.14.0
     cypress-plugin-tab: ^1.0.5
-    eslint: ^8.12.0
+    eslint: ^8.13.0
     eslint-plugin-cypress: ^2.12.1
     fs-extra: ^10.0.1
     path: ^0.12.7
-    prettier: ^2.6.1
+    prettier: ^2.6.2
     start-server-and-test: ^1.14.0
   languageName: unknown
   linkType: soft
 
-"cypress@npm:^9.5.3":
-  version: 9.5.3
-  resolution: "cypress@npm:9.5.3"
+"cypress@npm:^9.5.4":
+  version: 9.5.4
+  resolution: "cypress@npm:9.5.4"
   dependencies:
     "@cypress/request": ^2.88.10
     "@cypress/xvfb": ^1.2.4
@@ -639,7 +639,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: cfd2333fede054a61c1a8d5f3ec0f08b661ff814bff61a418855b542acc8c2d43f3b24dbda849cd9bcce618bf59ce1c5d0abf86a985daaffc0f187db424a5fc8
+  checksum: 55c61f33db5658da8e5af5c6de64f40a85aeb7cba1219f2772675406f6431b7aa7512e13173d0f475af026fffe9878289229b4f5c74d307eac22d8f51fc29f77
   languageName: node
   linkType: hard
 
@@ -805,9 +805,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.12.0":
-  version: 8.12.0
-  resolution: "eslint@npm:8.12.0"
+"eslint@npm:^8.13.0":
+  version: 8.13.0
+  resolution: "eslint@npm:8.13.0"
   dependencies:
     "@eslint/eslintrc": ^1.2.1
     "@humanwhocodes/config-array": ^0.9.2
@@ -846,7 +846,7 @@ __metadata:
     v8-compile-cache: ^2.0.3
   bin:
     eslint: bin/eslint.js
-  checksum: 111bf9046b7a463049788dd00d7f4cd91e024029982352dff4811ce5dfa8cb1136aa127cd8a7a91508234d3e1b4fb6f638a1f5ef9ea08b1af93a18703a4a8dc1
+  checksum: bc7d2fc9a046d42cb2c8987573ecaf534c1fae14747c4695e32388e179c5f21b83eefdb3e4f35924bf76152e226d7cc9dfb21f12348baf12c803109005b17439
   languageName: node
   linkType: hard
 
@@ -1798,12 +1798,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.6.1":
-  version: 2.6.1
-  resolution: "prettier@npm:2.6.1"
+"prettier@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "prettier@npm:2.6.2"
   bin:
     prettier: bin-prettier.js
-  checksum: 78be1f8a3ddfad7c3d8a854b6c8941a3bb1ddfca4225c38d778e0fe1029a55368f71b3bbefff82c689015fbb4d391ec44add957f01308ad2725e01a7c1f37cb6
+  checksum: 48d08dde8e9fb1f5bccdd205baa7f192e9fc8bc98f86e1b97d919de804e28c806b0e6cc685e4a88211aa7987fa9668f30baae19580d87ced3ed0f2ec6572106f
   languageName: node
   linkType: hard
 
