@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "description": "studio tests",
   "main": "index.js",
-  "config": {
-    "localtestPath": "C:/Repos/altinn-studio/src/development",
-    "appPath": "C:/Repos/apps/frontend-test/App",
-    "frontendPath": "C:/Repos/altinn-studio/src/Altinn.Apps/AppFrontend/react"
-  },
   "scripts": {
     "prettier:check": "prettier -c e2e/**/*.js",
     "prettier:format": "prettier -w e2e/**/*.js",
@@ -19,19 +14,10 @@
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
     "cy:prunecache": "cypress cache prune",
-    "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js' -e environment=local,component=studio",
-    "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js' -e environment=local,component=studio",
+    "before:all": "cypress run -b chrome -s 'e2e/integration/setup/before.js' -e environment=local",
+    "after:all": "cypress run -b chrome -s 'e2e/integration/setup/after.js' -e environment=local",
     "test:studio": "cypress run -b chrome -s 'e2e/integration/studio/*.js'",
-    "create:testfiles": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
-    "delete:reports": "rm reports/* || true",
-    "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
-    "start:app": "cd %npm_package_config_appPath% && dotnet run",
-    "start:frontend": "cd %npm_package_config_frontendPath% && yarn --immutable && cd altinn-app-frontend && yarn start",
-    "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && yarn start",
-    "before:appfrontend": "run-p start:localtest start:app start:frontend",
-    "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
-    "test:appfrontend": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'",
-    "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
+    "delete:reports": "rm reports/* || true"
   },
   "devDependencies": {
     "axe-core": "^4.4.1",

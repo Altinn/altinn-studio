@@ -7,7 +7,7 @@ trigger: none
 
 pr: none
 
-variables:  
+variables:
   cyCacheDir: "/home/AzDevOps/.cache/Cypress"
   cypressTestDir: "$(Build.SourcesDirectory)/src/test/cypress"
 
@@ -30,16 +30,16 @@ steps:
 
 - bash: |
    yarn --immutable
-   
+
    yarn run cy:prunecache
-   
+
    yarn run cy:cachelist
 
    yarn run cy:version
 
    yarn run cy:verify
 
-   yarn run cy:run -s 'e2e/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword),component=studio
+   yarn run cy:run -s 'e2e/integration/usecase/usecase.js' -e environment=$(environment),useCaseUserPwd=$(userPassword)
 
   workingDirectory: '$(cypressTestDir)'
   displayName: 'Studio Tests'
