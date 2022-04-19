@@ -119,6 +119,7 @@ export default class AppFrontend {
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
       mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
+      options: '#reduxOptions',
     };
 
     //Stateless-app
