@@ -138,7 +138,7 @@ export const getDisplayFormData = (
           (option: IOption) => option.value === formDataValue,
         )?.label;
       } else if (selectionComponent.optionsId) {
-        label = options[getOptionLookupKey(selectionComponent?.optionsId, selectionComponent.mapping)].options.find(
+        label = options[getOptionLookupKey(selectionComponent?.optionsId, selectionComponent.mapping)].options?.find(
           (option: IOption) => option.value === formDataValue,
         )?.label;
       }

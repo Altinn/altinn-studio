@@ -19,7 +19,7 @@ namespace Altinn.Platform.Authentication.Extensions
     [ExcludeFromCodeCoverage]
     public static class DataProtectionConfiguration
     {
-        private static string _blobName = "keys.xml";
+        private readonly static string _blobName = "keys.xml";
 
         /// <summary>
         /// Configure data protection on the services collection.

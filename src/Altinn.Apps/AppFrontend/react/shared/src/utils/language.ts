@@ -98,17 +98,17 @@ export function replaceTextResourceParams(
         const id = variableForRepeatingGroup.key.split('[{0}]')[0];
         return repeatingGroups[groupId].dataModelBinding === id;
       });
-      const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
+      const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
 
-      for (let i = 0; i <= repeatingGroupCount; ++i) {
+      for (let i = 0; i <= repeatingGroupIndex; ++i) {
         replaceValues = [];
         resource.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
             if (variable.key.indexOf('[{0}]') > -1) {
               const keyWithIndex = variable.key.replace('{0}', `${i}`);
-              replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
+              replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
             } else {
-              replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+              replaceValues.push(dataSources.dataModel[variable.key] || '');
             }
           }
         });

@@ -177,7 +177,7 @@ export function RepeatingGroupTable({
   };
 
   const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
-    const childGroupCount = repeatingGroups[childGroup.id]?.count;
+    const childGroupIndex = repeatingGroups[childGroup.id]?.index;
     const childGroupComponents = layout.filter(
       (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
     );
@@ -189,7 +189,7 @@ export function RepeatingGroupTable({
     const deepCopyComponents = createRepeatingGroupComponents(
       childGroup,
       childRenderComponents,
-      childGroupCount,
+      childGroupIndex,
       textResources,
       hiddenFields,
     );

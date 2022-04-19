@@ -29,15 +29,16 @@ const mainMenuSettings: IMainMenu = {
   ],
 };
 
-export const createMainMenuSettings = (additionalOptions: IMenuItem[] = []): IMainMenu => ({
+export const createMainMenuSettings = (
+  additionalOptions: IMenuItem[] = [],
+): IMainMenu => ({
   ...mainMenuSettings,
-  menuItems: [
-    ...additionalOptions,
-    ...mainMenuSettings.menuItems,
-  ],
+  menuItems: [...additionalOptions, ...mainMenuSettings.menuItems],
 });
 
-export const createLeftDrawerMenuSettings = (additionalOptions: { [key: string]: IMenuItem[] } = {}): IDrawerMenu => ({
+export const createLeftDrawerMenuSettings = (
+  additionalOptions: { [key: string]: IMenuItem[] } = {},
+): IDrawerMenu => ({
   ...additionalOptions,
   ...leftDrawerMenuSettings,
 });

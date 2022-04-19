@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import 'core-js';
 
 import { getInitialStateMock } from '../../../__mocks__/mocks';
 import { mockParty } from '../../../__mocks__/initialStateMock';
@@ -20,7 +19,7 @@ import Presentation from './Presentation';
 
 jest.mock('axios');
 function flushPromises() {
-  return new Promise((resolve) => setImmediate(resolve));
+  return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
 describe('containers/Presentation.tsx', () => {

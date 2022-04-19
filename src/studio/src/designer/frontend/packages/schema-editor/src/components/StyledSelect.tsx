@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { makeStyles, Select } from '@material-ui/core';
 
 export interface IStyledSelectProps {
@@ -30,9 +30,7 @@ const useStyles = makeStyles({
 
 export function StyledSelect(props: IStyledSelectProps) {
   const classes = useStyles();
-  const {
-    id, label, value, onChange,
-  } = props;
+  const { id, label, value, onChange } = props;
 
   const onValueChange = (event: any) => {
     onChange(event.target.value);

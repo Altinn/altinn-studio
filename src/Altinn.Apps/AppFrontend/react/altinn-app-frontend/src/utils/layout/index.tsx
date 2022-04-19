@@ -8,7 +8,7 @@ import {
   ILayoutGroup,
   ILayout,
 } from '../../features/form/layout';
-import { ILayoutSets, ILayoutSet } from '../../types';
+import { ILayoutSets, ILayoutSet, LayoutStyle } from 'src/types';
 
 export function getLayoutComponentById(
   id: string,
@@ -168,3 +168,14 @@ export function getHiddenFieldsForGroup(
 
   return result;
 }
+
+export const shouldUseRowLayout = ({ layout, optionsCount }) => {
+  switch (layout) {
+    case LayoutStyle.Row:
+      return true;
+    case LayoutStyle.Column:
+      return false;
+  }
+
+  return optionsCount < 3;
+};

@@ -3,12 +3,20 @@
   "logging": {
     "applicationInsights": {
       "samplingSettings": {
-        "isEnabled": true,
+        "isEnabled": false,
         "excludedTypes": "Request"
       }
     },
     "logLevel": {
-      "Altinn.Platform.Authorization.Functions.Services.EventPusherService": "Debug"
+      "Altinn.Platform.Authorization.Functions.Services.EventPusherService": "Debug",
+      "Altinn.Platform.Authorization.Functions.Clients.BridgeClient": "Debug"
+    }
+  },
+  "extensions": {
+    "queues": {
+      "maxPollingInterval": "00:00:02",
+      "visibilityTimeout": "00:00:04",
+      "maxDequeueCount": 5
     }
   }
 }

@@ -1,10 +1,12 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchGetDataModelsMetadataSaga } from './metadata';
-import { watchDeleteDataModelSaga,
+import {
+  watchDeleteDataModelSaga,
   watchFetchDataModelSaga,
   watchSaveDataModelSaga,
-  watchCreateDataModelSaga } from './dataModellingSagas';
+  watchCreateDataModelSaga,
+} from './dataModellingSagas';
 
 export function* dataModellingSagas(): SagaIterator {
   yield fork(watchFetchDataModelSaga);
@@ -15,10 +17,11 @@ export function* dataModellingSagas(): SagaIterator {
 }
 
 export {
-  IDataModellingState,
   default as dataModellingReducer,
   deleteDataModel,
   fetchDataModel,
   createDataModel,
   saveDataModel,
 } from './dataModellingSlice';
+
+export type { IDataModellingState } from './dataModellingSlice';

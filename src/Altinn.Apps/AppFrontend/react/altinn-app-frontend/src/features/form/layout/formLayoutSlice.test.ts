@@ -30,7 +30,7 @@ describe('features > form > layout > layoutSlice.ts', () => {
           ...initialState.uiConfig,
           repeatingGroups: {
             someId: {
-              count: 2,
+              index: 2,
             },
           },
         },

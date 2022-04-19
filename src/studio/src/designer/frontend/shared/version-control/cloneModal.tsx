@@ -1,6 +1,14 @@
-import { createTheme, createStyles, Grid, Popover, Typography, WithStyles, withStyles } from '@material-ui/core';
+import {
+  createTheme,
+  createStyles,
+  Grid,
+  Popover,
+  Typography,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core';
 import axios from 'axios';
-import * as React from 'react';
+import React from 'react';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
 import AltinnInputField from '../components/AltinnInputField';
@@ -53,8 +61,10 @@ function CloneModal(props: ICloneModalProps) {
   React.useEffect(() => {
     const source = axios.CancelToken.source();
     const checkIfDataModelExists = async () => {
-      try { 
-        const dataModel: any = await get(sharedUrls().dataModelXsdUrl, { cancelToken: source.token });
+      try {
+        const dataModel: any = await get(sharedUrls().dataModelXsdUrl, {
+          cancelToken: source.token,
+        });
         setHasDataModel(dataModel != null);
       } catch (err) {
         if (!axios.isCancel(err)) {
@@ -65,7 +75,7 @@ function CloneModal(props: ICloneModalProps) {
     checkIfDataModelExists();
     return () => {
       source.cancel('Component got unmounted.');
-    }
+    };
   }, []);
 
   return (
@@ -79,7 +89,8 @@ function CloneModal(props: ICloneModalProps) {
       }}
     >
       <Grid
-        container={true} direction='column'
+        container={true}
+        direction='column'
         className={props.classes.modalContainer}
       >
         <Grid item={true} className={props.classes.itemSeparator}>
@@ -89,15 +100,15 @@ function CloneModal(props: ICloneModalProps) {
         </Grid>
         <Grid item={true} className={props.classes.sectionSeparator}>
           <Typography variant='body1'>
-            <a
-              href={altinnDocsUrl} target='_blank'
-              rel='noopener noreferrer'
-            >
-              {getLanguageFromKey('sync_header.favourite_tool_link', props.language)}
+            <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
+              {getLanguageFromKey(
+                'sync_header.favourite_tool_link',
+                props.language,
+              )}
             </a>
           </Typography>
         </Grid>
-        {!hasDataModel &&
+        {!hasDataModel && (
           <Grid item={true} className={props.classes.sectionSeparator}>
             <Grid item={true} className={props.classes.itemSeparator}>
               <Typography variant='body1' className={props.classes.blackText}>
@@ -107,23 +118,32 @@ function CloneModal(props: ICloneModalProps) {
                   iconSize={30}
                   padding='0px 0px 3px 0px'
                 />
-                {getLanguageFromKey('sync_header.data_model_missing', props.language)}
+                {getLanguageFromKey(
+                  'sync_header.data_model_missing',
+                  props.language,
+                )}
               </Typography>
             </Grid>
             <Grid item={true} className={props.classes.itemSeparator}>
               <Typography variant='body1' className={props.classes.blackText}>
-                {getLanguageFromKey('sync_header.data_model_missing_helper', props.language)}
+                {getLanguageFromKey(
+                  'sync_header.data_model_missing_helper',
+                  props.language,
+                )}
               </Typography>
             </Grid>
             <Grid item={true}>
               <Typography variant='body1'>
                 <a href={sharedUrls().dataModelUploadPageUrl}>
-                  {getLanguageFromKey('sync_header.data_model_missing_link', props.language)}
+                  {getLanguageFromKey(
+                    'sync_header.data_model_missing_link',
+                    props.language,
+                  )}
                 </a>
               </Typography>
             </Grid>
           </Grid>
-        }
+        )}
         <Grid item={true}>
           <Typography variant='body1' className={props.classes.blackText}>
             {getLanguageFromKey('sync_header.clone_https', props.language)}
@@ -137,15 +157,18 @@ function CloneModal(props: ICloneModalProps) {
             fullWidth={true}
           />
         </Grid>
-        {canCopy() &&
+        {canCopy() && (
           <Grid item={true}>
             <AltinnButton
               onClickFunction={copyGitUrl}
-              btnText={getLanguageFromKey('sync_header.clone_https_button', props.language)}
+              btnText={getLanguageFromKey(
+                'sync_header.clone_https_button',
+                props.language,
+              )}
               id='copy-repository-url-button'
             />
           </Grid>
-        }
+        )}
       </Grid>
     </Popover>
   );

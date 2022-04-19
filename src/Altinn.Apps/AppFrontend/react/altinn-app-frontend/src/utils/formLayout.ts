@@ -16,32 +16,6 @@ import {
   ILayoutGroup
 } from '../features/form/layout';
 
-/*
- * Returns the layout element with the given id, or undefined if no such element exists
- */
-export function getLayoutElementById(
-  elementId: string,
-  formLayout: ILayout,
-): ILayoutComponent | ILayoutGroup {
-  if (!formLayout || !elementId) {
-    return undefined;
-  }
-  return formLayout.find((element) => element.id === elementId);
-}
-
-/*
- * Returns the index of the layout element with the given id, or -1 if no such element exists
- */
-export function getLayoutElementIndexById(
-  elementId: string,
-  formLayout: [ILayoutComponent | ILayoutGroup],
-): number {
-  if (!elementId || !formLayout) {
-    return -1;
-  }
-  return formLayout.findIndex((element) => element.id === elementId);
-}
-
 export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
   const regex = new RegExp(/\[([0-9]+)\]/);
@@ -79,9 +53,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         const lastItem = groupFormData[groupFormData.length - 1];
         const match = lastItem.match(regex);
         if (match && match[1]) {
-          const count = parseInt(match[1], 10);
+          const index = parseInt(match[1], 10);
           repeatingGroups[groupElement.id] = {
-            count,
+            index,
             dataModelBinding: groupElement.dataModelBindings?.group,
             editIndex: -1,
           };
@@ -100,14 +74,14 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
             const childGroup = groups.find(
               (element) => element.id === childGroupId,
             );
-            [...Array(count + 1)].forEach((_x: any, index: number) => {
-              const groupId = `${childGroup.id}-${index}`;
+            [...Array(index + 1)].forEach((_x: any, childGroupIndex: number) => {
+              const groupId = `${childGroup.id}-${childGroupIndex}`;
               repeatingGroups[groupId] = {
-                count: getCountForRepeatingGroup(
+                index: getIndexForRepeatingGroup(
                   formData,
                   childGroup.dataModelBindings?.group,
                   groupElement.dataModelBindings.group,
-                  index,
+                  childGroupIndex,
                 ),
                 baseGroupId: childGroup.id,
                 editIndex: -1,
@@ -117,7 +91,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         }
       } else {
         repeatingGroups[groupElement.id] = {
-          count: -1,
+          index: -1,
           dataModelBinding: groupElement.dataModelBindings?.group,
           editIndex: -1,
         };
@@ -157,7 +131,7 @@ export function getFileUploadersWithTag(
   return fileUploaders;
 }
 
-function getCountForRepeatingGroup(
+function getIndexForRepeatingGroup(
   formData: any,
   groupBinding: string,
   parentGroupBinding: string,

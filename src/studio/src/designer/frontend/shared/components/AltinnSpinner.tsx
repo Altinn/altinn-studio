@@ -1,6 +1,12 @@
-import { CircularProgress, createTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
+import {
+  CircularProgress,
+  createTheme,
+  createStyles,
+  makeStyles,
+  Typography,
+} from '@material-ui/core';
 import classNames, { Argument } from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {
@@ -26,8 +32,7 @@ const useStyles = makeStyles(() =>
       verticalAlign: 'middle',
       marginBottom: '25px',
     },
-  },
-  ),
+  }),
 );
 
 const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
@@ -39,9 +44,11 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
         className={classNames(classes.spinner)}
         id={props.id ? props.id : undefined}
       />
-      {props.spinnerText &&
-        <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>
-      }
+      {props.spinnerText && (
+        <Typography className={classNames(classes.spinnerText)}>
+          {props.spinnerText}
+        </Typography>
+      )}
     </div>
   );
 };

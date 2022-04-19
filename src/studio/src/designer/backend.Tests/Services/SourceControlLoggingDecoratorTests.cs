@@ -22,12 +22,12 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Services
 {
-    public class SourceControlLoggingDecoratorTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class SourceControlLoggingDecoratorTests : IClassFixture<WebApplicationFactory<SourceControlLoggingDecorator>>
     {
-        private WebApplicationFactory<Startup> _webApplicationFactory;
+        private WebApplicationFactory<SourceControlLoggingDecorator> _webApplicationFactory;
         private ITestOutputHelper _outputHelper;
 
-        public SourceControlLoggingDecoratorTests(WebApplicationFactory<Startup> webApplicationFactory, ITestOutputHelper outputHelper)
+        public SourceControlLoggingDecoratorTests(WebApplicationFactory<SourceControlLoggingDecorator> webApplicationFactory, ITestOutputHelper outputHelper)
         {
             _webApplicationFactory = webApplicationFactory;
             _outputHelper = outputHelper;

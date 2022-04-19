@@ -1,30 +1,49 @@
-/* eslint-disable no-undef */
+import type {
+  IAppState,
+  IFormDesignerContainers,
+  IFormDesignerComponents,
+  IFormLayoutOrder,
+} from '../types/global';
 import { createSelector, ParametricSelector } from 'reselect';
 
 const layoutOrderSelector = (state: IAppState) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order;
+  return state.formDesigner.layout.layouts[
+    state.formDesigner.layout.selectedLayout
+  ]?.order;
 };
 
 const layoutContainerSelector = (state: IAppState) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers;
+  return state.formDesigner.layout.layouts[
+    state.formDesigner.layout.selectedLayout
+  ]?.containers;
 };
 
 const layoutComponentelector = (state: IAppState) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components;
+  return state.formDesigner.layout.layouts[
+    state.formDesigner.layout.selectedLayout
+  ]?.components;
 };
 
 const activeFormContainerSelector = (state: IAppState, props: any) => {
   return state.formDesigner.layout.activeContainer === props.id;
 };
 
-const layoutContainerOrderSelector = (state: IAppState, containerId: string) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order[containerId];
+const layoutContainerOrderSelector = (
+  state: IAppState,
+  containerId: string,
+) => {
+  return state.formDesigner.layout.layouts[
+    state.formDesigner.layout.selectedLayout
+  ]?.order[containerId];
 };
 
 const allLayoutContainerSelector = (state: IAppState) => {
   const allContainers: IFormDesignerContainers = {};
   Object.keys(state.formDesigner.layout.layouts).forEach((key: string) => {
-    Object.assign(allContainers, state.formDesigner.layout.layouts[key].containers);
+    Object.assign(
+      allContainers,
+      state.formDesigner.layout.layouts[key].containers,
+    );
   });
   return allContainers;
 };
@@ -32,7 +51,10 @@ const allLayoutContainerSelector = (state: IAppState) => {
 const allLayoutComponentSelector = (state: IAppState) => {
   const allComponents: IFormDesignerComponents = {};
   Object.keys(state.formDesigner.layout.layouts).forEach((key: string) => {
-    Object.assign(allComponents, state.formDesigner.layout.layouts[key].components);
+    Object.assign(
+      allComponents,
+      state.formDesigner.layout.layouts[key].components,
+    );
   });
   return allComponents;
 };
@@ -46,68 +68,46 @@ const fullOrderSelector = (state: IAppState) => {
 };
 
 const getLayoutOrder = () => {
-  return createSelector(
-    [layoutOrderSelector],
-    (order: any) => {
-      return order;
-    },
-  );
+  return createSelector([layoutOrderSelector], (order: any) => {
+    return order;
+  });
 };
 
 const getLayoutContainers = () => {
-  return createSelector(
-    [layoutContainerSelector],
-    (containers: any) => {
-      return containers;
-    },
-  );
+  return createSelector([layoutContainerSelector], (containers: any) => {
+    return containers;
+  });
 };
 
 const getLayoutComponents = () => {
-  return createSelector(
-    [layoutComponentelector],
-    (components: any) => {
-      return components;
-    },
-  );
+  return createSelector([layoutComponentelector], (components: any) => {
+    return components;
+  });
 };
 
 const getAllLayoutComponents = () => {
-  return createSelector(
-    [allLayoutComponentSelector],
-    (components: any) => {
-      return components;
-    },
-  );
+  return createSelector([allLayoutComponentSelector], (components: any) => {
+    return components;
+  });
 };
 
 const getAllLayoutContainers = () => {
-  return createSelector(
-    [allLayoutContainerSelector],
-    (containers: any) => {
-      return containers;
-    },
-  );
+  return createSelector([allLayoutContainerSelector], (containers: any) => {
+    return containers;
+  });
 };
 
 const getFullOrder = () => {
-  return createSelector(
-    [fullOrderSelector],
-    (order: any) => {
-      return order;
-    },
-  );
+  return createSelector([fullOrderSelector], (order: any) => {
+    return order;
+  });
 };
 
 export const makeGetLayoutContainerOrder = (): ParametricSelector<
   IAppState,
   string,
   string[]
-> =>
-  createSelector(
-    [layoutContainerOrderSelector],
-    (order: string[]) => order,
-  );
+> => createSelector([layoutContainerOrderSelector], (order: string[]) => order);
 
 export const makeGetActiveFormContainer = (): ParametricSelector<
   IAppState,
@@ -116,12 +116,9 @@ export const makeGetActiveFormContainer = (): ParametricSelector<
   },
   boolean
 > =>
-  createSelector(
-    [activeFormContainerSelector],
-    (isActive) => {
-      return isActive;
-    },
-  );
+  createSelector([activeFormContainerSelector], (isActive) => {
+    return isActive;
+  });
 export const makeGetLayoutOrderSelector = getLayoutOrder;
 export const makeGetLayoutContainersSelector = getLayoutContainers;
 export const makeGetLayoutComponentsSelector = getLayoutComponents;

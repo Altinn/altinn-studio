@@ -1,14 +1,20 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import { screen, fireEvent } from '@testing-library/react';
+import type { PreloadedState } from '@reduxjs/toolkit';
 
 import { renderWithProviders } from '../../../testUtils';
 
 import DropdownComponent from './DropdownComponent';
 import type { IComponentProps } from 'src/components';
 import type { IDropdownProps } from './DropdownComponent';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
+import type { RootState } from 'src/store';
 
-const render = (props: Partial<IDropdownProps> = {}) => {
+const render = (
+  props: Partial<IDropdownProps> = {},
+  customState: PreloadedState<RootState> = {},
+  ) => {
   const allProps: IDropdownProps = {
     id: 'component-id',
     optionsId: 'countries',
@@ -42,6 +48,7 @@ const render = (props: Partial<IDropdownProps> = {}) => {
 
   renderWithProviders(<DropdownComponent {...allProps} />, {
     preloadedState: {
+      ...getInitialStateMock(),
       optionState: {
         options: {
           countries,
@@ -57,6 +64,7 @@ const render = (props: Partial<IDropdownProps> = {}) => {
         },
       },
     },
+    ...customState,
   });
 };
 
@@ -136,5 +144,29 @@ describe('components/base/DropdownComponent', () => {
     });
 
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
+  });
+
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+    const handleDataChange = jest.fn();
+    render({
+      handleDataChange,
+      source: {
+        group: "someGroup",
+        label: "option.from.rep.group.label",
+        value: "someGroup[{0}].valueField"
+      },
+    });
+
+    userEvent.selectOptions(screen.getByRole('combobox'), [
+      screen.getByText('The value from the group is: Label for first'),
+    ]);
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
+
+    userEvent.selectOptions(screen.getByRole('combobox'), [
+      screen.getByText('The value from the group is: Label for second'),
+    ]);
+
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
   });
 });

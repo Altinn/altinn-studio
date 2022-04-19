@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core';
-import * as React from 'react';
-import { ILanguage } from '../types';
+import React from 'react';
+import type { ILanguage } from '../types';
 import { getTranslation } from '../utils';
 import TopToolbarButton from './TopToolbarButton';
 

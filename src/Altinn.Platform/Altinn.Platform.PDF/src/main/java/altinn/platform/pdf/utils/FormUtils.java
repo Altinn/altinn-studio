@@ -1,5 +1,6 @@
 package altinn.platform.pdf.utils;
 
+import altinn.platform.pdf.models.FormLayoutData;
 import altinn.platform.pdf.models.FormLayoutElement;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
@@ -119,13 +120,23 @@ public class FormUtils {
       return Collections.emptyList();
     }
     List<String> renderedInGroup = new ArrayList<>();
+
     layout.stream()
       .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME))
-      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(renderedInGroup::add));
+      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(i ->renderedInGroup.add(filterMultiPageId(i))));
 
     return layout.stream().
       filter(formLayoutElement -> !renderedInGroup.contains(formLayoutElement.getId()))
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Removes the page indicator on an id if it exists.
+   * @param id the component Id
+   * @return an id without the page indicator
+   */
+  public static String filterMultiPageId(String id){
+    return id.contains(":") ? id.split(":")[1] : id;
   }
 
   /**
@@ -234,6 +245,23 @@ public class FormUtils {
       return formData.getElementsByTagName(split[split.length - 1]).getLength();
     }
   }
+
+  /**
+   * Injects the group index marker [i]
+   * behind the group binding in the string representing the full binding.
+   * **/
+  public static String setGroupIndexForBinding(String fullBinding, String groupBinding, int groupIndex)
+  {
+    // escape `[` and ']' to not interfere with the regex match pattern
+    groupBinding = groupBinding.replaceAll("[\\[|\\]]", "\\\\$0");
+
+    // Excluding relevant end delimiters is important to not replace an already indexed group property
+    String pattern = String.format("\\b%s\\b(?!\\[)", groupBinding);
+
+    // using replaceAll to get full regex support
+    return fullBinding.replaceAll(pattern, groupBinding + '[' + groupIndex + ']');
+  }
+
 
   /**
    * Parses the base 64 encoded xml file and creates a Document wrapper

@@ -52,13 +52,13 @@ function* updateRepeatingGroupsSaga({ payload: {
 } }: PayloadAction<IUpdateRepeatingGroups>) {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
-    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId]?.count ?? -1;
-    const newCount = remove ? currentCount - 1 : currentCount + 1;
+    const currentIndex = formLayoutState.uiConfig.repeatingGroups[layoutElementId]?.index ?? -1;
+    const newIndex = remove ? currentIndex - 1 : currentIndex + 1;
     let updatedRepeatingGroups: IRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
       [layoutElementId]: {
         ...formLayoutState.uiConfig.repeatingGroups[layoutElementId],
-        count: newCount,
+        index: newIndex,
       },
     };
 
@@ -82,9 +82,9 @@ function* updateRepeatingGroupsSaga({ payload: {
       if (remove) {
         updatedRepeatingGroups = removeRepeatingGroupFromUIConfig(updatedRepeatingGroups, group.id, index, true);
       } else {
-        const groupId = `${group.id}-${newCount}`;
+        const groupId = `${group.id}-${newIndex}`;
         updatedRepeatingGroups[groupId] = {
-          count: -1,
+          index: -1,
           baseGroupId: group.id,
           editIndex: -1,
         };
@@ -347,12 +347,12 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   // if any groups have been removed as part of calculation we delete the associated validations
   const currentGroupKeys = Object.keys(currentGroups || {});
   const groupsToRemoveValidations = currentGroupKeys.filter((key) => {
-    return (currentGroups[key].count > -1) && (!newGroups[key] || newGroups[key].count === -1);
+    return (currentGroups[key].index > -1) && (!newGroups[key] || newGroups[key].index === -1);
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
     for (const group of groupsToRemoveValidations) {
-      for (let i = 0; i <= currentGroups[group].count; i++) {
+      for (let i = 0; i <= currentGroups[group].index; i++) {
         validations = removeGroupValidationsByIndex(group, i, state.formLayout.uiConfig.currentView, layouts, currentGroups, validations, false);
       }
     }
@@ -360,7 +360,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   }
   // preserve current edit index if still valid
   currentGroupKeys.filter((key) => !groupsToRemoveValidations.includes(key)).forEach((key) => {
-    if (newGroups[key]?.count >= currentGroups[key].editIndex) {
+    if (newGroups[key]?.index >= currentGroups[key].editIndex) {
       newGroups[key].editIndex = currentGroups[key].editIndex;
     }
   });

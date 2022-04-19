@@ -1,7 +1,7 @@
-/* 
+/*
   This test is to create an instance with form data xml using multipart request body.
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/multipartdata.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -67,6 +67,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('multipartdata')] = generateJUnitXML(data, 'app-multipartdata');
+  result[reportPath('multipartdata.xml')] = generateJUnitXML(data, 'app-multipartdata');
   return result;
 }

@@ -68,7 +68,7 @@ namespace LocalTest.Controllers
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
-            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps.First().Value) : 2;
+            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
 
             if (!model.TestApps?.Any() ?? true)
@@ -224,9 +224,10 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
-        private async Task<int> GetAppAuthLevel(string appId)
+        private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
             try {
+                var appId = testApps.Single().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);
@@ -237,7 +238,7 @@ namespace LocalTest.Controllers
             }
             catch(Exception)
             {
-                // Return default auth level if app auth level can't be found.
+                // Return default auth level if Single app auth level can't be found.
                 return 2;
             }
         }

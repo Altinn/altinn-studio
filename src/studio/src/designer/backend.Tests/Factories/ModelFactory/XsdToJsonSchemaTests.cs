@@ -69,8 +69,8 @@ namespace Designer.Tests.Factories.ModelFactory
         private Stream LoadTestData(string resourceName)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(XsdToJsonSchemaTests).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            Stream resource = File.OpenRead(unitTestFolder + resourceName);
+            string resourcePath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", resourceName);
+            Stream resource = File.OpenRead(resourcePath);
 
             if (resource == null)
             {

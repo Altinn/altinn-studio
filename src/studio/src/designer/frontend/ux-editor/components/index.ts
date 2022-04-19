@@ -55,7 +55,7 @@ export const textComponents: IComponent[] = [
     name: ComponentTypes.Header,
     Icon: componentIcons.Header,
     customProperties: {
-      size: "L",
+      size: 'L',
     },
   },
   {
@@ -172,9 +172,12 @@ export const advancedComponents: IComponent[] = [
   {
     name: ComponentTypes.NavigationBar,
     Icon: componentIcons.NavigationBar,
-  }
+  },
 ];
 
-const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
+const components: IComponent[] = textComponents.concat(
+  schemaComponents,
+  advancedComponents,
+);
 
 export default components;

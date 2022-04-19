@@ -14,6 +14,21 @@ namespace Altinn.Studio.Designer.Configuration
         /// Debug enabled 
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
+        
+        /// <summary>
+        /// Is traces sensitive
+        /// </summary>
+        public bool IsTraceSensitiveData { get; set; } = false;
+        
+        /// <summary>
+        /// directory to store traces
+        /// </summary>
+        public string TraceToDirectory { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Trace to file enabled
+        /// </summary>
+        public bool IsTraceToFile { get; set; } = false;
 
         /// <summary>
         /// Info

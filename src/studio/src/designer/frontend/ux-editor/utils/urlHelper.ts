@@ -1,3 +1,5 @@
+import type { IAltinnWindow } from '../types/global';
+
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
 const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
 
@@ -74,5 +76,5 @@ export const getFetchRuleModelUrl = () => {
 };
 
 export const getFetchRuleConfigurationUrl = () => {
-  return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`
+  return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`;
 };

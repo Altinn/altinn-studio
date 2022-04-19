@@ -1,5 +1,5 @@
 import { designerApi, TagTypes } from './designerApi';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 
 type Filters = {
   uid?: number;

@@ -46,6 +46,8 @@ export default class AppFrontend {
       uploadedAttachments: '#attachment-list',
     };
 
+    this.feedback = '#FeedbackContainer';
+
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
     this.fieldValidationWarning = '[id^="message_field"]';
@@ -64,7 +66,7 @@ export default class AppFrontend {
       address: {
         street_name: '#address_address_adresse',
         zip_code: '#address_zip_code_adresse',
-        post_place: '#address_post_place_adresse'
+        post_place: '#address_post_place_adresse',
       },
       currentName: '#currentName',
       newFirstName: '#newFirstName',
@@ -117,6 +119,7 @@ export default class AppFrontend {
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
       mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
+      options: '#reduxOptions',
     };
 
     //Stateless-app

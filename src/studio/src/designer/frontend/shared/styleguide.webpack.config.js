@@ -1,4 +1,3 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
 const ForkTsWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
@@ -49,10 +48,6 @@ module.exports = {
   },
   plugins: [
     new ForkTsWebpackPlugin(),
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html'
-    }),
   ],
   devServer: {
     historyApiFallback: true,

@@ -342,4 +342,14 @@ public class TextUtils {
       return date.format(DateTimeFormatter.ofPattern(pattern).withLocale(locale));
     }
   }
+
+  public static String replaceParameters(String nameString, List<String> params) {
+    int index = 0;
+    for (String param : params) {
+      nameString = nameString.replace("{" + index + "}", param);
+      index++;
+    }
+
+    return nameString;
+  }
 }

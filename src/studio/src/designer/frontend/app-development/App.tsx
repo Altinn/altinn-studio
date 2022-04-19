@@ -1,6 +1,10 @@
 import { Grid, Typography } from '@material-ui/core';
-import { createTheme, MuiThemeProvider, makeStyles } from '@material-ui/core/styles';
-import * as React from 'react';
+import {
+  createTheme,
+  MuiThemeProvider,
+  makeStyles,
+} from '@material-ui/core/styles';
+import React from 'react';
 import { HashRouter as Router } from 'react-router-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
@@ -13,10 +17,15 @@ import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handle
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
-import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
+import {
+  fetchRemainingSession,
+  keepAliveSession,
+  signOutUser,
+} from './sharedResources/user/userSlice';
 import LeftMenu from './layout/LeftMenu';
 import PageHeader from './layout/PageHeader';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
+import type { IAltinnWindow } from './types/global';
 
 import './App.css';
 
@@ -49,9 +58,11 @@ const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
 
 export function App() {
-  const language = useAppSelector(state => state.languageState.language);
+  const language = useAppSelector((state) => state.languageState.language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
-  const remainingSessionMinutes = useAppSelector(state => state.userState.session.remainingMinutes);
+  const remainingSessionMinutes = useAppSelector(
+    (state) => state.userState.session.remainingMinutes,
+  );
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const lastKeepAliveTimestamp = React.useRef<number>(0);
@@ -59,85 +70,107 @@ export function App() {
 
   React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
-    dispatch(fetchLanguage({
-      url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
-      languageCode: 'nb',
-    }));
-    dispatch(HandleServiceInformationActions.fetchServiceName({
-      url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-    }));
+    dispatch(
+      fetchLanguage({
+        url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
+        languageCode: 'nb',
+      }),
+    );
+    dispatch(
+      HandleServiceInformationActions.fetchServiceName({
+        url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+      }),
+    );
     dispatch(ApplicationMetadataActions.getApplicationMetadata());
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     dispatch(fetchRemainingSession());
-    dispatch(HandleServiceInformationActions.fetchService(
-      { url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}` },
-    ));
-    dispatch(HandleServiceInformationActions.fetchInitialCommit(
-      { url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit` },
-    ));
-    dispatch(HandleServiceInformationActions.fetchServiceConfig(
-      { url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig` },
-    ));
+    dispatch(
+      HandleServiceInformationActions.fetchService({
+        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
+      }),
+    );
+    dispatch(
+      HandleServiceInformationActions.fetchInitialCommit({
+        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
+      }),
+    );
+    dispatch(
+      HandleServiceInformationActions.fetchServiceConfig({
+        url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+      }),
+    );
   }, [dispatch]);
 
   React.useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
       const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
-      keepAliveListeners.forEach((listener) => (subscribe ? window.addEventListener : window.removeEventListener)(
-        listener, keepAliveSessionState,
-      ));
-    }
+      keepAliveListeners.forEach((listener) =>
+        (subscribe ? window.addEventListener : window.removeEventListener)(
+          listener,
+          keepAliveSessionState,
+        ),
+      );
+    };
     const windowEventReceived = (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
         checkForMergeConflict();
       }
-    }
+    };
     const keepAliveSessionState = () => {
       const timeNow = Date.now();
 
       if (
-        (remainingSessionMinutes > 10) &&
-        (remainingSessionMinutes <= 30) &&
-        ((timeNow - lastKeepAliveTimestamp.current) > TEN_MINUTE_IN_MILLISECONDS)) {
+        remainingSessionMinutes > 10 &&
+        remainingSessionMinutes <= 30 &&
+        timeNow - lastKeepAliveTimestamp.current > TEN_MINUTE_IN_MILLISECONDS
+      ) {
         lastKeepAliveTimestamp.current = timeNow;
-        dispatch((keepAliveSession()));
+        dispatch(keepAliveSession());
       }
-    }
+    };
     const checkForMergeConflict = () => {
       const { org, app } = window as Window as IAltinnWindow;
-      dispatch(fetchRepoStatus({
-        url: repoStatusUrl,
-        org,
-        repo: app,
-      }));
-    }
+      dispatch(
+        fetchRepoStatus({
+          url: repoStatusUrl,
+          org,
+          repo: app,
+        }),
+      );
+    };
 
     setEventListeners(true);
     window.addEventListener('message', windowEventReceived);
     return function cleanup() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
-    }
+    };
   }, [dispatch, lastKeepAliveTimestamp, remainingSessionMinutes]);
 
+  const handleSessionExpiresClose = React.useCallback(
+    (action: string) => {
+      if (action === 'close') {
+        // user clicked close button, sign user out
+        dispatch(signOutUser());
+      } else {
+        // user clicked outside the popover or pressed "continue", keep signed in
+        dispatch(keepAliveSession());
+        lastKeepAliveTimestamp.current = Date.now();
+      }
+    },
+    [dispatch],
+  );
 
-  const handleSessionExpiresClose = React.useCallback((action: string) => {
-    if (action === 'close') {
-      // user clicked close button, sign user out
-      dispatch(signOutUser());
-    } else {
-      // user clicked outside the popover or pressed "continue", keep signed in
-      dispatch(keepAliveSession());
-      lastKeepAliveTimestamp.current = Date.now();
-    }
-  }, [dispatch]);
-  
   return (
     <MuiThemeProvider theme={theme}>
       <Router>
         <div className={classes.container} ref={sessionExpiredPopoverRef}>
           <AltinnPopoverSimple
-            anchorEl={(remainingSessionMinutes < 11) ? sessionExpiredPopoverRef.current : null}
+            anchorEl={
+              remainingSessionMinutes < 11
+                ? sessionExpiredPopoverRef.current
+                : null
+            }
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             transformOrigin={{ vertical: 'top', horizontal: 'center' }}
             handleClose={(event: string) => handleSessionExpiresClose(event)}

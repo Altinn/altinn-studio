@@ -3,7 +3,7 @@ import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
 import { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { Organizations } from 'services/organizationApi';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 
 type GetUidFilter = {
   userId: number;

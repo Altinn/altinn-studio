@@ -1,9 +1,10 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import * as React from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeError, IErrorStateError } from '../../features/error/errorSlice';
+import type { IAppState } from '../../types/global';
 
-import '../../styles/ErrorMessageComponent.css';
+import './ErrorMessageComponent.css';
 
 export function ErrorMessageComponent() {
   const dispatch = useDispatch();
@@ -15,10 +16,9 @@ export function ErrorMessageComponent() {
 
   return (
     <div className='error-snackbar-container'>
-      {
-        !errors.length ?
-          null :
-          errors.map((error: IErrorStateError, index: number) => (
+      {!errors.length
+        ? null
+        : errors.map((error: IErrorStateError, index: number) => (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
             <div
               key={error.errorMessage}
@@ -27,8 +27,7 @@ export function ErrorMessageComponent() {
             >
               <p>{error.errorMessage}</p>
             </div>
-          ))
-      }
+          ))}
     </div>
   );
 }

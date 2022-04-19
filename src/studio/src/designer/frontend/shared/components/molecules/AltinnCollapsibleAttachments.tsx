@@ -1,4 +1,3 @@
-
 import { Typography } from '@material-ui/core';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
@@ -8,10 +7,10 @@ import ListItemText from '@material-ui/core/ListItemText';
 import createStyles from '@material-ui/core/styles/createStyles';
 import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import classNames from 'classnames';
-import * as React from 'react';
-import { IAttachment } from '../../types';
+import React from 'react';
+import type { IAttachment } from '../../types/global';
 import AltinnIcon from '../AltinnIcon';
-import AltinnAttachment from '../atoms/AltinnAttachment';
+import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 
 const styles = createStyles({
   listItemTextPadding: {
@@ -34,24 +33,28 @@ interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
   title?: string;
 }
 
-export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachmentsProps) {
+export function AltinnCollapsibleAttachments(
+  props: IAltinnCollapsibleAttachmentsProps,
+) {
   const [open, setOpen] = React.useState(true);
 
   function handleOpenClose() {
     setOpen(!open);
   }
 
-  return(
+  return (
     <>
       {props.collapsible ? (
-        <List
-          component='nav'
-        >
-          <ListItem button={true} onClick={handleOpenClose} disableGutters={true}>
+        <List component='nav'>
+          <ListItem
+            button={true}
+            onClick={handleOpenClose}
+            disableGutters={true}
+          >
             <ListItemIcon
               classes={{
                 root: classNames(
-                  {[props.classes.transformArrowRight]: !open},
+                  { [props.classes.transformArrowRight]: !open },
                   props.classes.transition,
                 ),
               }}
@@ -63,7 +66,9 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${props.title} (${props.attachments && props.attachments.length})`}
+              primary={`${props.title} (${
+                props.attachments && props.attachments.length
+              })`}
               classes={{
                 root: classNames(props.classes.listItemTextPadding),
                 primary: classNames(props.classes.collapsedTitle),
@@ -71,7 +76,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
             />
           </ListItem>
           <Collapse in={open} timeout='auto' unmountOnExit={true}>
-            <AltinnAttachment
+            <AltinnAttachmentComponent
               attachments={props.attachments}
               nested={true}
               listDisableVerticalPadding={true}
@@ -81,19 +86,19 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       ) : (
         <>
           <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-            {`${props.title} (${props.attachments && props.attachments.length})`}
+            {`${props.title} (${
+              props.attachments && props.attachments.length
+            })`}
           </Typography>
-          <AltinnAttachment
+          <AltinnAttachmentComponent
             attachments={props.attachments}
             nested={false}
             listDisableVerticalPadding={false}
           />
         </>
-
       )}
     </>
   );
-
 }
 
 export default withStyles(styles)(AltinnCollapsibleAttachments);

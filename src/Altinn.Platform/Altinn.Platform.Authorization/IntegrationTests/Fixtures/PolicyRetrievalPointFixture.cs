@@ -43,6 +43,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                     services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
                     services.AddScoped<IRoles, RolesMock>();
                     services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddScoped<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>

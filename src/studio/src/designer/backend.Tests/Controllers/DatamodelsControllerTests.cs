@@ -7,8 +7,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -27,12 +27,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<DatamodelsController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<DatamodelsController> _factory;
         private readonly string _versionPrefix = "/designer/api";
 
-        public DatamodelsControllerTests(WebApplicationFactory<Startup> factory)
+        public DatamodelsControllerTests(WebApplicationFactory<DatamodelsController> factory)
         {
             _factory = factory;
         }
@@ -105,13 +105,13 @@ namespace Designer.Tests.Controllers
         public async Task Get_Put_Updatemodel_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json"))
+            unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -150,13 +150,13 @@ namespace Designer.Tests.Controllers
         public async Task Get_Put_Updatemodel2_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json"))
+            unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -195,13 +195,13 @@ namespace Designer.Tests.Controllers
         public async Task Get_Put_Updatemodel3_Ok()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
-            if (File.Exists(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json"))
+            unitTestFolder = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData");
+            if (File.Exists(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json"))
             {
-                File.Delete(unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
+                File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
             }
 
-            File.Copy(unitTestFolder + "Model/Xsd/RA-0678_M.xsd", unitTestFolder + "Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/RA-0678_M.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -333,7 +333,6 @@ namespace Designer.Tests.Controllers
 
             var client = GetTestClient();
             var url = $"{_versionPrefix}/{org}/{repository}/datamodels/{modelPath}";
-
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
@@ -584,7 +583,8 @@ namespace Designer.Tests.Controllers
         [InlineData("test<", "", false)]
         [InlineData("test>", "", false)]
         [InlineData("test|", "", false)]
-        [InlineData("test\"", "", false)]
+        [InlineData("test\\\"", "", false)]
+        [InlineData("test/", "", false)]
         public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
         {
             var client = GetTestClient();
@@ -606,21 +606,21 @@ namespace Designer.Tests.Controllers
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
-
-            Program.ConfigureSetupLogging();
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
 
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
                 {
-                    conf.AddJsonFile("appsettings.json");
+                    conf.AddJsonFile(configPath);
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
@@ -633,10 +633,9 @@ namespace Designer.Tests.Controllers
                     Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
                     Returns<string, string, string>(async (org, repo, path) =>
                     {
-                        string repopath = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
-                        repopath += @$"testUser\{org}\{repo}\";
+                        string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo, path);
 
-                        Stream fs = File.OpenRead(repopath + path);
+                        Stream fs = File.OpenRead(repopath);
                         return await Task.FromResult(fs);
                     });
                 repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();

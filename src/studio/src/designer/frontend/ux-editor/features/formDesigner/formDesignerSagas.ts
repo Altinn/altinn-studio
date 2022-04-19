@@ -1,9 +1,12 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 
-import { watchAddActiveFormContainerSaga,
-  watchDeleteActiveListSaga } from './activeList/activeListSagas';
-import { watchAddApplicationMetadataSaga,
+import {
+  watchAddActiveFormContainerSaga,
+  watchDeleteActiveListSaga,
+} from './activeList/activeListSagas';
+import {
+  watchAddApplicationMetadataSaga,
   watchAddFormComponentSaga,
   watchAddFormContainerSaga,
   watchAddLayoutSaga,
@@ -17,7 +20,8 @@ import { watchAddApplicationMetadataSaga,
   watchSaveFormLayoutSettingSaga,
   watchUpdateApplicationMetadataSaga,
   watchUpdateFormComponentSaga,
-  watchUpdateLayoutNameSaga } from './formLayout/formLayoutSagas';
+  watchUpdateLayoutNameSaga,
+} from './formLayout/formLayoutSagas';
 import { watchAddWidgetSaga } from './widgets/addWidgetsSagas';
 
 export default function* formDesignerSagas(): SagaIterator {

@@ -24,19 +24,23 @@ const languageSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchLanguageFulfilled: (state, action: PayloadAction<IFetchLanguageFulfilled>) => {
+    fetchLanguageFulfilled: (
+      state,
+      action: PayloadAction<IFetchLanguageFulfilled>,
+    ) => {
       const { language } = action.payload;
-      // eslint-disable-next-line no-param-reassign
       state.language = language;
     },
   },
 });
 
-export const fetchLanguage = createAction<IFetchLanguageAction>(`${moduleName}/fetchLanguage`);
-export const fetchLanguageRejected = createAction<IFetchLanguageRejected>(`${moduleName}/fetchLanguageRejected`);
+export const fetchLanguage = createAction<IFetchLanguageAction>(
+  `${moduleName}/fetchLanguage`,
+);
+export const fetchLanguageRejected = createAction<IFetchLanguageRejected>(
+  `${moduleName}/fetchLanguageRejected`,
+);
 
-export const {
-  fetchLanguageFulfilled,
-} = languageSlice.actions;
+export const { fetchLanguageFulfilled } = languageSlice.actions;
 
 export default languageSlice.reducer;

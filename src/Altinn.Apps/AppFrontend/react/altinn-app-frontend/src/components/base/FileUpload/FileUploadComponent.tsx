@@ -7,7 +7,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import { IAttachment } from '../../../shared/resources/attachments';
 import AttachmentDispatcher from '../../../shared/resources/attachments/attachmentActions';
-import '../../../styles/FileUploadComponent.css';
+import './FileUploadComponent.css';
 import { IComponentValidations } from '../../../types';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { v4 as uuidv4 } from 'uuid';

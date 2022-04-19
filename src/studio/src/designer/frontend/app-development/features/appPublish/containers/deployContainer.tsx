@@ -1,18 +1,29 @@
-/* eslint-disable react/jsx-max-props-per-line */
-import { createTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
-import * as moment from 'moment';
-import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import {
+  createTheme,
+  createStyles,
+  Grid,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core';
+import moment from 'moment';
+import React from 'react';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import StudioTheme from 'app-shared/theme/altinnStudioTheme';
-import { getDeploymentsStartInterval, getDeploymentsStopInterval, IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
-import { AppDeploymentActions, IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import {
+  getDeploymentsStartInterval,
+  getDeploymentsStopInterval,
+} from '../../../sharedResources/appCluster/appClusterSlice';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
+import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
+import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
-import { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
+import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
+import { useAppSelector, useAppDispatch } from 'common/hooks';
+import type { IAltinnWindow } from '../../../types/global';
 
 const theme = createTheme(StudioTheme);
 
@@ -28,32 +39,42 @@ const styles = createStyles({
   },
 });
 
-export interface IDeployContainer extends WithStyles<typeof styles> {
-
-}
+type IDeployContainer = WithStyles<typeof styles>;
 
 export const DeployContainer = (props: IDeployContainer) => {
   const { org, app } = window as Window as IAltinnWindow;
   const { classes } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const [environments, setEnvironments] = React.useState([]);
   const [imageOptions, setImageOptions] = React.useState([]);
 
-  const appCluster: IAppClusterState = useSelector((state: IServiceDevelopmentState) => state.appCluster);
-  const appDeployments: IAppDeploymentState = useSelector((state: IServiceDevelopmentState) => state.appDeployments);
-  // eslint-disable-next-line max-len
-  const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) => state.appDeployments.createAppDeploymentErrors);
-  const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
-  const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) => state.configuration);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
-  const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
-  const deployPermissions: string[] = useSelector(
-    (state: IServiceDevelopmentState) => state.userState.permissions.deploy.environments,
+  const appCluster: IAppClusterState = useAppSelector(
+    (state) => state.appCluster,
   );
-  const orgName: string = useSelector((state: IServiceDevelopmentState) => {
+  const appDeployments: IAppDeploymentState = useAppSelector(
+    (state) => state.appDeployments,
+  );
+  const createAppDeploymentErrors: any = useAppSelector(
+    (state) => state.appDeployments.createAppDeploymentErrors,
+  );
+  const deployableImages: IAppReleaseState = useAppSelector(
+    (state) => state.appReleases,
+  );
+  const configuration: IConfigurationState = useAppSelector(
+    (state) => state.configuration,
+  );
+  const language: any = useAppSelector((state) => state.languageState.language);
+  const orgs: any = useAppSelector((state) => state.configuration.orgs);
+  const deployPermissions: string[] = useAppSelector(
+    (state) => state.userState.permissions.deploy.environments,
+  );
+  const orgName: string = useAppSelector((state) => {
     let name = '';
-    if (state.configuration.orgs.allOrgs && state.configuration.orgs.allOrgs[org]) {
+    if (
+      state.configuration.orgs.allOrgs &&
+      state.configuration.orgs.allOrgs[org]
+    ) {
       name = state.configuration.orgs.allOrgs[org].name.nb;
     }
     return name;
@@ -76,9 +97,15 @@ export const DeployContainer = (props: IDeployContainer) => {
       !!orgs.allOrgs[org].environments &&
       !!configuration.environments.result
     ) {
-      setEnvironments(orgs.allOrgs[org].environments.map(
-        (envName: string) => configuration.environments.result.find((env: any) => env.name === envName),
-      ).filter((element: any) => element != null));
+      setEnvironments(
+        orgs.allOrgs[org].environments
+          .map((envName: string) =>
+            configuration.environments.result.find(
+              (env: any) => env.name === envName,
+            ),
+          )
+          .filter((element: any) => element != null),
+      );
     }
   }, [orgs, org, configuration]);
 
@@ -94,7 +121,9 @@ export const DeployContainer = (props: IDeployContainer) => {
     const tempImages = deployableImages.releases
       .filter((image) => image.build.result === BuildResult.succeeded)
       .map((image) => {
-        const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
+        const releaseTime = moment(new Date(image.created)).format(
+          'DD.MM.YY [kl.] HH:mm',
+        );
         return {
           value: image.tagName,
           label: `Version ${image.tagName} (${releaseTime})`,
@@ -130,15 +159,10 @@ export const DeployContainer = (props: IDeployContainer) => {
   }
 
   return (
-    <Grid
-      container={true}
-      direction='row'
-      className={classes.deployContainer}
-    >
+    <Grid container={true} direction='row' className={classes.deployContainer}>
       {environments.map((env: any, index: number) => {
         return (
           <AppDeploymentComponent
-            // eslint-disable-next-line react/no-array-index-key
             key={index}
             envName={env.name}
             envObj={env}
@@ -146,15 +170,23 @@ export const DeployContainer = (props: IDeployContainer) => {
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             deploymentList={
               appCluster.deploymentList &&
-              appCluster.deploymentList.find((elem: any) => elem.env === env.name)
+              appCluster.deploymentList.find(
+                (elem: any) => elem.env === env.name,
+              )
             }
             releases={imageOptions}
-            deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
+            deployHistory={appDeployments.deployments.filter(
+              (deployment: any) => deployment.envName === env.name,
+            )}
             deployError={createAppDeploymentErrors.filter(
               (error: ICreateAppDeploymentErrors) => error.env === env.name,
             )}
             language={language}
-            deployPermission={deployPermissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1}
+            deployPermission={
+              deployPermissions.findIndex(
+                (e) => e.toLowerCase() === env.name.toLowerCase(),
+              ) > -1
+            }
             orgName={orgName}
           />
         );

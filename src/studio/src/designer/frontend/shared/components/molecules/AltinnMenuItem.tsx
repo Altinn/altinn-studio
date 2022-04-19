@@ -1,5 +1,11 @@
-import { ListItemText, Typography, ListItemIcon, MenuItem, makeStyles } from '@material-ui/core';
-import * as React from 'react';
+import {
+  ListItemText,
+  Typography,
+  ListItemIcon,
+  MenuItem,
+  makeStyles,
+} from '@material-ui/core';
+import React from 'react';
 
 export interface IAltinnMenuItemProps {
   text: string;
@@ -19,7 +25,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
+function AltinnMenuItem(
+  props: IAltinnMenuItemProps,
+  ref: React.Ref<HTMLLIElement>,
+) {
   const classes = useStyles();
   const { text, iconClass, onClick, disabled, id } = props;
   return (
@@ -28,18 +37,18 @@ function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElemen
       disabled={disabled}
       id={id}
       ref={ref}
-      classes={{ root: classes.menu}}
+      classes={{ root: classes.menu }}
     >
-      <ListItemIcon  classes={{ root: classes.icon}}>
+      <ListItemIcon classes={{ root: classes.icon }}>
         <i className={iconClass} />
       </ListItemIcon>
       <ListItemText disableTypography={true}>
-        <Typography variant='caption'>
-          {text}
-        </Typography>
+        <Typography variant='caption'>{text}</Typography>
       </ListItemText>
     </MenuItem>
   );
 }
 
-export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(AltinnMenuItem);
+export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(
+  AltinnMenuItem,
+);

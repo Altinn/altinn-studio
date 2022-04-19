@@ -28,6 +28,9 @@ describe('Rules', () => {
     // This should then trigger function which concatenates first + middle + last name to the newFullName field
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('LastName').blur();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('TriggerCalculation').blur();
-    cy.get(appFrontend.changeOfName.newFullName).should('have.value', 'TriggerCalculation MiddleNameFromCalculation LastName');
+    cy.get(appFrontend.changeOfName.newFullName).should(
+      'have.value',
+      'TriggerCalculation MiddleNameFromCalculation LastName',
+    );
   });
 });

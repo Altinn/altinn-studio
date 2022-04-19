@@ -1,7 +1,14 @@
-import { Checkbox, createTheme, createStyles, WithStyles, withStyles } from '@material-ui/core';
-import React = require('react');
+import {
+  Checkbox,
+  createTheme,
+  createStyles,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof styles> {
+export interface IAltinnCheckBoxComponentProvidedProps
+  extends WithStyles<typeof styles> {
   /** If the component is checked */
   checked: boolean;
   /** If the component should be disabeld */
@@ -12,27 +19,28 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
   onChangeFunction?: any;
   /** Called when onKeyPress is triggered */
   onKeyPressFunction?: any;
-   /** @ignore */
+  /** @ignore */
   classes: any;
 }
 
-export interface IAltinnCheckBoxComponentState { }
-
 const theme = createTheme(altinnTheme);
 
-const styles = () => createStyles({
-  altinnCheckBox: {
-    color: `${theme.altinnPalette.primary.blueDark} !important`,
-    '& span': {
-      '& svg': {
-        fontSize: '2.5rem',
+const styles = () =>
+  createStyles({
+    altinnCheckBox: {
+      color: `${theme.altinnPalette.primary.blueDark} !important`,
+      '& span': {
+        '& svg': {
+          fontSize: '2.5rem',
+        },
       },
+      paddingLeft: 0,
     },
-    paddingLeft: 0,
-  },
-});
+  });
 
-export const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
+export const AltinnCheckBox = (
+  props: IAltinnCheckBoxComponentProvidedProps,
+) => {
   const { classes } = props;
   return (
     <Checkbox

@@ -203,7 +203,7 @@ describe('utils/databindings.ts', () => {
   describe('removeGroupData', () => {
     it('should remove form data with the specified index, for the specified group id', () => {
       const result = removeGroupData(testFormData, 1, testLayout, testGroupId, {
-        count: 2,
+        index: 2,
       });
       const expected = {
         'Group[0].prop1': 'value-0-1',

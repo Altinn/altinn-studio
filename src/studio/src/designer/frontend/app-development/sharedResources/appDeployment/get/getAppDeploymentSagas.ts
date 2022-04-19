@@ -8,9 +8,14 @@ import { AppDeploymentActions } from '../appDeploymentSlice';
 function* getAppDeploymentIntervalSaga(): SagaIterator {
   while (true) {
     try {
-      const deployments = yield call(get, `${appDeploymentsUrl}?sortDirection=descending`);
+      const deployments = yield call(
+        get,
+        `${appDeploymentsUrl}?sortDirection=descending`,
+      );
 
-      yield put(AppDeploymentActions.getAppDeploymentsFulfilled({ deployments }));
+      yield put(
+        AppDeploymentActions.getAppDeploymentsFulfilled({ deployments }),
+      );
       yield delay(10000);
     } catch (error) {
       yield put(AppDeploymentActions.getAppDeploymentsRejected({ error }));
@@ -30,7 +35,6 @@ function* watchGetAppDeploymentIntervalSaga(): SagaIterator {
   }
 }
 
-// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchGetAppDeploymentIntervalSaga);
 }

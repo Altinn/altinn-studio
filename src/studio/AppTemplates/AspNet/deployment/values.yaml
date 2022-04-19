@@ -15,3 +15,9 @@ deployment:
     - name: accesstoken
       secret:
         secretName: accesstoken
+
+  readiness:
+    enabled: true
+
+  liveness:
+    enabled: true

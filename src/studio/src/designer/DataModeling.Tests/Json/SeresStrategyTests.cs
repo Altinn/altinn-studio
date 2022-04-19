@@ -13,7 +13,7 @@ namespace DataModeling.Tests.Json
     public class SeresStrategyTests
     {
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema.json")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema.json")]
         public async Task Analyze_Seres_Converted_JsonSchema(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -30,7 +30,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\General\SimpleContentExtension.json")]
+        [InlineData(@"Model/JsonSchema/General/SimpleContentExtension.json")]
         public async Task Analyze_SimpleContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -44,7 +44,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleTypeRestrictions.json")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresSimpleTypeRestrictions.json")]
         public async Task Analyze_SimpleType_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -87,7 +87,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleContentRestriction.json")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresSimpleContentRestriction.json")]
         public async Task Analyze_SimpleContent_Restriction(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
@@ -107,7 +107,7 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresComplexContentExtension.json")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresComplexContentExtension.json")]
         public async Task Analyze_ComplexContent_Extension(string path)
         {
             JsonSchemaKeywords.RegisterXsdKeywords();

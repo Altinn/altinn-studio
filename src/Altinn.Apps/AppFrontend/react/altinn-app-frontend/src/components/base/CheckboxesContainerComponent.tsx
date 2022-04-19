@@ -6,19 +6,25 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 
 import type { IComponentProps } from '..';
-import type { IOption, IComponentValidations, IMapping } from 'src/types';
+import type { IOption, IComponentValidations, IMapping, IOptionSource } from 'src/types';
+import { LayoutStyle } from 'src/types';
+
+import { shouldUseRowLayout } from 'src/utils/layout';
 
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
-  options: IOption[];
-  optionsId: string;
+  options?: IOption[];
+  optionsId?: string;
   preselectedOptionIndex?: number;
   mapping?: IMapping;
+  source?: IOptionSource;
+  layout?: LayoutStyle;
 }
 
 interface IStyledCheckboxProps extends CheckboxProps {
@@ -83,26 +89,29 @@ export const CheckboxContainerComponent = ({
   preselectedOptionIndex,
   handleDataChange,
   handleFocusUpdate,
+  layout,
   legend,
   getTextResourceAsString,
   getTextResource,
   validationMessages,
   mapping,
+  source,
 }: ICheckboxContainerProps) => {
   const classes = useStyles();
-  const apiOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
-  );
+  const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || defaultOptions;
-  const checkBoxesIsRow = calculatedOptions.length <= 2;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
+
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
-  const selected =
-    formData?.simpleBinding ? formData.simpleBinding.split(',') : defaultSelectedOptions;
+  const selected = formData?.simpleBinding
+    ? formData.simpleBinding.split(',')
+    : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -156,8 +165,17 @@ export const CheckboxContainerComponent = ({
       <FormLabel component='legend' classes={{ root: cn(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup row={checkBoxesIsRow} id={id} key={`checkboxes_group_${id}`}>
-        {fetchingOptions ? <AltinnSpinner /> :
+      <FormGroup
+        row={shouldUseRowLayout({
+          layout,
+          optionsCount: calculatedOptions.length,
+        })}
+        id={id}
+        key={`checkboxes_group_${id}`}
+      >
+        {fetchingOptions ? (
+          <AltinnSpinner />
+        ) : (
           <>
             {calculatedOptions.map((option, index) => (
               <React.Fragment key={option.value}>
@@ -186,7 +204,7 @@ export const CheckboxContainerComponent = ({
               </React.Fragment>
             ))}
           </>
-        }
+        )}
       </FormGroup>
     </FormControl>
   );

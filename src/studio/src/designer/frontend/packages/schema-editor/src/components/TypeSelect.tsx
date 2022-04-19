@@ -1,12 +1,12 @@
 import { MenuItem } from '@material-ui/core';
-import * as React from 'react';
-import { FieldType, ILanguage } from '../types';
+import React from 'react';
+import type { FieldType, ILanguage } from '../types';
 import { getTranslation } from '../utils';
 import { StyledSelect } from './StyledSelect';
 
 export interface IFieldTypeSelect {
   value?: string;
-  onChange: (value: FieldType ) => void;
+  onChange: (value: FieldType) => void;
   id: string;
   language: ILanguage;
 }
@@ -27,5 +27,5 @@ export function TypeSelect(props: IFieldTypeSelect) {
       <MenuItem value='boolean'>{getTranslation('boolean', language)}</MenuItem>
       <MenuItem value='object'>{getTranslation('object', language)}</MenuItem>
     </StyledSelect>
-  )
+  );
 }

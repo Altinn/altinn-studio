@@ -7,14 +7,16 @@ import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
 
 import '../../styles/shared.css';
-import { IMapping } from 'src/types';
+import type { IMapping, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface IDropdownProps extends IComponentProps {
-  optionsId: string;
+  optionsId?: string;
   mapping?: IMapping;
   preselectedOptionIndex?: number;
+  source?: IOptionSource;
 }
 
 const useStyles = makeStyles({
@@ -40,13 +42,14 @@ function DropdownComponent({
   isValid,
   getTextResourceAsString,
   mapping,
+  source,
 }: IDropdownProps) {
   const classes = useStyles();
-  const options = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options,
-  );
+  const options = useGetOptions({ optionsId, mapping, source });
   const fetchingOptions = useAppSelector(
-    (state) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading,
+    (state) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
@@ -83,8 +86,9 @@ function DropdownComponent({
 
   return (
     <>
-      {fetchingOptions ?
-        <AltinnSpinner /> :
+      {fetchingOptions ? (
+        <AltinnSpinner />
+      ) : (
         <select
           id={id}
           value={formData?.simpleBinding}
@@ -102,7 +106,8 @@ function DropdownComponent({
               {getTextResourceAsString(option.label)}
             </option>
           ))}
-        </select>}
+        </select>
+      )}
     </>
   );
 }

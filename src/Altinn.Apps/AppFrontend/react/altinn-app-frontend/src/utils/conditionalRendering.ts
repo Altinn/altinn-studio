@@ -32,7 +32,7 @@ export function runConditionalRenderingRules(
         return;
       }
 
-      for (let i = 0; i <= repeatingGroup.count; ++i) {
+      for (let i = 0; i <= repeatingGroup.index; ++i) {
         const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
         connectionCopy.inputParams = mapRepeatingGroupIndex(connectionCopy.inputParams, i, true);
         connectionCopy.selectedFields = mapRepeatingGroupIndex(connectionCopy.selectedFields, i, false);

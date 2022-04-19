@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
-  command to run the test: docker-compose run k6 run /src/tests/app/end2end.js 
+  command to run the test: docker-compose run k6 run /src/tests/app/end2end.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e sblaccesskey=***
 */
 
@@ -143,6 +143,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('appUserE2E')] = generateJUnitXML(data, 'app-userE2E');
+  result[reportPath('appUserE2E.xml')] = generateJUnitXML(data, 'app-userE2E');
   return result;
 }
