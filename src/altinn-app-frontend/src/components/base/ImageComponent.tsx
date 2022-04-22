@@ -19,7 +19,7 @@ export interface IImagesrc {
   nb: string;
   nn?: string;
   en?: string;
-  [language: string]:string;
+  [language: string]: string;
 }
 
 const useStyles = makeStyles({
@@ -56,11 +56,13 @@ export function ImageComponent(props: IImageProps) {
               type='image/svg+xml'
               id={props.id}
               data={imgSrc}
-              width={width}
             >
               <img
                 src={imgSrc}
                 alt={altText}
+                style={{
+                  width: width,
+                }}
               />
             </object>
           )
@@ -69,18 +71,20 @@ export function ImageComponent(props: IImageProps) {
               id={props.id}
               src={imgSrc}
               alt={altText}
-              width={width}
+              style={{
+                width: width,
+              }}
             />
           )
         }
       </Grid>
       {props.textResourceBindings?.help &&
-      <Grid item={true} className={classes.spacing}>
-        <HelpTextContainer
-          language={props.language}
-          helpText={props.getTextResource(props.textResourceBindings.help)}
-        />
-      </Grid>
+        <Grid item={true} className={classes.spacing}>
+          <HelpTextContainer
+            language={props.language}
+            helpText={props.getTextResource(props.textResourceBindings.help)}
+          />
+        </Grid>
       }
     </Grid>
   );
