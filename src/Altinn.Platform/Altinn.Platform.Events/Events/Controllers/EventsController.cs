@@ -207,38 +207,31 @@ namespace Altinn.Platform.Events.Controllers
             List<string> type,
             int size)
         {
-            try
-            {
-                List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
+            List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
 
-                if (events.Count > 0)
+            if (events.Count > 0)
+            {
+                events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+            }
+
+            if (events.Count > 0)
+            {
+                List<KeyValuePair<string, string>> queryCollection = Request.Query
+                    .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
+                    .Where(q => q.Key != "after")
+                    .ToList();
+
+                StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
+
+                foreach (KeyValuePair<string, string> queryParam in queryCollection)
                 {
-                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+                    nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
                 }
 
-                if (events.Count > 0)
-                {
-                    StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
-
-                    List<KeyValuePair<string, string>> queryCollection = Request.Query
-                        .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
-                        .Where(q => q.Key != "after")
-                        .ToList();
-
-                    foreach (KeyValuePair<string, string> queryParam in queryCollection)
-                    {
-                        nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
-                    }
-
-                    Response.Headers.Add("next", nextUriBuilder.ToString());
-                }
-
-                return events;
+                Response.Headers.Add("next", nextUriBuilder.ToString());
             }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to get cloud events from database. {e}");
-            }
+
+            return events;
         }
 
         private ActionResult HandlePlatformHttpException(PlatformHttpException e)
