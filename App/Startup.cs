@@ -10,6 +10,8 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
 using Altinn.App.Core.Health;
+using Altinn.App.AppLogic.Print;
+using Altinn.App.PlatformServices.Interface;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -79,6 +81,7 @@ namespace Altinn.App
             services.AddPlatformServices(Configuration, _env);
 
             // Altinn App implementation service (The concrete implementation of logic from Application repository)
+            services.AddTransient<ICustomPdfHandler, PdfHandler>();
             services.AddTransient<IAltinnApp, AppLogic.App>();
 
             services.Configure<KestrelServerOptions>(options =>

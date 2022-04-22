@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 using Altinn.App.AppLogic.DataProcessing;
 using Altinn.App.AppLogic.Print;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.AppLogic.Validation;
-using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -28,7 +28,6 @@ namespace Altinn.App.AppLogic
     private readonly ValidationHandler _validationHandler;
     private readonly DataProcessingHandler _dataProcessingHandler;
     private readonly InstantiationHandler _instantiationHandler;
-    private readonly PdfHandler _pdfHandler;
 
     /// <summary>
     /// Initialize a new instance of the <see cref="App"/> class.
@@ -50,7 +49,7 @@ namespace Altinn.App.AppLogic
         ILogger<App> logger,
         IData dataService,
         IProcess processService,
-        IPDF pdfService,
+        IPdfService pdfService,
         IProfile profileService,
         IRegister registerService,
         IPrefill prefillService,
@@ -61,21 +60,15 @@ namespace Altinn.App.AppLogic
             appResourcesService,
             logger,
             dataService,
-            processService,
             pdfService,
             prefillService,
             instanceService,
-            registerService,
-            settings,
-            profileService,
-            textService,
             httpContextAccessor)
     {
       _logger = logger;
       _validationHandler = new ValidationHandler(httpContextAccessor);
       _dataProcessingHandler = new DataProcessingHandler();
       _instantiationHandler = new InstantiationHandler(profileService, registerService);
-      _pdfHandler = new PdfHandler();
     }
 
     /// <inheritdoc />
@@ -93,21 +86,6 @@ namespace Altinn.App.AppLogic
       _logger.LogInformation($"GetAppModelType {classRef}");
 
       return Type.GetType(classRef);
-    }
-
-    /// <summary>
-    /// Run app event
-    /// </summary>
-    /// <remarks>DEPRECATED METHOD, USE EVENT SPECIFIC METHOD INSTEAD</remarks>
-    /// <param name="appEvent">The app event type</param>
-    /// <param name="model">The service model</param>
-    /// <param name="modelState">The model state</param>
-    /// <returns>True if the event was handled</returns>
-    public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-    {
-      _logger.LogInformation($"RunAppEvent {appEvent}");
-
-      return await Task.FromResult(true);
     }
 
     /// <summary>
@@ -175,12 +153,6 @@ namespace Altinn.App.AppLogic
       await _instantiationHandler.DataCreation(instance, data, prefill);
     }
 
-    /// <inheritdoc />
-    public override Task<AppOptions> GetOptions(string id, AppOptions options)
-    {
-      return Task.FromResult(options);
-    }
-
     /// <summary>
     /// Hook to run code when process tasks is ended. 
     /// </summary>
@@ -192,15 +164,5 @@ namespace Altinn.App.AppLogic
       await Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Hook to run logic to hide pages or components when generatring PDF
-    /// </summary>
-    /// <param name="layoutSettings">The layoutsettings. Can be null and need to be created in method</param>
-    /// <param name="data">The data that there is generated PDF from</param>
-    /// <returns>Layoutsetting with possible hidden fields or pages</returns>
-    public override async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
-    {
-      return await _pdfHandler.FormatPdf(layoutSettings, data);
-    }
   }
 }
