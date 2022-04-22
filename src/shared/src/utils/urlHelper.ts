@@ -8,8 +8,8 @@ export const getApplicationMetadataUrl = (): string => {
 };
 
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
-export const altinnAppsImgLogoBlueSvgUrl = 'http://altinncdn.no/img/a-logo-blue.svg';
-export const altinnDocsUrl = 'http://docs.altinn.studio/';
+export const altinnAppsImgLogoBlueSvgUrl = 'https://altinncdn.no/img/a-logo-blue.svg';
+export const altinnDocsUrl = 'https://docs.altinn.studio/';
 export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
 export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';
 export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamodel`;

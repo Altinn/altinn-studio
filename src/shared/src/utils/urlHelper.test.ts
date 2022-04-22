@@ -149,12 +149,12 @@ describe('Shared urlHelper.ts', () => {
 
     // Test with non-standard port
     expect(
-      makeUrlRelativeIfSameDomain('http://altinn3local.no:8080/', {
+      makeUrlRelativeIfSameDomain('https://altinn3local.no:8080/', {
         hostname: 'altinn3local.no',
       } as Location),
     ).toBe('/');
     expect(
-      makeUrlRelativeIfSameDomain('http://altinn3local.no:8080/', {
+      makeUrlRelativeIfSameDomain('https://altinn3local.no:8080/', {
         hostname: 'altinn3local.no',
       } as Location),
     ).toBe('/');
