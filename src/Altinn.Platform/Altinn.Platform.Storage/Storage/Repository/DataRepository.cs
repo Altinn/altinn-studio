@@ -137,7 +137,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             string instanceKey = instanceGuid.ToString();
 
-            List<DataElement> instances = new();
+            List<DataElement> dataElements = new();
 
             QueryRequestOptions options = new QueryRequestOptions()
             {
@@ -153,10 +153,10 @@ namespace Altinn.Platform.Storage.Repository
             while (query.HasMoreResults)
             {
                 FeedResponse<DataElement> response = await query.ReadNextAsync();
-                instances.AddRange(response);
+                dataElements.AddRange(response);
             }
 
-            return instances;
+            return dataElements;
         }
 
         /// <inheritdoc/>

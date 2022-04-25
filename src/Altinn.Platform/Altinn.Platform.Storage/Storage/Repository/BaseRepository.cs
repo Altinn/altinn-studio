@@ -59,24 +59,17 @@ namespace Altinn.Platform.Storage.Repository
                 ConnectionMode = ConnectionMode.Gateway,
             };
 
-            try
-            {
-                CosmosClient client = new CosmosClient(_cosmosSettings.EndpointUri, _cosmosSettings.PrimaryKey, options);
+            CosmosClient client = new CosmosClient(_cosmosSettings.EndpointUri, _cosmosSettings.PrimaryKey, options);
 
-                Database db = await client.CreateDatabaseIfNotExistsAsync(_databaseId, cancellationToken: cancellationToken);
+            Database db = await client.CreateDatabaseIfNotExistsAsync(_databaseId, cancellationToken: cancellationToken);
 
-                Container container = await db.CreateContainerIfNotExistsAsync(_collectionId, _partitionKey, cancellationToken: cancellationToken);
-                return container;
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }          
+            Container container = await db.CreateContainerIfNotExistsAsync(_collectionId, _partitionKey, cancellationToken: cancellationToken);
+            return container;
         }
 
         /// <inheritdoc/> 
         public void Dispose()
-        {            
+        {
         }
     }
 }

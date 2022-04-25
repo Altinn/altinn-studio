@@ -140,9 +140,8 @@ namespace Altinn.Platform.Storage.Repository
             string cosmosAppId = AppIdToCosmosId(appId);
 
             ItemResponse<Application> response = await Container.DeleteItemAsync<Application>(cosmosAppId, new PartitionKey(org));
-            Console.WriteLine(response.StatusCode);
 
-            return true;
+            return response.StatusCode == HttpStatusCode.NoContent;
         }
 
         /// <inheritdoc/>
