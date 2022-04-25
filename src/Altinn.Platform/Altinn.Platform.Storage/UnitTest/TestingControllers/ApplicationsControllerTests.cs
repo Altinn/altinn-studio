@@ -88,7 +88,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((Application)null);
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
