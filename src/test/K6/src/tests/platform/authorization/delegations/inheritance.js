@@ -81,7 +81,7 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.getRules(altinnToken, policyMatchKeys, userId1, 999, resources, null, [userId2]);
+  res = delegation.getRules(altinnToken, policyMatchKeys, partyId1, 999, resources, null, [userId2]);
   success = check(res, {
     'Inherited Via KeyRole - status is 200': (r) => r.status === 200,
     'Inherited Via KeyRole - rule id matches': (r) => r.json('0.ruleId') === ruleId,
