@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   icon: {
-    border: '2px solid #1EAEF7',
+    border: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     width: 24,
     height: 24,
     backgroundColor: '#ffffff',
