@@ -61,9 +61,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            await Container.DeleteItemAsync<Instance>(item.Id, new PartitionKey(item.InstanceOwner.PartyId));
+            ItemResponse<Instance> response = await Container.DeleteItemAsync<Instance>(item.Id, new PartitionKey(item.InstanceOwner.PartyId));
 
-            return true;
+            return response.StatusCode == HttpStatusCode.NoContent; 
         }
 
         /// <inheritdoc/>
