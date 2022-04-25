@@ -50,7 +50,12 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       autoSave: true,
       focus: null,
       hiddenFields: [],
-      repeatingGroups: null,
+      repeatingGroups: {
+        group: {
+          index: 1,
+          dataModelBinding: 'someGroup',
+        }
+      },
       fileUploadersWithTag: null,
       currentView: 'FormLayout',
       navigationConfig: {},

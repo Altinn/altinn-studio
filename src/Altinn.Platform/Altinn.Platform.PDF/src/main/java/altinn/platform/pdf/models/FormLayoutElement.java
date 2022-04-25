@@ -22,6 +22,7 @@ public class FormLayoutElement implements Cloneable{
   private TextResourceBindings textResourceBindings;
   private String optionsId;
   private List<Option> options;
+  private OptionSource source;
   private boolean simplified;
   private List<String> children;
   private int count;
@@ -42,6 +43,7 @@ public class FormLayoutElement implements Cloneable{
         this.textResourceBindings,
         this.optionsId,
         this.options,
+        this.source,
         this.simplified,
         this.children,
         this.count,

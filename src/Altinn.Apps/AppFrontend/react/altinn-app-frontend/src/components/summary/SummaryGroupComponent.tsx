@@ -152,8 +152,8 @@ function SummaryGroupComponent(props: ISummaryGroupComponent) {
 
   const getRepeatingGroupMaxIndex = (containerId: string) => {
     const repeatingGroup = getRepeatingGroup(containerId);
-    if (repeatingGroup && repeatingGroup.count >= 0) {
-      return repeatingGroup.count;
+    if (repeatingGroup && repeatingGroup.index >= 0) {
+      return repeatingGroup.index;
     }
     return -1;
   };

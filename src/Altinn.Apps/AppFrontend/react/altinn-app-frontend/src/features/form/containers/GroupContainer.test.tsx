@@ -105,11 +105,11 @@ function render({ container = mockContainer }: IRender = {}) {
       hiddenFields: [],
       repeatingGroups: {
         'container-closed-id': {
-          count: 3,
+          index: 3,
           editIndex: -1,
         },
         'container-in-edit-mode-id': {
-          count: 4,
+          index: 4,
           editIndex: 0,
         },
       },

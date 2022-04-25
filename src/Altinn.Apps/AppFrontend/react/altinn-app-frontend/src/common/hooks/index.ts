@@ -7,11 +7,12 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useHasChangedIgnoreUndefined = (val: any) => {
-  const prevVal = usePrevious(val);
+  const stringifiedVal = JSON.stringify(val);
+  const prevVal = usePrevious(stringifiedVal);
   if (!val || !prevVal) {
     return false;
   }
-  return prevVal !== val;
+  return prevVal !== stringifiedVal;
 }
 
 export const usePrevious = (value: any) => {

@@ -49,67 +49,6 @@ declare namespace Cypress {
     deletecomponents(): Chainable<Element>;
 
     /**
-     * Custom command to get an altinnstudioruntime token for an app owner
-     * @example cy.getTokenForOrg(ttd)
-     */
-    getTokenForOrg(orgname: string): Chainable<Element>;
-
-    /**
-     * Custom command to upload an attachment to an app instance
-     * @example cy.uploadAttachment(ttd, app, "512345", "fc56bb33-eb24-4583-967d-7cf2c2d5fa53", "attachment", "jwttoken")
-     */
-    uploadAttachment(
-      orgname: string,
-      appname: string,
-      partyId: string,
-      instanceId: string,
-      attachmentId: string,
-      token: string,
-    ): Chainable<Element>;
-
-    /**
-     * Custom command to navigate to change name layout in task_2 in app: frontend-test
-     * @example cy.navigateToChangeName()
-     */
-    navigateToChangeName(): Chainable<Element>;
-
-    /**
-     * Custom command to used in beforeeach that preserves cookies between tests
-     * @example cy.preserveCookies()
-     */
-    preserveCookies(): Chainable<Element>;
-
-    /**
-     * Custom command to complete the change name form with supplied names and move to next page
-     * @example cy.completeChangeNameForm('abc', 'xyz')
-     */
-    completeChangeNameForm(firstName: string, lastName: string): Chainable<Element>;
-
-    /**
-     * Start an app instance based on the environment selected
-     * @example cy.startAppInstance('appName')
-     */
-    startAppInstance(appName: string): Chainable<Element>;
-
-    /**
-     * Navigate to the task3 of app ttd/frontend-test
-     * @example cy.navigateToTask3()
-     */
-    navigateToTask3(): Chainable<Element>;
-
-    /**
-     * navigate to task 3 and complete task 3 form
-     * @example cy.compelteTask3Form()
-     */
-    compelteTask3Form(): Chainable<Element>;
-
-    /**
-     * Add an item to group component with an item in nested group
-     * @example cy.addItemToGroup(1, 2, 'automation')
-     */
-    addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
-
-    /**
      * Test for WCAG violations of impact critical, serious, moderate
      * @example cy.testWcag()
      */
@@ -150,10 +89,5 @@ declare namespace Cypress {
      */
     getrepo(appId: string, token: string): Chainable<Element>;
 
-    /**
-     * Instantiate statefull instance from ttd/stateless-app
-     * @example cy.startStateFullFromStateless()
-     */
-     startStateFullFromStateless(): Chainable<Element>;
   }
 }

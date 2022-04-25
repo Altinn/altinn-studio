@@ -47,7 +47,7 @@ namespace Altinn.Platform.Events.Services
 
             if (!receipt.Success)
             {
-                _logger.LogError("// EventsService // StoreCloudEvent // Failed to push event {EventId} to queue. Exception {Exception}", cloudEventId, receipt.Exception);
+                _logger.LogError(receipt.Exception, "// EventsService // StoreCloudEvent // Failed to push event {EventId} to queue.", cloudEventId);
             }
 
             return cloudEventId;

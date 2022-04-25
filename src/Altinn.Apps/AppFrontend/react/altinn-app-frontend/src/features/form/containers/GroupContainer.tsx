@@ -89,7 +89,7 @@ export function GroupContainer({
   const textResources = useAppSelector(state => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
-      return repeatingGroups[containerId].count;
+      return repeatingGroups[containerId].index;
     }
     return -1;
   };
@@ -188,7 +188,7 @@ export function GroupContainer({
     if (
       container.edit?.openByDefault &&
       groupIndex === 0 &&
-      repeatingGroups[id].count === 0
+      repeatingGroups[id].index === 0
     ) {
       dispatch(
         FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }),

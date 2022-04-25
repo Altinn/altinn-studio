@@ -58,7 +58,7 @@ namespace Altinn.Platform.Events.Services
             string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events");
 
             HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, accessToken);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
             }
