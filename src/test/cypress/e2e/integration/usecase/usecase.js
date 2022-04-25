@@ -3,7 +3,6 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { dashboard } from '../../pageobjects/dashboard';
 
 context(
   'Bruksmønster',
