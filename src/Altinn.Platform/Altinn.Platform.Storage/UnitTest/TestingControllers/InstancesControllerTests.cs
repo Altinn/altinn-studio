@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Common.PEP.Interfaces;
@@ -25,7 +24,7 @@ using Altinn.Platform.Storage.Wrappers;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -1418,13 +1417,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             return client;
         }
 
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {
-            Type type = typeof(DocumentClientException);
+            Type type = typeof(CosmosException);
 
             string fullName = type.FullName ?? "wtf?";
 
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
+            object cosmosExceptionInstance = type.Assembly.CreateInstance(
                 fullName,
                 false,
                 BindingFlags.Instance | BindingFlags.NonPublic,
@@ -1433,7 +1432,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 null,
                 null);
 
-            return (DocumentClientException)documentClientExceptionInstance;
+            return (CosmosException)cosmosExceptionInstance;
         }
     }
 }

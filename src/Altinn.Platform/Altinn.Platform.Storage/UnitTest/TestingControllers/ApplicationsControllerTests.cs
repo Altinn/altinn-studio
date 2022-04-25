@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
-using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
@@ -24,7 +23,7 @@ using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -89,10 +88,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((Application)null);
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
@@ -130,7 +128,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+            CosmosException dex = CreateCosmosExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
@@ -165,7 +163,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+            CosmosException dex = CreateCosmosExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
@@ -461,22 +459,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {
-            Type type = typeof(DocumentClientException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (DocumentClientException)documentClientExceptionInstance;
+            return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);
         }
 
         private HttpClient GetTestClient(IApplicationRepository applicationRepository)

@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 
 using Newtonsoft.Json;
 
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return await Task.FromResult(dataElement);
             }
 
-            throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+            throw CreateCosmosExceptionForTesting("Not Found", HttpStatusCode.NotFound);
         }
 
         public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -105,22 +105,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
         }
 
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {
-            Type type = typeof(DocumentClientException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (DocumentClientException)documentClientExceptionInstance;
+            return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);         
         }
     }
 }
