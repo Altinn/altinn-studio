@@ -144,7 +144,6 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Application>> Post(string appId, [FromBody] Application application)
         {
-            // TODO Validate only Designer can call this.
             if (!IsValidAppId(appId))
             {
                 return BadRequest("AppId is not valid.");
@@ -154,16 +153,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                await repository.FindOne(appId, org);
+                var existingApp = await repository.FindOne(appId, org);
 
-                return BadRequest("Application already exists in repository! Try update application instead. ");
-            }
-            catch (DocumentClientException e)
-            {
-                // repository throws exception if not found
-                if (e.StatusCode != HttpStatusCode.NotFound)
+                if (existingApp != null)
                 {
-                    return StatusCode(500, $"Unable to access application collection: {e}");
+                    return BadRequest("Application already exists in repository! Try update application instead. ");
                 }
             }
             catch (Exception e)

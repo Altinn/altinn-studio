@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -82,7 +83,19 @@ namespace Altinn.Platform.Storage.Repository
 
             if (!_memoryCache.TryGetValue(appId, out Application application))
             {
-                application = await Container.ReadItemAsync<Application>(cosmosAppId, new PartitionKey(org));
+                try
+                {
+                    application = await Container.ReadItemAsync<Application>(cosmosAppId, new PartitionKey(org));
+                }
+                catch (CosmosException e)
+                {
+                    if (e.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+
+                    throw;
+                }
 
                 PostProcess(application);
 
@@ -101,8 +114,6 @@ namespace Altinn.Platform.Storage.Repository
             item.Id = AppIdToCosmosId(item.Id);
 
             ItemResponse<Application> createdApplication = await Container.CreateItemAsync(item, new PartitionKey(item.Org));
-
-            Console.Write(createdApplication.StatusCode);
 
             PostProcess(createdApplication);
 
@@ -171,10 +182,8 @@ namespace Altinn.Platform.Storage.Repository
 
             while (query.HasMoreResults)
             {
-                foreach (Application item in await query.ReadNextAsync())
-                {
-                    applications.Add(item);
-                }
+                FeedResponse<Application> response = await query.ReadNextAsync();
+                applications.AddRange(response);
             }
 
             query.Dispose();
