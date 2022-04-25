@@ -1,22 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 namespace Altinn.Platform.Storage.Repository
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Net;
-    using System.Threading.Tasks;
-
-    using Altinn.Platform.Storage.Configuration;
-    using Altinn.Platform.Storage.Helpers;
-    using Altinn.Platform.Storage.Interface.Models;
-
-    using Microsoft.Azure.Documents;
-    using Microsoft.Azure.Documents.Client;
-    using Microsoft.Extensions.Caching.Memory;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Handles text repository.
     /// </summary>
@@ -58,25 +55,11 @@ namespace Altinn.Platform.Storage.Repository
             string id = GetTextId(org, app, language);
             if (!_memoryCache.TryGetValue(id, out TextResource textResource))
             {
-                try
-                {
-                    Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id);
-                    textResource = await Client
-                        .ReadDocumentAsync<TextResource>(
-                            uri,
-                            new RequestOptions { PartitionKey = new PartitionKey(org) });
+                textResource = await Container.ReadItemAsync<TextResource>(id, new PartitionKey(org));
 
+                if (textResource != null)
+                {
                     _memoryCache.Set(id, textResource, _cacheEntryOptions);
-                    return textResource;
-                }
-                catch (DocumentClientException dce)
-                {
-                    if (dce.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        return null;
-                    }
-
-                    throw;
                 }
             }
 
@@ -116,9 +99,10 @@ namespace Altinn.Platform.Storage.Repository
             string language = textResource.Language;
             ValidateArguments(org, app, language);
             PreProcess(org, app, language, textResource);
-            ResourceResponse<Document> document = await Client.CreateDocumentAsync(CollectionUri, textResource);
-            TextResource result = JsonConvert.DeserializeObject<TextResource>(document.Resource.ToString());
-            return result;
+
+            ItemResponse<TextResource> createdTextResource = await Container.CreateItemAsync(textResource, new PartitionKey(textResource.Org));
+
+            return createdTextResource;
         }
 
         /// <inheritdoc/>
@@ -127,16 +111,10 @@ namespace Altinn.Platform.Storage.Repository
             string language = textResource.Language;
             ValidateArguments(org, app, language);
             PreProcess(org, app, language, textResource);
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, textResource.Id);
 
-            ResourceResponse<Document> document = await Client
-                .ReplaceDocumentAsync(
-                    uri,
-                    textResource,
-                    new RequestOptions { PartitionKey = new PartitionKey(org) });
+            TextResource upsertedTextResource = await Container.UpsertItemAsync(textResource, new PartitionKey(textResource.Org));
 
-            TextResource updatedResource = JsonConvert.DeserializeObject<TextResource>(document.Resource.ToString());
-            return updatedResource;
+            return upsertedTextResource;
         }
 
         /// <inheritdoc/>
@@ -144,14 +122,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             ValidateArguments(org, app, language);
             string id = GetTextId(org, app, language);
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, id);
+            var response = await Container.DeleteItemAsync<TextResource>(id, new PartitionKey(org));
 
-            await Client
-                .DeleteDocumentAsync(
-                    uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(org) });
-
-            return true;
+            return response.StatusCode == HttpStatusCode.NoContent;
         }
 
         private static string GetTextId(string org, string app, string language)
