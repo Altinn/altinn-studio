@@ -12,7 +12,7 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -282,14 +282,14 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.Error.Code.Equals("NotFound"))
+                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
                 }
 
-                return StatusCode(500, $"Unknown database exception in restore: {dce}");
+                return StatusCode(500, $"Unknown database exception in restore: {ce}");
             }
 
             if (instance.Status.IsHardDeleted)
@@ -351,14 +351,14 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.Error.Code.Equals("NotFound"))
+                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
 
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+                return StatusCode(500, $"Unknown database exception in delete: {ce}");
             }
             catch (Exception e)
             {

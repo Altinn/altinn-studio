@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -459,9 +459,9 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return (application, null);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     errorMessage = NotFound($"Cannot find application {appId} in storage");
                 }
@@ -483,9 +483,9 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return (instance, null);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     errorMessage = NotFound($"Unable to find any instance with id: {instanceId}.");
                 }
@@ -507,9 +507,9 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return (dataElement, null);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     errorMessage = NotFound($"Unable to find any data element with id: {dataGuid}.");
                 }

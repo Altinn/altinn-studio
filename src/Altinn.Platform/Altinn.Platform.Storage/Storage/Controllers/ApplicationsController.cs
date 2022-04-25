@@ -11,7 +11,7 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
@@ -79,10 +79,10 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return Ok(applicationList);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                logger.LogError(dce, "Unable to access document database");
-                return StatusCode(500, $"Unable to access document database {dce}");
+                logger.LogError(ce, "Unable to access document database");
+                return StatusCode(500, $"Unable to access document database {ce}");
             }
             catch (Exception e)
             {
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return Ok(result);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException dce)
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -248,14 +248,14 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 existingApplication = await repository.FindOne(appId, org);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return NotFound($"Cannot find application {appId}");
                 }
 
-                return StatusCode(500, $"Unable to find application with appId={appId} to update: {dce.Message}");
+                return StatusCode(500, $"Unable to find application with appId={appId} to update: {ce.Message}");
             }
 
             existingApplication.LastChangedBy = GetUserId();
@@ -281,15 +281,15 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return Ok(result);
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.Error.Code.Equals("NotFound"))
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return NotFound($"Did not find application with id={appId} to update");
                 }
 
-                logger.LogError(dce, "Document database error");
-                return StatusCode(500, $"Document database error: {dce}");
+                logger.LogError(ce, "Document database error");
+                return StatusCode(500, $"Document database error: {ce}");
             }
             catch (Exception exception)
             {
@@ -339,15 +339,15 @@ namespace Altinn.Platform.Storage.Controllers
                     return Ok(softDeleteApplication);
                 }
             }
-            catch (DocumentClientException dce)
+            catch (CosmosException ce)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                if (ce.StatusCode == HttpStatusCode.NotFound)
                 {
                     return NotFound($"Didn't find the object that should be deleted with appId={appId}");
                 }
 
-                logger.LogError(dce, "Unable to reach document database");
-                return StatusCode(500, $"Unable to reach document database {dce}");
+                logger.LogError(ce, "Unable to reach document database");
+                return StatusCode(500, $"Unable to reach document database {ce}");
             }
             catch (Exception e)
             {
