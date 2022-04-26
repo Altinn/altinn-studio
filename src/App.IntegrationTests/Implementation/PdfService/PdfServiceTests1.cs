@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Models;
@@ -13,7 +10,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace App.IntegrationTestsRef.Implementation
+namespace App.IntegrationTestsRef.Implementation.PdfService
 {
     public class PdfServiceTests1 : PdfServiceTestsBase
     {
@@ -26,7 +23,7 @@ namespace App.IntegrationTestsRef.Implementation
         {
             // Arrange
             string postedPdfContextJson = string.Empty;
-            PdfService pdfService = BuildPdfService((HttpRequestMessage requestMessage, CancellationToken cancellationToken) =>
+            Altinn.App.PlatformServices.Implementation.PdfService pdfService = BuildPdfService((requestMessage, cancellationToken) =>
             {
                 postedPdfContextJson = requestMessage.Content.ReadAsStringAsync(cancellationToken).Result;
             });

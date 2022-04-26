@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Models;
@@ -13,20 +12,20 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace App.IntegrationTestsRef.Implementation
+namespace App.IntegrationTestsRef.Implementation.PdfService
 {
-    public class PdfServiceTests2 : PdfServiceTestsBase
+    public class PdfServiceTest3 : PdfServiceTestsBase
     {
-        public PdfServiceTests2() : base("tdd", "dynamic-options-2")
+        public PdfServiceTest3() : base("tdd", "dynamic-options-2")
         {
         }
 
         [Fact]
-        public async Task GenerateAndStorePdf_MultipleMappingsWithSameOptionsId_ShouldPassCorrectOptionsData()
+        public async Task GenerateAndStorePdf_MappingsToSecureOptions_ShouldPassCorrectOptionsData()
         {
             // Arrange
             string postedPdfContextJson = string.Empty;
-            PdfService pdfService = BuildPdfService((HttpRequestMessage requestMessage, CancellationToken cancellationToken) =>
+            Altinn.App.PlatformServices.Implementation.PdfService pdfService = BuildPdfService((requestMessage, cancellationToken) =>
             {
                 postedPdfContextJson = requestMessage.Content.ReadAsStringAsync(cancellationToken).Result;
             });
@@ -43,6 +42,7 @@ namespace App.IntegrationTestsRef.Implementation
             pdfContext.OptionsDictionary["kommuner"].Keys.Should().Contain("Sogndal");
             pdfContext.OptionsDictionary["kommuner"].Values.Should().Contain("1813");
             pdfContext.OptionsDictionary["kommuner"].Keys.Should().Contain("Brønnøy");
+            pdfContext.OptionsDictionary["children"].Keys.Should().Contain("Ole");
         }
 
         private Instance GetInstance()
@@ -87,7 +87,8 @@ namespace App.IntegrationTestsRef.Implementation
             return new IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Models.Flyttemelding()
             {
                 FlytterFra = new IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Models.FylkeKommune() { Fylke = "18", Kommune = "1813" },
-                FlytterTil = new IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Models.FylkeKommune() { Fylke = "46", Kommune = "4640" }
+                FlytterTil = new IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Models.FylkeKommune() { Fylke = "46", Kommune = "4640" },
+                Child = "1"
             };
         }
 

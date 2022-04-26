@@ -9,6 +9,7 @@ using Altinn.App.Common.Helpers.Extensions;
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
@@ -140,7 +141,7 @@ namespace Altinn.App.PlatformServices.Implementation
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
             Dictionary<string, Dictionary<string, string>> optionsDictionary =
-                await GetOptionsDictionary(formLayoutsFileContent, language, data);
+                await GetOptionsDictionary(formLayoutsFileContent, language, data, instance.Id);
 
             var pdfContext = new PDFContext
             {
@@ -194,7 +195,7 @@ namespace Altinn.App.PlatformServices.Implementation
             return fileName;
         }
 
-        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout, string language, object data)
+        private async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout, string language, object data, string instanceId)
         {
             IEnumerable<JToken> componentsWithOptionsDefined = GetFormComponentsWithOptionsDefined(formLayout);
 
@@ -204,8 +205,20 @@ namespace Altinn.App.PlatformServices.Implementation
             {
                 string optionsId = component.SelectToken("optionsId").Value<string>();
                 bool hasMappings = component.SelectToken("mapping") != null;
+                var secureToken = component.SelectToken("secure");
+                bool isSecureOptions = secureToken != null && secureToken.Value<bool>();
+
                 Dictionary<string, string> keyValuePairs = hasMappings ? GetComponentKeyValuePairs(component, data) : new Dictionary<string, string>();
-                AppOptions appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, keyValuePairs);
+                AppOptions appOptions;
+                if (isSecureOptions)
+                {
+                    var instanceIdentifier = new InstanceIdentifier(instanceId);
+                    appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language, keyValuePairs);
+                }
+                else
+                {
+                    appOptions = await _appOptionsService.GetOptionsAsync(optionsId, language, keyValuePairs);
+                }
 
                 if (!dictionary.ContainsKey(optionsId))
                 {
@@ -223,7 +236,7 @@ namespace Altinn.App.PlatformServices.Implementation
             JObject formLayoutObject = JObject.Parse(formLayout);
 
             // @ = Current object, ?(expression) = Filter, the rest is just dot notation ref. https://goessner.net/articles/JsonPath/
-            return formLayoutObject.SelectTokens("FormLayout.data.layout[?(@.optionsId)]");
+            return formLayoutObject.SelectTokens("*.data.layout[?(@.optionsId)]");
         }
 
         private static Dictionary<string, string> GetComponentKeyValuePairs(JToken component, object data)

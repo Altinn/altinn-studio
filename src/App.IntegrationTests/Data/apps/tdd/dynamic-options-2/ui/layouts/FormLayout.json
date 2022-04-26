@@ -75,6 +75,19 @@
         "mapping": {
           "FlytterTil.Fylke": "fnr"
         }
+      },
+      {
+        "id": "6e008b15-066f-4d63-9994-b7653cb0f926",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "child"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Barn"
+        },
+        "required": true,
+        "secure":  true,
+        "optionsId": "children"
       }
     ]
   }

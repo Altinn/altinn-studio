@@ -684,7 +684,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<List<SimpleInstance>>> GetActiveInstances([FromRoute] string org, [FromRoute] string app, int instanceOwnerPartyId)
         {
-            Dictionary<string, StringValues> queryParams = new ()
+            Dictionary<string, StringValues> queryParams = new()
             {
                 { "appId", $"{org}/{app}" },
                 { "instanceOwner.partyId", instanceOwnerPartyId.ToString() },

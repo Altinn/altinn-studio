@@ -11,13 +11,14 @@ using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
+using App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Options;
 using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 
-namespace App.IntegrationTestsRef.Implementation
+namespace App.IntegrationTestsRef.Implementation.PdfService
 {
     public abstract class PdfServiceTestsBase
     {
@@ -115,7 +116,11 @@ namespace App.IntegrationTestsRef.Implementation
         {
             var appOptionSettings = BuildAppOptionSettings();
             var appOptionsFactory = new AppOptionsFactory(GetAppOptionProviders(appOptionSettings));
-            var instanceAppOptionsFactory = new InstanceAppOptionsFactory(new List<IInstanceAppOptionsProvider>());
+            var instanceAppOptionsFactory = new InstanceAppOptionsFactory(
+                new List<IInstanceAppOptionsProvider>()
+                {
+                    new ChildrenAppOptionsProvider()
+                });
 
             return new AppOptionsService(appOptionsFactory, instanceAppOptionsFactory);
         }
@@ -130,7 +135,7 @@ namespace App.IntegrationTestsRef.Implementation
             return Options.Create(appSettings);
         }
 
-        internal virtual PdfService BuildPdfService(Action<HttpRequestMessage, CancellationToken> onDataPostCallback)
+        internal virtual Altinn.App.PlatformServices.Implementation.PdfService BuildPdfService(Action<HttpRequestMessage, CancellationToken> onDataPostCallback)
         {
             PDFClient pdfClient = MockPdfClient(onDataPostCallback);
             AppResourcesSI appResources = BuildAppResourcesService();
@@ -141,7 +146,7 @@ namespace App.IntegrationTestsRef.Implementation
             var registerClient = new Mock<IRegister>();
             var customPdfHandler = new NullPdfHandler();
 
-            var pdfService = new PdfService(pdfClient, appResources, appOptionsService, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
+            var pdfService = new Altinn.App.PlatformServices.Implementation.PdfService(pdfClient, appResources, appOptionsService, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
 
             return pdfService;
         }
