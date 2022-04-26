@@ -14,7 +14,7 @@ namespace Altinn.Platform.Storage.Repository
     /// <summary>
     /// Base repository service for initializing db, collections etc.
     /// </summary>
-    internal abstract class BaseRepository : IHostedService, IDisposable
+    internal abstract class BaseRepository : IHostedService
     {
         private readonly string _databaseId;
         private readonly string _collectionId;
@@ -65,11 +65,6 @@ namespace Altinn.Platform.Storage.Repository
 
             Container container = await db.CreateContainerIfNotExistsAsync(_collectionId, _partitionKey, cancellationToken: cancellationToken);
             return container;
-        }
-
-        /// <inheritdoc/> 
-        public void Dispose()
-        {
         }
     }
 }
