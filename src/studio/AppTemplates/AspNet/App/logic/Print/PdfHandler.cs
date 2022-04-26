@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
 using Altinn.App.Common.Models;
+using Altinn.App.PlatformServices.Interface;
 
 namespace Altinn.App.AppLogic.Print
 {
     /// <summary>
-    /// Handler for formatting PDF. 
+    /// Handler for formatting PDF.
     /// </summary>
-    public class PdfHandler
+    public class PdfHandler : ICustomPdfHandler
     {
         /// <summary>
         /// Method to format PDF dynamic
