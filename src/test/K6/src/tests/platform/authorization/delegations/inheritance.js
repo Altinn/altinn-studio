@@ -56,6 +56,7 @@ export default function (data) {
   const userId1 = data.user1Data['userId'];
   const partyId1 = data.user1Data['partyId'];
   const userId2 = data.user2Data['userId'];
+  const partyId2 = data.user2Data['partyId'];
   var res, success, policyMatchKeys, ruleId, resources;
 
   resources = [{ appOwner: appOwner, appName: appName }];
@@ -65,7 +66,7 @@ export default function (data) {
     coveredBy: 'urn:altinn:partyid',
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
   };
-  res = delegation.addRules(altinnToken, policyMatchKeys, userId1, partyId1, userId2, appOwner, appName, 'Task_1', 'read');
+  res = delegation.addRules(altinnToken, policyMatchKeys, userId1, partyId1, partyId2, appOwner, appName, 'Task_1', 'read');
   success = check(res, {
     'Add delegation rule - status is 201': (r) => r.status === 201,
   });
@@ -81,20 +82,20 @@ export default function (data) {
     coveredBy: 'urn:altinn:userid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.getRules(altinnToken, policyMatchKeys, partyId1, 999, resources, null, [userId2]);
+  res = delegation.getRules(altinnToken, policyMatchKeys, partyId1, 999, resources, null, [partyId2]);
   success = check(res, {
     'Inherited Via KeyRole - status is 200': (r) => r.status === 200,
     'Inherited Via KeyRole - rule id matches': (r) => r.json('0.ruleId') === ruleId,
     'Inherited Via KeyRole - createdSuccessfully is false': (r) => r.json('0.createdSuccessfully') === false,
     'Inherited Via KeyRole - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === partyId1,
     'Inherited Via KeyRole - coveredBy is partyid': (r) => r.json('0.coveredBy.0.id') === 'urn:altinn:partyid',
-    'Inherited Via KeyRole - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === userId2.toString(),
+    'Inherited Via KeyRole - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === partyId2.toString(),
     'Inherited Via KeyRole - type is 2': (r) => r.json('0.type') === 2,
   });
   addErrorCount(success);
 
   //Retrieve rules that are inherited as subunit via keyrole
-  res = delegation.getRules(altinnToken, policyMatchKeys, null, 999, resources, partyId1, [userId2]);
+  res = delegation.getRules(altinnToken, policyMatchKeys, null, 999, resources, partyId1, [partyId2]);
   success = check(res, {
     'Inherited As Subunit Via Keyrole - status is 200': (r) => r.status === 200,
     'Inherited As Subunit Via Keyrole - rule id matches': (r) => r.json('0.ruleId') === ruleId,
@@ -108,7 +109,7 @@ export default function (data) {
     coveredBy: 'urn:altinn:partyid',
     resource: ['urn:altinn:app', 'urn:altinn:org'],
   };
-  res = delegation.deletePolicy(altinnToken, policyMatchKeys, userId1, partyId1, userId2, appOwner, appName, null);
+  res = delegation.deletePolicy(altinnToken, policyMatchKeys, userId1, partyId1, partyId2, appOwner, appName, null);
   success = check(res, {
     'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
   });
