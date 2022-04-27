@@ -32,86 +32,37 @@ namespace Altinn.App.PlatformServices.Extensions
         /// <summary>
         /// Get the org identifier string or null if it is not an org.
         /// </summary>
-        public static string GetOrg(this ClaimsPrincipal user)
-        {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))
-            {
-                Claim orgClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.Org);
-                if (orgClaim != null)
-                {
-                    return orgClaim.Value;
-                }
-            }
-
-            return null;
-        }
+        public static string GetOrg(this ClaimsPrincipal user) =>
+            user.GetFirstOfType(AltinnCoreClaimTypes.Org);
 
         /// <summary>
         /// Returns the organisation number of an org user or null if claim does not exist.
         /// </summary>
-        public static int? GetOrgNumber(this ClaimsPrincipal user)
-        {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
-            {
-                Claim orgClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.OrgNumber);
-                if (orgClaim != null && int.TryParse(orgClaim.Value, out int orgNumber))
-                {
-                    return orgNumber;
-                }
-            }
-
-            return null;
-        }
+        public static int? GetOrgNumber(this ClaimsPrincipal user) =>
+            user.GetFirstOfTypeAsInt(AltinnCoreClaimTypes.OrgNumber);
 
         /// <summary>
         /// Return the userId as an int or null if UserId claim is not set
         /// </summary>
-        public static int? GetUserIdAsInt(this ClaimsPrincipal user)
-        {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
-            {
-                Claim userIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.UserId);
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-                {
-                    return userId;
-                }
-            }
-
-            return null;
-        }
+        public static int? GetUserIdAsInt(this ClaimsPrincipal user) =>
+            user.GetFirstOfTypeAsInt(AltinnCoreClaimTypes.UserId);
 
         /// <summary>
         /// Returns the authentication level of the user.
         /// </summary>
-        public static int GetAuthenticationLevel(this ClaimsPrincipal user)
-        {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel))
-            {
-                Claim userIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel);
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int authenticationLevel))
-                {
-                    return authenticationLevel;
-                }
-            }
-
-            return 0;
-        }
+        public static int GetAuthenticationLevel(this ClaimsPrincipal user) =>
+            user.GetFirstOfTypeAsInt(AltinnCoreClaimTypes.AuthenticationLevel) ?? 0;
 
         /// <summary>
         /// Return the partyId as an int or null if PartyId claim is not set
         /// </summary>
-        public static int? GetPartyIdAsInt(this ClaimsPrincipal user)
-        {
-            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.PartyID))
-            {
-                Claim partyIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.PartyID);
-                if (partyIdClaim != null && int.TryParse(partyIdClaim.Value, out int partyId))
-                {
-                    return partyId;
-                }
-            }
+        public static int? GetPartyIdAsInt(this ClaimsPrincipal user) =>
+            user.GetFirstOfTypeAsInt(AltinnCoreClaimTypes.PartyID);
 
-            return null;
-        }
+        private static string GetFirstOfType(this ClaimsPrincipal user, string type) =>
+            user.FindFirst(c => c.Type == type)?.Value;
+
+        private static int? GetFirstOfTypeAsInt(this ClaimsPrincipal user, string type) =>
+            int.TryParse(user.GetFirstOfType(type), out var v) ? v : null;
     }
 }
