@@ -16,7 +16,7 @@
         "Attribute": [
           {
             "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-            "Value": "Read",
+            "Value": "read",
             "DataType": "http://www.w3.org/2001/XMLSchema#string"
           }
         ]
