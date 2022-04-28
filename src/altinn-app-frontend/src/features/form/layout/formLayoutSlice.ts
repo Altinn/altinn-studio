@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ILayoutSets, IUiConfig } from 'src/types';
 import { ILayouts } from './index';
@@ -62,8 +61,14 @@ const formLayoutSlice = createSlice({
         if (settings.pages.order) {
           state.uiConfig.layoutOrder = settings.pages.order;
           if (state.uiConfig.currentViewCacheKey) {
-            state.uiConfig.currentView = localStorage.getItem(state.uiConfig.currentViewCacheKey)
-              || settings.pages.order[0];
+            let currentView: string;
+            const lastVisitedPage = localStorage.getItem(state.uiConfig.currentViewCacheKey);
+            if (lastVisitedPage && settings.pages.order.includes(lastVisitedPage)) {
+              currentView = lastVisitedPage;
+            } else {
+              currentView = settings.pages.order[0];
+            }
+            state.uiConfig.currentView = currentView;
           } else {
             state.uiConfig.currentView = settings.pages.order[0];
           }

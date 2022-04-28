@@ -11,11 +11,11 @@ import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
 import { ILayouts } from '../index';
 import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
-const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
-const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
-const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+export const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
+export const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
+export const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
-function* fetchLayoutSaga(): SagaIterator {
+export function* fetchLayoutSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
@@ -33,10 +33,16 @@ function* fetchLayoutSaga(): SagaIterator {
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
 
-      // use instance id as cache key for current page
-      const currentViewCacheKey = instance?.id || 'stateless';
+      // use instance id (or application id for stateless) as cache key for current page
+      const currentViewCacheKey = instance?.id || applicationMetadata.id;
       yield put(Actions.setCurrentViewCacheKey({ key: currentViewCacheKey }));
-      firstLayoutKey = localStorage.getItem(currentViewCacheKey) || orderedLayoutKeys[0];
+
+      const lastVisitedPage = localStorage.getItem(currentViewCacheKey);
+      if (lastVisitedPage && orderedLayoutKeys.includes(lastVisitedPage)) {
+        firstLayoutKey = lastVisitedPage;
+      } else {
+        firstLayoutKey = orderedLayoutKeys[0];
+      }
 
       orderedLayoutKeys.forEach((key) => {
         layouts[key] = layoutResponse[key].data.layout;

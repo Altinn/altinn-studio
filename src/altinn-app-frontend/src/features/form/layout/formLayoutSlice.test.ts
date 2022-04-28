@@ -62,4 +62,68 @@ describe('features > form > layout > layoutSlice.ts', () => {
       expect(nextState.error).toEqual(null);
     });
   });
+
+  describe('fetchFormLayoutSettingsFulfilled', () => {
+    it('should set currentView to first page in settings.pages.order if no key is cached in localStorage', () => {
+      const settings = {
+        pages: {
+          order: ['page1', 'page2'],
+        },
+      };
+      const nextState = reducer(
+        initialState,
+        FormLayoutActions.fetchLayoutSettingsFulfilled({
+          settings,
+        }),
+      );
+
+      expect(nextState.uiConfig.currentView).toEqual('page1');
+    });
+
+    it('should set currentView to cached key in localStorage if key exists in settings.pages.order', () => {
+      jest.spyOn(window.localStorage.__proto__, 'getItem');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page2');
+      
+      const settings = {
+        pages: {
+          order: ['page1', 'page2'],
+        },
+      };
+      const nextState = reducer(
+        {...initialState,
+          uiConfig: {
+            ...initialState.uiConfig,
+            currentViewCacheKey: 'some-cache-key'
+        }},
+        FormLayoutActions.fetchLayoutSettingsFulfilled({
+          settings,
+        }),
+      );
+  
+      expect(nextState.uiConfig.currentView).toEqual('page2');
+    });
+  
+    it('should set currentView to first page in settings.pages.order if key is cached in localStorage but does not exist in order', () => {
+      jest.spyOn(window.localStorage.__proto__, 'getItem');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page3');
+      
+      const settings = {
+        pages: {
+          order: ['page1', 'page2'],
+        },
+      };
+      const nextState = reducer(
+        {...initialState,
+          uiConfig: {
+            ...initialState.uiConfig,
+            currentViewCacheKey: 'some-cache-key'
+        }},
+        FormLayoutActions.fetchLayoutSettingsFulfilled({
+          settings,
+        }),
+      );
+  
+      expect(nextState.uiConfig.currentView).toEqual('page1');
+    })
+  });
 });

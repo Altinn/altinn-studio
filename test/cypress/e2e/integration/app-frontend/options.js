@@ -6,7 +6,8 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Options', () => {
-  it('is possible to retrieve options dynamically', () => {
+  // disabled until https://github.com/Altinn/altinn-studio/issues/8255 is solved
+  it.skip('is possible to retrieve options dynamically', () => {
     cy.navigateToChangeName();
     // Case: options are dynamicly refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
