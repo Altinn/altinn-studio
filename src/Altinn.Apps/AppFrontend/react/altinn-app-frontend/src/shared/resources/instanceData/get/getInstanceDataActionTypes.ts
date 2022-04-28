@@ -1,5 +1,0 @@
-const moduleName = 'INSTANCE_DATA';
-
-export const GET_INSTANCEDATA = `${moduleName}.GET_INSTANCEDATA`;
-export const GET_INSTANCEDATA_FULFILLED = `${moduleName}.GET_INSTANCEDATA_FULFILLED`;
-export const GET_INSTANCEDATA_REJECTED = `${moduleName}.GET_INSTANCEDATA_REJECTED`;
