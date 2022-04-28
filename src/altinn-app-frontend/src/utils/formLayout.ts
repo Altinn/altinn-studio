@@ -304,3 +304,7 @@ export function setVariableTextKeysForRepeatingGroupComponent(
     });
   }
 }
+
+export function hasRequiredFields(layout: ILayout) {
+  return layout.find((c: ILayoutComponent) => c.required);
+}

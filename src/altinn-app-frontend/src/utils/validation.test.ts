@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 import { getMockValidationState } from '../../__mocks__/validationStateMock';
 import * as oneOfOnRootSchema from '../../__mocks__/json-schema/one-of-on-root.json';
@@ -11,6 +12,7 @@ import type {
   IRuntimeState,
   IComponentBindingValidation,
   IComponentValidations,
+  ILayoutValidations,
 } from 'src/types';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 
@@ -1914,6 +1916,46 @@ describe('utils > validation', () => {
       const result = validation.getUnmappedErrors(validations);
       const expected = ['unmapped1', 'unmapped2'];
       expect(result).toEqual(expected);
+    });
+  });
+
+  describe('missingFieldsInLayoutValidations', () => {
+    it('should return false when validations contain no messages for missing fields', () => {
+      const validations: ILayoutValidations = {
+        field: {
+          'simple_binding': {
+            errors: ['Some random error'],
+            warnings: [],
+          }
+        }
+      };
+      const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
+      expect(result).toBeFalsy();
+    });
+    it('should return true when validations contain messages (string) for missing fields', () => {
+      const validations: ILayoutValidations = {
+        field: {
+          'simple_binding': {
+            errors: ['Some random error', 'Feltet er påkrevd'],
+            warnings: [],
+          }
+        }
+      };
+      const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
+      expect(result).toBeTruthy();
+    });
+    it('should return true when validations contain messages (react element) for missing fields', () => {
+      const node = createElement('span', {}, 'Feltet er påkrevd');
+      const validations: ILayoutValidations = {
+        field: {
+          'simple_binding': {
+            errors: ['Some random error', node],
+            warnings: [],
+          }
+        }
+      };
+      const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
+      expect(result).toBeTruthy();
     });
   });
 });

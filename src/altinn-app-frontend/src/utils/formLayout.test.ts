@@ -10,6 +10,7 @@ import {
   createRepeatingGroupComponents,
   getFileUploadersWithTag,
   getRepeatingGroups,
+  hasRequiredFields,
   removeRepeatingGroupFromUIConfig,
   setMappingForRepeatingGroupComponent,
 } from './formLayout';
@@ -454,5 +455,20 @@ describe('formLayout', () => {
     };
     const result = getFileUploadersWithTag(testLayout, testAttachments);
     expect(result).toEqual(expected);
+  });
+
+  it('hasRequiredFields should discover required fields', () => {
+    const layout: ILayout = [
+      {
+        id: 'field1',
+        required: true,
+      } as ILayoutComponent,
+      {
+        id: 'field2',
+        required: false,
+      } as ILayoutComponent,
+    ];
+    const result = hasRequiredFields(layout);
+    expect(result).toBeTruthy();
   });
 });

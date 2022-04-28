@@ -1670,3 +1670,29 @@ export function getHighestIndexOfChildGroup(
   }
   return index - 1;
 }
+
+export function missingFieldsInLayoutValidations(
+  layoutValidations: ILayoutValidations,
+  language: ILanguage,
+): boolean {
+  let result = false;
+  const requiredMessage = getLanguageFromKey('form_filler.error_required', language);
+  Object.keys(layoutValidations).forEach((component: string) => {
+    if (!layoutValidations[component]) return;
+    if (result) return;
+    Object.keys(layoutValidations[component]).forEach((binding: string) => {
+      if (!layoutValidations[component][binding]) return;
+      if (result) return;
+
+      const errors = layoutValidations[component][binding].errors;
+      result = (errors && errors.length > 0 && errors.findIndex((e: any) => {
+        if (typeof(e) === 'string') {
+          return e.includes(requiredMessage);
+        }
+        return (e?.props?.children as string).includes(requiredMessage);
+      }) > -1)
+    })
+  });
+
+  return result;
+}

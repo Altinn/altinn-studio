@@ -1,7 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> features/form/components/Form.tsx +++ should match snapshot 1`] = `
-<div
-  className="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-3 MuiGrid-align-items-xs-flex-start"
-/>
+<div>
+  <div
+    className="MuiGrid-root makeStyles-banner-1 makeStyles-default-2 MuiGrid-item"
+    data-testid="MessageBanner-container"
+    id="MessageBanner-container"
+  >
+    <span>
+      Obligatoriske felter er markert med *
+    </span>
+  </div>
+  <div
+    className="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-3 MuiGrid-align-items-xs-flex-start"
+  />
+</div>
 `;

@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import { ILabelSettings } from 'src/types';
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
 import { ILanguage } from 'altinn-shared/types';
+import { RequiredIndicator } from './RequiredIndicator';
+import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;
@@ -21,6 +22,9 @@ export default function Legend(props: IFormLegendProps) {
     return null;
   }
 
+  const shouldShowRequired = props.required;
+  const shouldShowOptional = props.labelSettings?.optionalIndicator && !props.required
+
   return (
     <>
       <label
@@ -28,13 +32,12 @@ export default function Legend(props: IFormLegendProps) {
         htmlFor={props.id}
       >
         {props.labelText}
-        {(props.labelSettings?.optionalIndicator === false || props.required) ?
-          null
-          :
-          <span className='label-optional'>
-            {` (${getLanguageFromKey('general.optional', props.language)})`}
-          </span>
-        }
+          {shouldShowRequired &&
+            <RequiredIndicator />
+          }
+          {shouldShowOptional &&
+            <OptionalIndicator />
+          }
         {props.helpText &&
           <HelpTextContainer
             language={props.language}

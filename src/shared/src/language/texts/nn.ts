@@ -70,6 +70,8 @@ export function nn() {
       file_uploader_validation_error_no_chosen_tag: 'Du må velja',
       placeholder_receipt_header: 'Skjemaet er no fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
+      required_description: 'Obligatoriske felter er markert med *',
+      required_label: '*',
       summary_item_change: 'Endre',
       summary_go_to_correct_page: 'Gå til riktig side i skjema',
     },

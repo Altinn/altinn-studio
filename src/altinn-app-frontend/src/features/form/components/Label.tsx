@@ -2,9 +2,10 @@
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
 import { ILabelSettings } from 'src/types';
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import { HelpTextContainer } from './HelpTextContainer';
 import { ILanguage } from 'altinn-shared/types';
+import { RequiredIndicator } from './RequiredIndicator';
+import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLabelProps {
   labelText: any;
@@ -21,6 +22,9 @@ export default function Label(props: IFormLabelProps) {
     return null;
   }
 
+  const shouldShowRequiredMarking = props.required && !props.readOnly;
+  const shouldShowOptionalMarking = props.labelSettings?.optionalIndicator && !props.required && !props.readOnly;
+
   return (
     <Grid item={true} container={true} xs={12}>
       <Grid item={true}>
@@ -30,13 +34,12 @@ export default function Label(props: IFormLabelProps) {
           data-testid={`label-${props.id}`}
         >
           {props.labelText}
-          {props.labelSettings?.optionalIndicator === false ||
-          props.required ||
-          props.readOnly ? null : (
-            <span className='label-optional'>
-              {` (${getLanguageFromKey('general.optional', props.language)})`}
-            </span>
-          )}
+          {shouldShowRequiredMarking &&
+            <RequiredIndicator />
+          }
+          {shouldShowOptionalMarking &&
+            <OptionalIndicator />
+          }
         </label>
       </Grid>
       {props.helpText && (

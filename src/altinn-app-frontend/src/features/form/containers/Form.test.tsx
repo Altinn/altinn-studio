@@ -44,7 +44,7 @@ describe('>>> features/form/components/Form.tsx', () => {
           title: 'Title',
         },
         readOnly: false,
-        required: false,
+        required: true,
         disabled: false,
       },
       {
