@@ -215,7 +215,7 @@ namespace Altinn.Platform.Authorization.Helpers
 
         /// <summary>
         /// Checks whether the provided XacmlPolicy contains a rule having an identical Resource signature and contains the Action from the rule,
-        /// to be used for checking for duplicate rules in delegation.
+        /// to be used for checking for duplicate rules in delegation, or that the rule exists in the Apps Xacml policy.
         /// </summary>
         /// <returns>A bool</returns>
         public static bool PolicyContainsMatchingRule(XacmlPolicy policy, Rule rule)
