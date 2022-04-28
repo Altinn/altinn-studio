@@ -257,7 +257,6 @@ namespace Altinn.Platform.Storage.Repository
         private static void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
-
         }
 
         private static void PostProcess(List<Application> applications)
