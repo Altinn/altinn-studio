@@ -1,18 +1,24 @@
 import { Typography } from '@material-ui/core';
-import { createTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
+import {
+  createTheme,
+  createStyles,
+  MuiThemeProvider,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
-import { IAttachment } from '../../types/index.d';
-import AltinnAttachment from '../atoms/AltinnAttachment';
-import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
+import type { IAttachment } from '../../types/global';
+import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
+import AltinnCollapsibleAttachmentsComponent from '../molecules/AltinnCollapsibleAttachments';
 
-export interface IReceiptComponentProps extends WithStyles<typeof styles> {
+interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   body: string;
   collapsibleTitle: string;
@@ -43,7 +49,12 @@ const styles = createStyles({
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
-  const returnInstanceMetadataGridRow = (name: string, prop: string, classes: any, index: number) => {
+  const returnInstanceMetadataGridRow = (
+    name: string,
+    prop: string,
+    classes: any,
+    index: number,
+  ) => {
     return (
       <TableRow
         key={index}
@@ -57,9 +68,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
             root: classNames(classes.tableCell),
           }}
         >
-          <Typography variant='body1'>
-            {name}:
-          </Typography>
+          <Typography variant='body1'>{name}:</Typography>
         </TableCell>
         <TableCell
           padding='none'
@@ -67,9 +76,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
             root: classNames(classes.tableCell),
           }}
         >
-          <Typography variant='body1'>
-            {prop}
-          </Typography>
+          <Typography variant='body1'>{prop}</Typography>
         </TableCell>
       </TableRow>
     );
@@ -78,18 +85,21 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
   return (
     <React.Fragment>
       <MuiThemeProvider theme={theme}>
-        <Typography variant='h2'>
-          {props.title}
-        </Typography>
+        <Typography variant='h2'>{props.title}</Typography>
         <Table
           style={{ height: 'auto', width: 'auto' }}
           padding='none'
           className={props.classes.instanceMetadata}
         >
           <TableBody>
-            {Object.keys(props.instanceMetadataObject).map((name, i) => (
-              returnInstanceMetadataGridRow(name, props.instanceMetadataObject[name], props.classes, i)
-            ))}
+            {Object.keys(props.instanceMetadataObject).map((name, i) =>
+              returnInstanceMetadataGridRow(
+                name,
+                props.instanceMetadataObject[name],
+                props.classes,
+                i,
+              ),
+            )}
           </TableBody>
         </Table>
         {props.subtitle && (
@@ -111,17 +121,18 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         >
           {props.titleSubmitted}
         </Typography>
-        <AltinnAttachment
-          attachments={props.pdf}
-        />
+        <AltinnAttachmentComponent attachments={props.pdf} />
         {props.attachments && (
-          <AltinnCollapsibleAttachments
+          <AltinnCollapsibleAttachmentsComponent
             attachments={props.attachments}
-            collapsible={useMediaQuery('print') ? false : Boolean(props.attachments.length > 4)}
+            collapsible={
+              useMediaQuery('print')
+                ? false
+                : Boolean(props.attachments.length > 4)
+            }
             title={props.collapsibleTitle}
           />
         )}
-
       </MuiThemeProvider>
     </React.Fragment>
   );

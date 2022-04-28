@@ -1,6 +1,6 @@
 import * as React from 'react';
 import appTheme from '../theme/altinnAppTheme';
-import '../styles/styles.css';
+import './AltinnLogo.css';
 
 export interface IAltinnLogoProps {
   color: string;

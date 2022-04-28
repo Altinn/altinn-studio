@@ -41,7 +41,7 @@ namespace Altinn.App.AppLogic.Validation
         ///     // Perform validations
         ///     if ([some condition])
         ///     {
-        ///       validationResults.Add(new ValidationResult([error message], new List{string}() {[affected field id]} ));
+        ///         validationResults.AddModelError("Affected data model field", "Error message or text resource key");
         ///     }
         /// }
         /// </example>

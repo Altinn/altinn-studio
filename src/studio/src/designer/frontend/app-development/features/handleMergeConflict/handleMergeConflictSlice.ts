@@ -16,11 +16,11 @@ export interface IFetchRepoStatusAction {
   repo: string;
 }
 
-export interface IFetchRepoStatusFulfilled {
+interface IFetchRepoStatusFulfilled {
   result: any;
 }
 
-export interface IFetchRepoStatusRejected {
+interface IFetchRepoStatusRejected {
   error: Error;
 }
 
@@ -29,19 +29,23 @@ const handleMergeConflictSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchRepoStatusFulfilled: (state, action: PayloadAction<IFetchRepoStatusFulfilled>) => {
+    fetchRepoStatusFulfilled: (
+      state,
+      action: PayloadAction<IFetchRepoStatusFulfilled>,
+    ) => {
       const { result } = action.payload;
-      // eslint-disable-next-line no-param-reassign
       state.repoStatus = result;
     },
   },
 });
 
-export const fetchRepoStatus = createAction<IFetchRepoStatusAction>(`${moduleName}/fetchRepoStatus`);
-export const fetchRepoStatusRejected = createAction<IFetchRepoStatusRejected>(`${moduleName}/fetchRepoStatusRejected`);
+export const fetchRepoStatus = createAction<IFetchRepoStatusAction>(
+  `${moduleName}/fetchRepoStatus`,
+);
+export const fetchRepoStatusRejected = createAction<IFetchRepoStatusRejected>(
+  `${moduleName}/fetchRepoStatusRejected`,
+);
 
-export const {
-  fetchRepoStatusFulfilled,
-} = handleMergeConflictSlice.actions;
+export const { fetchRepoStatusFulfilled } = handleMergeConflictSlice.actions;
 
 export default handleMergeConflictSlice.reducer;

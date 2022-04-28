@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface IUserState {
@@ -53,38 +52,44 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     fetchDeployPermissionsFulfilled: (
-      state: IUserState, action: PayloadAction<IFetchDeployPermissionsFulfilled>,
+      state: IUserState,
+      action: PayloadAction<IFetchDeployPermissionsFulfilled>,
     ) => {
       const { environments } = action.payload;
       state.permissions.deploy.environments = environments;
       state.error = null;
     },
     fetchDeployPermissionsRejected: (
-      state: IUserState, action: PayloadAction<IUserActionRejected>,
+      state: IUserState,
+      action: PayloadAction<IUserActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
     fetchRemainingSessionFulfilled: (
-      state: IUserState, action: PayloadAction<IFetchRemainingSessionFulfilled>,
+      state: IUserState,
+      action: PayloadAction<IFetchRemainingSessionFulfilled>,
     ) => {
       const { remainingMinutes } = action.payload;
       state.session.remainingMinutes = remainingMinutes;
     },
     fetchRemainingSessionRejected: (
-      state: IUserState, action: PayloadAction<IUserActionRejected>,
+      state: IUserState,
+      action: PayloadAction<IUserActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
     keepAliveSessionFulfilled: (
-      state: IUserState, action: PayloadAction<IKeepAliveSessionFulfilled>,
+      state: IUserState,
+      action: PayloadAction<IKeepAliveSessionFulfilled>,
     ) => {
       const { remainingMinutes } = action.payload;
       state.session.remainingMinutes = remainingMinutes;
     },
     keepAliveSessionRejected: (
-      state: IUserState, action: PayloadAction<IUserActionRejected>,
+      state: IUserState,
+      action: PayloadAction<IUserActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -92,9 +97,13 @@ const userSlice = createSlice({
   },
 });
 
-export const fetchDeployPermissions = createAction(`${moduleName}/fetchDeployPermissions`);
+export const fetchDeployPermissions = createAction(
+  `${moduleName}/fetchDeployPermissions`,
+);
 
-export const fetchRemainingSession = createAction(`${moduleName}/fetchRemainingSession`);
+export const fetchRemainingSession = createAction(
+  `${moduleName}/fetchRemainingSession`,
+);
 
 export const keepAliveSession = createAction(`${moduleName}/keepAliveSession`);
 

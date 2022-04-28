@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { RadioGroup, Typography, makeStyles } from '@material-ui/core';
 

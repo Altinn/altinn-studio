@@ -7,7 +7,11 @@ import { ApplicationMetadataActions } from '../applicationMetadataSlice';
 function* getApplicationMetadataSaga(): SagaIterator {
   try {
     const result = yield call(get, applicationMetadataUrl);
-    yield put(ApplicationMetadataActions.getApplicationMetadataFulfilled({ applicationMetadata: result }));
+    yield put(
+      ApplicationMetadataActions.getApplicationMetadataFulfilled({
+        applicationMetadata: result,
+      }),
+    );
   } catch (error) {
     if (error.status === 404) {
       // The application metadata does not exist, create one then fetch.
@@ -15,11 +19,16 @@ function* getApplicationMetadataSaga(): SagaIterator {
       yield call(post, applicationMetadataUrl);
       yield put(ApplicationMetadataActions.getApplicationMetadata());
     } else {
-      yield put(ApplicationMetadataActions.getApplicationMetadataRejected({ error }));
+      yield put(
+        ApplicationMetadataActions.getApplicationMetadataRejected({ error }),
+      );
     }
   }
 }
 
 export function* watchGetApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(ApplicationMetadataActions.getApplicationMetadata, getApplicationMetadataSaga);
+  yield takeLatest(
+    ApplicationMetadataActions.getApplicationMetadata,
+    getApplicationMetadataSaga,
+  );
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.Models;
+using Altinn.Platform.Authorization.Models.DelegationChangeEvent;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Util
@@ -119,9 +120,53 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                                                                         && a.CoveredByPartyId == expectedEntity.CoveredByPartyId
                                                                         && a.CoveredByUserId == expectedEntity.CoveredByUserId
                                                                         && a.OfferedByPartyId == expectedEntity.OfferedByPartyId
-                                                                        && a.IsDeleted == expectedEntity.IsDeleted);
+                                                                        && a.DelegationChangeType == expectedEntity.DelegationChangeType);
                 Assert.NotNull(actualentity);
             }
+        }
+
+        public static void AssertEqual(DelegationChangeEventList expected, DelegationChangeEventList actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.DelegationChangeEvents.Count, actual.DelegationChangeEvents.Count);
+            for (int i = 0; i < expected.DelegationChangeEvents.Count; i++)
+            {
+                AssertEqual(expected.DelegationChangeEvents[i], actual.DelegationChangeEvents[i]);
+            }
+        }
+
+        public static void AssertEqual(DelegationChangeEvent expected, DelegationChangeEvent actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.EventType, actual.EventType);
+            AssertEqual(expected.DelegationChange, actual.DelegationChange);
+        }
+
+        public static void AssertEqual(SimpleDelegationChange expected, SimpleDelegationChange actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.DelegationChangeId, actual.DelegationChangeId);
+            Assert.Equal(expected.AltinnAppId, actual.AltinnAppId);
+            Assert.Equal(expected.OfferedByPartyId, actual.OfferedByPartyId);
+            Assert.Equal(expected.CoveredByPartyId, actual.CoveredByPartyId);
+            Assert.Equal(expected.CoveredByUserId, actual.CoveredByUserId);
+            Assert.Equal(expected.PerformedByUserId, actual.PerformedByUserId);
+            Assert.Equal(expected.Created, actual.Created);
         }
 
         /// <summary>

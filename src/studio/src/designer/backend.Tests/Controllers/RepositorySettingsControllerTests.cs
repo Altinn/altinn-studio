@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -20,11 +21,11 @@ using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class RepositorySettingsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class RepositorySettingsControllerTests : IClassFixture<WebApplicationFactory<RepositorySettingsController>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<RepositorySettingsController> _factory;
 
-        public RepositorySettingsControllerTests(WebApplicationFactory<Startup> factory)
+        public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory)
         {
             _factory = factory;
         }
@@ -110,21 +111,21 @@ namespace Designer.Tests.Controllers
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
-
-            Program.ConfigureSetupLogging();
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
 
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureAppConfiguration((context, conf) =>
                 {
-                    conf.AddJsonFile("appsettings.json");
+                    conf.AddJsonFile(configPath);
                 });
 
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile(configPath)
                     .Build();
 
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
@@ -137,10 +138,9 @@ namespace Designer.Tests.Controllers
                     Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
                     Returns<string, string, string>(async (org, repo, path) =>
                     {
-                        string repopath = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
-                        repopath += @$"testUser\{org}\{repo}\";
+                        string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo, path);
 
-                        Stream fs = File.OpenRead(repopath + path);
+                        Stream fs = File.OpenRead(repopath);
                         return await Task.FromResult(fs);
                     });
                 repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();

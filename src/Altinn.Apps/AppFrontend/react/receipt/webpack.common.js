@@ -1,14 +1,9 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: [
-    'core-js/modules/es.object.assign',
-    'core-js/modules/es.array.find-index',
-    'core-js/modules/es.array.find',
-    './src/index.tsx',
-  ],
+  entry: './src/index.tsx',
   output: {
     filename: 'receipt.js',
   },
@@ -51,10 +46,7 @@ module.exports = {
     ],
   },
   plugins: [
-    new HtmlWebPackPlugin({
-      template: './public/index.html',
-      filename: 'index.html',
-    }),
+    new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: 'receipt.css',
     }),

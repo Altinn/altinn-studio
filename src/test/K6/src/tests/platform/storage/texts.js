@@ -1,6 +1,6 @@
-/* 
+/*
     Test data required: username and password, an app (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run /src/tests/platform/storage/texts.js 
+    Command: docker-compose run k6 run /src/tests/platform/storage/texts.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 
@@ -69,6 +69,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformStorageTexts')] = generateJUnitXML(data, 'platform-storage-texts');
+  result[reportPath('platformStorageTexts.xml')] = generateJUnitXML(data, 'platform-storage-texts');
   return result;
 }

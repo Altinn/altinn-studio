@@ -226,5 +226,23 @@ namespace Altinn.Common.EFormidlingClient.Models.SBD
         /// </summary>
         [JsonPropertyName("sikkerhetsnivaa")]
         public int Sikkerhetsnivaa { get; set; }
+
+        /// <summary>
+        ///  Gets or sets the DPF. Defines the configuration related to Digital post til FIKS meldingsformidler.
+        /// </summary>
+        [JsonPropertyName("dpf")]
+        public DPF DPF { get; set; }
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DPF"/> class.
+    /// </summary>
+    public class DPF
+    {
+        /// <summary>
+        ///  Gets or sets the ForsendelsesType. Used for routing on the receiving end.
+        /// </summary>
+        [JsonPropertyName("forsendelseType")]
+        public string ForsendelsesType { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 /*
   Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
-  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js 
+  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js
   -e env=test -e org=ttd -e level2app=apps-test -e appsaccesskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
 */
 
@@ -200,6 +200,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('portal-simulation')] = generateJUnitXML(data, 'portal-simulation');
+  result[reportPath('portal-simulation.xml')] = generateJUnitXML(data, 'portal-simulation');
   return result;
 }

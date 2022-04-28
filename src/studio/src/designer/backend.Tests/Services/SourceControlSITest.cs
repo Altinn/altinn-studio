@@ -103,7 +103,7 @@ namespace Designer.Tests.Services
             giteaMock ??= new Mock<IGitea>();
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar;
 
             SourceControlSI service = new SourceControlSI(
                 repoSettings,

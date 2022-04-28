@@ -25,6 +25,7 @@ export enum ComponentTypes {
   Button = 'Button',
   AddressComponent = 'AddressComponent',
   Group = 'Group',
+  NavigationBar = 'NavigationBar',
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
 }
@@ -44,6 +45,7 @@ export const componentIcons: IComponentIcon = {
   Button: 'fa fa-button',
   AddressComponent: 'fa fa-address',
   Group: 'fa fa-group',
+  NavigationBar: 'fa fa-page-navigation',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
 };
@@ -53,7 +55,7 @@ export const textComponents: IComponent[] = [
     name: ComponentTypes.Header,
     Icon: componentIcons.Header,
     customProperties: {
-      size: "L",
+      size: 'L',
     },
   },
   {
@@ -167,8 +169,15 @@ export const advancedComponents: IComponent[] = [
       children: [],
     },
   },
+  {
+    name: ComponentTypes.NavigationBar,
+    Icon: componentIcons.NavigationBar,
+  },
 ];
 
-const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
+const components: IComponent[] = textComponents.concat(
+  schemaComponents,
+  advancedComponents,
+);
 
 export default components;

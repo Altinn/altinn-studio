@@ -38,6 +38,11 @@ namespace Altinn.Platform.Authentication.Configuration
         public string SBLRedirectEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets the sbl logout endpoint
+        /// </summary>
+        public string SBLLogoutEndpoint { get; set; }
+
+        /// <summary>
         /// Gets or sets the platform endpoint
         /// </summary>
         public string PlatformEndpoint { get; set; }
@@ -127,6 +132,6 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Cookie to store original 
         /// </summary>
-        public string AuthnGotToCookieName { get; set; } = "authngoto";
+        public string AuthnGoToCookieName { get; set; } = "authngoto";
     }
 }

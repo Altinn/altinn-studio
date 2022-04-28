@@ -1,9 +1,9 @@
-/* eslint-disable max-len */
 import { Typography } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import Select from 'react-select';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import { getTextResource, truncate } from './language';
+import type { ITextResource, IDataModelBindings } from '../types/global';
 
 export const styles = {
   inputHelper: {
@@ -39,7 +39,9 @@ export function renderPropertyLabel(textKey: string) {
 }
 
 export function renderOptionalLabel(text: string) {
-  return <Typography style={styles.optional}>{`(${text.toLowerCase()})`}</Typography>;
+  return (
+    <Typography style={styles.optional}>{`(${text.toLowerCase()})`}</Typography>
+  );
 }
 
 export function renderDescription(text: string) {
@@ -56,10 +58,11 @@ export function renderSelectDataModelBinding(
   language: any,
   label?: string,
   returnValue?: any,
-  key: string = 'simpleBinding',
+  key = 'simpleBinding',
   uniqueKey?: any,
 ): JSX.Element {
-  const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
+  const onDMChange = (dataModelField: any) =>
+    onDataModelChange(dataModelField, returnValue);
   const noOptMessage = () => noOptionsMessage(language);
   return (
     <div key={uniqueKey || ''}>
@@ -82,14 +85,18 @@ export function renderSelectGroupDataModelBinding(
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
-  key: string = 'simpleBinding',
+  key = 'simpleBinding',
 ): JSX.Element {
   return (
     <div>
-      {renderPropertyLabel(language.ux_editor.modal_properties_data_model_helper)}
+      {renderPropertyLabel(
+        language.ux_editor.modal_properties_data_model_helper,
+      )}
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
-        onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
+        onDataModelChange={(dataModelField) =>
+          onDataModelChange(dataModelField, key)
+        }
         language={language}
         selectGroup={true}
         noOptionsMessage={() => noOptionsMessage(language)}
@@ -99,13 +106,13 @@ export function renderSelectGroupDataModelBinding(
 }
 
 interface IInnerProps {
-  labelText: string,
-  onChangeFunction: (e: any) => void,
-  textResources: ITextResource[],
-  language: any,
-  selected?: string,
-  placeholder?: string,
-  description?: string,
+  labelText: string;
+  onChangeFunction: (e: any) => void;
+  textResources: ITextResource[];
+  language: any;
+  selected?: string;
+  placeholder?: string;
+  description?: string;
 }
 function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
   const {
@@ -121,10 +128,15 @@ function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
   const resources = !textResources
     ? []
     : textResources.map((textResource: any) => {
-      const option = truncate(textResource.value, 80);
-      return { value: textResource.id, label: `${option}\n(${textResource.id})` };
-    });
-  const defaultValue = !selected ? undefined : resources.find(({ value }) => value === selected);
+        const option = truncate(textResource.value, 80);
+        return {
+          value: textResource.id,
+          label: `${option}\n(${textResource.id})`,
+        };
+      });
+  const defaultValue = !selected
+    ? undefined
+    : resources.find(({ value }) => value === selected);
   const onChange = (value: any) => onChangeFunction(value);
   const noOptMessage = () => noOptionsMessage(language);
   const placeholderText = placeholder
@@ -190,7 +202,8 @@ export function renderOptionalSelectTextFromResources(
       selected={selected}
       placeholder={placeholder}
       description={description}
-    >{renderOptionalLabel(language.general.optional)}
+    >
+      {renderOptionalLabel(language.general.optional)}
     </SelectTextFromRecources>
   );
 }

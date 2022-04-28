@@ -1,13 +1,13 @@
-/* Pre-reqisite for test: 
+/* Pre-reqisite for test:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
-    
+
     Test script to platform events api with app owner token
-    Command: docker-compose run k6 run /src/tests/platform/appowner/events.js 
+    Command: docker-compose run k6 run /src/tests/platform/appowner/events.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e maskinpoten=***  -e appsaccesskey=***
 */
 import { check } from 'k6';
@@ -95,6 +95,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformAppownerEvents')] = generateJUnitXML(data, 'platform-appowner-events');
+  result[reportPath('platformAppownerEvents.xml')] = generateJUnitXML(data, 'platform-appowner-events');
   return result;
 }

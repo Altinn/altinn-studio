@@ -1,8 +1,8 @@
 import DOMPurify from 'dompurify';
-import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
-import * as React from 'react';
-import { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from '../types';
-import marked from 'marked';
+import parseHtmlToReact, { HTMLReactParserOptions } from 'html-react-parser';
+import { marked } from 'marked';
+
+import type { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from '../types';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
@@ -38,7 +38,7 @@ export const getParsedLanguageFromKey = (key: string, language: ILanguage, param
 };
 
 export const getParsedLanguageFromText = (text: string, allowedTags?: string[], allowedAttr?: string[]) => {
-  const dirty = marked(text);
+  const dirty = marked.parse(text);
   const options: DOMPurify.Config = {};
   if (allowedTags) {
     options.ALLOWED_TAGS = allowedTags;
@@ -47,22 +47,24 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
   if (allowedAttr) {
     options.ALLOWED_ATTR = allowedAttr;
   }
+
   const clean = DOMPurify.sanitize(dirty, options);
-  const parsedText = ReactHtmlParser(clean.toString(), { transform: removeStyling });
-  if (parsedText.length === 1) {
-    return parsedText[0];
-  }
-  return parsedText;
+  return parseHtmlToReact(clean.toString().trim(), parseOptions);
 };
 
-export const removeStyling = (node: any): React.ReactElement | void | null => {
-  // all this does is remove the default styling of the <p> element, which is causing styling issues
-  if (node.name === 'p') {
-    return React.createElement(
-      'p',
-      { style: { marginBottom: '0px', display: 'inline' } },
-      node.children?.map((child: any, index: number) => convertNodeToElement(child, index, removeStyling)),
-    );
+
+export const parseOptions: HTMLReactParserOptions = {
+  replace: (domNode) => {
+    replaceRootTag(domNode);
+  },
+};
+
+const replaceRootTag = (domNode: any) => {
+  if (!domNode.parent && domNode.type === 'tag' && domNode.name === 'p') {
+    // The root element from the `marked.parse` will in many cases result in a `p` tag, which is not what we want,
+    // since the text might already be used in f.ex `p`, `button`, `label` tags etc.
+    // Span is a better solution, although not perfect, as block level elements are not valid children (f.ex h1), but this should be less frequent.
+    domNode.name = 'span';
   }
 };
 
@@ -96,17 +98,17 @@ export function replaceTextResourceParams(
         const id = variableForRepeatingGroup.key.split('[{0}]')[0];
         return repeatingGroups[groupId].dataModelBinding === id;
       });
-      const repeatingGroupCount = repeatingGroups[repeatingGroupId]?.count;
+      const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
 
-      for (let i = 0; i <= repeatingGroupCount; ++i) {
+      for (let i = 0; i <= repeatingGroupIndex; ++i) {
         replaceValues = [];
         resource.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
             if (variable.key.indexOf('[{0}]') > -1) {
               const keyWithIndex = variable.key.replace('{0}', `${i}`);
-              replaceValues.push(dataSources.dataModel[keyWithIndex] || variable.key);
+              replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
             } else {
-              replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+              replaceValues.push(dataSources.dataModel[variable.key] || '');
             }
           }
         });

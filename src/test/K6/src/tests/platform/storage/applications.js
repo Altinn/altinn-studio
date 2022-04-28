@@ -1,6 +1,6 @@
-/* 
+/*
   Test data required: A test app, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-  Command: docker-compose run k6 run /src/tests/platform/storage/applications.js 
+  Command: docker-compose run k6 run /src/tests/platform/storage/applications.js
   -e env=*** -e org=*** -e username=*** -e userpwd=*** -e testapp=*** -e level2app=***
 */
 
@@ -80,6 +80,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformStorageApps')] = generateJUnitXML(data, 'platform-storage-apps');
+  result[reportPath('platformStorageApps.xml')] = generateJUnitXML(data, 'platform-storage-apps');
   return result;
 }

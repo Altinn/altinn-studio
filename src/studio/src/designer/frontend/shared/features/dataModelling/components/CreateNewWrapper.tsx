@@ -1,5 +1,5 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import * as React from 'react';
+import React from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { makeStyles, createTheme } from '@material-ui/core';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';

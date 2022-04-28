@@ -53,7 +53,7 @@ namespace DataModeling.Tests
         private static string GetUnitTestFolder()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ResourceHelpers).Assembly.Location).LocalPath);
-            unitTestFolder = Path.Combine(unitTestFolder, @"..\..\..\_TestData\");
+            unitTestFolder = Path.Combine(unitTestFolder, @"../../../_TestData/");
             return unitTestFolder;
         }
 

@@ -8,14 +8,15 @@
 		"partyid": ""
     }
   ]
-  Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
+  Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on
   parameter attachmentdistribution among small, medium and large attachment.
-  example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
+  example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js
   -e env=test -e org=ttd -e level2app=rf-0002 -e appsaccesskey=*** -e attachmentdistribution="60;30;10"
 */
 
 import { check } from 'k6';
 import { SharedArray } from 'k6/data';
+import { scenario } from 'k6/execution';
 import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as appData from '../../../api/app/data.js';
@@ -24,6 +25,7 @@ import * as platformInstances from '../../../api/platform/storage/instances.js';
 import * as apps from '../../../api/platform/storage/applications.js';
 import { deleteSblInstance } from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
+import * as support from '../../../support.js';
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
@@ -52,10 +54,8 @@ export const options = {
 export function setup() {
   var data = {};
   var totalIterations = options.iterations ? options.iterations : 1;
-  var maxVus = options.vus ? options.vus : 1;
-  data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
   attachmentDistribution = attachmentDistribution ? attachmentDistribution : '';
-  let attachmentTypes = setUpData.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
+  let attachmentTypes = support.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
   data.attachmentTypes = attachmentTypes;
   return data;
 }
@@ -63,12 +63,11 @@ export function setup() {
 //Tests for App API: RF-0002
 export default function (data) {
   var userNumber = (__VU - 1) % usersCount;
-  var maxIter = data.maxIter;
   var attachmentTypes = data.attachmentTypes[0] ? data.attachmentTypes : ['s'];
   var instanceId, dataId, res, success;
 
   //Find a unique number for the type of attachment to upload
-  var uniqueNum = __VU * maxIter - maxIter + __ITER;
+  var uniqueNum = scenario.iterationInTest;
   uniqueNum = uniqueNum > attachmentTypes.length ? Math.floor(uniqueNum % attachmentTypes.length) : uniqueNum;
 
   //Find a username and password from the users file

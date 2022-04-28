@@ -69,6 +69,13 @@ public class PDFGenerator {
   private int mcid = 1;
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
+  private List<String> componentsIgnoredFromGeneration = Arrays.asList(
+    "Button",
+    "Image",
+    "NavigationBar",
+    "NavigationButtons",
+    "Summary"
+  );
 
 
   /**
@@ -207,35 +214,89 @@ public class PDFGenerator {
     for (FormLayoutElement element : formLayout) {
       String componentType = element.getType();
       if (componentType.equalsIgnoreCase("group")) {
-        renderGroup(element, false);
+        if (LayoutUtils.includeComponentInPdf(element.getId(), layoutSettings)) {
+          if (element.getDataModelBindings() == null || element.getDataModelBindings().get("group") == null) {
+            renderGroup(element);
+          } else {
+            renderRepeatingGroup(element, false);
+          }
+        }
       } else {
         renderLayoutElement(element);
       }
     }
   }
 
-  private void renderGroup(FormLayoutElement element, boolean childGroup) throws IOException {
-    String componentId = element.getId();
-    if (!LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
-      return;
+  private void renderGroup(FormLayoutElement element) throws IOException {
+    for (String childId : element.getChildren()) {
+      FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+      if (childElement == null) {
+        continue;
+      }
+
+      if (childElement.getType().equalsIgnoreCase("group")) {
+        if (childElement.getDataModelBindings() == null || childElement.getDataModelBindings().get("group") == null) {
+          renderGroup(element);
+        } else {
+          renderRepeatingGroup(childElement, false);
+        }
+      } else {
+        if (LayoutUtils.includeComponentInPdf(childElement.getId(), layoutSettings)) {
+          renderLayoutElement(childElement);
+        }
+      }
     }
+  }
+
+  private void renderRepeatingGroup(FormLayoutElement element, boolean childGroup) throws IOException {
+
     String groupBinding = element.getDataModelBindings().get("group");
+    int groupOccurrence=FormUtils.getGroupCount(groupBinding, this.formData);
+
     for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
+
+      if( groupIndex >= groupOccurrence) {
+         continue;
+      }
+
       for (String childId : element.getChildren()) {
-        FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+
+        if(element.getEdit() != null && element.getEdit().isMultiPage() && childId.contains(":")) {
+            childId = FormUtils.filterMultiPageId(childId);
+          }
+
+        String finalChildId = childId;
+
+        FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(finalChildId)).findFirst().orElse(null);
         HashMap<String, String> originalDataModelBindings = new HashMap<>();
         if (childElement != null && childElement.getDataModelBindings() != null) {
           childElement.getDataModelBindings().entrySet().forEach(stringStringEntry -> originalDataModelBindings.put(stringStringEntry.getKey(), stringStringEntry.getValue()));
         }
 
         if (childElement != null && childElement.getType().equalsIgnoreCase("group")) {
-          int finalGroupIndex = groupIndex;
-          childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId + "-" + finalGroupIndex)).findFirst().orElse(null);
+          childElement = repeatingGroups.stream().filter(formLayoutElement -> formLayoutElement.getId().equals(finalChildId)).findFirst().orElse(null);
+
+          if (childElement == null) {
+            continue;
+          }
+
+          String currentDataModelGroupBinding = childElement.getDataModelBindings().get("group");
+
+          // cloning the child to not make changes to the original datamodelBinding
+          FormLayoutElement clonedChildElement =  (FormLayoutElement) childElement.clone();
+          clonedChildElement.getDataModelBindings().put("group", FormUtils.setGroupIndexForBinding(currentDataModelGroupBinding, groupBinding, groupIndex));
+
+
+          renderRepeatingGroup(clonedChildElement, true);
+
+          continue;
         }
 
         if (childElement == null) {
           continue;
         }
+
         if (childElement.getDataModelBindings() != null && !childElement.getType().equalsIgnoreCase("group")) {
           Map<String, String> dataBindings = childElement.getDataModelBindings();
           for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
@@ -246,13 +307,12 @@ public class PDFGenerator {
               String nonIndexedGroupBinding = groupBinding.replace(groupBinding.substring(indexStart, indexEnd + 1), "");
               currentBinding = currentBinding.replace(nonIndexedGroupBinding, groupBinding);
             }
-            String replacedBinding = currentBinding.replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+            String replacedBinding = FormUtils.setGroupIndexForBinding(currentBinding, groupBinding, groupIndex);
             dataBinding.setValue(replacedBinding);
           }
         }
-        if (childElement.getType().equalsIgnoreCase("group")) {
-          renderGroup(childElement, true);
-        } else {
+
+        if (!childElement.getType().equalsIgnoreCase("group")) {
           if (LayoutUtils.includeComponentInPdf(childElement.getId() + "-" + groupIndex, layoutSettings)) {
             renderLayoutElement(childElement);
           }
@@ -265,9 +325,7 @@ public class PDFGenerator {
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     String componentType = element.getType();
     String componentId = element.getId();
-    if (componentType.equals("Button")
-      || componentType.equalsIgnoreCase("NavigationButtons")
-      || componentType.equalsIgnoreCase("NavigationBar")
+    if (componentsIgnoredFromGeneration.contains(componentType)
       || !LayoutUtils.includeComponentInPdf(componentId, layoutSettings)) {
       return;
     }
@@ -430,7 +488,7 @@ public class PDFGenerator {
 
     String value;
 
-    if (element.getOptionsId() != null || element.getOptions() != null) {
+    if (element.getOptionsId() != null || element.getOptions() != null || element.getSource() != null)  {
       value = getDisplayValueFromOptions(element);
     } else {
       value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
@@ -458,7 +516,7 @@ public class PDFGenerator {
     List<String> returnValues = new ArrayList<>();
 
     if (element.getOptionsId() != null) {
-      if(optionsDictionary == null){
+      if (optionsDictionary == null) {
         return value;
       }
       splitFormData.forEach(formDataValue -> {
@@ -466,8 +524,14 @@ public class PDFGenerator {
           returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
         }
       );
-    } else {
-      List<Option> optionList = element.getOptions();
+    } else if (element.getSource() != null) {
+      FormLayoutElement group =
+        this.repeatingGroups
+          .stream()
+          .filter((FormLayoutElement e) -> e.getDataModelBindings().get("group").equals(element.getSource().getGroup()))
+          .findFirst()
+          .orElseThrow();
+      List<Option> optionList = OptionUtils.getOptionsFromOptionSource(element.getSource(), group, formData, textResources);
       splitFormData.forEach(formDataValue -> {
         var option = optionList.stream()
           .filter(o -> o.getValue().equals(formDataValue))
@@ -475,6 +539,16 @@ public class PDFGenerator {
           .orElse(null);
         String label = (option != null) ? option.getLabel() : value;
         returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
+      });
+    } else {
+      List<Option> optionList = element.getOptions();
+      splitFormData.forEach(formDataValue -> {
+          var option = optionList.stream()
+            .filter(o -> o.getValue().equals(formDataValue))
+            .findFirst()
+            .orElse(null);
+          String label = (option != null) ? option.getLabel() : value;
+          returnValues.add(TextUtils.getTextResourceByKey(label, textResources));
         }
       );
 
@@ -487,7 +561,7 @@ public class PDFGenerator {
     Map<String, List<String>> returnValues = new HashMap<String, List<String>>();
 
     if (element.getOptionsId() != null) {
-      if(optionsDictionary == null){
+      if (optionsDictionary == null) {
         return files;
       }
       files.forEach((name, tags) -> {
@@ -502,16 +576,16 @@ public class PDFGenerator {
     } else {
       List<Option> optionList = element.getOptions();
       files.forEach((name, tags) -> {
-        List<String> tmpTags = new ArrayList<>();
-        tags.forEach(tag -> {
-          var option = optionList.stream()
-          .filter(o -> o.getValue().equals(tag))
-          .findFirst()
-          .orElse(null);
-          String label = (option != null) ? option.getLabel() : tag;
-          tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
-        });
-        returnValues.put(name, tmpTags);
+          List<String> tmpTags = new ArrayList<>();
+          tags.forEach(tag -> {
+            var option = optionList.stream()
+              .filter(o -> o.getValue().equals(tag))
+              .findFirst()
+              .orElse(null);
+            String label = (option != null) ? option.getLabel() : tag;
+            tmpTags.add(TextUtils.getTextResourceByKey(label, textResources));
+          });
+          returnValues.put(name, tmpTags);
         }
       );
     }
@@ -563,12 +637,12 @@ public class PDFGenerator {
     currentContent.beginText();
     float indent = 10;
     currentContent.newLineAtOffset(xPoint + indent, yPoint);
-    for (String name: files.keySet()) {
+    for (String name : files.keySet()) {
       List<String> tags = files.get(name);
 
       currentContent.showText("- " + name + " - ");
-      for (String tag: tags){
-        if (tag != tags.get(tags.size() -1))
+      for (String tag : tags) {
+        if (tag != tags.get(tags.size() - 1))
           currentContent.showText(tag + ", ");
         else
           currentContent.showText(tag);
@@ -645,21 +719,11 @@ public class PDFGenerator {
             replaceValues.add(FormUtils.getFormDataByKey(variable.getKey(), formData));
           }
         }
-        res.setValue(replaceParameters(res.getValue(), replaceValues));
+        res.setValue(TextUtils.replaceParameters(res.getValue(), replaceValues));
       }
     }
 
     return resources;
-  }
-
-  private String replaceParameters(String nameString, List<String> params) {
-    int index = 0;
-    for (String param : params) {
-      nameString = nameString.replace("{" + index + "}", param);
-      index++;
-    }
-
-    return nameString;
   }
 
   private String getLanguageString(String key) {

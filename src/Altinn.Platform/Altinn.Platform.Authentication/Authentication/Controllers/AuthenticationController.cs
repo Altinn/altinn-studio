@@ -21,6 +21,7 @@ using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -55,6 +56,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
         private const string IssClaimName = "iss";
+        private const string OriginalIssClaimName = "originaliss";
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
         private readonly IOrganisationsService _organisationService;
@@ -127,9 +129,9 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser([FromQuery] string goTo, [FromQuery] bool dontChooseReportee)
         {
-            if (string.IsNullOrEmpty(goTo) && HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName] != null)
+            if (string.IsNullOrEmpty(goTo) && HttpContext.Request.Cookies[_generalSettings.AuthnGoToCookieName] != null)
             {
-                goTo = HttpContext.Request.Cookies[_generalSettings.AuthnGotToCookieName];
+                goTo = HttpContext.Request.Cookies[_generalSettings.AuthnGoToCookieName];
             }
 
             if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
@@ -215,7 +217,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
                 catch (SblBridgeResponseException sblBridgeException)
                 {
-                    _logger.LogWarning($"SBL Bridge replied with {sblBridgeException.Response.StatusCode} - {sblBridgeException.Response.ReasonPhrase}");
+                    _logger.LogWarning(sblBridgeException, "SBL Bridge replied with {StatusCode} - {ReasonPhrase}", sblBridgeException.Response.StatusCode, sblBridgeException.Response.ReasonPhrase);
                     return StatusCode(StatusCodes.Status503ServiceUnavailable);
                 }
             }
@@ -350,7 +352,7 @@ namespace Altinn.Platform.Authentication.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Altinn Studio authentication failed. {ex.Message}");
+                _logger.LogWarning(ex, "Altinn Studio authentication failed.");
                 return Unauthorized();
             }
         }
@@ -383,7 +385,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 string issOriginal = originalPrincipal.Claims.Where(c => c.Type.Equals(IssClaimName)).Select(c => c.Value).FirstOrDefault();
                 if (issOriginal == null || !_generalSettings.MaskinportenWellKnownConfigEndpoint.Contains(issOriginal))
                 {
-                    _logger.LogInformation("Invalid issuer " + issOriginal);
+                    _logger.LogInformation("Invalid issuer {issOriginal}", issOriginal);
                     return Unauthorized();
                 }
 
@@ -469,12 +471,12 @@ namespace Altinn.Platform.Authentication.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Organisation authentication failed. {ex.Message}");
+                _logger.LogWarning(ex, "Organisation authentication failed.");
                 return Unauthorized();
             }
         }
 
-        private async Task<(UserAuthenticationResult, ActionResult)> HandleEnterpriseUserLogin(string enterpriseUserHeader, string orgNumber)
+        private async Task<(UserAuthenticationResult AuthenticatedEnterpriseUser, ActionResult Error)> HandleEnterpriseUserLogin(string enterpriseUserHeader, string orgNumber)
         {
             EnterpriseUserCredentials credentials;
 
@@ -583,7 +585,7 @@ namespace Altinn.Platform.Authentication.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"End user system authentication failed. {ex.Message}");
+                _logger.LogWarning(ex, "End user system authentication failed.");
                 return Unauthorized();
             }
         }
@@ -728,7 +730,14 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static UserAuthenticationModel GetUserFromToken(JwtSecurityToken jwtSecurityToken, OidcProvider provider)
         {
-            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel() { IsAuthenticated = true, ProviderClaims = new Dictionary<string, List<string>>(), Iss = provider.IssuerKey };
+            UserAuthenticationModel userAuthenticationModel = new UserAuthenticationModel()
+            {
+                IsAuthenticated = true,
+                ProviderClaims = new Dictionary<string, List<string>>(),
+                Iss = provider.IssuerKey,
+                AuthenticationMethod = AuthenticationMethod.NotDefined
+            };
+
             foreach (Claim claim in jwtSecurityToken.Claims)
             {
                 // General OIDC claims
@@ -785,7 +794,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 if (!string.IsNullOrEmpty(provider.ExternalIdentityClaim) && claim.Type.Equals(provider.ExternalIdentityClaim))
                 {
                     userAuthenticationModel.ExternalIdentity = claim.Value;
-                    continue;
                 }
 
                 // General claims handling
@@ -795,9 +803,14 @@ namespace Altinn.Platform.Authentication.Controllers
                     {
                         userAuthenticationModel.ProviderClaims.Add(claim.Type, new List<string>());
                     }
-                       
+
                     userAuthenticationModel.ProviderClaims[claim.Type].Add(claim.Value);
                 }
+            }
+
+            if (userAuthenticationModel.AuthenticationMethod == AuthenticationMethod.NotDefined)
+            {
+                userAuthenticationModel.AuthenticationMethod = (AuthenticationMethod)System.Enum.Parse(typeof(AuthenticationMethod), provider.DefaultAuthenticationMethod);
             }
 
             return userAuthenticationModel;
@@ -805,7 +818,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private async Task IdentifyOrCreateAltinnUser(UserAuthenticationModel userAuthenticationModel, OidcProvider provider)
         {
-            UserProfile profile = null;
+            UserProfile profile;
 
             if (!string.IsNullOrEmpty(userAuthenticationModel.ExternalIdentity))
             {
@@ -819,15 +832,17 @@ namespace Altinn.Platform.Authentication.Controllers
                     return;
                 }
 
-                UserProfile userToCreate = new UserProfile();
-                userToCreate.ExternalIdentity = issExternalIdentity;
-                userToCreate.UserName = CreateUserName(userAuthenticationModel, provider);
-                userToCreate.UserType = Profile.Enums.UserType.SelfIdentified;
+                UserProfile userToCreate = new()
+                {
+                    ExternalIdentity = issExternalIdentity,
+                    UserName = CreateUserName(userAuthenticationModel, provider),
+                    UserType = Profile.Enums.UserType.SelfIdentified
+                };
 
                 UserProfile userCreated = await _userProfileService.CreateUser(userToCreate);
                 userAuthenticationModel.UserID = userCreated.UserId;
                 userAuthenticationModel.PartyID = userCreated.PartyId;
-             }
+            }
         }
 
         /// <summary>
@@ -959,7 +974,7 @@ namespace Altinn.Platform.Authentication.Controllers
             // it MAY use the http scheme, provided that the Client Type is confidential, as defined in Section 2.1 of OAuth 2.0, and
             // provided the OP allows the use of http Redirection URIs in this case. The Redirection URI MAY use an alternate scheme,
             // such as one that is intended to identify a callback into a native application.
-            if (!authorizationEndpoint.Contains("?"))
+            if (!authorizationEndpoint.Contains('?'))
             {
                 authorizationEndpoint += "?redirect_uri=" + redirect_uri;
             }
@@ -1017,7 +1032,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private void CreateGoToCookie(HttpContext httpContext, string goToUrl)
         {
-            httpContext.Response.Cookies.Append(_generalSettings.AuthnGotToCookieName, goToUrl);
+            httpContext.Response.Cookies.Append(_generalSettings.AuthnGoToCookieName, goToUrl);
         }
 
         private async Task CreateTokenCookie(UserAuthenticationModel userAuthentication)
@@ -1030,6 +1045,11 @@ namespace Altinn.Platform.Authentication.Controllers
             if (!string.IsNullOrEmpty(userAuthentication.Username))
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+            }
+
+            if (!string.IsNullOrEmpty(userAuthentication.Iss))
+            {
+                claims.Add(new Claim(OriginalIssClaimName, userAuthentication.Iss, ClaimValueTypes.String, issuer));
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
@@ -1060,7 +1080,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private static string HashNonce(string nonce)
         {
-            using (SHA256 nonceHash = SHA256Managed.Create())
+            using (SHA256 nonceHash = SHA256.Create())
             {
                 byte[] byteArrayResultOfRawData = Encoding.UTF8.GetBytes(nonce);
                 byte[] byteArrayResult = nonceHash.ComputeHash(byteArrayResultOfRawData);

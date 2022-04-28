@@ -1,19 +1,24 @@
 using System;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Authorization.Models
 {
     /// <summary>
-    /// This model describes a delegation change as stored in the AUthorization postgre DelegatedPolicy table.
+    /// This model describes a delegation change as stored in the Authorization postgre DelegationChanges table.
     /// </summary>
     public class DelegationChange
     {
         /// <summary>
-        /// Gets or sets the policy change id
+        /// Gets or sets the delegation change id
         /// </summary>
-        [JsonPropertyName("policychangeid")]
-        public int PolicyChangeId { get; set; }
+        [JsonPropertyName("delegationchangeid")]
+        public int DelegationChangeId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the delegation change type
+        /// </summary>
+        [JsonPropertyName("delegationchangetype")]
+        public DelegationChangeType DelegationChangeType { get; set; }
 
         /// <summary>
         /// Gets or sets the altinnappid. E.g. skd/skattemelding
@@ -56,12 +61,6 @@ namespace Altinn.Platform.Authorization.Models
         /// </summary>
         [JsonPropertyName("blobstorageversionid")]
         public string BlobStorageVersionId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the a value indicating whether the delegation change was a soft-deletion of the delegation policy blob
-        /// </summary>
-        [JsonPropertyName("isdeleted")]
-        public bool IsDeleted { get; set; }
 
         /// <summary>
         /// Gets or sets the created date and timestamp for the delegation change

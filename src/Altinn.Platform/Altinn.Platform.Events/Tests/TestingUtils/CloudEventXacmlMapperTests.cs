@@ -65,7 +65,7 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             Assert.Single(xacmlJsonProfile.Request.AccessSubject);
         }
 
-        private ClaimsPrincipal GetPrincipal(int userId, int partyId)
+        private static ClaimsPrincipal GetPrincipal(int userId, int partyId)
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";

@@ -68,7 +68,7 @@ namespace LocalTest.Controllers
             model.AppPath = _localPlatformSettings.AppRepositoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
-            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps.First().Value) : 2;
+            var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
 
             if (!model.TestApps?.Any() ?? true)
@@ -103,22 +103,25 @@ namespace LocalTest.Controllers
         [HttpPost]
         public async Task<ActionResult> LogInTestUser(StartAppModel startAppModel)
         {
-            UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+            if (startAppModel.AuthenticationLevel != "-1")
+            {
+                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
 
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
+                List<Claim> claims = new List<Claim>();
+                string issuer = _generalSettings.Hostname;
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
 
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+                identity.AddClaims(claims);
+                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
-            CreateJwtCookieAndAppendToResponse(token);
+                string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+                CreateJwtCookieAndAppendToResponse(token);
+            }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
@@ -224,9 +227,10 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
-        private async Task<int> GetAppAuthLevel(string appId)
+        private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
             try {
+                var appId = testApps.Single().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
                 document.LoadXml(policyString);
@@ -237,7 +241,7 @@ namespace LocalTest.Controllers
             }
             catch(Exception)
             {
-                // Return default auth level if app auth level can't be found.
+                // Return default auth level if Single app auth level can't be found.
                 return 2;
             }
         }
@@ -246,6 +250,12 @@ namespace LocalTest.Controllers
         {
             return new()
             {
+                new()
+                {
+                    Value = "-1",
+                    Text = "Ikke autentisert",
+                    Selected = defaultAuthLevel == -1
+                },
                 new()
                 {
                     Value = "0",

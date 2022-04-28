@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,20 +21,20 @@ namespace DataModeling.Tests.Json
         }
 
         [Theory]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema.json", @"Model\XmlSchema\Seres\SeresBasicSchema.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema_allOf.json", @"Model\XmlSchema\Seres\SeresBasicSchema.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema_anyOf.json", @"Model\XmlSchema\Seres\SeresBasicSchema.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBasicSchema_inline.json", @"Model\XmlSchema\Seres\SeresBasicSchema_inline.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAttributes.json", @"Model\XmlSchema\Seres\SeresWithAttributes.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithAnyAttribute.json", @"Model\XmlSchema\Seres\SeresWithAnyAttribute.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresWithSpecifiedAndAnyAttributes.json", @"Model\XmlSchema\Seres\SeresWithSpecifiedAndAnyAttributes.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresComplexContentExtension.json", @"Model\XmlSchema\Seres\SeresComplexContentExtension.xsd")]
-        [InlineData(@"Model\JsonSchema\General\SimpleContentExtensionPlain.json", @"Model\XmlSchema\General\SimpleContentExtensionPlain.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresBuiltinTypes.json", @"Model\XmlSchema\Seres\SeresBuiltinTypes.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresComplexType.json", @"Model\XmlSchema\Seres\SeresComplexType.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresArray.json", @"Model\XmlSchema\Seres\SeresArray.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleTypeRestrictions.json", @"Model\XmlSchema\Seres\SeresSimpleTypeRestrictions.xsd")]
-        [InlineData(@"Model\JsonSchema\Seres\SeresSimpleContentRestriction.json", @"Model\XmlSchema\Seres\SeresSimpleContentRestriction.fromJson.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema_allOf.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema_anyOf.json", @"Model/XmlSchema/Seres/SeresBasicSchema.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBasicSchema_inline.json", @"Model/XmlSchema/Seres/SeresBasicSchema_inline.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresWithAttributes.json", @"Model/XmlSchema/Seres/SeresWithAttributes.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresWithAnyAttribute.json", @"Model/XmlSchema/Seres/SeresWithAnyAttribute.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresWithSpecifiedAndAnyAttributes.json", @"Model/XmlSchema/Seres/SeresWithSpecifiedAndAnyAttributes.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresComplexContentExtension.json", @"Model/XmlSchema/Seres/SeresComplexContentExtension.xsd")]
+        [InlineData(@"Model/JsonSchema/General/SimpleContentExtensionPlain.json", @"Model/XmlSchema/General/SimpleContentExtensionPlain.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresBuiltinTypes.json", @"Model/XmlSchema/Seres/SeresBuiltinTypes.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresComplexType.json", @"Model/XmlSchema/Seres/SeresComplexType.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresArray.json", @"Model/XmlSchema/Seres/SeresArray.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresSimpleTypeRestrictions.json", @"Model/XmlSchema/Seres/SeresSimpleTypeRestrictions.xsd")]
+        [InlineData(@"Model/JsonSchema/Seres/SeresSimpleContentRestriction.json", @"Model/XmlSchema/Seres/SeresSimpleContentRestriction.fromJson.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
             var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);

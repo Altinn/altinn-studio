@@ -10,7 +10,7 @@ import {
 import { AltinnMenu } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
-import * as React from 'react';
+import React from 'react';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 
@@ -82,7 +82,11 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton id='profile-icon-button' className={classes.iconButton} onClick={openMenu}>
+          <IconButton
+            id='profile-icon-button'
+            className={classes.iconButton}
+            onClick={openMenu}
+          >
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}

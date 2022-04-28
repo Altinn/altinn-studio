@@ -83,12 +83,12 @@ namespace Altinn.Platform.Events.Controllers
             try
             {
                 string cloudEventId = await _eventsService.StoreCloudEvent(cloudEvent);
-                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
+                _logger.LogInformation("Cloud Event successfully stored with id: {cloudEventId}", cloudEventId);
                 return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to store cloud event in database. {e}");
+                _logger.LogError(e, "Unable to store cloud event in database.");
                 return StatusCode(500, $"Unable to store cloud event in database. {e}");
             }
         }
@@ -207,38 +207,31 @@ namespace Altinn.Platform.Events.Controllers
             List<string> type,
             int size)
         {
-            try
-            {
-                List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
+            List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
 
-                if (events.Count > 0)
+            if (events.Count > 0)
+            {
+                events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+            }
+
+            if (events.Count > 0)
+            {
+                List<KeyValuePair<string, string>> queryCollection = Request.Query
+                    .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
+                    .Where(q => q.Key != "after")
+                    .ToList();
+
+                StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
+
+                foreach (KeyValuePair<string, string> queryParam in queryCollection)
                 {
-                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+                    nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
                 }
 
-                if (events.Count > 0)
-                {
-                    StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
-
-                    List<KeyValuePair<string, string>> queryCollection = Request.Query
-                        .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
-                        .Where(q => q.Key != "after")
-                        .ToList();
-
-                    foreach (KeyValuePair<string, string> queryParam in queryCollection)
-                    {
-                        nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
-                    }
-
-                    Response.Headers.Add("next", nextUriBuilder.ToString());
-                }
-
-                return events;
+                Response.Headers.Add("next", nextUriBuilder.ToString());
             }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to get cloud events from database. {e}");
-            }
+
+            return events;
         }
 
         private ActionResult HandlePlatformHttpException(PlatformHttpException e)
@@ -249,7 +242,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else
             {
-                _logger.LogError($"// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform. {e}");
+                _logger.LogError(e, "// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform.");
                 return StatusCode(500, e);
             }
         }

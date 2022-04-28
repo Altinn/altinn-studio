@@ -2,7 +2,7 @@ import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
 import * as React from 'react';
 import { AltinnIcon } from '..';
 import { IParty } from '../../types';
-import { logoutUrlAltinn } from '../../utils';
+import { logoutUrlAltinn } from '../../utils/urlHelper';
 
 export interface IAltinnAppHeaderMenuProps {
   party: IParty;

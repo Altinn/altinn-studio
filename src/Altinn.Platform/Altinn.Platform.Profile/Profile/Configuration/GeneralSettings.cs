@@ -19,5 +19,10 @@ namespace Altinn.Platform.Profile.Configuration
         /// Name of the cookie for where JWT is stored
         /// </summary>
         public string JwtCookieName { get; set; }
+
+        /// <summary>
+        /// The number of seconds the user profile will be kept in the cache
+        /// </summary>
+        public int ProfileCacheLifetimeSeconds { get; set; } = 600;
     }
 }

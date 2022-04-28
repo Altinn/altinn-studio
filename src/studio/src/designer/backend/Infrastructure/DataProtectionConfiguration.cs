@@ -56,7 +56,13 @@ namespace Altinn.Studio.Designer.Infrastructure
                 return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "ASP.NET", "DataProtection-Keys");
             }
 
-            // Assume *nix like systems
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                // This is the default behaviour for keys in OSX.
+                return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys");
+            }
+
+            // Assume linux like systems
             return "/mnt/keys";
         }
     }

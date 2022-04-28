@@ -1,4 +1,4 @@
-/* 
+/*
     Command: docker-compose run k6 run /src/tests/platform/pdf/pdf.js -e env=*** -e appsaccesskey=***
 */
 import { check } from 'k6';
@@ -26,6 +26,6 @@ export default function () {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformPdf')] = generateJUnitXML(data, 'platform-pdf');
+  result[reportPath('platformPdf.xml')] = generateJUnitXML(data, 'platform-pdf');
   return result;
 }

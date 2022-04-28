@@ -1,19 +1,21 @@
-import * as React from 'react';
+import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
+import type { IAltinnWindow } from '../../types/global';
 
-export interface IRedirectComponentProvidedProps {
+interface IRedirectComponentProvidedProps {
   redirectUrl: string;
   classes: any;
 }
 
-export class RedirectComponent extends
-  React.Component<IRedirectComponentProvidedProps, any> {
+export class RedirectComponent extends React.Component<
+  IRedirectComponentProvidedProps,
+  any
+> {
   public openManualTesting = () => {
     const { org, app } = window as Window as IAltinnWindow;
-    // eslint-disable-next-line max-len
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
     window.open(url, '_newWindow');
-  }
+  };
 
   public render() {
     return (

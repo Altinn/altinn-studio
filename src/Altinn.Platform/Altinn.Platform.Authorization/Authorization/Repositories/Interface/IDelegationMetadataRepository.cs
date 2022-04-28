@@ -11,18 +11,11 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
     public interface IDelegationMetadataRepository
     {
         /// <summary>
-        /// Writes the delegation metadata to the delegation database
+        /// Writes the delegation change metadata to the delegation database
         /// </summary>
-        /// <param name="altinnAppId">The AltinnApp identifier iin the format org/appname</param>
-        /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
-        /// <param name="coveredByPartyId">The party id of the entity having received the delegated policy, if the entity is an organization</param>
-        /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the entity is a user</param>
-        /// <param name="delegatedByUserId">The user id of the entity performing the delegation of the policy</param>
-        /// <param name="blobStoragePolicyPath">The path to the blobstorage location of the policy file</param>
-        /// <param name="blobStorageVersionId">The current blobstorage version</param>
-        /// <param name="isDeleted">Whether the delegation change is a (soft) deletion of the delegation policy</param>
-        /// <returns>A bool value representing the whether the result of the asynchronous operation was successful</returns>
-        Task<bool> InsertDelegation(string altinnAppId, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, int delegatedByUserId, string blobStoragePolicyPath, string blobStorageVersionId, bool isDeleted = false);
+        /// <param name="delegationChange">The DelegationChange model describing the delegation, to insert in the database</param>
+        /// <returns>The complete DelegationChange record stored in the database</returns>
+        Task<DelegationChange> InsertDelegation(DelegationChange delegationChange);
 
         /// <summary>
         /// Gets the latest delegation change matching the filter values

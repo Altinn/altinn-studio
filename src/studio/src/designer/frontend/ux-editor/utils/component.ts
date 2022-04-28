@@ -1,4 +1,7 @@
-export function getTextResourceByAddressKey(key: AddressKeys, language: any): string {
+export function getTextResourceByAddressKey(
+  key: AddressKeys,
+  language: any,
+): string {
   switch (key) {
     case AddressKeys.address: {
       return language.ux_editor.modal_configure_address_component_address;

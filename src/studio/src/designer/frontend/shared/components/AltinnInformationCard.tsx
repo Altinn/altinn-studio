@@ -2,7 +2,7 @@ import { createTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import AltinnIcon from './AltinnIcon';
@@ -20,22 +20,22 @@ export interface IAltinnInformationCardComponentProvidedProps {
   shadow: boolean;
 }
 
-export interface IAltinnInformationCardComponentState {
-}
-
 const theme = createTheme(altinnTheme);
 
-const styles = () => createInformationCardStyles(theme, {
-  subText1: {
-    paddingTop: 15,
-    fontSize: 16,
-  },
-  subText2: {
-    paddingBottom: 39,
-  },
-});
+const styles = () =>
+  createInformationCardStyles(theme, {
+    subText1: {
+      paddingTop: 15,
+      fontSize: 16,
+    },
+    subText2: {
+      paddingBottom: 39,
+    },
+  });
 
-const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedProps) => {
+const AltinnInformationCard = (
+  props: IAltinnInformationCardComponentProvidedProps,
+) => {
   const { classes } = props;
   return (
     <Grid
@@ -54,17 +54,15 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
         alignContent='center'
         className={classNames(classes.scrollable)}
       >
-
         <Grid
-          className={classNames(classes.paper, { [classes.shadowBox]: props.shadow })}
+          className={classNames(classes.paper, {
+            [classes.shadowBox]: props.shadow,
+          })}
           container={true}
           item={true}
         >
           <Grid container={true} item={true}>
-            <Grid
-              sm={12} md={7}
-              item={true} container={true}
-            >
+            <Grid sm={12} md={7} item={true} container={true}>
               <Grid item={true}>
                 <h1 className={classes.header}>
                   {getLanguageFromKey(props.headerTextKey, props.language)}
@@ -91,9 +89,12 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
               </Grid>
             </Grid>
             <Grid
-              container={true} sm={12}
-              md={5} item={true}
-              spacing={0} justifyContent='center'
+              container={true}
+              sm={12}
+              md={5}
+              item={true}
+              spacing={0}
+              justifyContent='center'
               alignContent='center'
             >
               <img alt='information' src={props.imageSource} />
@@ -101,7 +102,7 @@ const AltinnInformationCard = (props: IAltinnInformationCardComponentProvidedPro
           </Grid>
         </Grid>
       </Grid>
-    </Grid >
+    </Grid>
   );
 };
 
