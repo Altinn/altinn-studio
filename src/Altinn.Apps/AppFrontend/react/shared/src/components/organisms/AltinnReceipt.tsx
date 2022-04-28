@@ -141,22 +141,27 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         >
           {props.body}
         </Typography>
-        {props.titleSubmitted && (
-          <Typography
-            variant='h3'
-            style={{
-              paddingTop: '4.1rem',
-              paddingBottom: '0.5rem',
-              fontWeight: 600,
-            }}
-          >
-            {props.titleSubmitted}
-          </Typography>
-        )}
-        <AltinnAttachmentComponent
-          attachments={props.pdf}
-          id='attachment-list-pdf'
-        />
+        {props.pdf && props.pdf.length > 0 && (
+          <>
+            {props.titleSubmitted && (
+              <Typography
+                variant='h3'
+                style={{
+                  paddingTop: '4.1rem',
+                  paddingBottom: '0.5rem',
+                  fontWeight: 600,
+                }}
+              >
+                {props.titleSubmitted}
+              </Typography>
+            )}
+            <AltinnAttachmentComponent
+              attachments={props.pdf}
+              id='attachment-list-pdf'
+            />
+          </>
+          )
+        }
         {props.attachmentGroupings && (
           <RenderAttachmentGroupings
             attachmentGroupings={props.attachmentGroupings}
