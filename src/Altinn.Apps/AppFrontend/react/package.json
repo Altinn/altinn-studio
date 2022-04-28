@@ -19,7 +19,6 @@
   },
   "packageManager": "yarn@3.2.0",
   "workspaces": [
-    "altinn-app-frontend",
     "receipt",
     "shared"
   ]

@@ -28,9 +28,6 @@ area/api-expose:
 area/api-use:
   - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices/**/*'
 
-area/attachments:
-  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/attachments/**/*'
-
 area/authentication:
   - 'src/Altinn.Platform/Altinn.Platform.Authentication/**/*'
   - 'src/Altinn.Common/Authentication/**/*'
@@ -54,13 +51,6 @@ area/dashboard:
 area/data-storage:
   - 'src/Altinn.Platform/Altinn.Platform.Storage/**/*'
 
-area/instantiation:
-  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/features/instantiate/**/*'
-
-area/language:
-  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/language/**/*'
-  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/textResources/**/*'
-
 area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
@@ -75,7 +65,6 @@ area/profile:
 area/receipt:
   - 'src/Altinn.Platform/Altinn.Platform.Receipt/**/*'
   - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
-  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/features/receipt/**/*'
 
 area/events:
   - 'src/Altinn.Platform/Altinn.Platform.Events/**/*'
