@@ -67,7 +67,7 @@ function ListItemLink(props: any) {
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
     <>
-      <List disablePadding={Boolean(props.listDisableVerticalPadding)} id={props.id}>
+      <List disablePadding={Boolean(props.listDisableVerticalPadding)} id={props.id} data-testid='attachment-list'>
         {props.attachments && props.attachments.map((attachment, index) => (
           <ListItemLink
             className={classNames(
