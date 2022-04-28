@@ -79,7 +79,7 @@ const useStyles = makeStyles(() => createStyles({
   },
 }));
 
-export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
+const _AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
   const classes = useStyles(props);
 
   return (
@@ -109,6 +109,10 @@ export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvi
   );
 });
 
-AltinnButton.displayName = 'AltinnButton';
+_AltinnButton.displayName = 'AltinnButton';
+
+// This could not be exported directly, as it seems to cause trouble with hot-module-reloading (possibly
+// in combination with the displayName change above). Exporting it after seems to work well with HMR.
+export const AltinnButton = _AltinnButton;
 
 export default AltinnButton;
