@@ -19,6 +19,5 @@
 
 ## Documentation
 - [ ] User documentation is updated with a separate linked PR in [altinn-studio-docs.](https://github.com/Altinn/altinn-studio-docs) (if applicable)
-- [ ] Changelog is updated with a separate linked PR 
-  - [ ] [altinn-app-frontend](https://docs.altinn.studio/community/changelog/app-frontend/)- (if applicable)
+- [ ] Changelog is updated with a separate linked PR
   - [ ] [nuget-packages](https://docs.altinn.studio/community/changelog/app-nuget/) - (if applicable)
