@@ -172,7 +172,7 @@ namespace Altinn.Platform.Events.Controllers
             }
         }
 
-        private CloudEventEnvelope MapToEnvelope(CloudEvent cloudEvent, Subscription subscription)
+        private static CloudEventEnvelope MapToEnvelope(CloudEvent cloudEvent, Subscription subscription)
         {
             CloudEventEnvelope cloudEventEnvelope = new CloudEventEnvelope()
             {

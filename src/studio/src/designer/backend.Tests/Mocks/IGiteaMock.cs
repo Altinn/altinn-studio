@@ -62,8 +62,7 @@ namespace Designer.Tests.Mocks
         public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
         {
             List<FileSystemObject> fileSystemObjects = new List<FileSystemObject>();
-
-            string path = Path.Combine(_unitTestFolder, $@"..\..\..\_TestData\FileSystemObjects\{org}\{app}\{directoryPath.Replace('/', '\\')}{shortCommitId}\directoryList.json");
+            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), shortCommitId, "directoryList.json");
 
             if (File.Exists(path))
             {
@@ -84,7 +83,7 @@ namespace Designer.Tests.Mocks
                 filePath = GetTextsResourcePath(filePath, shortCommitId);
             }
 
-            string path = Path.Combine(_unitTestFolder, $@"..\..\..\_TestData\FileSystemObjects\{org}\{app}\{filePath.Replace('/', '\\')}");
+            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, filePath.Replace('/', Path.DirectorySeparatorChar));
 
             if (File.Exists(path))
             {

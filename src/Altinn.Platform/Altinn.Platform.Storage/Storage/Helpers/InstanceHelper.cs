@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.Helpers
             InstanceStatus status = instance.Status ?? new InstanceStatus();
             DateTime? visibleAfter = instance.VisibleAfter;
 
-            string instanceGuid = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id;
+            string instanceGuid = instance.Id.Contains('/') ? instance.Id.Split('/')[1] : instance.Id;
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 

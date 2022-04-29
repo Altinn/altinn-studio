@@ -60,6 +60,6 @@ export default function () {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('platformEFormidling')] = generateJUnitXML(data, 'platform-eformidling');
+  result[reportPath('platformEFormidling.xml')] = generateJUnitXML(data, 'platform-eformidling');
   return result;
 }

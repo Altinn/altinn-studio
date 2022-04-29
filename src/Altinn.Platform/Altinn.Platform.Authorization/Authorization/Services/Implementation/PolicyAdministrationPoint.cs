@@ -25,6 +25,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IPolicyRetrievalPoint _prp;
         private readonly IPolicyRepository _policyRepository;
         private readonly IDelegationMetadataRepository _delegationRepository;
+        private readonly IDelegationChangeEventQueue _eventQueue;
+        private readonly int delegationChangeEventQueueErrorId = 911;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyAdministrationPoint"/> class.
@@ -32,12 +34,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="policyRetrievalPoint">The policy retrieval point</param>
         /// <param name="policyRepository">The policy repository (blob storage)</param>
         /// <param name="delegationRepository">The delegation change repository (postgresql)</param>
+        /// <param name="eventQueue">The delegation change event queue service to post events for any delegation change</param>
         /// <param name="logger">Logger instance</param>
-        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, ILogger<IPolicyAdministrationPoint> logger)
+        public PolicyAdministrationPoint(IPolicyRetrievalPoint policyRetrievalPoint, IPolicyRepository policyRepository, IDelegationMetadataRepository delegationRepository, IDelegationChangeEventQueue eventQueue, ILogger<IPolicyAdministrationPoint> logger)
         {
             _prp = policyRetrievalPoint;
             _policyRepository = policyRepository;
             _delegationRepository = delegationRepository;
+            _eventQueue = eventQueue;
             _logger = logger;
         }
 
@@ -72,7 +76,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An exception occured while processing authorization rules for delegation on delegation policy path: {delegationPolicypath}", delegationPolicypath);
-                }                
+                }
 
                 foreach (Rule rule in delegationDict[delegationPolicypath])
                 {
@@ -163,7 +167,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     // Check for a current delegation change from postgresql
                     DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId);
                     XacmlPolicy existingDelegationPolicy = null;
-                    if (currentChange != null && !currentChange.IsDeleted)
+                    if (currentChange != null && currentChange.DelegationChangeType != DelegationChangeType.RevokeLast)
                     {
                         existingDelegationPolicy = await _prp.GetPolicyVersionAsync(policyPath, currentChange.BlobStorageVersionId);
                     }
@@ -197,8 +201,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
 
                     // Write delegation change to postgresql
-                    bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", offeredByPartyId, coveredByPartyId, coveredByUserId, delegatedByUserId, policyPath, blobResponse.Value.VersionId);
-                    if (!postgreSuccess)
+                    DelegationChange change = new DelegationChange
+                    {
+                        DelegationChangeType = DelegationChangeType.Grant,
+                        AltinnAppId = $"{org}/{app}",
+                        OfferedByPartyId = offeredByPartyId,
+                        CoveredByPartyId = coveredByPartyId,
+                        CoveredByUserId = coveredByUserId,
+                        PerformedByUserId = delegatedByUserId,
+                        BlobStoragePolicyPath = policyPath,
+                        BlobStorageVersionId = blobResponse.Value.VersionId
+                    };
+
+                    change = await _delegationRepository.InsertDelegation(change);
+                    if (change == null || change.DelegationChangeId <= 0)
                     {
                         // Comment:
                         // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
@@ -207,6 +223,15 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         return false;
                     }
 
+                    try
+                    {
+                        await _eventQueue.Push(change);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "AddRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
+                    }
+                    
                     return true;
                 }
                 finally
@@ -237,7 +262,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", deleteRequest.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
 
                 XacmlPolicy existingDelegationPolicy = null;
-                if (currentChange.IsDeleted)
+                if (currentChange.DelegationChangeType == DelegationChangeType.RevokeLast)
                 {
                     _logger.LogWarning("The policy is already deleted for App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {offeredBy}", org, app, coveredBy, offeredBy);
                     return null;
@@ -278,14 +303,35 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     }
 
                     // Write delegation change to postgresql
-                    bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", deleteRequest.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId, deleteRequest.DeletedByUserId, policyPath, response.Value.VersionId, isAllRulesDeleted);
-                    if (!postgreSuccess)
+                    DelegationChange change = new DelegationChange
+                    {
+                        DelegationChangeType = isAllRulesDeleted ? DelegationChangeType.RevokeLast : DelegationChangeType.Revoke,
+                        AltinnAppId = $"{org}/{app}",
+                        OfferedByPartyId = deleteRequest.PolicyMatch.OfferedByPartyId,
+                        CoveredByPartyId = coveredByPartyId,
+                        CoveredByUserId = coveredByUserId,
+                        PerformedByUserId = deleteRequest.DeletedByUserId,
+                        BlobStoragePolicyPath = policyPath,
+                        BlobStorageVersionId = response.Value.VersionId
+                    };
+
+                    change = await _delegationRepository.InsertDelegation(change);
+                    if (change == null || change.DelegationChangeId <= 0)
                     {
                         // Comment:
                         // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
                         // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
                         _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {policyPath}. is authorization postgresql database alive and well?", policyPath);
                         return null;
+                    }
+
+                    try
+                    {
+                        await _eventQueue.Push(change);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "DeleteRules could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
                     }
                 }
             }
@@ -335,7 +381,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             {
                 DelegationChange currentChange = await _delegationRepository.GetCurrentDelegationChange($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId);
 
-                if (currentChange.IsDeleted)
+                if (currentChange.DelegationChangeType == DelegationChangeType.RevokeLast)
                 {
                     _logger.LogWarning("The policy is already deleted for App: {org}/{app} CoveredBy: {coveredBy} OfferedBy: {policyToDelete.PolicyMatch.OfferedByPartyId}", org, app, coveredBy, policyToDelete.PolicyMatch.OfferedByPartyId);
                     return null;
@@ -362,14 +408,35 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     return null;
                 }
 
-                bool postgreSuccess = await _delegationRepository.InsertDelegation($"{org}/{app}", policyToDelete.PolicyMatch.OfferedByPartyId, coveredByPartyId, coveredByUserId, policyToDelete.DeletedByUserId, policyPath, response.Value.VersionId, true);
-                if (!postgreSuccess)
+                DelegationChange change = new DelegationChange
+                {
+                    DelegationChangeType = DelegationChangeType.RevokeLast,
+                    AltinnAppId = $"{org}/{app}",
+                    OfferedByPartyId = policyToDelete.PolicyMatch.OfferedByPartyId,
+                    CoveredByPartyId = coveredByPartyId,
+                    CoveredByUserId = coveredByUserId,
+                    PerformedByUserId = policyToDelete.DeletedByUserId,
+                    BlobStoragePolicyPath = policyPath,
+                    BlobStorageVersionId = response.Value.VersionId
+                };
+
+                change = await _delegationRepository.InsertDelegation(change);
+                if (change == null || change.DelegationChangeId <= 0)
                 {
                     // Comment:
                     // This means that the current version of the root blob is no longer in sync with changes in authorization postgresql delegation.delegatedpolicy table.
                     // The root blob is in effect orphaned/ignored as the delegation policies are always to be read by version, and will be overritten by the next delegation change.
                     _logger.LogError("Writing of delegation change to authorization postgresql database failed for changes to delegation policy at path: {policyPath}. is authorization postgresql database alive and well?", policyPath);
                     return null;
+                }
+
+                try
+                {
+                    await _eventQueue.Push(change);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical(new EventId(delegationChangeEventQueueErrorId, "DelegationChangeEventQueue.Push.Error"), ex, "DeletePolicy could not push DelegationChangeEvent to DelegationChangeEventQueue. DelegationChangeEvent must be retried for successful sync with SBL Authorization. DelegationChange: {change}", change);
                 }
 
                 return currentPolicyRules;

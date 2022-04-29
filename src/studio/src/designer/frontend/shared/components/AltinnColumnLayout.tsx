@@ -1,6 +1,13 @@
-import { createTheme, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import {
+  createTheme,
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+  WithStyles,
+} from '@material-ui/core';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -35,7 +42,7 @@ const styles = createStyles({
   },
   iconStyling: {
     fontSize: 35,
-    textAlign: 'right' as 'right',
+    textAlign: 'right',
   },
   sidebarServiceOwner: {
     marginTop: 10,
@@ -67,7 +74,7 @@ const styles = createStyles({
   },
 });
 
-export interface IAltinnColumnLayoutProps  extends WithStyles<typeof styles> {
+export interface IAltinnColumnLayoutProps extends WithStyles<typeof styles> {
   /** Children rendered as main content */
   children: any;
   /** Children rendered in the side menu */
@@ -86,19 +93,35 @@ export class AltinnColumnLayout extends React.Component<IAltinnColumnLayoutProps
     return (
       <>
         {this.props.aboveColumnChildren}
-        <div className={classes.mainLayout} id={'altinn-column-layout-container'}>
-          <Grid container={true} className={classes.layout} >
+        <div
+          className={classes.mainLayout}
+          id={'altinn-column-layout-container'}
+        >
+          <Grid container={true} className={classes.layout}>
             <Grid item={true} md={8}>
               <Grid item={true} md={12} className={classes.mainStyle}>
-                <Typography id={'altinn-column-layout-header'} className={classes.headerStyle}>
+                <Typography
+                  id={'altinn-column-layout-header'}
+                  className={classes.headerStyle}
+                >
                   {this.props.header}
                 </Typography>
               </Grid>
-              <Grid id={'altinn-column-layout-main-content'} item={true} md={12} className={classes.mainStyle}>
+              <Grid
+                id={'altinn-column-layout-main-content'}
+                item={true}
+                md={12}
+                className={classes.mainStyle}
+              >
                 {this.props.children}
               </Grid>
             </Grid>
-            <Grid id={'altinn-column-layout-side-menu'} item={true} md={4} className={classNames(classes.sidebar)}>
+            <Grid
+              id={'altinn-column-layout-side-menu'}
+              item={true}
+              md={4}
+              className={classNames(classes.sidebar)}
+            >
               {this.props.sideMenuChildren}
             </Grid>
           </Grid>

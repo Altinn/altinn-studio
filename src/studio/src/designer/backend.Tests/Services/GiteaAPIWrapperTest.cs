@@ -382,7 +382,7 @@ namespace Designer.Tests.Services
 
             IOptions<ServiceRepositorySettings> repoSettings = Options.Create(new ServiceRepositorySettings());
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
-            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+            repoSettings.Value.RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
             GiteaAPIWrapper service = new GiteaAPIWrapper(
                 repoSettings,
@@ -397,7 +397,7 @@ namespace Designer.Tests.Services
         private static List<Repository> GetRepositories()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaAPIWrapperTest).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, $@"..\..\..\_TestData\RepoCollection\repositories.json");
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "RepoCollection", "repositories.json");
             if (File.Exists(path))
             {
                 string repositories = File.ReadAllText(path);

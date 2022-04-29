@@ -32,19 +32,19 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
     public partial class IntegrationTests
     {
         /// <summary>
-        /// Represents a collection of integration tests of the <see cref="EventsController"/>.
+        /// Represents a collection of integration tests of the <see cref="SubscriptionController"/>.
         /// </summary>
-        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+        public class SubscriptionControllerTests : IClassFixture<WebApplicationFactory<SubscriptionController>>
         {
             private const string BasePath = "/events/api/v1";
 
-            private readonly WebApplicationFactory<Startup> _factory;
+            private readonly WebApplicationFactory<SubscriptionController> _factory;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="EventsControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
+            /// Initializes a new instance of the <see cref="SubscriptionControllerTests"/> class with the given <see cref="WebApplicationFactory{TSubscriptionController}"/>.
             /// </summary>
-            /// <param name="factory">The <see cref="WebApplicationFactory{TStartup}"/> to use when setting up the test server.</param>
-            public SubscriptionControllerTests(WebApplicationFactory<Startup> factory)
+            /// <param name="factory">The <see cref="WebApplicationFactory{TSubscriptionController}"/> to use when setting up the test server.</param>
+            public SubscriptionControllerTests(WebApplicationFactory<SubscriptionController> factory)
             {
                 _factory = factory;
             }
@@ -397,7 +397,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private HttpClient GetTestClient()
             {
-                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>

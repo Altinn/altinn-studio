@@ -117,7 +117,7 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
                   )}
                   onClick={this.props.onClose}
                 >
-                  <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                  <i tabIndex={-1} className={classNames('ai ai-exit-test', classes.iconStyling)} />
                 </IconButton>
               }
               <Typography className={classes.headerText}>
@@ -142,7 +142,7 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
                 )}
                 onClick={this.props.onClose}
               >
-                <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                <i tabIndex={-1} className={classNames('ai ai-exit-test', classes.iconStyling)} />
               </IconButton>
             }
             <Typography className={classes.headerText}>

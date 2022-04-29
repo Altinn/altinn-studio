@@ -124,24 +124,6 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             return xacmlContextResponse;
         }
 
-        private string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
-        {
-            string instanceId = string.Empty;
-            foreach (XacmlJsonCategory category in xacmlJsonRequest.Request.Resource)
-            {
-                foreach (var atr in category.Attribute)
-                {
-                    if (atr.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
-                    {
-                        instanceId = atr.Value;
-                        break;
-                    }
-                }
-            }
-
-            return instanceId;
-        }
-
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
@@ -161,27 +143,6 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
 
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
-        }
-
-        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
-        {
-            if (string.IsNullOrEmpty(attributeValue))
-            {
-                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
-            }
-        }
-
-        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
-            if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
-            {
-                // When Party attribute is missing from input it is good to return it so PEP can get this information
-                attribute.IncludeInResult = true;
-            }
-
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
-            return attribute;
         }
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
@@ -215,7 +176,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        private static XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -266,7 +227,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             return attribute;
         }
 
-        public Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
+        public static Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
         {
             string rolesPath = GetRolesPath(coveredByUserId, offeredByPartyId);
 
@@ -281,7 +242,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             return Task.FromResult(roles);
         }
 
-        private string GetRolesPath(int userId, int resourcePartyId)
+        private static string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "Roles", "User_" + userId, "party_" + resourcePartyId, "roles.json");
@@ -340,7 +301,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
             return policy;
         }
 
-        private string GetAltinnAppsPolicyPath(string org, string app)
+        private static string GetAltinnAppsPolicyPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "apps", org, app, "config", "authorization");

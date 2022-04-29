@@ -67,17 +67,6 @@ updates:
       day: "thursday"
       time: "07:00"
       timezone: "Europe/Oslo"
-  ## Register
-  - directory: "src/Altinn.Platform/Altinn.Platform.Register"
-    package-ecosystem: "nuget"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    schedule:
-      interval: "weekly"
-      day: "thursday"
-      time: "07:00"
-      timezone: "Europe/Oslo"
   ## Storage
   - directory: "src/Altinn.Platform/Altinn.Platform.Storage"
     package-ecosystem: "nuget"

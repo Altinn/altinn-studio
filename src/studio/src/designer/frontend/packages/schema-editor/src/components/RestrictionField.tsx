@@ -1,9 +1,15 @@
-import * as React from 'react';
-import { Grid, IconButton, Input, makeStyles, TextField } from '@material-ui/core';
+import React from 'react';
+import {
+  Grid,
+  IconButton,
+  Input,
+  makeStyles,
+  TextField,
+} from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
 import { getDomFriendlyID, getRestrictions, getTranslation } from '../utils';
-import { ILanguage } from '../types';
+import type { ILanguage } from '../types';
 
 export interface IRestrictionFieldProps {
   type?: string;
@@ -85,36 +91,42 @@ export const RestrictionField = (props: IRestrictionFieldProps) => {
           renderInput={(params) => {
             // eslint-disable-next-line no-param-reassign
             (params.InputProps as any).disableUnderline = true;
-            return <TextField
-              autoFocus
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...params}
-            />;
-          }
-          }
+            return (
+              <TextField
+                autoFocus
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
+              />
+            );
+          }}
         />
       </Grid>
       <Grid item xs={1} />
-      <Grid item xs={4}><Input
-        id={`${baseId}-${props.keyName}-value`}
-        disabled={props.readOnly}
-        className={classes.field}
-        value={props.value}
-        disableUnderline={true}
-        onKeyDown={onValueKeyDown}
-        onChange={(e) => props.onChangeValue(props.path, e.target.value, props.keyName)}
-      />
+      <Grid item xs={4}>
+        <Input
+          id={`${baseId}-${props.keyName}-value`}
+          disabled={props.readOnly}
+          className={classes.field}
+          value={props.value}
+          disableUnderline={true}
+          onKeyDown={onValueKeyDown}
+          onChange={(e) =>
+            props.onChangeValue(props.path, e.target.value, props.keyName)
+          }
+        />
       </Grid>
-      { props.onDeleteField &&
-      <Grid item xs={3}>
-        <IconButton
-          id={`${baseId}-delete-${props.keyName}`}
-          aria-label={getTranslation('delete_field', props.language)}
-          onClick={() => props.onDeleteField?.(props.path, props.keyName)}
-          className={classes.delete}
-        >
-          <DeleteOutline/>
-        </IconButton>
-      </Grid>}
-    </>);
+      {props.onDeleteField && (
+        <Grid item xs={3}>
+          <IconButton
+            id={`${baseId}-delete-${props.keyName}`}
+            aria-label={getTranslation('delete_field', props.language)}
+            onClick={() => props.onDeleteField?.(props.path, props.keyName)}
+            className={classes.delete}
+          >
+            <DeleteOutline />
+          </IconButton>
+        </Grid>
+      )}
+    </>
+  );
 };

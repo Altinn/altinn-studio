@@ -1,17 +1,17 @@
-/* 
-    Pre-reqisite for test: 
+/*
+    Pre-reqisite for test:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script is to create instance of an app as an appowner for a party id
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
     and maskinporten token
-    
-    Command: docker-compose run k6 run /src/tests/platform/appowner/instances.js 
+
+    Command: docker-compose run k6 run /src/tests/platform/appowner/instances.js
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e appsaccesskey=*** -e maskinporten=token
 */
 
@@ -131,6 +131,6 @@ export default function (data) {
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('PlatformAppownerInstances')] = generateJUnitXML(data, 'platform-appowner-instances');
+  result[reportPath('PlatformAppownerInstances.xml')] = generateJUnitXML(data, 'platform-appowner-instances');
   return result;
 }

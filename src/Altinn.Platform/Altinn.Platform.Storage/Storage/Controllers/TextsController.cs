@@ -64,7 +64,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to create text resource for {org}/{app}: {e.Message}");
+                _logger.LogError(e, "Unable to create text resource for {org}/{app}", org, app);
                 return StatusCode(500, $"Unable to create text resource for {org}/{app}");
             }
         }
@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to get text resource for {org}/{app}: {e.Message}");
+                _logger.LogError(e, "Unable to get text resource for {org}/{app}", org, app);
                 return StatusCode(500, $"Unable to get text resource for {org}/{app}");
             }
         }
@@ -139,7 +139,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to update text resource for {org}/{app}: {e.Message}");
+                _logger.LogError(e, "Unable to update text resource for {org}/{app}", org, app);
                 return StatusCode(500, $"Unable to update text resource for {org}/{app}");
             }
         }
@@ -172,13 +172,13 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 else
                 {
-                    _logger.LogError($"Unable to delete text resource for {org}/{app}");
+                    _logger.LogError("Unable to delete text resource for {org}/{app}", org, app);
                     return StatusCode(500, $"Unable to delete text resource for {org}/{app}");
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to delete text resource for {org}/{app}: {e.Message}");
+                _logger.LogError(e, "Unable to delete text resource for {org}/{app}", org, app);
                 return StatusCode(500, $"Unable to delete text resource for {org}/{app}");
             }
         }

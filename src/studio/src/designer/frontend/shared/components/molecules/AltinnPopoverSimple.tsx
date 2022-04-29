@@ -1,6 +1,12 @@
-import { Button, createTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
+import {
+  Button,
+  createTheme,
+  createStyles,
+  Grid,
+  makeStyles,
+} from '@material-ui/core';
 import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProps {
@@ -21,48 +27,50 @@ export interface IAltinnPopoverProps {
 
 const theme = createTheme(altinnTheme);
 
-const useStyles = makeStyles(() => createStyles({
-  borderBottom: {
-    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
-  },
-  buttonCancel: {
-    fontSize: '14px',
-    color: theme.altinnPalette.primary.blueDarker,
-    background: theme.altinnPalette.primary.white,
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
-    '&:hover': {
+const useStyles = makeStyles(() =>
+  createStyles({
+    borderBottom: {
+      borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
+    },
+    buttonCancel: {
+      fontSize: '14px',
       color: theme.altinnPalette.primary.blueDarker,
+      background: theme.altinnPalette.primary.white,
+      textTransform: 'none',
+      fontWeight: 400,
+      marginTop: '20px',
+      borderRadius: '0',
+      '&:hover': {
+        color: theme.altinnPalette.primary.blueDarker,
+      },
+      '&:focus': {
+        background: theme.altinnPalette.primary.blueDarker,
+        color: theme.altinnPalette.primary.white,
+      },
     },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
+    buttonConfirm: {
+      fontSize: '14px',
       color: theme.altinnPalette.primary.white,
+      background: theme.altinnPalette.primary.blueDark,
+      textTransform: 'none',
+      fontWeight: 400,
+      marginTop: '20px',
+      borderRadius: '0',
+      '&:hover': {
+        background: theme.altinnPalette.primary.blueDarker,
+        color: theme.altinnPalette.primary.white,
+      },
+      '&:focus': {
+        background: theme.altinnPalette.primary.blueDarker,
+        color: theme.altinnPalette.primary.white,
+      },
     },
-  },
-  buttonConfirm: {
-    fontSize: '14px',
-    color: theme.altinnPalette.primary.white,
-    background: theme.altinnPalette.primary.blueDark,
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
+    popover: {
+      width: '445px',
+      margin: '24px',
     },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
-    },
-  },
-  popover: {
-    width: '445px',
-    margin: '24px',
-  },
-}));
+  }),
+);
 
 const defaultAnchorOrigin: PopoverOrigin = {
   horizontal: 'left',
@@ -104,18 +112,13 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
         PaperProps={{ square: true, ...props.paperProps }}
         aria-label={props.ariaLabel ? props.ariaLabel : ''}
       >
-        <Grid
-          container={true} direction='column'
-          className={classes.popover}
-        >
+        <Grid container={true} direction='column' className={classes.popover}>
           <Grid item={true}>
-            <div>
-              {props.children}
-            </div>
+            <div>{props.children}</div>
           </Grid>
           <Grid item={true}>
             <div>
-              {props.btnConfirmText &&
+              {props.btnConfirmText && (
                 <Button
                   id={props.btnPrimaryId}
                   variant='contained'
@@ -125,8 +128,8 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                 >
                   {props.btnConfirmText}
                 </Button>
-              }
-              {props.btnCancelText &&
+              )}
+              {props.btnCancelText && (
                 <Button
                   id={props.btnSecondaryId}
                   color='primary'
@@ -137,7 +140,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                     {props.btnCancelText}
                   </span>
                 </Button>
-              }
+              )}
             </div>
           </Grid>
         </Grid>

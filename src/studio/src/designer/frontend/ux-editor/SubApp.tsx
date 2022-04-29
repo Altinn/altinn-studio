@@ -1,12 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
-import App from './App';
+import AppComponent from './App';
 import { run } from './sagas';
 import { store } from './store';
 import './styles/index.css';
 
-let initializedSagas: boolean = false;
+let initializedSagas = false;
 
 export default class SubApp extends React.Component<any, any> {
   public store: any;
@@ -24,7 +24,7 @@ export default class SubApp extends React.Component<any, any> {
     return (
       <Provider store={store}>
         <HashRouter>
-          <App />
+          <AppComponent />
         </HashRouter>
       </Provider>
     );

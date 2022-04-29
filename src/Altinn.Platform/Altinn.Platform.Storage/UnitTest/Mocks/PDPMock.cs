@@ -6,9 +6,6 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 
-#pragma warning disable 1591
-#pragma warning disable SA1600
-
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Authentication
 {
     public class PDPMock : IPDP

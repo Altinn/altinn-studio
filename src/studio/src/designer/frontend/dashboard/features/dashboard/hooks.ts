@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { mergeRepos, MergeReposProps } from './utils';
-import { IRepository } from 'app-shared/types';
+import type { IRepository } from 'app-shared/types/global';
 
 export const useAugmentReposWithStarred = ({
   repos,

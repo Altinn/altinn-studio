@@ -2,7 +2,11 @@ import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { fetchDeployPermissionsUrl } from '../../../utils/urlHelper';
 import { get } from '../../../utils/networking';
-import { fetchDeployPermissions, fetchDeployPermissionsFulfilled, fetchDeployPermissionsRejected } from '../userSlice';
+import {
+  fetchDeployPermissions,
+  fetchDeployPermissionsFulfilled,
+  fetchDeployPermissionsRejected,
+} from '../userSlice';
 
 export function* fetchDeployPermissionsSaga(): SagaIterator {
   try {

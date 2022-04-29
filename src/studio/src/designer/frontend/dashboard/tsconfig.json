@@ -13,6 +13,7 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
+    "esModuleInterop": true,
     "noUnusedLocals": true,
     "baseUrl": ".",
     "paths": {
@@ -25,6 +26,6 @@
       "test/*": ["./test/*"]
     }
   },
-  "include": ["./**/*", "../shared/**/*"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

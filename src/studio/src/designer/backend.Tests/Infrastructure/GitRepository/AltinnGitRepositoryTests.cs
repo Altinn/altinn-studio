@@ -64,7 +64,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void Constructor_InvalidPathParameters_ShouldThrowException()
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = Path.Combine(new string[] { repositoriesRootDirectory, $"..\\Model" });
+            string repositoryDirectory = Path.Combine(repositoriesRootDirectory, "..", "Model");
 
             Assert.Throws<ArgumentException>(() => new AltinnGitRepository("ttd", "hvem-er-hvem", "testUser", repositoriesRootDirectory, repositoryDirectory));
         }
@@ -116,7 +116,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             {
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
                 Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
-                Assert.True(altinnGitRepository.FileExistsByRelativePath(@".altinnstudio\settings.json"));
+                Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json")));
             }
             finally
             {

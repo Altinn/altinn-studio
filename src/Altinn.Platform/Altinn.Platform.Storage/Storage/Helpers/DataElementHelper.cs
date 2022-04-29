@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             string guidFromInstanceId = instance.Id;
 
-            if (guidFromInstanceId != null && guidFromInstanceId.Contains("/"))
+            if (guidFromInstanceId != null && guidFromInstanceId.Contains('/'))
             {
                 guidFromInstanceId = instance.Id.Split("/")[1];
             }

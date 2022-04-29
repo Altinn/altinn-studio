@@ -1,7 +1,7 @@
 import { createTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconComponentProvidedProps {
@@ -9,7 +9,7 @@ export interface IAltinnIconComponentProvidedProps {
   isActive?: boolean;
   isActiveIconColor?: string;
   iconColor: any;
-  iconSize?: number|string;
+  iconSize?: number | string;
   padding?: string;
   margin?: string;
   weight?: number;
@@ -23,7 +23,7 @@ const styles = {
   },
 };
 
-export function AltinnIconComponent(props:IAltinnIconComponentProvidedProps) {
+export function AltinnIconComponent(props: IAltinnIconComponentProvidedProps) {
   const color = props.isActive ? props.isActiveIconColor : props.iconColor;
   const style = {
     ...(color && { color }),
@@ -35,10 +35,7 @@ export function AltinnIconComponent(props:IAltinnIconComponentProvidedProps) {
   };
   return (
     <i
-      className={
-        classNames(
-          props.iconClass,
-        )}
+      className={classNames(props.iconClass)}
       style={Object.keys(style).length ? style : undefined}
     />
   );

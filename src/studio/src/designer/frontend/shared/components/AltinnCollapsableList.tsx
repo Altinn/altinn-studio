@@ -1,8 +1,5 @@
-import {
-  Collapse,
-  Grid,
-} from '@material-ui/core';
-import * as React from 'react';
+import { Collapse, Grid } from '@material-ui/core';
+import React from 'react';
 
 export interface IAltinnCollapsableListProps {
   /** Boolean value for if the animation will transition */
@@ -15,12 +12,7 @@ export interface IAltinnCollapsableListProps {
 }
 
 const AltinnCollapsableList = (props: IAltinnCollapsableListProps) => {
-  const {
-    transition,
-    listHeader,
-    onClickExpand,
-    children,
-  } = props;
+  const { transition, listHeader, onClickExpand, children } = props;
 
   function onKeyPress(event: React.KeyboardEvent) {
     event.stopPropagation();
@@ -30,10 +22,7 @@ const AltinnCollapsableList = (props: IAltinnCollapsableListProps) => {
   }
 
   return (
-    <Grid
-      container={true}
-      direction='column'
-    >
+    <Grid container={true} direction='column'>
       <Grid
         container={true}
         direction='row'
@@ -41,17 +30,12 @@ const AltinnCollapsableList = (props: IAltinnCollapsableListProps) => {
         onKeyPress={onKeyPress}
         tabIndex={0}
       >
-        <Grid
-          container={true}
-          direction='row'
-        >
+        <Grid container={true} direction='row'>
           {listHeader}
         </Grid>
       </Grid>
       <Grid item={true}>
-        <Collapse in={transition}>
-          {children}
-        </Collapse>
+        <Collapse in={transition}>{children}</Collapse>
       </Grid>
     </Grid>
   );

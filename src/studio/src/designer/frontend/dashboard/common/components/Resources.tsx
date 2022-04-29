@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Divider, Grid } from '@mui/material';
 import { Typography } from '@material-ui/core';
 

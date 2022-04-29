@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import { IGiteaOrganisation } from 'app-shared/types';
+import type { IGiteaOrganisation } from 'app-shared/types/global';
 import AltinnDropdown from 'app-shared/components/AltinnDropdown';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';

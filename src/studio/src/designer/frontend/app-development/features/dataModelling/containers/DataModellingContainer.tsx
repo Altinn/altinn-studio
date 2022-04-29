@@ -1,10 +1,9 @@
-import * as React from 'react';
-import { IRouteProps } from 'config/routes';
+import React from 'react';
 import { DataModelling } from 'app-shared/features';
 import { makeStyles, createStyles } from '@material-ui/core';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from 'common/hooks';
 
-interface IDataModellingContainerProps extends IRouteProps {
+interface IDataModellingContainerProps {
   language: any;
 }
 
@@ -20,20 +19,16 @@ const useStyles = makeStyles(
 
 const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
   const classes = useStyles();
-  const { org, repo } = useSelector((state: any) => {
-    return {
-      org: state.applicationMetadataState.applicationMetadata.org,
-      repo: state.serviceInformation.serviceNameObj.name,
-    };
-  });
+  const repo = useAppSelector(
+    (state) => state.serviceInformation.serviceNameObj.name,
+  );
+  const org = useAppSelector(
+    (state) => state.applicationMetadataState.applicationMetadata.org,
+  );
 
   return (
     <div className={classes.root}>
-      <DataModelling
-        language={language}
-        org={org}
-        repo={repo}
-      />
+      <DataModelling language={language} org={org} repo={repo} />
     </div>
   );
 };

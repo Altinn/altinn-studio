@@ -1,16 +1,29 @@
-import { CircularProgress,
+import {
+  CircularProgress,
   createStyles,
   Grid,
   Typography,
   withStyles,
-  WithStyles } from '@material-ui/core';
-import * as Moment from 'moment';
-import * as React from 'react';
-import { useSelector } from 'react-redux';
+  WithStyles,
+} from '@material-ui/core';
+import Moment from 'moment';
+import React from 'react';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { BuildResult, BuildStatus, IAppReleaseErrors, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
-import { getGitCommitLink, getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
+import {
+  BuildResult,
+  BuildStatus,
+} from '../../../sharedResources/appRelease/types';
+import type {
+  IAppReleaseErrors,
+  IBuild,
+  IRelease,
+} from '../../../sharedResources/appRelease/types';
+import {
+  getGitCommitLink,
+  getReleaseBuildPipelineLink,
+} from '../../../utils/urlHelper';
+import { useAppSelector } from 'common/hooks';
 
 const styles = createStyles({
   releaseWrapper: {
@@ -43,16 +56,17 @@ const styles = createStyles({
   },
 });
 
-export interface IAppReleaseComponent extends WithStyles<typeof styles> {
+interface IAppReleaseComponent extends WithStyles<typeof styles> {
   release: IRelease;
 }
 
 function ReleaseComponent(props: IAppReleaseComponent) {
   const { classes, release } = props;
 
-  const appReleaseErrors: IAppReleaseErrors =
-    useSelector((state: IServiceDevelopmentState) => state.appReleases.errors);
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.languageState.language);
+  const appReleaseErrors: IAppReleaseErrors = useAppSelector(
+    (state) => state.appReleases.errors,
+  );
+  const language: any = useAppSelector((state) => state.languageState.language);
 
   function renderStatusIcon(status: IBuild) {
     if (status.result === BuildResult.succeeded) {
@@ -83,42 +97,31 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       release.build.status !== BuildStatus.completed &&
       appReleaseErrors.fetchReleaseErrorCode !== null
     ) {
-      return getLanguageFromKey('app_create_release_errors.check_status_on_build_error', language);
+      return getLanguageFromKey(
+        'app_create_release_errors.check_status_on_build_error',
+        language,
+      );
     }
     if (release.build.status !== BuildStatus.completed) {
-      return `${getLanguageFromKey('app_create_release.release_creating', language)} ${release.createdBy}`;
+      return `${getLanguageFromKey(
+        'app_create_release.release_creating',
+        language,
+      )} ${release.createdBy}`;
     }
     return release.body;
   }
 
   return (
-    <Grid
-      container={true}
-      direction='row'
-      className={classes.releaseWrapper}
-    >
-      <Grid
-        container={true}
-        direction='row'
-        justify='space-between'
-      >
-        <Grid
-          item={true}
-          className={classes.releaseRow}
-        >
-          <Typography
-            className={classes.releaseText}
-          >
-            {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
+    <Grid container={true} direction='row' className={classes.releaseWrapper}>
+      <Grid container={true} direction='row' justify='space-between'>
+        <Grid item={true} className={classes.releaseRow}>
+          <Typography className={classes.releaseText}>
+            {getLanguageFromKey('app_release.release_version', language)}{' '}
+            {release.tagName}
           </Typography>
         </Grid>
-        <Grid
-          item={true}
-          className={classes.releaseRow}
-        >
-          <Typography
-            className={classes.releaseText}
-          >
+        <Grid item={true} className={classes.releaseRow}>
+          <Typography className={classes.releaseText}>
             {Moment(release.created).format('DD.MM.YYYY HH:mm')}
           </Typography>
         </Grid>
@@ -129,17 +132,10 @@ function ReleaseComponent(props: IAppReleaseComponent) {
         justify='space-between'
         className={classes.releaseRow}
       >
-        <Grid
-          item={true}
-        >
-          <Grid
-            container={true}
-            direction='row'
-          >
+        <Grid item={true}>
+          <Grid container={true} direction='row'>
             {renderStatusIcon(release.build)}
-            <Typography
-              className={classes.releaseText}
-            >
+            <Typography className={classes.releaseText}>
               <a
                 href={getReleaseBuildPipelineLink(release.build.id)}
                 target='_blank'
@@ -151,9 +147,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           </Grid>
         </Grid>
         <Grid item={true}>
-          <Typography
-            className={classes.releaseText}
-          >
+          <Typography className={classes.releaseText}>
             <a
               href={getGitCommitLink(release.targetCommitish)}
               target='_blank'
@@ -164,15 +158,9 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           </Typography>
         </Grid>
       </Grid>
-      <Grid
-        container={true}
-        direction='row'
-        className={classes.releaseRow}
-      >
+      <Grid container={true} direction='row' className={classes.releaseRow}>
         <Grid item={true}>
-          <Typography
-            className={classes.releaseText}
-          >
+          <Typography className={classes.releaseText}>
             {RenderBodyInprogressOrErrorBody()}
           </Typography>
         </Grid>

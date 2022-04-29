@@ -1,18 +1,19 @@
-/* Pre-reqisite for test: 
+/* Pre-reqisite for test:
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable: -e maskinporten=token
 
-    Environment variables for test environments: 
+    Environment variables for test environments:
     -e tokengenuser=*** -e tokengenuserpwd=*** -e scopes=altinn:serviceowner/instances.read
 
     This test script can only be run with virtual users and iterations count and not based on duration.
-    
-    example: k6 run -i 20 -u 10 /src/tests/platform/storage/appowner/downloadinstances.js -e env=test -e org=ttd 
+
+    example: k6 run -i 20 -u 10 /src/tests/platform/storage/appowner/downloadinstances.js -e env=test -e org=ttd
     -e level2app=rf-0002 -e appsaccesskey=*** -e maskinporten=token
 */
 
 import { check } from 'k6';
+import { scenario } from 'k6/execution';
 import { addErrorCount, stopIterationOnFail } from '../../../errorcounter.js';
 import * as storageInstances from '../../../api/platform/storage/instances.js';
 import * as storageData from '../../../api/platform/storage/data.js';
@@ -34,9 +35,7 @@ export const options = {
 export function setup() {
   var altinnStudioRuntimeToken = setUpData.getAltinnTokenForTTD();
   var data = {};
-  var maxVus = options.vus ? options.vus : 1;
   var totalIterations = options.iterations ? options.iterations : 1;
-  data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
   data.runtimeToken = altinnStudioRuntimeToken;
   var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App, totalIterations, createdDateTime);
   archivedAppInstances = support.shuffle(archivedAppInstances);
@@ -48,8 +47,7 @@ export function setup() {
 export default function (data) {
   const runtimeToken = data['runtimeToken'];
   const instances = data.instances;
-  var maxIter = data.maxIter;
-  var uniqueNum = __VU * maxIter - maxIter + __ITER;
+  var uniqueNum = scenario.iterationInTest;
   uniqueNum = uniqueNum > instances.length ? Math.floor(uniqueNum % instances.length) : uniqueNum;
   var res, success;
 
