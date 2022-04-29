@@ -7,7 +7,6 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
 
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 
@@ -23,7 +22,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrievalPointFixture>
+    public class PolicyRetrievalPointTest
     {
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";

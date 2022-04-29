@@ -1,9 +1,16 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-
+using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.Controllers;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.Authentication.JwtCookie;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Health
@@ -11,17 +18,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests :IClassFixture<PlatformAuthorizationFixture>
+    public class HealthCheckTests : WebApplicationFactory<DecisionController>
     {
-        private readonly PlatformAuthorizationFixture _fixture;
+        private readonly WebApplicationFactory<DecisionController> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="fixture">The web application fixture</param>
-        public HealthCheckTests(PlatformAuthorizationFixture fixture)
+        public HealthCheckTests(WebApplicationFactory<DecisionController> fixture)
         {
-            _fixture = fixture;
+            _factory = fixture;
         }
 
         /// <summary>
@@ -42,7 +49,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
 
         private HttpClient GetTestClient()
         {
-            return _fixture.GetClient();
+            HttpClient client = _factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(services =>
+                {
+                    services.AddScoped<IContextHandler, ContextHandlerMock>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
+                    services.AddScoped<IRoles, RolesMock>();
+                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddScoped<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                });
+            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+
+            return client;
         }
     }
 }
