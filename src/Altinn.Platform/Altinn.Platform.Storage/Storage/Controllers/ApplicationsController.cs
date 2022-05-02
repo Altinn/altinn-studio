@@ -227,21 +227,9 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.MessageBoxConfig = application.MessageBoxConfig;
             existingApplication.CopyInstanceSettings = application.CopyInstanceSettings;
 
-            try
-            {
-                Application result = await repository.Update(existingApplication);
+            Application result = await repository.Update(existingApplication);
 
-                return Ok(result);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Did not find application with id={appId} to update");
-                }
-
-                throw;
-            }
+            return Ok(result);
         }
 
         /// <summary>
@@ -262,37 +250,30 @@ namespace Altinn.Platform.Storage.Controllers
             string appId = $"{org}/{app}";
             string appOwnerId = org;
 
-            try
+            Application application = await repository.FindOne(appId, appOwnerId);
+
+            if (application == null)
             {
-                Application application = await repository.FindOne(appId, appOwnerId);
-
-                if (hard.HasValue && hard == true)
-                {
-                    await repository.Delete(appId, appOwnerId);
-
-                    return Ok(application);
-                }
-                else
-                {
-                    DateTime timestamp = DateTime.UtcNow;
-
-                    application.LastChangedBy = GetUserId();
-                    application.LastChanged = timestamp;
-                    application.ValidTo = timestamp;
-
-                    Application softDeleteApplication = await repository.Update(application);
-
-                    return Ok(softDeleteApplication);
-                }
+                return NotFound($"Didn't find the object that should be deleted with appId={appId}");
             }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Didn't find the object that should be deleted with appId={appId}");
-                }
 
-                throw;
+            if (hard.HasValue && hard == true)
+            {
+                await repository.Delete(appId, appOwnerId);
+
+                return Ok(application);
+            }
+            else
+            {
+                DateTime timestamp = DateTime.UtcNow;
+
+                application.LastChangedBy = GetUserId();
+                application.LastChanged = timestamp;
+                application.ValidTo = timestamp;
+
+                Application softDeleteApplication = await repository.Update(application);
+
+                return Ok(softDeleteApplication);
             }
         }
 
