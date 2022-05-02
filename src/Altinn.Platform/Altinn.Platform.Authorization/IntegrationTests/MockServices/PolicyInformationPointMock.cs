@@ -25,18 +25,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             {
                 if (change.AltinnAppId == "SKD/TaxReport" && change.OfferedByPartyId == 50001337 && change.CoveredByUserId == 20001336)
                 {
-                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByUserId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport"));
-                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByUserId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "SKD", "TaxReport"));
+                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByUserId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "SKD", "TaxReport"));
+                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByUserId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "SKD", "TaxReport"));
                 }
 
                 if (change.AltinnAppId == "SKD/TaxReport" && change.OfferedByPartyId == 50001337 && change.CoveredByPartyId == 50001336)
                 {
-                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
+                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "sign", "SKD", "TaxReport"));
                 }
 
                 if (change.AltinnAppId == "SKD/TaxReport" && change.OfferedByPartyId == 50001337 && change.CoveredByPartyId == 50001337)
                 {
-                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport"));
+                    rulesList.Add(TestDataHelper.GetRuleModel(change.PerformedByUserId, change.OfferedByPartyId, change.CoveredByPartyId.ToString(), AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "sign", "SKD", "TaxReport"));
                 }
             }
 

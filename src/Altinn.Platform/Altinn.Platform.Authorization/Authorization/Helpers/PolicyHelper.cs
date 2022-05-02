@@ -236,8 +236,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="coveredByPartyId">The party of the entity having received the delegated policy, if the receiving entity is an organization</param>
         /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the receiving entity is a user</param>
         /// <param name="rules">The set of rules to be delegated</param>
-        /// <param name="appPolicy">The original app policy</param>
-        public static XacmlPolicy BuildDelegationPolicy(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, IList<Rule> rules, XacmlPolicy appPolicy)
+        public static XacmlPolicy BuildDelegationPolicy(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, IList<Rule> rules)
         {
             XacmlPolicy delegationPolicy = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
             delegationPolicy.Version = "1.0";
@@ -249,7 +248,7 @@ namespace Altinn.Platform.Authorization.Helpers
             {
                 if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
                 {
-                    delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                    delegationPolicy.Rules.Add(BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule));
                 }
             }
 
@@ -265,8 +264,7 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <param name="coveredByPartyId">The party of the entity having received the delegated policy, if the receiving entity is an organization</param>
         /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the receiving entity is a user</param>
         /// <param name="rule">The rule to be delegated</param>
-        /// <param name="appPolicy">The original app policy</param>
-        public static XacmlRule BuildDelegationRule(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, Rule rule, XacmlPolicy appPolicy)
+        public static XacmlRule BuildDelegationRule(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, Rule rule)
         {
             rule.RuleId = Guid.NewGuid().ToString();
             
@@ -274,7 +272,7 @@ namespace Altinn.Platform.Authorization.Helpers
             XacmlRule delegationRule = new XacmlRule(rule.RuleId, XacmlEffectType.Permit)
             {
                 Description = $"Delegation of a right/action from {offeredByPartyId} to {coveredBy}, for a resource on the app; {org}/{app}, by user; {rule.DelegatedByUserId}",
-                Target = BuildDelegationRuleTarget(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy)
+                Target = BuildDelegationRuleTarget(coveredByPartyId, coveredByUserId, rule)
             };
 
             return delegationRule;
@@ -283,14 +281,10 @@ namespace Altinn.Platform.Authorization.Helpers
         /// <summary>
         /// Builds a XacmlTarget <see cref="XacmlTarget"/> representation based on the Rule input
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">Application identifier which is unique within an organisation</param>
-        /// <param name="offeredByPartyId">The party id of the entity offering the delegated the policy</param>
         /// <param name="coveredByPartyId">The party of the entity having received the delegated policy, if the receiving entity is an organization</param>
         /// <param name="coveredByUserId">The user id of the entity having received the delegated policy, if the receiving entity is a user</param>
-        /// <param name="rule">The set of rule to be delegated</param>
-        /// <param name="appPolicy">The original app policy</param>
-        public static XacmlTarget BuildDelegationRuleTarget(string org, string app, int offeredByPartyId, int? coveredByPartyId, int? coveredByUserId, Rule rule, XacmlPolicy appPolicy)
+        /// <param name="rule">The rule to be delegated</param>
+        public static XacmlTarget BuildDelegationRuleTarget(int? coveredByPartyId, int? coveredByUserId, Rule rule)
         {
             List<XacmlAnyOf> targetList = new List<XacmlAnyOf>();
 

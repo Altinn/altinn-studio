@@ -22,9 +22,6 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly ISasTokenProvider _sasTokenProvider;
         private readonly string _accountName = "{0}altinn{1}strg01";
         private readonly string _storageContainer = "{0}-{1}-appsdata-blob-db";
-        private readonly string _backupAccountName = "altinn{0}backup01";
-        private readonly string _backupAccountEndpoint = "https://altinn{0}backup01.blob.core.windows.net/";
-        private readonly string _vaultUri = "https://altinn-{0}-kv.vault.azure.net";
         private readonly string _accountKey;
         private readonly string _blobEndpoint;
         private readonly string _environment;
