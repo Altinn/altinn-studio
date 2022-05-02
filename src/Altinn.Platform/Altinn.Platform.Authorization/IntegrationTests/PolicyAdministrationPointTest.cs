@@ -136,10 +136,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app4", createdSuccessfully: true)
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -188,7 +188,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "error", "delegationeventfail", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "error", "delegationeventfail", createdSuccessfully: true)
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -243,8 +243,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app4", createdSuccessfully: true)
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -299,8 +299,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app1", "task1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app1", "task1", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -348,9 +348,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -399,9 +399,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -458,9 +458,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -517,9 +517,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -576,9 +576,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -636,8 +636,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app4", createdSuccessfully: true)
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -686,12 +686,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app4", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app4", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -740,8 +740,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "error", "delegationeventfail", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "error", "delegationeventfail", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "error", "delegationeventfail", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "error", "delegationeventfail", createdSuccessfully: true)
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -796,10 +796,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -856,10 +856,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -908,10 +908,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -960,10 +960,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -1021,10 +1021,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -1081,10 +1081,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Read", "org2", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "Write", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "read", "org2", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(performedByUserId, offeredByPartyId, coveredBy.ToString(), coveredByType, "write", "org2", "app3", createdSuccessfully: true),
             };
 
             Dictionary<string, List<DelegationChange>> expectedDbUpdates = new Dictionary<string, List<DelegationChange>>
@@ -1132,20 +1132,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> unsortedRules = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app2"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1"), // Should be sorted together with the first rule
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1") // Should be sorted together with the first rule
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app2"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1"), // Should be sorted together with the first rule
             };
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app2", createdSuccessfully: true)
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app2", createdSuccessfully: true)
             };
 
             // Act
@@ -1160,16 +1158,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         /// <summary>
         /// Scenario:
-        /// Tests the TryWriteDelegationPolicyRules function, when only partial set of the rules are returned as successfully created
+        /// Tests the TryWriteDelegationPolicyRules function, when only partial set of the rules are returned as successfully created.
         /// Input:
-        /// List of unordered rules for delegation of the same apps from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// List of unordered rules for delegation from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// One of the rules are for an app where no app policy exists and should fail.
         /// Expected Result:
-        /// List of all rules (now in sorted order of the resulting 3 delegation policy files) with success flag and rule id set.
+        /// List of all rules (now in sorted order of the resulting 3 delegation policy files).
+        /// Only stored rules should have success flag and rule id set.
         /// Success Criteria:
-        /// All returned rules match expected and have success flag and rule id set
+        /// All returned rules match expected
         /// </summary>
         [Fact]
-        public async Task TryWriteDelegationPolicyRules_PartialSuccess()
+        public async Task TryWriteDelegationPolicyRules_UnknownApp_PartialSuccess()
         {
             // Arrange
             int delegatedByUserId = 20001336;
@@ -1179,20 +1179,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> unsortedRules = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "unknownorg", "unknownapp"), // Should fail as there is no App Policy for this app
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1"), // Should be sorted together with the first rule
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1") // Should be sorted together with the first rule
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "unknownorg", "unknownapp"), // Should fail as there is no App Policy for this app
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1"), // Should be sorted together with the first rule
             };
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "unknownorg", "unknownapp", createdSuccessfully: false)
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "unknownorg", "unknownapp", createdSuccessfully: false)
             };
 
             // Act
@@ -1208,6 +1206,114 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>((@object, @type) => @object.ToString() == "No valid App policy found for delegation policy path: unknownorg/unknownapp/50001337/u20001337/delegationpolicy.xml" && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when only partial set of the rules are returned as successfully created.
+        /// Input:
+        /// List of unordered rules for delegation from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// One of the rules for org1, app1 contains a non-existing resource and should fail all rules for that app.
+        /// Expected Result:
+        /// List of all rules (now in sorted order of the resulting 3 delegation policy files).
+        /// Only stored rules should have success flag and rule id set.
+        /// Success Criteria:
+        /// All returned rules match expected
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_UnknownResource_PartialSuccess()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"), 
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", task: null, "event1") // This should fail all rules for org1, app1 as there is no event1 resource in the App Policy for this app
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", task: null, "event1", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1", createdSuccessfully: true)
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.Where(r => r.CreatedSuccessfully).All(r => !string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.Where(r => !r.CreatedSuccessfully).All(r => string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString().StartsWith("Matching rule not found in app policy. Action might not exist for Resource, or Resource itself might not exist. Delegation policy path: org1/app1/50001337/u20001337/delegationpolicy.xml") && @type.Name == "FormattedLogValues"),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Tests the TryWriteDelegationPolicyRules function, when only partial set of the rules are returned as successfully created.
+        /// Input:
+        /// List of unordered rules for delegation from the same OfferedBy to two CoveredBy users, and one coveredBy organization/partyid
+        /// One of the rules for org1, app1 is for an action which does not exist for that resource in the app policy and should fail all rules for that app.
+        /// Expected Result:
+        /// List of all rules (now in sorted order of the resulting 3 delegation policy files).
+        /// Only stored rules should have success flag and rule id set.
+        /// Success Criteria:
+        /// All returned rules match expected
+        /// </summary>
+        [Fact]
+        public async Task TryWriteDelegationPolicyRules_UnknownActionForResource_PartialSuccess()
+        {
+            // Arrange
+            int delegatedByUserId = 20001336;
+            int offeredByPartyId = 50001337;
+            string coveredBy = "20001337";
+            string coveredByType = AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute;
+
+            List<Rule> unsortedRules = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", "task1"), // This should fail all rules for org1, app1 as there is no read action for the resource in the App Policy for this app
+            };
+
+            List<Rule> expected = new List<Rule>
+            {
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", "task1", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1", createdSuccessfully: true),
+            };
+
+            // Act
+            List<Rule> actual = await _pap.TryWriteDelegationPolicyRules(unsortedRules);
+
+            // Assert
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.True(actual.Where(r => r.CreatedSuccessfully).All(r => !string.IsNullOrEmpty(r.RuleId)));
+            Assert.True(actual.Where(r => !r.CreatedSuccessfully).All(r => string.IsNullOrEmpty(r.RuleId)));
+            AssertionUtil.AssertEqual(expected, actual);
+            _logger.Verify(
+                x => x.Log(
+                    LogLevel.Warning,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((@object, @type) => @object.ToString().StartsWith("Matching rule not found in app policy. Action might not exist for Resource, or Resource itself might not exist. Delegation policy path: org1/app1/50001337/u20001337/delegationpolicy.xml") && @type.Name == "FormattedLogValues"),
                     It.IsAny<Exception>(),
                     (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
@@ -1234,20 +1340,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> unsortedRules = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1"),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", null, null), // Should fail as the rule model is not complete (missing org/app)
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1"), // Should be sorted together with the first rule
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1") // Should be sorted together with the first rule
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1"),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", null, null), // Should fail as the rule model is not complete (missing org/app)
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1"), // Should be sorted together with the first rule
             };
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Write", "org1", "app1", "task1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org1", "app1", task: null, "event1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "Read",  null, null, createdSuccessfully: false)
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "sign", "org1", "app1", "task1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(delegatedByUserId, offeredByPartyId, coveredBy, coveredByType, "read",  null, null, createdSuccessfully: false)
             };
 
             // Act

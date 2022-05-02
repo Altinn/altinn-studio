@@ -20,7 +20,7 @@
     ],
     "action": {
       "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-      "value": "Read"
+      "value": "read"
     }
   },
   {
@@ -36,7 +36,7 @@
     ],
     "action": {
       "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-      "value": "Write"
+      "value": "write"
     }
   },
   {
@@ -60,7 +60,7 @@
     ],
     "action": {
       "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-      "value": "Read"
+      "value": "read"
     }
   },
   {
@@ -84,7 +84,7 @@
     ],
     "action": {
       "id": "urn:oasis:names:tc:xacml:1.0:action:action-id",
-      "value": "Write"
+      "value": "write"
     }
   }
 ]
