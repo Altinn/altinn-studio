@@ -71,6 +71,7 @@ namespace LocalTest.Controllers
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
             var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
+            model.LanguageOptions = GetLanguageOptions();
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -137,6 +138,9 @@ namespace LocalTest.Controllers
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
+
+            // Temporary hack to allow testing with different languages in localtest
+            LocalTest.Services.Profile.Implementation.UserProfilesWrapper.STATIC_LANGUAGE_OVERRIDE = startAppModel.Language;
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
@@ -259,6 +263,33 @@ namespace LocalTest.Controllers
                 // Return default auth level if Single app auth level can't be found.
                 return 2;
             }
+        }
+
+        private List<SelectListItem> GetLanguageOptions()
+        {
+            return new()
+            {
+                new()
+                {
+                    Value = "",
+                    Text = "",
+                },
+                new()
+                {
+                    Value = "nb",
+                    Text = "Bokmål",
+                },
+                new()
+                {
+                    Value = "nn",
+                    Text = "Nynorsk",
+                },
+                new()
+                {
+                    Value = "en",
+                    Text = "Engelsk",
+                },
+            };
         }
 
         private List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)

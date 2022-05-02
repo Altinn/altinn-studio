@@ -70,6 +70,11 @@ namespace LocalTest.Models
         public string AuthenticationLevel { get; set; }
 
         /// <summary>
+        /// Language for the test user
+        /// </summary>
+        public string Language { get; set; }
+
+        /// <summary>
         /// List of TestUsers for dropdown
         /// </summary>
         public IEnumerable<SelectListItem> TestUsers { get; set; }
@@ -83,5 +88,10 @@ namespace LocalTest.Models
         /// List of possible authentication levels
         /// </summary>
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
+
+        /// <summary>
+        /// List of common languages
+        /// </summary>
+        public IEnumerable<SelectListItem> LanguageOptions { get; set; }
     }
 }
