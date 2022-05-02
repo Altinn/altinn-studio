@@ -206,21 +206,17 @@ export function validateEmptyFieldsForLayout(
   repeatingGroups: IRepeatingGroups,
 ): ILayoutValidations {
   const validations: any = {};
-  let fieldsInGroup = [];
-  const groupsToCheck = formLayout.filter(
-    (component) => component.type.toLowerCase() === 'group',
-  );
-  groupsToCheck.forEach((groupComponent: ILayoutGroup) => {
-    fieldsInGroup = fieldsInGroup.concat(groupComponent.children);
-  });
-  const fieldsToCheck = formLayout.filter((component) => {
-    return (
-      component.type.toLowerCase() !== 'group' &&
-      !hiddenFields.includes(component.id) &&
-      (component as ILayoutComponent).required &&
-      !fieldsInGroup.includes(component.id)
-    );
-  });
+  const allGroups = formLayout.filter((component) => component.type.toLowerCase() === 'group');
+  const fieldsInGroup = allGroups
+    .map((group: ILayoutGroup) => group.children)
+    .flat();
+  const groupsToCheck = allGroups.filter(group => !hiddenFields.includes(group.id));
+  const fieldsToCheck = formLayout.filter((component) => (
+    component.type.toLowerCase() !== 'group' &&
+    !hiddenFields.includes(component.id) &&
+    (component as ILayoutComponent).required &&
+    !fieldsInGroup.includes(component.id)
+  ));
   fieldsToCheck.forEach((component: any) => {
     const result = validateEmptyField(
       formData,

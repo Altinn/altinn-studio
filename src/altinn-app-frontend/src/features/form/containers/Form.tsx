@@ -4,7 +4,7 @@ import * as React from 'react';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { GroupContainer } from './GroupContainer';
-import { renderGenericComponent } from '../../../utils/layout';
+import { renderGenericComponent } from 'src/utils/layout';
 import { DisplayGroupContainer } from './DisplayGroupContainer';
 import { useAppSelector } from 'src/common/hooks';
 import MessageBanner from 'src/features/form/components/MessageBanner';
@@ -47,6 +47,7 @@ function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout): JSX.Elem
     // If not repeating, treat as regular components
     return (
       <DisplayGroupContainer
+        key={layoutGroup.id}
         container={layoutGroup}
         components={groupComponents}
         renderLayoutComponent={renderLayoutComponent}

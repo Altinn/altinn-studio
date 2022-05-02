@@ -152,6 +152,25 @@ describe('utils > validation', () => {
           readOnly: false,
           textResourceBindings: {},
         },
+        {
+          type: 'group',
+          id: 'group_simple',
+          dataModelBindings: {
+            group: 'group_simple',
+          },
+          maxCount: 0,
+          children: ['required_in_group_simple'],
+        },
+        {
+          type: 'Input',
+          id: 'required_in_group_simple',
+          dataModelBindings: {
+            simpleBinding: 'group_simple.required_in_group_simple',
+          },
+          required: true,
+          readOnly: false,
+          textResourceBindings: {},
+        }
       ],
     };
 
@@ -582,7 +601,7 @@ describe('utils > validation', () => {
     });
   });
 
-  describe('valiadteEmptyFields', () => {
+  describe('validateEmptyFields', () => {
       it('should return error if empty fields are required', () => {
         const repeatingGroups = {
           group1: {
@@ -612,6 +631,10 @@ describe('utils > validation', () => {
               postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
               zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
             },
+            required_in_group_simple: { simpleBinding: {
+                errors: ['Feltet er påkrevd'],
+                warnings: [],
+            }},
           },
         };
 
@@ -644,6 +667,10 @@ describe('utils > validation', () => {
               postPlace: { errors: ['Feltet er påkrevd'], warnings: [] },
               zipCode: { errors: ['Feltet er påkrevd'], warnings: [] },
             },
+            required_in_group_simple: { simpleBinding: {
+              errors: ['Feltet er påkrevd'],
+              warnings: [],
+            }}
           },
         };
 
@@ -710,6 +737,27 @@ describe('utils > validation', () => {
 
         expect(validations).toEqual(mockResult);
       });
+  });
+
+  describe('validateEmptyFieldsForLayout', () => {
+    const withHidden = (hiddenFields:string[]) => validation.validateEmptyFieldsForLayout(
+      {},
+      mockLayout.FormLayout,
+      mockLanguage.language,
+      hiddenFields,
+      {}
+    );
+    const requiredField = 'required_in_group_simple';
+
+    it('should skip validation on required field in hidden group', () => {
+      expect(withHidden(['group_simple'])[requiredField]).toBeUndefined();
+    });
+
+    it('should run validation on required field in visible group', () => {
+      expect(withHidden([])[requiredField]).toEqual({
+        simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+      });
+    });
   });
 
   describe('mapDataElementValidationToRedux', () => {
