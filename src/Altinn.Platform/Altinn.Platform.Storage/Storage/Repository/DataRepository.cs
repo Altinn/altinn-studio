@@ -172,9 +172,20 @@ namespace Altinn.Platform.Storage.Repository
             string instanceKey = instanceGuid.ToString();
             string dataElementKey = dataElementGuid.ToString();
 
-            DataElement dataElement = await Container.ReadItemAsync<DataElement>(dataElementKey, new PartitionKey(instanceKey));
+            try
+            {
+                DataElement dataElement = await Container.ReadItemAsync<DataElement>(dataElementKey, new PartitionKey(instanceKey));
+                return dataElement;
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
-            return dataElement;
+                throw;
+            }
         }
 
         /// <inheritdoc/>

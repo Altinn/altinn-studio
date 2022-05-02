@@ -75,22 +75,15 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<InstanceEvent>> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
         {
-            try
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            InstanceEvent theEvent = await _repository.GetOneEvent(instanceId, eventGuid);
+            if (theEvent != null)
             {
-                string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-                InstanceEvent theEvent = await _repository.GetOneEvent(instanceId, eventGuid);
-                if (theEvent != null)
-                {
-                    return Ok(theEvent);
-                }
-                else
-                {
-                    return NotFound();
-                }
+                return Ok(theEvent);
             }
-            catch (Exception e)
+            else
             {
-                return StatusCode(500, $"Exception {e.Message}");
+                return NotFound();
             }
         }
 

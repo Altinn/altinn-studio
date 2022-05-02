@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
@@ -42,9 +43,20 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosId = eventGuid.ToString();
 
-            ItemResponse<InstanceEvent> theEvent = await Container.ReadItemAsync<InstanceEvent>(cosmosId, new PartitionKey(instanceId));
+            try
+            {
+                ItemResponse<InstanceEvent> theEvent = await Container.ReadItemAsync<InstanceEvent>(cosmosId, new PartitionKey(instanceId));
+                return theEvent;
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
-            return theEvent;
+                throw;
+            }
         }
 
         /// <inheritdoc/>

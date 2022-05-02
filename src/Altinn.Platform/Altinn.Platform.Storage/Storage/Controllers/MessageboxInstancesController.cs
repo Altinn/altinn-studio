@@ -12,7 +12,6 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -278,18 +277,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance instance;
 
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-                if (instance == null)
-                {
-                    return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
-                }
-            }
-            catch (CosmosException ce)
+            if (instance == null)
             {
-                return StatusCode(500, $"Unknown database exception in restore: {ce}");
+                return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
             }
 
             if (instance.Status.IsHardDeleted)
@@ -317,16 +309,9 @@ namespace Altinn.Platform.Storage.Controllers
                     }
                 };
 
-                try
-                {
-                    await _instanceRepository.Update(instance);
-                    await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-                    return Ok(true);
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(500, $"Unknown exception in restore: {e}");
-                }
+                await _instanceRepository.Update(instance);
+                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+                return Ok(true);
             }
 
             return Ok(true);
@@ -347,22 +332,12 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
 
-                return StatusCode(500, $"Unknown database exception in delete: {ce}");
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            if (instance == null)
             {
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+
             }
 
             DateTime now = DateTime.UtcNow;
@@ -399,15 +374,8 @@ namespace Altinn.Platform.Storage.Controllers
                 },
             };
 
-            try
-            {
-                await _instanceRepository.Update(instance);
-                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unknown exception in delete: {e}");
-            }
+            await _instanceRepository.Update(instance);
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
 
             return Ok(true);
         }
