@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,27 +48,19 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult<TextResource>> Create(string org, string app, [FromBody] TextResource textResource)
         {
-            try
+            if (!LanguageHelper.IsTwoLetters(textResource.Language))
             {
-                if (!LanguageHelper.IsTwoLetters(textResource.Language))
-                {
-                    return BadRequest("The language must be a two letter ISO language name.");
-                }
-
-                var existingTextResource = await _textRepository.Get(org, app, textResource.Language);
-                if (existingTextResource != null)
-                {
-                    return Conflict("Text resource allready exists.");
-                }
-
-                var createdObjected = await _textRepository.Create(org, app, textResource);
-                return Ok(createdObjected);
+                return BadRequest("The language must be a two letter ISO language name.");
             }
-            catch (Exception e)
+
+            var existingTextResource = await _textRepository.Get(org, app, textResource.Language);
+            if (existingTextResource != null)
             {
-                _logger.LogError(e, "Unable to create text resource for {org}/{app}", org, app);
-                return StatusCode(500, $"Unable to create text resource for {org}/{app}");
+                return Conflict("Text resource allready exists.");
             }
+
+            var createdObjected = await _textRepository.Create(org, app, textResource);
+            return Ok(createdObjected);
         }
 
         /// <summary>
@@ -84,26 +78,18 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize]
         public async Task<ActionResult<TextResource>> Get(string org, string app, string language)
         {
-            try
+            if (!LanguageHelper.IsTwoLetters(language))
             {
-                if (!LanguageHelper.IsTwoLetters(language))
-                {
-                    return BadRequest("The language must be a two letter ISO language name.");
-                }
-
-                TextResource textResource = await _textRepository.Get(org, app, language);
-                if (textResource == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(textResource);
+                return BadRequest("The language must be a two letter ISO language name.");
             }
-            catch (Exception e)
+
+            TextResource textResource = await _textRepository.Get(org, app, language);
+            if (textResource == null)
             {
-                _logger.LogError(e, "Unable to get text resource for {org}/{app}", org, app);
-                return StatusCode(500, $"Unable to get text resource for {org}/{app}");
+                return NotFound();
             }
+
+            return Ok(textResource);
         }
 
         /// <summary>
@@ -122,26 +108,18 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult<TextResource>> Update(string org, string app, string language, [FromBody] TextResource textResource)
         {
-            try
+            if (!LanguageHelper.IsTwoLetters(textResource.Language))
             {
-                if (!LanguageHelper.IsTwoLetters(textResource.Language))
-                {
-                    return BadRequest("The language must be a two letter ISO language name.");
-                }
-
-                if (!language.Equals(textResource.Language))
-                {
-                    return BadRequest($"The language specified in the textResource {textResource.Language} does not match the api path: {language}");
-                }
-
-                TextResource updatedResource = await _textRepository.Update(org, app, textResource);
-                return Ok(updatedResource);
+                return BadRequest("The language must be a two letter ISO language name.");
             }
-            catch (Exception e)
+
+            if (!language.Equals(textResource.Language))
             {
-                _logger.LogError(e, "Unable to update text resource for {org}/{app}", org, app);
-                return StatusCode(500, $"Unable to update text resource for {org}/{app}");
+                return BadRequest($"The language specified in the textResource {textResource.Language} does not match the api path: {language}");
             }
+
+            TextResource updatedResource = await _textRepository.Update(org, app, textResource);
+            return Ok(updatedResource);
         }
 
         /// <summary>
@@ -157,28 +135,20 @@ namespace Altinn.Platform.Storage.Controllers
         [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult> Delete(string org, string app, string language)
         {
-            try
+            TextResource existingResource = await _textRepository.Get(org, app, language);
+            if (existingResource == null)
             {
-                TextResource existingResource = await _textRepository.Get(org, app, language);
-                if (existingResource == null)
-                {
-                    return NotFound();
-                }
-
-                bool deleted = await _textRepository.Delete(org, app, language);
-                if (deleted)
-                {
-                    return Ok();
-                }
-                else
-                {
-                    _logger.LogError("Unable to delete text resource for {org}/{app}", org, app);
-                    return StatusCode(500, $"Unable to delete text resource for {org}/{app}");
-                }
+                return NotFound();
             }
-            catch (Exception e)
+
+            bool deleted = await _textRepository.Delete(org, app, language);
+            if (deleted)
             {
-                _logger.LogError(e, "Unable to delete text resource for {org}/{app}", org, app);
+                return Ok();
+            }
+            else
+            {
+                _logger.LogError("Unable to delete text resource for {org}/{app}", org, app);
                 return StatusCode(500, $"Unable to delete text resource for {org}/{app}");
             }
         }

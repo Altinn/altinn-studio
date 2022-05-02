@@ -71,24 +71,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Application owner id '{org}' is not valid");
             }
 
-            try
-            {
-                List<Application> applications = await repository.FindByOrg(org);
+            List<Application> applications = await repository.FindByOrg(org);
 
-                ApplicationList applicationList = new ApplicationList { Applications = applications };
+            ApplicationList applicationList = new ApplicationList { Applications = applications };
 
-                return Ok(applicationList);
-            }
-            catch (CosmosException ce)
-            {
-                logger.LogError(ce, "Unable to access document database");
-                return StatusCode(500, $"Unable to access document database {ce}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, $"Unable to perform query request");
-                return StatusCode(500, $"Unable to perform query request {e}");
-            }
+            return Ok(applicationList);
         }
 
         /// <summary>
@@ -107,27 +94,14 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string appId = $"{org}/{app}";
 
-            try
-            {
-                Application result = await repository.FindOne(appId, org);
+            Application result = await repository.FindOne(appId, org);
 
-                return Ok(result);
-            }
-            catch (CosmosException dce)
+            if (result == null)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Could not find an application with appId={appId}");
-                }
+                return NotFound($"Could not find an application with appId={appId}");
+            }
 
-                logger.LogError(dce, "Unable to access document database");
-                return StatusCode(500, $"Unable to access document database: {dce}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Unable to perform request");
-                return StatusCode(500, $"Unable to perform request: {e.Message}");
-            }
+            return Ok(result);
         }
 
         /// <summary>
@@ -151,19 +125,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             string org = appId.Split("/")[0];
 
-            try
-            {
-                var existingApp = await repository.FindOne(appId, org);
+            var existingApp = await repository.FindOne(appId, org);
 
-                if (existingApp != null)
-                {
-                    return BadRequest("Application already exists in repository! Try update application instead. ");
-                }
-            }
-            catch (Exception e)
+            if (existingApp != null)
             {
-                logger.LogError(e, $"Unable to perform request");
-                return StatusCode(500, $"Unable to perform request: {e}");
+                return BadRequest("Application already exists in repository! Try update application instead. ");
             }
 
             DateTime creationTime = DateTime.UtcNow;
@@ -195,19 +161,11 @@ namespace Altinn.Platform.Storage.Controllers
                 application.DataTypes.Add(form);
             }
 
-            try
-            {
-                Application result = await repository.Create(application);
+            Application result = await repository.Create(application);
 
-                logger.LogInformation($"Application {appId} sucessfully stored", result);
+            logger.LogInformation($"Application {appId} sucessfully stored", result);
 
-                return Created(appId, result);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Unable to store application data in database.");
-                return StatusCode(500, $"Unable to store application data in database. {e}");
-            }
+            return Created(appId, result);
         }
 
         /// <summary>
@@ -244,18 +202,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Application existingApplication;
-            try
-            {
-                existingApplication = await repository.FindOne(appId, org);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Cannot find application {appId}");
-                }
 
-                return StatusCode(500, $"Unable to find application with appId={appId} to update: {ce.Message}");
+            existingApplication = await repository.FindOne(appId, org);
+
+            if (existingApplication == null)
+            {
+                return NotFound($"Cannot find application {appId}");
             }
 
             existingApplication.LastChangedBy = GetUserId();
@@ -288,13 +240,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Did not find application with id={appId} to update");
                 }
 
-                logger.LogError(ce, "Document database error");
-                return StatusCode(500, $"Document database error: {ce}");
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Unable to perform request");
-                return StatusCode(500, $"Unable to perform request: {exception}");
+                throw;
             }
         }
 
@@ -346,13 +292,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with appId={appId}");
                 }
 
-                logger.LogError(ce, "Unable to reach document database");
-                return StatusCode(500, $"Unable to reach document database {ce}");
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Unable to perform request.");
-                return StatusCode(500, $"Unable to perform request: {e}");
+                throw;
             }
         }
 

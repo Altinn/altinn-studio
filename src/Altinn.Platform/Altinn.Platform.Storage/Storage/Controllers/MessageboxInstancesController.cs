@@ -281,14 +281,14 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+                if (instance == null)
                 {
                     return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
                 }
-
+            }
+            catch (CosmosException ce)
+            {
                 return StatusCode(500, $"Unknown database exception in restore: {ce}");
             }
 

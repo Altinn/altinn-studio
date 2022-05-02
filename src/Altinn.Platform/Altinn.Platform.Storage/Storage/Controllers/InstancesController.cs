@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Cosmos;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -415,16 +414,11 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+                if (instance == null)
                 {
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
-
-                _logger.LogError(ce, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown database exception in delete: {ce}");
             }
             catch (Exception e)
             {
@@ -748,16 +742,10 @@ namespace Altinn.Platform.Storage.Controllers
                 string org = appId.Split("/")[0];
 
                 appInfo = await _applicationRepository.FindOne(appId, org);
-            }
-            catch (CosmosException ce)
-            {
-                if (ce.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+                if (appInfo == null)
                 {
                     errorResult = NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    errorResult = StatusCode(500, $"Document database error: {ce}");
                 }
             }
             catch (Exception e)

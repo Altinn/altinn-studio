@@ -154,14 +154,14 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return Task.FromResult(instance);
             }
 
-            throw CreateCosmosExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+            return null;
         }
 
         public Task<Instance> Update(Instance instance)
         {
             if (instance.Id.Equals("1337/d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
-                throw CreateCosmosExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+                return null;
             }
 
             instance.Data = new List<DataElement>();
@@ -178,11 +178,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
-        }
-
-        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);
         }
 
         /// <summary>
