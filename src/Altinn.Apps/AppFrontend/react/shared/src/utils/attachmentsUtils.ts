@@ -82,7 +82,7 @@ export const getAttachmentGroupings = (
  * @param attachment the attachment
  * @param applicationMetadata the application metadata
  */
-export const getGroupingForAttachment = (
+const getGroupingForAttachment = (
   attachment: IAttachment,
   applicationMetadata: IApplication,
 ): string => {

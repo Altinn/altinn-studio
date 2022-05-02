@@ -1,8 +1,21 @@
-import 'jest';
-import { ITextResource, IDataSources, IDataSource, IApplicationSettings, IInstanceContext, IAltinnOrg, IAltinnOrgs, IApplication } from '../../src/types';
-import { getAppName, getAppOwner, getParsedLanguageFromText, replaceTextResourceParams } from './language';
+import type {
+  ITextResource,
+  IDataSources,
+  IDataSource,
+  IApplicationSettings,
+  IInstanceContext,
+  IAltinnOrg,
+  IAltinnOrgs,
+  IApplication,
+} from '../../src/types';
+import {
+  getAppName,
+  getAppOwner,
+  getParsedLanguageFromText,
+  replaceTextResourceParams,
+} from './language';
 
-describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
+describe('language', () => {
   let mockTextResources: ITextResource[];
   let mockDataSources: IDataSources;
   let mockDataSource: IDataSource;
@@ -29,7 +42,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       'model.group[1].animal': animal1Value,
     };
     mockApplicationSettings = {
-      'homeBaseUrl': homeBaseUrl,
+      homeBaseUrl: homeBaseUrl,
     };
     mockInstanceContext = {
       instanceOwnerPartyId: instanceOwnerPartyId,
@@ -45,11 +58,18 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
   it('should replace parameter for unparsed value', () => {
     mockTextResources = [
       {
-        id: 'mockId1', value: 'This is an {0} text.', unparsedValue: 'This is an {0} text.', variables: [{ key: 'model.text.adjective', dataSource: 'dataModel.test' }],
+        id: 'mockId1',
+        value: 'This is an {0} text.',
+        unparsedValue: 'This is an {0} text.',
+        variables: [
+          { key: 'model.text.adjective', dataSource: 'dataModel.test' },
+        ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId1');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId1',
+    );
     expect(textResource.value).toEqual(`This is an ${adjectiveValue} text.`);
   });
 
@@ -67,8 +87,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     ];
 
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource) => resource.id === 'mockId1');
-    expect(textResource.value).toEqual(`This is an ${adjectiveValue} text, ${colorValue}.`);
+    const textResource = mockTextResources.find(
+      (resource) => resource.id === 'mockId1',
+    );
+    expect(textResource.value).toEqual(
+      `This is an ${adjectiveValue} text, ${colorValue}.`,
+    );
   });
 
   it('should replace parameter for previously parsed value', () => {
@@ -77,13 +101,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         id: 'mockId',
         value: 'This is a green apple.',
         unparsedValue: 'This is a {0} apple.',
-        variables: [
-          { key: 'model.text.color', dataSource: 'dataModel.test' }
-        ],
+        variables: [{ key: 'model.text.color', dataSource: 'dataModel.test' }],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
     expect(textResource.value).toEqual(`This is a ${colorValue} apple.`);
   });
 
@@ -93,14 +117,16 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         id: 'mockId',
         value: 'This is a text with a missing param: {0}.',
         unparsedValue: 'This is a text with a missing param: {0}.',
-        variables: [
-          { key: 'model.text.param', dataSource: 'dataModel.test' }
-        ],
+        variables: [{ key: 'model.text.param', dataSource: 'dataModel.test' }],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual('This is a text with a missing param: model.text.param.');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
+    expect(textResource.value).toEqual(
+      'This is a text with a missing param: model.text.param.',
+    );
   });
 
   it('should not replace the texts from invalid source', () => {
@@ -110,13 +136,17 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         value: 'This: {0} depends on an invalid source.',
         unparsedValue: 'This: {0} depends on an invalid source.',
         variables: [
-          { key: 'model.text.adjective', dataSource: 'api.invalidSource' }
+          { key: 'model.text.adjective', dataSource: 'api.invalidSource' },
         ],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual('This: {0} depends on an invalid source.');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
+    expect(textResource.value).toEqual(
+      'This: {0} depends on an invalid source.',
+    );
   });
 
   it('should not replace texts when no variable is defined', () => {
@@ -129,7 +159,9 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
     expect(textResource.value).toEqual('mock value');
   });
 
@@ -153,10 +185,18 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         dataModelBinding: 'model.group',
       },
     };
-    replaceTextResourceParams(mockTextResources, mockDataSources, mockRepeatingGroups);
-    let textResource = mockTextResources.find((resource) => resource.id === 'mockId-0');
+    replaceTextResourceParams(
+      mockTextResources,
+      mockDataSources,
+      mockRepeatingGroups,
+    );
+    let textResource = mockTextResources.find(
+      (resource) => resource.id === 'mockId-0',
+    );
     expect(textResource.value).toEqual(`Hello, ${animal0Value}!`);
-    textResource = mockTextResources.find((resource) => resource.id === 'mockId-1');
+    textResource = mockTextResources.find(
+      (resource) => resource.id === 'mockId-1',
+    );
     expect(textResource.value).toEqual(`Hello, ${animal1Value}!`);
   });
 
@@ -164,16 +204,20 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     mockTextResources = [
       {
         id: 'mockId',
-        value: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
-        unparsedValue: 'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
-        variables: [
-          { key: 'model.text.color', dataSource: 'dataModel.test' },
-        ],
+        value:
+          'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        unparsedValue:
+          'This is a {0} apple. It will always be {0}. Yes, {0} is my favorite color.',
+        variables: [{ key: 'model.text.color', dataSource: 'dataModel.test' }],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual(`This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`);
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
+    expect(textResource.value).toEqual(
+      `This is a ${colorValue} apple. It will always be ${colorValue}. Yes, ${colorValue} is my favorite color.`,
+    );
   });
 
   it('should replace text based on appsettings', () => {
@@ -182,13 +226,13 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         id: 'mockId',
         value: 'This is a [link]({0}).',
         unparsedValue: 'This is a [link]({0}).',
-        variables: [
-          { key: 'homeBaseUrl', dataSource: 'applicationSettings' },
-        ],
+        variables: [{ key: 'homeBaseUrl', dataSource: 'applicationSettings' }],
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
     expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
   });
 
@@ -204,7 +248,9 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
     expect(textResource.value).toEqual(`This is a [link](doesnotexists).`);
   });
 
@@ -220,8 +266,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       },
     ];
     replaceTextResourceParams(mockTextResources, mockDataSources);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
-    expect(textResource.value).toEqual(`The instance owner party id is ${instanceOwnerPartyId}`);
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
+    expect(textResource.value).toEqual(
+      `The instance owner party id is ${instanceOwnerPartyId}`,
+    );
   });
 
   it('should replace text in a reapeating group based on appsettings', () => {
@@ -230,9 +280,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         id: 'mockId',
         value: 'This is a [link]({0}).',
         unparsedValue: 'This is a [link]({0}).',
-        variables: [
-          { key: 'homeBaseUrl', dataSource: 'applicationSettings' },
-        ],
+        variables: [{ key: 'homeBaseUrl', dataSource: 'applicationSettings' }],
       },
     ];
     const mockRepeatingGroups = {
@@ -241,14 +289,20 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
         dataModelBinding: 'model.group',
       },
     };
-    replaceTextResourceParams(mockTextResources, mockDataSources, mockRepeatingGroups);
-    const textResource = mockTextResources.find((resource: ITextResource) => resource.id === 'mockId');
+    replaceTextResourceParams(
+      mockTextResources,
+      mockDataSources,
+      mockRepeatingGroups,
+    );
+    const textResource = mockTextResources.find(
+      (resource: ITextResource) => resource.id === 'mockId',
+    );
     expect(textResource.value).toEqual(`This is a [link](${homeBaseUrl}).`);
   });
 
   describe('getParsedLanguageFromText', () => {
     it('should return single element if only text is parsed', () => {
-      const result = getParsedLanguageFromText('just som plain text')
+      const result = getParsedLanguageFromText('just som plain text');
       expect(result instanceof Array).toBeFalsy();
     });
 
@@ -260,21 +314,25 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
 
   describe('getAppName', () => {
     it('should return app name if defined by appName key', () => {
-        const textResources: ITextResource[] = [{
+      const textResources: ITextResource[] = [
+        {
           value: 'SomeAppName',
           id: 'appName',
-        }];
+        },
+      ];
 
-        const result = getAppName(textResources, {} as IApplication, 'nb');
-        const expectedResult = 'SomeAppName';
-        expect(result).toEqual(expectedResult);
+      const result = getAppName(textResources, {} as IApplication, 'nb');
+      const expectedResult = 'SomeAppName';
+      expect(result).toEqual(expectedResult);
     });
 
     it('should return app name if defined by ServiceName key', () => {
-      const textResources: ITextResource[] = [{
-        value: 'SomeAppName',
-        id: 'ServiceName',
-      }];
+      const textResources: ITextResource[] = [
+        {
+          value: 'SomeAppName',
+          id: 'ServiceName',
+        },
+      ];
 
       const result = getAppName(textResources, {} as IApplication, 'nb');
       const expectedResult = 'SomeAppName';
@@ -286,7 +344,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       const applicationMetadata = {
         title: {
           nb: 'SomeAppName',
-        }
+        },
       } as unknown as IApplication;
 
       const result = getAppName(textResources, applicationMetadata, 'nb');
@@ -295,14 +353,16 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     });
 
     it('should return app name defined by appName key even if applicationMetadata definition exist', () => {
-      const textResources: ITextResource[] = [{
-        value: 'AppNameFromTextResource',
-        id: 'appName',
-      }];
+      const textResources: ITextResource[] = [
+        {
+          value: 'AppNameFromTextResource',
+          id: 'appName',
+        },
+      ];
       const applicationMetadata = {
         title: {
           nb: 'AppNameFromMetadata',
-        }
+        },
       } as unknown as IApplication;
 
       const result = getAppName(textResources, applicationMetadata, 'nb');
@@ -311,14 +371,16 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
     });
 
     it('should return app name defined by ServiceName key even if applicationMetadata definition exist', () => {
-      const textResources: ITextResource[] = [{
-        value: 'AppNameFromTextResource',
-        id: 'ServiceName',
-      }];
+      const textResources: ITextResource[] = [
+        {
+          value: 'AppNameFromTextResource',
+          id: 'ServiceName',
+        },
+      ];
       const applicationMetadata = {
         title: {
           nb: 'AppNameFromMetadata',
-        }
+        },
       } as unknown as IApplication;
 
       const result = getAppName(textResources, applicationMetadata, 'nb');
@@ -331,7 +393,7 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
       const applicationMetadata = {
         title: {
           nb: 'NorwegianName',
-        }
+        },
       } as unknown as IApplication;
 
       const result = getAppName(textResources, applicationMetadata, 'en');
@@ -348,10 +410,12 @@ describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', (
 
   describe('getAppOwner', () => {
     it('should return app owner if defined by appOwner key', () => {
-      const textResources: ITextResource[] = [{
-        value: 'NameFromResources',
-        id: 'appOwner',
-      }];
+      const textResources: ITextResource[] = [
+        {
+          value: 'NameFromResources',
+          id: 'appOwner',
+        },
+      ];
       const orgs: IAltinnOrgs = {
         ttd: {
           name: { nb: 'NameFromOrg' },

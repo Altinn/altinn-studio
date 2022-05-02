@@ -14,7 +14,6 @@ Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get start
 ### Apps
 
 [![KubernetesWrapper build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-kuberneteswrapper-build-master?label=apps/kuberneteswrapper)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=88)
-[![Front-end build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-app-frontend-cdn-build-master?label=apps/frontend)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=74)
 
 ### Studio
 
@@ -56,7 +55,7 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 #### Develop or run Apps
 
 First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).
-_If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
+_If you need to develop or debug App-Frontend, you can follow the description in **[app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)**_
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
@@ -95,51 +94,17 @@ docker-compose down
    dotnet run
    ```
 
-5. Navigate to the app folder (specified in the step above)
+5. Navigate to the app folder (specified in the step above), and start the app
 
    ```bash
    cd /<path to app on disk>
    ```
 
-   - If you need to debug (or run locally) the app front-end:
+   ```bash
+   dotnet run -p App.csproj
+   ```
 
-     - Open the file `views/Home/Index.cshtml` in your app repo and change the lines (don't commit these changes)
-
-     ```html
-     <link
-       rel="stylesheet"
-       type="text/css"
-       href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css"
-     />
-     ...
-     <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
-     ```
-
-     to
-
-     ```html
-     <link
-       rel="stylesheet"
-       type="text/css"
-       href="http://localhost:8080/altinn-app-frontend.css"
-     />
-     ....
-     <script src="http://localhost:8080/altinn-app-frontend.js"></script>
-     ```
-
-     - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
-
-     ```bash
-     yarn --immutable # only needed first time, or when dependencies are updated
-     cd altinn-app-frontend
-     yarn start
-     ```
-
-6. Start the app locally
-
-```bash
-dotnet run -p App.csproj
-```
+   - If you need to debug (or run locally) the app front-end, see details in [app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)
 
 The app and local platform services are now running locally.
 If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
@@ -148,7 +113,7 @@ Log in with a test user, using your app name and org name. This will redirect yo
 
 #### Building other react apps
 
-If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/stc/designer/frontend/dashboard` and then run the following build script
+If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```bash
 yarn run build
