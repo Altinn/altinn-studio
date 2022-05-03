@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Npgsql;
@@ -24,17 +23,15 @@ namespace Altinn.Platform.Events.Repository
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
         private readonly string _connectionString;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CloudEventRepository"/> class.
         /// </summary>
-        public CloudEventRepository(IOptions<PostgreSQLSettings> postgresSettings, ILogger<CloudEventRepository> logger)
+        public CloudEventRepository(IOptions<PostgreSQLSettings> postgresSettings)
         {
             _connectionString = string.Format(
                 postgresSettings.Value.ConnectionString,
                 postgresSettings.Value.EventsDbPwd);
-            _logger = logger;
         }
 
         /// <inheritdoc/>

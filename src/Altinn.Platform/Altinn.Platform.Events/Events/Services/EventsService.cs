@@ -70,8 +70,8 @@ namespace Altinn.Platform.Events.Services
         public async Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, int partyId, List<string> source, List<string> type, int size = 50)
         {
             string subject = partyId == 0 ? string.Empty : $"/party/{partyId}";
-            source = source.Any() ? source : null;
-            type = type.Any() ? type : null;
+            source = source.Count > 0 ? source : null;
+            type = type.Count > 0 ? type : null;
             after ??= string.Empty;
 
             return await _repository.Get(after, from, to, subject, source, type, size);
