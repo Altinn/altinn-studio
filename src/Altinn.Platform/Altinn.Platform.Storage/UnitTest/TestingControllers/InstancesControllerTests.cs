@@ -24,7 +24,6 @@ using Altinn.Platform.Storage.Wrappers;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -1415,24 +1414,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }).CreateClient();
 
             return client;
-        }
-
-        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            Type type = typeof(CosmosException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object cosmosExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (CosmosException)cosmosExceptionInstance;
         }
     }
 }

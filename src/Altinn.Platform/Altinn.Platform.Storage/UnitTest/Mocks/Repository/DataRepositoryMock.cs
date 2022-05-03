@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
-
-using Microsoft.Azure.Cosmos;
 
 using Newtonsoft.Json;
 
@@ -51,7 +47,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return await Task.FromResult(dataElement);
             }
 
-            throw CreateCosmosExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+            return null;
         }
 
         public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -103,11 +99,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
-        }
-
-        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);         
         }
     }
 }

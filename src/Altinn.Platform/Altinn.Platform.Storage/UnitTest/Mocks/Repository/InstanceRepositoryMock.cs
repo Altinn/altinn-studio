@@ -2,15 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
