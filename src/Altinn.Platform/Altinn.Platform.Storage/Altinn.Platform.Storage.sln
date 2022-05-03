@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29411.108
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage", "Storage\Altinn.Platform.Storage.csproj", "{6E75FF22-28FE-4292-8616-8B60F8399FC5}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.CosmosBackup", "CosmosBackup\Altinn.Platform.Storage.CosmosBackup.csproj", "{E484AEDD-0708-4C1A-B77A-4239251D524A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.DataCleanup", "DataCleanup\Altinn.Platform.Storage.DataCleanup.csproj", "{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.Interface.Tests", "Altinn.Platform.Storage.Interface.Tests\Altinn.Platform.Storage.Interface.Tests.csproj", "{0AC2E38B-E7BA-4453-A800-2B524BF4E2DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AC2E38B-E7BA-4453-A800-2B524BF4E2DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AC2E38B-E7BA-4453-A800-2B524BF4E2DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AC2E38B-E7BA-4453-A800-2B524BF4E2DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC2E38B-E7BA-4453-A800-2B524BF4E2DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
