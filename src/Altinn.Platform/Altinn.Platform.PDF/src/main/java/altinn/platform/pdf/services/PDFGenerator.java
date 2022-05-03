@@ -348,8 +348,6 @@ public class PDFGenerator {
       String optionsIdKey = baseKey + ".optionsId";
 
       String theQuestion = FormUtils.getFormDataByKey(questionKey, formData);
-      String theAnswer = FormUtils.getFormDataByKey(answerKey, formData);
-      String theOptionsId = FormUtils.getFormDataByKey(optionsIdKey, formData);
 
       FormLayoutElement formLayoutElement = new FormLayoutElement();
       formLayoutElement.setDataModelBindings(new HashMap<>());
