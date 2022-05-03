@@ -345,7 +345,6 @@ public class PDFGenerator {
       String baseKey = list + "[" + i + "]";
       String questionKey = baseKey + "." + question;
       String answerKey = baseKey + "." + answer;
-      String optionsIdKey = baseKey + ".optionsId";
 
       String theQuestion = FormUtils.getFormDataByKey(questionKey, formData);
 
