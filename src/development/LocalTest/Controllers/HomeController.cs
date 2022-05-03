@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using AltinnCore.Authentication.Constants;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
 using LocalTest.Models;
@@ -35,6 +36,7 @@ namespace LocalTest.Controllers
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
+        private readonly IApplicationRepository _applicationRepository;
         private readonly ILocalApp _localApp;
 
         public HomeController(
@@ -42,12 +44,14 @@ namespace LocalTest.Controllers
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
+            IApplicationRepository applicationRepository,
             ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
+            _applicationRepository = applicationRepository;
             _localApp = localApp;
         }
 
@@ -124,6 +128,9 @@ namespace LocalTest.Controllers
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
+
+            // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
+            await _applicationRepository.Update(app);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
