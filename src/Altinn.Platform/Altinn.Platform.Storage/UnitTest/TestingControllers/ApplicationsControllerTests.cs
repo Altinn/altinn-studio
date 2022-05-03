@@ -457,6 +457,100 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        /// <summary>
+        /// Request all applications of an invalid app owner. Repository called is never called. Controller returns bad request.
+        /// </summary>
+        [Fact]
+        public async void GetMany_InvalidOrg_ReturnsBadRequest()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/test%20org";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Request all applications of a valid app owner. Repository called once and controller returns 200.
+        /// </summary>
+        [Fact]
+        public async void GetMany_ValidRequest_RepositoryIsCalledOnce()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/test";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            var returnValue = new List<Application>() { new Application { Id = "test/sailor" } };
+
+            applicationRepository
+                .Setup(s => s.FindByOrg(It.IsAny<string>()))
+                .ReturnsAsync(returnValue);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            applicationRepository.Verify(m => m.FindByOrg(It.IsAny<string>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Request an application that does not exist. Repository called once. Controller returns not found. 
+        /// </summary>
+        [Fact]
+        public async void GetOne_NonExistingApp_ReturnsNotFound()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/ttd/non-exsisting-app";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository
+              .Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>()))
+              .ReturnsAsync((Application)null);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            applicationRepository.Verify(m => m.FindOne(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Request an application that exists. Repository called once. Controller returns ok. 
+        /// </summary>
+        [Fact]
+        public async void GetOne_ExistingApp_ReturnsOk()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/ttd/exsisting-app";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository
+              .Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>()))
+              .ReturnsAsync( new Application { Id = "ttd/existing-app"});
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            applicationRepository.Verify(m => m.FindOne(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
         private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {
             return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);
