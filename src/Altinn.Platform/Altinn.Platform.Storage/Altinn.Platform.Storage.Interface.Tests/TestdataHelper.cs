@@ -12,8 +12,13 @@ namespace Altinn.Platform.Storage.Interface.Tests
         public static T LoadDataFromEmbeddedResourceAsType<T>(string resourcePath)
         {
             var resourceString = LoadDataFromEmbeddedResource(resourcePath);
-            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            T obj = JsonSerializer.Deserialize<T>(resourceString, options);
+            var options = new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            T? obj = JsonSerializer.Deserialize<T>(resourceString, options);
+
+            if (obj == null)
+            {
+                throw new InvalidDataException($"Unable to deserialize stream for resource {resourcePath}");
+            }
 
             return obj;
         }
@@ -22,7 +27,7 @@ namespace Altinn.Platform.Storage.Interface.Tests
         {
             var resourceStream = LoadDataFromEmbeddedResource(resourcePath);
 
-            using StreamReader reader = new StreamReader(resourceStream);
+            using var reader = new StreamReader(resourceStream);
             string text = reader.ReadToEnd();
 
             return text;
@@ -31,7 +36,7 @@ namespace Altinn.Platform.Storage.Interface.Tests
         public static Stream LoadDataFromEmbeddedResource(string resourcePath)
         {
             var assembly = Assembly.GetExecutingAssembly();
-            Stream resourceStream = assembly.GetManifestResourceStream(GetFullResourcePath(resourcePath));
+            Stream? resourceStream = assembly.GetManifestResourceStream(GetFullResourcePath(resourcePath));
 
             if (resourceStream == null)
             {
