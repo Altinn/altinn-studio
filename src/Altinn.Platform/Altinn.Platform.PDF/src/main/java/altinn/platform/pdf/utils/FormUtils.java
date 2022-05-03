@@ -27,11 +27,14 @@ import java.util.stream.Collectors;
 public class FormUtils {
 
   private static final String GROUP_NAME = "group";
-  private FormUtils() {}
+
+  private FormUtils() {
+  }
 
   /**
    * Returns the data data for a given data binding
-   * @param key the data binding key
+   *
+   * @param key      the data binding key
    * @param formData the data data
    * @return the connected data data, or empty string if not defined
    */
@@ -48,11 +51,74 @@ public class FormUtils {
     return TextUtils.removeIllegalChars(value);
   }
 
+  public static int countElements(String theKey, Document formData) {
+    if (theKey == null || formData == null) {
+      return 0;
+    }
+    return formData.getElementsByTagName(theKey).getLength();
+  }
+
+  public static Node GetEndNode(Node parentNode, String[] keys, int keyIndex) {
+    if (parentNode == null || keys == null || keyIndex > (keys.length - 1)) {
+      return null;
+    }
+    NodeList childNodes = parentNode.getChildNodes();
+    if (childNodes == null || childNodes.getLength() == 0) {
+      return null;
+    }
+
+    int indexCounter = -1; // for some data models we need to find a given child by index
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node childNode = childNodes.item(i);
+      String nodeName = childNode.getNodeName();
+      nodeName = nodeName.replace("-", "").toLowerCase();
+      String key = keys[keyIndex].replace("-", "").toLowerCase();
+      int groupIndex;
+      if (key.contains("[")) {
+        // The key have an index
+        groupIndex = Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
+        key = key.replace("[" + groupIndex + "]", "");
+      } else {
+        groupIndex = 0;
+      }
+      if (nodeName == null) {
+        continue;
+      }
+      if (nodeName.equals(key)) {
+        // We have a match.
+        indexCounter++;
+      }
+      if (nodeName.equals(key) && indexCounter == groupIndex) {
+        if ((keys.length - 1) == keyIndex) {
+          // If no more partial keys we have reached bottom node, return value if present
+
+          Node value;
+          if (childNode.getFirstChild() != null) {
+            value = childNode.getFirstChild();
+          } else {
+            value = childNode;
+          }
+          if (value != null) {
+            return value;
+//            return value;
+          } else {
+            return null;
+          }
+        } else {
+          // We keep digging
+          return GetEndNode(childNode, keys, keyIndex + 1);
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Looks for the value of the end node in a series of nested elements. Calls itself recursively.
+   *
    * @param parentNode the parent node
-   * @param keys the keys of nested element, parent starting at n, child at (n+1)
-   * @param keyIndex the index of the current element we are looking for
+   * @param keys       the keys of nested element, parent starting at n, child at (n+1)
+   * @param keyIndex   the index of the current element we are looking for
    * @return the value if found, or empty string otherwise
    */
   public static String getValueOfEndNode(Node parentNode, String[] keys, int keyIndex) {
@@ -83,7 +149,7 @@ public class FormUtils {
       }
       if (nodeName.equals(key)) {
         // We have a match.
-        indexCounter ++;
+        indexCounter++;
       }
       if (nodeName.equals(key) && indexCounter == groupIndex) {
         if ((keys.length - 1) == keyIndex) {
@@ -91,8 +157,7 @@ public class FormUtils {
           String value;
           if (childNode.getFirstChild() != null) {
             value = childNode.getFirstChild().getNodeValue();
-          }
-          else {
+          } else {
             value = childNode.getNodeValue();
           }
           if (value != null) {
@@ -112,6 +177,7 @@ public class FormUtils {
   /**
    * Gets the the filtered layout. Removes all components which should be rendered as part of groups.
    * In the future this method should be extended to include filtering away hidden components when we support dynamics.
+   *
    * @param layout the form layout
    * @return the filtered form layout
    */
@@ -123,7 +189,7 @@ public class FormUtils {
 
     layout.stream()
       .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME))
-      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(i ->renderedInGroup.add(filterMultiPageId(i))));
+      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(i -> renderedInGroup.add(filterMultiPageId(i))));
 
     return layout.stream().
       filter(formLayoutElement -> !renderedInGroup.contains(formLayoutElement.getId()))
@@ -132,16 +198,18 @@ public class FormUtils {
 
   /**
    * Removes the page indicator on an id if it exists.
+   *
    * @param id the component Id
    * @return an id without the page indicator
    */
-  public static String filterMultiPageId(String id){
+  public static String filterMultiPageId(String id) {
     return id.contains(":") ? id.split(":")[1] : id;
   }
 
   /**
    * Setup repeating groups. Finds the number of iterations for a given group in the by looking at how many iterations the data model binding has in the form data
-   * @param layout the form layout
+   *
+   * @param layout   the form layout
    * @param formData the form data
    * @return a form layout list where the group counts have been initialized
    */
@@ -160,19 +228,19 @@ public class FormUtils {
 
     filtered.forEach(formLayoutElement -> {
       if (formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME)) {
-        String parentGroupBinding = formLayoutElement.getDataModelBindings().get(GROUP_NAME);
+        String parentGroupBinding = (String) formLayoutElement.getDataModelBindings().get(GROUP_NAME);
         formLayoutElement.setCount(getGroupCount(parentGroupBinding, formData));
         List<FormLayoutElement> groupChildren = getChildGroups(formLayoutElement, layout);
         initiated.add(formLayoutElement);
         if (!groupChildren.isEmpty()) {
           groupChildren.forEach(groupChild -> {
-            for (int i = 0; i < formLayoutElement.getCount(); i ++) {
+            for (int i = 0; i < formLayoutElement.getCount(); i++) {
               FormLayoutElement copy = new FormLayoutElement();
               copy.setType(GROUP_NAME);
               copy.setId(groupChild.getId() + "-" + i);
               copy.setChildren(groupChild.getChildren());
-              HashMap<String, String> copyDataModelBindings = new HashMap<>();
-              String childGroupBinding = groupChild.getDataModelBindings().get(GROUP_NAME);
+              HashMap<String, Object> copyDataModelBindings = new HashMap<>();
+              String childGroupBinding = (String) groupChild.getDataModelBindings().get(GROUP_NAME);
               String indexedChildGroupBinding = childGroupBinding.replace(parentGroupBinding, parentGroupBinding + "[" + i + "]");
               copyDataModelBindings.put(GROUP_NAME, indexedChildGroupBinding);
               copy.setDataModelBindings(copyDataModelBindings);
@@ -190,7 +258,8 @@ public class FormUtils {
 
   /**
    * finds child groups of a given group
-   * @param group the group
+   *
+   * @param group  the group
    * @param layout the form layout
    * @return a list of child groups, empty if no child is a group
    */
@@ -210,7 +279,8 @@ public class FormUtils {
 
   /**
    * Gets the number of repetitions a given group has in the form data
-   * @param group the group
+   *
+   * @param group    the group
    * @param formData the form data
    * @return number of repetitions for a given group
    */
@@ -221,11 +291,11 @@ public class FormUtils {
 
     int bracketIndex = group.indexOf("[");
     if (bracketIndex > -1) {
-      int parentGroupIndex = Integer.parseInt(group.substring(bracketIndex + 1 , bracketIndex + 2));
+      int parentGroupIndex = Integer.parseInt(group.substring(bracketIndex + 1, bracketIndex + 2));
       String[] split = group.split(Pattern.quote("."));
-      String groupName = split[split.length -1];
+      String groupName = split[split.length - 1];
       String parentGroup = "";
-      for (String s: split) {
+      for (String s : split) {
         if (s.contains("[")) {
           parentGroup = s.replace("[" + parentGroupIndex + "]", "");
         }
@@ -235,12 +305,11 @@ public class FormUtils {
       int count = 0;
       for (int i = 0; i < children.getLength(); i++) {
         if (children.item(i).getNodeName().equals(groupName)) {
-          count ++;
+          count++;
         }
       }
       return count;
-    }
-    else {
+    } else {
       String[] split = group.split(Pattern.quote("."));
       return formData.getElementsByTagName(split[split.length - 1]).getLength();
     }
@@ -249,9 +318,8 @@ public class FormUtils {
   /**
    * Injects the group index marker [i]
    * behind the group binding in the string representing the full binding.
-   * **/
-  public static String setGroupIndexForBinding(String fullBinding, String groupBinding, int groupIndex)
-  {
+   **/
+  public static String setGroupIndexForBinding(String fullBinding, String groupBinding, int groupIndex) {
     // escape `[` and ']' to not interfere with the regex match pattern
     groupBinding = groupBinding.replaceAll("[\\[|\\]]", "\\\\$0");
 
@@ -265,6 +333,7 @@ public class FormUtils {
 
   /**
    * Parses the base 64 encoded xml file and creates a Document wrapper
+   *
    * @param xmlBaseEncoded the base 64 xml string
    * @return a document wrapper for the xml file
    * @throws ParserConfigurationException

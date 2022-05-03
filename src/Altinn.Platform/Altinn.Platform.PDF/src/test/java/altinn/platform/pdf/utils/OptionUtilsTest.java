@@ -35,7 +35,7 @@ public class OptionUtilsTest extends TestCase {
 
     FormLayoutElement group = new FormLayoutElement();
     group.setCount(1);
-    HashMap<String, String> dataModelBindings = new HashMap<>();
+    HashMap<String, Object> dataModelBindings = new HashMap<>();
     dataModelBindings.put("group", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788");
     group.setDataModelBindings(dataModelBindings);
 
