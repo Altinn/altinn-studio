@@ -32,10 +32,20 @@ export function runConditionalRenderingRules(
         return;
       }
 
-      for (let i = 0; i <= repeatingGroup.index; ++i) {
+      for (let index = 0; index <= repeatingGroup.index; index++) {
         const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
-        connectionCopy.inputParams = mapRepeatingGroupIndex(connectionCopy.inputParams, i, true);
-        connectionCopy.selectedFields = mapRepeatingGroupIndex(connectionCopy.selectedFields, i, false);
+        connectionCopy.inputParams = mapRepeatingGroupIndex({ ruleObject: connectionCopy.inputParams, index, dataModelField: true });
+        connectionCopy.selectedFields = mapRepeatingGroupIndex({ ruleObject: connectionCopy.selectedFields, index });
+
+        if (connection.repeatingGroup.childGroupId) {
+          const childGroup: IRepeatingGroup = repeatingGroups[connection.repeatingGroup.childGroupId + '-' + index];
+          for (let childIndex = 0; childIndex <= childGroup?.index; childIndex++) {
+            const connectionNestedCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connectionCopy));
+            connectionNestedCopy.inputParams = mapRepeatingGroupIndex({ ruleObject: connectionCopy.inputParams, index: childIndex, dataModelField: true, nested: true });
+            connectionNestedCopy.selectedFields = mapRepeatingGroupIndex({ ruleObject: connectionCopy.selectedFields, index: childIndex, nested: true });
+            componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connectionNestedCopy, formData));
+          }
+        }
         componentsToHide = componentsToHide.concat(runConditionalRenderingRule(connectionCopy, formData));
       }
     } else {
@@ -46,15 +56,26 @@ export function runConditionalRenderingRules(
   return componentsToHide;
 }
 
-function mapRepeatingGroupIndex(
-  ruleObject: IParameters | ISelectedFields,
-  index: number,
-  dataModelField?: boolean,
-) {
+interface MapRepeatingGroupIndexParams {
+  ruleObject: IParameters | ISelectedFields;
+  index: number;
+  dataModelField?: boolean;
+  nested?: boolean;
+}
+
+function mapRepeatingGroupIndex({
+  ruleObject,
+  index,
+  dataModelField = false,
+  nested = false,
+}: MapRepeatingGroupIndexParams) {
   const result: any = {};
   Object.keys(ruleObject).forEach((key) => {
     const field = ruleObject[key];
-    result[key] = field.replace('{0}', dataModelField ? `[${index}]` : `-${index}`);
+    result[key] = field.replace(
+      nested ? '{1}' : '{0}',
+      dataModelField ? `[${index}]` : `-${index}`
+    );
   });
   return result;
 }

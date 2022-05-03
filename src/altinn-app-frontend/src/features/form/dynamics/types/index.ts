@@ -12,6 +12,7 @@ export interface IConditionalRenderingRule {
 
 export interface IConditionalRenderingRepeatingGroup {
   groupId: string;
+  childGroupId?: string;
 }
 
 export interface IParameters {
