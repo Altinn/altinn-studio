@@ -1202,16 +1202,20 @@ namespace App.IntegrationTests.ApiTests
 
             _output.WriteLine(json);
             List<SimpleInstance> activeInstances = System.Text.Json.JsonSerializer.Deserialize<List<SimpleInstance>>(json, options);
-            SimpleInstance actual = activeInstances.First();
+            SimpleInstance normal = activeInstances.First(i => i.Id == "1401/447ed22d-67a8-42c7-8add-cc35eba304f2");
+            SimpleInstance noLastCangedBy = activeInstances.First(i => i.Id == "1401/8d5a293f-98ed-4c2c-9a6b-3593f49b4d26");
 
             // Assert
             string expectedLastChangedBy = "DDG Fitness";
-            DateTime expectedLastChanged = new DateTime(637679891830000000);
+            DateTime expectedLastChanged = DateTime.Parse("2021-09-23T10:19:43");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Single(activeInstances);
-            Assert.Equal(expectedLastChanged, actual.LastChanged);
-            Assert.Equal(expectedLastChangedBy, actual.LastChangedBy);
+            Assert.Equal(2, activeInstances.Count);
+            Assert.Equal(expectedLastChanged, normal.LastChanged);
+            Assert.Equal(expectedLastChangedBy, normal.LastChangedBy);
+
+            // Seccond instance has empty lastChangedBy
+            Assert.Empty(noLastCangedBy.LastChangedBy);
         }
     }
 }
