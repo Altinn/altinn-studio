@@ -36,7 +36,7 @@ namespace Altinn.App.Api.Mappers
             List<SimpleInstance> simpleInstances = new List<SimpleInstance>();
             foreach (Instance instance in instances)
             {
-                string lastChangedByName = userDictionary.ContainsKey(instance.LastChangedBy) ? userDictionary[instance.LastChangedBy] : string.Empty;
+                string lastChangedByName = userDictionary.ContainsKey(instance.LastChangedBy ?? string.Empty) ? userDictionary[instance.LastChangedBy] : string.Empty;
                 simpleInstances.Add(MapInstanceToSimpleInstance(instance, lastChangedByName));
             }
 
