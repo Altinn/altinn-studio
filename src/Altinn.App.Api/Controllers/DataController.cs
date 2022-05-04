@@ -337,7 +337,7 @@ namespace Altinn.App.Api.Controllers
 
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
-            _logger.LogError($"{message}: {exception}");
+            _logger.LogError(exception, message);
 
             if (exception is PlatformHttpException)
             {
