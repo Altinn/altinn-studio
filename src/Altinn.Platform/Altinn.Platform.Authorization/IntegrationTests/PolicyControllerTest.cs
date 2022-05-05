@@ -26,12 +26,12 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyControllerTest : IClassFixture<WebApplicationFactory<DecisionController>>
+    public class PolicyControllerTest : IClassFixture<CustomWebApplicationFactory<DecisionController>>
     {
-        private readonly WebApplicationFactory<DecisionController> _factory;
+        private readonly CustomWebApplicationFactory<DecisionController> _factory;
         private readonly HttpClient _client;
 
-        public PolicyControllerTest(WebApplicationFactory<DecisionController> fixture)
+        public PolicyControllerTest(CustomWebApplicationFactory<DecisionController> fixture)
         {
             _factory = fixture;
             _client = GetTestClient();
@@ -486,11 +486,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandlerMock>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
-                    services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
-                    services.AddScoped<IRoles, RolesMock>();
-                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
-                    services.AddScoped<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
+                    services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
+                    services.AddSingleton<IRoles, RolesMock>();
+                    services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });

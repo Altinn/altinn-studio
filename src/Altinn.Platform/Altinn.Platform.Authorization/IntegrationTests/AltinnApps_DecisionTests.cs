@@ -17,11 +17,11 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class AltinnApps_DecisionTests :IClassFixture<WebApplicationFactory<DecisionController>>
+    public class AltinnApps_DecisionTests :IClassFixture<CustomWebApplicationFactory<DecisionController>>
     {
-        private readonly WebApplicationFactory<DecisionController> _factory;
+        private readonly CustomWebApplicationFactory<DecisionController> _factory;
 
-        public AltinnApps_DecisionTests(WebApplicationFactory<DecisionController> fixture)
+        public AltinnApps_DecisionTests(CustomWebApplicationFactory<DecisionController> fixture)
         {
             _factory = fixture;
         }
@@ -318,11 +318,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandlerMock>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
-                    services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
-                    services.AddScoped<IRoles, RolesMock>();
-                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
-                    services.AddScoped<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
+                    services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
+                    services.AddSingleton<IRoles, RolesMock>();
+                    services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
