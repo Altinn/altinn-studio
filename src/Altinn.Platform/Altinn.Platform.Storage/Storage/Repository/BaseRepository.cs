@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly AzureCosmosSettings _cosmosSettings;
 
         /// <summary>
-        /// The document cllection.
+        /// The document collection.
         /// </summary>
         protected Container Container { get; private set; }
 
