@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using AltinnCore.Authentication.Constants;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
 using LocalTest.Models;
@@ -26,7 +27,6 @@ using LocalTest.Services.LocalApp.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Newtonsoft.Json;
 
 namespace LocalTest.Controllers
 {
@@ -36,6 +36,7 @@ namespace LocalTest.Controllers
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
+        private readonly IApplicationRepository _applicationRepository;
         private readonly ILocalApp _localApp;
 
         public HomeController(
@@ -43,12 +44,14 @@ namespace LocalTest.Controllers
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
+            IApplicationRepository applicationRepository,
             ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
+            _applicationRepository = applicationRepository;
             _localApp = localApp;
         }
 
@@ -116,27 +119,18 @@ namespace LocalTest.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
 
-                string pathAdditionalClaims = _localPlatformSettings.LocalTestingStaticTestDataPath + "claims/" + profile.UserId.ToString() + ".json";
-                if (System.IO.File.Exists(pathAdditionalClaims))
-                {
-                    string content = System.IO.File.ReadAllText(pathAdditionalClaims);
-                    var additionalClaims = (Dictionary<string, string>)JsonConvert.DeserializeObject(content, typeof(Dictionary<string, string>));
-                    foreach (var entry in additionalClaims)
-                    {
-                        claims.Add(new Claim(entry.Key, entry.Value));
-                    }
-                }
-
                 ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
 
                 string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
+
+            // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
+            await _applicationRepository.Update(app);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
@@ -242,7 +236,6 @@ namespace LocalTest.Controllers
         }
         private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
-
             try
             {
                 var appId = testApps.Single().Value;
