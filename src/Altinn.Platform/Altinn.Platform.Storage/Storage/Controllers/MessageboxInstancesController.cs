@@ -337,7 +337,6 @@ namespace Altinn.Platform.Storage.Controllers
             if (instance == null)
             {
                 return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-
             }
 
             DateTime now = DateTime.UtcNow;

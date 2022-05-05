@@ -27,7 +27,6 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
-        private readonly ILogger _logger;
         private readonly string _storageBaseAndHost;
         private readonly AuthorizationHelper _authorizationHelper;
 
@@ -38,20 +37,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="generalsettings">the general settings</param>
-        /// <param name="logger">the logger</param>
         /// <param name="authzLogger">logger for authorization helper</param>
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IPDP pdp,
             IOptions<GeneralSettings> generalsettings,
-            ILogger<ProcessController> logger,
             ILogger<AuthorizationHelper> authzLogger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
-            _logger = logger;
             _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
         }
 

@@ -539,7 +539,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository
               .Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>()))
-              .ReturnsAsync( new Application { Id = "ttd/existing-app"});
+              .ReturnsAsync(new Application { Id = "ttd/existing-app" });
 
             HttpClient client = GetTestClient(applicationRepository.Object);
 
