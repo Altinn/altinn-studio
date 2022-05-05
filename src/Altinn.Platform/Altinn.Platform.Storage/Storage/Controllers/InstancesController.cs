@@ -411,19 +411,12 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-                if (instance == null)
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (instance == null)
             {
-                _logger.LogError(e, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
             }
 
             DateTime now = DateTime.UtcNow;

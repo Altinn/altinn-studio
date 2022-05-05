@@ -55,7 +55,19 @@ namespace Altinn.Platform.Storage.Repository
             string id = GetTextId(org, app, language);
             if (!_memoryCache.TryGetValue(id, out TextResource textResource))
             {
-                textResource = await Container.ReadItemAsync<TextResource>(id, new PartitionKey(org));
+                try
+                {
+                    textResource = await Container.ReadItemAsync<TextResource>(id, new PartitionKey(org));
+                }
+                catch (CosmosException e)
+                {
+                    if (e.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+
+                    throw;
+                }
 
                 if (textResource != null)
                 {
