@@ -45,7 +45,7 @@
     "react-redux": "^8.0.1",
     "react-scripts": "4.0.3",
     "react-styleguidist": "^11.2.0",
-    "redux": "^4.2.0",
+    "redux": "^4.1.2",
     "redux-mock-store": "^1.5.4",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.3.0",
