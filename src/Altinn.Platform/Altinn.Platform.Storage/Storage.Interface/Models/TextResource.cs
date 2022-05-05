@@ -24,8 +24,8 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Gets or sets the language. Should be a two letter ISO name.
         /// </summary>
-        [JsonProperty(PropertyName= "language")]
-        public string Language { get; set; }
+        [JsonProperty(PropertyName= "languageCode")]
+        public string LanguageCode { get; set; }
 
         /// <summary>
         /// Gets or sets a list of text resource elements
