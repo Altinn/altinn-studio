@@ -322,6 +322,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                     services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
                     services.AddSingleton<IRoles, RolesMock>();
+                    services.AddSingleton<IParties, PartiesMock>();
                     services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
                     services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
