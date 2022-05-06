@@ -2124,5 +2124,22 @@ describe('utils > validation', () => {
       const result = validation.missingFieldsInLayoutValidations(validations, mockLanguage.language);
       expect(result).toBeTruthy();
     });
+    it('should return true when validations contain arrays with error message for missing fields', () => {
+      const validations = (err:any[]):ILayoutValidations => ({
+        field: {
+          'simple_binding': {
+            errors: ['Some random error', err],
+            warnings: [],
+          }
+        }
+      });
+      const shallow = ['Første linje', "\n", 'Feltet er påkrevd'];
+      const deep = ['Dette er feil:', ['Første linje', "\n", 'Feltet er påkrevd']];
+      const withNode = ['Dette er feil:', ['Første linje', "\n", createElement('span', {}, 'Feltet er påkrevd')]];
+      expect(validation.missingFieldsInLayoutValidations(validations(shallow), mockLanguage.language)).toBeTruthy();
+      expect(validation.missingFieldsInLayoutValidations(validations(deep), mockLanguage.language)).toBeTruthy();
+      expect(validation.missingFieldsInLayoutValidations(validations(withNode), mockLanguage.language)).toBeTruthy();
+    });
+
   });
 });

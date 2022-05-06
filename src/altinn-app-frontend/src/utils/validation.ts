@@ -1677,6 +1677,16 @@ export function missingFieldsInLayoutValidations(
 ): boolean {
   let result = false;
   const requiredMessage = getLanguageFromKey('form_filler.error_required', language);
+  const lookForRequiredMsg = (e: any) => {
+    if (typeof(e) === 'string') {
+      return e.includes(requiredMessage);
+    }
+    if (Array.isArray(e)) {
+      return e.findIndex(lookForRequiredMsg) > -1;
+    }
+    return (e?.props?.children as string).includes(requiredMessage);
+  };
+
   Object.keys(layoutValidations).forEach((component: string) => {
     if (!layoutValidations[component]) return;
     if (result) return;
@@ -1685,12 +1695,7 @@ export function missingFieldsInLayoutValidations(
       if (result) return;
 
       const errors = layoutValidations[component][binding].errors;
-      result = (errors && errors.length > 0 && errors.findIndex((e: any) => {
-        if (typeof(e) === 'string') {
-          return e.includes(requiredMessage);
-        }
-        return (e?.props?.children as string).includes(requiredMessage);
-      }) > -1)
+      result = (errors && errors.length > 0 && errors.findIndex(lookForRequiredMsg) > -1)
     })
   });
 
