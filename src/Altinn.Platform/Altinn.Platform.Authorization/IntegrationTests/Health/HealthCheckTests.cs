@@ -18,15 +18,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : WebApplicationFactory<DecisionController>
+    public class HealthCheckTests : CustomWebApplicationFactory<DecisionController>
     {
-        private readonly WebApplicationFactory<DecisionController> _factory;
+        private readonly CustomWebApplicationFactory<DecisionController> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="fixture">The web application fixture</param>
-        public HealthCheckTests(WebApplicationFactory<DecisionController> fixture)
+        public HealthCheckTests(CustomWebApplicationFactory<DecisionController> fixture)
         {
             _factory = fixture;
         }
