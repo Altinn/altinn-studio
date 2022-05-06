@@ -50,7 +50,7 @@ const InstantiateContainer = () => {
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
     const axiosError = instantiation.error as AxiosError;
-    const message = axiosError.response.data?.message;
+    const message = (axiosError.response.data as any)?.message;
     if (axiosError.response.status === HttpStatusCodes.Forbidden) {
       if (message) {
         return <InstantiateValidationError message={message} />;

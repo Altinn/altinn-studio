@@ -128,7 +128,7 @@ describe('NavigationBar', () => {
       setScreenWidth(1366);
     });
 
-    it('should show navigation menu, and not show navigation menu toggle button', () => {
+    it('should show navigation menu, and not show navigation menu toggle button', async () => {
       render();
 
       expect(screen.getByTestId('navigation-menu')).toHaveProperty(
@@ -143,13 +143,13 @@ describe('NavigationBar', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should dispatch action when navigating to another page', () => {
+    it('should dispatch action when navigating to another page', async () => {
       const dispatchMock = jest.fn();
       render({ dispatch: dispatchMock });
 
       const btn = screen.getByText(/3\. page3/i);
 
-      userEvent.click(btn);
+      await userEvent.click(btn);
 
       expect(dispatchMock).toHaveBeenCalledWith({
         payload: {
@@ -160,11 +160,11 @@ describe('NavigationBar', () => {
       });
     });
 
-    it('should not dispatch action when navigating to the same page', () => {
+    it('should not dispatch action when navigating to the same page', async () => {
       const dispatchMock = jest.fn();
       render({ dispatch: dispatchMock });
 
-      userEvent.click(
+      await userEvent.click(
         screen.getByRole('button', {
           name: /1\. page1/i,
         }),
@@ -179,7 +179,7 @@ describe('NavigationBar', () => {
       setScreenWidth(500);
     });
 
-    it('should hide navigation buttons and show a button to toggle the navigation menu', () => {
+    it('should hide navigation buttons and show a button to toggle the navigation menu', async () => {
       render();
 
       expect(screen.getByTestId('navigation-menu')).toHaveProperty(
@@ -193,7 +193,7 @@ describe('NavigationBar', () => {
       ).toBeInTheDocument();
     });
 
-    it('should show navigation buttons when clicking navigation toggle button, and hide toggle button', () => {
+    it('should show navigation buttons when clicking navigation toggle button, and hide toggle button', async () => {
       render();
 
       const navMenu = screen.getByTestId('navigation-menu');
@@ -204,20 +204,20 @@ describe('NavigationBar', () => {
       expect(navMenu).toHaveProperty('hidden', true);
       expect(toggleButton).toHaveProperty('hidden', false);
 
-      userEvent.click(toggleButton);
+      await userEvent.click(toggleButton);
 
       expect(navMenu).toHaveProperty('hidden', false);
       expect(toggleButton).toHaveProperty('hidden', true);
     });
 
-    it('should automatically focus the first item in the navigation menu when it is displayed', () => {
+    it('should automatically focus the first item in the navigation menu when it is displayed', async () => {
       render();
 
       const toggleButton = screen.getByRole('button', {
         name: /1\/3 page1/i,
       });
 
-      userEvent.click(toggleButton);
+      await userEvent.click(toggleButton);
 
       const firstNavButton = screen.getByRole('button', {
         name: /1\. page1/i,
@@ -226,17 +226,17 @@ describe('NavigationBar', () => {
       expect(firstNavButton).toHaveFocus();
     });
 
-    it('should dispatch action when navigating to another page', () => {
+    it('should dispatch action when navigating to another page', async () => {
       const dispatchMock = jest.fn();
       render({ dispatch: dispatchMock });
 
-      userEvent.click(
+      await userEvent.click(
         screen.getByRole('button', {
           name: /1\/3 page1/i,
         }),
       );
 
-      userEvent.click(
+      await userEvent.click(
         screen.getByRole('button', {
           name: /3\. page3/i,
         }),
@@ -251,17 +251,17 @@ describe('NavigationBar', () => {
       });
     });
 
-    it('should not dispatch action when navigating to the same page', () => {
+    it('should not dispatch action when navigating to the same page', async () => {
       const dispatchMock = jest.fn();
       render({ dispatch: dispatchMock });
 
-      userEvent.click(
+      await userEvent.click(
         screen.getByRole('button', {
           name: /1\/3 page1/i,
         }),
       );
 
-      userEvent.click(
+      await userEvent.click(
         screen.getByRole('button', {
           name: /1\. page1/i,
         }),

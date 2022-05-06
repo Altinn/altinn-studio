@@ -65,35 +65,35 @@ describe('DatepickerComponent', () => {
     setScreenWidth(1366);
   });
 
-  it('should not show calendar initially, and show calendar when clicking calendar button', () => {
+  it('should not show calendar initially, and show calendar when clicking calendar button', async () => {
     render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
 
-    userEvent.click(getOpenCalendarButton());
+    await userEvent.click(getOpenCalendarButton());
 
     expect(getCalendarYearHeader()).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', () => {
+  it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
     setScreenWidth(400);
     render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
 
-    userEvent.click(getOpenCalendarButton());
+    await userEvent.click(getOpenCalendarButton());
 
     expect(getCalendarYearHeader()).toBeInTheDocument();
     expect(screen.getAllByRole('dialog')[0]).toBeInTheDocument();
   });
 
-  it('should call handleDataChange when clicking date in calendar', () => {
+  it('should call handleDataChange when clicking date in calendar', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange });
 
-    userEvent.click(getOpenCalendarButton());
-    userEvent.click(getCalendarDayButton('25'));
+    await userEvent.click(getOpenCalendarButton());
+    await userEvent.click(getCalendarDayButton('25'));
 
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
@@ -104,13 +104,13 @@ describe('DatepickerComponent', () => {
     );
   });
 
-  it('should call handleDataChange with correct value when timeStamp is undefined when field is changed with a valid date', () => {
+  it('should call handleDataChange with correct value when timeStamp is undefined when field is changed with a valid date', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, timeStamp: undefined });
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, '12.26.2022');
+    await userEvent.type(inputField, '12.26.2022');
 
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
@@ -118,13 +118,13 @@ describe('DatepickerComponent', () => {
     );
   });
 
-  it('should call handleDataChange with correct value when timeStamp is true when field is changed with a valid date', () => {
+  it('should call handleDataChange with correct value when timeStamp is true when field is changed with a valid date', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, timeStamp: true });
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, '12.26.2022');
+    await userEvent.type(inputField, '12.26.2022');
 
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
@@ -132,29 +132,29 @@ describe('DatepickerComponent', () => {
     );
   });
 
-  it('should call handleDataChange with correct value when timeStamp is false when field is changed with a valid date', () => {
+  it('should call handleDataChange with correct value when timeStamp is false when field is changed with a valid date', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, timeStamp: false });
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, '12.26.2022');
+    await userEvent.type(inputField, '12.26.2022');
 
     expect(handleDataChange).toHaveBeenCalledWith('2022-12-26');
   });
 
-  it('should not call handleDataChange when field is changed with a invalid date', () => {
+  it('should not call handleDataChange when field is changed with a invalid date', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange });
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, 'banana');
+    await userEvent.type(inputField, 'banana');
 
     expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  it('should show error message when input is before today, and minDate is today and not call handleDataChange', () => {
+  it('should show error message when input is before today, and minDate is today and not call handleDataChange', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, minDate: 'today', required: true });
 
@@ -165,7 +165,7 @@ describe('DatepickerComponent', () => {
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, `12.13.${Number(currentYearNumeric) - 1}`);
+    await userEvent.type(inputField, `12.13.${Number(currentYearNumeric) - 1}`);
     fireEvent.blur(inputField);
 
     expect(handleDataChange).not.toHaveBeenCalled();
@@ -175,7 +175,7 @@ describe('DatepickerComponent', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show error message when input is after today, and maxDate is today and not call handleDataChange', () => {
+  it('should show error message when input is after today, and maxDate is today and not call handleDataChange', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, maxDate: 'today', required: true });
 
@@ -186,7 +186,7 @@ describe('DatepickerComponent', () => {
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, `12.13.${Number(currentYearNumeric) + 1}`);
+    await userEvent.type(inputField, `12.13.${Number(currentYearNumeric) + 1}`);
     fireEvent.blur(inputField);
 
     expect(handleDataChange).not.toHaveBeenCalled();
@@ -196,7 +196,7 @@ describe('DatepickerComponent', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show error message when typed date is on invalid format but not call handleDataChange when formdata is NOT present ', () => {
+  it('should show error message when typed date is on invalid format but not call handleDataChange when formdata is NOT present ', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange });
 
@@ -207,7 +207,7 @@ describe('DatepickerComponent', () => {
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.type(inputField, '45.45.4545');
+    await userEvent.type(inputField, '45.45.4545');
     fireEvent.blur(inputField);
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -218,7 +218,7 @@ describe('DatepickerComponent', () => {
     expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  it('should show error message when typed date is on an invalid format and call handleDataChange with empy value if formdata is present', () => {
+  it('should show error message when typed date is on an invalid format and call handleDataChange with empy value if formdata is present', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, formData: { simpleBinding: '12.12.2022' } });
 
@@ -229,8 +229,8 @@ describe('DatepickerComponent', () => {
 
     const inputField = screen.getByRole('textbox');
 
-    userEvent.clear(inputField);
-    userEvent.type(inputField, `45.45.4545`);
+    await userEvent.clear(inputField);
+    await userEvent.type(inputField, `45.45.4545`);
     fireEvent.blur(inputField);
 
     expect(screen.getByRole('alert')).toBeInTheDocument();

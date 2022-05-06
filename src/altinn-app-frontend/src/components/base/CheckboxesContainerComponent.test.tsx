@@ -149,7 +149,7 @@ describe('CheckboxContainerComponent', () => {
     expect(handleChange).not.toHaveBeenCalled();
   });
 
-  it('should call handleDataChange with updated values when selection changes', () => {
+  it('should call handleDataChange with updated values when selection changes', async () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -164,12 +164,12 @@ describe('CheckboxContainerComponent', () => {
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
 
-    userEvent.click(getCheckbox({ name: 'Denmark' }));
+    await userEvent.click(getCheckbox({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('norway,denmark');
   });
 
-  it('should call handleDataChange with updated values when deselecting item', () => {
+  it('should call handleDataChange with updated values when deselecting item', async () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -186,7 +186,7 @@ describe('CheckboxContainerComponent', () => {
       getCheckbox({ name: 'Denmark', isChecked: true }),
     ).toBeInTheDocument();
 
-    userEvent.click(getCheckbox({ name: 'Denmark', isChecked: true }));
+    await userEvent.click(getCheckbox({ name: 'Denmark', isChecked: true }));
 
     expect(handleChange).toHaveBeenCalledWith('norway');
   });
@@ -222,7 +222,7 @@ describe('CheckboxContainerComponent', () => {
     expect(handleChange).toHaveBeenCalledWith('');
   });
 
-  it('should call handleDataChange onBlur with no commas in string when starting with empty string formData', () => {
+  it('should call handleDataChange onBlur with no commas in string when starting with empty string formData', async () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -235,7 +235,7 @@ describe('CheckboxContainerComponent', () => {
     expect(getCheckbox({ name: 'Sweden' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'Denmark' })).toBeInTheDocument();
 
-    userEvent.click(getCheckbox({ name: 'Denmark' }));
+    await userEvent.click(getCheckbox({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('denmark');
   });
@@ -326,7 +326,7 @@ describe('CheckboxContainerComponent', () => {
     ).toBe(0);
   });
 
-  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -341,7 +341,7 @@ describe('CheckboxContainerComponent', () => {
     expect(getCheckbox({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
     expect(getCheckbox({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
 
-    userEvent.click(getCheckbox({ name: 'The value from the group is: Label for second' }));
+    await userEvent.click(getCheckbox({ name: 'The value from the group is: Label for second' }));
 
     expect(handleDataChange).toHaveBeenCalledWith('Value for second');
   });

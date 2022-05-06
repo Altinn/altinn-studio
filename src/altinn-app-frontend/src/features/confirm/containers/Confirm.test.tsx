@@ -61,7 +61,7 @@ describe('features > confirm > Confirm', () => {
     expect(contentLoader).not.toBeInTheDocument();
   });
 
-  it('should show loading when clicking submit', () => {
+  it('should show loading when clicking submit', async () => {
     renderWithProviders(
       <MemoryRouter>
         <Confirm />
@@ -80,7 +80,7 @@ describe('features > confirm > Confirm', () => {
 
     expect(screen.queryByText(loadingText)).not.toBeInTheDocument();
     expect(submitBtn).toBeInTheDocument();
-    userEvent.click(submitBtn);
+    await userEvent.click(submitBtn);
 
     expect(screen.queryByText(submitBtnText)).not.toBeInTheDocument();
     expect(screen.getByText(loadingText)).toBeInTheDocument();

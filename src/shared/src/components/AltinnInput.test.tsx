@@ -14,7 +14,7 @@ const render = (props: Partial<IAltinnInputProps> = {}) => {
 };
 
 describe('AltinnInput', () => {
-  it('should call onChange when typing in the input field', () => {
+  it('should call onChange when typing in the input field', async () => {
     const handleChange = jest.fn();
     render({ onChange: handleChange });
 
@@ -22,7 +22,7 @@ describe('AltinnInput', () => {
       name: /inputlabel/i,
     });
 
-    userEvent.type(input, 'input-text');
+    await userEvent.type(input, 'input-text');
 
     expect(handleChange).toHaveBeenCalled();
   });

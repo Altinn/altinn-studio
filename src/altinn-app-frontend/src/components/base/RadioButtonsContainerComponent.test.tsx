@@ -126,7 +126,7 @@ describe('RadioButtonsContainerComponent', () => {
     expect(handleChange).not.toHaveBeenCalled();
   });
 
-  it('should call handleDataChange with updated value when selection changes', () => {
+  it('should call handleDataChange with updated value when selection changes', async () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -139,7 +139,7 @@ describe('RadioButtonsContainerComponent', () => {
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
-    userEvent.click(getRadio({ name: 'Denmark' }));
+    await userEvent.click(getRadio({ name: 'Denmark' }));
 
     expect(handleChange).toHaveBeenCalledWith('denmark');
   });
@@ -269,7 +269,7 @@ describe('RadioButtonsContainerComponent', () => {
     ).toBe(0);
   });
 
-  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -284,7 +284,7 @@ describe('RadioButtonsContainerComponent', () => {
     expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
     expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
 
-    userEvent.click(getRadio({ name: 'The value from the group is: Label for first' }));
+    await userEvent.click(getRadio({ name: 'The value from the group is: Label for first' }));
 
     expect(handleDataChange).toHaveBeenCalledWith('Value for first');
   });

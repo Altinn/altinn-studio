@@ -154,7 +154,7 @@ describe('components > advanced > AddressComponent', () => {
     expect(getHouseNumberField()).toBeInTheDocument();
   });
 
-  it('should fire change event when user types into field, and field is blurred', () => {
+  it('should fire change event when user types into field, and field is blurred', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -166,13 +166,13 @@ describe('components > advanced > AddressComponent', () => {
     });
 
     const address = getAddressField();
-    userEvent.type(address, 'Slottsplassen 1');
+    await userEvent.type(address, 'Slottsplassen 1');
     fireEvent.blur(address);
 
     expect(handleDataChange).toHaveBeenCalledWith('Slottsplassen 1', 'address');
   });
 
-  it('should fire change event, with initial content, when readonly and field is blurred', () => {
+  it('should fire change event, with initial content, when readonly and field is blurred', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -185,7 +185,7 @@ describe('components > advanced > AddressComponent', () => {
     });
 
     const address = getAddressField();
-    userEvent.type(address, 'Slottsplassen 1');
+    await userEvent.type(address, 'Slottsplassen 1');
     fireEvent.blur(address);
 
     expect(handleDataChange).not.toHaveBeenCalledWith(
@@ -195,7 +195,7 @@ describe('components > advanced > AddressComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith('initial address', 'address');
   });
 
-  it('should show error message on blur if zipcode is invalid, and not call handleDataChange', () => {
+  it('should show error message on blur if zipcode is invalid, and not call handleDataChange', async () => {
     const handleDataChange = jest.fn();
     render({
       formData: {
@@ -207,7 +207,7 @@ describe('components > advanced > AddressComponent', () => {
     });
 
     const field = getZipCodeField({ required: true });
-    userEvent.type(field, '1');
+    await userEvent.type(field, '1');
     fireEvent.blur(field);
 
     const errorMessage = screen.getByText(
@@ -250,14 +250,14 @@ describe('components > advanced > AddressComponent', () => {
     });
 
     const field = getZipCodeField({ required: true });
-    userEvent.clear(field);
-    userEvent.type(field, '0001');
+    await userEvent.clear(field);
+    await userEvent.type(field, '0001');
     fireEvent.blur(field);
 
     expect(handleDataChange).toHaveBeenCalledWith('0001', 'zipCode');
   });
 
-  it('should call handleDataChange for post place when zip code is cleared', () => {
+  it('should call handleDataChange for post place when zip code is cleared', async () => {
     const handleDataChange = jest.fn();
     render({
       formData: {
@@ -272,7 +272,7 @@ describe('components > advanced > AddressComponent', () => {
     expect(screen.getByDisplayValue('Oslo')).toBeInTheDocument();
 
     const field = getZipCodeField();
-    userEvent.clear(field);
+    await userEvent.clear(field);
     fireEvent.blur(field);
 
     expect(handleDataChange).toHaveBeenCalledWith('', 'zipCode');

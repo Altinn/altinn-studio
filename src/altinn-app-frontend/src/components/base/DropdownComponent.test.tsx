@@ -69,13 +69,13 @@ const render = (
 };
 
 describe('components/base/DropdownComponent', () => {
-  it('should trigger handleDataChange when option is selected', () => {
+  it('should trigger handleDataChange when option is selected', async () => {
     const handleDataChange = jest.fn();
     render({
       handleDataChange,
     });
 
-    userEvent.selectOptions(screen.getByRole('combobox'), [
+    await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('Sweden'),
     ]);
 
@@ -113,7 +113,7 @@ describe('components/base/DropdownComponent', () => {
     expect(handleDataChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should trigger handleDataChange on blur', () => {
+  it('should trigger handleDataChange on blur', async () => {
     const handleDataChange = jest.fn();
     render({
       preselectedOptionIndex: 2,
@@ -123,7 +123,7 @@ describe('components/base/DropdownComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith('denmark');
     const select = screen.getByRole('combobox');
 
-    userEvent.click(select);
+    await userEvent.click(select);
     fireEvent.blur(select);
 
     expect(handleDataChange).toHaveBeenCalledWith('denmark');
@@ -146,7 +146,7 @@ describe('components/base/DropdownComponent', () => {
     expect(screen.queryByTestId('altinn-spinner')).not.toBeInTheDocument();
   });
 
-  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', () => {
+  it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
     const handleDataChange = jest.fn();
     render({
       handleDataChange,
@@ -157,13 +157,13 @@ describe('components/base/DropdownComponent', () => {
       },
     });
 
-    userEvent.selectOptions(screen.getByRole('combobox'), [
+    await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('The value from the group is: Label for first'),
     ]);
 
     expect(handleDataChange).toHaveBeenCalledWith('Value for first');
 
-    userEvent.selectOptions(screen.getByRole('combobox'), [
+    await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('The value from the group is: Label for second'),
     ]);
 
