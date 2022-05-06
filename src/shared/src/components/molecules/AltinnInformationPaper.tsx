@@ -2,7 +2,7 @@
 import { createTheme, Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import altinnTheme from '../theme/altinnStudioTheme';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
 const useStyles = makeStyles({

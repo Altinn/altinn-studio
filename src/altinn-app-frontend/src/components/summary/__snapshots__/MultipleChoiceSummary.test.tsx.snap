@@ -6,7 +6,7 @@ exports[`components/summary/MultipleChoiceSummary.tsx components/summary/Multipl
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
   >
     <span
-      class="MuiTypography-root makeStyles-label-1 MuiTypography-body1"
+      class="MuiTypography-root makeStyles-label-3 MuiTypography-body1"
     >
       TestLabel
     </span>
@@ -40,12 +40,13 @@ exports[`components/summary/MultipleChoiceSummary.tsx components/summary/Multipl
   </div>
   <div
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
+    data-testid="multiple-choice-summary"
   >
     <ul
       class="MuiList-root MuiList-padding"
     >
       <li
-        class="MuiListItem-root makeStyles-list-4 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-list-2 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"
@@ -59,7 +60,7 @@ exports[`components/summary/MultipleChoiceSummary.tsx components/summary/Multipl
         </div>
       </li>
       <li
-        class="MuiListItem-root makeStyles-list-4 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-list-2 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"

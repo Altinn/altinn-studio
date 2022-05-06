@@ -1,21 +1,23 @@
-/* eslint-disable no-prototype-builtins */
 import * as React from 'react';
-import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IValidations } from 'src/types';
-import { getUnmappedErrors } from '../../utils/validation';
+import { getUnmappedErrors } from 'src/utils/validation';
 import { useAppSelector } from 'src/common/hooks';
 
 const ErrorReport = () => {
-  const validations = useAppSelector(state => state.formValidations.validations,);
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
   const unmappedErrors = getUnmappedErrors(validations);
   const hasUnmappedErrors = unmappedErrors.length > 0;
-  const language = useAppSelector(state => state.language.language);
-  const formHasErrors = useAppSelector(state => getFormHasErrors(state.formValidations.validations));
-  const hasSubmitted = useAppSelector(state => state.formData.hasSubmitted);
-  const errorRef = useRef(null);
+  const language = useAppSelector((state) => state.language.language);
+  const formHasErrors = useAppSelector((state) =>
+    getFormHasErrors(state.formValidations.validations),
+  );
+  const hasSubmitted = useAppSelector((state) => state.formData.hasSubmitted);
+  const errorRef = React.useRef(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (hasSubmitted) {
       errorRef?.current?.focus();
     }
@@ -31,8 +33,7 @@ const ErrorReport = () => {
       className='a-modal-content-target'
       style={{ marginTop: '55px' }}
       ref={errorRef}
-      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-      tabIndex={0}
+      tabIndex={-1}
     >
       <div className='a-page a-current-page'>
         <div className='modalPage'>
@@ -67,16 +68,17 @@ const ErrorReport = () => {
               className='modal-body a-modal-body'
               style={{ paddingTop: '0px', paddingBottom: '24px' }}
             >
-              {hasUnmappedErrors &&
+              {hasUnmappedErrors && (
                 <div>
-                  <ul style={{ listStylePosition: 'inside'}}>
-                    {unmappedErrors.map((error: React.ReactNode, index: number) => {
-                      return (
-                        <li key={index}>{error}</li>
-                      );
-                    })}
+                  <ul style={{ listStylePosition: 'inside' }}>
+                    {unmappedErrors.map(
+                      (error: React.ReactNode, index: number) => {
+                        return <li key={index}>{error}</li>;
+                      },
+                    )}
                   </ul>
-                </div>}
+                </div>
+              )}
               {!hasUnmappedErrors && (
                 // No errors to list, show a generic error message
                 <h4 className='a-fontReg' style={{ marginBottom: '12px' }}>
@@ -97,29 +99,18 @@ const ErrorReport = () => {
 };
 
 const getFormHasErrors = (validations: IValidations): boolean => {
-  let hasErrors = false;
   for (const layout in validations) {
-    if (validations.hasOwnProperty(layout)) {
-      for (const key in validations[layout]) {
-        if (validations[layout].hasOwnProperty(key)) {
-          const validationObject = validations[layout][key];
-          for (const fieldKey in validationObject) {
-            if (validationObject.hasOwnProperty(fieldKey)) {
-              const fieldValidationErrors = validationObject[fieldKey].errors;
-              if (fieldValidationErrors && fieldValidationErrors.length > 0) {
-                hasErrors = true;
-                break;
-              }
-            }
-          }
-          if (hasErrors) {
-            break;
-          }
+    for (const key in validations[layout]) {
+      const validationObject = validations[layout][key];
+      for (const fieldKey in validationObject) {
+        const fieldValidationErrors = validationObject[fieldKey].errors;
+        if (fieldValidationErrors && fieldValidationErrors.length > 0) {
+          return true;
         }
       }
     }
   }
-  return hasErrors;
+  return false;
 };
 
 export default ErrorReport;

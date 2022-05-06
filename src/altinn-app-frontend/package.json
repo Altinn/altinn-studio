@@ -53,6 +53,7 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.5",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.4",
+    "@testing-library/react-hooks": "^8.0.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/dot-object": "^2.1.2",
     "@types/enzyme": "^3.10.12",

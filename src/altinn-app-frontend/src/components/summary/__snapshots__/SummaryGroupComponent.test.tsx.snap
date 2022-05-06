@@ -1,15 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/summary/MultipleChoiceSummary.tsx components/summary/MultipleChoiceSummary.tsx -- should match snapshot 1`] = `
+exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root MuiGrid-container"
+    data-testid="summary-group-component"
   >
     <div
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
     >
       <span
-        class="MuiTypography-root makeStyles-label-1  MuiTypography-body1"
+        class="MuiTypography-root makeStyles-label-1 MuiTypography-body1"
       >
         Mock group
       </span>
