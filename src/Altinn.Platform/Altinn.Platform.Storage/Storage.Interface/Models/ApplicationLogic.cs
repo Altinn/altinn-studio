@@ -26,5 +26,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "schemaRef")]
         public string SchemaRef { get; set; }
+
+        /// <summary>
+        /// Specifies whether anonymous access is allowed in stateless mode or not for this particular data type.
+        /// Defaults to false if not specified.
+        /// </summary>
+        [JsonProperty(PropertyName = "allowAnonymousOnStateless")]
+        public bool AllowAnonymousOnStateless { get; set; } = false;
     }
 }

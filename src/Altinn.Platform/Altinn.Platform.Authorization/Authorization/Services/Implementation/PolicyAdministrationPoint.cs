@@ -153,6 +153,15 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return false;
             }
 
+            foreach (Rule rule in rules)
+            {
+                if (!DelegationHelper.PolicyContainsMatchingRule(appPolicy, rule))
+                {
+                    _logger.LogWarning("Matching rule not found in app policy. Action might not exist for Resource, or Resource itself might not exist. Delegation policy path: {policyPath}. Rule: {rule}", policyPath, rule);
+                    return false;
+                }
+            }
+
             if (!await _policyRepository.PolicyExistsAsync(policyPath))
             {
                 // Create a new empty blob for lease locking
@@ -181,13 +190,13 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                         {
                             if (!DelegationHelper.PolicyContainsMatchingRule(delegationPolicy, rule))
                             {
-                                delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule, appPolicy));
+                                delegationPolicy.Rules.Add(PolicyHelper.BuildDelegationRule(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rule));
                             }
                         }
                     }
                     else
                     {
-                        delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules, appPolicy);
+                        delegationPolicy = PolicyHelper.BuildDelegationPolicy(org, app, offeredByPartyId, coveredByPartyId, coveredByUserId, rules);
                     }       
 
                     // Write delegation policy to blob storage

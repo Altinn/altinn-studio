@@ -82,7 +82,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true),
             };
 
             // Act
@@ -121,7 +121,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true),
             };
 
             // Act
@@ -189,9 +189,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app4", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app4", createdSuccessfully: true),
             };
 
             // Act
@@ -412,10 +412,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app4", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app4", createdSuccessfully: true),
             };
 
             // Act
@@ -483,10 +483,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app3", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app4", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app3", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app4", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app4", createdSuccessfully: true),
             };
 
             // Act
@@ -702,8 +702,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app1", createdSuccessfully: true),
             };
 
             // Act
@@ -741,10 +741,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            Rule rule1 = TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app3", createdSuccessfully: true);
+            Rule rule1 = TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app3", createdSuccessfully: true);
             rule1.RuleId = "0d0c8570-64fb-49f9-9f7d-45c057fddf94";
             rule1.Type = RuleType.DirectlyDelegated;
-            Rule rule2 = TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "org1", "app3", createdSuccessfully: true);
+            Rule rule2 = TestDataHelper.GetRuleModel(20001336, 50001337, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "org1", "app3", createdSuccessfully: true);
             rule2.RuleId = "6f11dd0b-5e5d-4bd1-85f0-9796300dfded";
             rule2.Type = RuleType.DirectlyDelegated;
 
@@ -783,10 +783,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org1", "app2", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", "org1", "app2", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", "org2", "app2", createdSuccessfully: true),
             };
 
             // Act
@@ -823,10 +823,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org1", "INVALIDAPPNAME", createdSuccessfully: false),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", "org1", "INVALIDAPPNAME", createdSuccessfully: false),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", "org2", "app2", createdSuccessfully: true),
             };
 
             // Act
@@ -863,13 +863,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            Rule invalidRule = TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", null, null, createdSuccessfully: false);
+            Rule invalidRule = TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", null, null, createdSuccessfully: false);
             invalidRule.Resource = new List<AttributeMatch>();
             List<Rule> expected = new List<Rule>
             {
-                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org1", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "org2", "app1", createdSuccessfully: true),
-                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Write", "org2", "app2", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org1", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "20001337", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "org2", "app1", createdSuccessfully: true),
+                TestDataHelper.GetRuleModel(20001336, 50001336, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "write", "org2", "app2", createdSuccessfully: true),
                 invalidRule,
             };
 
@@ -963,7 +963,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             List<Rule> expectedRules = new List<Rule>();
-            expectedRules.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001338", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001338", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
 
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
@@ -987,7 +987,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             List<Rule> expectedRules = new List<Rule>();
-            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001335, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Read", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunitViaKeyrole));
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001335, "50001337", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "read", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunitViaKeyrole));
 
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
@@ -1011,7 +1011,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             List<Rule> expectedRules = new List<Rule>();
-            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001338, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunit));
+            expectedRules.Add(TestDataHelper.GetRuleModel(20001339, 50001338, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "sign", "SKD", "TaxReport", ruleType: RuleType.InheritedAsSubunit));
 
             // Act
             HttpResponseMessage response = await _client.PostAsync($"authorization/api/v1/delegations/getrules", content);
@@ -1113,15 +1113,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private static List<Rule> GetExpectedRulesForUser()
         {
             List<Rule> list = new List<Rule>();
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Read", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "Write", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "read", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "20001336", AltinnXacmlConstants.MatchAttributeIdentifiers.UserAttribute, "write", "SKD", "TaxReport", ruleType: RuleType.DirectlyDelegated));
             return list;
         }
 
         private static List<Rule> GetExpectedRulesForParty()
         {
             List<Rule> list = new List<Rule>();
-            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "Sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
+            list.Add(TestDataHelper.GetRuleModel(20001337, 50001337, "50001336", AltinnXacmlConstants.MatchAttributeIdentifiers.PartyAttribute, "sign", "SKD", "TaxReport", ruleType: RuleType.InheritedViaKeyRole));
             return list;
         }
 
