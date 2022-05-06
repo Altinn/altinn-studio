@@ -318,7 +318,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IContextHandler, ContextHandlerMock>();
+                    services.AddSingleton<IInstanceMetadataRepository, InstanceMetadataRepositoryMock>();
                     services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
                     services.AddSingleton<IRoles, RolesMock>();
