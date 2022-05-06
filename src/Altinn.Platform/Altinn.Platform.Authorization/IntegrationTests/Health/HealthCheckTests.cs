@@ -19,7 +19,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : CustomWebApplicationFactory<DecisionController>
+    public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<DecisionController>>
     {
         private readonly CustomWebApplicationFactory<DecisionController> _factory;
 
@@ -54,13 +54,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
             {
                 builder.ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IContextHandler, ContextHandlerMock>();
-                    services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
-                    services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
-                    services.AddSingleton<IRoles, RolesMock>();
-                    services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
-                    services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
-                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
