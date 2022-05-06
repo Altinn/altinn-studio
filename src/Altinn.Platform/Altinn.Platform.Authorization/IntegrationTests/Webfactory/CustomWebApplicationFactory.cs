@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
-namespace Altinn.Platform.Authorization.IntegrationTests
+namespace Altinn.Platform.Authorization.IntegrationTests.Webfactory
 {
     public class CustomWebApplicationFactory<TEntryPoint> : WebApplicationFactory<TEntryPoint>
        where TEntryPoint : class
@@ -19,7 +19,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             builder.ConfigureTestServices((services) =>
             {
-                services.RemoveAll(typeof(IHostedService));
             });
         }
     }

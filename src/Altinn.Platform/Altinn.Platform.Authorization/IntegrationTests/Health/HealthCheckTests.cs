@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Controllers;
 using Altinn.Platform.Authorization.IntegrationTests.MockServices;
+using Altinn.Platform.Authorization.IntegrationTests.Webfactory;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using AltinnCore.Authentication.JwtCookie;
@@ -54,11 +55,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandlerMock>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
-                    services.AddScoped<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
-                    services.AddScoped<IRoles, RolesMock>();
-                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
-                    services.AddScoped<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
+                    services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddSingleton<IDelegationMetadataRepository, DelegationMetadataRepositoryMock>();
+                    services.AddSingleton<IRoles, RolesMock>();
+                    services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
+                    services.AddSingleton<IDelegationChangeEventQueue, DelegationChangeEventQueueMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
