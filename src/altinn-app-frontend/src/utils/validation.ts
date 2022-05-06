@@ -207,8 +207,12 @@ export function validateEmptyFieldsForLayout(
 ): ILayoutValidations {
   const validations: any = {};
   const allGroups = formLayout.filter((component) => component.type.toLowerCase() === 'group');
+  const childrenWithoutMultiPagePrefix = (group:ILayoutGroup) => group.edit?.multiPage
+    ? group.children.map((componentId) => componentId.replace(/^\d+:/g, ''))
+    : group.children;
+
   const fieldsInGroup = allGroups
-    .map((group: ILayoutGroup) => group.children)
+    .map(childrenWithoutMultiPagePrefix)
     .flat();
   const groupsToCheck = allGroups.filter(group => !hiddenFields.includes(group.id));
   const fieldsToCheck = formLayout.filter((component) => (
@@ -232,7 +236,7 @@ export function validateEmptyFieldsForLayout(
     const componentsToCheck = formLayout.filter((component) => {
       return (
         (component as ILayoutComponent).required &&
-        group.children?.indexOf(component.id) > -1
+        childrenWithoutMultiPagePrefix(group).indexOf(component.id) > -1
       );
     });
 

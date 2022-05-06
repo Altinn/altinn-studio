@@ -25,6 +25,11 @@ import { mapToComponentValidations } from './validation';
 
 describe('utils > validation', () => {
   let mockLayout: any;
+  let mockGroup1: any; // Repeating group
+  let mockGroup2: any; // Repeating group nested inside group1
+  let mockGroup3: any; // Repeating multiPage group
+  let mockComponent4: any; // Required input inside group1
+  let mockComponent5: any; // Non-required input inside group2
   let mockReduxFormat: any;
   let mockLayoutState: any;
   let mockJsonSchema: any;
@@ -51,6 +56,63 @@ describe('utils > validation', () => {
           pattern: 'Feil format eller verdi',
         },
       },
+    };
+
+    mockComponent4 = {
+      type: 'Input',
+      id: 'componentId_4',
+      dataModelBindings: {
+        simpleBinding: 'group_1.dataModelField_4',
+      },
+      required: true,
+      readOnly: false,
+      textResourceBindings: {},
+    };
+
+    mockComponent5 = {
+      type: 'Input',
+      id: 'componentId_5',
+      dataModelBindings: {
+        simpleBinding: 'group_1.group_2.dataModelField_5',
+      },
+      required: false,
+      readOnly: false,
+      textResourceBindings: {},
+    };
+
+    mockGroup2 = {
+      type: 'group',
+      id: 'group2',
+      dataModelBindings: {
+        group: 'group_1.group_2',
+      },
+      maxCount: 3,
+      children: [mockComponent5.id],
+    };
+
+    mockGroup1 = {
+      type: 'group',
+      id: 'group1',
+      dataModelBindings: {
+        group: 'group_1',
+      },
+      maxCount: 3,
+      children: [mockComponent4.id, mockGroup2.id],
+    };
+
+    mockGroup3 = {
+      type: 'group',
+      id: 'group3',
+      dataModelBindings: {
+        group: 'group_3',
+      },
+      maxCount: 2,
+      edit: {
+        multiPage: true,
+      },
+      children: [
+        // Add your own children (remember page prefixes!)
+      ],
     };
 
     mockLayout = {
@@ -85,34 +147,9 @@ describe('utils > validation', () => {
           readOnly: false,
           textResourceBindings: {},
         },
-        {
-          type: 'group',
-          id: 'group1',
-          dataModelBindings: {
-            group: 'group_1',
-          },
-          maxCount: 3,
-          children: ['componentId_4', 'group2'],
-        },
-        {
-          type: 'group',
-          id: 'group2',
-          dataModelBindings: {
-            group: 'group_1.group_2',
-          },
-          maxCount: 3,
-          children: ['componentId_5'],
-        },
-        {
-          type: 'Input',
-          id: 'componentId_4',
-          dataModelBindings: {
-            simpleBinding: 'group_1.dataModelField_4',
-          },
-          required: true,
-          readOnly: false,
-          textResourceBindings: {},
-        },
+        mockGroup1,
+        mockGroup2,
+        mockComponent4,
         {
           type: 'FileUpload',
           id: 'componentId_7',
@@ -120,16 +157,7 @@ describe('utils > validation', () => {
           maxNumberOfAttachments: '3',
           minNumberOfAttachments: '2',
         },
-        {
-          type: 'Input',
-          id: 'componentId_5',
-          dataModelBindings: {
-            simpleBinding: 'group_1.group_2.dataModelField_5',
-          },
-          required: false,
-          readOnly: false,
-          textResourceBindings: {},
-        },
+        mockComponent5,
         {
           type: 'AddressComponent',
           id: 'componentId_6',
@@ -740,22 +768,113 @@ describe('utils > validation', () => {
   });
 
   describe('validateEmptyFieldsForLayout', () => {
-    const withHidden = (hiddenFields:string[]) => validation.validateEmptyFieldsForLayout(
-      {},
-      mockLayout.FormLayout,
+    const _with = ({
+      formData = {},
+      formLayout = mockLayout.FormLayout,
+      hiddenFields = [],
+      repeatingGroups = {},
+    }) => validation.validateEmptyFieldsForLayout(
+      formData,
+      formLayout,
       mockLanguage.language,
       hiddenFields,
-      {}
+      repeatingGroups,
     );
-    const requiredField = 'required_in_group_simple';
+
+    const requiredFieldInSimpleGroup = 'required_in_group_simple';
+    const requiredError = {
+      simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+    };
 
     it('should skip validation on required field in hidden group', () => {
-      expect(withHidden(['group_simple'])[requiredField]).toBeUndefined();
+      expect(_with({hiddenFields: ['group_simple']})[requiredFieldInSimpleGroup]).toBeUndefined();
+    });
+    it('should run validation on required field in visible group', () => {
+      expect(_with({hiddenFields: []})[requiredFieldInSimpleGroup]).toEqual(requiredError);
     });
 
-    it('should run validation on required field in visible group', () => {
-      expect(withHidden([])[requiredField]).toEqual({
-        simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
+    it('should validate successfully with no instances of repeating groups', () => {
+      expect(_with({
+        formLayout: [
+          mockGroup1,
+          mockGroup2,
+          mockComponent4,
+          {...mockComponent5, required: true},
+        ],
+        repeatingGroups: {},
+      })).toEqual({});
+    });
+
+    it('should support nested repeating groups', () => {
+      expect(_with({
+        formLayout: [
+          mockGroup1,
+          mockGroup2,
+          mockComponent4,
+          {...mockComponent5, required: true},
+        ],
+        repeatingGroups: {
+          group1: { index: 2 }, // Group1 has 3 instances
+          'group2-0': { index: 1 }, // Group2 has 2 instances inside the first instance of group1
+          'group2-1': { index: 0 }, // Group2 has 1 instance inside the second instance of group1
+          // Group2 has no instances inside the third instance of group1
+        },
+      })).toEqual({
+        'componentId_4-0': requiredError,
+        'componentId_4-1': requiredError,
+        'componentId_4-2': requiredError,
+        'componentId_5-0-0': requiredError,
+        'componentId_5-0-1': requiredError,
+        'componentId_5-1-0': requiredError,
+      });
+    });
+
+    it('should support repeating groups', () => {
+      expect(_with({
+        formLayout: [mockGroup1, mockGroup2, mockComponent4, mockComponent5],
+        repeatingGroups: {
+          group1: { index: 1 }, // Group1 has 2 instances
+        },
+      })).toEqual({
+        'componentId_4-0': requiredError,
+        'componentId_4-1': requiredError,
+      });
+    });
+
+    it('should support multiPage repeating groups', () => {
+      expect(_with({
+        formLayout: [
+          {...mockGroup3, children: [`0:${mockComponent4.id}`, `1:${mockComponent5.id}`]},
+          mockComponent4,
+          mockComponent5,
+        ],
+        repeatingGroups: {
+          group3: { index: 1 },
+        },
+      })).toEqual({
+        'componentId_4-0': requiredError,
+        'componentId_4-1': requiredError,
+      });
+    });
+
+    it('should support multiPage repeating and nesting groups', () => {
+      expect(_with({
+        formLayout: [
+          mockGroup1,
+          mockGroup2,
+          {...mockGroup3, children: [`0:${mockGroup1.id}`, `1:${mockGroup2.id}`]},
+          mockComponent4,
+          {...mockComponent5, required: true},
+        ],
+        repeatingGroups: {
+          group3: { index: 1 },
+          'group1': { index: 1 },
+          'group2-0': { index: 0 },
+        },
+      })).toEqual({
+        'componentId_4-0': requiredError,
+        'componentId_4-1': requiredError,
+        'componentId_5-0-0': requiredError,
       });
     });
   });
