@@ -83,7 +83,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             long filesize;
 
-            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob/" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 await request.Body.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
@@ -124,7 +124,7 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 Directory.CreateDirectory(dataPath + @"blob");
 
-                using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
+                using (Stream stream = File.Open(dataPath + @"blob/" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
                 {
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
@@ -160,7 +160,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             Directory.CreateDirectory(dataPath + @"blob");
 
-            using (Stream stream = File.Open(dataPath + @"blob\" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
+            using (Stream stream = File.Open(dataPath + $@"blob{Path.DirectorySeparatorChar}" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
             {
                 XmlSerializer serializer = new XmlSerializer(type);
                 serializer.Serialize(stream, dataToSerialize);
@@ -179,18 +179,18 @@ namespace App.IntegrationTests.Mocks.Services
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
         }
 
         private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString(), "blob", dataId.ToString());
         }
 
         private static Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            string instancePath = Path.Combine(GetInstancePath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+            string instancePath = Path.Combine(GetInstancePath(), org, app, instanceOwnerId.ToString(), instanceId.ToString() + ".json");
             if (File.Exists(instancePath))
             {
                 string content = File.ReadAllText(instancePath);
@@ -205,7 +205,7 @@ namespace App.IntegrationTests.Mocks.Services
         private static string GetInstancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances");
         }
 
         private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
@@ -248,7 +248,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             long filesize;
 
-            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob/" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 stream.Seek(0, SeekOrigin.Begin);
                 await stream.CopyToAsync(streamToWriteTo);

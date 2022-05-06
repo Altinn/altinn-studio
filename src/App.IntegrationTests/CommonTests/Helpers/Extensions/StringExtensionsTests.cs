@@ -25,7 +25,7 @@ namespace Altinn.App.IntegrationTests.CommonTests.Helpers.Extensions
         public void AsFileName_InputHasInvalidCharacters_ExceptionsEnabled_ThrowsException()
         {
             // Arrange
-            string inputFilename = "noinvalid\\characters.txt";
+            string inputFilename = "noinvalid/characters.txt";
 
             ArgumentOutOfRangeException actualException = null;
 
@@ -47,7 +47,7 @@ namespace Altinn.App.IntegrationTests.CommonTests.Helpers.Extensions
         public void AsFileName_InputHasInvalidCharacters_ExceptionsDisabled_ReturnsValidFilename()
         {
             // Arrange
-            string inputFilename = "noinvalid\\characters.txt";
+            string inputFilename = "noinvalid/characters.txt";
 
             // Act
             string cleanFilename = inputFilename.AsFileName(false);

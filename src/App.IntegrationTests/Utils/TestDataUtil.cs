@@ -161,25 +161,25 @@ namespace App.IntegrationTests.Utils
         private static string GetUserProfilePath(int userId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Profile\User\", userId + @".json");
+            return Path.Combine(unitTestFolder, @"../../../Data/Profile/User", userId + @".json");
         }
 
         private static string GetApplicationPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\", org + @"\", app + @"\config\applicationmetadata.json");
+            return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "apps", org, app, "config", "applicationmetadata.json");
         }
 
         private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString() + @".json");
         }
 
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
         }
     }
 }

@@ -275,7 +275,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
             WebApplicationFactory<Startup> factory = _factory.WithWebHostBuilder(builder =>
             {
                 string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-                string path = Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
+                string path = Path.Combine(unitTestFolder, $"../../../Data/apps/{org}/{app}/");
 
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(path + "appsettings.json"); });
 

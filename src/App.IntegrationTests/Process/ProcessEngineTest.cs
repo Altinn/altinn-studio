@@ -135,7 +135,7 @@ namespace App.IntegrationTestsRef.Process
         private static string GetAppPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ProcessEngineTest).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
+            return Path.Combine(unitTestFolder, $"../../../Data/apps/{org}/{app}/");
         }
     }
 }

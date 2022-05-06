@@ -34,11 +34,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         public DataClientTest()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
-            PlatformSettings platformSettings = new () { ApiStorageEndpoint = "http://localhost/" };
+            PlatformSettings platformSettings = new() { ApiStorageEndpoint = "http://localhost/" };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
-            AppSettings appSettings = new () { RuntimeCookieName = "AltinnStudioRuntime" };
+            AppSettings appSettings = new() { RuntimeCookieName = "AltinnStudioRuntime" };
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
 
             contextAccessor = new Mock<IHttpContextAccessor>();
@@ -52,7 +52,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage platformRequest = null;
-            DelegatingHandlerStub delegatingHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub delegatingHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 platformRequest = request;
 
@@ -92,7 +92,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage platformRequest = null;
-            DelegatingHandlerStub delegatingHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub delegatingHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 platformRequest = request;
 
@@ -140,7 +140,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         {
             // Arrange
             HttpRequestMessage platformRequest = null;
-            DelegatingHandlerStub delegatingHandler = new (async (HttpRequestMessage request, CancellationToken token) =>
+            DelegatingHandlerStub delegatingHandler = new(async (HttpRequestMessage request, CancellationToken token) =>
             {
                 platformRequest = request;
 

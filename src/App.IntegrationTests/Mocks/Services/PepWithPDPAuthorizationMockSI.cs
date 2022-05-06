@@ -268,7 +268,7 @@ namespace App.IntegrationTests.Mocks.Services
         private static string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\authorization\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
+            return Path.Combine(unitTestFolder, @"../../../Data/authorization/Roles/User_" + userId.ToString(), "party_" + resourcePartyId, "roles.json");
         }
 
         private static Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
@@ -326,7 +326,7 @@ namespace App.IntegrationTests.Mocks.Services
         private static string GetAltinnAppsPolicyPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\" + org + @"\" + app + @"\config\authorization\");
+            return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "apps", org, app, "config", "authorization") + Path.DirectorySeparatorChar;
         }
     }
 }

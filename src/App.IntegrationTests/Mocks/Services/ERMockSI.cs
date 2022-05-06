@@ -27,7 +27,7 @@ namespace App.IntegrationTests.Mocks.Services
         private string GetOrganizationPath(string OrgNr)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ERMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Register\Org", OrgNr + ".json");
+            return Path.Combine(unitTestFolder, @"../../../Data/Register/Org", OrgNr + ".json");
         }
     }
 }

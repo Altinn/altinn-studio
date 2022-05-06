@@ -18,7 +18,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private Application GetTestApplication(string org, string app)
         {
-            string applicationPath = Path.Combine(GetMetadataPath(), org + @"\" + app + @"\applicationmetadata.json");
+            string applicationPath = Path.Combine(GetMetadataPath(), org, app, "applicationmetadata.json");
             if (File.Exists(applicationPath))
             {
                 string content = System.IO.File.ReadAllText(applicationPath);
@@ -32,7 +32,7 @@ namespace App.IntegrationTests.Mocks.Services
         private string GetMetadataPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Metadata");
+            return Path.Combine(unitTestFolder, @"../../../Data/Metadata");
         }
     }
 }

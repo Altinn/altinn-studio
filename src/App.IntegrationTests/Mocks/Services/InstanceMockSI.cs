@@ -136,13 +136,13 @@ namespace App.IntegrationTests.Mocks.Services
 
         private static string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            return Path.Combine(GetInstancesPath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+            return Path.Combine(GetInstancesPath(), org, app, instanceOwnerId.ToString(), instanceId.ToString() + ".json");
         }
 
         private static string GetInstancesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances");
         }
 
         private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
@@ -171,7 +171,7 @@ namespace App.IntegrationTests.Mocks.Services
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
         }
 
         public Task<List<Instance>> GetActiveInstances(int instanceOwnerPartyId)
@@ -412,14 +412,14 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 if (appIdQueryVal.Count > 0)
                 {
-                    instancesPath += "\\" + appIdQueryVal.First().Replace('/', '\\');
+                    instancesPath += Path.DirectorySeparatorChar + appIdQueryVal.First().Replace('/', Path.DirectorySeparatorChar);
                     fileDepth -= 2;
 
                     if (queryParams.TryGetValue("instanceOwner.partyId", out StringValues partyIdQueryVal))
                     {
                         if (partyIdQueryVal.Count > 0)
                         {
-                            instancesPath += "\\" + partyIdQueryVal.First();
+                            instancesPath += Path.DirectorySeparatorChar + partyIdQueryVal.First();
                             fileDepth -= 1;
                         }
                     }
@@ -429,10 +429,10 @@ namespace App.IntegrationTests.Mocks.Services
             if (Directory.Exists(instancesPath))
             {
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
-                int instancePathLenght = instancesPath.Split("\\").Length;
+                int instancePathLenght = instancesPath.Split(Path.DirectorySeparatorChar).Length;
 
                 // only parse files at the correct level. Instances are places four levels [org/app/partyId/instance] below instance path.
-                List<string> instanceFiles = files.Where(f => f.Split("\\").Length == (instancePathLenght + fileDepth)).ToList();
+                List<string> instanceFiles = files.Where(f => f.Split(Path.DirectorySeparatorChar).Length == (instancePathLenght + fileDepth)).ToList();
 
                 foreach (var file in instanceFiles)
                 {
