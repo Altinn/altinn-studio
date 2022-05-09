@@ -85,9 +85,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _logger.LogInformation("//DataController // Delete // Starting method");
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
+            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
                 return instanceError;
@@ -126,14 +124,12 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             if (instanceOwnerPartyId == 0)
             {
                 return BadRequest("Missing parameter value: instanceOwnerPartyId can not be empty");
             }
 
-            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
+            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
                 return instanceError;
@@ -181,15 +177,13 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<DataElementList>> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             if (instanceOwnerPartyId == 0)
             {
                 return BadRequest("Missing parameter value: instanceOwnerPartyId can not be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            (Instance instance, ActionResult errorResult) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
+            (Instance instance, ActionResult errorResult) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
                 return errorResult;
@@ -223,14 +217,12 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string dataType,
             [FromQuery(Name = "refs")] List<Guid> refs = null)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(dataType) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, elementType or attached file content cannot be null");
             }
 
-            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
+            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
                 return instanceError;
@@ -291,14 +283,12 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<DataElement>> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, [FromQuery(Name = "refs")] List<Guid> refs = null)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             if (instanceOwnerPartyId == 0 || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, datafile or attached file content cannot be empty");
             }
 
-            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
+            (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
                 return instanceError;
@@ -460,13 +450,13 @@ namespace Altinn.Platform.Storage.Controllers
             return (application, null);
         }
 
-        private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(string instanceId, int instanceOwnerPartyId)
+        private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(Guid instanceGuid, int instanceOwnerPartyId)
         {
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
-                return (null, NotFound($"Unable to find any instance with id: {instanceId}."));
+                return (null, NotFound($"Unable to find any instance with id: {instanceOwnerPartyId}/{instanceGuid}."));
             }
 
             return (instance, null);

@@ -162,6 +162,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<DataElement> Create(DataElement dataElement)
         {
+            dataElement.Id ??= Guid.NewGuid().ToString();
             ItemResponse<DataElement> createdDataElement = await Container.CreateItemAsync(dataElement, new PartitionKey(dataElement.InstanceGuid));
             return createdDataElement;
         }

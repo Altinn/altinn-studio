@@ -69,11 +69,9 @@ namespace Altinn.Platform.Storage.Controllers
                 Guid instanceGuid,
                 [FromBody] ProcessState processState)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance existingInstance;
 
-            existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (existingInstance == null)
             {

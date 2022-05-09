@@ -33,6 +33,8 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
+            item.Id ??= Guid.NewGuid();
+
             ItemResponse<InstanceEvent> instanceEvent = await Container.CreateItemAsync(item, new PartitionKey(item.InstanceId));
 
             return instanceEvent;
