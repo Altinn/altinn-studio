@@ -50,6 +50,8 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(instance);
 
+            instance.Id ??= Guid.NewGuid().ToString();
+
             ItemResponse<Instance> instanceStored = await Container.CreateItemAsync<Instance>(instance, new PartitionKey(instance.InstanceOwner.PartyId));
             await PostProcess(instanceStored);
 
@@ -61,9 +63,20 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            ItemResponse<Instance> response = await Container.DeleteItemAsync<Instance>(item.Id, new PartitionKey(item.InstanceOwner.PartyId));
+            try
+            {
+                ItemResponse<Instance> response = await Container.DeleteItemAsync<Instance>(item.Id, new PartitionKey(item.InstanceOwner.PartyId));
+                return response.StatusCode == HttpStatusCode.NoContent;
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return false;
+                }
 
-            return response.StatusCode == HttpStatusCode.NoContent; 
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -489,13 +502,11 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
+        public async Task<Instance> GetOne(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string cosmosId = InstanceIdToCosmosId(instanceId);
-
             try
             {
-                ItemResponse<Instance> instance = await Container.ReadItemAsync<Instance>(cosmosId, new PartitionKey(instanceOwnerPartyId));
+                ItemResponse<Instance> instance = await Container.ReadItemAsync<Instance>(instanceGuid.ToString(), new PartitionKey(instanceOwnerPartyId));
 
                 await PostProcess(instance);
                 return instance;

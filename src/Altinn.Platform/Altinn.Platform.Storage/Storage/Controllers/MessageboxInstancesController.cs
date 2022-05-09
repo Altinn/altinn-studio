@@ -201,13 +201,11 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
-                return NotFound($"Could not find instance {instanceId}");
+                return NotFound($"Could not find instance {instanceOwnerPartyId}/{instanceGuid}");
             }
 
             List<MessageBoxInstance> authorizedInstanceList =
@@ -273,15 +271,13 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance instance;
 
-            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
-                return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
+                return NotFound($"Didn't find the object that should be restored with instanceId={instanceOwnerPartyId}/{instanceGuid}");
             }
 
             if (instance.Status.IsHardDeleted)
@@ -333,7 +329,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance instance;
 
-            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
