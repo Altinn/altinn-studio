@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
-
-using Microsoft.Azure.Documents;
 
 using Newtonsoft.Json;
 
@@ -51,7 +47,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return await Task.FromResult(dataElement);
             }
 
-            throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+            return null;
         }
 
         public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -103,24 +99,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
-        }
-
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            Type type = typeof(DocumentClientException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (DocumentClientException)documentClientExceptionInstance;
         }
     }
 }

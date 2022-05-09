@@ -8,9 +8,8 @@ using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -51,10 +50,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(instance);
 
-            ResourceResponse<Document> createDocumentResponse = await Client.CreateDocumentAsync(CollectionUri, instance);
-            Document document = createDocumentResponse.Resource;
-            Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
-
+            ItemResponse<Instance> instanceStored = await Container.CreateItemAsync<Instance>(instance, new PartitionKey(instance.InstanceOwner.PartyId));
             await PostProcess(instanceStored);
 
             return instanceStored;
@@ -65,13 +61,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id);
+            ItemResponse<Instance> response = await Container.DeleteItemAsync<Instance>(item.Id, new PartitionKey(item.InstanceOwner.PartyId));
 
-            await Client.DeleteDocumentAsync(
-                uri.ToString(),
-                new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
-
-            return true;
+            return response.StatusCode == HttpStatusCode.NoContent; 
         }
 
         /// <inheritdoc/>
@@ -88,19 +80,9 @@ namespace Altinn.Platform.Storage.Repository
 
             while (queryResponse.Count < size)
             {
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = true,
-                    MaxItemCount = size - queryResponse.Count,
-                    ResponseContinuationTokenLimitInKb = 7
-                };
+                QueryRequestOptions options = new QueryRequestOptions() { MaxBufferedItemCount = 0, MaxConcurrency = -1, MaxItemCount = size - queryResponse.Count, ResponseContinuationTokenLimitInKb = 7 };
 
-                if (!string.IsNullOrEmpty(continuationToken))
-                {
-                    feedOptions.RequestContinuation = continuationToken;
-                }
-
-                IQueryable<Instance> queryBuilder = Client.CreateDocumentQuery<Instance>(CollectionUri, feedOptions);
+                IQueryable<Instance> queryBuilder = Container.GetItemLinqQueryable<Instance>(requestOptions: options, continuationToken: continuationToken);
 
                 try
                 {
@@ -114,10 +96,11 @@ namespace Altinn.Platform.Storage.Repository
 
                 try
                 {
-                    IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
+                    var iterator = queryBuilder.ToFeedIterator();
 
-                    FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                    if (feedResponse.Count == 0 && !documentQuery.HasMoreResults)
+                    FeedResponse<Instance> feedResponse = await iterator.ReadNextAsync();
+
+                    if (feedResponse.Count == 0 && !iterator.HasMoreResults)
                     {
                         queryResponse.ContinuationToken = string.Empty;
                         break;
@@ -128,14 +111,14 @@ namespace Altinn.Platform.Storage.Repository
                     queryResponse.Instances.AddRange(instances);
                     queryResponse.Count += instances.Count;
 
-                    if (string.IsNullOrEmpty(feedResponse.ResponseContinuation))
+                    if (string.IsNullOrEmpty(feedResponse.ContinuationToken))
                     {
                         queryResponse.ContinuationToken = string.Empty;
                         break;
                     }
 
-                    queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
-                    continuationToken = feedResponse.ResponseContinuation;
+                    queryResponse.ContinuationToken = feedResponse.ContinuationToken;
+                    continuationToken = feedResponse.ContinuationToken;
                 }
                 catch (Exception e)
                 {
@@ -509,28 +492,22 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
             try
             {
-                Instance instance = await Client
-                .ReadDocumentAsync<Instance>(
-                uri,
-                new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
+                ItemResponse<Instance> instance = await Container.ReadItemAsync<Instance>(cosmosId, new PartitionKey(instanceOwnerPartyId));
 
                 await PostProcess(instance);
                 return instance;
             }
-            catch (DocumentClientException e)
+            catch (CosmosException e)
             {
                 if (e.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
         }
 
@@ -539,10 +516,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            ResourceResponse<Document> createDocumentResponse = await Client
-                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, item.Id), item);
-            Document document = createDocumentResponse.Resource;
-            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+            ItemResponse<Instance> instance = await Container.UpsertItemAsync<Instance>(item, new Microsoft.Azure.Cosmos.PartitionKey(item.InstanceOwner.PartyId));
 
             await PostProcess(instance);
 

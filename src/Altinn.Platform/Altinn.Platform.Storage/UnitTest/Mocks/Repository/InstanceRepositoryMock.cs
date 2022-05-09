@@ -2,15 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Primitives;
 
 using Newtonsoft.Json;
@@ -154,14 +151,14 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return Task.FromResult(instance);
             }
 
-            throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+            return null;
         }
 
         public Task<Instance> Update(Instance instance)
         {
             if (instance.Id.Equals("1337/d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
-                throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+                return null;
             }
 
             instance.Data = new List<DataElement>();
@@ -178,24 +175,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
-        }
-
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            Type type = typeof(DocumentClientException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (DocumentClientException)documentClientExceptionInstance;
         }
 
         /// <summary>

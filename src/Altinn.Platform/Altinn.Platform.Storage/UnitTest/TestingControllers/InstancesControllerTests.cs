@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Common.PEP.Interfaces;
@@ -25,7 +24,6 @@ using Altinn.Platform.Storage.Wrappers;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -1416,24 +1414,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }).CreateClient();
 
             return client;
-        }
-
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
-        {
-            Type type = typeof(DocumentClientException);
-
-            string fullName = type.FullName ?? "wtf?";
-
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
-
-            return (DocumentClientException)documentClientExceptionInstance;
         }
     }
 }

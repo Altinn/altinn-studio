@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -412,24 +411,12 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
 
-                _logger.LogError(dce, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (instance == null)
             {
-                _logger.LogError(e, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
             }
 
             DateTime now = DateTime.UtcNow;
@@ -748,16 +735,10 @@ namespace Altinn.Platform.Storage.Controllers
                 string org = appId.Split("/")[0];
 
                 appInfo = await _applicationRepository.FindOne(appId, org);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
+
+                if (appInfo == null)
                 {
                     errorResult = NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    errorResult = StatusCode(500, $"Document database error: {dce}");
                 }
             }
             catch (Exception e)

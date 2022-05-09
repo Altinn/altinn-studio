@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
@@ -12,13 +12,11 @@ using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -139,33 +137,33 @@ namespace Altinn.Platform.Storage.Repository
         {
             string instanceKey = instanceGuid.ToString();
 
-            FeedOptions feedOptions = new FeedOptions
+            List<DataElement> dataElements = new();
+
+            QueryRequestOptions options = new QueryRequestOptions()
             {
-                PartitionKey = new PartitionKey(instanceKey),
-                MaxItemCount = 10000,
+                MaxBufferedItemCount = 0,
+                MaxConcurrency = -1,
+                PartitionKey = new(instanceKey),
+                MaxItemCount = 1000
             };
 
-            IQueryable<DataElement> filter = Client
-                .CreateDocumentQuery<DataElement>(CollectionUri, feedOptions)
-                .Where(d => d.InstanceGuid == instanceKey);
+            FeedIterator<DataElement> query = Container.GetItemLinqQueryable<DataElement>(requestOptions: options)
+                    .ToFeedIterator();
 
-            IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
+            while (query.HasMoreResults)
+            {
+                FeedResponse<DataElement> response = await query.ReadNextAsync();
+                dataElements.AddRange(response);
+            }
 
-            FeedResponse<DataElement> feedResponse = await query.ExecuteNextAsync<DataElement>();
-
-            List<DataElement> instances = feedResponse.ToList();
-
-            return instances;
+            return dataElements;
         }
 
         /// <inheritdoc/>
         public async Task<DataElement> Create(DataElement dataElement)
         {
-            ResourceResponse<Document> createDocumentResponse = await Client.CreateDocumentAsync(CollectionUri, dataElement);
-            Document document = createDocumentResponse.Resource;
-            DataElement dataElementStored = JsonConvert.DeserializeObject<DataElement>(document.ToString());
-
-            return dataElementStored;
+            ItemResponse<DataElement> createdDataElement = await Container.CreateItemAsync(dataElement, new PartitionKey(dataElement.InstanceGuid));
+            return createdDataElement;
         }
 
         /// <inheritdoc/>
@@ -174,37 +172,35 @@ namespace Altinn.Platform.Storage.Repository
             string instanceKey = instanceGuid.ToString();
             string dataElementKey = dataElementGuid.ToString();
 
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElementKey);
+            try
+            {
+                DataElement dataElement = await Container.ReadItemAsync<DataElement>(dataElementKey, new PartitionKey(instanceKey));
+                return dataElement;
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
-            DataElement dataElement = await Client
-                .ReadDocumentAsync<DataElement>(
-                    uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceKey) });
-
-            return dataElement;
+                throw;
+            }
         }
 
         /// <inheritdoc/>
         public async Task<DataElement> Update(DataElement dataElement)
         {
-            ResourceResponse<Document> createDocumentResponse = await Client
-              .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElement.Id), dataElement);
-            Document document = createDocumentResponse.Resource;
-            DataElement updatedElement = JsonConvert.DeserializeObject<DataElement>(document.ToString());
-
+            DataElement updatedElement = await Container.UpsertItemAsync(dataElement, new PartitionKey(dataElement.InstanceGuid));
             return updatedElement;
         }
 
         /// <inheritdoc/>
         public async Task<bool> Delete(DataElement dataElement)
         {
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, dataElement.Id);
+            var response = await Container.DeleteItemAsync<DataElement>(dataElement.Id, new PartitionKey(dataElement.InstanceGuid));
 
-            await Client.DeleteDocumentAsync(
-                uri.ToString(),
-                new RequestOptions { PartitionKey = new PartitionKey(dataElement.InstanceGuid) });
-
-            return true;
+            return response.StatusCode == HttpStatusCode.NoContent;
         }
 
         private async Task<long> UploadFromStreamAsync(string org, Stream stream, string fileName)
@@ -221,7 +217,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             BlobClient blockBlob = await CreateBlobClient(org, fileName);
 
-            Response<BlobDownloadInfo> response = await blockBlob.DownloadAsync();
+            Azure.Response<BlobDownloadInfo> response = await blockBlob.DownloadAsync();
 
             return response.Value.Content;
         }

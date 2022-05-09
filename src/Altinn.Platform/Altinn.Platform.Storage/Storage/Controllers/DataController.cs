@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -326,7 +325,7 @@ namespace Altinn.Platform.Storage.Controllers
                 var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataElement.DataType, refs, instance);
                 Stream theStream = streamAndDataElement.Stream;
                 DataElement updatedData = streamAndDataElement.DataElement;
-           
+
                 if (theStream == null)
                 {
                     return BadRequest("No data found in request body");
@@ -451,75 +450,38 @@ namespace Altinn.Platform.Storage.Controllers
 
         private async Task<(Application Application, ActionResult ErrorMessage)> GetApplicationAsync(string appId, string org)
         {
-            ActionResult errorMessage;
+            Application application = await _applicationRepository.FindOne(appId, org);
 
-            try
+            if (application == null)
             {
-                Application application = await _applicationRepository.FindOne(appId, org);
-
-                return (application, null);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    errorMessage = NotFound($"Cannot find application {appId} in storage");
-                }
-                else
-                {
-                    throw;
-                }
+                return (null, NotFound($"Cannot find application {appId} in storage"));
             }
 
-            return (null, errorMessage);
+            return (application, null);
         }
 
         private async Task<(Instance Instance, ActionResult ErrorMessage)> GetInstanceAsync(string instanceId, int instanceOwnerPartyId)
         {
-            ActionResult errorMessage;
-            try
-            {
-                Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-                return (instance, null);
-            }
-            catch (DocumentClientException dce)
+            if (instance == null)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    errorMessage = NotFound($"Unable to find any instance with id: {instanceId}.");
-                }
-                else
-                {
-                    throw;
-                }
+                return (null, NotFound($"Unable to find any instance with id: {instanceId}."));
             }
 
-            return (null, errorMessage);
+            return (instance, null);
         }
 
         private async Task<(DataElement DataElement, ActionResult ErrorMessage)> GetDataElementAsync(Guid instanceGuid, Guid dataGuid)
         {
-            ActionResult errorMessage;
-            try
-            {
-                DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
+            DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
-                return (dataElement, null);
-            }
-            catch (DocumentClientException dce)
+            if (dataElement == null)
             {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
-                {
-                    errorMessage = NotFound($"Unable to find any data element with id: {dataGuid}.");
-                }
-                else
-                {
-                    throw;
-                }
+                return (null, NotFound($"Unable to find any data element with id: {dataGuid}."));
             }
 
-            return (null, errorMessage);
+            return (dataElement, null);
         }
 
         private async Task DispatchEvent(string eventType, Instance instance, DataElement dataElement)

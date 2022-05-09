@@ -16,8 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using Newtonsoft.Json;
-
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
@@ -29,7 +27,6 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
-        private readonly ILogger _logger;
         private readonly string _storageBaseAndHost;
         private readonly AuthorizationHelper _authorizationHelper;
 
@@ -40,20 +37,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="generalsettings">the general settings</param>
-        /// <param name="logger">the logger</param>
         /// <param name="authzLogger">logger for authorization helper</param>
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IPDP pdp,
             IOptions<GeneralSettings> generalsettings,
-            ILogger<ProcessController> logger,
             ILogger<AuthorizationHelper> authzLogger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
-            _logger = logger;
             _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
         }
 
@@ -78,15 +72,8 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance existingInstance;
-            try
-            {
-                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to find instance {instanceId} to update", instanceId);
-                return NotFound($"Unable to find instance {instanceId} to update");
-            }
+
+            existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
             if (existingInstance == null)
             {
@@ -138,16 +125,9 @@ namespace Altinn.Platform.Storage.Controllers
             existingInstance.LastChanged = DateTime.UtcNow;
 
             Instance updatedInstance;
-            try
-            {
-                updatedInstance = await _instanceRepository.Update(existingInstance);
-                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to update instance object {instanceId}.", instanceId);
-                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
-            }
+
+            updatedInstance = await _instanceRepository.Update(existingInstance);
+            updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
             return Ok(updatedInstance);
         }
@@ -170,18 +150,10 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             ProcessHistoryList processHistoryList = new ProcessHistoryList();
 
-            try
-            {
-                List<InstanceEvent> processEvents = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
-                processHistoryList.ProcessHistory = ProcessHelper.MapInstanceEventsToProcessHistory(processEvents);
+            List<InstanceEvent> processEvents = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
+            processHistoryList.ProcessHistory = ProcessHelper.MapInstanceEventsToProcessHistory(processEvents);
 
-                return Ok(processHistoryList);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Unable to retrieve process history for instance object {instanceId}", instanceId);
-                return StatusCode(500, $"Unable to retrieve process history for instance object {instanceId}: {e.Message}");
-            }
+            return Ok(processHistoryList);
         }
     }
 }

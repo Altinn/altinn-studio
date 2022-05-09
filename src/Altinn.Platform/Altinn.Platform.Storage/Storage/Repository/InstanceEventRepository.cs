@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -34,10 +33,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
-            ResourceResponse<Document> response = await Client.CreateDocumentAsync(CollectionUri, item);
-            Document document = response.Resource;
-
-            InstanceEvent instanceEvent = JsonConvert.DeserializeObject<InstanceEvent>(document.ToString());
+            ItemResponse<InstanceEvent> instanceEvent = await Container.CreateItemAsync(item, new PartitionKey(item.InstanceId));
 
             return instanceEvent;
         }
@@ -46,14 +42,21 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
         {
             string cosmosId = eventGuid.ToString();
-            Uri uri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, cosmosId);
 
-            InstanceEvent theEvent = await Client
-            .ReadDocumentAsync<InstanceEvent>(
-                uri,
-                new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+            try
+            {
+                ItemResponse<InstanceEvent> theEvent = await Container.ReadItemAsync<InstanceEvent>(cosmosId, new PartitionKey(instanceId));
+                return theEvent;
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
 
-            return theEvent;
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -63,16 +66,10 @@ namespace Altinn.Platform.Storage.Repository
             DateTime? fromDateTime,
             DateTime? toDateTime)
         {
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = false,
-                MaxItemCount = 100,
-                PartitionKey = new PartitionKey(instanceId)
-            };
+            QueryRequestOptions options = new QueryRequestOptions() { MaxBufferedItemCount = 0, MaxConcurrency = -1, PartitionKey = new(instanceId), MaxItemCount = 100 };
 
-            IQueryable<InstanceEvent> query = Client
-                .CreateDocumentQuery<InstanceEvent>(CollectionUri, feedOptions)
-                .Where(i => i.InstanceId == instanceId);
+            IQueryable<InstanceEvent> query = Container.GetItemLinqQueryable<InstanceEvent>(requestOptions: options)
+                  .Where(e => e.InstanceId == instanceId);
 
             if (eventTypes != null && eventTypes.Any())
             {
@@ -89,9 +86,15 @@ namespace Altinn.Platform.Storage.Repository
                 query = query.Where(i => i.Created < toDateTime);
             }
 
-            FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();
+            var iterator = query.ToFeedIterator();
 
-            List<InstanceEvent> instanceEvents = result.ToList();
+            List<InstanceEvent> instanceEvents = new();
+
+            while (iterator.HasMoreResults)
+            {
+                FeedResponse<InstanceEvent> response = await iterator.ReadNextAsync();
+                instanceEvents.AddRange(response);
+            }
 
             return instanceEvents;
         }
@@ -100,32 +103,27 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<int> DeleteAllInstanceEvents(string instanceId)
         {
             int deletedEventsCount = 0;
-            try
+
+            QueryRequestOptions options = new QueryRequestOptions()
             {
-                IDocumentQuery<InstanceEvent> query = Client
-                   .CreateDocumentQuery<InstanceEvent>(CollectionUri, new FeedOptions { MaxItemCount = -1 })
-                   .Where(i => i.InstanceId == instanceId)
-                   .AsDocumentQuery();
+                MaxBufferedItemCount = 0,
+                MaxConcurrency = -1,
+                PartitionKey = new(instanceId)
+            };
 
-                FeedResponse<InstanceEvent> result = await query.ExecuteNextAsync<InstanceEvent>();
+            FeedIterator<InstanceEvent> query = Container.GetItemLinqQueryable<InstanceEvent>(requestOptions: options)
+                    .ToFeedIterator();
 
-                List<InstanceEvent> instanceEvents = result.ToList();
-
-                foreach (InstanceEvent instanceEvent in instanceEvents)
+            while (query.HasMoreResults)
+            {
+                foreach (InstanceEvent instanceEvent in await query.ReadNextAsync())
                 {
-                    Uri docUri = UriFactory.CreateDocumentUri(DatabaseId, CollectionId, instanceEvent.Id.ToString());
-                    await Client.DeleteDocumentAsync(
-                        docUri,
-                        new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+                    await Container.DeleteItemAsync<InstanceEvent>(instanceEvent.Id.ToString(), new PartitionKey(instanceEvent.InstanceId));
                     deletedEventsCount++;
                 }
+            }
 
-                return deletedEventsCount;
-            }
-            catch (Exception)
-            {
-                return -1;
-            }
+            return deletedEventsCount;
         }
     }
 }
