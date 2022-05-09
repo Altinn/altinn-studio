@@ -338,12 +338,12 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogError(ex, "Something went wrong during GetDecisionForRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
                 throw;
             }
-                        
-                        if (response?.Response == null)
-                        {
-                            _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
-                            return Forbid();
-                        }
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
+                return Forbid();
+            }
 
             bool authorized;
             try
@@ -359,7 +359,7 @@ namespace Altinn.Platform.Storage.Controllers
             if (!authorized)
             {
                 return Forbid();
-            }            
+            }
 
             Instance storedInstance = new Instance();
             try
