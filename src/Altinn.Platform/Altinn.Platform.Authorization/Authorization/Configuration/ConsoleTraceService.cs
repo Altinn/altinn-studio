@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Yuniql.Extensibility;
 
 namespace Altinn.Platform.Authorization.Configuration
@@ -6,12 +7,22 @@ namespace Altinn.Platform.Authorization.Configuration
     /// <summary>
     /// Copied from sample project.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
         /// Debug enabled 
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
+
+        /// <inheritdoc/>>
+        public bool IsTraceSensitiveData { get; set; } = false;
+
+        /// <inheritdoc/>>
+        public string TraceToDirectory { get; set; }
+
+        /// <inheritdoc/>>
+        public bool IsTraceToFile { get; set; } = false;
 
         /// <summary>
         /// Info
