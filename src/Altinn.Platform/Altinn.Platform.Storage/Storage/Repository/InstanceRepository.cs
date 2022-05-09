@@ -51,6 +51,7 @@ namespace Altinn.Platform.Storage.Repository
             instance.Id ??= Guid.NewGuid().ToString();
 
             Instance instanceStored = await Container.CreateItemAsync<Instance>(instance, new PartitionKey(instance.InstanceOwner.PartyId));
+
             await PostProcess(instanceStored);
 
             return instanceStored;
@@ -505,6 +506,7 @@ namespace Altinn.Platform.Storage.Repository
             try
             {
                 Instance instance = await Container.ReadItemAsync<Instance>(instanceGuid.ToString(), new PartitionKey(instanceOwnerPartyId.ToString()));
+
                 await PostProcess(instance);
                 return instance;
             }
@@ -533,7 +535,7 @@ namespace Altinn.Platform.Storage.Repository
 
         /// <summary>
         /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
-        /// Ensures dataElements are not included in the document. 
+        /// Ensures dataElements are not included in the document.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private static void PreProcess(Instance instance)
