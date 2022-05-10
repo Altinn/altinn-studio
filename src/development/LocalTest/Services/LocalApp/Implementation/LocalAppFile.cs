@@ -11,8 +11,8 @@ using Newtonsoft.Json;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
+using LocalTest.Helpers;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.Localtest.Interface;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -37,7 +37,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 var content = await File.ReadAllTextAsync(filename, Encoding.UTF8);
                 return JsonConvert.DeserializeObject<Application>(content);
             }
-            
+
             return null;
         }
 
@@ -66,9 +66,9 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             // Get list of directories in path
-            var directories =  new DirectoryInfo(path).EnumerateDirectories().Select(dirInfo => dirInfo.Name);
+            var directories = new DirectoryInfo(path).EnumerateDirectories().Select(dirInfo => dirInfo.Name);
 
-            foreach(string directory in directories)
+            foreach (string directory in directories)
             {
                 Application? app = await GetApplicationMetadata(directory);
                 if (app != null)
@@ -79,6 +79,27 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             return ret;
         }
+
+        public async Task<TextResource?> GetTextResource(string org, string app, string language)
+        {
+            string path = Path.Join(GetAppPath(app), "config", "texts", $"resource.{language.AsFileName()}.json");
+
+            if (File.Exists(path))
+            {
+                string fileContent = await File.ReadAllTextAsync(path);
+                var textResource = JsonConvert.DeserializeObject<TextResource>(fileContent);
+                if (textResource != null)
+                {
+                    textResource.Id = $"{org}-{app}-{language}";
+                    textResource.Org = org;
+                    textResource.Language = language;
+                    return textResource;
+                }
+            }
+
+            return null;
+        }
+
         private string GetAppPath(string appId)
         {
             return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());

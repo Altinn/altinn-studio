@@ -3,7 +3,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
-using LocalTest.Services.Localtest.Interface;
 
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;

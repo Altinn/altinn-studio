@@ -28,8 +28,6 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.Localtest.Implementation;
-using LocalTest.Services.Localtest.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -78,7 +76,6 @@ namespace LocalTest
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.Configure<PersonLookupSettings>(Configuration.GetSection("PersonLookupSettings"));
-            services.AddSingleton<ILocalTestAppSelection, LocalTestAppSelectionSI>();
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<Services.Register.Interface.IParties, PartiesWrapper>();
