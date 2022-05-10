@@ -130,7 +130,7 @@ namespace Altinn.Platform.Storage.Controllers
                 queryParams.Remove(nameof(searchString));
             }
 
-            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
+            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, null, 100);
 
             if (queryResponse?.Exception != null)
             {

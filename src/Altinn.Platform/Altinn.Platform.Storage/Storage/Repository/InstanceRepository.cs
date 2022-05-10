@@ -94,7 +94,8 @@ namespace Altinn.Platform.Storage.Repository
             {
                 QueryRequestOptions options = new QueryRequestOptions() { MaxBufferedItemCount = 0, MaxConcurrency = -1, MaxItemCount = size - queryResponse.Count, ResponseContinuationTokenLimitInKb = 7 };
 
-                IQueryable<Instance> queryBuilder = Container.GetItemLinqQueryable<Instance>(requestOptions: options, continuationToken: continuationToken);
+                string tokenValue = string.IsNullOrEmpty(continuationToken) ? null : continuationToken;
+                IQueryable<Instance> queryBuilder = Container.GetItemLinqQueryable<Instance>(requestOptions: options, continuationToken: tokenValue);
 
                 try
                 {
