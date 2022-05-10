@@ -133,6 +133,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataTypeId">The data type id of the current layout.</param>
         /// <param name="formData">The form data.</param>
         /// <returns> The pages in sorted order.</returns>
+        [Obsolete("This method is deprecated. Use transient dependency of IStatefulPageOrder instead.", UrlFormat="https://docs.altinn.studio/app/development/ux/pages/tracks/")]
         virtual async Task<List<string>> GetPageOrder(string org, string app, int instanceOwnerId, Guid instanceGuid, string layoutSetId, string currentPage, string dataTypeId, object formData)
         {
             return await Task.FromResult(new List<string>());
