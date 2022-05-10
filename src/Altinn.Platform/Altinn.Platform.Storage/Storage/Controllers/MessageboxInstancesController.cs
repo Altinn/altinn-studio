@@ -12,7 +12,6 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -131,7 +130,7 @@ namespace Altinn.Platform.Storage.Controllers
                 queryParams.Remove(nameof(searchString));
             }
 
-            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, string.Empty, 100);
+            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, null, 100);
 
             if (queryResponse?.Exception != null)
             {
@@ -202,13 +201,11 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
-                return NotFound($"Could not find instance {instanceId}");
+                return NotFound($"Could not find instance {instanceOwnerPartyId}/{instanceGuid}");
             }
 
             List<MessageBoxInstance> authorizedInstanceList =
@@ -274,22 +271,13 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance instance;
 
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
-                }
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
-                return StatusCode(500, $"Unknown database exception in restore: {dce}");
+            if (instance == null)
+            {
+                return NotFound($"Didn't find the object that should be restored with instanceId={instanceOwnerPartyId}/{instanceGuid}");
             }
 
             if (instance.Status.IsHardDeleted)
@@ -317,16 +305,9 @@ namespace Altinn.Platform.Storage.Controllers
                     }
                 };
 
-                try
-                {
-                    await _instanceRepository.Update(instance);
-                    await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-                    return Ok(true);
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(500, $"Unknown exception in restore: {e}");
-                }
+                await _instanceRepository.Update(instance);
+                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+                return Ok(true);
             }
 
             return Ok(true);
@@ -347,22 +328,11 @@ namespace Altinn.Platform.Storage.Controllers
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
 
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+            if (instance == null)
             {
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
             }
 
             DateTime now = DateTime.UtcNow;
@@ -399,15 +369,8 @@ namespace Altinn.Platform.Storage.Controllers
                 },
             };
 
-            try
-            {
-                await _instanceRepository.Update(instance);
-                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unknown exception in delete: {e}");
-            }
+            await _instanceRepository.Update(instance);
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
 
             return Ok(true);
         }

@@ -20,7 +20,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -265,18 +264,16 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Get(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             try
             {
-                Instance result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+                Instance result = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
                 result.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 return Ok(result);
             }
             catch (Exception e)
             {
-                return NotFound($"Unable to find instance {instanceId}: {e}");
+                return NotFound($"Unable to find instance {instanceOwnerPartyId}/{instanceGuid}: {e}");
             }
         }
 
@@ -378,7 +375,6 @@ namespace Altinn.Platform.Storage.Controllers
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
-
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
             catch (Exception storageException)
@@ -386,10 +382,13 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogError(storageException, "Unable to create {appId} instance for {instance.InstanceOwner.PartyId}", appId, instance.InstanceOwner.PartyId);
 
                 // compensating action - delete instance
-                await _instanceRepository.Delete(storedInstance);
+                if (storedInstance != null)
+                {
+                    await _instanceRepository.Delete(storedInstance);
+                }
 
-                _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance.Id);
-                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
+                _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance?.Id);
+                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner?.PartyId} due to {storageException.Message}");
             }
         }
 
@@ -409,27 +408,13 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] bool hard)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
 
-                _logger.LogError(dce, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+
+            if (instance == null)
             {
-                _logger.LogError(e, "Cannot delete instance {instanceId}.", instanceId);
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceOwnerPartyId}/{instanceGuid}");
             }
 
             DateTime now = DateTime.UtcNow;
@@ -487,9 +472,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             string org = User.GetOrg();
 
@@ -512,7 +495,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to update instance {instanceId}", instanceId);
+                _logger.LogError(e, "Unable to update instance {instanceOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -543,8 +526,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             Instance updatedInstance;
             try
@@ -561,7 +543,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to update read status for instance {instanceId}", instanceId);
+                _logger.LogError(e, "Unable to update read status for instance {instanceOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -592,8 +574,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             string org = User.GetOrg();
             if (!instance.Org.Equals(org))
@@ -618,7 +599,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to update sub status for instance {instanceId}", instanceId);
+                _logger.LogError(e, "Unable to update sub status for instance {instaneOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -648,8 +629,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance.PresentationTexts == null)
             {
@@ -695,8 +675,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Missing parameter value: dataValues is misformed or empty");
             }
 
-            var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             instance.DataValues ??= new Dictionary<string, string>();
 
@@ -748,16 +727,10 @@ namespace Altinn.Platform.Storage.Controllers
                 string org = appId.Split("/")[0];
 
                 appInfo = await _applicationRepository.FindOne(appId, org);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
+
+                if (appInfo == null)
                 {
                     errorResult = NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    errorResult = StatusCode(500, $"Document database error: {dce}");
                 }
             }
             catch (Exception e)

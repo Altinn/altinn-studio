@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,10 +23,10 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get an instance for a given instance id
         /// </summary>
-        /// <param name="instanceId">the instance id</param>
         /// <param name="instanceOwnerPartyId">the instance owner id</param>
+        /// <param name="instanceGuid">the instance guid</param>
         /// <returns>The instance for the given parameters</returns>
-        Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId);
+        Task<Instance> GetOne(int instanceOwnerPartyId, Guid instanceGuid);
 
         /// <summary>
         /// insert new instance into collection

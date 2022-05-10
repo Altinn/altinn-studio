@@ -4,8 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Reflection;
-using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
@@ -24,7 +22,7 @@ using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Documents;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -89,10 +87,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
-
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((Application)null);
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
@@ -130,7 +126,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+            CosmosException dex = CreateCosmosExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
@@ -165,7 +161,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Application appInfo = CreateApplication(org, appName);
 
-            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+            CosmosException dex = CreateCosmosExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
@@ -461,22 +457,103 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        /// <summary>
+        /// Request all applications of an invalid app owner. Repository called is never called. Controller returns bad request.
+        /// </summary>
+        [Fact]
+        public async void GetMany_InvalidOrg_ReturnsBadRequest()
         {
-            Type type = typeof(DocumentClientException);
+            // Arrange
+            string requestUri = $"{BasePath}/applications/test%20org";
 
-            string fullName = type.FullName ?? "wtf?";
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
-            object documentClientExceptionInstance = type.Assembly.CreateInstance(
-                fullName,
-                false,
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new object[] { message, null, null, httpStatusCode, null },
-                null,
-                null);
+            HttpClient client = GetTestClient(applicationRepository.Object);
 
-            return (DocumentClientException)documentClientExceptionInstance;
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Request all applications of a valid app owner. Repository called once and controller returns 200.
+        /// </summary>
+        [Fact]
+        public async void GetMany_ValidRequest_RepositoryIsCalledOnce()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/test";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            var returnValue = new List<Application>() { new Application { Id = "test/sailor" } };
+
+            applicationRepository
+                .Setup(s => s.FindByOrg(It.IsAny<string>()))
+                .ReturnsAsync(returnValue);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            applicationRepository.Verify(m => m.FindByOrg(It.IsAny<string>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Request an application that does not exist. Repository called once. Controller returns not found. 
+        /// </summary>
+        [Fact]
+        public async void GetOne_NonExistingApp_ReturnsNotFound()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/ttd/non-exsisting-app";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository
+              .Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>()))
+              .ReturnsAsync((Application)null);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            applicationRepository.Verify(m => m.FindOne(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Request an application that exists. Repository called once. Controller returns ok. 
+        /// </summary>
+        [Fact]
+        public async void GetOne_ExistingApp_ReturnsOk()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}/applications/ttd/exsisting-app";
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository
+              .Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>()))
+              .ReturnsAsync(new Application { Id = "ttd/existing-app" });
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            applicationRepository.Verify(m => m.FindOne(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        private static CosmosException CreateCosmosExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        {
+            return new CosmosException(message, httpStatusCode, 0, string.Empty, 0.0);
         }
 
         private HttpClient GetTestClient(IApplicationRepository applicationRepository)
