@@ -786,10 +786,13 @@ describe('utils > validation', () => {
       simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] },
     };
 
-    it('should skip validation on required field in hidden group', () => {
+    it('should pass validation on required field in hidden group', () => {
       expect(_with({hiddenFields: ['group_simple']})[requiredFieldInSimpleGroup]).toBeUndefined();
     });
-    it('should run validation on required field in visible group', () => {
+    it('should pass validation on required field in group, when field itself is hidden', () => {
+      expect(_with({hiddenFields: [requiredFieldInSimpleGroup]})[requiredFieldInSimpleGroup]).toBeUndefined();
+    });
+    it('should mark as required with required field in visible group', () => {
       expect(_with({hiddenFields: []})[requiredFieldInSimpleGroup]).toEqual(requiredError);
     });
 

@@ -236,7 +236,8 @@ export function validateEmptyFieldsForLayout(
     const componentsToCheck = formLayout.filter((component) => {
       return (
         (component as ILayoutComponent).required &&
-        childrenWithoutMultiPagePrefix(group).indexOf(component.id) > -1
+        childrenWithoutMultiPagePrefix(group).indexOf(component.id) > -1 &&
+        !hiddenFields.includes(component.id)
       );
     });
 
