@@ -6,17 +6,30 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Options', () => {
-  // disabled until https://github.com/Altinn/altinn-studio/issues/8255 is solved
-  it.skip('is possible to retrieve options dynamically', () => {
+  it('is possible to retrieve options dynamically', () => {
     cy.navigateToChangeName();
-    // Case: options are dynamicly refetched based on what the user selects as source
+    // Case: options are dynamically refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
-    cy.get(appFrontend.changeOfName.reference).should('be.visible').select('nordmann').should('have.value', 'nordmann');
+
+    // Make sure we wait until the option is visible, as it's not instant
+    cy.get(appFrontend.changeOfName.reference)
+      .get(`option[value=nordmann]`)
+      .should('be.visible');
+
+    cy.get(appFrontend.changeOfName.reference)
+      .select('nordmann')
+      .should('have.value', 'nordmann');
 
     //Secure options
-    cy.get(appFrontend.changeOfName.reference2).should('be.visible').select('1').and('have.value', '1');
+    cy.get(appFrontend.changeOfName.reference2)
+      .get('option[value=1]')
+      .should('be.visible');
+    cy.get(appFrontend.changeOfName.reference2)
+      .should('be.visible')
+      .select('1')
+      .and('have.value', '1');
 
-    // Select a different source, expect previous selction to be cleared and
+    // Select a different source, expect previous selection to be cleared and
     // new value to be selectable in the reference option
     cy.get(appFrontend.changeOfName.sources).select('digdir');
     cy.get(appFrontend.changeOfName.reference).should('be.visible').and('have.value', '');
