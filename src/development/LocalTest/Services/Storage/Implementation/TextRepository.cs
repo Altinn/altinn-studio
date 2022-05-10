@@ -6,7 +6,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Helpers;
-using LocalTest.Services.Localtest.Interface;
+using LocalTest.Services.LocalApp.Interface;
 
 using Newtonsoft.Json;
 
@@ -17,39 +17,22 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class TextRepository : ITextRepository
     {
-          private readonly ILocalTestAppSelection _localTestAppSelectionService;
+        private readonly ILocalApp _localApp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRepository"/> class with the given local platform settings.
         /// </summary>
         /// <param name="localPlatformSettings">Local platform settings.</param>
-        public TextRepository(ILocalTestAppSelection localTestAppSelectionService)
+        public TextRepository(ILocalApp localTestAppSelectionService)
         {
-            _localTestAppSelectionService = localTestAppSelectionService;
+            _localApp = localTestAppSelectionService;
         }
 
         /// <inheritdoc/>
         public async Task<TextResource> Get(string org, string app, string language)
         {
             ValidateArguments(org, app, language);
-            TextResource textResource = null;
-            string path = GetTextPath(language, app);
-
-            if (File.Exists(path))
-            {
-                string fileContent = await File.ReadAllTextAsync(path);
-                textResource = (TextResource)JsonConvert.DeserializeObject(fileContent, typeof(TextResource));
-                textResource.Id = $"{org}-{app}-{language}";
-                textResource.Org = org;
-                textResource.Language = language;
-            }
-
-            return textResource;
-        }
-
-        private string GetTextPath(string language, string app)
-        {
-            return _localTestAppSelectionService.GetAppPath(app) + $"config/texts/resource.{language.AsFileName()}.json";
+            return await _localApp.GetTextResource(org, app, language);
         }
 
         /// <inheritdoc/>
