@@ -14,7 +14,8 @@ import {
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IComponentBindingValidation, DateFlags } from 'src/types';
+import type { IComponentBindingValidation, ITextResourceBindings } from 'src/types';
+import { DateFlags } from 'src/types';
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
@@ -28,6 +29,7 @@ export interface IDatePickerProps extends IComponentProps {
   format: string;
   minDate: string;
   maxDate: string;
+  textResourceBindings: ITextResourceBindings;
 }
 
 const iconSize = '30px';
@@ -101,6 +103,7 @@ function DatepickerComponent({
   required,
   id,
   isValid,
+  textResourceBindings,
 }: IDatePickerProps) {
   const classes = useStyles();
   const [date, setDate] = React.useState<moment.Moment>(null);
@@ -266,6 +269,7 @@ function DatepickerComponent({
             format={calculatedFormat}
             margin='normal'
             id={id}
+            data-testid={id}
             value={date}
             placeholder={calculatedFormat}
             key={id}
@@ -279,7 +283,6 @@ function DatepickerComponent({
             maxDate={calculatedMaxDate}
             InputProps={{
               disableUnderline: true,
-              'aria-describedby': `description-${id}`,
               error: !isValid || !validDate,
               readOnly: readOnly,
               classes: {
@@ -291,6 +294,7 @@ function DatepickerComponent({
                   (readOnly ? ' disabled' : ''),
                 input: classes.input,
               },
+              ...(textResourceBindings?.description && {'aria-describedby': `description-${id}`} )
             }}
             FormHelperTextProps={{
               classes: {

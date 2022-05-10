@@ -18,6 +18,7 @@ import { InstantiationButtonComponent } from './base/InstantiationButtonComponen
 import { IGenericComponentProps } from './GenericComponent';
 import { IComponentFormData } from 'src/utils/formComponentUtils';
 import { ILanguage } from 'altinn-shared/types';
+import type { ITextResourceBindings } from 'src/types';
 
 export interface IComponent {
   name: string;
@@ -185,6 +186,7 @@ export interface IComponentProps extends IGenericComponentProps {
   text: React.ReactNode;
   label: () => JSX.Element;
   legend: () => JSX.Element;
+  textResourceBindings: ITextResourceBindings;
 }
 
 const components: IComponent[] = textComponents.concat(

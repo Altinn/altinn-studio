@@ -26,16 +26,31 @@ export interface IFileUploadWithTagProps extends IFileUploadGenericProps {
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];
 
-export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.Element {
+export function FileUploadWithTagComponent({
+  id,
+  componentValidations,
+  language,
+  maxFileSizeInMB,
+  readOnly,
+  maxNumberOfAttachments,
+  minNumberOfAttachments,
+  hasCustomFileEndings,
+  validFileEndings,
+  optionsId,
+  mapping,
+  getTextResource,
+  getTextResourceAsString,
+  textResourceBindings
+}: IFileUploadWithTagProps): JSX.Element {
   const dataDispatch = useDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[getOptionLookupKey(props.optionsId, props.mapping)]?.options);
-  const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.editIndex ?? -1);
-  const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[props.id]?.chosenOptions ?? {});
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options);
+  const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[id]?.editIndex ?? -1);
+  const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions ?? {});
 
   const attachments: IAttachment[] = useSelector(
-    (state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray,
+    (state: IRuntimeState) => state.attachments.attachments[id] || emptyArray,
   );
 
   const setValidationsFromArray = (validationArray: string[]) => {
@@ -46,7 +61,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
 
   const setEditIndex = (index: number) => {
     dataDispatch(FormLayoutActions.updateFileUploaderWithTagEditIndex({
-      uploader: props.id, index
+      uploader: id, index
     }));
   };
 
@@ -74,19 +89,19 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
       tmpValidations.push(
         {
           id: attachment.id,
-          message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', props.language)} ${props.getTextResource(props.textResourceBindings.tagTitle).toString().toLowerCase()}.`,
+          message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${getTextResource(textResourceBindings.tagTitle).toString().toLowerCase()}.`,
         },
       );
       setValidations(validations.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
     }
   };
 
-  const handleDropdownDataChange = (id: string, value: string) => {
+  const handleDropdownDataChange = (attachmentId: string, value: string) => {
     if (value !== undefined) {
       const option = options?.find((o) => o.value === value);
       if (option !== undefined) {
         dataDispatch(FormLayoutActions.updateFileUploaderWithTagChosenOptions({
-          uploader: props.id, id, option
+          uploader: id, id: attachmentId, option
         }));
       } else {
         console.error(`Could not find option for ${value}`);
@@ -97,49 +112,49 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
-      AttachmentDispatcher.updateAttachment(attachment, props.id, option.value, props.id);
+      AttachmentDispatcher.updateAttachment(attachment, id, option.value, id);
     } else {
       console.error(`Could not find option for ${optionValue}`);
     }
   };
 
   const shouldShowFileUpload = (): boolean => {
-    return attachments.length < props.maxNumberOfAttachments
+    return attachments.length < maxNumberOfAttachments
   };
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
-    const fileType = props.id;
+    const fileType = id;
     const tmpValidations: string[] = [];
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
-    if (totalAttachments > props.maxNumberOfAttachments) {
+    if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
       tmpValidations.push(
-        `${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', props.language)
-        } ${props.maxNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', props.language)}`,
+        `${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', language)
+        } ${maxNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', language)}`,
       );
     } else {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File) => {
-        if ((attachments.length + newFiles.length) < props.maxNumberOfAttachments) {
+        if ((attachments.length + newFiles.length) < maxNumberOfAttachments) {
           const tmpId: string = uuidv4();
           newFiles.push({
             name: file.name, size: file.size, uploaded: false, tags: [], id: tmpId, deleting: false, updating: false,
           });
-          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, props.id);
+          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, id);
         }
       });
 
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach((fileRejection) => {
-          if (fileRejection.file.size > (props.maxFileSizeInMB * bytesInOneMB)) {
+          if (fileRejection.file.size > (maxFileSizeInMB * bytesInOneMB)) {
             tmpValidations.push(
-              `${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', props.language)}`,
+              `${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', language)}`,
             );
           } else {
             tmpValidations.push(
-              `${getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', props.language)} ${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', props.language)}`,
+              `${getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', language)} ${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', language)}`,
             );
           }
         });
@@ -149,7 +164,7 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   };
 
   // Get validations and filter general from identified validations.
-  const tmpValidationMessages = getFileUploadWithTagComponentValidations(props.componentValidations, validations);
+  const tmpValidationMessages = getFileUploadWithTagComponentValidations(componentValidations, validations);
   const validationMessages = { errors: tmpValidationMessages.filter(isNotAttachmentError).map((el) => (el.message)) };
   const attachmentValidationMessages = tmpValidationMessages.filter(isAttachmentError);
   const hasValidationMessages: boolean = validationMessages.errors.length > 0;
@@ -157,67 +172,68 @@ export function FileUploadWithTagComponent(props: IFileUploadWithTagProps): JSX.
   return (
     <div
       className='container'
-      id={`altinn-fileuploader-${props.id}`}
+      id={`altinn-fileuploader-${id}`}
       style={{ padding: '0px' }}
     >
       {shouldShowFileUpload() &&
         <DropzoneComponent
-          id={props.id}
+          id={id}
           isMobile={isMobile}
-          language={props.language}
-          maxFileSizeInMB={props.maxFileSizeInMB}
-          readOnly={props.readOnly}
+          language={language}
+          maxFileSizeInMB={maxFileSizeInMB}
+          readOnly={readOnly}
           onClick={handleClick}
           onDrop={handleDrop}
           hasValidationMessages={hasValidationMessages}
-          hasCustomFileEndings={props.hasCustomFileEndings}
-          validFileEndings={props.validFileEndings}
+          hasCustomFileEndings={hasCustomFileEndings}
+          validFileEndings={validFileEndings}
+          textResourceBindings={textResourceBindings}
         />
       }
 
       {shouldShowFileUpload() &&
         AttachmentsCounter({
-          language: props.language,
+          language: language,
           currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments: props.minNumberOfAttachments,
-          maxNumberOfAttachments: props.maxNumberOfAttachments
+          minNumberOfAttachments: minNumberOfAttachments,
+          maxNumberOfAttachments: maxNumberOfAttachments
         })
       }
 
       {(hasValidationMessages && shouldShowFileUpload()) &&
-        renderValidationMessagesForComponent(validationMessages, props.id)
+        renderValidationMessagesForComponent(validationMessages, id)
       }
 
       <FileList
-        id={props.id}
+        id={id}
         attachments={attachments}
         attachmentValidations={attachmentValidationMessages}
-        language={props.language}
+        language={language}
         editIndex={editIndex}
         mobileView={mobileView}
-        readOnly={props.readOnly}
+        readOnly={readOnly}
         options={options}
-        getTextResource={props.getTextResource}
-        getTextResourceAsString={props.getTextResourceAsString}
+        getTextResource={getTextResource}
+        getTextResourceAsString={getTextResourceAsString}
         onEdit={handleEdit}
         onSave={handleSave}
         onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
-        textResourceBindings={props.textResourceBindings}
+        textResourceBindings={textResourceBindings}
         {...({} as IComponentProps)}
       />
 
       {!shouldShowFileUpload() &&
         AttachmentsCounter({
-          language: props.language,
+          language: language,
           currentNumberOfAttachments: attachments.length,
-          minNumberOfAttachments: props.minNumberOfAttachments,
-          maxNumberOfAttachments: props.maxNumberOfAttachments
+          minNumberOfAttachments: minNumberOfAttachments,
+          maxNumberOfAttachments: maxNumberOfAttachments
         })
       }
 
       {(hasValidationMessages && !shouldShowFileUpload()) &&
-        renderValidationMessagesForComponent(validationMessages, props.id)
+        renderValidationMessagesForComponent(validationMessages, id)
       }
 
     </div>

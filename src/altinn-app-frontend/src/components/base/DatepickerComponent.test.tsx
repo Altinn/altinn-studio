@@ -218,7 +218,7 @@ describe('DatepickerComponent', () => {
     expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  it('should show error message when typed date is on an invalid format and call handleDataChange with empy value if formdata is present', async () => {
+  it('should show error message when typed date is on an invalid format and call handleDataChange with empty value if formdata is present', async () => {
     const handleDataChange = jest.fn();
     render({ handleDataChange, formData: { simpleBinding: '12.12.2022' } });
 
@@ -240,5 +240,17 @@ describe('DatepickerComponent', () => {
     ).toBeInTheDocument();
 
     expect(handleDataChange).toHaveBeenCalledWith('');
+  });
+
+  it('should have aria-describedby if textResourceBindings.description is present', () => {
+    render({ textResourceBindings: { description: 'description' }, id: 'test-id' });
+    const inputField = screen.getByRole('textbox');
+    expect(inputField).toHaveAttribute('aria-describedby', 'description-test-id');
+  });
+
+  it('should not have aria-describedby if textResources.description does not exist', () => {
+    render({ textResourceBindings: {}, id: 'test-id' });
+    const inputField = screen.getByRole('textbox');
+    expect(inputField).not.toHaveAttribute('aria-describedby');
   });
 });

@@ -1,49 +1,26 @@
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
 import { TextAreaComponent } from './TextAreaComponent';
-import { render, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import type { IComponentProps } from 'src/components';
 
-describe('components/base/TextAreaComponent.tsx', () => {
-  let mockId: string;
+describe('TextAreaComponent.tsx', () => {
+    const mockId = 'mock-id';
+    const mockHandleDataChange: (value: any) => void = jest.fn();
+    const mockIsValid = true;
+    const mockReadOnly = false;
+    const mockFormData = {};
 
-  let mockFormData: any;
-  let mockHandleDataChange: (value: any) => void;
-  let mockIsValid: boolean;
-  let mockReadOnly: boolean;
-
-  beforeEach(() => {
-    mockId = 'mock-id';
-    mockHandleDataChange = () => null;
-    mockIsValid = true;
-    mockReadOnly = false;
-  });
-
-  it('should match snapshot', () => {
-    const rendered = renderer.create(
-      <TextAreaComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        {...({} as IComponentProps)}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
-  it('should set formdata on change', async () => {
+  it('should set formdata on change', () => {
     const onDataChanged = jest.fn();
-    const { findByTestId } = renderTextAreaComponent({
+    renderTextAreaComponent({
       handleDataChange: onDataChanged,
     });
-    const textAreaComponent: any = await findByTestId(mockId);
-    expect(textAreaComponent.value).toEqual('');
+    const textAreaComponent = screen.getByTestId(mockId);
+    expect(textAreaComponent).toHaveValue('');
     fireEvent.change(textAreaComponent, { target: { value: 'Test123' } });
-    expect(textAreaComponent.value).toEqual('Test123');
+    expect(textAreaComponent).toHaveValue('Test123');
   });
 
   it('should render editable component when readOnly is false', () => {
@@ -76,8 +53,22 @@ describe('components/base/TextAreaComponent.tsx', () => {
     expect(wrapper.find('textarea').prop('readOnly')).toBe(true);
   });
 
+  it('should have aria-describedby if textResourceBindings.description is not present', () => {
+    renderTextAreaComponent({
+      textResourceBindings: { description: 'description'}
+    });
+    const inputComponent = screen.getByTestId(mockId);
+    expect(inputComponent).toHaveAttribute('aria-describedby', 'description-mock-id');
+  });
+
+  it('should not have aria-describedby if textResourceBindings.description is not present', () => {
+    renderTextAreaComponent();
+    const inputComponent = screen.getByTestId(mockId);
+    expect(inputComponent).not.toHaveAttribute('aria-describedby');
+  });
+
   function renderTextAreaComponent(props: Partial<IComponentProps> = {}) {
-    const defaultProps: IComponentProps = {
+    const defaultProps = {
       id: mockId,
       formData: mockFormData,
       handleDataChange: mockHandleDataChange,
@@ -85,6 +76,6 @@ describe('components/base/TextAreaComponent.tsx', () => {
       readOnly: mockReadOnly,
     } as IComponentProps;
 
-    return render(<TextAreaComponent {...defaultProps} {...props} />);
+    render(<TextAreaComponent {...defaultProps} {...props} />);
   }
 });

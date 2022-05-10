@@ -2,6 +2,7 @@ import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import DropZone, { FileRejection } from 'react-dropzone';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import type { ITextResourceBindings } from 'src/types';
 
 export interface IDropzoneComponentProps {
   id: string;
@@ -14,6 +15,7 @@ export interface IDropzoneComponentProps {
   hasValidationMessages: boolean;
   hasCustomFileEndings?: boolean;
   validFileEndings?: string;
+  textResourceBindings: ITextResourceBindings;
 }
 
 export const bytesInOneMB = 1048576;
@@ -38,7 +40,19 @@ export const validationErrorStyle = {
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 
-export function DropzoneComponent(props: IDropzoneComponentProps): JSX.Element {
+export function DropzoneComponent({
+  id,
+  isMobile,
+  language,
+  maxFileSizeInMB,
+  readOnly,
+  onClick,
+  onDrop,
+  hasValidationMessages,
+  hasCustomFileEndings,
+  validFileEndings,
+  textResourceBindings,
+}: IDropzoneComponentProps): JSX.Element {
   return (
     <div>
       <div
@@ -46,15 +60,15 @@ export function DropzoneComponent(props: IDropzoneComponentProps): JSX.Element {
         id='max-size'
       >
         {
-          `${getLanguageFromKey('form_filler.file_uploader_max_size', props.language)
-          } ${props.maxFileSizeInMB} ${getLanguageFromKey('form_filler.file_uploader_mb', props.language)}`
+          `${getLanguageFromKey('form_filler.file_uploader_max_size', language)
+          } ${maxFileSizeInMB} ${getLanguageFromKey('form_filler.file_uploader_mb', language)}`
         }
       </div>
       <DropZone
-        onDrop={props.onDrop}
-        maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
-        disabled={props.readOnly}
-        accept={(props.hasCustomFileEndings) ? props.validFileEndings : null}
+        onDrop={onDrop}
+        maxSize={maxFileSizeInMB * bytesInOneMB} // mb to bytes
+        disabled={readOnly}
+        accept={(hasCustomFileEndings) ? validFileEndings : null}
       >
         {({
           getRootProps, getInputProps, isDragActive, isDragReject,
@@ -62,23 +76,28 @@ export function DropzoneComponent(props: IDropzoneComponentProps): JSX.Element {
           let styles = { ...baseStyle };
           styles = isDragActive ? { ...styles, ...activeStyle } : styles;
           styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
-          styles = (props.hasValidationMessages) ? { ...styles, ...validationErrorStyle } : styles;
+          styles = (hasValidationMessages) ? { ...styles, ...validationErrorStyle } : styles;
+
+          const ariaDescribedByDefault = 'file-upload-description file-format-description max-size number-of-attachments';
+          const ariaDescribedByDescription = textResourceBindings?.description ? `description-${id}` : undefined;
+          const ariaDescribedBy = ariaDescribedByDescription ? `${ariaDescribedByDefault} ${ariaDescribedByDescription}` : ariaDescribedByDefault;
 
           return (
             <div
               {...getRootProps({
-                onClick: props.onClick,
+                onClick: onClick,
               })}
               style={styles}
-              id={`altinn-drop-zone-${props.id}`}
-              className={`file-upload${props.hasValidationMessages ? ' file-upload-invalid' : ''}`}
-              aria-describedby={`description-${props.id} file-upload-description file-format-description max-size number-of-attachments`}
-              aria-labelledby={`label-${props.id}`}
+              id={`altinn-drop-zone-${id}`}
+              data-testid={`altinn-drop-zone-${id}`}
+              className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
+              aria-describedby={ariaDescribedBy}
+              aria-labelledby={`label-${id}`}
               role='button'
             >
               <input
                 {...getInputProps()}
-                id={props.id}
+                id={id}
               />
               <div className='container'>
                 <div className='col text-center icon' style={{ marginTop: '3.5rem' }}>
@@ -86,27 +105,27 @@ export function DropzoneComponent(props: IDropzoneComponentProps): JSX.Element {
                 </div>
                 <div className='col text-center'>
                   <label
-                    htmlFor={props.id}
+                    htmlFor={id}
                     className='file-upload-text-bold'
                     id='file-upload-description'
                   >
-                    {props.isMobile ? (
+                    {isMobile ? (
                       <>
                         {getLanguageFromKey(
                           'form_filler.file_uploader_upload',
-                          props.language,
+                          language,
                         )}
                       </>
                     ) : (
                       <>
                         {getLanguageFromKey(
                           'form_filler.file_uploader_drag',
-                          props.language,
+                          language,
                         )}
                         <span className='file-upload-text-bold blue-underline'>
                           {` ${getLanguageFromKey(
                             'form_filler.file_uploader_find',
-                            props.language,
+                            language,
                           )}`}
                         </span>
                       </>
@@ -115,19 +134,19 @@ export function DropzoneComponent(props: IDropzoneComponentProps): JSX.Element {
                 </div>
                 <div className='col text-center'>
                   <label
-                    htmlFor={props.id}
+                    htmlFor={id}
                     className='file-upload-text'
                     id='file-format-description'
                   >
                     {getLanguageFromKey(
                       'form_filler.file_uploader_valid_file_format',
-                      props.language,
+                      language,
                     )}
-                    {props.hasCustomFileEndings
-                      ? ` ${props.validFileEndings}`
+                    {hasCustomFileEndings
+                      ? ` ${validFileEndings}`
                       : ` ${getLanguageFromKey(
                           'form_filler.file_upload_valid_file_format_all',
-                          props.language,
+                          language,
                         )}`}
                   </label>
                 </div>

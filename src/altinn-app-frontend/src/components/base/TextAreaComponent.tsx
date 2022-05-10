@@ -3,40 +3,47 @@ import type { IComponentProps } from '..';
 
 import '../../styles/shared.css';
 
-export function TextAreaComponent(props: IComponentProps) {
-  const formData = props.formData?.simpleBinding;
+export function TextAreaComponent({
+  id,
+  formData,
+  readOnly,
+  isValid,
+  handleDataChange,
+  textResourceBindings,
+}: IComponentProps) {
+  const suppliedValue = formData?.simpleBinding;
 
-  const [value, setValue] = React.useState(formData ?? '');
+  const [value, setValue] = React.useState(suppliedValue ?? '');
 
   React.useEffect(() => {
-    setValue(formData);
-  }, [formData]);
+    setValue(suppliedValue);
+  }, [suppliedValue]);
 
   const onDataChanged = (e: any) => {
     setValue(e.target.value);
   };
 
   const onDataChangeSubmit = () => {
-    props.handleDataChange(value);
+    handleDataChange(value);
   };
 
   return (
     <div className='a-form-group-items input-group p-0'>
       <textarea
-        id={props.id}
+        id={id}
         onBlur={onDataChangeSubmit}
         onChange={onDataChanged}
-        readOnly={props.readOnly}
+        readOnly={readOnly}
         style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
         className={
-          (props.isValid
+          (isValid
             ? 'form-control a-textarea '
             : 'form-control a-textarea validation-error') +
-          (props.readOnly ? ' disabled' : '')
+          (readOnly ? ' disabled' : '')
         }
         value={value}
-        data-testid={props.id}
-        aria-describedby={`description-${props.id}`}
+        data-testid={id}
+        aria-describedby={textResourceBindings ? `description-${id}` : undefined}
       />
     </div>
   );
