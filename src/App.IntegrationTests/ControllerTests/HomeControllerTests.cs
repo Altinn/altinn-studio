@@ -43,6 +43,19 @@ namespace App.IntegrationTests.ControllerTests
         }
 
         [Fact]
+        public async Task GetHome_StatelessAnonymous_OK()
+        {
+            string org = "ttd";
+            string app = "anonymous-stateless";
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/{org}/{app}/");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
         public async Task GetHome_OK_WithAuthCookie()
         {
             string token = PrincipalUtil.GetToken(1337);

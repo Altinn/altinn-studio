@@ -1,0 +1,17 @@
+﻿{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "anonymous-stateless"
+    },
+    {
+      "id": "commune",
+      "value": "Kommune"
+    },
+    {
+      "id": "inudstry",
+      "value": "Bransje"
+    }
+  ]
+}

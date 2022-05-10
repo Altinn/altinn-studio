@@ -149,6 +149,9 @@ namespace App.IntegrationTests.Utils
                         case "dynamic-options-pdf":
                             services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptionsPdf.App>();
                             break;
+                        case "anonymous-stateless":
+                            services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.Ttd.AnonymousStateless.App>();
+                            break;
                         default:
                             services.AddTransient<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
