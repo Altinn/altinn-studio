@@ -526,7 +526,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            ItemResponse<Instance> instance = await Container.UpsertItemAsync<Instance>(item, new PartitionKey(item.InstanceOwner.PartyId));
+            Instance instance = await Container.UpsertItemAsync<Instance>(item, new PartitionKey(item.InstanceOwner.PartyId));
 
             await PostProcess(instance);
 
