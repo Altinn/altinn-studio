@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>5.1.0-alpha.1</Version>
+    <Version>5.1.0-alpha.2</Version>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.9.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.10.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

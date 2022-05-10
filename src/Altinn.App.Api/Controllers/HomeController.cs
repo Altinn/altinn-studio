@@ -1,6 +1,12 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Web;
 
+using Altinn.App.Api.Models;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Interface;
+using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Hosting;
@@ -20,6 +26,8 @@ namespace Altinn.App.Api.Controllers
         private readonly PlatformSettings _platformSettings;
         private readonly IWebHostEnvironment _env;
         private readonly AppSettings _appSettings;
+        private readonly IAppResources _appResources;
+        private readonly List<string> _onEntryWithInstance = new List<string> { "new-instance", "select-instance" };
 
         /// <summary>
         /// Initialize a new instance of the <see cref="HomeController"/> class.
@@ -28,16 +36,19 @@ namespace Altinn.App.Api.Controllers
         /// <param name="platformSettings">The platform settings.</param>
         /// <param name="env">The current environment.</param>
         /// <param name="appSettings">The application settings</param>
+        /// <param name="appResources">The application resources service</param>
         public HomeController(
           IAntiforgery antiforgery,
           IOptions<PlatformSettings> platformSettings,
           IWebHostEnvironment env,
-          IOptions<AppSettings> appSettings)
+          IOptions<AppSettings> appSettings,
+          IAppResources appResources)
         {
             _antiforgery = antiforgery;
             _platformSettings = platformSettings.Value;
             _env = env;
             _appSettings = appSettings.Value;
+            _appResources = appResources;
         }
 
         /// <summary>
@@ -59,8 +70,8 @@ namespace Altinn.App.Api.Controllers
             {
                 HttpOnly = false // Make this cookie readable by Javascript.
             });
-
-            if (User.Identity.IsAuthenticated)
+            
+            if (ShouldShowAppView())
             {
                 ViewBag.org = org;
                 ViewBag.app = app;
@@ -83,6 +94,46 @@ namespace Altinn.App.Api.Controllers
             }
 
             return Redirect(redirectUrl);
+        }
+
+        private bool ShouldShowAppView()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return true;
+            }
+
+            Application application = _appResources.GetApplication();
+            bool stateless = !_onEntryWithInstance.Contains(application.OnEntry?.Show);
+            if (!stateless) 
+            {
+                return false;
+            }
+
+            DataType dataType = GetStatelessDataType(application);
+
+            if (dataType != null && dataType.AppLogic.AllowAnonymousOnStateless)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private DataType GetStatelessDataType(Application application)
+        {
+            string layoutSetsString = _appResources.GetLayoutSets();
+            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+            // Stateless apps only work with layousets
+            if (!string.IsNullOrEmpty(layoutSetsString))
+            {
+                LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, options);
+                string dataTypeId = layoutSets.Sets.Find(set => set.Id == application.OnEntry?.Show).DataType;
+                return application.DataTypes.Find(d => d.Id == dataTypeId);
+            }
+
+            return null;
         }
     }
 }

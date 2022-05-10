@@ -12,7 +12,6 @@ namespace Altinn.App.Api.Controllers
     /// Represents the Text resources API giving access to texts in different languages.
     /// </summary>
     [Route("{org}/{app}/api/v1/texts/{language}")]
-    [Authorize]
     public class TextsController : ControllerBase
     {
         private readonly IAppResources _appResources;
