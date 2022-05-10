@@ -84,6 +84,7 @@ namespace Altinn.App.PlatformServices.Extensions
             services.AddSingleton<IAppResources, AppResourcesSI>();
             services.AddTransient<IProcessEngine, ProcessEngine>();
             services.AddTransient<IProcessChangeHandler, ProcessChangeHandler>();
+            services.AddTransient<IPageOrder, DefaultPageOrder>();
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));

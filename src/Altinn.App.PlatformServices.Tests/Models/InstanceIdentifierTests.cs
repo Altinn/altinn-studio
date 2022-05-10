@@ -17,6 +17,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
             Assert.Equal(expectedInstanceOwnerId, instanceIdentifier.InstanceOwnerPartyId);
             Assert.Equal(expectedInstanceGuid, instanceIdentifier.InstanceGuid);
             Assert.Equal($"{expectedInstanceOwnerId}/{expectedInstanceGuid}", instanceIdentifier.GetInstanceId());
+            instanceIdentifier.IsNoInstance.Should().BeFalse();
         }
 
         [Theory]
@@ -26,6 +27,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
             var instanceIdentifier = new InstanceIdentifier(expectedInstanceOwnerId, expectedInstanceGuid);
 
             instanceIdentifier.GetInstanceId().Should().Be($"{expectedInstanceOwnerId}/{expectedInstanceGuid}");
+            instanceIdentifier.IsNoInstance.Should().BeFalse();
         }
 
         [Fact]
@@ -38,6 +40,23 @@ namespace Altinn.App.PlatformServices.Tests.Models
             instanceIdentifier.InstanceOwnerPartyId.Should().Be(512345);
             instanceIdentifier.InstanceGuid.Should().Be("2539cacc-1f49-4852-907b-d184e7285a60");
             instanceIdentifier.GetInstanceId().Should().Be("512345/2539cacc-1f49-4852-907b-d184e7285a60");
+            instanceIdentifier.IsNoInstance.Should().BeFalse();
+        }
+
+        [Fact]
+        public void InstanceIdentifier_NoInstance_Returns_Object_With_IsNoInstance_True()
+        {
+            var instanceIdentifier = InstanceIdentifier.NoInstance;
+
+            instanceIdentifier.IsNoInstance.Should().BeTrue();
+        }
+
+        [Fact]
+        public void InstanceIdentifier_NoInstance_GetInstanceId_throws_ArgumentNullException()
+        {
+            var instanceIdentifier = InstanceIdentifier.NoInstance;
+
+            Assert.Throws<ArgumentNullException>(() => instanceIdentifier.GetInstanceId());
         }
     }
 }

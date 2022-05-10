@@ -13,9 +13,10 @@ namespace Altinn.App.PlatformServices.Models
         /// /// <param name="instanceOwnerPartyId">The id of the party owning this instance.</param>
         /// <param name="instanceGuid">A <see cref="Guid"/> identifying the instance.</param>
         public InstanceIdentifier(int instanceOwnerPartyId, Guid instanceGuid)
-        {        
+        {
             InstanceOwnerPartyId = instanceOwnerPartyId;
             InstanceGuid = instanceGuid;
+            IsNoInstance = false;
         }
 
         /// <summary>
@@ -25,6 +26,17 @@ namespace Altinn.App.PlatformServices.Models
         public InstanceIdentifier(string instanceId)
         {
             (InstanceOwnerPartyId, InstanceGuid) = DeconstructInstanceId(instanceId);
+            IsNoInstance = false;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class. For instances without OwnerPartyId and InstanceId, ex: Stateless applications.
+        /// </summary>
+        private InstanceIdentifier()
+        {
+            InstanceOwnerPartyId = 0;
+            InstanceGuid = Guid.Empty;
+            IsNoInstance = true;
         }
 
         /// <summary>
@@ -39,6 +51,12 @@ namespace Altinn.App.PlatformServices.Models
         }
 
         /// <summary>
+        /// Get InstanceIdentifier for no instance. This is used for stateless applications.
+        /// INoInstance is set to true.
+        /// </summary>
+        public static readonly InstanceIdentifier NoInstance = new InstanceIdentifier();
+
+        /// <summary>
         /// Party owning this instance.
         /// </summary>
         public int InstanceOwnerPartyId { get; }
@@ -49,12 +67,22 @@ namespace Altinn.App.PlatformServices.Models
         public Guid InstanceGuid { get; }
 
         /// <summary>
+        /// Internal flag set to true if object is of type NoInstance.
+        /// </summary>
+        public bool IsNoInstance { get; }
+
+        /// <summary>
         /// Gets the instance id to be used when looking up this instance in storage api.
         /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
         /// </summary>
         /// <returns>Instance id combinging instance owner and instance guid.</returns>
         public string GetInstanceId()
         {
+            if (IsNoInstance)
+            {
+                throw new ArgumentNullException(nameof(InstanceGuid), "No instance id available for instance");
+            }
+            
             return $"{InstanceOwnerPartyId}/{InstanceGuid}";
         }
 
