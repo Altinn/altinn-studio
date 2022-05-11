@@ -14,19 +14,5 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "language")]
         public string Language { get; set; }
-
-        /// <summary>
-        /// Gets or sets the language description
-        /// Example : "Norsk bokmål"
-        /// </summary>
-        [JsonProperty(PropertyName = "languageDescription")]
-        public string LanguageDescription { get; set; }
-
-        /// <summary>
-        /// Gets or sets the label of the dropdown menu
-        /// Example: "Språk"
-        /// </summary>
-        [JsonProperty(PropertyName = "dropdownLabel")]
-        public string DropdownLabel { get; set; }
     }
 }
