@@ -1,17 +1,10 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Platform.Authorization.Controllers;
-using Altinn.Platform.Authorization.IntegrationTests.MockServices;
+using Altinn.Platform.Authorization.Health;
 using Altinn.Platform.Authorization.IntegrationTests.Webfactory;
-using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Health
@@ -19,15 +12,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Health
     /// <summary>
     /// Health check 
     /// </summary>
-    public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<DecisionController>>
+    public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory<HealthCheck>>
     {
-        private readonly CustomWebApplicationFactory<DecisionController> _factory;
+        private readonly CustomWebApplicationFactory<HealthCheck> _factory;
 
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="fixture">The web application fixture</param>
-        public HealthCheckTests(CustomWebApplicationFactory<DecisionController> fixture)
+        public HealthCheckTests(CustomWebApplicationFactory<HealthCheck> fixture)
         {
             _factory = fixture;
         }
