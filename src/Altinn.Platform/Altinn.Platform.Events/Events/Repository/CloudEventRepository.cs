@@ -51,6 +51,8 @@ namespace Altinn.Platform.Events.Repository
             // testing various output methods. 
             string output = (string)pgcom.ExecuteScalar();
             cloudEvent = JsonSerializer.Deserialize<CloudEvent>(output);
+            cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
+
             return cloudEvent;
         }
 
