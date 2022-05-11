@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
@@ -15,12 +16,12 @@ using NpgsqlTypes;
 namespace Altinn.Platform.Events.Repository
 {
     /// <summary>
-    /// Handles events repository. 
+    /// Handles events repository.
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class CloudEventRepository : ICloudEventRepository
     {
-        private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
+        private readonly string insertEventSql = "call events.insert_event_v1(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
         private readonly string _connectionString;
 
@@ -35,7 +36,7 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<string> Create(CloudEvent cloudEvent)
+        public async Task<CloudEvent> Create(CloudEvent cloudEvent)
         {
             using NpgsqlConnection conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -47,9 +48,10 @@ namespace Altinn.Platform.Events.Repository
             pgcom.Parameters.AddWithValue("type", cloudEvent.Type);
             pgcom.Parameters.AddWithValue("cloudevent", cloudEvent.Serialize());
 
-            await pgcom.ExecuteNonQueryAsync();
-
-            return cloudEvent.Id;
+            // testing various output methods. 
+            string output = (string)pgcom.ExecuteScalar();
+            cloudEvent = JsonSerializer.Deserialize<CloudEvent>(output);
+            return cloudEvent;
         }
 
         /// <inheritdoc/>

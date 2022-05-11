@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,7 +16,7 @@ namespace Altinn.Platform.Events.Repository
         /// </summary>
         /// <param name="cloudEvent">the cloud event object</param>
         /// <returns>id for created cloudevent</returns>
-        Task<string> Create(CloudEvent cloudEvent);
+        Task<CloudEvent> Create(CloudEvent cloudEvent);
 
         /// <summary>
         /// Calls a function to retrieve cloud events based on query params

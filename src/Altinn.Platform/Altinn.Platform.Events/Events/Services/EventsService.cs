@@ -42,15 +42,16 @@ namespace Altinn.Platform.Events.Services
         {
             cloudEvent.Id = Guid.NewGuid().ToString();
             cloudEvent.Time = null;
-            string cloudEventId = await _repository.Create(cloudEvent);
+            cloudEvent = await _repository.Create(cloudEvent);
+
             PushQueueReceipt receipt = await _queue.PushToQueue(JsonSerializer.Serialize(cloudEvent));
 
             if (!receipt.Success)
             {
-                _logger.LogError(receipt.Exception, "// EventsService // StoreCloudEvent // Failed to push event {EventId} to queue.", cloudEventId);
+                _logger.LogError(receipt.Exception, "// EventsService // StoreCloudEvent // Failed to push event {EventId} to queue.", cloudEvent.Id);
             }
 
-            return cloudEventId;
+            return cloudEvent.Id;
         }
 
         /// <inheritdoc/>
