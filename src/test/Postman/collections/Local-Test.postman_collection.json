@@ -666,7 +666,7 @@
 	"variable": [
 		{
 			"key": "envUrl",
-			"value": "altinn3local.no",
+			"value": "",
 			"type": "default"
 		},
 		{
@@ -675,27 +675,27 @@
 		},
 		{
 			"key": "appOwner",
-			"value": "ttd",
+			"value": "",
 			"type": "default"
 		},
 		{
 			"key": "appName",
-			"value": "apps-test",
+			"value": "",
 			"type": "default"
 		},
 		{
 			"key": "userId",
-			"value": "1337",
+			"value": "",
 			"type": "default"
 		},
 		{
 			"key": "instanceOwnerId",
-			"value": "501337",
+			"value": "",
 			"type": "default"
 		},
 		{
 			"key": "SSN",
-			"value": "01039012345",
+			"value": "",
 			"type": "default"
 		},
 		{
@@ -710,7 +710,7 @@
 		},
 		{
 			"key": "attachmentDataId",
-			"value": "d84913c1-2b32-4ab0-a605-409be875bae6",
+			"value": "",
 			"type": "default"
 		},
 		{
