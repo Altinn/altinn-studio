@@ -11,6 +11,7 @@ import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 import { addErrorCount } from '../../../errorcounter.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
+import { sleep } from 'k6';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
@@ -55,6 +56,7 @@ export default function (data) {
   });
   addErrorCount(success);
   eventId = res.json('id');
+  sleep(1);
 
   //Test to get an instance event by id from an instance with storage api and validate the response
   res = events.getEvent(runtimeToken, partyId, instanceId, eventId);
