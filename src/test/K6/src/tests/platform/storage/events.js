@@ -3,7 +3,7 @@
     Command: docker-compose run k6 run src/tests/platform/storage/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as events from '../../../api/platform/storage/events.js';
@@ -11,7 +11,6 @@ import * as sbl from '../../../api/platform/storage/messageboxinstances.js';
 import * as setUpData from '../../../setup.js';
 import { addErrorCount } from '../../../errorcounter.js';
 import { generateJUnitXML, reportPath } from '../../../report.js';
-import { sleep } from 'k6';
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
