@@ -666,7 +666,7 @@
 	"variable": [
 		{
 			"key": "envUrl",
-			"value": "",
+			"value": "altinn3local.no",
 			"type": "default"
 		},
 		{
