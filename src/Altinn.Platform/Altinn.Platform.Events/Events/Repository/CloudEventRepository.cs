@@ -48,10 +48,8 @@ namespace Altinn.Platform.Events.Repository
             pgcom.Parameters.AddWithValue("type", cloudEvent.Type);
             pgcom.Parameters.AddWithValue("cloudevent", cloudEvent.Serialize());
 
-            // testing various output methods. 
             string output = (string)pgcom.ExecuteScalar();
-            cloudEvent = JsonSerializer.Deserialize<CloudEvent>(output);
-            cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
+            cloudEvent = DeserializeCloudEvent(output);
 
             return cloudEvent;
         }
@@ -77,14 +75,21 @@ namespace Altinn.Platform.Events.Repository
             {
                 while (reader.Read() && index < size)
                 {
-                    CloudEvent cloudEvent = CloudEvent.Deserialize(reader[0].ToString());
-                    cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
+                    CloudEvent cloudEvent = DeserializeCloudEvent(reader[0].ToString());
                     searchResult.Add(cloudEvent);
                     ++index;
                 }
             }
 
             return searchResult;
+        }
+
+        private CloudEvent DeserializeCloudEvent(string eventString)
+        {
+            CloudEvent cloudEvent = CloudEvent.Deserialize(eventString);
+            cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
+
+            return cloudEvent;
         }
     }
 }
