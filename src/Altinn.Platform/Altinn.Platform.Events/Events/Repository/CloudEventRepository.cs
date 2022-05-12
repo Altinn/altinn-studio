@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
@@ -49,7 +48,7 @@ namespace Altinn.Platform.Events.Repository
             pgcom.Parameters.AddWithValue("cloudevent", cloudEvent.Serialize());
 
             string output = (string)pgcom.ExecuteScalar();
-            cloudEvent = DeserializeCloudEvent(output);
+            cloudEvent = DeserializeAndConvertTime(output);
 
             return cloudEvent;
         }
@@ -75,7 +74,7 @@ namespace Altinn.Platform.Events.Repository
             {
                 while (reader.Read() && index < size)
                 {
-                    CloudEvent cloudEvent = DeserializeCloudEvent(reader[0].ToString());
+                    CloudEvent cloudEvent = DeserializeAndConvertTime(reader[0].ToString());
                     searchResult.Add(cloudEvent);
                     ++index;
                 }
@@ -84,7 +83,7 @@ namespace Altinn.Platform.Events.Repository
             return searchResult;
         }
 
-        private CloudEvent DeserializeCloudEvent(string eventString)
+        private static CloudEvent DeserializeAndConvertTime(string eventString)
         {
             CloudEvent cloudEvent = CloudEvent.Deserialize(eventString);
             cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
