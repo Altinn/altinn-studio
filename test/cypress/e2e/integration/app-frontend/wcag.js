@@ -6,12 +6,6 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('WCAG', () => {
-  it('WCAG test in stateless app', () => {
-    cy.startAppInstance(Cypress.env('stateless'));
-    cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
-    cy.testWcag();
-  });
-
   it('WCAG test in data app', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(Cypress.env('multiData2Stage'));

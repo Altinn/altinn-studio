@@ -19,7 +19,9 @@
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
     "cy:prunecache": "cypress cache prune",
-    "create:testfiles": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
+    "create:testfiles": "run-script-os",
+    "create:testfiles:win32": "fsutil file createnew ./e2e/fixtures/test.pdf 1024 && fsutil file createnew ./e2e/fixtures/test.png 1024",
+    "create:testfiles:linux": "truncate -s 1K ./e2e/fixtures/test.pdf && truncate -s 1K ./e2e/fixtures/test.png",
     "delete:reports": "rm reports/* || true",
     "start:localtest": "cd %npm_package_config_localtestPath% && docker-compose up -d --build && cd LocalTest && dotnet run",
     "start:app": "cd %npm_package_config_appPath% && dotnet run",
@@ -27,8 +29,10 @@
     "start:frontend-no-deps": "cd %npm_package_config_frontendPath% && cd altinn-app-frontend && yarn start",
     "before:appfrontend": "run-p start:localtest start:app start:frontend",
     "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
-    "test:appfrontend": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'",
-    "test:appfrontend:headless": "cypress run -s 'e2e/integration/app-frontend/*.js'"
+    "test:frontend": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'",
+    "test:stateless": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-stateless/*.js'",
+    "test:all": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/*/*.js'",
+    "test:all:headless": "cypress run -s 'e2e/integration/*/*.js'"
   },
   "devDependencies": {
     "axe-core": "^4.4.1",
@@ -40,6 +44,7 @@
     "fs-extra": "^10.1.0",
     "path": "^0.12.7",
     "prettier": "^2.6.2",
+    "run-script-os": "^1.1.6",
     "start-server-and-test": "^1.14.0"
   },
   "packageManager": "yarn@3.2.0"

@@ -568,6 +568,7 @@ __metadata:
     fs-extra: ^10.1.0
     path: ^0.12.7
     prettier: ^2.6.2
+    run-script-os: ^1.1.6
     start-server-and-test: ^1.14.0
   languageName: unknown
   linkType: soft
@@ -1918,6 +1919,16 @@ __metadata:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
+  languageName: node
+  linkType: hard
+
+"run-script-os@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "run-script-os@npm:1.1.6"
+  bin:
+    run-os: index.js
+    run-script-os: index.js
+  checksum: 395c9576c1645867897901bb7f16406a7da06de8962b23e9879c91790248f6b3fb0b2a9dff6821cd77f3a9fb284e956118e39a57aa40280f71b12119555dad84
   languageName: node
   linkType: hard
 
