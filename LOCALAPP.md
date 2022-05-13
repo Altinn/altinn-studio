@@ -29,21 +29,12 @@ These are some of the required steps, tips and tricks when it comes to running a
    ```shell
    cd src/development
    ```
-2. Running containers
-   - **Windows and MacOS:**
-     The command below builds and starts the containers in the background. This mode supports running one app at a
-     time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the
-     instructions below to run LocalTest locally outside Docker.
-     ```shell
-     docker-compose --profile localtest up -d --build
-     ```
-   - **Linux:**
-     The setup for Linux is almost identical, but because Docker Desktop (on Windows and MacOS) works slightly
-     differently from native Docker, we need to use another compose file. If you need to run multiple apps at the same
-     time, the same instructions as on other OSes above apply here as well.
-     ```shell
-     docker-compose -f docker-compose-linux.yml --profile localtest up -d --build
-     ```
+2. Build and and run the containers in the background. This mode supports running one app at a
+   time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the
+   instructions below to run LocalTest locally outside Docker.
+   ```shell
+   docker-compose --profile localtest up -d --build
+   ```
 3. Start your app
    ```shell
    cd /path/to/your/App
@@ -101,13 +92,13 @@ dotnet run
 
 ### Changing test data
 
-In some cases your application might differ from the default setup and require custom changes to the test data available. 
+In some cases your application might differ from the default setup and require custom changes to the test data available.
 This section contains the most common changes.
 
 #### Adjust authentication level of logged in test user
 This would be required if your app requires a higher than default authentication level. You can also use this to give the user a lower authentication level if you want to test the app behaviour for those.
-1. Open the `src/development/LocalTest/Controllers/HomeController.cs` in your preffered text editor or IDE. 
-2. Find the function `LogInTestUser` 
+1. Open the `src/development/LocalTest/Controllers/HomeController.cs` in your preffered text editor or IDE.
+2. Find the function `LogInTestUser`
 3. Modify this line `claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));`,
 by exchanging `"2"` for a string containing your required authentication level.
 4. Save and close the file
@@ -117,7 +108,7 @@ by exchanging `"2"` for a string containing your required authentication level.
 This would be required if your app requires a role which none of the test users have.
 1. Identify the role list you need to modify by noting the userId of the user representing an entity, and the partyId of the entity you want to represent
 2. Find the correct `roles.json` file in `C:\Repos\altinn-studio\src\development\TestData\authorization\roles` by navigating to `User_{userID}\party_{partyId}\roles.json`
-3. Add a new entry in the list for the role you require 
+3. Add a new entry in the list for the role you require
 
   ```
   {
