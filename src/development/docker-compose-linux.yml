@@ -1,16 +1,11 @@
 version: '3.6'
 
-networks:
-  altinntestlocal_network:
-    external: false
-
 services:
   localtest_loadbalancer:
     container_name: localtest-loadbalancer
     image: localtest-loadbalancer:latest
     restart: always
-    networks:
-      - altinntestlocal_network
+    network_mode: "host"
     ports:
       - "${ALTINN3LOCAL_PORT:-80}:80"
     environment:
@@ -21,24 +16,26 @@ services:
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     build:
       context: ./loadbalancer
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
   altinn_platform_pdf:
     container_name: altinn-pdf
     image: altinn-pdf:latest
     restart: always
-    networks:
-      - altinntestlocal_network
+    network_mode: "host"
     ports:
      - "5070:5070"
     build:
       context: ./../Altinn.Platform/Altinn.Platform.PDF/
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
   altinn_localtest:
     container_name: localtest
     image: localtest:latest
     restart: always
     profiles:
       - localtest
-    networks:
-      - altinntestlocal_network
+    network_mode: "host"
     ports:
       - "5101:5101"
     build:
@@ -51,6 +48,8 @@ services:
       - GeneralSettings__HostName=${TEST_DOMAIN:-altinn3local.no}
     volumes:
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
+    extra_hosts:
+      - "host.docker.internal:127.0.0.1"
 
 volumes:
   AltinnPlatformLocal:
