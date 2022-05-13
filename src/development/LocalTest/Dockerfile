@@ -12,8 +12,10 @@ RUN dotnet build LocalTest.csproj -c Release -o /app_output
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS final
+RUN apk add --no-cache gettext # Needed to run envsubst
 EXPOSE 5101
 WORKDIR /app
+COPY LocalTest/generate-appsettings-docker.sh /
 COPY --from=build /app_output .
 
 # Copy various data
@@ -23,4 +25,5 @@ COPY ./TestData /TestData
 # RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
 # USER dotnet
 
-ENTRYPOINT ["dotnet", "LocalTest.dll"]
+CMD /generate-appsettings-docker.sh && \
+    dotnet LocalTest.dll
