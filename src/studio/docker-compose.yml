@@ -28,6 +28,8 @@ services:
       - altinn_repositories
     build:
       context: ./src/load-balancer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   altinn_designer:
     container_name: altinn-designer
@@ -62,6 +64,8 @@ services:
     build:
       context: .
       dockerfile: ./src/designer/Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   altinn_repositories:
     container_name: altinn-repositories
@@ -101,3 +105,5 @@ services:
     build:
       context: ./src/repositories/
       dockerfile: Dockerfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
