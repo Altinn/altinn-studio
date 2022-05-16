@@ -126,11 +126,7 @@ This would be required if your app requires a role which none of the test users 
 
 #### Target local webpack-dev-server instead of altinncd.no
 If you're making changes to the [app frontend](https://github.com/Altinn/app-frontend-react/) locally, you're usually
-running the webpack-dev-server on port 8080 (via `yarn start`). There is no need to change the reference back and forth between
-altinncdn.no and localhost in your `App/views/Home/Index.cshtml` for every app you're running - set this
-environment variable before running `docker-compose` and it will instruct the load balancer (nginx) to replace
-references for you on the fly:
-
-```bash
-export SUB_FILTER="sub_filter 'https://altinncdn.no/toolkits/altinn-app-frontend/3/' 'http://localhost:8080/'; sub_filter_once off;"
-```
+running the webpack-dev-server on port 8080 (via `yarn start`). There is no need to change the reference back and forth
+between altinncdn.no and localhost in your `App/views/Home/Index.cshtml` for every app you're running. Instead,
+copy `.env.template` to `.env` and uncomment the line where `SUB_FILTER` is set. This setting makes nginx rewrite the
+HTML for your app on the fly.
