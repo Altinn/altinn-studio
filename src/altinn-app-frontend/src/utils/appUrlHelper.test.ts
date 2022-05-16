@@ -2,6 +2,7 @@ import {
   getEnvironmentLoginUrl,
   getOptionsUrl,
   getRulehandlerUrl,
+  getCalculatePageOrderUrl,
   getLayoutsUrl,
   getFetchFormDynamicsUrl,
   getLayoutSettingsUrl,
@@ -262,6 +263,24 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
   });
+
+  describe('getCalculatePageOrderUrl', () => {
+    test('should return stateful url if stateless is false', () => {
+      const result = getCalculatePageOrderUrl(false);
+
+      expect(result).toBe(
+        "https://altinn3local.no/ttd/test/instances/undefined/pages/order"
+      );
+    });
+
+    test('should return stateless url if stateless is true', () => {
+      const result = getCalculatePageOrderUrl(true);
+
+      expect(result).toBe(
+        "https://altinn3local.no/ttd/test/v1/pages/order"
+      );
+    });
+  })
 
   describe('getLayoutsUrl', () => {
     test('should return default when no parameter is passed', () => {

@@ -53,6 +53,12 @@ export function getLayoutSetIdForApplication(
   return getLayoutsetForDataElement(instance, dataType, layoutSets);
 }
 
+interface IGetDataTypeForApplicationParams {
+  application: IApplication;
+  instance?: IInstance;
+  layoutSets?: ILayoutSets;
+}
+
 /**
  * Get the current data type for the application
  * @param application the application metadata
@@ -61,9 +67,7 @@ export function getLayoutSetIdForApplication(
  * @returns the current data type
  */
 export function getCurrentDataTypeForApplication(
-  application: IApplication,
-  instance?: IInstance,
-  layoutSets?: ILayoutSets,
+  { application, instance, layoutSets }: IGetDataTypeForApplicationParams
 ): string {
   const showOnEntry: string = application?.onEntry?.show;
   if (isStatelessApp(application)) {

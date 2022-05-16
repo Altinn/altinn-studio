@@ -123,11 +123,11 @@ describe('submitFormDataSagas', () => {
     };
 
     const model = convertDataBindingToModel(state.formData.formData);
-    const currentDataType = getCurrentDataTypeForApplication(
-      state.applicationMetadata.applicationMetadata,
-      state.instanceData.instance,
-      state.formLayout.layoutsets,
-    );
+    const currentDataType = getCurrentDataTypeForApplication({
+      application: state.applicationMetadata.applicationMetadata,
+      instance: state.instanceData.instance,
+      layoutSets: state.formLayout.layoutsets,
+    });
 
     return expectSaga(saveFormDataSaga)
       .provide([

@@ -6,7 +6,7 @@ import { IFileUploadersWithTag, IFormFileUploaderWithTagComponent, IRepeatingGro
 import { getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
 import { get, post } from 'altinn-shared/utils';
-import { getCurrentTaskDataElementId, getDataTaskDataTypeId } from 'src/utils/appMetadata';
+import { getCurrentTaskDataElementId, getDataTaskDataTypeId, isStatelessApp, getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { validateFormData, validateFormComponents, validateEmptyFields, mapDataElementValidationToRedux, canFormBeSaved, mergeValidationObjects, removeGroupValidationsByIndex, validateGroup, getValidator } from 'src/utils/validation';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
@@ -209,17 +209,29 @@ export function* calculatePageOrderAndMoveToNextPageSaga({ payload: { runValidat
     const state: IRuntimeState = yield select();
     const layoutSets = state.formLayout.layoutsets;
     const currentView = state.formLayout.uiConfig.currentView;
-    const instance = state.instanceData.instance;
-    const dataTypeId: string = getDataTaskDataTypeId(instance.process.currentTask.elementId,
-      state.applicationMetadata.applicationMetadata.dataTypes);
     let layoutSetId: string = null;
-    if (layoutSets != null) {
-      layoutSetId = getLayoutsetForDataElement(instance, dataTypeId, layoutSets);
+    let dataTypeId: string = null;
+    const formData = convertDataBindingToModel(state.formData.formData);
+    const appIsStateless = isStatelessApp(state.applicationMetadata.applicationMetadata)
+    if (appIsStateless) {
+      dataTypeId = getCurrentDataTypeForApplication({
+        application: state.applicationMetadata.applicationMetadata,
+        layoutSets: state.formLayout.layoutsets,
+      });
+      layoutSetId = state.applicationMetadata.applicationMetadata.onEntry.show;
+    } else {
+      const instance = state.instanceData.instance;
+      dataTypeId = getDataTaskDataTypeId(
+        instance.process.currentTask.elementId,
+        state.applicationMetadata.applicationMetadata.dataTypes
+      );
+      if (layoutSets != null) {
+        layoutSetId = getLayoutsetForDataElement(instance, dataTypeId, layoutSets);
+      }
     }
-    const formData: any = convertDataBindingToModel(state.formData.formData);
     const layoutOrder = yield call(
       post,
-      getCalculatePageOrderUrl(),
+      getCalculatePageOrderUrl(appIsStateless),
       formData,
       {
         params: {
@@ -374,7 +386,7 @@ export function* watchInitRepeatingGroupsSaga(): SagaIterator {
     FormDataActions.fetchFormDataFulfilled,
     FormLayoutActions.initRepeatingGroups,
     FormLayoutActions.fetchLayoutFulfilled
-    ],
+  ],
     initRepeatingGroupsSaga
   );
 }
@@ -386,7 +398,7 @@ export function* updateFileUploaderWithTagEditIndexSaga({ payload: {
     if (attachmentId && index === -1) { // In the case of closing an edit view.
       const state: IRuntimeState = yield select();
       const chosenOption = state.formLayout.uiConfig.fileUploadersWithTag[uploader].chosenOptions[attachmentId]
-      if(chosenOption && chosenOption !== '') {
+      if (chosenOption && chosenOption !== '') {
         yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({ uploader, index }));
       } else {
         yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error: null }));
@@ -411,7 +423,7 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({ payload: {
     const state: IRuntimeState = yield select();
     const currentView = state.formLayout.uiConfig.currentView;
     const component = state.formLayout.layouts[currentView]
-        .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
+      .find((component: ILayoutComponent) => component.id === uploader) as unknown as IFormFileUploaderWithTagComponent;
     const componentOptions = state.optionState.options[getOptionLookupKey(component.optionsId, component.mapping)]?.options;
     if (componentOptions.find(op => op.value === option.value)) {
       yield put(FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
@@ -448,7 +460,7 @@ export function* watchInitFileUploaderWithTagSaga(): SagaIterator {
   yield takeLatest([
     FormLayoutActions.initFileUploaderWithTag,
     FormLayoutActions.fetchLayoutFulfilled
-    ],
+  ],
     initFileUploaderWithTagSaga
   );
 }

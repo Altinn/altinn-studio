@@ -166,8 +166,12 @@ export function getRulehandlerUrl(layoutset: string) {
   return `${appPath}/api/rulehandler/${layoutset}`;
 }
 
-export function getCalculatePageOrderUrl() {
-  return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
+export function getCalculatePageOrderUrl(stateless: boolean) {
+  if (stateless) {
+    return `${appPath}/v1/pages/order`;
+  } else {
+    return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
+  }
 }
 
 export function getPartyValidationUrl(partyId: string) {

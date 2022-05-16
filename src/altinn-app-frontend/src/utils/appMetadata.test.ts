@@ -98,11 +98,11 @@ describe('utils/appmetadata.ts', () => {
 
   describe('getCurrentDataTypeForApplication', () => {
     it('should return correct data type if we have an instance', () => {
-      const result = getCurrentDataTypeForApplication(
+      const result = getCurrentDataTypeForApplication({
         application,
         instance,
         layoutSets,
-      );
+      });
       const expected = 'Datamodel';
       expect(result).toEqual(expected);
     });
@@ -112,11 +112,24 @@ describe('utils/appmetadata.ts', () => {
         ...application,
         onEntry: { show: 'stateless' },
       };
-      const result = getCurrentDataTypeForApplication(
-        statelessApplication,
-        null,
+      const result = getCurrentDataTypeForApplication({
+        application: statelessApplication,
+        instance: null,
         layoutSets,
-      );
+      });
+      const expected = 'Stateless';
+      expect(result).toEqual(expected);
+    });
+    
+    it('should return correct data type if instance not set', () => {
+      const statelessApplication = {
+        ...application,
+        onEntry: { show: 'stateless' },
+      };
+      const result = getCurrentDataTypeForApplication({
+        application: statelessApplication,
+        layoutSets,
+      });
       const expected = 'Stateless';
       expect(result).toEqual(expected);
     });

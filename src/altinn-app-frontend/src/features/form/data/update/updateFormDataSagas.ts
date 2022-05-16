@@ -57,11 +57,11 @@ function* runValidations(
     yield put(FormDataActions.updateFormDataRejected({ error: new Error('Missing component ID!') }));
   }
 
-  const currentDataTypeId = getCurrentDataTypeForApplication(
-    state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance,
-    state.formLayout.layoutsets,
-  );
+  const currentDataTypeId = getCurrentDataTypeForApplication({
+    application: state.applicationMetadata.applicationMetadata,
+    instance: state.instanceData.instance,
+    layoutSets: state.formLayout.layoutsets,
+  });
   const validator = getValidator(currentDataTypeId, state.formDataModel.schemas);
   const component = getLayoutComponentById(componentId, state.formLayout.layouts);
   const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts);

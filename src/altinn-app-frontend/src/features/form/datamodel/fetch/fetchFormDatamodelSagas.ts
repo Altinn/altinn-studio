@@ -24,7 +24,11 @@ function* fetchJsonSchemaSaga(): SagaIterator {
     const instance: IInstance = yield select(InstanceDataSelector);
     const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
 
-    const dataTypeId = getCurrentDataTypeForApplication(appMetadata, instance, layoutSets);
+    const dataTypeId = getCurrentDataTypeForApplication({
+      application: appMetadata, 
+      instance, 
+      layoutSets
+    });
 
     if (dataTypeId) {
       const schema: any = yield call(get, url + dataTypeId);
