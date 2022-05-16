@@ -21,6 +21,8 @@ services:
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     build:
       context: ./loadbalancer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   altinn_platform_pdf:
     container_name: altinn-pdf
     image: altinn-pdf:latest
@@ -31,6 +33,8 @@ services:
      - "5070:5070"
     build:
       context: ./../Altinn.Platform/Altinn.Platform.PDF/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   altinn_localtest:
     container_name: localtest
     image: localtest:latest
@@ -51,6 +55,7 @@ services:
       - GeneralSettings__HostName=${TEST_DOMAIN:-altinn3local.no}
     volumes:
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
-
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 volumes:
   AltinnPlatformLocal:
