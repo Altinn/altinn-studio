@@ -7,10 +7,10 @@ describe('fetchOptionsActions', () => {
   it('should create an action with correct type: OPTIONS.FETCH_OPTIONS_FULFILLED', () => {
     const expectedAction = {
       type: 'OPTIONS.FETCH_OPTIONS_FULFILLED',
-      optionData: { id: 'options-id', options: [] },
+      options: [],
       optionsKey: 'options-id',
     };
-    expect(fetchOptionsFulfilled('options-id', { id: 'options-id', options: []})).toEqual(expectedAction);
+    expect(fetchOptionsFulfilled('options-id', [])).toEqual(expectedAction);
   });
 
   it('should create an action with correct type: OPTIONS.FETCH_OPTIONS_REJECTED', () => {

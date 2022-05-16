@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { fork, call, select, takeLatest, takeEvery } from 'redux-saga/effects';
-import { IRuntimeState, IOption, IFetchSpecificOptionSaga, IOptionData, IOptions } from 'src/types';
-import { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
+import type { IRuntimeState, IOption, IFetchSpecificOptionSaga, IOptions, IOptionsMetaData } from 'src/types';
+import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
-import { getOptionsUrl } from '../../../../utils/appUrlHelper';
-import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
+import { getOptionsUrl } from 'src/utils/appUrlHelper';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
 import FormDataActions from 'src/features/form/data/formDataActions';
@@ -51,18 +51,17 @@ export function* fetchSpecificOptionSaga({
   const optionKey = getOptionLookupKey(optionsId, dataMapping);
   const instanceId = yield select(instanceIdSelector);
   try {
-    yield call(OptionsActions.fetchingOptions, optionKey);
+    const optionMetaData: IOptionsMetaData = {
+      id: optionsId,
+      mapping: dataMapping,
+      secure,
+    };
+    yield call(OptionsActions.fetchingOptions, optionKey, optionMetaData);
     const formData: IFormData = yield select(formDataSelector);
     const language: string = yield select(userLanguageSelector);
     const url = getOptionsUrl({ optionsId, formData, language, dataMapping, secure, instanceId });
     const options: IOption[] = yield call(get, url);
-    const optionData: IOptionData = {
-      id: optionsId,
-      options,
-      mapping: dataMapping,
-      secure,
-    };
-    yield call(OptionsActions.fetchOptionsFulfilled, optionKey, optionData);
+    yield call(OptionsActions.fetchOptionsFulfilled, optionKey, options);
   } catch (error) {
     yield call(OptionsActions.fetchOptionsRejected, optionKey, error);
   }

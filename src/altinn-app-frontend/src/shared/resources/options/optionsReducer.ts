@@ -2,7 +2,11 @@ import { IOptions } from 'src/types';
 import { Action, Reducer } from 'redux';
 import update from 'immutability-helper';
 import * as FetchOptionsActionTypes from './fetch/fetchOptionsActionTypes';
-import { IFetchOptionsFulfilledAction, IFetchOptionsRejectedAction } from './fetch/fetchOptionsActions';
+import {
+  IFetchOptionsFulfilledAction,
+  IFetchOptionsRejectedAction,
+  IFetchingOptionsAction,
+} from './fetch/fetchOptionsActions';
 
 export interface IOptionsState {
   error: Error;
@@ -22,11 +26,14 @@ const OptionsReducer: Reducer<IOptionsState> = (
     return state;
   }
   switch (action.type) {
-      case FetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED: {
-      const { optionsKey, optionData } = action as IFetchOptionsFulfilledAction;
+    case FetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED: {
+      const { optionsKey, options } = action as IFetchOptionsFulfilledAction;
       return update<IOptionsState>(state, {
         options: {
-          [optionsKey]: { $set: optionData },
+          [optionsKey]: {
+            loading: { $set: false },
+            options: { $set: options },
+          },
         },
       });
     }
@@ -35,8 +42,8 @@ const OptionsReducer: Reducer<IOptionsState> = (
       return update<IOptionsState>(state, {
         options: {
           [optionsKey]: {
-            loading: { $set: false }
-          }
+            loading: { $set: false },
+          },
         },
         error: {
           $set: error,
@@ -45,26 +52,33 @@ const OptionsReducer: Reducer<IOptionsState> = (
     }
 
     case FetchOptionsActionTypes.FETCHING_OPTION: {
-      const { optionsKey } = action as IFetchOptionsRejectedAction;
+      const { optionsKey, optionMetaData } = action as IFetchingOptionsAction;
       if (state.options[optionsKey]) {
         return update<IOptionsState>(state, {
           options: {
             [optionsKey]: {
-              loading: { $set: true },
-            }
-          },
-        });
-      } else {
-        return update<IOptionsState>(state, {
-          options: {
-            [optionsKey]: { $set: {
-              loading: true
-            } },
+              $merge: {
+                ...optionMetaData,
+                loading: true,
+              },
+            },
           },
         });
       }
+      return update<IOptionsState>(state, {
+        options: {
+          [optionsKey]: {
+            $set: {
+              ...optionMetaData,
+              loading: true,
+            },
+          },
+        },
+      });
     }
-    default: { return state; }
+    default: {
+      return state;
+    }
   }
 };
 

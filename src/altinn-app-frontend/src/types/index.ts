@@ -133,13 +133,18 @@ export interface IOptionSource {
   value: string;
 }
 
-export interface IOptionData {
-  options: IOption[];
+export interface IOptionsActualData {
+  options?: IOption[];
+}
+
+export interface IOptionsMetaData {
   id: string;
   mapping?: IMapping;
   loading?: boolean;
   secure?: boolean;
 }
+
+export type IOptionData = IOptionsActualData & IOptionsMetaData;
 
 export interface IRepeatingGroup {
   index: number;
