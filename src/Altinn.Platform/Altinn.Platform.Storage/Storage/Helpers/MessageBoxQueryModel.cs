@@ -11,8 +11,8 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// List of instance owner party id(s)
         /// </summary>
-        [JsonPropertyName("instanceOwnerPartyId")]
-        public List<int> InstanceOwnerPartyId { get; set; }
+        [JsonPropertyName("instanceOwnerPartyIdList")]
+        public List<int> InstanceOwnerPartyIdList { get; set; }
 
         /// <summary>
         /// The application id
