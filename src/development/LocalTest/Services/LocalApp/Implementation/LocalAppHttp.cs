@@ -18,6 +18,7 @@ namespace LocalTest.Services.LocalApp.Implementation
     {
         public const string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
+        public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
         public LocalAppHttp(IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache)
@@ -28,7 +29,8 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<string?> GetXACMLPolicy(string appId)
         {
-            return await _cache.GetOrCreateAsync(XACML_CACHE_KEY + appId, async cacheEntry => {
+            return await _cache.GetOrCreateAsync(XACML_CACHE_KEY + appId, async cacheEntry =>
+            {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
@@ -36,14 +38,35 @@ namespace LocalTest.Services.LocalApp.Implementation
         }
         public async Task<Application?> GetApplicationMetadata(string appId)
         {
-            var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry => {
+            var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
+            {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
             return JsonConvert.DeserializeObject<Application>(content);
         }
-        
+
+        public async Task<TextResource?> GetTextResource(string org, string app, string language)
+        {
+            var content = await _cache.GetOrCreateAsync(TEXT_RESOURCE_CACE_KEY + org + app + language, async cacheEntry =>
+            {
+                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+                return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
+            });
+
+            var textResource = JsonConvert.DeserializeObject<TextResource>(content);
+            if (textResource != null)
+            {
+                textResource.Id = $"{org}-{app}-{language}";
+                textResource.Org = org;
+                textResource.Language = language;
+                return textResource;
+            }
+
+            return null;
+        }
+
         public async Task<Dictionary<string, Application>> GetApplications()
         {
             var ret = new Dictionary<string, Application>();
@@ -53,7 +76,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             {
                 ret.Add(app.Id, app);
             }
-           
+
             return ret;
         }
     }

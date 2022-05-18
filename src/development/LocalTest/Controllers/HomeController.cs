@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 
 using AltinnCore.Authentication.Constants;
+using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
@@ -37,6 +38,7 @@ namespace LocalTest.Controllers
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IClaims _claimsService;
         private readonly ILocalApp _localApp;
 
         public HomeController(
@@ -45,6 +47,7 @@ namespace LocalTest.Controllers
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
             IApplicationRepository applicationRepository,
+            IClaims claimsService,
             ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
@@ -52,6 +55,7 @@ namespace LocalTest.Controllers
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
             _applicationRepository = applicationRepository;
+            _claimsService = claimsService;
             _localApp = localApp;
         }
 
@@ -118,6 +122,7 @@ namespace LocalTest.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
+                claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
 
                 ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
                 identity.AddClaims(claims);

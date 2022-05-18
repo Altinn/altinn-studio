@@ -36,7 +36,6 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -55,6 +54,8 @@ await SetConfigurationProviders(builder.Configuration);
 ConfigureLogging(builder.Logging);
 
 ConfigureServices(builder.Services, builder.Configuration);
+
+logger.LogInformation("// Checking CosmosDB and Azure Storage connection.");
 
 var app = builder.Build();
 
