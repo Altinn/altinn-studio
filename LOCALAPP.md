@@ -53,6 +53,9 @@ The setup described above (LocalTest running in Docker) currently only supports 
 yourself needing to run multiple apps at the same time, or if you need to debug or develop LocalTest, a local setup is
 preferred.
 
+:information_source: If you're already running LocalTest in Docker, be sure to stop the container or make sure you
+omit `--profile localtest` when running `docker-compose`.
+
 **Configuration of LocalTest**
 The LocalTest application acts as an emulator of the Altinn 3 platform services. It provides things like authentication,
 authorization and storage. Everything your apps will need to run locally.
