@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,10 +18,10 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class PolicyInformationRepositoryTest : IClassFixture<PolicyInformationPointFixture>, IDisposable
+    public class PolicyInformationRepositoryTest : IDisposable
     {
         private Mock<IOptions<AzureCosmosSettings>> _dbConfigMock;
-        private readonly PolicyInformationPointFixture _fixture;
+
         private static DocumentClient _client;
         private readonly InstanceMetadataRepository _pir;
         private const string INSTANCE_ID = "50013976/f3fc6233-1631-429d-8405-e1678f88dbd7";
@@ -34,9 +33,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private bool databasePopulatedInstances = false;
         private bool databasePopulatedApplications = false;
 
-        public PolicyInformationRepositoryTest(PolicyInformationPointFixture fixture)
+        public PolicyInformationRepositoryTest()
         {
-            _fixture = fixture;
             _dbConfigMock = new Mock<IOptions<AzureCosmosSettings>>();
             _dbConfigMock.Setup(s => s.Value).Returns(new AzureCosmosSettings()
             {

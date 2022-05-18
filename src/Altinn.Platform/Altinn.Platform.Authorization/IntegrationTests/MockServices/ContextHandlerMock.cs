@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private readonly string _partyAttributeId = "urn:altinn:partyid";
 
-        private readonly string _userAttributeId = "urn:altinn:user-id";
+        private readonly string _userAttributeId = "urn:altinn:userid";
 
         private readonly string _altinnRoleAttributeId = "urn:altinn:rolecode";
 

@@ -10,7 +10,6 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.IntegrationTests.Data;
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Models;
@@ -28,7 +27,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("PolicyAdministrationPointTest")]
-    public class PolicyAdministrationPointTest : IClassFixture<PolicyAdministrationPointFixture>
+    public class PolicyAdministrationPointTest
     {
         private readonly IPolicyAdministrationPoint _pap;
         private readonly IPolicyRepository _prp;

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{d9c0433e-738c-4e07-9f88-d71d7df04e3f}</ProjectGuid>
   </PropertyGroup>
@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.39" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.1.1" />
+    <PackageReference Include="Azure.Identity" Version="1.6.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.12.0" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.10.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
@@ -18,11 +20,11 @@
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.18.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
     <!-- Updating to 1.2.25 breaks ConsoleTraceService.cs implementation -->
-    <PackageReference Include="Yuniql.AspNetCore" Version="1.1.55" />
-    <PackageReference Include="Yuniql.PostgreSql" Version="1.1.55" />
+    <PackageReference Include="Yuniql.AspNetCore" Version="1.2.25" />
+    <PackageReference Include="Yuniql.PostgreSql" Version="1.2.25" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
