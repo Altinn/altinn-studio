@@ -63,7 +63,7 @@ namespace Altinn.Platform.Storage.Helpers
         public string ArchiveReference { get; set; }
 
         /// <summary>
-        /// Language nb, en, nn-NO
+        /// Language nb, en, nn
         /// </summary>
         [JsonPropertyName("language")]
         public string Language { get; set; }

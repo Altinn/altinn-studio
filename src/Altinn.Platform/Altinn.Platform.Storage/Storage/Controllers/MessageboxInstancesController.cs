@@ -66,7 +66,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="created">Created time.</param>
         /// <param name="searchString">Search string.</param>
         /// <param name="archiveReference">The archive reference.</param>
-        /// <param name="language"> language nb, en, nn-NO</param>
+        /// <param name="language">Language nb, en, nn</param>
         /// <returns>list of instances</returns>
         [Authorize]
         [HttpGet("search")]
