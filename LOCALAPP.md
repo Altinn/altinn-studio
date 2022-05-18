@@ -127,7 +127,7 @@ This would be required if your app requires a role which none of the test users 
 
 ### Tips and tricks
 
-#### Target local webpack-dev-server instead of altinncd.no
+#### Target local webpack-dev-server instead of altinncdn.no
 If you're making changes to the [app frontend](https://github.com/Altinn/app-frontend-react/) locally, you're usually
 running the webpack-dev-server on port 8080 (via `yarn start`). There is no need to change the reference back and forth
 between altinncdn.no and localhost in your `App/views/Home/Index.cshtml` for every app you're running. Instead,
