@@ -1,15 +1,10 @@
-import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 import * as InstantiateActions from './instantiate';
 
-export interface IInstantiationActions extends ActionCreatorsMapObject {
-  instantiate: (org: string, app: string) => InstantiateActions.IInstantiate;
-  instantiateFulfilled: (instanceId: string) => InstantiateActions.IInstantiateFulfilled;
-  instantiateRejected: (error: Error) => InstantiateActions.IInstantiateRejected;
-  instantiateToggle: () => Action;
-}
+export type IInstantiationActions = typeof actions;
 
-const actions: IInstantiationActions = {
+const actions = {
   instantiate: InstantiateActions.instantiate,
   instantiateFulfilled: InstantiateActions.instantiateFulfilled,
   instantiateRejected: InstantiateActions.instantiateRejected,

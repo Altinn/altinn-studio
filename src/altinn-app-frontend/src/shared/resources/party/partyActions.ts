@@ -1,20 +1,11 @@
-import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IParty } from 'altinn-shared/types';
-import { store } from '../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 import * as GetPartiesActions from './getParties/getPartiesActions';
 import * as SelectPartyActions from './selectParty/selectPartyActions';
 
-export interface IPartyActions extends ActionCreatorsMapObject {
-  getParties: () => Action;
-  getPartiesFulfilled: (parties: IParty[]) => GetPartiesActions.IGetPartiesFulfilled;
-  getPartiesRejected: (error: Error) => GetPartiesActions.IGetPartiesRejected;
-  getCurrentParty: () => Action;
-  selectParty: (party: IParty, redirect: boolean) => SelectPartyActions.ISelectParty;
-  selectPartyFulfilled: (party: IParty) => SelectPartyActions.ISelectPartyFulfilled;
-  selectPartyRejected: (error: Error) => SelectPartyActions.ISelectPartyRejected;
-}
+export type IPartyActions = typeof actions;
 
-const actions: IPartyActions = {
+const actions = {
   getParties: GetPartiesActions.getParties,
   getPartiesFulfilled: GetPartiesActions.getPartiesFulfilled,
   getPartiesRejected: GetPartiesActions.getPartiesRejected,

@@ -1,14 +1,10 @@
-import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 import * as FetchRuleModel from './fetch/fetchRulesActions';
 
-export interface IFormRulesActions extends ActionCreatorsMapObject {
-  fetchRuleModel: () => Action;
-  fetchRuleModelFulfilled: (formData: any) => FetchRuleModel.IFetchRuleModelFulfilled;
-  fetchRuleModelRejected: (error: Error) => FetchRuleModel.IFetchRuleModelRejected;
-}
+export type IFormRulesActions = typeof actions;
 
-const actions: IFormRulesActions = {
+const actions = {
   fetchRuleModel: FetchRuleModel.fetchRuleModelAction,
   fetchRuleModelFulfilled: FetchRuleModel.fetchRuleModelFulfilledAction,
   fetchRuleModelRejected: FetchRuleModel.fetchRuleModelRejectedAction,

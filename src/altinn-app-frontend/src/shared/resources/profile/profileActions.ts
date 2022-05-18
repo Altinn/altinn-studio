@@ -1,17 +1,10 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IProfile } from 'altinn-shared/types';
-import { store } from '../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 import * as FetchProfileActions from './fetch/fetchProfileActions';
 
-export interface IProfileActions extends ActionCreatorsMapObject {
-  fetchProfile: (url: string) => FetchProfileActions.IFetchProfile;
-  fetchProfileFulfilled: (
-    profile: IProfile,
-  ) => FetchProfileActions.IFetchProfileFulfilled;
-  fetchProfileRejected: (error: Error) => FetchProfileActions.IFetchProfileRejected;
-}
+export type IProfileActions = typeof actions;
 
-const actions: IProfileActions = {
+const actions = {
   fetchProfile: FetchProfileActions.fetchProfile,
   fetchProfileFulfilled: FetchProfileActions.fetchProfileFulfilled,
   fetchProfileRejected: FetchProfileActions.fetchProfileRejected,

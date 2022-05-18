@@ -112,7 +112,7 @@ export function FileUploadWithTagComponent({
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
-      AttachmentDispatcher.updateAttachment(attachment, id, option.value, id);
+      AttachmentDispatcher.updateAttachment(attachment, id, option.value);
     } else {
       console.error(`Could not find option for ${optionValue}`);
     }

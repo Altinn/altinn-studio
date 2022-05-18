@@ -1,15 +1,11 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 
 import * as GetInstanceData from './get/getInstanceDataActions';
 
-export interface IInstanceDataActions extends ActionCreatorsMapObject {
-  getInstanceData: (instanceOwner: string, instanceId: string) => GetInstanceData.IGetInstanceData;
-  getInstanceDataFulfilled: (instanceData: any) => GetInstanceData.IGetInstanceDataFulfilled;
-  getInstanceDataRejected: (error: Error) => GetInstanceData.IGetInstanceDataRejected;
-}
+export type IInstanceDataActions = typeof actions;
 
-const actions: IInstanceDataActions = {
+const actions = {
   getInstanceData: GetInstanceData.getInstanceData,
   getInstanceDataFulfilled: GetInstanceData.getInstanceDataFulfilled,
   getInstanceDataRejected: GetInstanceData.getInstanceDataRejected,

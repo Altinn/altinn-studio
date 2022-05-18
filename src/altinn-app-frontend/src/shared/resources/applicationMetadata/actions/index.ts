@@ -1,20 +1,11 @@
-import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IApplicationMetadata } from '..';
-import { store } from '../../../../store';
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 
 import * as getActions from './get';
 
-export interface IApplicationMetadataActions extends ActionCreatorsMapObject {
-  getApplicationMetadata: () => Action;
-  getApplicationMetadataFulfilled: (
-    applicationMetadata: IApplicationMetadata,
-  ) => getActions.IGetApplicationMetadataFulfilled;
-  getApplicationMetadataRejected: (
-    error: Error,
-  ) => getActions.IGetApplicationMetadataRejected;
-}
+export type IApplicationMetadataActions = typeof actions;
 
-const actions: IApplicationMetadataActions = {
+const actions = {
   getApplicationMetadata: getActions.getApplicationMetadata,
   getApplicationMetadataFulfilled: getActions.getApplicationMetadataFulfilled,
   getApplicationMetadataRejected: getActions.getApplicationMetadataRejected,
