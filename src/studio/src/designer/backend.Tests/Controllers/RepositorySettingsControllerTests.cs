@@ -28,12 +28,12 @@ namespace Designer.Tests.Controllers
         public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory)
         {
             _factory = factory;
+            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
         }
 
         [Fact]
         public async Task Get_RepositorySettings_ShouldReturnOk()
         {
-            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
             var org = "ttd";
             var sourceRepository = "xyz-datamodels";
             var developer = "testUser";

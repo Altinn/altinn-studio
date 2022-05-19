@@ -34,6 +34,7 @@ namespace Designer.Tests.Controllers
         public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory)
         {
             _factory = factory;
+            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
         }
 
         [Fact]
