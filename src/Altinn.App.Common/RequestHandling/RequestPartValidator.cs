@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -62,8 +62,10 @@ namespace Altinn.App.Common.RequestHandling
                 {
                     string contentTypeWithoutEncoding = part.ContentType.Split(";")[0];
 
-                    // TODO: Support for any content type?
-                    if (!dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
+                    // restrict content type if allowedContentTypes is specified
+                    if (dataType.AllowedContentTypes != null &&
+                        dataType.AllowedContentTypes.Count > 0 &&
+                        !dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
                     {
                         return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType.Id}'";
                     }
