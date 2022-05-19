@@ -329,7 +329,7 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UnSubscribeeFormidling(int id, Dictionary<string, string> requestHeaders)
         {
-            AssertNotNull(id, nameof(id));
+            AssertAboveZero(id, nameof(id));
 
             string responseBody;
 
@@ -357,7 +357,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             if (string.IsNullOrEmpty(paramValue))
             {
-                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
             }
         }
 
@@ -365,7 +365,15 @@ namespace Altinn.Common.EFormidlingClient
         {
             if (paramValue == null)
             {
-                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
+        }
+
+        private static void AssertAboveZero(int paramValue, string paramName)
+        {
+            if (paramValue <= 0)
+            {
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
             }
         }
     }
