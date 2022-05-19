@@ -1,11 +1,11 @@
 name: Build and Test on windows, linux and macos
 on:
   push:
-    branches: [ main, chore/make-test-run-on-linux ]
+    branches: [ master ]
     paths:
       - 'src/studio/src/designer/**'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     types: [opened, synchronize, reopened]
     paths:
       - 'src/studio/src/designer/**'
