@@ -12,7 +12,7 @@
     </PackageReference>
     <PackageReference Include="Altinn.App.Common" Version="5.0.0" />
     <PackageReference Include="Altinn.App.PlatformServices" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
   </ItemGroup>
 
