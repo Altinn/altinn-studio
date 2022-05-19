@@ -1,7 +1,8 @@
 {
 	"info": {
-		"_postman_id": "6fc53523-d3bc-48c1-82a5-bea793fdd045",
+		"_postman_id": "ec4fc3e8-b3fb-4ee3-b1bb-76bed9ce9f85",
 		"name": "Local-Test",
+		"description": "### **Collection variables**\n\n*   envUrl - the environment running your app (example: altinn3local.no)\n*   altinnToken - filled in automatically after sending request \"Get Test Org Token\"\n*   appOwner - name of organisation/user that created the app (example :ttd)\n*   appName - name of the app you are testing (example: apps-test)\n*   userId - id of the test user you are testing the app with (example: 1337)\n    *   find local testusers in /altinn-studio/src/development/TestData/Profile/User\n*   instanceOwnerId - id of the party the instance is created for (example: 501337)\n    *   find your local testusers partyId in /altinn-studio/src/development/TestData/Register/Party\n*   SSN - ssn of the user (example: 01039012345)\n    *   used to send \"Post Multipart ...\" requests\n    *   find your local testusers SSN in /altinn-studio/src/development/TestData/Register/Party\n*   instanceId - id of an existing instance, used to send \"Get Instance\" request\n    *   updated automatically after successfully sending request \"Post Multipart\"\n*   dataId - reference to the data in a given instance\n    *   updated automatically after successfully sending request \"Post Multipart\"\n*   attachmentDataId - id of the field in your app containing multipart attachment (example: d84913c1-2b32-4ab0-a605-409be875bae6)\n    *   found in your apps metadata. /App/config/appmetadata.json under datatypes.\n    *   used to send \"Post Multipart ...\" requests\n*   organizationNumber - a organization number of a chosen test organisation\n    *   used to send \"Post Multipart from Org\"\n\n### **Possible problems**\n\n**400 - Bad request (no message)**  \nIf you have the cookie called \"AltinnStudioRuntime\" the api will assume you are making a request from a browser and you will get 400 due to the ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter.\n\nTo mitigate this filter you can simply delete the cookie called \"AltinnStudioRuntime\". (When in a request you can click \"Cookies\" in the top right part of your postman window below the Send button.)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -506,7 +507,8 @@
 						"{{appName}}",
 						"instances"
 					]
-				}
+				},
+				"description": "Remember to set SSN and multipartDataId in the collections variables in order to use this request"
 			},
 			"response": []
 		},
@@ -551,14 +553,13 @@
 					"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"organisationNumber\" : \"{{organizationNumber}}\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--"
 				},
 				"url": {
-					"raw": "http://altinn3local.no//{{appOwner}}/{{appName}}/instances",
+					"raw": "http://altinn3local.no/{{appOwner}}/{{appName}}/instances",
 					"protocol": "http",
 					"host": [
 						"altinn3local",
 						"no"
 					],
 					"path": [
-						"",
 						"{{appOwner}}",
 						"{{appName}}",
 						"instances"
