@@ -54,7 +54,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
         {
                 // Arrange
-                using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/xsd/Skjema-1603-12392.xsd"));
+                using XmlReader xsdReader = XmlReader.Create(LoadTestData("Model/Xsd/Skjema-1603-12392.xsd"));
                 XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
 
                 // Act
@@ -65,7 +65,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 Assert.Equal(12, actual.Properties().Count);
                 Assert.Equal(19, actual.Definitions().Count);
         }
-        
+
         private Stream LoadTestData(string resourceName)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(XsdToJsonSchemaTests).Assembly.Location).LocalPath);

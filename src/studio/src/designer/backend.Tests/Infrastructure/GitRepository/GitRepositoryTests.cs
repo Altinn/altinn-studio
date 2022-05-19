@@ -35,11 +35,11 @@ namespace Designer.Tests.Infrastructure.GitRepository
         }
 
         [Theory]
-        [InlineData(@"app/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.metadata.json")]
-        [InlineData(@"app/models/HvemErHvem.json")]
-        [InlineData(@"app/models/HvemErHvem_FlatNoTypes.schema.json")]
-        [InlineData(@"app/models/HvemErHvem_SERES.schema.json")]
-        [InlineData(@"/app/models/HvemErHvem_SERES.schema.json")]
+        [InlineData(@"App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.metadata.json")]
+        [InlineData(@"App/models/HvemErHvem.json")]
+        [InlineData(@"App/models/HvemErHvem_FlatNoTypes.schema.json")]
+        [InlineData(@"App/models/HvemErHvem_SERES.schema.json")]
+        [InlineData(@"/App/models/HvemErHvem_SERES.schema.json")]
         public async Task WriteTextByRelativePathAsync_ReadWriteRoundtrip_ShouldReadBackEqual(string expectedFilePath)
         {
             var org = "ttd";
