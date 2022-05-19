@@ -14,35 +14,36 @@
   "license": "3-Clause BSD",
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
-    "@material-ui/core": "^4.12.3",
-    "axios": "^0.26.1",
-    "moment": "^2.29.2",
+    "@material-ui/core": "^4.12.4",
+    "axios": "^0.27.2",
+    "moment": "^2.29.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.10",
-    "@babel/preset-env": "^7.17.10",
-    "@babel/preset-react": "^7.16.7",
+    "@babel/core": "^7.17.12",
+    "@babel/preset-env": "^7.17.12",
+    "@babel/preset-react": "^7.17.12",
     "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^12.1.4",
-    "@types/jest": "^27.5.0",
+    "@testing-library/react": "^12.1.5",
+    "@types/jest": "^27.5.1",
     "@types/react": "17.0.43",
-    "@types/react-dom": "^17.0.14",
+    "@types/react-dom": "^17.0.17",
     "cross-env": "^7.0.3",
     "css-loader": "^6.7.1",
     "fork-ts-checker-notifier-webpack-plugin": "6.0.0",
     "fork-ts-checker-webpack-plugin": "^7.2.11",
-    "jest": "^27.5.1",
+    "jest": "^28.1.0",
+    "jest-environment-jsdom": "^28.1.0",
     "mini-css-extract-plugin": "^2.6.0",
-    "msw": "^0.39.2",
+    "msw": "^0.40.0",
     "rimraf": "^3.0.2",
     "source-map-loader": "^3.0.1",
     "terser-webpack-plugin": "^5.3.1",
-    "ts-jest": "^27.1.4",
+    "ts-jest": "^28.0.2",
     "ts-loader": "^9.3.0",
     "typescript": "^4.6.4",
-    "webpack": "^5.72.0",
+    "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.9.0"
   },
@@ -67,7 +68,9 @@
     "setupFilesAfterEnv": [
       "<rootDir>/testConfig/setupTests.ts"
     ],
-    "testURL": "https://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae",
+    "testEnvironmentOptions": {
+      "url": "https://localhost/receipt/mockInstanceOwnerId/6697de17-18c7-4fb9-a428-d6a414a797ae"
+    },
     "testEnvironment": "jsdom"
   },
   "browserslist": [
