@@ -35,6 +35,7 @@ namespace Designer.Tests.Controllers
         public DatamodelsControllerTests(WebApplicationFactory<DatamodelsController> factory)
         {
             _factory = factory;
+            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
         }
 
         [Fact]
@@ -111,7 +112,7 @@ namespace Designer.Tests.Controllers
                 File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.schema.json");
             }
 
-            File.Copy(unitTestFolder + "/Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/32578.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_2978_1_forms_3478_32578.xsd", unitTestFolder + "/Repositories/testUser/ttd/ttd-datamodels/App/models/32578.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -156,7 +157,7 @@ namespace Designer.Tests.Controllers
                 File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.schema.json");
             }
 
-            File.Copy(unitTestFolder + "/Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/41111.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/schema_4581_100_forms_5245_41111.xsd", unitTestFolder + "/Repositories/testUser/ttd/ttd-datamodels/App/models/41111.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -201,7 +202,7 @@ namespace Designer.Tests.Controllers
                 File.Delete(unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.schema.json");
             }
 
-            File.Copy(unitTestFolder + "/Model/Xsd/RA-0678_M.xsd", unitTestFolder + "/Repositories/testuser/ttd/ttd-datamodels/App/models/0678.xsd", true);
+            File.Copy(unitTestFolder + "/Model/Xsd/RA-0678_M.xsd", unitTestFolder + "/Repositories/testUser/ttd/ttd-datamodels/App/models/0678.xsd", true);
 
             HttpClient client = GetTestClient();
 
@@ -297,7 +298,7 @@ namespace Designer.Tests.Controllers
             var client = GetTestClient();
             var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
 
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);            
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
@@ -315,16 +316,15 @@ namespace Designer.Tests.Controllers
             var client = GetTestClient();
             var url = $"{_versionPrefix}/ttd/hvem-er-hvem/Datamodels/";
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
-            
+
             var response = await client.SendAsync(httpRequestMessage);
-            
+
             Assert.Equal(HttpStatusCode.Found, response.StatusCode);
             Assert.Contains("/login/", response.Headers.Location.AbsoluteUri.ToLower());
         }
 
         [Theory]
         [InlineData("App/models/HvemErHvem_SERES.schema.json")]
-        [InlineData("App/models/hvemerhvem_seres.schema.json")]
         [InlineData("App%2Fmodels%2FHvemErHvem_SERES.schema.json")]
         public async Task GetDatamodel_ValidPath_ShouldReturnContent(string modelPath)
         {
@@ -423,7 +423,7 @@ namespace Designer.Tests.Controllers
         public async Task PostDatamodel_FromFormPost_ShouldReturnCreatedFromTemplate(string relativeDirectory, bool altinn2Compatible, string sourceRepository)
         {
             // Arrange
-            var org = "ttd";            
+            var org = "ttd";
             var developer = "testUser";
             var targetRepository = Guid.NewGuid().ToString();
 
@@ -650,6 +650,6 @@ namespace Designer.Tests.Controllers
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
-        }       
+        }
     }
 }

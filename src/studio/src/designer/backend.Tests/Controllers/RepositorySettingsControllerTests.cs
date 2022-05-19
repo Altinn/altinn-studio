@@ -33,6 +33,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Get_RepositorySettings_ShouldReturnOk()
         {
+            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
             var org = "ttd";
             var sourceRepository = "xyz-datamodels";
             var developer = "testUser";

@@ -78,6 +78,7 @@ namespace Designer.Tests.Controllers
         public async Task GetReleases_SingleLaggingRelease_PipelineServiceCalled()
         {
             // Arrange
+            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
             string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("singleLaggingRelease.json");
 
