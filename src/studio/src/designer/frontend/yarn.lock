@@ -4765,7 +4765,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material@npm:^5.7.0":
+"@mui/icons-material@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "@mui/icons-material@npm:5.8.0"
+  dependencies:
+    "@babel/runtime": ^7.17.2
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 9bc4a5cd6a136666aab898acb782feb80a49fff71476ab53aa7831c7d4c1644065e132ae65b2bdb4fee65ca4974e23669b416f45df7e5378c0fd04f395222655
+  languageName: node
+  linkType: hard
+
+"@mui/material@npm:^5.8.0":
   version: 5.8.0
   resolution: "@mui/material@npm:5.8.0"
   dependencies:
@@ -4905,7 +4921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/x-data-grid@npm:^5.10.0":
+"@mui/x-data-grid@npm:^5.11.0":
   version: 5.11.0
   resolution: "@mui/x-data-grid@npm:5.11.0"
   dependencies:
@@ -9549,8 +9565,9 @@ __metadata:
     "@emotion/styled": ^11.8.1
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
-    "@mui/material": ^5.7.0
-    "@mui/x-data-grid": ^5.10.0
+    "@mui/icons-material": ^5.8.0
+    "@mui/material": ^5.8.0
+    "@mui/x-data-grid": ^5.11.0
     "@reduxjs/toolkit": ^1.8.1
     "@testing-library/jest-dom": ^5.16.4
     "@testing-library/react": ^12.1.5
