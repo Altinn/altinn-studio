@@ -770,6 +770,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 switch (type.Value)
                 {
+                    case JsonSchemaType.Array:
+                        {
+                            ItemsKeyword items = jSchema.Get<ItemsKeyword>();
+                            if (items != null && items.Count == 1 && !items.IsArray)
+                            {
+                                string maybePrimitiveType = HandleJsonTypes(items[0]);
+                                if (maybePrimitiveType != null)
+                                {
+                                    return maybePrimitiveType;
+                                }
+                            }
+
+                            return null;
+                        }
+
                     case JsonSchemaType.String:
                         {
                             FormatKeyword format = jSchema.Get<FormatKeyword>();

@@ -119,16 +119,34 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                     classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
 
+                    bool primitiveType = false;
+                    string dataType = element.Value.TypeName;
+                    if (element.Value.XsdValueType != null)
+                    {
+                      try
+                      {
+                        dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
+                        primitiveType = true;
+                      }
+                      catch (NotImplementedException)
+                      {
+                        // No primitive type detected, assuming referred type
+                      }
+                    }
+
                     if (element.Value.MaxOccurs > 1)
                     {
-                        classBuilder.AppendLine("    public List<" + element.Value.TypeName + "> " + element.Value.Name + " { get; set; }\n");
+                        classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
                     }
                     else
                     {
-                        classBuilder.AppendLine("    public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }\n");
+                        classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
                     }
 
-                    referredTypes.Add(element.Value);
+                    if (!primitiveType)
+                    {
+                      referredTypes.Add(element.Value);
+                    }
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {

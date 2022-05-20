@@ -62,6 +62,23 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Contains("[XmlRoot(ElementName=\"melding\")]", modelClass);
         }
 
+        [Fact]
+        public void CreateModelFromMetadata_StringArrayShouldUseNativeType()
+        {
+            // Arrange
+            ModelMetadata testData = LoadTestData("Designer.Tests._TestData.Model.Metadata.SimpleStringArray.metadata.json");
+            JsonMetadataParser target = new JsonMetadataParser();
+
+            // Act
+            string modelClass = target.CreateModelFromMetadata(testData);
+
+            // Assert
+            Assert.NotNull(modelClass);
+            Assert.Contains("List<string>", modelClass);
+            Assert.DoesNotContain("List<String>", modelClass);
+            Assert.DoesNotContain("public class String", modelClass);
+        }
+
         private ModelMetadata LoadTestData(string resourceName)
         {
             Assembly assembly = typeof(JsonMetadataParserTests).GetTypeInfo().Assembly;
