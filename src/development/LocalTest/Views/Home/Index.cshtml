@@ -65,7 +65,7 @@
 
     <h2>Testing app:  @Model.Org/@Model.App</h2>
 
-    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
+    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
     {
       @Html.AntiForgeryToken();
       <div class="form-group">
@@ -79,6 +79,10 @@
       <div class="form-group">
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
+      </div>
+      <div class="form-group">
+        <label for="prefill">Prefill</label>
+        <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
       </div>
       <button type="submit" class="btn btn-primary">Proceed to app</button>
     }

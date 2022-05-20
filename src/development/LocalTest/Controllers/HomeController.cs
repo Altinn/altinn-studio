@@ -134,6 +134,38 @@ namespace LocalTest.Controllers
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
             await _applicationRepository.Update(app);
 
+            if(_localPlatformSettings.LocalAppMode == "http")
+            {
+                // Instantiate a prefill if a file attachment exists.
+                var prefill = Request.Form.Files.FirstOrDefault();
+                if (prefill != null)
+                {
+                    var owner = prefill.FileName.Split(".")[0];
+                    using var reader = new StreamReader(prefill.OpenReadStream());
+                    var content = await reader.ReadToEndAsync();
+                    var instance = new Instance{
+                        AppId = app.Id,
+                        Org = app.Org,
+                        InstanceOwner = new(),
+                        DataValues = new(),
+                    };
+
+                    if (owner.Length == 9)
+                    {
+                        instance.InstanceOwner.OrganisationNumber = owner;
+                    }
+                    else if (owner.Length == 12)
+                    {
+                        instance.InstanceOwner.PersonNumber = owner;
+                    }
+                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic is not null).Id;
+
+                    var newInstance = await _localApp.Instanciate(app.Id, instance, content, xmlDataId);
+
+                    return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
+                }
+            }
+
             return Redirect($"/{app.Id}/");
         }
 
