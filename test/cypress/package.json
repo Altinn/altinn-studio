@@ -1,6 +1,6 @@
 {
   "name": "cypress-altinn-app-frontend",
-  "version": "1.0.0",
+  "private": true,
   "description": "altinn-app-frontend tests",
   "main": "index.js",
   "config": {

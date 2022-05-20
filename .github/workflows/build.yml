@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Build PR
+    name: Build
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -39,47 +39,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Checkout Altinn-CDN repository
-        if: github.ref == 'refs/heads/main'
-        uses: actions/checkout@v3
-        with:
-          repository: 'Altinn/altinn-cdn'
-          token: ${{secrets.ALTINN_CDN_TOKEN}}
-          path: cdn
-      - name: Publish to CDN
-        if: github.ref == 'refs/heads/main'
-        working-directory: app-frontend
-        run: |
-          echo Clone, copy, commit and push to Altinn-CDN
-          APP_VERSION=$(jq '.version' ./src/altinn-app-frontend/package.json)
-          APP_MAJOR=$(echo $APP_VERSION | tr --delete '"' | cut -d'.' -f1)
-          APP_MINOR=$(echo $APP_VERSION | tr --delete '"' | cut -d'.' -f2)
-          APP_PATCH=$(echo $APP_VERSION | tr --delete '"' | cut -d'.' -f3)
-          echo altinn-app-frontend version: $APP_MAJOR.$APP_MINOR.$APP_PATCH
-          AUTHOR_FULL=$(git log -1 | grep Author)
-          AUTHOR_NAME=$(git log -1 | grep Author | cut -d' ' -f2)
-          AUTHOR_EMAIL=$(git log -1 | grep Author | cut -d' ' -f3 | cut -d'<' -f2 | cut -d'>' -f1)
-          COMMIT_ID=$(git rev-parse HEAD~0)
-          git log -1 | grep -Ev "commit|Author|Date" > ./../commitmsg.txt
-          cd ..
-          echo Copy Major Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR/altinn-app-frontend.css
-          echo Copy Minor Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR/altinn-app-frontend.css
-          echo Copy Patch
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.css
-          cd cdn
-          git config --global user.email "$AUTHOR_EMAIL"
-          git config --global user.name "$AUTHOR_NAME"
-          git add .
-          echo "$AUTHOR_FULL updated altinn-app-frontend to $APP_MAJOR.$APP_MINOR.$APP_PATCH" > ./../commit1.txt
-          echo "based on commit https://github.com/Altinn/altinn-studio/commit/$COMMIT_ID" > ./../commit2.txt
-          cat ./../commit1.txt ./../commit2.txt ./../commitmsg.txt > ./../commit.txt
-          git commit -F ./../commit.txt
-          git push
