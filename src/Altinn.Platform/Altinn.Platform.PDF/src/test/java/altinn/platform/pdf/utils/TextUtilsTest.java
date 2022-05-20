@@ -2,17 +2,14 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
-
-import java.io.IOException;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -77,7 +74,8 @@ public class TextUtilsTest {
   @Test
   public void testRemoveIllegalCharsShouldRemoveIllegalChars() throws IOException {
     PDDocument document = new PDDocument();
-    PDType0Font font = PDType0Font.load(document, new FileInputStream("./font/inter/Inter-Medium.ttf"), true);
+    ClassLoader classLoader = getClass().getClassLoader();
+    PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("./font/inter/Inter-Medium.ttf"), true);
 
     String unfiltered1 = "this is ok\u0600\u0601\u0602\u0603\u0604\u0605\u061C\u06DD\u070F\u180E\u200B\u200C\u200D\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u2060\u2061";
     String filtered1 = TextUtils.removeIllegalChars(unfiltered1, font);
@@ -104,7 +102,8 @@ public class TextUtilsTest {
   @Test
   public void testRemoveIllegalCharsShouldLeaveValidCharsUntouched() throws IOException {
     PDDocument document = new PDDocument();
-    PDType0Font font = PDType0Font.load(document, new FileInputStream("./font/inter/Inter-Medium.ttf"), true);
+    ClassLoader classLoader = getClass().getClassLoader();
+    PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("font/inter/Inter-Medium.ttf"), true);
 
     String unfiltered = "Dette er en tekst som bør gå helt fint og ingenting skal være i veien med noe slikt.";
     String filtered = TextUtils.removeIllegalChars(unfiltered, font);
