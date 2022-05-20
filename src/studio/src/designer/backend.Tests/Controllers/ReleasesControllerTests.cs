@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -39,7 +40,10 @@ namespace Designer.Tests.Controllers
             _factory = factory;
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
-            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            }
         }
 
         [Fact]

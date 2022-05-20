@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
@@ -36,14 +37,16 @@ namespace Designer.Tests.Controllers
         {
             _factory = factory;
             _generalSettings = Options.Create(new GeneralSettings { SessionTimeoutCookieName = "timeoutCookie" });
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            }
         }
 
         [Fact]
         public async Task GetRemainingSessionTime_Ok()
         {
             // Arrange
-            var keysDirectory = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys");
-            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", keysDirectory);
             string uri = $"{_versionPrefix}/remaining";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);

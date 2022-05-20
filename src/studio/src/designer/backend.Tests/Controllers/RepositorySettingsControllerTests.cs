@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
@@ -28,7 +29,10 @@ namespace Designer.Tests.Controllers
         public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory)
         {
             _factory = factory;
-            Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
+            }
         }
 
         [Fact]
