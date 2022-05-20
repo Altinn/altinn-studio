@@ -22,7 +22,7 @@ describe('components/base/ButtonComponent.tsx', () => {
   beforeAll(() => {
     const createStore = configureStore();
     mockId = 'mock-id';
-    mockHandleDataChange = () => null;
+    mockHandleDataChange = jest.fn();
     mockDisabled = false;
     mockText = 'Submit form';
     formDataCount = 0;
