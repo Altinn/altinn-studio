@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer;
@@ -28,6 +29,7 @@ namespace Designer.Tests.Controllers
         public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory)
         {
             _factory = factory;
+            TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
         [Fact]

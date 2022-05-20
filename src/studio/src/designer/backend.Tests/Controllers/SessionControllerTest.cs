@@ -1,8 +1,9 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -36,6 +37,7 @@ namespace Designer.Tests.Controllers
         {
             _factory = factory;
             _generalSettings = Options.Create(new GeneralSettings { SessionTimeoutCookieName = "timeoutCookie" });
+            TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
         [Fact]
@@ -55,7 +57,7 @@ namespace Designer.Tests.Controllers
             string responseString = await response.Content.ReadAsStringAsync();
             int remainingTime = int.Parse(responseString);
 
-            // Assert          
+            // Assert
             Assert.True(remainingTime == 194);
         }
 
@@ -85,7 +87,7 @@ namespace Designer.Tests.Controllers
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            // Assert          
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

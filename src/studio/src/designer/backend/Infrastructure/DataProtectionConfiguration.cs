@@ -33,12 +33,12 @@ namespace Altinn.Studio.Designer.Infrastructure
                 logger.LogWarning("Missing settings for key vault. Will not encrypt data protection keys.");
                 return;
             }
-            
+
             dataProtectionBuilder.ProtectKeysWithAzureKeyVault($"{keyVaultSettings.SecretUri}/keys/data-protection", keyVaultSettings.ClientId, keyVaultSettings.ClientSecret);
         }
 
         /// <summary>
-        /// Return a directory based on the running operating system. It is possible to override the directory based on the KEYS_DIRECTORY environment variable. 
+        /// Return a directory based on the running operating system. It is possible to override the directory based on the ALTINN_KEYS_DIRECTORY environment variable.
         /// </summary>
         /// <returns></returns>
         private static string GetKeysDirectory()
