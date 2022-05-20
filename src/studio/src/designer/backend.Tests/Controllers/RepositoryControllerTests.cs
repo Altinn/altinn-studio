@@ -35,10 +35,7 @@ namespace Designer.Tests.Controllers
         public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory)
         {
             _factory = factory;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
-            }
+            TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
         [Fact]

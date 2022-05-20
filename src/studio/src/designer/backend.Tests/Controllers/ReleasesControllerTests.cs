@@ -40,10 +40,7 @@ namespace Designer.Tests.Controllers
             _factory = factory;
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Environment.SetEnvironmentVariable("ALTINN_KEYS_DIRECTORY", Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys"));
-            }
+            TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
         [Fact]
