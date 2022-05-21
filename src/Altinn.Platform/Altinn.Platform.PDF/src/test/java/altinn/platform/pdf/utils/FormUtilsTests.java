@@ -21,12 +21,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FormUtilsTests {
+class FormUtilsTests {
 
   private Document formData;
 
   @Test
-  public void TestGetFilteredLayout_componentsPartOfGroupsShouldBeFilteredOut() {
+  void TestGetFilteredLayout_componentsPartOfGroupsShouldBeFilteredOut() {
     Gson gson = new Gson();
     FormLayout formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutWithGroups.json")), FormLayout.class);
     List<FormLayoutElement> nonFilteredLayout = formLayout.getData().getLayout();
@@ -36,7 +36,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getFilteredLayout_componentsPartOfNestedGroupsShouldBeFilteredOut() {
+  void test_getFilteredLayout_componentsPartOfNestedGroupsShouldBeFilteredOut() {
     Gson gson = new Gson();
     FormLayout formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutWithNestedGroups.json")), FormLayout.class);
     List<FormLayoutElement> nonFilteredLayout = formLayout.getData().getLayout();
@@ -47,7 +47,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getFilteredLayout_layoutWithNoGroupsIsUnchanged() {
+  void test_getFilteredLayout_layoutWithNoGroupsIsUnchanged() {
     Gson gson = new Gson();
     FormLayout formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutNoGroups.json")), FormLayout.class);
     List<FormLayoutElement> nonFilteredLayout = formLayout.getData().getLayout();
@@ -56,7 +56,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_setupRepeatingGroups_shouldReturnCorrectCount() throws IOException, SAXException, ParserConfigurationException {
+  void test_setupRepeatingGroups_shouldReturnCorrectCount() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     Gson gson = new Gson();
     List<FormLayoutElement> formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutWithGroups.json")), FormLayout.class)
@@ -68,7 +68,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_setupRepeatingGroups_shouldReturnCorrectCountForNestedGroups() throws IOException, SAXException, ParserConfigurationException {
+  void test_setupRepeatingGroups_shouldReturnCorrectCountForNestedGroups() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     Gson gson = new Gson();
     List<FormLayoutElement> formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutWithNestedGroups.json")), FormLayout.class)
@@ -81,7 +81,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getGroupCount_shouldReturnCorrectCount() throws IOException, SAXException, ParserConfigurationException {
+  void test_getGroupCount_shouldReturnCorrectCount() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     int count = FormUtils.getGroupCount("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788", formData);
     int nestedCount_1 = FormUtils.getGroupCount("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234", formData);
@@ -93,7 +93,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getGroupCount_shouldReturnZeroForNonExistentGroup() throws IOException, SAXException, ParserConfigurationException {
+  void test_getGroupCount_shouldReturnZeroForNonExistentGroup() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     int count = FormUtils.getGroupCount("Group.DoesNotExist", formData);
     int count2 = FormUtils.getGroupCount("GroupWithNoDots", formData);
@@ -102,14 +102,14 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getFormDataByKey_shouldReturnCorrectValue() throws IOException, SAXException, ParserConfigurationException {
+  void test_getFormDataByKey_shouldReturnCorrectValue() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     String result = FormUtils.getFormDataByKey("En-grp.Et-felt", formData);
     assertEquals("En verdi", result);
   }
 
   @Test
-  public void test_getFormDataByKey_shouldReturnCorrectValueForRepeatingGroup() throws IOException, SAXException, ParserConfigurationException {
+  void test_getFormDataByKey_shouldReturnCorrectValueForRepeatingGroup() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
 
     String group1_frist = FormUtils.getFormDataByKey("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristPost-datadef-37130.value", formData);
@@ -138,7 +138,7 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getFormDataByKey_shouldReturnCorrectValueForNestedRepeatingGroup() throws IOException, SAXException, ParserConfigurationException {
+  void test_getFormDataByKey_shouldReturnCorrectValueForNestedRepeatingGroup() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     String nestedString_1 = FormUtils.getFormDataByKey("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].NestedString", formData);
     String nestedInt_1 = FormUtils.getFormDataByKey("Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].nested-grp-1234[0].NestedInt", formData);
@@ -160,14 +160,14 @@ public class FormUtilsTests {
   }
 
   @Test
-  public void test_getFormDataByKey_shouldReturnEmptyStringForNonExistentBinding() throws IOException, SAXException, ParserConfigurationException {
+  void test_getFormDataByKey_shouldReturnEmptyStringForNonExistentBinding() throws IOException, SAXException, ParserConfigurationException {
     Document formData = readAndParseFormData();
     String result = FormUtils.getFormDataByKey("Does.Not.Exist", formData);
     assertEquals("", result);
   }
 
   @Test
-  public void test_setGroupIndexForBinding() {
+  void test_setGroupIndexForBinding() {
 
     Map<String, String[]> testData = new HashMap<>() {
       {

@@ -17,12 +17,12 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OptionUtilsTest {
+class OptionUtilsTest {
 
   private Document formData;
 
   @Test
-  public void testGetOptionsFromOptionSource() throws IOException, SAXException, ParserConfigurationException {
+  void testGetOptionsFromOptionSource() throws IOException, SAXException, ParserConfigurationException {
     // Arrange
     Document formData = readAndParseFormData();
 

@@ -14,10 +14,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class TextUtilsTest {
+class TextUtilsTest {
 
   @Test
-  public void testGetDateFormatForDateTime_NB() {
+  void testGetDateFormatForDateTime_NB() {
     String value = "2020-09-11T12:00:00.000+02:00";
     String result = TextUtils.getDateFormat(value, "nb");
     String expectedResult = "11.09.2020";
@@ -25,7 +25,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetDateFormatForDateTime_NN() {
+  void testGetDateFormatForDateTime_NN() {
     String value = "2020-09-11T12:00:00.000+02:00";
     String result = TextUtils.getDateFormat(value, "nn");
     String expectedResult = "11.09.2020";
@@ -33,7 +33,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetDateFormatForDateTime_EN() {
+  void testGetDateFormatForDateTime_EN() {
     String value = "2020-09-11T12:00:00.000+02:00";
     String result = TextUtils.getDateFormat(value, "en");
     String expectedResult = "9/11/2020";
@@ -41,7 +41,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetDateFormatForDate_NB() {
+  void testGetDateFormatForDate_NB() {
     String value = "2020-09-19";
     String result = TextUtils.getDateFormat(value, "nb");
     String expectedResult = "19.09.2020";
@@ -49,7 +49,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetDateFormatForDate_NN() {
+  void testGetDateFormatForDate_NN() {
     String value = "2020-09-19";
     String result = TextUtils.getDateFormat(value, "nn");
     String expectedResult = "19.09.2020";
@@ -57,7 +57,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetDateFormatForDate_EN() {
+  void testGetDateFormatForDate_EN() {
     String value = "2020-09-19";
     String result = TextUtils.getDateFormat(value, "en");
     String expectedResult = "9/19/2020";
@@ -65,7 +65,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testReadLanguageFiles() throws IOException {
+  void testReadLanguageFiles() throws IOException {
     Map<String, Map<String, String>> languages = TextUtils.readLanguageFiles();
     assertEquals("House number", languages.get("en").get("house_number"));
     assertEquals("Bustadnummer", languages.get("nn").get("house_number"));
@@ -73,7 +73,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testRemoveIllegalCharsShouldRemoveIllegalChars() throws IOException {
+  void testRemoveIllegalCharsShouldRemoveIllegalChars() throws IOException {
     PDDocument document = new PDDocument();
     ClassLoader classLoader = getClass().getClassLoader();
     PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("./font/inter/Inter-Medium.ttf"), true);
@@ -97,7 +97,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testRemoveIllegalCharsShouldLeaveValidCharsUntouched() throws IOException {
+  void testRemoveIllegalCharsShouldLeaveValidCharsUntouched() throws IOException {
     PDDocument document = new PDDocument();
     ClassLoader classLoader = getClass().getClassLoader();
     PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("./font/inter/Inter-Medium.ttf"), true);
@@ -118,7 +118,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetAppOwnerNameShouldReturnValueFromResourcesIfResourcesHasAppOwnerKey() {
+  void testGetAppOwnerNameShouldReturnValueFromResourcesIfResourcesHasAppOwnerKey() {
     TextResources textResources = new TextResources();
     TextResourceElement appOwnerKey = new TextResourceElement();
     appOwnerKey.setValue("AppOwnerNameFromResource");
@@ -133,7 +133,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetAppOwnerNameShouldReturnValueFromCdnIfResourcesHasNoAppOwnerKey() {
+  void testGetAppOwnerNameShouldReturnValueFromCdnIfResourcesHasNoAppOwnerKey() {
     TextResources textResources = new TextResources();
     textResources.setResources(new ArrayList<>());
 
@@ -144,7 +144,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetAppNameShouldReturnAppNameIfKeyPresent() {
+  void testGetAppNameShouldReturnAppNameIfKeyPresent() {
     TextResources textResources = new TextResources();
     TextResourceElement appOwnerKey = new TextResourceElement();
     appOwnerKey.setValue("AppNameFromNewKey");
@@ -158,7 +158,7 @@ public class TextUtilsTest {
   }
 
   @Test
-  public void testGetAppNameShouldReturnServiceNameAsFallback() {
+  void testGetAppNameShouldReturnServiceNameAsFallback() {
     TextResources textResources = new TextResources();
     TextResourceElement appOwnerKey = new TextResourceElement();
     appOwnerKey.setValue("AppNameFromOldKey");
@@ -170,6 +170,4 @@ public class TextUtilsTest {
     String expected = "AppNameFromOldKey";
     assertEquals(expected, result);
   }
-
-
 }

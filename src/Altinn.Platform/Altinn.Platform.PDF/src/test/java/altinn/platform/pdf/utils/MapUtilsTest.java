@@ -8,7 +8,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-public class MapUtilsTest {
+class MapUtilsTest {
 
   public static Map<String, Map<String, String>> Dictionary = new HashMap<>() {{
     put("listOptions", new HashMap<>() {{
@@ -24,7 +24,7 @@ public class MapUtilsTest {
   }};
 
   @Test
-  public void testGetLabelFromValueFindsMatch() {
+  void testGetLabelFromValueFindsMatch() {
     // Arrange
     String outerKey = "radioButtonOptions";
     String innerValue = "Oppsigelse";
@@ -38,7 +38,7 @@ public class MapUtilsTest {
   }
 
   @Test
-  public void testGetLabelFromValueNoMatchOptionId() {
+  void testGetLabelFromValueNoMatchOptionId() {
     // Arrange
     String outerKey = "invalidKey";
     String innerValue = "Oppsigelse";
@@ -52,7 +52,7 @@ public class MapUtilsTest {
   }
 
   @Test
-  public void testGetLabelFromValueNoMatchInnerValue() {
+  void testGetLabelFromValueNoMatchInnerValue() {
     // Arrange
     String outerKey = "radioButtonOptions";
     String innerValue = "invalidValue";

@@ -42,8 +42,7 @@ public class FormUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    String value = getValueOfEndNode(rootElement, keySplit, 0);
-    return value;
+    return getValueOfEndNode(rootElement, keySplit, 0);
   }
 
   /**

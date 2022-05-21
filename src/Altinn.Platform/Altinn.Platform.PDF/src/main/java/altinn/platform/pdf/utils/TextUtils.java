@@ -95,11 +95,7 @@ public class TextUtils {
         // Replace invisible control characters and unused code points
         switch (Character.getType(codePoint))
         {
-            case Character.CONTROL:        // \p{Cc}
-            case Character.FORMAT:         // \p{Cf}
-            case Character.PRIVATE_USE:    // \p{Co}
-            case Character.SURROGATE:      // \p{Cs}
-            case Character.UNASSIGNED:     // \p{Cn}
+            case Character.CONTROL, Character.FORMAT, Character.PRIVATE_USE, Character.SURROGATE, Character.UNASSIGNED:
                 if (codePoint == 13 || codePoint == 10) { // newline control characters allowed
                   builder.append(Character.toChars(codePoint));
                 }

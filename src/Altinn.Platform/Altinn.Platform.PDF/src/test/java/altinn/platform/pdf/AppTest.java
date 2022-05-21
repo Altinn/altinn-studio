@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Ensure application starts
  */
 @SpringBootTest
-public class AppTest {
+class AppTest {
   @Test
-  public void testApp() {
+  void testApp() {
     assertTrue(true);
   }
 }
