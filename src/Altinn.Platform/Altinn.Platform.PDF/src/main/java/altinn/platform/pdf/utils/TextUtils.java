@@ -114,7 +114,7 @@ public class TextUtils {
   }
 
   /**
-   * Returns string for codePoint if supported by font, else returns "?"
+   * Returns string for codePoint if supported by font, else returns empty string
    * @param font the font used for checking glyphs
    * @param codePoint the codePoint for the character to check
    * @return the filtered string
@@ -124,9 +124,9 @@ public class TextUtils {
         String text = new String(Character.toChars(codePoint));
         // Ugly hack for checking if text can be handled by font. Throws if glyph is missing.
         float width = font.getStringWidth(text);
-        return (width > 0) ? text : "?";
+        return (width > 0) ? text : "";
     } catch (final Exception e) {
-        return "?";
+        return "";
     }
   }
 

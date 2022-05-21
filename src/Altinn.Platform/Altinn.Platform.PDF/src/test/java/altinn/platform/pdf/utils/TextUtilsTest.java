@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TextUtilsTest {
 
@@ -76,38 +77,44 @@ public class TextUtilsTest {
     PDDocument document = new PDDocument();
     ClassLoader classLoader = getClass().getClassLoader();
     PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("./font/inter/Inter-Medium.ttf"), true);
+    assertNotNull(font);
 
     String unfiltered1 = "this is ok\u0600\u0601\u0602\u0603\u0604\u0605\u061C\u06DD\u070F\u180E\u200B\u200C\u200D\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u2060\u2061";
     String filtered1 = TextUtils.removeIllegalChars(unfiltered1, font);
     String expected1 = "this is ok";
 
-    String unfiltered2 = "this is also ok\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B\u001C\u001D\u001E\u001F\u007F\n";
+    String unfiltered2 = "this is also ok\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B\u001C\u001D\u001E\u001F\u007F";
     String filtered2 = TextUtils.removeIllegalChars(unfiltered2, font);
     String expected2 = "this is also ok";
 
-    String unfiltered3 = "all goodЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя";
+    String unfiltered3 = "fineﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ";
     String filtered3 = TextUtils.removeIllegalChars(unfiltered3, font);
-    String expected3 = "all good";
-
-    String unfiltered4 = "fineﾟ･✿ヾ╲(｡◕‿◕｡)╱✿･ﾟ\n";
-    String filtered4 = TextUtils.removeIllegalChars(unfiltered4, font);
-    String expected4 = "fine()";
+    String expected3 = "fine(‿)";
 
     assertEquals(expected1, filtered1);
     assertEquals(expected2, filtered2);
     assertEquals(expected3, filtered3);
-    assertEquals(expected4, filtered4);
   }
 
   @Test
   public void testRemoveIllegalCharsShouldLeaveValidCharsUntouched() throws IOException {
     PDDocument document = new PDDocument();
     ClassLoader classLoader = getClass().getClassLoader();
-    PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("font/inter/Inter-Medium.ttf"), true);
+    PDType0Font font = PDType0Font.load(document, classLoader.getResourceAsStream("./font/inter/Inter-Medium.ttf"), true);
+    assertNotNull(font);
 
-    String unfiltered = "Dette er en tekst som bør gå helt fint og ingenting skal være i veien med noe slikt.";
-    String filtered = TextUtils.removeIllegalChars(unfiltered, font);
-    assertEquals(unfiltered, filtered);
+    String unfiltered1 = "Dette er en tekst som bør gå helt fint og ingenting skal være i veien med noe slikt.";
+    String filtered1 = TextUtils.removeIllegalChars(unfiltered1, font);
+    assertEquals(unfiltered1, filtered1);
+
+    String unfiltered2 = "ЁЂЃЄЅІЇЈЉЊЋЌЍЎЏАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя";
+    String filtered2 = TextUtils.removeIllegalChars(unfiltered2, font);
+    assertEquals(unfiltered2, filtered2);
+
+    // Sámi characters
+    String unfiltered3 = "Nord: ÁáČčĐđŊŋŠšŦŧŽž, Enare: ÁáÂâÄäČčĐđŠšŽž, Skolte: ÁáÂâČčƷʒǮǯĐđǦǧǤǥǨǩŊŋÕõŠšŽžÅåÄä, Lule: ÁáŊŋÅåÆæÄä, Ume: ÁáĐđÏïŊŋŦŧÚúÅåÄäÖö, Sør: ÏïÆæÖöÅå";
+    String filtered3 = TextUtils.removeIllegalChars(unfiltered3, font);
+    assertEquals(unfiltered3, filtered3);
   }
 
   @Test
