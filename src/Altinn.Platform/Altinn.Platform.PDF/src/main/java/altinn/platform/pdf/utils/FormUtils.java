@@ -1,8 +1,7 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.FormLayoutData;
 import altinn.platform.pdf.models.FormLayoutElement;
-import org.apache.tomcat.util.codec.binary.Base64;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,7 +15,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

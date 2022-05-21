@@ -21,7 +21,6 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.tomcat.util.codec.binary.Base64;
-import org.springframework.boot.web.servlet.server.Encoding;
 import org.w3c.dom.Document;
 
 import java.awt.*;

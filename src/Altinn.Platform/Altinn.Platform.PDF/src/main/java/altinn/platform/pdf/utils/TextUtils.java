@@ -240,7 +240,7 @@ public class TextUtils {
    * @return a list of lines needed to fit word
    */
   public static List<String> splitWordToFitWidth(String word, PDType0Font font, float fontSize, float width) throws IOException {
-    List<String> lines = new ArrayList();
+    List<String> lines = new ArrayList<>();
     if (word == null || font == null) {
       return lines;
     }

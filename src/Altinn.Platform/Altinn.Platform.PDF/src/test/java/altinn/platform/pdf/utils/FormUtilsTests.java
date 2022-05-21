@@ -185,7 +185,6 @@ public class FormUtilsTests {
     };
 
     for (Map.Entry<String, String[]> entry : testData.entrySet()) {
-      String key = entry.getKey();
       String[] value = entry.getValue();
       String actual = FormUtils.setGroupIndexForBinding(value[0], value[1], Integer.parseInt(value[2]));
       assertEquals(value[3], actual);
