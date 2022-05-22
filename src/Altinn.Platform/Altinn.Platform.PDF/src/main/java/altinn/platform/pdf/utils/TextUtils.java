@@ -24,6 +24,8 @@ public class TextUtils {
   private static String appOwnerKey = "appOwner";
   private static String appNameKey = "appName";
   private static String oldAppNameKey = "ServiceName";
+  private static final List<Byte> ILLEGAL_CHAR_TYPES = List.of(Character.CONTROL, Character.FORMAT, Character.PRIVATE_USE, Character.SURROGATE, Character.UNASSIGNED);
+
 
   private TextUtils() {}
 
@@ -82,27 +84,23 @@ public class TextUtils {
    * @return the filtered string
    */
   public static String removeIllegalChars(String raw, PDType0Font font) {
-    if (raw == null) {
+    if (raw == null || raw.length() == 0) {
       return "";
     }
 
     var builder = new StringBuilder(raw.length());
-    for (int offset = 0; offset < raw.length();)
+    int codePoint = raw.codePointAt(0);
+    for (int offset = 0; offset < raw.length(); offset += Character.charCount(codePoint))
     {
-        int codePoint = raw.codePointAt(offset);
-        offset += Character.charCount(codePoint);
+        codePoint = raw.codePointAt(offset);
+        int characterType = Character.getType(codePoint);
 
-        // Replace invisible control characters and unused code points
-        switch (Character.getType(codePoint))
-        {
-            case Character.CONTROL, Character.FORMAT, Character.PRIVATE_USE, Character.SURROGATE, Character.UNASSIGNED:
-                if (codePoint == 13 || codePoint == 10) { // newline control characters allowed
-                  builder.append(Character.toChars(codePoint));
-                }
-                break;
-            default:
-                builder.append(filterUsingFont(font, codePoint));
-                break;
+        if (ILLEGAL_CHAR_TYPES.contains((byte)characterType)) {
+          if (codePoint == 13 || codePoint == 10) { // newline characters are allowed
+            builder.append(Character.toChars(codePoint));
+          }
+        } else { // not illegal character, append if font can render glyph
+          builder.append(filterUsingFont(font, codePoint));
         }
     }
 

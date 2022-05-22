@@ -115,6 +115,21 @@ class TextUtilsTest {
     String unfiltered3 = "Nord: ÁáČčĐđŊŋŠšŦŧŽž, Enare: ÁáÂâÄäČčĐđŠšŽž, Skolte: ÁáÂâČčƷʒǮǯĐđǦǧǤǥǨǩŊŋÕõŠšŽžÅåÄä, Lule: ÁáŊŋÅåÆæÄä, Ume: ÁáĐđÏïŊŋŦŧÚúÅåÄäÖö, Sør: ÏïÆæÖöÅå";
     String filtered3 = TextUtils.removeIllegalChars(unfiltered3, font);
     assertEquals(unfiltered3, filtered3);
+
+    String unfiltered4 = "";
+    String filtered4 = TextUtils.removeIllegalChars(unfiltered4, font);
+    assertEquals(unfiltered4, filtered4);
+
+    String unfiltered5 = "     ";
+    String filtered5 = TextUtils.removeIllegalChars(unfiltered5, font);
+    assertEquals(unfiltered5, filtered5);
+
+    String unfiltered6 = """
+                            Test av
+                            linjeskift
+                         """;
+    String filtered6 = TextUtils.removeIllegalChars(unfiltered6, font);
+    assertEquals(unfiltered6, filtered6);
   }
 
   @Test
