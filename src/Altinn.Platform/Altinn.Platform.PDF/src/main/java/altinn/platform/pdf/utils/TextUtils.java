@@ -89,7 +89,7 @@ public class TextUtils {
     }
 
     var builder = new StringBuilder(raw.length());
-    int codePoint = raw.codePointAt(0);
+    int codePoint;
     for (int offset = 0; offset < raw.length(); offset += Character.charCount(codePoint))
     {
         codePoint = raw.codePointAt(offset);
