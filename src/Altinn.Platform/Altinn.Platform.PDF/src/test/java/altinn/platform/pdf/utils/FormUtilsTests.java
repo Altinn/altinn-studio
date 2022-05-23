@@ -26,7 +26,7 @@ class FormUtilsTests {
   private Document formData;
 
   @Test
-  void TestGetFilteredLayout_componentsPartOfGroupsShouldBeFilteredOut() {
+  void test_getFilteredLayout_componentsPartOfGroupsShouldBeFilteredOut() {
     Gson gson = new Gson();
     FormLayout formLayout = gson.fromJson(IOUtils.toString(this.getClass().getResourceAsStream("/formLayout/formLayoutWithGroups.json")), FormLayout.class);
     List<FormLayoutElement> nonFilteredLayout = formLayout.getData().getLayout();
