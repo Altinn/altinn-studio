@@ -1,8 +1,7 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.FormLayoutData;
 import altinn.platform.pdf.models.FormLayoutElement;
-import org.apache.tomcat.util.codec.binary.Base64;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,7 +15,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,8 +42,7 @@ public class FormUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    String value = getValueOfEndNode(rootElement, keySplit, 0);
-    return TextUtils.removeIllegalChars(value);
+    return getValueOfEndNode(rootElement, keySplit, 0);
   }
 
   /**
@@ -264,22 +261,20 @@ public class FormUtils {
 
 
   /**
-   * Parses the base 64 encoded xml file and creates a Document wrapper
-   * @param xmlBaseEncoded the base 64 xml string
+   * Parses the data xml file and creates a Document wrapper
+   * @param xml the xml string containing data
    * @return a document wrapper for the xml file
    * @throws ParserConfigurationException
    * @throws IOException
    * @throws SAXException
    */
-  public static Document parseXml(String xmlBaseEncoded) throws ParserConfigurationException, IOException, SAXException {
-    byte[] xmlAsBytes = Base64.decodeBase64(xmlBaseEncoded);
-    String xmlAsString = new String(xmlAsBytes, StandardCharsets.UTF_8);
+  public static Document parseXml(String xml) throws ParserConfigurationException, IOException, SAXException {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
     factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
     DocumentBuilder builder = factory.newDocumentBuilder();
-    return builder.parse(new InputSource(new StringReader(xmlAsString)));
+    return builder.parse(new InputSource(new StringReader(xml)));
   }
 }
 
