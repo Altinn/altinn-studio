@@ -3,13 +3,20 @@ import AppFrontend from '../pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
-Cypress.Commands.add('startAppInstance', (appName) => {
+Cypress.Commands.add('startAppInstance', (appName, anonymous=false) => {
   cy.visit('/');
   if (Cypress.env('environment') === 'local') {
-    cy.get(appFrontend.appSelection).select(appName);
-    cy.get(appFrontend.startButton).click();
+    if (anonymous) {
+      cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}`);
+    } else {
+      cy.get(appFrontend.appSelection).select(appName);
+      cy.get(appFrontend.startButton).click();
+    }
   } else {
-    authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
+    if (!anonymous)
+    {
+      authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
+    }
     cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}/ttd/${appName}/`);
   }
 });

@@ -2,7 +2,8 @@
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "env": {
     "multiData2Stage": "frontend-test",
-    "stateless": "stateless-app"
+    "stateless": "stateless-app",
+    "anonymous": "anonymous-stateless-app"
   },
   "video": false,
   "fixturesFolder": "e2e/fixtures",

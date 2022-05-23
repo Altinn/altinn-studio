@@ -42,7 +42,7 @@ declare namespace Cypress {
      * Start an app instance based on the environment selected
      * @example cy.startAppInstance('appName')
      */
-    startAppInstance(appName: string): Chainable<Element>;
+    startAppInstance(appName: string, anonymous?: boolean): Chainable<Element>;
 
     /**
      * Navigate to the task3 of app ttd/frontend-test
