@@ -55,7 +55,7 @@ namespace Altinn.App.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
         }
-        
+
         /// <summary>
         /// Validate an instance for a specified process step.
         /// </summary>
@@ -276,11 +276,23 @@ namespace Altinn.App.Services.Implementation
                     originalMessage.Remove(0, _generalSettings.SoftValidationPrefix.Length));
             }
 
-            if (_generalSettings.FixedValidationPrefix != null 
+            if (_generalSettings.FixedValidationPrefix != null
                 && originalMessage.StartsWith(_generalSettings.FixedValidationPrefix))
             {
                 return (ValidationIssueSeverity.Fixed,
                     originalMessage.Remove(0, _generalSettings.FixedValidationPrefix.Length));
+            }
+
+            if (originalMessage.StartsWith(_generalSettings.InfoValidationPrefix))
+            {
+                return (ValidationIssueSeverity.Informational,
+                    originalMessage.Remove(0, _generalSettings.InfoValidationPrefix.Length));
+            }
+
+            if (originalMessage.StartsWith(_generalSettings.SuccessValidationPrefix))
+            {
+                return (ValidationIssueSeverity.Success,
+                    originalMessage.Remove(0, _generalSettings.SuccessValidationPrefix.Length));
             }
 
             return (ValidationIssueSeverity.Error, originalMessage);

@@ -23,6 +23,16 @@ namespace Altinn.App.Services.Configuration
         public string FixedValidationPrefix { get; set; }
 
         /// <summary>
+        /// Gets or sets the info validation prefix.
+        /// </summary>
+        public string InfoValidationPrefix { get; set; } = "*INFO*";
+
+        /// <summary>
+        /// Gets or sets the success validation prefix.
+        /// </summary>
+        public string SuccessValidationPrefix { get; set; } = "*SUCCESS*";
+
+        /// <summary>
         /// Gets or sets the host name.
         /// </summary>
         public string HostName { get; set; }
