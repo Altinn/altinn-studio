@@ -100,19 +100,14 @@ namespace LocalTest.Services.LocalApp.Implementation
                 content.Add(new StringContent(xmlPrefill, System.Text.Encoding.UTF8, "application/xml"), xmlDataId);
             }
 
-            var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             // TODO: Figure out how to get orgnumber for app owner from appId
             message.Headers.Authorization = new ("Bearer", GetOrgToken(appId.Split("/")[0], "840747972"));
             var response = await _httpClient.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
             response.EnsureSuccessStatusCode();
-            if (!response.IsSuccessStatusCode)
-            {
-                // TODO: This is a critical error as we don't know what might have failed and whether an instance actually was created
-                // Figure out a way to ensure that we debug the issue before trying to instantiate more on this app
-                // throw new ApiException($"Instantiation failed POST {response.RequestMessage?.RequestUri} returned {response.StatusCode}\n{stringResponse}");
-            }
+
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
 
