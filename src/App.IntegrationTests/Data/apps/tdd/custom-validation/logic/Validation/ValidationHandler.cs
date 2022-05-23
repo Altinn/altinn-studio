@@ -34,13 +34,25 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
                     .TryGetValue("ValidationTriggerField", out StringValues value);
                 string dataField = value.Any() ? value[0] : string.Empty;
 
+                _httpContextAccessor.HttpContext.Request.Headers
+                    .TryGetValue("softValidations", out StringValues softValidationValue);
+                string softValidation = softValidationValue.Any() ? softValidationValue[0] : string.Empty;
+
                 if (dataField == validationField)
                 {
                     RunValidation(model, validationResults, true);
                     return;
                 }
 
-                RunValidation(model, validationResults);                
+                if (softValidation == "true")
+                {
+                    validationResults.AddModelError("some.field", "*INFO*This is the informational message");
+                    validationResults.AddModelError("some.other.field", "*SUCCESS*This is the success message");
+                    validationResults.AddModelError("some.third.field", "*WARNING*This is the warning message");
+                    return;
+                }
+
+                RunValidation(model, validationResults);
             }
         }
 

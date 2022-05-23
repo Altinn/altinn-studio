@@ -40,8 +40,6 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"));
-            System.Console.WriteLine("**** RESPONSE CONTENT: " + responseContent);
-            System.Console.WriteLine("**** RESPONSE STATUD CODE: " + response.StatusCode);
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -77,7 +75,7 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         /// <summary>
-        /// Test that verifies that custom validation allows valid data.
+        /// Test that verifies that custom validation handles data updates that fixes a validation.
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -106,7 +104,7 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         /// <summary>
-        /// Test that verifies that custom validation allows valid data.
+        /// Test that verifies that custom validation returns errors for invalid data.
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -131,6 +129,40 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Single(messages);
             Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
             Assert.Equal("ERROR: Max length is 11", messages[0].Code);
+        }
+
+        /// <summary>
+        /// Test that verifies that soft validations (info, warning, success) has correct severity and that prefixes are removed.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ValidateForm_ModelValidation_SoftValidations()
+        {
+            // Arrange
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            client.DefaultRequestHeaders.Add("softValidations", "true");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/validate");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(ValidationIssueSeverity.Informational, messages[0].Severity);
+            Assert.Equal("This is the informational message", messages[0].Code);
+            Assert.Equal(ValidationIssueSeverity.Success, messages[1].Severity);
+            Assert.Equal("This is the success message", messages[1].Code);
+            Assert.Equal(ValidationIssueSeverity.Warning, messages[2].Severity);
+            Assert.Equal("This is the warning message", messages[2].Code);
         }
 
         /// <summary>

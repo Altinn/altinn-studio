@@ -29,5 +29,10 @@ namespace Altinn.App.Services.Models.Validation
         /// The issue has been corrected.
         /// </summary>
         Fixed = 4,
+
+        /// <summary>
+        /// This validation indicates a success. Used for informational purposes.
+        /// </summary>
+        Success = 5,
     }
 }
