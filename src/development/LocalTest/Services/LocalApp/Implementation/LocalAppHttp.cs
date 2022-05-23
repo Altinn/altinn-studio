@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 
 using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Services.Authentication.Interface;
@@ -53,7 +52,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
-            return JsonConvert.DeserializeObject<Application>(content);
+            return JsonSerializer.Deserialize<Application>(content, new JsonSerializerOptions{PropertyNameCaseInsensitive = true} );
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
@@ -64,7 +63,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
             });
 
-            var textResource = JsonConvert.DeserializeObject<TextResource>(content);
+            var textResource = JsonSerializer.Deserialize<TextResource>(content, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
             if (textResource != null)
             {
                 textResource.Id = $"{org}-{app}-{language}";
