@@ -12,7 +12,7 @@ import ApplicationMetadataReducer from '../shared/resources/applicationMetadata/
 import ApplicationSettingsReducer from '../shared/resources/applicationSettings/applicationSettingsSlice';
 import AttachmentReducer from '../shared/resources/attachments/attachmentReducer';
 import InstanceDataReducer from '../shared/resources/instanceData/instanceDataReducers';
-import LanguageReducer from '../shared/resources/language/languageReducers';
+import LanguageReducer from '../shared/resources/language/languageSlice';
 import OrgsReducer from '../shared/resources/orgs/orgsReducers';
 import PartyReducer from '../shared/resources/party/partyReducers';
 import processReducer from '../shared/resources/process/processReducer';

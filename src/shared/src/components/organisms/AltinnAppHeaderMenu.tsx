@@ -47,6 +47,10 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
     setAnchorEl(null);
   };
 
+  if (!party) {
+    return null;
+  }
+
   return (
     <>
       <IconButton
@@ -57,7 +61,7 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
         className={classes.iconButton}
         id='profile-icon-button'
       >
-        {party && party.ssn &&
+        {party.ssn &&
           <AltinnIcon
             iconClass='fa fa-private-circle-big'
             iconColor={logoColor}
@@ -65,7 +69,7 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
             margin='0px 0px 0px 5px'
           />
         }
-        {party && party.orgNumber &&
+        {party.orgNumber &&
           <AltinnIcon
             iconClass='fa fa-corp-circle-big'
             iconColor={logoColor}

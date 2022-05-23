@@ -5,7 +5,7 @@ import { get } from '../../../../utils/networking';
 import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
-import { appTaskQueueError } from '../../queue/queueSlice';
+import { userTaskQueueError } from '../../queue/queueSlice';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
@@ -16,7 +16,7 @@ function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
     );
   } catch (error) {
     yield call(ProfileActions.fetchProfileRejected, error);
-    yield put(appTaskQueueError({ error }));
+    yield put(userTaskQueueError({ error }));
   }
 }
 

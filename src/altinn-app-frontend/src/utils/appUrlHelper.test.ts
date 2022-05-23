@@ -7,6 +7,7 @@ import {
   getFetchFormDynamicsUrl,
   getLayoutSettingsUrl,
   getHostname,
+  getStatelessFormDataUrl,
 } from './appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
@@ -338,4 +339,29 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
   });
+
+  describe('getStatelessFormDataUrl', () => {
+    const dataType = 'someDataType';
+    it('should return default when only dataType parameter is passed', () => {
+      const nullResult = getStatelessFormDataUrl(dataType, null);
+      const undefinedResult = getStatelessFormDataUrl(dataType);
+
+      const expected = `https://altinn3local.no/ttd/test/v1/data?dataType=${dataType}`;
+
+      expect(nullResult).toBe(expected);
+      expect(undefinedResult).toBe(expected);
+    });
+
+    it('should return anonymous url when anonymous is passed as true', () => {
+      const trueResult = getStatelessFormDataUrl(dataType, true);
+      const expected = `https://altinn3local.no/ttd/test/v1/data/anonymous?dataType=${dataType}`;
+      expect(trueResult).toBe(expected);
+    });
+
+    it('should return default url when anonymous is passed as false', () => {
+      const trueResult = getStatelessFormDataUrl(dataType, false);
+      const expected = `https://altinn3local.no/ttd/test/v1/data?dataType=${dataType}`;
+      expect(trueResult).toBe(expected);
+    });
+  })
 });

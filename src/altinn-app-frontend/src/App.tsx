@@ -5,7 +5,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import ProcessWrapper from './shared/containers/ProcessWrapper';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
-import { startInitialAppTaskQueue } from './shared/resources/queue/queueSlice';
+import { startInitialAppTaskQueue, startInitialUserTaskQueue} from './shared/resources/queue/queueSlice';
 import { get } from './utils/networking';
 import {
   getEnvironmentLoginUrl,
@@ -14,6 +14,7 @@ import {
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
 import Entrypoint from './features/entrypoint/Entrypoint';
 import { useAppDispatch, useAppSelector } from './common/hooks';
+import { makeGetAllowAnonymousSelector } from './selectors/getAllowAnonymous';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -28,6 +29,11 @@ export const App = () => {
     (state) => state.applicationSettings?.applicationSettings?.appOidcProvider,
   );
   const lastRefreshTokenTimestamp = React.useRef(0);
+
+  const allowAnonymousSelector = makeGetAllowAnonymousSelector();
+  const allowAnonymous = useAppSelector(allowAnonymousSelector);
+
+  const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
     function setUpEventListeners() {
@@ -62,23 +68,41 @@ export const App = () => {
       }
     }
 
-    refreshJwtToken();
-    dispatch(startInitialAppTaskQueue());
-    setUpEventListeners();
+    if (allowAnonymous !== undefined) {
+      // Page is ready to be rendered once allowAnonymous value has been determined
+      setReady(true);
+    }
 
-    return () => {
-      removeEventListeners();
-    };
-  }, [dispatch, appOidcProvider]);
+    if (allowAnonymous === false) {
+      refreshJwtToken();
+      dispatch(startInitialUserTaskQueue());
+      setUpEventListeners();
+
+      return () => {
+        removeEventListeners();
+      };
+    }
+
+  }, [allowAnonymous, dispatch, appOidcProvider]);
+
+  React.useEffect(() => {
+    dispatch(startInitialAppTaskQueue());
+  }, [dispatch]);
 
   if (hasApiErrors) {
     return <UnknownError />;
   }
 
+  if (!ready) {
+    return null;
+  }
+
   return (
     <MuiThemeProvider theme={theme}>
       <Switch>
-        <Route path='/' exact={true} component={Entrypoint} />
+        <Route path='/' exact={true}>
+          <Entrypoint allowAnonymous={allowAnonymous} />
+        </Route>
         <Route
           path='/partyselection/:errorCode?'
           exact={true}

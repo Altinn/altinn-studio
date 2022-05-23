@@ -4,10 +4,12 @@ import { watchStartInitialDataTaskQueueSaga } from './dataTask/dataTaskQueueSaga
 import { watchStartInitialAppTaskQueueSaga } from './appTask/appTaskQueueSagas';
 import { watchStartInitialInfoTaskQueueSaga } from './infoTask/infoTaskQueueSaga';
 import { watchStartInitialStatelessQueueSaga } from './stateless/statelessQueueSaga';
+import {watchStartInitialUserTaskQueueSaga} from 'src/shared/resources/queue/userTask/userTaskQueueSagas';
 
 export default function* queueSagas(): SagaIterator {
   yield fork(watchStartInitialDataTaskQueueSaga);
   yield fork(watchStartInitialAppTaskQueueSaga);
+  yield fork(watchStartInitialUserTaskQueueSaga);
   yield fork(watchStartInitialInfoTaskQueueSaga);
   yield fork(watchStartInitialStatelessQueueSaga);
 }

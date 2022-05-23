@@ -127,7 +127,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
               }
             />
           </Grid>
-          {type && (
+          {type && party && (
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a
@@ -156,6 +156,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
               </li>
             </ul>
           )}
+          {party &&
           <div className='a-personSwitcher' title={renderParty(props.profile)}>
             <span className='a-personSwitcher-name' style={spanStyle}>
               {!type && (
@@ -197,6 +198,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
               />
             )}
           </div>
+          }
         </Toolbar>
       </AppBar>
     </div>

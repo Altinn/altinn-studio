@@ -6,17 +6,25 @@ import { textResourcesUrl, oldTextResourcesUrl } from '../../../../utils/appUrlH
 import TextResourcesActions from '../textResourcesActions';
 import { appTaskQueueError } from '../../queue/queueSlice';
 import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
-import { IRuntimeState } from '../../../../types';
 import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionTypes';
+import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { profileStateSelector } from 'src/selectors/simpleSelectors';
 
-const profileState = (state: IRuntimeState): IProfile => state.profile.profile;
-
-function* fetchTextResources(): SagaIterator {
+export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
+export function* fetchTextResources(): SagaIterator {
   try {
-    const profile: IProfile = yield select(profileState);
+    let languageCode = 'nb'; // Use 'nb' as default until we decide how to handle default language
+    const allowAnonymous = yield select(allowAnonymousSelector);
+    if (!allowAnonymous) {
+      const profile: IProfile = yield select(profileStateSelector);
+      languageCode = profile.profileSettingPreference.language;
+    }
+
     let resource: any;
     try {
-      resource = yield call(get, textResourcesUrl(profile.profileSettingPreference.language));
+      resource = yield call(get, textResourcesUrl(languageCode));
     } catch (error) {
       if (error.response.status !== 200) {
         resource = yield call(get, oldTextResourcesUrl);
@@ -37,8 +45,15 @@ function* fetchTextResources(): SagaIterator {
 
 export function* watchFetchTextResourcesSaga(): SagaIterator {
   yield all([
-    take(FETCH_PROFILE_FULFILLED),
-    take(FETCH_TEXT_RESOURCES),
+    take(FormLayoutActions.fetchLayoutSetsFulfilled),
+    take(FETCH_APPLICATION_METADATA_FULFILLED),
+    take(FETCH_TEXT_RESOURCES)
   ]);
+
+  const allowAnonymous = yield select(allowAnonymousSelector);
+
+  if (!allowAnonymous) {
+    yield take(FETCH_PROFILE_FULFILLED);
+  }
   yield call(fetchTextResources);
 }

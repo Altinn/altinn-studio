@@ -4,7 +4,6 @@ import {
   AltinnSubstatusPaper,
 } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty } from 'altinn-shared/types';
 import {
   returnUrlToMessagebox,
   getTextResourceByKey,
@@ -37,11 +36,11 @@ const style = {
 
 const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
-  const party = useAppSelector(state => state.party?.selectedParty || ({} as IParty));
+  const party = useAppSelector(state => state.party?.selectedParty);
   const language = useAppSelector(state => state.language.language || {});
   const hideCloseButton = useAppSelector(state => state.formLayout.uiConfig.hideCloseButton);
-  const instance = useAppSelector(state => state.instanceData.instance);
-  const userParty = useAppSelector(state => state.profile.profile?.party || ({} as IParty));
+  const instance = useAppSelector(state => state.instanceData?.instance);
+  const userParty = useAppSelector(state => state.profile.profile?.party);
   const textResources = useAppSelector(state => state.textResources.resources);
   const previousFormPage: string = useAppSelector(state =>
     getNextView(
@@ -75,7 +74,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
 
   const handleModalCloseButton = () => {
     const queryParameterReturnUrl = returnUrlFromQueryParameter();
-    const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party.partyId);
+    const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party?.partyId);
     if (!queryParameterReturnUrl) {
       window.location.href = messageBoxUrl;
       return;

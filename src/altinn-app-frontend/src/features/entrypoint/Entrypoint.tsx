@@ -29,15 +29,15 @@ import InstanceSelection from '../instantiate/containers/InstanceSelection';
 import MissingRolesError from '../instantiate/containers/MissingRolesError';
 import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
 
-export default function Entrypoint() {
-  const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata,
-  );
-  const selectedParty = useAppSelector((state) => state.party.selectedParty);
+export default function Entrypoint({ allowAnonymous }: any) {
   const [action, setAction] = React.useState<ShowTypes>(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [activeInstances, setActiveInstances] =
     React.useState<ISimpleInstance[]>(null);
+  const applicationMetadata = useAppSelector(
+    (state) => state.applicationMetadata?.applicationMetadata,
+  );
+  const selectedParty = useAppSelector((state) => state.party.selectedParty);
   const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
   const appName = useAppSelector(selectAppName);
@@ -148,7 +148,7 @@ export default function Entrypoint() {
   }
 
   // stateless view
-  if (partyValidation?.valid && isStatelessApp(applicationMetadata)) {
+  if (isStatelessApp(applicationMetadata) && (allowAnonymous || partyValidation?.valid)) {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }

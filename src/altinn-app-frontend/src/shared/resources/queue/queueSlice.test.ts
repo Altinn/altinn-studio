@@ -10,6 +10,7 @@ import reducer, {
   appTaskQueueError,
   dataTaskQueueError,
   infoTaskQueueError,
+  userTaskQueueError,
 } from './queueSlice';
 
 describe('queueSlice', () => {
@@ -68,5 +69,15 @@ describe('queueSlice', () => {
     );
     expect(nextState.infoTask.error).toBeTruthy();
     expect(nextState.infoTask.error.message).toEqual(errorMessage);
+  });
+
+  it('handles error on user task queue', () => {
+    const errorMessage = 'user task queue error';
+    const nextState = reducer(
+      state,
+      userTaskQueueError({ error: new Error(errorMessage) }),
+    );
+    expect(nextState.userTask.error).toBeTruthy();
+    expect(nextState.userTask.error.message).toEqual(errorMessage);
   });
 });

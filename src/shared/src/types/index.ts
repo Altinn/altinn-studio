@@ -29,6 +29,13 @@ export interface IAltinnOrgs {
   [org: string]: IAltinnOrg;
 }
 
+export interface IApplicationLogic {
+  allowAnonymousOnStateless?: boolean;
+  autoCreate?: boolean;
+  classRef: string;
+  schemaRef?: string;
+}
+
 export interface IOnEntry {
   show: 'new-instance' | 'startpage' | string;
 }
@@ -65,7 +72,7 @@ export interface IDataType {
   description?: string;
   allowedContentTypes: string[];
   allowedContributers?: string[];
-  appLogic?: any;
+  appLogic?: IApplicationLogic;
   taskId?: string;
   maxSize?: number;
   maxCount: number;

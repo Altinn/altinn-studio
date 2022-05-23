@@ -5,6 +5,7 @@ import { applicationMetadataApiUrl } from '../../../../../utils/appUrlHelper';
 import ApplicationMetadataActions from '../../actions';
 import { FETCH_APPLICATION_METADATA } from '../../actions/types';
 import { appTaskQueueError } from '../../../queue/queueSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 
 function* getApplicationMetadata(): SagaIterator {
   try {
@@ -12,6 +13,7 @@ function* getApplicationMetadata(): SagaIterator {
     yield call(ApplicationMetadataActions.getApplicationMetadataFulfilled, applicationMetadata);
   } catch (error) {
     yield call(ApplicationMetadataActions.getApplicationMetadataRejected, error);
+    yield put(LanguageActions.fetchDefaultLanguage()); // make sure default texts are fetched
     yield put(appTaskQueueError({ error }));
   }
 }

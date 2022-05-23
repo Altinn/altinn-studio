@@ -141,7 +141,10 @@ export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
   return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 }
 
-export function getStatelessFormDataUrl(dataType: string) {
+export function getStatelessFormDataUrl(dataType: string, anonymous = false) {
+  if (anonymous) {
+    return `${appPath}/v1/data/anonymous?dataType=${dataType}`;
+  }
   return `${appPath}/v1/data?dataType=${dataType}`;
 }
 

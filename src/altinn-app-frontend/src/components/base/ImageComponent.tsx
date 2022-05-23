@@ -30,7 +30,7 @@ const useStyles = makeStyles({
 
 export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
-  const language = useAppSelector(state => state.profile.profile.profileSettingPreference.language);
+  const language = useAppSelector(state => state.profile.profile?.profileSettingPreference.language || 'nb');
   const width = props.image.width || '100%';
   const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(props.textResourceBindings.altTextImg);

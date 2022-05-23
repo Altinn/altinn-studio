@@ -28,6 +28,7 @@ import {
   saveFormDataSaga,
   putFormData,
   saveStatelessData,
+  allowAnonymousSelector,
 } from './submitFormDataSagas';
 
 describe('submitFormDataSagas', () => {
@@ -132,6 +133,7 @@ describe('submitFormDataSagas', () => {
     return expectSaga(saveFormDataSaga)
       .provide([
         [select(), state],
+        [select(allowAnonymousSelector), false],
         [
           call(
             post,
@@ -141,6 +143,80 @@ describe('submitFormDataSagas', () => {
                 party: `partyid:${stateMock.party.selectedParty.partyId}`,
               },
             },
+            model,
+          ),
+          {
+            data: {
+              ...formData,
+              group: {
+                field1: 'value1',
+              },
+            },
+          },
+        ],
+      ])
+      .call(saveStatelessData, state, model)
+      .put(
+        FormDataActions.fetchFormDataFulfilled({
+          formData: {
+            ...formData,
+            'group.field1': 'value1',
+          },
+        }),
+      )
+      .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
+      .put(FormDataActions.submitFormDataFulfilled())
+      .run();
+  });
+
+  it('saveFormDataSaga for stateless app with allowAnonymous', () => {
+    const formData = {
+      field1: 'value1',
+      field2: 'abc',
+    };
+    const state: IRuntimeState = {
+      ...stateMock,
+      applicationMetadata: {
+        ...stateMock.applicationMetadata,
+        applicationMetadata: {
+          ...stateMock.applicationMetadata.applicationMetadata,
+          onEntry: { show: 'stateless' },
+        },
+      },
+      formData: {
+        ...stateMock.formData,
+        formData: formData,
+      },
+      formLayout: {
+        ...stateMock.formLayout,
+        layoutsets: {
+          sets: [
+            {
+              id: 'stateless',
+              dataType: 'test-data-model',
+              tasks: [],
+            },
+          ],
+        },
+      },
+    };
+
+    const model = convertDataBindingToModel(state.formData.formData);
+    const currentDataType = getCurrentDataTypeForApplication({
+      application: state.applicationMetadata.applicationMetadata,
+      instance: state.instanceData.instance,
+      layoutSets: state.formLayout.layoutsets,
+    });
+
+    return expectSaga(saveFormDataSaga)
+      .provide([
+        [select(), state],
+        [select(allowAnonymousSelector), true],
+        [
+          call(
+            post,
+            getStatelessFormDataUrl(currentDataType, true),
+            undefined,
             model,
           ),
           {

@@ -23,9 +23,11 @@ import FormDataActions from '../formDataActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import { ISubmitDataAction } from '../formDataTypes';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
+export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
 // eslint-disable-next-line consistent-return
 function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadAction<ISubmitDataAction>): SagaIterator {
@@ -178,13 +180,23 @@ export function* saveFormDataSaga(): SagaIterator {
 }
 
 export function* saveStatelessData(state: IRuntimeState, model: any) {
-  const selectedPartyId = state.party.selectedParty.partyId;
+  const allowAnonymous = yield select(allowAnonymousSelector);
+  let options;
+  if (!allowAnonymous) {
+    const selectedPartyId = state.party.selectedParty.partyId;
+    options = {
+      headers: {
+        party: `partyid:${selectedPartyId}`
+      },
+    };
+  }
+
   const currentDataType = getCurrentDataTypeForApplication({
     application: state.applicationMetadata.applicationMetadata,
     instance: state.instanceData.instance,
     layoutSets: state.formLayout.layoutsets,
   });
-  const response = yield call(post, getStatelessFormDataUrl(currentDataType), { headers: { party: `partyid:${selectedPartyId}` } }, model);
+  const response = yield call(post, getStatelessFormDataUrl(currentDataType, allowAnonymous), options, model);
   const formData = convertModelToDataBinding(response?.data);
   yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
   yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);

@@ -114,6 +114,39 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
     });
   });
 
+  it('should show loader while fetching data then start statelessQueue if stateless app with allowAnonymous', async () => {
+    const statelessApplication: IApplicationMetadata = {
+      ...mockInitialState.applicationMetadata.applicationMetadata,
+      onEntry: {
+        show: 'stateless',
+      },
+    };
+    statelessApplication.dataTypes[0].appLogic.allowAnonymousOnStateless = true;
+    const mockStateWithStatelessApplication: IRuntimeState = {
+      ...mockInitialState,
+    };
+    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata =
+      statelessApplication;
+    mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
+    mockStore.dispatch = jest.fn();
+
+    const rendered = render(
+      <Provider store={mockStore}>
+        <Entrypoint />
+      </Provider>,
+    );
+
+    const contentLoader = await rendered.findByText('Loading...');
+    expect(contentLoader).not.toBeNull();
+
+    // should have started the initialStatelessQueue
+    await waitFor(() => {
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'queue/startInitialStatelessQueue',
+      });
+    });
+  });
+
   it('should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
     const application: IApplicationMetadata = {
       ...mockInitialState.applicationMetadata.applicationMetadata,

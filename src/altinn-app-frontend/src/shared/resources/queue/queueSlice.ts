@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface IQueueState {
   dataTask: IQueueTask;
   appTask: IQueueTask;
+  userTask: IQueueTask;
   infoTask: IQueueTask;
   stateless: IQueueTask;
 }
@@ -16,23 +17,13 @@ export interface IQueueError {
   error: any;
 }
 
+const commonState = { isDone: null, error: null };
 export const initialState: IQueueState = {
-  dataTask: {
-    isDone: null,
-    error: null,
-  },
-  appTask: {
-    isDone: null,
-    error: null,
-  },
-  infoTask: {
-    isDone: null,
-    error: null,
-  },
-  stateless: {
-    isDone: null,
-    error: null,
-  },
+  dataTask: { ...commonState },
+  appTask: { ...commonState },
+  userTask: { ...commonState },
+  infoTask: { ...commonState },
+  stateless: { ...commonState },
 };
 
 const moduleName = 'queue';
@@ -41,19 +32,38 @@ const queueSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    appTaskQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+    appTaskQueueError: (
+      state: IQueueState,
+      action: PayloadAction<IQueueError>,
+    ) => {
       const { error } = action.payload;
       state.appTask.error = error;
     },
-    dataTaskQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+    userTaskQueueError: (
+      state: IQueueState,
+      action: PayloadAction<IQueueError>,
+    ) => {
+      const { error } = action.payload;
+      state.userTask.error = error;
+    },
+    dataTaskQueueError: (
+      state: IQueueState,
+      action: PayloadAction<IQueueError>,
+    ) => {
       const { error } = action.payload;
       state.dataTask.error = error;
     },
-    infoTaskQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+    infoTaskQueueError: (
+      state: IQueueState,
+      action: PayloadAction<IQueueError>,
+    ) => {
       const { error } = action.payload;
       state.infoTask.error = error;
     },
-    statelessQueueError: (state: IQueueState, action: PayloadAction<IQueueError>) => {
+    statelessQueueError: (
+      state: IQueueState,
+      action: PayloadAction<IQueueError>,
+    ) => {
       const { error } = action.payload;
       state.stateless.error = error;
     },
@@ -62,6 +72,12 @@ const queueSlice = createSlice({
     },
     startInitialAppTaskQueueFulfilled: (state: IQueueState) => {
       state.appTask.isDone = true;
+    },
+    startInitialUserTaskQueue: (state: IQueueState) => {
+      state.userTask.isDone = false;
+    },
+    startInitialUserTaskQueueFulfilled: (state: IQueueState) => {
+      state.userTask.isDone = true;
     },
     startInitialDataTaskQueue: (state: IQueueState) => {
       state.dataTask.isDone = false;
@@ -86,11 +102,14 @@ const queueSlice = createSlice({
 
 export const {
   appTaskQueueError,
+  userTaskQueueError,
   dataTaskQueueError,
   infoTaskQueueError,
   statelessQueueError,
   startInitialAppTaskQueue,
   startInitialAppTaskQueueFulfilled,
+  startInitialUserTaskQueue,
+  startInitialUserTaskQueueFulfilled,
   startInitialDataTaskQueue,
   startInitialDataTaskQueueFulfilled,
   startInitialInfoTaskQueue,

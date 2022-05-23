@@ -21,14 +21,16 @@ import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanc
 import { IProcessState } from '../../../../shared/resources/process/processReducer';
 import { getFetchFormDataUrl, getStatelessFormDataUrl, invalidateCookieUrl, redirectToUpgrade } from '../../../../utils/appUrlHelper';
 import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { appMetaDataSelector,
+instanceDataSelector,
+processStateSelector,
+currentSelectedPartyIdSelector,
+layoutSetsSelector} from 'src/selectors/simpleSelectors';
 
-const appMetaDataSelector =
-  (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
-const instanceDataSelector = (state: IRuntimeState): IInstance => state.instanceData.instance;
-const processStateSelector = (state: IRuntimeState): IProcessState => state.process;
-const currentSelectedPartyIdSelector = (state: IRuntimeState): string => state.party.selectedParty?.partyId;
+export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
-function* fetchFormDataSaga(): SagaIterator {
+export function* fetchFormDataSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
@@ -46,36 +48,18 @@ export function* watchFormDataSaga(): SagaIterator {
   yield takeLatest(FormDataActions.fetchFormData, fetchFormDataSaga);
 }
 
-function* fetchFormDataInitialSaga(): SagaIterator {
+export function* fetchFormDataInitialSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
-    const instance: IInstance = yield select(instanceDataSelector);
-    const layoutSets: ILayoutSets = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
-
     let fetchedData: any;
 
     if (isStatelessApp(applicationMetadata)) {
       // stateless app
-      const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
-      const selectedPartyId = yield select((state: IRuntimeState) => state.party.selectedParty.partyId);
-      try {
-        fetchedData = yield call(get, getStatelessFormDataUrl(dataType), { headers: { party: `partyid:${selectedPartyId}` } });
-      } catch (error) {
-        if (error?.response?.status === 403 && error.response.data) {
-          const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
-          if (reqAuthLevel) {
-            putWithoutConfig(invalidateCookieUrl);
-            yield call(redirectToUpgrade, reqAuthLevel);
-          } else {
-            throw error;
-          }
-        } else {
-          throw error;
-        }
-      }
+      fetchedData = yield call(fetchFormDataStateless, applicationMetadata);
     } else {
       // app with instance
+      const instance: IInstance = yield select(instanceDataSelector);
       const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance);
       fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
     }
@@ -91,6 +75,40 @@ function* fetchFormDataInitialSaga(): SagaIterator {
   } catch (error) {
     yield put(FormDataActions.fetchFormDataRejected({ error }));
     yield call(dataTaskQueueError, error);
+  }
+}
+
+function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
+  const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
+  const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry.show, layoutSets);
+
+  const allowAnonymous = yield select(allowAnonymousSelector);
+
+  let options = {};
+
+  if (!allowAnonymous) {
+    const selectedPartyId = yield select(currentSelectedPartyIdSelector);
+    options = {
+      headers: {
+        party: `partyid:${selectedPartyId}`,
+      },
+    };
+  }
+
+  try {
+    return yield call(get, getStatelessFormDataUrl(dataType, allowAnonymous), options);
+  } catch (error) {
+    if (error?.response?.status === 403 && error.response.data) {
+      const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
+      if (reqAuthLevel) {
+        putWithoutConfig(invalidateCookieUrl);
+        yield call(redirectToUpgrade, reqAuthLevel);
+      } else {
+        throw error;
+      }
+    } else {
+      throw error;
+    }
   }
 }
 
@@ -111,17 +129,17 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     yield take(FormDataActions.fetchFormDataInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-    const application: IApplicationMetadata = yield select((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
-    if ((!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) && !application.onEntry?.show) {
+    const application: IApplicationMetadata = yield select(appMetaDataSelector);
+    if (isStatelessApp(application)) {
+      yield take(fetchJsonSchemaFulfilled);
+      const allowAnonymous = yield select(allowAnonymousSelector);
+      if (!allowAnonymous) {
+        call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== undefined)
+      }
+    } else if(!processState || !instance || processState.taskId !== instance.process.currentTask.elementId) {
       yield all([
         take(GET_INSTANCEDATA_FULFILLED),
         take(fetchJsonSchemaFulfilled),
-      ]);
-    } else {
-      // stateless app
-      yield all([
-        take(fetchJsonSchemaFulfilled),
-        call(waitFor, (state: IRuntimeState) => currentSelectedPartyIdSelector(state) !== undefined),
       ]);
     }
     yield call(fetchFormDataInitialSaga);
