@@ -52,6 +52,7 @@ namespace Altinn.App.AppLogic.DataProcessing
       SetupModel(skjema);
       SetIdNumber(skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317);
       SetJournalNumber(skjema.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316);
+      CheckName(skjema.OpplysningerOmArbeidstakerengrp8819.OpplysningerOmArbeidstakerengrp8855.AnsattNavndatadef1223);
 
       return await Task.FromResult(true);
     }
@@ -66,7 +67,7 @@ namespace Altinn.App.AppLogic.DataProcessing
 
     private void SetJournalNumber( Journalnummerdatadef33316 journalNumber)
     {
-      if (journalNumber?.value == null)
+      if (journalNumber?.value == 0)
       {
         journalNumber.value = 1234;
       }
