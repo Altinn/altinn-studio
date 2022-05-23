@@ -104,8 +104,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             Application application = _appResources.GetApplication();
-            bool stateless = !_onEntryWithInstance.Contains(application.OnEntry?.Show);
-            if (!stateless) 
+            if (!IsStatelessApp(application)) 
             {
                 return false;
             }
@@ -118,6 +117,16 @@ namespace Altinn.App.Api.Controllers
             }
 
             return false;
+        }
+
+        private bool IsStatelessApp(Application application)
+        {
+            if (application.OnEntry == null)
+            {
+                return false;
+            }
+
+            return !_onEntryWithInstance.Contains(application.OnEntry?.Show);
         }
 
         private DataType GetStatelessDataType(Application application)
