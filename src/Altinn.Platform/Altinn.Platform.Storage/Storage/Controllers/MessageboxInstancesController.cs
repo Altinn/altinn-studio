@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="archiveReference">The archive reference.</param>
         /// <param name="language">Language nb, en, nn</param>
         /// <returns>list of instances</returns>
-        [Obsolete]
+        [Obsolete("Replaced with post-endpoint")]
         [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult> SearchMessageBoxInstances(
