@@ -241,11 +241,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (queryResponse?.Exception != null)
             {
-                if (queryResponse.Exception.StartsWith("Unknown query parameter"))
-                {
-                    return BadRequest(queryResponse.Exception);
-                }
-
                 return StatusCode(500, queryResponse.Exception);
             }
 
