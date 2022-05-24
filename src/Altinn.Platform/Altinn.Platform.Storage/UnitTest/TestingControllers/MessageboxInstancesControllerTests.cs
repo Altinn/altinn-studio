@@ -1583,7 +1583,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Single(actual);
         }
 
-        private MessageBoxQueryModel GetMessageBoxQueryModel(int instanceOwnerPartyId)
+        private static MessageBoxQueryModel GetMessageBoxQueryModel(int instanceOwnerPartyId)
         {
             return new MessageBoxQueryModel
             {
