@@ -598,11 +598,6 @@ namespace Altinn.Platform.Storage.Controllers
                 queryParams.Add("archiveReference", queryModel.ArchiveReference);
             }
 
-            if (!string.IsNullOrEmpty(queryModel.Language))
-            {
-                queryParams.Add("language", queryModel.Language);
-            }
-
             return queryParams;
         }
     }
