@@ -551,7 +551,7 @@ namespace Altinn.Platform.Storage.Controllers
             InstanceHelper.RemoveHiddenInstances(apps, instances);
         }
 
-        private Dictionary<string, StringValues> GetQueryParams(MessageBoxQueryModel queryModel)
+        private static Dictionary<string, StringValues> GetQueryParams(MessageBoxQueryModel queryModel)
         {
             string dateTimeFormat = "yyyy-MM-ddTHH:mm:ss";
 
