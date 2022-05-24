@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Storage.Helpers
@@ -11,6 +13,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// List of instance owner party id(s)
         /// </summary>
+        [Required]
         [JsonPropertyName("instanceOwnerPartyIdList")]
         public List<int> InstanceOwnerPartyIdList { get; set; }
 
@@ -39,16 +42,28 @@ namespace Altinn.Platform.Storage.Helpers
         public bool IncludeDeleted { get; set; }
 
         /// <summary>
-        /// Last changed date.
+        /// Gets or sets the from last changed date.
         /// </summary>
-        [JsonPropertyName("lastChanged")]
-        public string LastChanged { get; set; }
+        [JsonPropertyName("fromLastChanged")]
+        public DateTime? FromLastChanged { get; set; }
 
         /// <summary>
-        /// Created time.
+        /// Gets or sets the to last changed date.
         /// </summary>
-        [JsonPropertyName("created")]
-        public string Created { get; set; }
+        [JsonPropertyName("toLastChanged")]
+        public DateTime? ToLastChanged { get; set; }
+
+        /// <summary>
+        /// Gets or sets the from created time.
+        /// </summary>
+        [JsonPropertyName("fromCreated")]
+        public DateTime? FromCreated { get; set; }
+
+        /// <summary>
+        /// Gets or sets the to created time.
+        /// </summary>
+        [JsonPropertyName("toCreated")]
+        public DateTime? ToCreated { get; set; }
 
         /// <summary>
         /// Search string.

@@ -68,6 +68,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="archiveReference">The archive reference.</param>
         /// <param name="language">Language nb, en, nn</param>
         /// <returns>list of instances</returns>
+        [Obsolete]
         [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult> SearchMessageBoxInstances(
@@ -128,6 +129,112 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 queryParams.Remove(nameof(searchString));
+            }
+
+            InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, null, 100);
+
+            if (queryResponse?.Exception != null)
+            {
+                if (queryResponse.Exception.StartsWith("Unknown query parameter"))
+                {
+                    return BadRequest(queryResponse.Exception);
+                }
+
+                return StatusCode(500, queryResponse.Exception);
+            }
+
+            if (queryResponse == null || queryResponse.Count <= 0)
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            List<Instance> allInstances = queryResponse.Instances;
+            await RemoveHiddenInstances(allInstances);
+
+            if (!allInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            allInstances.ForEach(i =>
+            {
+                if (i.Status.IsArchived || i.Status.IsSoftDeleted)
+                {
+                    i.DueBefore = null;
+                }
+            });
+
+            List<MessageBoxInstance> authorizedInstances =
+                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+
+            if (!authorizedInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
+
+            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
+            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
+
+            return Ok(authorizedInstances);
+        }
+
+        /// <summary>
+        /// Search through instances to find match based on query params.
+        /// </summary>
+        /// <param name="queryModel">Object with query-params</param>
+        /// <returns>list of instances</returns>
+        [Authorize]
+        [HttpPost("search")]
+        public async Task<ActionResult> SearchMessageBoxInstances([FromBody] MessageBoxQueryModel queryModel)
+        {
+            string[] acceptedLanguages = { "en", "nb", "nn" };
+
+            string languageId = "nb";
+
+            if (queryModel.Language != null && acceptedLanguages.Contains(queryModel.Language.ToLower()))
+            {
+                languageId = queryModel.Language.ToLower();
+            }
+
+            Dictionary<string, StringValues> queryParams = GetQueryParams(queryModel);
+
+            if (!string.IsNullOrEmpty(queryModel.ArchiveReference))
+            {
+                if ((queryModel.IncludeActive == queryModel.IncludeArchived) && (queryModel.IncludeActive == queryModel.IncludeDeleted))
+                {
+                    queryModel.IncludeActive = false;
+                    queryModel.IncludeDeleted = true;
+                    queryModel.IncludeArchived = true;
+                }
+                else if (queryModel.IncludeActive && !queryModel.IncludeArchived && !queryModel.IncludeDeleted)
+                {
+                    return Ok(new List<MessageBoxInstance>());
+                }
+                else if (queryModel.IncludeActive && (queryModel.IncludeArchived || queryModel.IncludeDeleted))
+                {
+                    queryModel.IncludeActive = false;
+                }
+            }
+
+            GetStatusFromQueryParams(queryModel.IncludeActive, queryModel.IncludeArchived, queryModel.IncludeDeleted, queryParams);
+            queryParams.Add("sortBy", "desc:lastChanged");
+            queryParams.Add("status.isHardDeleted", "false");
+
+            if (!string.IsNullOrEmpty(queryModel.SearchString))
+            {
+                StringValues applicationIds = await MatchStringToAppTitle(queryModel.SearchString);
+                if (!applicationIds.Any() || (!string.IsNullOrEmpty(queryModel.AppId) && !applicationIds.Contains(queryModel.AppId)))
+                {
+                    return Ok(new List<MessageBoxInstance>());
+                }
+                else if (string.IsNullOrEmpty(queryModel.AppId))
+                {
+                    queryParams.Add("appId", applicationIds);
+                }
+
+                queryParams.Remove("searchString");
             }
 
             InstanceQueryResponse queryResponse = await _instanceRepository.GetInstancesFromQuery(queryParams, null, 100);
@@ -426,7 +533,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                queryParams.Add("status.isActiveorSoftDeleted", "true");
+                queryParams.Add("status.isActiveOrSoftDeleted", "true");
             }
 
             queryParams.Remove(nameof(includeActive));
@@ -447,6 +554,61 @@ namespace Altinn.Platform.Storage.Controllers
             instances.RemoveAll(i => i.VisibleAfter > DateTime.UtcNow);
 
             InstanceHelper.RemoveHiddenInstances(apps, instances);
+        }
+
+        private Dictionary<string, StringValues> GetQueryParams(MessageBoxQueryModel queryModel)
+        {
+            string dateTimeFormat = "yyyy-MM-ddTHH:mm:ss";
+
+            Dictionary<string, StringValues> queryParams = new Dictionary<string, StringValues>();
+
+            queryParams.Add("instanceOwner.partyId", queryModel.InstanceOwnerPartyIdList.Select(i => i.ToString()).ToArray());
+
+            if (!string.IsNullOrEmpty(queryModel.AppId))
+            {
+                queryParams.Add("appId", queryModel.AppId);
+            }
+
+            queryParams.Add("includeActive", queryModel.IncludeActive.ToString());
+            queryParams.Add("includeArchived", queryModel.IncludeArchived.ToString());
+            queryParams.Add("includeDeleted", queryModel.IncludeDeleted.ToString());
+
+            if (queryModel.FromLastChanged != null)
+            {
+                queryParams.Add("lastChanged", $"gte:{queryModel.FromLastChanged?.ToString(dateTimeFormat)}");
+            }
+
+            if (queryModel.ToLastChanged != null)
+            {
+                queryParams.Add("lastChanged", $"lte:{queryModel.ToLastChanged?.ToString(dateTimeFormat)}");
+            }
+
+            if (queryModel.FromCreated != null)
+            {
+                queryParams.Add("created", $"gte:{queryModel.FromCreated?.ToString(dateTimeFormat)}");
+            }
+
+            if (queryModel.ToCreated != null)
+            {
+                queryParams.Add("created", $"lte:{queryModel.ToCreated?.ToString(dateTimeFormat)}");
+            }
+
+            if (!string.IsNullOrEmpty(queryModel.SearchString))
+            {
+                queryParams.Add("searchString", queryModel.SearchString);
+            }
+
+            if (!string.IsNullOrEmpty(queryModel.ArchiveReference))
+            {
+                queryParams.Add("archiveReference", queryModel.ArchiveReference);
+            }
+
+            if (!string.IsNullOrEmpty(queryModel.Language))
+            {
+                queryParams.Add("language", queryModel.Language);
+            }
+
+            return queryParams;
         }
     }
 }
