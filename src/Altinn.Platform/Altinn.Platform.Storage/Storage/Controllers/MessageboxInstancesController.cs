@@ -89,7 +89,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if ((includeActive == includeArchived) && (includeActive == includeDeleted))
                 {
-                    includeActive = false;
                     includeDeleted = true;
                     includeArchived = true;
                 }
@@ -97,10 +96,8 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return Ok(new List<MessageBoxInstance>());
                 }
-                else if (includeActive && (includeArchived || includeDeleted))
-                {
-                    includeActive = false;
-                }
+                
+                includeActive = false;
             }
 
             GetStatusFromQueryParams(includeActive, includeArchived, includeDeleted, queryParams);
@@ -150,7 +147,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if ((queryModel.IncludeActive == queryModel.IncludeArchived) && (queryModel.IncludeActive == queryModel.IncludeDeleted))
                 {
-                    queryModel.IncludeActive = false;
                     queryModel.IncludeDeleted = true;
                     queryModel.IncludeArchived = true;
                 }
@@ -158,10 +154,8 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return Ok(new List<MessageBoxInstance>());
                 }
-                else if (queryModel.IncludeActive && (queryModel.IncludeArchived || queryModel.IncludeDeleted))
-                {
-                    queryModel.IncludeActive = false;
-                }
+
+                queryModel.IncludeActive = false;
             }
 
             Dictionary<string, StringValues> queryParams = GetQueryParams(queryModel);
