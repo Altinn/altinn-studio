@@ -184,7 +184,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Search through instances to find match based on query params.
         /// </summary>
         /// <param name="queryModel">Object with query-params</param>
-        /// <returns>list of instances</returns>
+        /// <returns>List of messagebox instances</returns>
         [Authorize]
         [HttpPost("search")]
         public async Task<ActionResult> SearchMessageBoxInstances([FromBody] MessageBoxQueryModel queryModel)
