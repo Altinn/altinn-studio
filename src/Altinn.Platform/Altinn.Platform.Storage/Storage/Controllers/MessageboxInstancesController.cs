@@ -83,15 +83,6 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string archiveReference,
             [FromQuery] string language)
         {
-            string[] acceptedLanguages = { "en", "nb", "nn" };
-
-            string languageId = "nb";
-
-            if (language != null && acceptedLanguages.Contains(language.ToLower()))
-            {
-                languageId = language.ToLower();
-            }
-
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             if (!string.IsNullOrEmpty(archiveReference))
@@ -143,41 +134,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, queryResponse.Exception);
             }
 
-            if (queryResponse == null || queryResponse.Count <= 0)
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            List<Instance> allInstances = queryResponse.Instances;
-            await RemoveHiddenInstances(allInstances);
-
-            if (!allInstances.Any())
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            allInstances.ForEach(i =>
-            {
-                if (i.Status.IsArchived || i.Status.IsSoftDeleted)
-                {
-                    i.DueBefore = null;
-                }
-            });
-
-            List<MessageBoxInstance> authorizedInstances =
-                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
-
-            if (!authorizedInstances.Any())
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
-
-            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
-            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
-
-            return Ok(authorizedInstances);
+            return await ProcessQueryResponse(queryResponse, language);
         }
 
         /// <summary>
@@ -189,17 +146,6 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost("search")]
         public async Task<ActionResult> SearchMessageBoxInstances([FromBody] MessageBoxQueryModel queryModel)
         {
-            string[] acceptedLanguages = { "en", "nb", "nn" };
-
-            string languageId = "nb";
-
-            if (queryModel.Language != null && acceptedLanguages.Contains(queryModel.Language.ToLower()))
-            {
-                languageId = queryModel.Language.ToLower();
-            }
-
-            Dictionary<string, StringValues> queryParams = GetQueryParams(queryModel);
-
             if (!string.IsNullOrEmpty(queryModel.ArchiveReference))
             {
                 if ((queryModel.IncludeActive == queryModel.IncludeArchived) && (queryModel.IncludeActive == queryModel.IncludeDeleted))
@@ -218,6 +164,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
+            Dictionary<string, StringValues> queryParams = GetQueryParams(queryModel);
             GetStatusFromQueryParams(queryModel.IncludeActive, queryModel.IncludeArchived, queryModel.IncludeDeleted, queryParams);
             queryParams.Add("sortBy", "desc:lastChanged");
             queryParams.Add("status.isHardDeleted", "false");
@@ -244,41 +191,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, queryResponse.Exception);
             }
 
-            if (queryResponse == null || queryResponse.Count <= 0)
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            List<Instance> allInstances = queryResponse.Instances;
-            await RemoveHiddenInstances(allInstances);
-
-            if (!allInstances.Any())
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            allInstances.ForEach(i =>
-            {
-                if (i.Status.IsArchived || i.Status.IsSoftDeleted)
-                {
-                    i.DueBefore = null;
-                }
-            });
-
-            List<MessageBoxInstance> authorizedInstances =
-                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
-
-            if (!authorizedInstances.Any())
-            {
-                return Ok(new List<MessageBoxInstance>());
-            }
-
-            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
-
-            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
-            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
-
-            return Ok(authorizedInstances);
+            return await ProcessQueryResponse(queryResponse, queryModel.Language);
         }
 
         /// <summary>
@@ -599,6 +512,54 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return queryParams;
+        }
+
+        private async Task<ActionResult> ProcessQueryResponse(InstanceQueryResponse queryResponse, string language)
+        {
+            string[] acceptedLanguages = { "en", "nb", "nn" };
+
+            string languageId = "nb";
+
+            if (language != null && acceptedLanguages.Contains(language.ToLower()))
+            {
+                languageId = language.ToLower();
+            }
+
+            if (queryResponse == null || queryResponse.Count <= 0)
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            List<Instance> allInstances = queryResponse.Instances;
+            await RemoveHiddenInstances(allInstances);
+
+            if (!allInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            allInstances.ForEach(i =>
+            {
+                if (i.Status.IsArchived || i.Status.IsSoftDeleted)
+                {
+                    i.DueBefore = null;
+                }
+            });
+
+            List<MessageBoxInstance> authorizedInstances =
+                    await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+
+            if (!authorizedInstances.Any())
+            {
+                return Ok(new List<MessageBoxInstance>());
+            }
+
+            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
+
+            List<TextResource> texts = await _textRepository.Get(appIds, languageId);
+            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
+
+            return Ok(authorizedInstances);
         }
     }
 }
