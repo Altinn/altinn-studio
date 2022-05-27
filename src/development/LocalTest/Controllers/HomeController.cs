@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Xml;
@@ -199,13 +200,15 @@ namespace LocalTest.Controllers
         public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
 
         [HttpGet]
-        public ActionResult FrontendVersion()
+        public async Task<ActionResult> FrontendVersion([FromServices]HttpClient client)
         {
-            var version = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
+            var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
+
+
 
             var frontendVersion = new FrontendVersion()
             {
-                Version = version,
+                Version = versionFromCookie,
                 Versions = new List<SelectListItem>()
                 {
                     new ()
@@ -218,9 +221,22 @@ namespace LocalTest.Controllers
                         Text = "localhost:8080 (local dev)",
                         Value = "http://localhost:8080/"
                     }
-                    // TODO: list all old versions from CDN
                 }
             };
+            var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
+            var groupCdnVersions = new SelectListGroup() { Name = "Older versions from cdn" };
+            var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString);
+            versions.Reverse();
+            versions.ForEach(version =>
+            {
+                frontendVersion.Versions.Add(new()
+                {
+                    Text = version,
+                    Value = $"https://altinncdn.no/toolkits/altinn-app-frontend/{version}/",
+                    Group = groupCdnVersions
+                });
+            });
+
             return View(frontendVersion);
         }
         public ActionResult FrontendVersion(FrontendVersion frontendVersion)
