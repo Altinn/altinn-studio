@@ -224,7 +224,7 @@ namespace LocalTest.Controllers
                 }
             };
             var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
-            var groupCdnVersions = new SelectListGroup() { Name = "Older versions from cdn" };
+            var groupCdnVersions = new SelectListGroup() { Name = "Specific version from cdn" };
             var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString);
             versions.Reverse();
             versions.ForEach(version =>
