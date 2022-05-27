@@ -213,7 +213,7 @@ namespace LocalTest.Controllers
                 {
                     new ()
                     {
-                        Text = "Standard CDN",
+                        Text = "Keep as is",
                         Value = "",
                     },
                     new ()
