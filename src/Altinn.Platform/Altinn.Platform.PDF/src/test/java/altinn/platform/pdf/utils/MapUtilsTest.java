@@ -1,31 +1,21 @@
 package altinn.platform.pdf.utils;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MapUtilsTest extends TestCase {
 
-  public MapUtilsTest(String testName) {
-    super(testName);
-  }
+class MapUtilsTest {
 
-  public static Test suite() {
-    return new TestSuite(altinn.platform.pdf.utils.MapUtilsTest.class);
-  }
-
-  public static Map<String, Map<String, String>> Dictionary = new HashMap<String, Map<String, String>>() {{
-    put("listOptions", new HashMap<String, String>() {{
+  public static Map<String, Map<String, String>> Dictionary = new HashMap<>() {{
+    put("listOptions", new HashMap<>() {{
       put("radio.1", "Ja");
       put("radio.2", "Nei");
     }});
-    put("radioButtonOptions", new HashMap<String, String>() {{
+    put("radioButtonOptions", new HashMap<>() {{
       put("list.option1", "Oppsigelse");
       put("list.option2", "Avskjed");
       put("list.option3", "Pensjonert");
@@ -33,7 +23,8 @@ public class MapUtilsTest extends TestCase {
     }});
   }};
 
-  public void testGetLabelFromValueFindsMatch() {
+  @Test
+  void testGetLabelFromValueFindsMatch() {
     // Arrange
     String outerKey = "radioButtonOptions";
     String innerValue = "Oppsigelse";
@@ -46,7 +37,8 @@ public class MapUtilsTest extends TestCase {
     assertEquals(expectedResult, result);
   }
 
-  public void testGetLabelFromValueNoMatchOptionId() {
+  @Test
+  void testGetLabelFromValueNoMatchOptionId() {
     // Arrange
     String outerKey = "invalidKey";
     String innerValue = "Oppsigelse";
@@ -59,7 +51,8 @@ public class MapUtilsTest extends TestCase {
     assertEquals(expectedResult, result);
   }
 
-  public void testGetLabelFromValueNoMatchInnerValue() {
+  @Test
+  void testGetLabelFromValueNoMatchInnerValue() {
     // Arrange
     String outerKey = "radioButtonOptions";
     String innerValue = "invalidValue";

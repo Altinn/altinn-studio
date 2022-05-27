@@ -1,0 +1,36 @@
+name: Build and Test on windows, linux and macos
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/studio/src/designer/**'
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'src/studio/src/designer/**'
+  workflow_dispatch:
+jobs:
+  analyze:
+    strategy:
+      matrix:
+        os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
+    name: Run dotnet build and test
+    runs-on: ${{ matrix.os}}
+    env: 
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: |
+            6.0.x
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Build
+        run: |
+           dotnet build src/studio/src/designer/Designer.sln -v m
+      - name: Test
+        run: |
+           dotnet build src/studio/src/designer/Designer.sln -v m

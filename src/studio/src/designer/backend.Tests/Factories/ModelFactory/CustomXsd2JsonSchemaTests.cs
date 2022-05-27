@@ -9,8 +9,8 @@ namespace Designer.Tests.Factories.ModelFactory
     public class CustomXsd2JsonSchemaTests
     {
         [Theory]
-        [InlineData(@"Model/xsd/statsbygg_custom_unmodified.xsd")]
-        [InlineData(@"Model/xsd/statsbygg_custom_modified.xsd")]
+        [InlineData(@"Model/Xsd/statsbygg_custom_unmodified.xsd")]
+        [InlineData(@"Model/Xsd/statsbygg_custom_modified.xsd")]
         public void AsJsonSchema_ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions(string xsdPath)
         {
             // Arrange
@@ -18,7 +18,7 @@ namespace Designer.Tests.Factories.ModelFactory
             XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
 
             // Act
-            JsonSchema actual = target.AsJsonSchema();            
+            JsonSchema actual = target.AsJsonSchema();
 
             // Assert
             Assert.NotNull(actual);

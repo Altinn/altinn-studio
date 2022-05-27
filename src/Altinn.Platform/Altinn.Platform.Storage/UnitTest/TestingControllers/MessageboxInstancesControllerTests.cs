@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-
+using System.Net.Http.Json;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Clients;
@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{instanceId}?language=en");
 
-            // Assert     
+            // Assert
             Assert.Equal(HttpStatusCode.Forbidden, responseMessage.StatusCode);
         }
 
@@ -142,7 +142,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected result:
         ///   The instance is restored.
         /// Success criteria:
-        ///   True is returned for the http request. 
+        ///   True is returned for the http request.
         /// </summary>
         [Fact]
         public async void Undelete_RestoreSoftDeletedInstance_ReturnsTrue()
@@ -165,9 +165,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Restore a soft deleted instance in storage but user has too low authentication level. 
+        ///   Restore a soft deleted instance in storage but user has too low authentication level.
         /// Expected result:
-        ///   The instance is not restored and returns status forbidden. 
+        ///   The instance is not restored and returns status forbidden.
         /// </summary>
         [Fact]
         public async void Undelete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
@@ -188,9 +188,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Restore a soft deleted instance in storage but response is deny.  
+        ///   Restore a soft deleted instance in storage but response is deny.
         /// Expected result:
-        ///   The instance is not restored and returns status forbidden. 
+        ///   The instance is not restored and returns status forbidden.
         /// </summary>
         [Fact]
         public async void Undelete_ResponseIsDeny_ReturnsStatusForbidden()
@@ -286,7 +286,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Scenario:
         ///   Soft delete an active instance in storage but user has too low authentication level.
         /// Expected result:
-        ///   Returns status forbidden. 
+        ///   Returns status forbidden.
         /// </summary>
         [Fact]
         public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
@@ -312,7 +312,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Scenario:
         ///   Soft delete an active instance in storage but reponse is deny.
         /// Expected result:
-        ///   Returns status forbidden. 
+        ///   Returns status forbidden.
         /// </summary>
         [Fact]
         public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
@@ -465,7 +465,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///   Unauthorized is returned.
         /// </summary>
         [Fact]
-        public async void Search_MissingToken_ReturnsForbidden()
+        public async void Get_Search_MissingToken_ReturnsForbidden()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -486,7 +486,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  List of instances is returned
         /// </summary>
         [Fact]
-        public async void Search_FilterOnAppId_ReturnsActiveArchivedAndDeletedInstances()
+        public async void Get_Search_FilterOnAppId_ReturnsActiveArchivedAndDeletedInstances()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -513,7 +513,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Hard deleted instances are not included in the response.
         /// </summary>
         [Fact]
-        public async void Search_FilterOnAppId_HardDeletedInstancesAreExcludedFromResult()
+        public async void Get_Search_FilterOnAppId_HardDeletedInstancesAreExcludedFromResult()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -540,7 +540,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Bad request is returned
         /// </summary>
         [Fact]
-        public async void Search_FilterOnUnknownParameter_BadRequestIsReturned()
+        public async void Get_Search_FilterOnUnknownParameter_BadRequestIsReturned()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -559,10 +559,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected:
         ///  Query parameters are mapped to parameters that instanceRepository can handle.
         /// Success:
-        ///  isSoftDeleted and isArchived are set to false. 
+        ///  isSoftDeleted and isArchived are set to false.
         /// </summary>
         [Fact]
-        public async void Search_IncludeActive_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_IncludeActive_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -601,7 +601,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  isSoftDeleted is set to false and isArchived is set to true.
         /// </summary>
         [Fact]
-        public async void Search_IncludeArchived_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_IncludeArchived_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -640,7 +640,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  No new parameters are included, and the "includeX" parameters are removed.
         /// </summary>
         [Fact]
-        public async void Search_IncludeAllStates_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_IncludeAllStates_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -672,7 +672,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  isArchivedOrSoftDeleted is set to true.
         /// </summary>
         [Fact]
-        public async void Search_IncludeArchivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_IncludeArchivedAndDeleted_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -710,7 +710,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  isActiveOrSoftDeleted is set to true.
         /// </summary>
         [Fact]
-        public async void Search_IncludeActivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_IncludeActivedAndDeleted_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -745,7 +745,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Empty list is returned.
         /// </summary>
         [Fact]
-        public async void Search_SearchStringDoesNotMatchAppId_EmptyListIsReturned()
+        public async void Get_Search_SearchStringDoesNotMatchAppId_EmptyListIsReturned()
         {
             // Arrange
             Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
@@ -777,7 +777,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Empty list is returned.
         /// </summary>
         [Fact]
-        public async void Search_SearchStringDoesNotMatchAnyApp_NoCallToRepository()
+        public async void Get_Search_SearchStringDoesNotMatchAnyApp_NoCallToRepository()
         {
             // Arrange
             Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
@@ -812,7 +812,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  SearchString is removed and appId is included in query string
         /// </summary>
         [Fact]
-        public async void Search_MatchFoundForSearchString_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_MatchFoundForSearchString_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -847,7 +847,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  SearchString is removed and appId is included in query string.
         /// </summary>
         [Fact]
-        public async void Search_MultipleMatchesFoundForSearchString_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_MultipleMatchesFoundForSearchString_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -882,9 +882,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Instances for two parties are returned
         /// </summary>
         [Fact]
-        public async void Search_MultiplePartyIds_InstancesForBothIdsReturned()
+        public async void Get_Search_MultiplePartyIds_InstancesForBothIdsReturned()
         {
-            // Arrange          
+            // Arrange
             int expectedCount = 3;
             int expectedDistinctInstanceOwners = 2;
             HttpClient client = GetTestClient();
@@ -912,7 +912,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  isArchivedOrSoftDeleted is set to true.
         /// </summary>
         [Fact]
-        public async void Search_ArchiveReferenceNoStateFilter_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_ArchiveReferenceNoStateFilter_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -944,7 +944,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  isArchived is set to true. isSoftDeleted is set to false.
         /// </summary>
         [Fact]
-        public async void Search_ArchiveReferenceIncludeActiveAndSoftDeleted_OriginalQuerySuccesfullyConverted()
+        public async void Get_Search_ArchiveReferenceIncludeActiveAndSoftDeleted_OriginalQuerySuccesfullyConverted()
         {
             // Arrange
             Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
@@ -976,7 +976,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         ///  Single instance is returned.
         /// </summary>
         [Fact]
-        public async void Search_VisibleDateNotReached_InstanceRemovedFromResponse()
+        public async void Get_Search_VisibleDateNotReached_InstanceRemovedFromResponse()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -992,13 +992,615 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Single(actual);
         }
 
+        /// <summary>
+        /// Scenario:
+        ///   Search instances for an instance owner without token
+        /// Expected:
+        ///  User is not able to query instances.
+        /// Success:
+        ///   Unauthorized is returned.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_MissingToken_ReturnsForbidden()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1337);
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, responseMessage.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There is a match for active, archived and soft deleted instances
+        /// Success:
+        ///  List of instances is returned
+        /// </summary>
+        [Fact]
+        public async void Post_Search_FilterOnAppId_ReturnsActiveArchivedAndDeletedInstances()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1600, 3));
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1600);
+            queryModel.AppId = "ttd/steffens-2020-v2";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(1, actualResult.Count(i => i.DeleteStatus == DeleteStatusType.SoftDeleted));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "FormFilling"));
+            Assert.Equal(1, actualResult.Count(i => i.ProcessCurrentTask == "Archived" && i.DeleteStatus == DeleteStatusType.Default));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances for a given partyId and appId
+        /// Expected:
+        ///  There are two matches, but one is a hard deleted instance
+        /// Success:
+        ///  Hard deleted instances are not included in the response.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_FilterOnAppId_HardDeletedInstancesAreExcludedFromResult()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1606, 3));
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1600);
+            queryModel.AppId = "ttd/complete-test";
+            queryModel.Language = "en";
+
+            int expectedCount = 1;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync(
+                $"{BasePath}/sbl/instances/search",
+                JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actualResult = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actualResult.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on unknown search parameter
+        /// Expected:
+        ///  Query response contains an exception.
+        /// Success:
+        ///  Bad request is returned
+        /// </summary>
+        [Fact]
+        public async void Post_Search_FilterOnUnknownParameter_BadRequestIsReturned()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+            MessageBoxQueryModel queryModel = new MessageBoxQueryModel();
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, responseMessage.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to only include active.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isSoftDeleted and isArchived are set to false.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_IncludeActive_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            string expectedIsSoftDeleted = "false";
+            string expectedIsArchived = "false";
+            int expectedParamCount = 5;
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.IncludeActive = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            Assert.True(actual.ContainsKey("sortBy"));
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsSoftDeleted);
+            Assert.Equal(expectedIsSoftDeleted, actualIsSoftDeleted.First());
+            actual.TryGetValue("status.isArchived", out StringValues actualIsArchived);
+            Assert.Equal(expectedIsArchived, actualIsArchived.First());
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to only include archived.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isSoftDeleted is set to false and isArchived is set to true.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_IncludeArchived_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            string expectedIsSoftDeleted = "false";
+            string expectedIsArchived = "true";
+            int expectedParamCount = 5;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.IncludeArchived = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsSoftDeleted);
+            Assert.Equal(expectedIsSoftDeleted, actualIsSoftDeleted.First());
+            actual.TryGetValue("status.isArchived", out StringValues actualIsArchived);
+            Assert.Equal(expectedIsArchived, actualIsArchived.First());
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with all include filters set
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  No new parameters are included, and the "includeX" parameters are removed.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_IncludeAllStates_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+            int expectedParamCount = 3;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.IncludeArchived = true;
+            queryModel.IncludeActive = true;
+            queryModel.IncludeDeleted = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to include archived and deleted instances.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isArchivedOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_IncludeArchivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedParamCount = 4;
+            string expectedSortBy = "desc:lastChanged";
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.IncludeArchived = true;
+            queryModel.IncludeDeleted = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+            actual.TryGetValue("sortBy", out StringValues actualSortBy);
+            Assert.Equal(expectedSortBy, actualSortBy.First());
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to include active and deleted instances.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle.
+        /// Success:
+        ///  isActiveOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_IncludeActivedAndDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedParamCount = 4;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.IncludeActive = true;
+            queryModel.IncludeDeleted = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isActiveOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+            Assert.Equal(expectedParamCount, actual.Keys.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with filter to on search string and appId.
+        /// Expected:
+        ///  There is no overlap between search string and provided appId.
+        /// Success:
+        ///  Empty list is returned.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_SearchStringDoesNotMatchAppId_EmptyListIsReturned()
+        {
+            // Arrange
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedCount = 0;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.AppId = "ttd/endring-av-navn";
+            queryModel.SearchString = "karpeDiem";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+            string responseContent = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actual.Count);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with a search string that doesn't match any app title
+        /// Expected:
+        ///  No applicationId is retrieved and the repository call is never called.
+        /// Success:
+        ///  Empty list is returned.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_SearchStringDoesNotMatchAnyApp_NoCallToRepository()
+        {
+            // Arrange
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            int expectedCount = 0;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.SearchString = "karpeDiem";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+            string responseContent = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actual.Count);
+            instanceRepositoryMock.Verify(
+                ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()),
+                Times.Never);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with search string as filter.
+        /// Expected:
+        ///  A matching application is found and query parameters are transformed accordingly.
+        /// Success:
+        ///  SearchString is removed and appId is included in query string
+        /// </summary>
+        [Fact]
+        public async void Post_Search_MatchFoundForSearchString_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+            string expectedAppId = "tdd/endring-av-navn";
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.SearchString = "navn";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("appId"));
+            actual.TryGetValue("appId", out StringValues actualAppid);
+            Assert.Equal(expectedAppId, actualAppid.First());
+            Assert.False(actual.ContainsKey("searchString"));
+            instanceRepositoryMock.VerifyAll();
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances with search string as filter.
+        /// Expected:
+        ///  Two matching application are found and query parameters are transformed accordingly.
+        /// Success:
+        ///  SearchString is removed and appId is included in query string.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_MultipleMatchesFoundForSearchString_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+            int expectedCount = 3;
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+            queryModel.SearchString = "TEST";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("appId"));
+            actual.TryGetValue("appId", out StringValues actualAppid);
+            Assert.Equal(expectedCount, actualAppid.Count);
+            Assert.False(actual.ContainsKey("searchString"));
+            instanceRepositoryMock.VerifyAll();
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances across parties
+        /// Expected:
+        ///  Both instanceOwner.partyIds are forwarded to instance repository.
+        /// Success:
+        ///  Instances for two parties are returned
+        /// </summary>
+        [Fact]
+        public async void Post_Search_MultiplePartyIds_InstancesForBothIdsReturned()
+        {
+            // Arrange
+            int expectedCount = 3;
+            int expectedDistinctInstanceOwners = 2;
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1600);
+            queryModel.InstanceOwnerPartyIdList.Add(1000);
+            queryModel.AppId = "ttd/complete-test";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+            int distinctInstanceOwners = actual.Select(i => i.InstanceOwnerId).Distinct().Count();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.Equal(expectedCount, actual.Count);
+            Assert.Equal(expectedDistinctInstanceOwners, distinctInstanceOwners);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on archive reference. No state filter included.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle. Excluding all active instances.
+        /// Success:
+        ///  isArchivedOrSoftDeleted is set to true.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_ArchiveReferenceNoStateFilter_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1600);
+            queryModel.ArchiveReference = "bdb2a09da7ea";
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isArchivedOrSoftDeleted", out StringValues actualIsArchivedOrSoftDeleted);
+            Assert.True(bool.Parse(actualIsArchivedOrSoftDeleted.First()));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on archive reference. Include active and soft deleted selected.
+        /// Expected:
+        ///  Query parameters are mapped to parameters that instanceRepository can handle. Excluding all active instances.
+        /// Success:
+        ///  isArchived is set to true. isSoftDeleted is set to false.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_ArchiveReferenceIncludeActiveAndSoftDeleted_OriginalQuerySuccesfullyConverted()
+        {
+            // Arrange
+            Dictionary<string, StringValues> actual = new Dictionary<string, StringValues>();
+            Mock<IInstanceRepository> instanceRepositoryMock = new Mock<IInstanceRepository>();
+            instanceRepositoryMock
+                .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<Dictionary<string, StringValues>, string, int>((query, cont, size) => { actual = query; })
+                .ReturnsAsync((InstanceQueryResponse)null);
+
+            HttpClient client = GetTestClient(instanceRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1600, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1600);
+            queryModel.ArchiveReference = "bdb2a09da7ea";
+            queryModel.IncludeActive = true;
+            queryModel.IncludeDeleted = true;
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+            Assert.True(actual.ContainsKey("instanceOwner.partyId"));
+            actual.TryGetValue("status.isSoftDeleted", out StringValues actualIsArchived);
+            Assert.True(bool.Parse(actualIsArchived.First()));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///  Search instances based on appId.
+        /// Expected:
+        ///  VisibleAfter not reached for an instance, this is removed from the response.
+        /// Success:
+        ///  Single instance is returned.
+        /// </summary>
+        [Fact]
+        public async void Post_Search_VisibleDateNotReached_InstanceRemovedFromResponse()
+        {
+            // Arrange
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+            MessageBoxQueryModel queryModel = GetMessageBoxQueryModel(1606);
+
+            // Act
+            HttpResponseMessage responseMessage = await client.PostAsync($"{BasePath}/sbl/instances/search?instanceOwner.partyId=1606", JsonContent.Create(queryModel, new MediaTypeHeaderValue("application/json")));
+
+            string content = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> actual = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
+
+            // Assert
+            Assert.Single(actual);
+        }
+
+        private static MessageBoxQueryModel GetMessageBoxQueryModel(int instanceOwnerPartyId)
+        {
+            return new MessageBoxQueryModel
+            {
+                InstanceOwnerPartyIdList = new List<int>
+                {
+                    instanceOwnerPartyId
+                }
+            };
+        }
+
         private HttpClient GetTestClient(Mock<IInstanceRepository> instanceRepositoryMock = null)
         {
             // No setup required for these services. They are not in use by the MessageBoxInstancesController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
             Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
-            
+
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

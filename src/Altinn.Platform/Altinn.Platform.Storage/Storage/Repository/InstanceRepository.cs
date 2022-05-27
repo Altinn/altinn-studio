@@ -238,7 +238,7 @@ namespace Altinn.Platform.Storage.Repository
                             }
 
                             break;
-                        case "status.isActiveorSoftDeleted":
+                        case "status.isActiveOrSoftDeleted":
                             if (bool.Parse(queryValue))
                             {
                                 queryBuilder = queryBuilder.Where(i => !i.Status.IsArchived || i.Status.IsSoftDeleted);
