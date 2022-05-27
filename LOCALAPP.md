@@ -12,7 +12,7 @@ These are some of the required steps, tips and tricks when it comes to running a
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/MacOS, or install Docker from your package manager on Linux
+4. [Docker Desktop](https://www.docker.com/products/docker-desktop) (Linux users can also use native Docker)
 5. Update hosts file (`C:/Windows/System32/drivers/etc/hosts`) by adding the following values. On MacOS add the same values to `/private/etc/hosts` using cmd `sudo nano /private/etc/hosts`. On Linux, edit `/etc/hosts`.
    ```txt
    127.0.0.1 altinn3local.no
@@ -41,7 +41,7 @@ These are some of the required steps, tips and tricks when it comes to running a
 3. Start your app
    ```shell
    cd /path/to/your/App
-   dotnet run -p App.csproj
+   dotnet run
    ```
 
 The app and local platform services are now running locally. The app can be accessed on <http://altinn3local.no>.
