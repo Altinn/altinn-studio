@@ -33,11 +33,12 @@ These are some of the required steps, tips and tricks when it comes to running a
    time. If you need to run multiple apps at once, remove `--profile localtest` from the command and follow the
    instructions below to run LocalTest locally outside Docker.
    ```shell
-   docker-compose --profile localtest up -d --build
+   docker compose --profile localtest up -d --build
    ```
    Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
    or later. If your version does not support profiles and you prefer to run localtest in Docker, comment out
-   the profile restriction in `docker-compose.yml` first.
+   the profile restriction in `docker-compose.yml`, or follow [the instructions to install more a recent
+   version](https://docs.docker.com/engine/install/).
 3. Start your app
    ```shell
    cd /path/to/your/App
@@ -54,7 +55,7 @@ yourself needing to run multiple apps at the same time, or if you need to debug 
 preferred.
 
 :information_source: If you're already running LocalTest in Docker, be sure to stop the container or make sure you
-omit `--profile localtest` when running `docker-compose`.
+omit `--profile localtest` when running `docker compose`.
 
 **Configuration of LocalTest**
 The LocalTest application acts as an emulator of the Altinn 3 platform services. It provides things like authentication,
