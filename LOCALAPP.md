@@ -36,9 +36,9 @@ These are some of the required steps, tips and tricks when it comes to running a
    docker compose --profile localtest up -d --build
    ```
    Note: Using profiles requires docker-compose version [1.28.0](https://docs.docker.com/compose/release-notes/#1280)
-   or later. If your version does not support profiles and you prefer to run localtest in Docker, comment out
-   the profile restriction in `docker-compose.yml`, or follow [the instructions to install more a recent
-   version](https://docs.docker.com/engine/install/).
+   or later. If your version does not support profiles and you prefer to run localtest in Docker, make sure to follow
+   [the instructions to install more a recent version](https://docs.docker.com/engine/install/) or comment out
+   the profile restriction in `docker-compose.yml`.
 3. Start your app
    ```shell
    cd /path/to/your/App
