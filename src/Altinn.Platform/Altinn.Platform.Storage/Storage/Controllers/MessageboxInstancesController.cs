@@ -477,14 +477,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (queryModel.FromLastChanged != null)
             {
-                if (queryParams.TryGetValue("lastChanged", out StringValues lastChangedValues))
-                {
-                    StringValues.Concat(lastChangedValues, $"gte:{queryModel.FromLastChanged?.ToString(dateTimeFormat)}");
-                }
-                else
-                {
-                    queryParams.Add("lastChanged", $"gte:{queryModel.FromLastChanged?.ToString(dateTimeFormat)}");
-                }
+                queryParams.Add("lastChanged", $"gte:{queryModel.FromLastChanged?.ToString(dateTimeFormat)}");
             }
 
             if (queryModel.ToLastChanged != null)
@@ -501,14 +494,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (queryModel.FromCreated != null)
             {
-                if (queryParams.TryGetValue("created", out StringValues createdValues))
-                {
-                    StringValues.Concat(createdValues, $"gte:{queryModel.FromCreated?.ToString(dateTimeFormat)}");
-                }
-                else
-                {
-                    queryParams.Add("created", $"gte:{queryModel.FromCreated?.ToString(dateTimeFormat)}");
-                }
+                queryParams.Add("created", $"gte:{queryModel.FromCreated?.ToString(dateTimeFormat)}");
             }
 
             if (queryModel.ToCreated != null)
