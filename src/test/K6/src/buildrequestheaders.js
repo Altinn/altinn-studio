@@ -34,9 +34,21 @@ export function buildHearderWithRuntime(altinnStudioRuntimeCookie, api) {
 }
 
 //Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
-export function buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, api) {
+export function buildHearderWithRuntimeForSbl(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: { Authorization: 'Bearer ' + altinnStudioRuntimeCookie },
+  };
+  params = addSubscriptionKey(params, sblAccessSubscriptionKey, api);
+  return params;
+}
+
+//Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
+export function buildHearderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, api) {
+  var params = {
+    headers: {
+      Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
+      'Content-Type': 'application/json',
+    },
   };
   params = addSubscriptionKey(params, sblAccessSubscriptionKey, api);
   return params;

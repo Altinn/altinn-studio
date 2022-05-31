@@ -2,7 +2,7 @@ import http from 'k6/http';
 import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
 import * as support from '../../../support.js';
-import { httpGet } from '../../../wrapper.js';
+import { httpGet, httpPost } from '../../../wrapper.js';
 
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function getSblInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) {
@@ -64,4 +64,17 @@ export function searchSblInstances(altinnStudioRuntimeCookie, filters) {
   var endpoint = config.platformStorage['messageBoxInstances'] + '/search' + support.buildQueryParametersForEndpoint(filters);
   var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return httpGet(endpoint, params);
+}
+
+/**
+ * Api call to Storage:SBL to search for instances based on filter parameters
+ * @param {JSON} filters a JSON object with filters in keyvalue pairs
+ * @example {"key1": "value1", "key2": "value2"}
+ * @returns {JSON} response body, code and timings
+ */
+export function searchSblInstancesPost(altinnStudioRuntimeCookie, queryModel) {
+  var endpoint = config.platformStorage['messageBoxInstances'] + '/search';
+  var requestBody = JSON.stringify(queryModel);
+  var params = header.buildHearderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, 'platform');
+  return httpPost(endpoint, requestBody, params);
 }
