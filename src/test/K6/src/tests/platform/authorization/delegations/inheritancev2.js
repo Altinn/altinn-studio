@@ -496,7 +496,7 @@ export function deleteAllRules(performedByUserId, offeredByPartyId, coveredBy, c
 
 export function handleSummary(data) {
   let result = {};
-  result[reportPath('123authzDelegationInheritance.xml')] = generateJUnitXML(data, '123platform-authorization-delegation-inheritance');
+  result[reportPath('authzDelegationInheritancev2.xml')] = generateJUnitXML(data, 'platform-authorization-delegation-inheritance-v2');
   return result;
 }
 
