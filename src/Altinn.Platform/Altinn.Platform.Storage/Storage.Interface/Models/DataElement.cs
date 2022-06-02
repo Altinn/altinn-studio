@@ -84,6 +84,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "tags")]
         public List<string> Tags { get; set; } = new List<string>();
 
+        /// <summary>
+        /// Gets or sets the delete status of the data element.
+        /// </summary>
+        [JsonProperty(PropertyName = "deleteStatus")]
+        public DeleteStatus DeleteStatus { get; set; }
+
         /// <inheritdoc/>
         public override string ToString()
         {

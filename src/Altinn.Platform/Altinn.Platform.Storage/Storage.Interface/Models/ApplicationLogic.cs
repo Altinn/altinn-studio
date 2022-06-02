@@ -33,5 +33,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "allowAnonymousOnStateless")]
         public bool AllowAnonymousOnStateless { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a property indicating if data type should be automatically marked for hard deletion on process end.
+        /// </summary>
+        [JsonProperty(PropertyName = "autoDeleteOnProcessEnd")]
+        public bool AutoDeleteOnProcessEnd { get; set; }
     }
 }
