@@ -1,6 +1,9 @@
 {
   "id": "ttd/autodelete-data-app",
   "org": "ttd",
+  "title": {
+    "nb": "autodelete-data-ap"
+  },
   "created": "2022-06-01T10:02:41.0839253Z",
   "createdBy": "JohnnyDepp",
   "lastChanged": "2022-06-01T10:02:41.0839254Z",
