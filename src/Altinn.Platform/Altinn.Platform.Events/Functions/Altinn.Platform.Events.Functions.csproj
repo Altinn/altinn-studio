@@ -15,7 +15,7 @@
 <!--Waiting on workaround for QueueProcessor before upgrade to Microsoft.Azure.WebJobs.Extensions.Storage.Queue 5.0.0-->
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="4.0.5" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.18.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.1.0" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.1.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
