@@ -203,15 +203,13 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (!appOwnerRequestingInstances)
                 {
-                    result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
-                    result.Count = result.Instances.Count;
-
-                    // This would be a natural place to filter out all hard deleted data elements,
-                    // but would love to do it in the repository to better help performance.
                     foreach (Instance instance in result.Instances)
                     {
                         FilterOutDeletedDataElements(instance);
                     }
+
+                    result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
+                    result.Count = result.Instances.Count;
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);

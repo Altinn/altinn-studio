@@ -98,7 +98,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (delay)
             {
-                // consideration: what happens if you try to delete an already harddeleted dataElement? 404? 
                 (Application application, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
                 if (application == null)
                 {
@@ -529,7 +528,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             await _dataRepository.Update(dataElement);
 
-            // consideration: should a dataelement deleted instanceEvent be disbatched here?? 
             return Ok(dataElement);
         }
 
