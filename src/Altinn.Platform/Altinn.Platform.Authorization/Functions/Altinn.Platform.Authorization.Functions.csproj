@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.2-mauipre.1.22102.15" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.5" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.0.6" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
