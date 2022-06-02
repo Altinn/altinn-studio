@@ -14,7 +14,7 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({
       // TODO: enable once we have cleaned up our store
       serializableCheck: false,
-      immutableCheck: false,
+      immutableCheck: true,
     }).concat(middlewares),
     preloadedState
   });

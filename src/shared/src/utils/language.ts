@@ -84,69 +84,80 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
   return textResource ? textResource.value : key;
 }
 
+/**
+ * Replaces all variables in text resources with values from relevant source.
+ * @param textResources the original text resources
+ * @param dataSources the data sources
+ * @param repeatingGroups the repeating groups
+ * @returns a new array with replaced values.
+ */
 export function replaceTextResourceParams(
   textResources: ITextResource[],
   dataSources: IDataSources,
   repeatingGroups?: any,
 ): ITextResource[] {
-  let replaceValues: string[];
-  const resourcesWithVariables = textResources?.filter((resource) => resource.variables);
-  resourcesWithVariables?.forEach((resource) => {
-    const variableForRepeatingGroup = resource.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
-    if (repeatingGroups && variableForRepeatingGroup) {
-      const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
-        const id = variableForRepeatingGroup.key.split('[{0}]')[0];
-        return repeatingGroups[groupId].dataModelBinding === id;
-      });
-      const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
+  const repeatingGroupResources: ITextResource[] = [];
+  const mappedResources = textResources.map((textResource: ITextResource) => {
+    const textResourceCopy = { ...textResource };
+    if (textResourceCopy.variables) {
+      const variableForRepeatingGroup = textResourceCopy.variables.find((variable) => variable.key.indexOf('[{0}]') > -1);
+      if (repeatingGroups && variableForRepeatingGroup) {
+        const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
+          const id = variableForRepeatingGroup.key.split('[{0}]')[0];
+          return repeatingGroups[groupId].dataModelBinding === id;
+        });
+        const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
 
-      for (let i = 0; i <= repeatingGroupIndex; ++i) {
-        replaceValues = [];
-        resource.variables.forEach((variable) => {
-          if (variable.dataSource.startsWith('dataModel')) {
-            if (variable.key.indexOf('[{0}]') > -1) {
-              const keyWithIndex = variable.key.replace('{0}', `${i}`);
-              replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
-            } else {
-              replaceValues.push(dataSources.dataModel[variable.key] || '');
+        for (let i = 0; i <= repeatingGroupIndex; ++i) {
+          const replaceValues: string[] = [];
+          textResourceCopy.variables.forEach((variable) => {
+            if (variable.dataSource.startsWith('dataModel')) {
+              if (variable.key.indexOf('[{0}]') > -1) {
+                const keyWithIndex = variable.key.replace('{0}', `${i}`);
+                replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
+              } else {
+                replaceValues.push(dataSources.dataModel[variable.key] || '');
+              }
             }
+          });
+          const newValue = replaceParameters(textResourceCopy.unparsedValue, replaceValues);
+
+          if (textResourceCopy.repeating && textResourceCopy.id.endsWith(`-${i}`)) {
+            textResourceCopy.value = newValue;
+          } else if (!textResourceCopy.repeating && textResources.findIndex((r) => r.id === `${textResourceCopy.id}-${i}`) === -1) {
+            const newId = `${textResourceCopy.id}-${i}`;
+            repeatingGroupResources.push({
+              ...textResourceCopy,
+              id: newId,
+              value: newValue,
+              repeating: true,
+            });
+          }
+        }
+      } else {
+        const replaceValues: string[] = [];
+        textResourceCopy.variables.forEach((variable) => {
+          if (variable.dataSource.startsWith('dataModel')) {
+            replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
+          }
+          else if (variable.dataSource === 'applicationSettings') {
+            replaceValues.push(dataSources.applicationSettings[variable.key] || variable.key);
+          }
+          else if (variable.dataSource === 'instanceContext') {
+            replaceValues.push(dataSources.instanceContext[variable.key] || variable.key);
           }
         });
-        const newValue = replaceParameters(resource.unparsedValue, replaceValues);
 
-        if (resource.repeating && resource.id.endsWith(`-${i}`)) {
-          resource.value = newValue;
-        } else if (!resource.repeating && textResources.findIndex((r) => r.id === `${resource.id}-${i}`) === -1) {
-          const newId = `${resource.id}-${i}`;
-          textResources.push({
-            ...resource,
-            id: newId,
-            value: newValue,
-            repeating: true,
-          });
+        const newValue = replaceParameters(textResourceCopy.unparsedValue, replaceValues);
+        if (textResourceCopy.value !== newValue) {
+          textResourceCopy.value = newValue;
         }
-      }
-    } else {
-      replaceValues = [];
-      resource.variables.forEach((variable) => {
-        if (variable.dataSource.startsWith('dataModel')) {
-          replaceValues.push(dataSources.dataModel[variable.key] || variable.key);
-        }
-        else if (variable.dataSource === 'applicationSettings') {
-          replaceValues.push(dataSources.applicationSettings[variable.key] || variable.key);
-        }
-        else if (variable.dataSource === 'instanceContext') {
-          replaceValues.push(dataSources.instanceContext[variable.key] || variable.key);
-        }
-      });
-
-      const newValue = replaceParameters(resource.unparsedValue, replaceValues);
-      if (resource.value !== newValue) {
-        resource.value = newValue;
       }
     }
+    return textResourceCopy;
   });
-  return textResources;
+
+  return mappedResources.concat(repeatingGroupResources);
 }
 
 export function getAppOwner(
@@ -154,7 +165,7 @@ export function getAppOwner(
   orgs: IAltinnOrgs,
   org: string,
   userLanguage: string,
-  ) {
+) {
 
   const appOwner = getTextResourceByKey('appOwner', textResources);
   if (appOwner !== 'appOwner') {
@@ -176,20 +187,20 @@ export function getAppName(
   textResources: ITextResource[],
   applicationMetadata: IApplication,
   userLanguage: string
-  ) {
-    let appName = getTextResourceByKey(appNameKey, textResources);
-    if (appName === appNameKey) {
-      appName = getTextResourceByKey(oldAppNameKey, textResources);
-    }
+) {
+  let appName = getTextResourceByKey(appNameKey, textResources);
+  if (appName === appNameKey) {
+    appName = getTextResourceByKey(oldAppNameKey, textResources);
+  }
 
-    if (appName !== appNameKey && appName !== oldAppNameKey) {
-      return appName;
-    }
+  if (appName !== appNameKey && appName !== oldAppNameKey) {
+    return appName;
+  }
 
-    // if no text resource key is set, fetch from app metadata
-    if (applicationMetadata) {
-        return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
-    }
+  // if no text resource key is set, fetch from app metadata
+  if (applicationMetadata) {
+    return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+  }
 
-    return undefined;
+  return undefined;
 }

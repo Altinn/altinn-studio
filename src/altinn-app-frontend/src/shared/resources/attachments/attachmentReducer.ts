@@ -141,6 +141,23 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       });
     }
 
+    case (AttachmentActionsTypes.DELETE_ATTACHMENT): {
+      const { attachment, attachmentType } =
+        action as deleteActions.IDeleteAttachmentAction;
+      const newAttachment = { ...attachment, deleting: true };
+      const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
+      if (index < 0) {
+        return state;
+      }
+      return update<IAttachmentState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: newAttachment },
+          },
+        },
+      });
+    }
+
     case (AttachmentActionsTypes.DELETE_ATTACHMENT_FULFILLED): {
       const { attachmentId: id, attachmentType } = action as deleteActions.IDeleteAttachmentActionFulfilled;
       return update<IAttachmentState>(state, {
