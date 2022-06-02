@@ -119,12 +119,12 @@ __metadata:
     bootstrap-list-filter: ^0.3.4
     chokidar: ^3.5.3
     cross-env: ^7.0.3
-    del: ^6.0.0
+    del: ^6.1.1
     gulp: ^4.0.2
     gulp-run-command: ^0.0.10
     jquery: ^3.6.0
     jquery-ui-dist: ^1.13.1
-    jquery-validation: ^1.19.3
+    jquery-validation: ^1.19.4
     jquery-validation-unobtrusive: ^3.2.12
     js-beautify: ^1.14.3
     json-editor: ^0.7.28
@@ -962,9 +962,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"del@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "del@npm:6.0.0"
+"del@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "del@npm:6.1.1"
   dependencies:
     globby: ^11.0.1
     graceful-fs: ^4.2.4
@@ -974,7 +974,7 @@ __metadata:
     p-map: ^4.0.0
     rimraf: ^3.0.2
     slash: ^3.0.0
-  checksum: 5742891627e91aaf62385714025233f4664da28bc55b6ab825649dcdea4691fed3cf329a2b1913fd2d2612e693e99e08a03c84cac7f36ef54bacac9390520192
+  checksum: 563288b73b8b19a7261c47fd21a330eeab6e2acd7c6208c49790dfd369127120dd7836cdf0c1eca216b77c94782a81507eac6b4734252d3bef2795cb366996b6
   languageName: node
   linkType: hard
 
@@ -2185,12 +2185,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-validation@npm:>=1.16, jquery-validation@npm:^1.19.3":
+"jquery-validation@npm:>=1.16":
   version: 1.19.3
   resolution: "jquery-validation@npm:1.19.3"
   peerDependencies:
     jquery: ^1.7 || ^2.0 || ^3.1
   checksum: f4a1a5a43667e4de72d1e83eab8c065d7fa0663179550e3ec5c40205c6fb8ccf38915883ab17c74a552d22db35d44e3ebec70f1b9550a03123403cdb8be7a1ed
+  languageName: node
+  linkType: hard
+
+"jquery-validation@npm:^1.19.4":
+  version: 1.19.4
+  resolution: "jquery-validation@npm:1.19.4"
+  peerDependencies:
+    jquery: ^1.7 || ^2.0 || ^3.1
+  checksum: 01f9f81a99c436829e7bd8d9e7a47ffe591a09a6f4fec3573bf962563884a2d5ae5a03c5145d76b4f167182418d716c1e6674e9d3d7f414ffe34cfcccf14ca48
   languageName: node
   linkType: hard
 
