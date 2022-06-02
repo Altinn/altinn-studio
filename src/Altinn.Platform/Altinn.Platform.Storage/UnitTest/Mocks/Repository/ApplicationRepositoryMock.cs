@@ -70,7 +70,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
                                 appTitles.Add(application.Id, titles);
                             }
-
                         }
                     }
                 }

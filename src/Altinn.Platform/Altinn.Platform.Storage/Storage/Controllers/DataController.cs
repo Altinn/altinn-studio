@@ -40,7 +40,6 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
 
-        private readonly ILogger _logger;
         private readonly string _storageBaseAndHost;
 
         /// <summary>
@@ -51,20 +50,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="instanceEventRepository">the instance event repository</param>
         /// <param name="generalSettings">the general settings.</param>
-        /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
             IInstanceEventRepository instanceEventRepository,
-            IOptions<GeneralSettings> generalSettings,
-            ILogger<DataController> logger)
+            IOptions<GeneralSettings> generalSettings)
         {
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
             _instanceEventRepository = instanceEventRepository;
-            _logger = logger;
             _storageBaseAndHost = $"{generalSettings.Value.Hostname}/storage/api/v1/";
         }
 
@@ -111,7 +107,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest($"DataType {dataElement.DataType} does not support delayed deletion");
                 }
 
-                return await InitiateDelayedDelete(instance, dataElement, instanceGuid, dataGuid);
+                return await InitiateDelayedDelete(dataElement);
             }
 
             return await DeleteImmediately(instance, dataElement, instanceGuid, dataGuid);
@@ -516,7 +512,7 @@ namespace Altinn.Platform.Storage.Controllers
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
 
-        private async Task<ActionResult<DataElement>> InitiateDelayedDelete(Instance instance, DataElement dataElement, Guid instanceGuid, Guid dataGuid)
+        private async Task<ActionResult<DataElement>> InitiateDelayedDelete(DataElement dataElement)
         {
             DateTime deletedTime = DateTime.UtcNow;
 
@@ -543,6 +539,5 @@ namespace Altinn.Platform.Storage.Controllers
 
             return Ok(dataElement);
         }
-
     }
 }
