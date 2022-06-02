@@ -115,7 +115,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return await InitiateDelayedDelete(instance, dataElement, instanceGuid, dataGuid);
             }
 
-            return await DeleteImmedietly(instance, dataElement, instanceGuid, dataGuid);
+            return await DeleteImmediately(instance, dataElement, instanceGuid, dataGuid);
         }
 
         /// <summary>
@@ -533,7 +533,7 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(dataElement);
         }
 
-        private async Task<ActionResult<DataElement>> DeleteImmedietly(Instance instance, DataElement dataElement, Guid instanceGuid, Guid dataGuid)
+        private async Task<ActionResult<DataElement>> DeleteImmediately(Instance instance, DataElement dataElement, Guid instanceGuid, Guid dataGuid)
         {
             string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
 
