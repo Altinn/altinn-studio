@@ -47,6 +47,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Altinn.Platform.Storage.Interface.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

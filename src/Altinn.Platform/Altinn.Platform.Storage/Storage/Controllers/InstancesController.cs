@@ -128,8 +128,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
-
-            bool isOrgQuerying = false;
+            bool appOwnerRequestingInstances = false;
 
             // if user is org
             string orgClaim = User.GetOrg();
@@ -137,8 +136,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (orgClaim != null)
             {
-                isOrgQuerying = true;
-
                 if (!_authzHelper.ContainsRequiredScope(_generalSettings.InstanceReadScope, User))
                 {
                     return Forbid();
@@ -155,6 +152,8 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return Forbid();
                 }
+
+                appOwnerRequestingInstances = true;
             }
             else if (userId != null)
             {
@@ -176,10 +175,17 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            // filter out hard deleted instances if user is requesting instances          
-            if (userId != null && !queryParams.ContainsKey("status.isHardDeleted"))
+            // filter out hard deleted instances if it isn't appOwner requesting instances
+            if (!appOwnerRequestingInstances)
             {
-                queryParams.Add("status.isHardDeleted", "false");
+                if (queryParams.ContainsKey("status.isHardDeleted"))
+                {
+                    queryParams["status.isHardDeleted"] = "false";
+                }
+                else
+                {
+                    queryParams.Add("status.isHardDeleted", "false");
+                }
             }
 
             string host = $"https://platform.{_generalSettings.Hostname}";
@@ -195,10 +201,17 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest(result.Exception);
                 }
 
-                if (!isOrgQuerying)
+                if (!appOwnerRequestingInstances)
                 {
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
+
+                    // This would be a natural place to filter out all hard deleted data elements,
+                    // but would love to do it in the repository to better help performance.
+                    foreach (Instance instance in result.Instances)
+                    {
+                        FilterOutDeletedDataElements(instance);
+                    }
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
@@ -267,6 +280,13 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+
+                bool appOwnerRequestingElement = User.GetOrg() == result.Org;
+                if (!appOwnerRequestingElement)
+                {
+                    FilterOutDeletedDataElements(result);
+                }
+
                 result.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 return Ok(result);
@@ -779,6 +799,14 @@ namespace Altinn.Platform.Storage.Controllers
             string nextQueryString = qb.ToQueryString().Value;
 
             return nextQueryString;
+        }
+
+        private static void FilterOutDeletedDataElements(Instance instance)
+        {
+            if (instance.Data != null)
+            {
+                instance.Data = instance.Data.Where(d => d.DeleteStatus?.IsHardDeleted != true).ToList();
+            }
         }
 
         private string GetUserId()
