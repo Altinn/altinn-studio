@@ -29,7 +29,7 @@ export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userTy
   var requestBody = '{"instanceOwner":{}}';
   requestBody = JSON.parse(requestBody);
   var endpoint = config.appApiBaseUrl(appOwner, appName) + '/instances';
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'app');
   if (userType == 'ssn') {
     requestBody.instanceOwner.personNumber = value;
   } else if (userType == 'org') {
@@ -50,7 +50,7 @@ export function isReceiptPdfGenerated(responseJson) {
 //Api call to update the sub status of an app instance and return the response
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName, statusLabel, statusDescription) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'substatus');
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'app');
   var requestBody = JSON.parse('{}');
   requestBody.label = statusLabel;
   requestBody.description = statusDescription;
@@ -120,7 +120,7 @@ export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
  */
 export function postSimplifiedInstantiation(altinnToken, appOwner, appName, instanceInfo) {
   var endpoint = `${config.appApiBaseUrl(appOwner, appName)}/instances/create`;
-  var params = header.buildHeaderWithRuntimeandJson(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'app');
   var body = JSON.stringify(instanceInfo);
   return http.post(endpoint, body, params);
 }

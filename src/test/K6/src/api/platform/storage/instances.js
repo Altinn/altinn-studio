@@ -16,7 +16,7 @@ import * as support from '../../../support.js';
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName, instanceJson) {
   var appId = appOwner + '/' + appName;
   var endpoint = config.platformStorage['instances'] + '?appId=' + appId;
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestbody = JSON.stringify(buildInstanceInputJson(instanceJson, appId, partyId));
   return http.post(endpoint, requestbody, params);
 }
@@ -166,7 +166,7 @@ function buildArrayWithHardDeletedInstanceIds(instancesArray) {
 //Api call to Storage:Instances to update the sub status of an instance and return response
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, statusLabel, statusDescription) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'substatus');
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.parse('{}');
   requestBody.label = statusLabel;
   requestBody.description = statusDescription;
@@ -183,7 +183,7 @@ export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceI
  */
 export function putUpdatePresentationTexts(token, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'presentationtexts');
-  var params = header.buildHeaderWithRuntimeandJson(token, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(token, 'platform');
   var requestBody = {
     texts: {
       text1: 'test',
@@ -201,7 +201,7 @@ export function putUpdatePresentationTexts(token, partyId, instanceId) {
  */
 export function putUpdateDataValues(token, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'datavalues');
-  var params = header.buildHeaderWithRuntimeandJson(token, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(token, 'platform');
   var requestBody = {
     values: {
       value1: 'test',

@@ -21,6 +21,6 @@ export function postPartieslookup(altinnStudioRuntimeCookie, type, value) {
   var endpoint = config.platformRegister['lookup'];
   var requestBody = type == 'ssn' ? { SSN: value } : { OrgNo: value };
   requestBody = JSON.stringify(requestBody);
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   return http.post(endpoint, requestBody, params);
 }

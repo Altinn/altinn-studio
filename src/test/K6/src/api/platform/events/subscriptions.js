@@ -11,7 +11,7 @@ import * as header from '../../../buildrequestheaders.js';
  */
 export function postSubscriptions(altinnStudioRuntimeToken, subject, subjectType, orgName, appName) {
   var endpoint = config.platformEvents['subscriptions'];
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeToken, 'platform');
   var subjectFilter = subjectType === 'person' ? `/person/${subject}` : `/organisation/${subject}`;
   var body = {
     endPoint: 'https://www.altinn.no/',

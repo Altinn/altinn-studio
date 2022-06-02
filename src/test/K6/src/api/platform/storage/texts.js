@@ -12,7 +12,7 @@ export function getAppTexts(altinnStudioRuntimeCookie, appOwner, appName, langua
 //Api call to Storage:Applications to POST upload app texts of a specific language and returns response
 export function postAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName + '/texts';
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(buildTextResourcesJson(appOwner, appName, language));
   return http.post(endpoint, requestBody, params);
 }

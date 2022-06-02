@@ -13,7 +13,7 @@ export function getProfile(userId, altinnStudioRuntimeCookie) {
 //Request to get user profile by SSN in body and returns the response
 export function postFetchProfileBySSN(ssn, altinnStudioRuntimeCookie) {
   var endpoint = config.platformProfile['users'];
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(ssn);
   var res = http.post(endpoint, requestBody, params);
   return res;

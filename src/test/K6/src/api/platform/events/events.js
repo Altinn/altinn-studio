@@ -10,7 +10,7 @@ import * as support from '../../../support.js';
  */
 export function postEvents(altinnStudioRuntimeToken) {
   var endpoint = config.platformEvents['events'];
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeToken, 'platform');
   var body = [
     {
       id: '24f6554b-6e23-4132-9a72-0ac3c91478d3',

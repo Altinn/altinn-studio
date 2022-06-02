@@ -43,7 +43,7 @@ export function buildHeaderWithRuntimeForSbl(altinnStudioRuntimeCookie, api) {
 }
 
 //Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
-export function buildHeaderWithRuntimeandJsonForSbl(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: {
       Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
@@ -55,7 +55,7 @@ export function buildHeaderWithRuntimeandJsonForSbl(altinnStudioRuntimeCookie, a
 }
 
 //Function to build headers with altinnStudioRuntimeCookie and JSON content-type and returns a json object
-export function buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: {
       Authorization: 'Bearer ' + altinnStudioRuntimeCookie,

@@ -20,7 +20,7 @@ export function getAppByName(altinnStudioRuntimeCookie, appOwner, appName) {
 //Api call to Storage:Applications to create an application with app metadata and returns response code
 export function postCreateApp(altinnStudioRuntimeCookie, appOwner, appName, metadata) {
   var endpoint = config.platformStorage['applications'] + '?appId=' + appOwner + '/' + appName;
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(metadata);
   return http.post(endpoint, requestBody, params);
 }
@@ -28,7 +28,7 @@ export function postCreateApp(altinnStudioRuntimeCookie, appOwner, appName, meta
 //Api call to Storage:Applications to Edit an application with app metadata and returns response code
 export function putEditApp(altinnStudioRuntimeCookie, appOwner, appName, metadata) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName;
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(metadata);
   return http.put(endpoint, requestBody, params);
 }

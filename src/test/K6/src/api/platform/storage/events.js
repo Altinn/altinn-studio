@@ -5,7 +5,7 @@ import * as header from '../../../buildrequestheaders.js';
 //Api call to Platform:Storage to add an event to an instance
 export function postAddEvent(altinnStudioRuntimeCookie, partyId, instanceId, eventData) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'events');
-  var params = header.buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   eventData = JSON.parse(eventData);
   eventData.instanceOwnerId = partyId;
   eventData.instanceId = partyId + '/' + instanceId;

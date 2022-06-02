@@ -5,7 +5,7 @@ import * as header from '../../../buildrequestheaders.js';
 //API call to edit the process of an instance
 export function putProcess(runtimeToken, partyId, instanceId, processJson) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'process');
-  var params = header.buildHeaderWithRuntimeandJson(runtimeToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(runtimeToken, 'platform');
   var requestBody = JSON.stringify(processJson);
   return http.put(endpoint, requestBody, params);
 }
