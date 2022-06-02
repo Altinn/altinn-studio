@@ -7,28 +7,28 @@ import { httpGet, httpPost } from '../../../wrapper.js';
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function getSblInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'sblinstanceid');
-  var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, hardDelete) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'sblinstanceid') + '?hard=' + hardDelete;
-  var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return http.del(endpoint, '', params);
 }
 
 //Api call to Storage:SBL instances to restore a soft deleted instance
 export function restoreSblInstance(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'sblinstanceid') + '/undelete';
-  var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return http.put(endpoint, '', params);
 }
 
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function getSblInstanceEvents(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'sblinstanceid') + '/events';
-  var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -62,7 +62,7 @@ export function filterInstancesByAppName(appNames, responseJson) {
  */
 export function searchSblInstances(altinnStudioRuntimeCookie, filters) {
   var endpoint = config.platformStorage['messageBoxInstances'] + '/search' + support.buildQueryParametersForEndpoint(filters);
-  var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeforSbl(altinnStudioRuntimeCookie, 'platform');
   return httpGet(endpoint, params);
 }
 
@@ -75,6 +75,6 @@ export function searchSblInstances(altinnStudioRuntimeCookie, filters) {
 export function searchSblInstancesPost(altinnStudioRuntimeCookie, queryModel) {
   var endpoint = config.platformStorage['messageBoxInstances'] + '/search';
   var requestBody = JSON.stringify(queryModel);
-  var params = header.buildHearderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, 'platform');
   return httpPost(endpoint, requestBody, params);
 }

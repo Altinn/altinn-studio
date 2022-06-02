@@ -25,7 +25,7 @@ export function buildHeadersForData(isBinaryAttachment, binaryAttachmentType, al
 }
 
 //Function to build headers with altinnStudioRuntimeCookie and returns a json object
-export function buildHearderWithRuntime(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntime(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: { Authorization: 'Bearer ' + altinnStudioRuntimeCookie },
   };
@@ -34,7 +34,7 @@ export function buildHearderWithRuntime(altinnStudioRuntimeCookie, api) {
 }
 
 //Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
-export function buildHearderWithRuntimeForSbl(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeForSbl(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: { Authorization: 'Bearer ' + altinnStudioRuntimeCookie },
   };
@@ -43,7 +43,7 @@ export function buildHearderWithRuntimeForSbl(altinnStudioRuntimeCookie, api) {
 }
 
 //Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
-export function buildHearderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeandJsonForSbl(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: {
       Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
@@ -55,7 +55,7 @@ export function buildHearderWithRuntimeAndJsonForSbl(altinnStudioRuntimeCookie, 
 }
 
 //Function to build headers with altinnStudioRuntimeCookie and JSON content-type and returns a json object
-export function buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeandJson(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: {
       Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
@@ -110,7 +110,7 @@ export function buildHeaderWithSubsKey(api) {
  * @param {String} api platform or app
  * @returns {JSON} a JSON object with the header values for Authorization and content-type: multipart/formdata
  */
-export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, api) {
+export function buildHeaderWithRuntimeForMultipart(altinnStudioRuntimeCookie, api) {
   var params = {
     headers: {
       Authorization: 'Bearer ' + altinnStudioRuntimeCookie,
