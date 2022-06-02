@@ -1,13 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 using Altinn.Common.PEP.Interfaces;
-
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
@@ -408,7 +405,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            dataRepositoryMock.VerifyAll(); 
+            dataRepositoryMock.VerifyAll();
         }
 
         [Fact]
@@ -427,7 +424,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             dataRepositoryMock
                 .Setup(dr => dr.Delete(It.IsAny<DataElement>()))
                 .ReturnsAsync(true);
-                
+
             string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe30";
             HttpClient client = GetTestClient(dataRepositoryMock);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
@@ -450,7 +447,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
-                {               
+                {
                     services.AddMockRepositories();
 
                     if (repositoryMock != null)
