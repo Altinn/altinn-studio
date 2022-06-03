@@ -94,7 +94,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             bool appOwnerDeletingElement = User.GetOrg() == instance.Org;
 
-
             if (!appOwnerDeletingElement && dataElement.DeleteStatus?.IsHardDeleted == true)
             {
                 return NotFound();

@@ -222,7 +222,7 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                QueryResponse<Instance> response = new QueryResponse<Instance>
+                QueryResponse<Instance> response = new()
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
@@ -795,6 +795,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             return User.GetUserOrOrgId();
         }
+
         private string BuildRequestLink(string continuationToken = null, Dictionary<string, StringValues> queryParams = null)
         {
             string host = $"https://platform.{_generalSettings.Hostname}";
@@ -818,8 +819,5 @@ namespace Altinn.Platform.Storage.Controllers
                 return selfUrl;
             }
         }
-
     }
-
-
 }
