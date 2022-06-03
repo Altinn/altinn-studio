@@ -396,22 +396,6 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
 }
 
 /**
- * Verifies that when a delegation is made from a main unit (org1) to another organization (org2), the DAGL for org2 has access to org1 and its sub units
- */
-export function delegationFromMainUnitToOrgIsInheritedByTheOrgsDAGL() {
-  var res, success, policyMatchKeys, ruleId, resources;
-  resources = [{ appOwner: appOwner, appName: appName }];
-}
-
-/**
- * Verifies that when a delegation is made from a main unit (org1) to another organization (org2), enterprise users for org2 also have access to org1 and its sub units
- */
-export function delegationFromMainUnitToOrgIsInheritedByTheOrgsECUserViaKeyRole() {
-  var res, success, policyMatchKeys, ruleId, resources;
-  resources = [{ appOwner: appOwner, appName: appName }];
-}
-
-/**
  * Helper function to quickly add rules for testing purposes
  * @param {*} performedByUserId The userId of the person who performed the delegation
  * @param {*} offeredByPartyId  The partyId of the user/org giving the rule
