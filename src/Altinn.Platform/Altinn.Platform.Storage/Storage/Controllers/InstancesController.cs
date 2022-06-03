@@ -190,7 +190,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return new QueryResponse<Instance>()
                     {
                         Instances = new(),
-                        Self = BuildRequestLink(continuationToken)
+                        Self = BuildRequestLink(selfContinuationToken)
                     };
                 }
                 else if (!queryParams.ContainsKey("status.isHardDeleted"))
@@ -226,7 +226,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
-                    Self = BuildRequestLink(continuationToken, queryParams)
+                    Self = BuildRequestLink(selfContinuationToken, queryParams)
                 };
 
                 if (!string.IsNullOrEmpty(nextContinuationToken))
