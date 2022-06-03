@@ -11,6 +11,7 @@ These instructions will get you run the integration tests on altinn-app-frontend
 ```cmd
     yarn --immutable # only needed first time, or when dependencies are updated
 ```
+
 ### Test data prerequisite
 
 1. For running the test against remote test environments like AT, TT02, test user has to be created. You won't need
@@ -39,6 +40,7 @@ when files are deleted from `e2e/fixtures`.
 Be sure to supply credentials to `cypress.env.json` as described above.
 
 1. Start your local development server for `app-frontend-react`:
+
 ```cmd
     yarn run start:frontend
 ```
@@ -50,6 +52,7 @@ If you have the frontend dependencies installed from before, run the below comma
 ```
 
 2. Run the tests against a remote environment:
+
 ```cmd
     yarn run test:all -e environment=at21
 ```
@@ -86,6 +89,12 @@ or
 
 ```cmd
     yarn run test:stateless -e environment=local
+```
+
+or
+
+```cmd
+    yarn run test:stateless-anonymous -e environment=local
 ```
 
 ### Running a single test

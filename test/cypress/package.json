@@ -31,15 +31,16 @@
     "before:appfrontend-no-deps": "run-p start:localtest start:app start:frontend-no-deps",
     "test:frontend": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-frontend/*.js'",
     "test:stateless": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-stateless/*.js'",
+    "test:stateless-anonymous": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/app-stateless-anonymous/*.js'",
     "test:all": "yarn run delete:reports && cypress run -b chrome -s 'e2e/integration/*/*.js'",
     "test:all:headless": "cypress run -s 'e2e/integration/*/*.js'"
   },
   "devDependencies": {
     "axe-core": "^4.4.2",
-    "cypress": "^9.6.1",
+    "cypress": "^10.0.1",
     "cypress-axe": "^0.14.0",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^8.15.0",
+    "eslint": "^8.16.0",
     "eslint-plugin-cypress": "^2.12.1",
     "fs-extra": "^10.1.0",
     "path": "^0.12.7",
