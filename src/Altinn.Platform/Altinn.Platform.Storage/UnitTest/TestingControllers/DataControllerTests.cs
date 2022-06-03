@@ -490,7 +490,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                     if (repositoryMock != null)
                     {
-                        services.AddSingleton<IDataRepository>(repositoryMock.Object);
+                        services.AddSingleton(repositoryMock.Object);
                     }
 
                     services.AddSingleton(sasTokenProvider.Object);

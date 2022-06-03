@@ -178,19 +178,26 @@ namespace Altinn.Platform.Storage.Controllers
             // filter out hard deleted instances if it isn't appOwner requesting instances
             if (!appOwnerRequestingInstances)
             {
-                if (queryParams.ContainsKey("status.isHardDeleted"))
+                bool requestingHardDeleted = false;
+
+                if (queryParams.TryGetValue("status.isHardDeleted", out StringValues hardDeletedQueryValue))
+                {
+                    _ = bool.TryParse(hardDeletedQueryValue.Single(), out requestingHardDeleted);
+                }
+
+                if (requestingHardDeleted)
+                {
+                    return new QueryResponse<Instance>()
+                    {
+                        Instances = new(),
+                        Self = BuildRequestLink(continuationToken)
+                    };
+                }
+                else if (!queryParams.ContainsKey("status.isHardDeleted"))
                 {
                     queryParams["status.isHardDeleted"] = "false";
                 }
-                else
-                {
-                    queryParams.Add("status.isHardDeleted", "false");
-                }
             }
-
-            string host = $"https://platform.{_generalSettings.Hostname}";
-            string url = Request.Path;
-            string query = Request.QueryString.Value;
 
             try
             {
@@ -219,35 +226,12 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
+                    Self = BuildRequestLink(continuationToken, queryParams)
                 };
-
-                if (continuationToken == null)
-                {
-                    string selfUrl = $"{host}{url}{query}";
-                    response.Self = selfUrl;
-                }
-                else
-                {
-                    string selfQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        selfContinuationToken);
-
-                    string selfUrl = $"{host}{url}{selfQueryString}";
-
-                    response.Self = selfUrl;
-                }
 
                 if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
-                    string nextQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        nextContinuationToken);
-
-                    string nextUrl = $"{host}{url}{nextQueryString}";
-
-                    response.Next = nextUrl;
+                    response.Next = BuildRequestLink(nextContinuationToken, queryParams);
                 }
 
                 // add self links to platform
@@ -811,5 +795,31 @@ namespace Altinn.Platform.Storage.Controllers
         {
             return User.GetUserOrOrgId();
         }
+        private string BuildRequestLink(string continuationToken = null, Dictionary<string, StringValues> queryParams = null)
+        {
+            string host = $"https://platform.{_generalSettings.Hostname}";
+            string url = Request.Path;
+            string query = Request.QueryString.Value;
+
+            if (continuationToken == null)
+            {
+                string selfUrl = $"{host}{url}{query}";
+                return selfUrl;
+            }
+            else
+            {
+                string selfQueryString = BuildQueryStringWithOneReplacedParameter(
+                    queryParams,
+                    "continuationToken",
+                    continuationToken);
+
+                string selfUrl = $"{host}{url}{selfQueryString}";
+
+                return selfUrl;
+            }
+        }
+
     }
+
+
 }
