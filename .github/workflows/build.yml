@@ -16,22 +16,30 @@ jobs:
         with:
           path: app-frontend
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
       - name: install node
         uses: actions/setup-node@v2
         with:
           node-version: '16'
+
       - name: install dependencies
         working-directory: app-frontend/src
+        env:
+          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
+
       - name: run build
         working-directory: app-frontend/src/altinn-app-frontend
         run: yarn build
+
       - name: run eslint
         working-directory: app-frontend/src
         run: yarn lint
+
       - name: run tests
         working-directory: app-frontend/src
         run: yarn test --coverage
+
       - name: SonarCloud Scan
         with:
           projectBaseDir: app-frontend

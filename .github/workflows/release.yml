@@ -21,6 +21,8 @@ jobs:
 
       - name: install dependencies
         working-directory: app-frontend/src
+        env:
+          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
       - name: run build

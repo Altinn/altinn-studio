@@ -38,6 +38,8 @@ jobs:
           node-version: '16'
 
       - name: Install altinn-app-frontend dependencies
+        env:
+          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
         working-directory: src
 
@@ -74,6 +76,8 @@ jobs:
           node-version: '16'
 
       - name: Install altinn-app-frontend dependencies
+        env:
+          GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
         working-directory: src
 
