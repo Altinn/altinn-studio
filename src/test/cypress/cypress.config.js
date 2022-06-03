@@ -23,7 +23,6 @@ module.exports = defineConfig({
   },
   video: false,
   fixturesFolder: 'e2e/fixtures',
-  pluginsFile: 'e2e/plugins/index.js',
   downloadsFolder: 'downloads',
   screenshotOnRunFailure: true,
   screenshotsFolder: 'screenshots',
