@@ -35,7 +35,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
     {
         private readonly TestApplicationFactory<DataController> _factory;
         private readonly string _versionPrefix = "/storage/api/v1";
-        private readonly Mock<IDataRepository> dataRepositoryMock;
         private readonly JsonSerializerOptions _serializerOptions;
 
         /// <summary>
@@ -45,7 +44,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public DataControllerTests(TestApplicationFactory<DataController> factory)
         {
             _factory = factory;
-            dataRepositoryMock = new();
             _serializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         }
 
@@ -388,6 +386,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe30");
+            Mock<IDataRepository> dataRepositoryMock = new();
             dataRepositoryMock
                 .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
                 .ReturnsAsync(de);
@@ -413,8 +412,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         {
             // Arrange
             DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe30");
+            Mock<IDataRepository> dataRepositoryMock = new();
             dataRepositoryMock
-                .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                           .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
                 .ReturnsAsync(de);
 
             dataRepositoryMock
@@ -435,6 +435,44 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             dataRepositoryMock.VerifyAll();
+        }
+
+        [Fact]
+        public async void Delete_EndUserDeletingAlreadyDeletedElement_NotFound()
+        {
+            // Arrange      
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88";
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Delete_OrgDeletingAlreadyDeletedElement_RepositoryUpdateNotCalled()
+        {
+            // Arrange
+            DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe88");
+            Mock<IDataRepository> dataRepositoryMock = new();
+            dataRepositoryMock = new();
+            dataRepositoryMock
+                .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                .ReturnsAsync(de);
+
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88?delay=true";
+            HttpClient client = GetTestClient(dataRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            dataRepositoryMock.Verify(dr => dr.Update(It.IsAny<DataElement>()), Times.Never);
         }
 
         private HttpClient GetTestClient(Mock<IDataRepository> repositoryMock = null)

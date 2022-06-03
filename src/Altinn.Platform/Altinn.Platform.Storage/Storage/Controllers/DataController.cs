@@ -92,8 +92,21 @@ namespace Altinn.Platform.Storage.Controllers
                 return dataElementError;
             }
 
+            bool appOwnerDeletingElement = User.GetOrg() == instance.Org;
+
+
+            if (!appOwnerDeletingElement && dataElement.DeleteStatus?.IsHardDeleted == true)
+            {
+                return NotFound();
+            }
+
             if (delay)
             {
+                if (appOwnerDeletingElement && dataElement.DeleteStatus?.IsHardDeleted == true)
+                {
+                    return dataElement;
+                }
+
                 (Application application, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
                 if (application == null)
                 {
