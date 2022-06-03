@@ -90,7 +90,6 @@ export default function (data) {
   });
   addErrorCount(success);
 
-
   //Test to search instances based on filter parameters: search string (app title) from storage: SBL and validate the response
   queryModel = {
     instanceOwnerPartyIdList: [partyId],
