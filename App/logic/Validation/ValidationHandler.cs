@@ -29,6 +29,14 @@ namespace Altinn.App.AppLogic.Validation
           validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*WARNING*test er ikke en gyldig verdi");
           validationResults.AddModelError("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", "*WARNING*test er ikke en gyldig verdi");
         }
+        if (!string.IsNullOrEmpty(middleName) && middleName.Contains("info"))
+        {
+          validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*INFO*Dette er en infomelding");
+        }
+        if (!string.IsNullOrEmpty(middleName) && middleName.Contains("success"))
+        {
+          validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*SUCCESS*Dette er en sukessmelding");
+        }
         if (!string.IsNullOrEmpty(middleName) && !middleName.Contains("test"))
         {
           validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*FIXED*test er ikke en gyldig verdi");
