@@ -149,10 +149,18 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
                 {
-                    return BadRequest("Org or AppId must be defined.");
+                    return BadRequest("org or appId must be defined.");
                 }
 
-                org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+                if (!string.IsNullOrEmpty(appId))
+                {
+                    var appParts = appId.Split('/', 2);
+                    if(appParts.Length != 2 || (string.IsNullOrEmpty(org) && appParts[0] != org))
+                    {
+                        return BadRequest("appId must be on the format org/appname.");
+                    }
+                    org = appParts[0];
+                }
 
                 if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                 {
