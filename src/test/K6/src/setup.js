@@ -113,18 +113,12 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo)
 
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {
-    if(orgNo == undefined) {
-      userData.orgNumber = res[i].orgNumber;
-      userData.orgNumberPartyId = res[i].partyId;
-      break;
-    }
     if (res[i].orgNumber != null) {
-      if (orgNo != null && res[i].orgNumber == orgNo) {
         userData.orgNumberPartyId = res[i].partyId;
+        userData.orgNumber = res[i].orgNumber;
         break;
       }
     }
-  }
 
   return userData;
 }
