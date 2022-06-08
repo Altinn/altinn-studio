@@ -141,6 +141,7 @@ export default function (data) {
   directDelegationFromMainUnitToOrg();
   directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole();
   delegationToOrgIsInheritedByECUserViaKeyrole();
+  delegationFromOrgNo0Returns400BadRequest();
 }
 
 export function CleanupBeforeTests() {
@@ -385,15 +386,36 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
       'Delegation to Org is inherited by ECUser via keyrole - type is 2': (r) => r.json('0.type') === 2,
     });
     addErrorCount(success);
-  
+    
     // Cleanup
     checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit');
-      
-    // Cleanup
     deleteAllRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid');
     checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable');
     console.log('delegationToOrgIsInheritedByECUserViaKeyrole: ' + success);
 }
+
+/**
+ * Verifies that a delegation where the OfferedByPartyID is 0 will fail with 400 bad request response
+ */
+ export function delegationFromOrgNo0Returns400BadRequest() {
+  // Arrange
+  const performedByUserId = user1_userId;
+  const offeredByPartyId = 0;
+  const coveredByUserId = user2_userId;
+ 
+ var policyMatchKeys = {
+   coveredBy: 'urn:altinn:userid',
+   resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
+ };
+ var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'read');
+ 
+    // Assert
+    var success = check(res, {
+     'Delegation should fail - status is 400': (r) => r.status === 400,
+   });
+   addErrorCount(success);
+   console.log('delegationFromOrgNo0Returns400BadRequest: ' + success);
+ }
 
 /**
  * Helper function to quickly add rules for testing purposes
