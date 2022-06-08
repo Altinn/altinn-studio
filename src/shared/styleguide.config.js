@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 module.exports = {
   components: 'src/components/**/*.tsx',
   webpackConfig: require('./styleguide.webpack.config'),

@@ -11,10 +11,6 @@ cypress.env.json
 screenshots/
 videos/
 
-# Test attachment files
-e2e/fixtures/*.pdf
-e2e/fixtures/*.png
-
 # Reports
 reports/
 
@@ -29,3 +25,5 @@ downloads/
 !/.yarn/releases
 !/.yarn/sdks
 !/.yarn/versions
+
+.env

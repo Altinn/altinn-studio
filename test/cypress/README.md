@@ -15,7 +15,7 @@ These instructions will get you run the integration tests on altinn-app-frontend
 ### Test data prerequisite
 
 1. For running the test against remote test environments like AT, TT02, test user has to be created. You won't need
-these if you intend to only run the tests against your local setup.
+   these if you intend to only run the tests against your local setup.
 
 Create a new file name `cypress.env.json` under `test\cypress` with a username and password:
 
@@ -26,15 +26,6 @@ Create a new file name `cypress.env.json` under `test\cypress` with a username a
 }
 ```
 
-2. Create test files that are used by the tests as attachments in app instances. This is only needed the first time, or
-when files are deleted from `e2e/fixtures`.
-
-**Note:** Use cmd or git bash to run the scripts.
-
-```cmd
-    yarn run create:testfiles
-```
-
 ### Running tests against a remote environment
 
 Be sure to supply credentials to `cypress.env.json` as described above.
@@ -43,12 +34,6 @@ Be sure to supply credentials to `cypress.env.json` as described above.
 
 ```cmd
     yarn run start:frontend
-```
-
-If you have the frontend dependencies installed from before, run the below command:
-
-```cmd
-    yarn run start:frontend-no-deps
 ```
 
 2. Run the tests against a remote environment:
@@ -62,24 +47,21 @@ Other remote environments could also be used (see `e2e/config/*.json`).
 ### Running tests locally
 
 1. Clone the apps (
-[ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test) and
-[ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
-) to be tested and update config in `package.json` with the paths.
+   [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test),
+   [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app) and
+   [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
+   ) to be tested.
 
-2. To start localtest, app frontend, and the app you configured above, run the command below.
-(Hop over to step 3 if the solutions are already running)
+2. Create (or update) `.env` file with the correct paths (see `template.env`)
+
+3. To start localtest, app frontend, and the app you configured above, run the command below.
+   (Skip to step 4 if the solutions are already running). The command will not finish, but it will start the app-frontend server in development mode. This command may take some time, depending on if LocalTest has been setup earlier or not, and if the docker cache is hit or not. When the output of this command seems to have stopped, you can continue to the next step.
 
 ```cmd
     yarn run before:appfrontend
 ```
 
-If you have the frontend dependencies installed from before, run the below command:
-
-```cmd
-    yarn run before:appfrontend-no-deps
-```
-
-3. Start the tests for a given app from a new terminal:
+4. Start the tests for a given app from a new terminal:
 
 ```cmd
     yarn run test:frontend -e environment=local

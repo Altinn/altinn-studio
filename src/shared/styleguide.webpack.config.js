@@ -1,5 +1,5 @@
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
-const path = require('path');
+const path = require('node:path');
 
 module.exports = {
   mode: 'development',
