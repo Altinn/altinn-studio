@@ -5,21 +5,21 @@ import * as header from '../../../buildrequestheaders.js';
 /**Request to get parties that an user can represent and return response */
 export function getParties(altinnToken, userId) {
   var endpoint = config.platformAuthorization['parties'] + '?userId=' + userId;
-  var params = header.buildHearderWithRuntime(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 
 /**Request to get roles of an user */
 export function getRoles(altinnToken, userId, partyId) {
   var endpoint = config.platformAuthorization['roles'] + '?coveredbyuserid=' + userId + '&offeredbypartyid=' + partyId;
-  var params = header.buildHearderWithRuntime(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 
 /**Request to upload app policy to storage */
 export function postPolicy(data, appOwner, appName, altinnStudioRuntimeCookie) {
   var endpoint = config.platformAuthorization['policy'] + '?org=' + appOwner + '&app=' + appName;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.post(endpoint, data, params);
 }
 

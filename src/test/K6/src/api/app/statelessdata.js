@@ -12,7 +12,7 @@ import * as header from '../../buildrequestheaders.js';
  */
 export function getStatelessData(altinnStudioRuntimeCookie, dataType, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.statelessdata + '?dataType=' + dataType;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.get(endpoint, params);
 }
 

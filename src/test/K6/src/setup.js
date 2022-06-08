@@ -86,7 +86,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
 export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo) {
   clearCookies();
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.appProfile['user'];
-  var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = headers.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   var res = http.get(endpoint, params);
   var success = check(res, {
     'Get User data': (r) => r.status === 200,
