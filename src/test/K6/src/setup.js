@@ -37,6 +37,37 @@ export function authenticateUser(userName, userPassword) {
   return cookieValue;
 }
 
+/**Request to authenticate an enterprise user and returns username, userid and partyid */
+export function authenticateECUser(username, password, orgNumber) {
+  var endpoint = environment != 'yt01' ? config.sblBridge['enterpriseUser'] : config.authentication['authenticationYt01'];
+  var requestBody = {
+    UserName: username,
+    Password: password,
+    OrganizationNumber: orgNumber
+  };
+  var params = {
+    headers: {
+      ContentType: 'application/json',
+    },
+  };
+  var res = http.post(endpoint, requestBody, params);
+
+  var success = check(res, {
+    'Authentication of enterprise user via SBL Bridge Success': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  stopIterationOnFail('Authentication of enterprise user via SBL Bridge Failed', success, res);
+  res = JSON.parse(res.body);
+  var ecUserData = {
+    userName: res.Username,
+    userId: res.UserID,
+    partyId: res.PartyID
+  }
+
+  return ecUserData;
+
+}
+
 //Request to Authenticate an user and returns AltinnStudioRuntime Token
 export function getAltinnStudioRuntimeToken(aspxauthCookie) {
   clearCookies();
@@ -52,7 +83,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie) {
 }
 
 //Request to get user data and returns partyId, ssn, userId, orgNr
-export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
+export function getUserData(altinnStudioRuntimeCookie, appOwner, appName, orgNo) {
   clearCookies();
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.appProfile['user'];
   var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
@@ -68,6 +99,8 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
     userId: res.userId,
     ssn: res.party.ssn,
     partyId: res.partyId,
+    orgNumber: orgNo,
+    orgNumberPartyId: null
   };
 
   //get parties and find an Org that an user can represent
@@ -80,12 +113,19 @@ export function getUserData(altinnStudioRuntimeCookie, appOwner, appName) {
 
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {
-    if (res[i].orgNumber != null) {
+    if(orgNo == undefined) {
       userData.orgNumber = res[i].orgNumber;
       userData.orgNumberPartyId = res[i].partyId;
       break;
     }
+    if (res[i].orgNumber != null) {
+      if (orgNo != null && res[i].orgNumber == orgNo) {
+        userData.orgNumberPartyId = res[i].partyId;
+        break;
+      }
+    }
   }
+
   return userData;
 }
 
@@ -113,4 +153,10 @@ export function getAltinnTokenForTTD() {
     };
     return generateToken('enterprise', tokenGeneratorUserName, tokenGeneratorUserPwd, queryParams);
   }
+}
+
+export function getSBLBuildVersion() {
+  var endpoint = config.sbl['altinnBuildVersion'];
+  var res = http.get(endpoint);
+  return res.body.replace(/[^0-9a-zA-Z.]/g, "");
 }

@@ -2,28 +2,38 @@ import http from 'k6/http';
 import * as config from '../../../config.js';
 import * as header from '../../../buildrequestheaders.js';
 
-//Request to get parties that an user can represent and return response
+/**Request to get parties that an user can represent and return response */
 export function getParties(altinnToken, userId) {
   var endpoint = config.platformAuthorization['parties'] + '?userId=' + userId;
   var params = header.buildHearderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 
-//Request to get roles of an user
+/**Request to get roles of an user */
 export function getRoles(altinnToken, userId, partyId) {
   var endpoint = config.platformAuthorization['roles'] + '?coveredbyuserid=' + userId + '&offeredbypartyid=' + partyId;
   var params = header.buildHearderWithRuntime(altinnToken, 'platform');
   return http.get(endpoint, params);
 }
 
-//Request to upload app policy to storage
+/**Request to upload app policy to storage */
 export function postPolicy(data, appOwner, appName, altinnStudioRuntimeCookie) {
   var endpoint = config.platformAuthorization['policy'] + '?org=' + appOwner + '&app=' + appName;
   var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.post(endpoint, data, params);
 }
 
-//Request to get decision from PDP and return response
+/**
+ * function to get decision from PDP and return response
+ * @param {*} pdpInputJson Template
+ * @param {*} jsonPermitData keys to be populated in decision
+ * @param {*} appOwner
+ * @param {*} testappName
+ * @param {*} coveredBy the userId for the accessSubject (coveredby)
+ * @param {*} offeredByPartyId partyid in the Resource (offeredby)
+ * @param {*} altinnTask Task_1, EndEvent_1
+ * @returns json object of a PDP decision
+ */
 export function postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask) {
   var endpoint = config.platformAuthorization['decision'];
   var pdpJson = buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
@@ -73,9 +83,6 @@ function buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userI
     switch (resource[i]) {
       case 'urn:altinn:org':
         value = appOwner;
-        break;
-      case 'urn:altinn:userid':
-        value = userId;
         break;
       case 'urn:altinn:app':
         value = testappName;
