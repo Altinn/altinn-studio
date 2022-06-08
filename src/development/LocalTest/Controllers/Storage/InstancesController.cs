@@ -155,7 +155,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (!string.IsNullOrEmpty(appId))
                 {
                     var appParts = appId.Split('/', 2);
-                    if(appParts.Length != 2 || (string.IsNullOrEmpty(org) && appParts[0] != org))
+                    if(appParts.Length != 2 || (!string.IsNullOrEmpty(org) && appParts[0] != org))
                     {
                         return BadRequest("appId must be on the format org/appname.");
                     }
