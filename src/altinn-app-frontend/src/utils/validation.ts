@@ -40,7 +40,10 @@ import { getParsedTextResourceByKey } from './textResource';
 import { convertDataBindingToModel, getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent, setupGroupComponents } from './layout';
-import { createRepeatingGroupComponents } from './formLayout';
+import {
+  createRepeatingGroupComponents,
+  getRepeatingGroupStartStopIndex,
+} from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
 import { getFlagBasedDate } from './dateHelpers';
 import JsonPointer from 'jsonpointer';
@@ -206,21 +209,25 @@ export function validateEmptyFieldsForLayout(
   repeatingGroups: IRepeatingGroups,
 ): ILayoutValidations {
   const validations: any = {};
-  const allGroups = formLayout.filter((component) => component.type.toLowerCase() === 'group');
-  const childrenWithoutMultiPagePrefix = (group:ILayoutGroup) => group.edit?.multiPage
-    ? group.children.map((componentId) => componentId.replace(/^\d+:/g, ''))
-    : group.children;
+  const allGroups = formLayout.filter(
+    (component) => component.type.toLowerCase() === 'group',
+  );
+  const childrenWithoutMultiPagePrefix = (group: ILayoutGroup) =>
+    group.edit?.multiPage
+      ? group.children.map((componentId) => componentId.replace(/^\d+:/g, ''))
+      : group.children;
 
-  const fieldsInGroup = allGroups
-    .map(childrenWithoutMultiPagePrefix)
-    .flat();
-  const groupsToCheck = allGroups.filter(group => !hiddenFields.includes(group.id));
-  const fieldsToCheck = formLayout.filter((component) => (
-    component.type.toLowerCase() !== 'group' &&
-    !hiddenFields.includes(component.id) &&
-    (component as ILayoutComponent).required &&
-    !fieldsInGroup.includes(component.id)
-  ));
+  const fieldsInGroup = allGroups.map(childrenWithoutMultiPagePrefix).flat();
+  const groupsToCheck = allGroups.filter(
+    (group) => !hiddenFields.includes(group.id),
+  );
+  const fieldsToCheck = formLayout.filter(
+    (component) =>
+      component.type.toLowerCase() !== 'group' &&
+      !hiddenFields.includes(component.id) &&
+      (component as ILayoutComponent).required &&
+      !fieldsInGroup.includes(component.id),
+  );
   fieldsToCheck.forEach((component: any) => {
     const result = validateEmptyField(
       formData,
@@ -292,7 +299,12 @@ export function validateEmptyFieldsForLayout(
             });
         } else {
           const groupDataModelBinding = group.dataModelBindings.group;
-          for (let i = 0; i <= repeatingGroups[group.id]?.index; i++) {
+
+          const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
+            repeatingGroups[group.id]?.index,
+            group.edit,
+          );
+          for (let i = startIndex; i <= stopIndex; i++) {
             const componentToCheck = {
               ...component,
               id: `${component.id}-${i}`,
@@ -469,7 +481,13 @@ export function validateFormComponentsForLayout(
         if (!isValid) {
           if (!isValid) {
             componentValidations[fieldKey].errors.push(
-              `${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language)} ${component.minNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language)}`,
+              `${getLanguageFromKey(
+                'form_filler.file_uploader_validation_error_file_number_1',
+                language,
+              )} ${component.minNumberOfAttachments} ${getLanguageFromKey(
+                'form_filler.file_uploader_validation_error_file_number_2',
+                language,
+              )}`,
             );
           }
         } else {
@@ -479,7 +497,14 @@ export function validateFormComponentsForLayout(
           if (missingTagAttachments?.length > 0) {
             missingTagAttachments.forEach((missingId) => {
               componentValidations[fieldKey].errors.push(
-                `${missingId + AsciiUnitSeparator + getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
+                `${
+                  missingId +
+                  AsciiUnitSeparator +
+                  getLanguageFromKey(
+                    'form_filler.file_uploader_validation_error_no_chosen_tag',
+                    language,
+                  )
+                } ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
               );
             });
           }
@@ -523,7 +548,7 @@ function attachmentsValid(attachments: any, component: any): boolean {
 }
 
 export function attachmentIsMissingTag(attachment: IAttachment): boolean {
-  return attachment.tags === undefined || attachment.tags.length === 0
+  return attachment.tags === undefined || attachment.tags.length === 0;
 }
 
 /*
@@ -549,9 +574,13 @@ export function validateDatepickerFormData(
   }
 
   if (date && date.isBefore(minDate)) {
-    validations.errors.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
+    validations.errors.push(
+      getLanguageFromKey('date_picker.min_date_exeeded', language),
+    );
   } else if (date && date.isAfter(maxDate)) {
-    validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
+    validations.errors.push(
+      getLanguageFromKey('date_picker.max_date_exeeded', language),
+    );
   }
 
   return validations;
@@ -826,13 +855,13 @@ export function mapToComponentValidations(
 ) {
   let dataModelFieldKey = validatedComponent
     ? Object.keys(
-      (validatedComponent as ILayoutComponent).dataModelBindings,
-    ).find((name) => {
-      return (
-        (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
-        dataBindingName
-      );
-    })
+        (validatedComponent as ILayoutComponent).dataModelBindings,
+      ).find((name) => {
+        return (
+          (validatedComponent as ILayoutComponent).dataModelBindings[name] ===
+          dataBindingName
+        );
+      })
     : null;
 
   const layoutComponent =
@@ -849,7 +878,7 @@ export function mapToComponentValidations(
               key &&
               component.dataModelBindings[key] &&
               component.dataModelBindings[key].toLowerCase() ===
-              dataBindingWithoutIndex
+                dataBindingWithoutIndex
             );
           },
         );
@@ -966,7 +995,6 @@ export function findLayoutIdsFromValidationIssue(
   layouts: ILayouts,
   validationIssue: IValidationIssue,
 ): string[] {
-
   if (!validationIssue.field) {
     // validation issue could be mapped to task and not to a field in the datamodel
     return ['unmapped'];
@@ -1067,7 +1095,7 @@ export function mapDataElementValidationToRedux(
       layoutIds.push('unmapped');
     }
 
-    layoutIds.forEach(layoutId => {
+    layoutIds.forEach((layoutId) => {
       const { componentId, component, componentValidations } =
         findComponentFromValidationIssue(
           layouts[layoutId] || [],
@@ -1187,7 +1215,9 @@ function addValidation(
  * gets unmapped errors from validations as string array
  * @param validations the validations
  */
-export function getUnmappedErrors(validations: IValidations): React.ReactNode[] {
+export function getUnmappedErrors(
+  validations: IValidations,
+): React.ReactNode[] {
   const messages: React.ReactNode[] = [];
   if (!validations) {
     return messages;
@@ -1201,7 +1231,6 @@ export function getUnmappedErrors(validations: IValidations): React.ReactNode[] 
   });
   return messages;
 }
-
 
 /**
  * checks if a validation contains any errors of a given severity.
@@ -1218,23 +1247,23 @@ export function hasValidationsOfSeverity(
 
   return Object.keys(validations).some((layout) => {
     return Object.keys(validations[layout]).some((componentKey: string) => {
-      return Object.keys(
-        validations[layout][componentKey] || {},
-      ).some((bindingKey: string) => {
-        if (
-          severity === Severity.Error &&
-          validations[layout][componentKey][bindingKey].errors?.length > 0
-        ) {
-          return true;
-        }
-        if (
-          severity === Severity.Warning &&
-          validations[layout][componentKey][bindingKey].warnings?.length > 0
-        ) {
-          return true;
-        }
-        return false;
-      });
+      return Object.keys(validations[layout][componentKey] || {}).some(
+        (bindingKey: string) => {
+          if (
+            severity === Severity.Error &&
+            validations[layout][componentKey][bindingKey].errors?.length > 0
+          ) {
+            return true;
+          }
+          if (
+            severity === Severity.Warning &&
+            validations[layout][componentKey][bindingKey].warnings?.length > 0
+          ) {
+            return true;
+          }
+          return false;
+        },
+      );
     });
   });
 }
@@ -1677,9 +1706,12 @@ export function missingFieldsInLayoutValidations(
   language: ILanguage,
 ): boolean {
   let result = false;
-  const requiredMessage = getLanguageFromKey('form_filler.error_required', language);
+  const requiredMessage = getLanguageFromKey(
+    'form_filler.error_required',
+    language,
+  );
   const lookForRequiredMsg = (e: any) => {
-    if (typeof(e) === 'string') {
+    if (typeof e === 'string') {
       return e.includes(requiredMessage);
     }
     if (Array.isArray(e)) {
@@ -1696,8 +1728,11 @@ export function missingFieldsInLayoutValidations(
       if (result) return;
 
       const errors = layoutValidations[component][binding].errors;
-      result = (errors && errors.length > 0 && errors.findIndex(lookForRequiredMsg) > -1)
-    })
+      result =
+        errors &&
+        errors.length > 0 &&
+        errors.findIndex(lookForRequiredMsg) > -1;
+    });
   });
 
   return result;

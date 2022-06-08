@@ -27,12 +27,17 @@ export const AddressLabel = ({
   return (
     <label className='a-form-label title-label' htmlFor={id}>
       {label}
-      {required && !readOnly &&
-        <RequiredIndicator/>
-      }
-      {!required && !readOnly && labelSettings?.optionalIndicator &&
-        <OptionalIndicator/>
-      }
+      <RequiredIndicator
+        required={required}
+        readOnly={readOnly}
+        language={language}
+      />
+      <OptionalIndicator
+        labelSettings={labelSettings}
+        language={language}
+        readOnly={readOnly}
+        required={required}
+      />
     </label>
   );
 };

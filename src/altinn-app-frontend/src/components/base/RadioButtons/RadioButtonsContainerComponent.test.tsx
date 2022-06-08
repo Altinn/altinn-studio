@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { screen, fireEvent } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
-import { renderWithProviders } from '../../../testUtils';
+import { renderWithProviders } from '../../../../testUtils';
 
 import { RadioButtonContainerComponent } from './RadioButtonsContainerComponent';
 import type { IComponentProps } from 'src/components';
 import type { IRadioButtonsContainerProps } from './RadioButtonsContainerComponent';
 import { LayoutStyle } from 'src/types';
-import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
+import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
 import type { RootState } from 'src/store';
 import type { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 
@@ -69,7 +69,7 @@ const render = (
             message: '',
           },
         },
-        ...customState
+        ...customState,
       },
     },
   );
@@ -192,12 +192,10 @@ describe('RadioButtonsContainerComponent', () => {
   });
 
   it('should show items in a row when layout is "row" and options count is 3', () => {
-    const { container } = render(
-      {
-        optionsId: 'countries',
-        layout: LayoutStyle.Row,
-      },
-    );
+    const { container } = render({
+      optionsId: 'countries',
+      layout: LayoutStyle.Row,
+    });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
@@ -218,9 +216,9 @@ describe('RadioButtonsContainerComponent', () => {
               id: 'countries',
               options: twoOptions,
             },
-          }
+          },
         } as unknown as IOptionsState,
-      }
+      },
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -243,9 +241,9 @@ describe('RadioButtonsContainerComponent', () => {
               id: 'countries',
               options: twoOptions,
             },
-          }
+          },
         } as unknown as IOptionsState,
-      }
+      },
     );
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
@@ -256,11 +254,9 @@ describe('RadioButtonsContainerComponent', () => {
   });
 
   it('should show items in a columns when layout is not defined, and options count is 3', () => {
-    const { container } = render(
-      {
-        optionsId: 'countries',
-      },
-    );
+    const { container } = render({
+      optionsId: 'countries',
+    });
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
@@ -275,16 +271,22 @@ describe('RadioButtonsContainerComponent', () => {
     render({
       handleDataChange,
       source: {
-        group: "someGroup",
-        label: "option.from.rep.group.label",
-        value: "someGroup[{0}].valueField"
+        group: 'someGroup',
+        label: 'option.from.rep.group.label',
+        value: 'someGroup[{0}].valueField',
       },
     });
 
-    expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
-    expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
+    expect(
+      getRadio({ name: 'The value from the group is: Label for first' }),
+    ).toBeInTheDocument();
+    expect(
+      getRadio({ name: 'The value from the group is: Label for second' }),
+    ).toBeInTheDocument();
 
-    await userEvent.click(getRadio({ name: 'The value from the group is: Label for first' }));
+    await userEvent.click(
+      getRadio({ name: 'The value from the group is: Label for first' }),
+    );
 
     expect(handleDataChange).toHaveBeenCalledWith('Value for first');
   });

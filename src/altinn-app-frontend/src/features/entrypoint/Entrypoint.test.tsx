@@ -1,15 +1,13 @@
 import * as React from 'react';
-import { Provider } from 'react-redux';
-import { render, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import axios, { AxiosError } from 'axios';
 import { createStore } from 'redux';
 import { MemoryRouter } from 'react-router-dom';
-
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
-import type { IRuntimeState } from '../../types';
-
-import { IApplicationMetadata } from '../../shared/resources/applicationMetadata';
+import type { IRuntimeState } from 'src/types';
+import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import Entrypoint from './Entrypoint';
+import { renderWithProviders } from '../../../testUtils';
 
 jest.mock('axios');
 
@@ -50,33 +48,25 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
         message: '',
       },
     });
-    const rendered = render(
-      <Provider store={mockStore}>
-        <Entrypoint />
-      </Provider>,
-    );
+    renderWithProviders(<Entrypoint />, { store: mockStore });
     await waitFor(() => {
       // validate party
       expect(axios.post).toBeCalled();
     });
 
-    const invalidPartyText = await rendered.findByText(
+    const invalidPartyText = await screen.findByText(
       'For å starte denne tjenesten må du ha tilganger som knytter deg til en privatperson.',
     );
     expect(invalidPartyText).not.toBeNull();
   });
 
   it('should show loader while fetching data then start instantiation by default ', async () => {
-    const rendered = render(
-      <Provider store={mockStore}>
-        <Entrypoint />
-      </Provider>,
-    );
+    renderWithProviders(<Entrypoint />, { store: mockStore });
 
-    const contentLoader = await rendered.findByText('Loading...');
+    const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
-    const instantiationText = await rendered.findByText(
+    const instantiationText = await screen.findByText(
       'Hold deg fast, nå starter vi!',
     );
     expect(instantiationText).not.toBeNull();
@@ -97,13 +87,9 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    const rendered = render(
-      <Provider store={mockStore}>
-        <Entrypoint />
-      </Provider>,
-    );
+    renderWithProviders(<Entrypoint />, { store: mockStore });
 
-    const contentLoader = await rendered.findByText('Loading...');
+    const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
     // should have started the initialStatelessQueue
@@ -130,13 +116,9 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    const rendered = render(
-      <Provider store={mockStore}>
-        <Entrypoint />
-      </Provider>,
-    );
+    renderWithProviders(<Entrypoint />, { store: mockStore });
 
-    const contentLoader = await rendered.findByText('Loading...');
+    const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
     // should have started the initialStatelessQueue
@@ -182,12 +164,7 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
         },
       ],
     });
-
-    const rendered = render(
-      <Provider store={mockStore}>
-        <Entrypoint />
-      </Provider>,
-    );
+    renderWithProviders(<Entrypoint />, { store: mockStore });
 
     await waitFor(() => {
       // validate party and fetch active instances
@@ -195,7 +172,7 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
       expect(axios.get).toBeCalled();
     });
 
-    const selectInstnaceText = await rendered.findByText(
+    const selectInstnaceText = await screen.findByText(
       'Du har allerede startet å fylle ut dette skjemaet.',
     );
     expect(selectInstnaceText).not.toBeNull();
@@ -210,15 +187,14 @@ describe('features > entrypoint > Entrypoint.tsx', () => {
       },
     };
     mockStore = createStore(mockReducer, mockState);
-    const rendered = render(
-      <Provider store={mockStore}>
-        <MemoryRouter>
-          <Entrypoint />
-        </MemoryRouter>
-      </Provider>,
+    renderWithProviders(
+      <MemoryRouter>
+        <Entrypoint />
+      </MemoryRouter>,
+      { store: mockStore },
     );
 
-    const missingRolesText = await rendered.findByText(
+    const missingRolesText = await screen.findByText(
       'Du mangler rettigheter for å se denne tjenesten.',
     );
     expect(missingRolesText).not.toBeNull();

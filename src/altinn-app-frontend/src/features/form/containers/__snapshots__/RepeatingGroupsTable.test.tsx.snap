@@ -12,11 +12,11 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
       id="group-mock-container-id-table-container"
     >
       <table
-        class="MuiTable-root makeStyles-table-4"
+        class="MuiTable-root makeStyles-table-4 makeStyles-table-5"
         id="group-mock-container-id-table"
       >
         <thead
-          class="MuiTableHead-root makeStyles-tableHeader-6"
+          class="MuiTableHead-root makeStyles-tableHeader-6 makeStyles-tableHeader-7"
           id="group-mock-container-id-table-header"
         >
           <tr
@@ -53,7 +53,7 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
           </tr>
         </thead>
         <tbody
-          class="MuiTableBody-root makeStyles-tableBody-7"
+          class="MuiTableBody-root makeStyles-tableBody-8 makeStyles-tableBody-9"
           id="group-mock-container-id-table-body"
         >
           <tr
@@ -87,9 +87,6 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
                   />
                   general.edit_alt
                 </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -124,9 +121,6 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
                   />
                   general.edit_alt
                 </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -161,9 +155,6 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
                   />
                   general.edit_alt
                 </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>
@@ -198,9 +189,6 @@ exports[`features > form > containers > RepeatingGroupTable.tsx should match sna
                   />
                   general.edit_alt
                 </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
               </button>
             </td>
           </tr>

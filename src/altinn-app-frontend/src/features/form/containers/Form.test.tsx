@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-
 import {
   getInitialStateMock,
   getFormLayoutStateMock,
@@ -11,6 +10,9 @@ import type { ILayoutState } from '../layout/formLayoutSlice';
 import type { ILayoutGroup } from '../layout';
 
 import { Form } from './Form';
+import { mockMediaQuery } from '../../../../testUtils';
+
+const { setScreenWidth } = mockMediaQuery(992);
 
 describe('>>> features/form/components/Form.tsx', () => {
   let mockStore: any;
@@ -19,15 +21,8 @@ describe('>>> features/form/components/Form.tsx', () => {
   let mockGroupId: string;
 
   beforeAll(() => {
-    window.matchMedia = jest.fn().mockImplementation((query) => {
-      return {
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-      };
-    });
+    // Set screen size to desktop
+    setScreenWidth(1200);
   });
 
   beforeEach(() => {

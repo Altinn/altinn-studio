@@ -5,22 +5,23 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-
 import { getInitialStateMock } from '../../../__mocks__/mocks';
 import { mockParty } from '../../../__mocks__/initialStateMock';
-
 import type { IRuntimeState } from 'src/types';
-
 import { ProcessTaskType } from 'src/types';
 import NavBar from 'src/components/presentation/NavBar';
 import { AltinnAppTheme, returnUrlToMessagebox } from '../../../../shared/src';
-import { HttpStatusCodes } from '../../utils/networking';
+import { HttpStatusCodes } from 'src/utils/networking';
 import Presentation from './Presentation';
+import { mockMediaQuery } from '../../../testUtils';
 
 jest.mock('axios');
+
 function flushPromises() {
   return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
+
+const { setScreenWidth } = mockMediaQuery(992);
 
 describe('containers/Presentation.tsx', () => {
   let mockHeader: string;
@@ -28,15 +29,8 @@ describe('containers/Presentation.tsx', () => {
   let mockInitialState: IRuntimeState;
 
   beforeAll(() => {
-    window.matchMedia = jest.fn().mockImplementation((query) => {
-      return {
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-      };
-    });
+    // Set screen size to desktop
+    setScreenWidth(1200);
   });
 
   beforeEach(() => {

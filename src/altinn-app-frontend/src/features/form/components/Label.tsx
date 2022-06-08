@@ -22,9 +22,6 @@ export default function Label(props: IFormLabelProps) {
     return null;
   }
 
-  const shouldShowRequiredMarking = props.required && !props.readOnly;
-  const shouldShowOptionalMarking = props.labelSettings?.optionalIndicator && !props.required && !props.readOnly;
-
   return (
     <Grid item={true} container={true} xs={12}>
       <Grid item={true}>
@@ -34,12 +31,17 @@ export default function Label(props: IFormLabelProps) {
           data-testid={`label-${props.id}`}
         >
           {props.labelText}
-          {shouldShowRequiredMarking &&
-            <RequiredIndicator />
-          }
-          {shouldShowOptionalMarking &&
-            <OptionalIndicator />
-          }
+          <RequiredIndicator
+            required={props.required}
+            readOnly={props.readOnly}
+            language={props.language}
+          />
+          <OptionalIndicator
+            labelSettings={props.labelSettings}
+            language={props.language}
+            readOnly={props.readOnly}
+            required={props.required}
+          />
         </label>
       </Grid>
       {props.helpText && (

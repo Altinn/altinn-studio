@@ -14,6 +14,7 @@ import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { RepeatingGroupsLikertContainer } from 'src/features/form/containers/RepeatingGroupsLikertContainer';
 
 export interface IGroupProps {
   id: string;
@@ -55,8 +56,8 @@ const useStyles = makeStyles({
         width: 'auto',
         left: '0',
       },
-    }
-  }
+    },
+  },
 });
 
 export function GroupContainer({
@@ -69,24 +70,36 @@ export function GroupContainer({
     JSON.stringify(components),
   );
 
-  const editIndex = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1);
+  const editIndex = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
+  );
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
-  const validations = useAppSelector(state => state.formValidations.validations);
-  const currentView = useAppSelector(state => state.formLayout.uiConfig.currentView);
-  const language = useAppSelector(state => state.language.language);
-  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
-  const hiddenFields = useAppSelector(state =>
+  const validations = useAppSelector(
+    (state) => state.formValidations.validations,
+  );
+  const currentView = useAppSelector(
+    (state) => state.formLayout.uiConfig.currentView,
+  );
+  const language = useAppSelector((state) => state.language.language);
+  const repeatingGroups = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups,
+  );
+  const hiddenFields = useAppSelector((state) =>
     getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components),
   );
   const GetHiddenSelector = makeGetHidden();
-  const hidden = useAppSelector(state => GetHiddenSelector(state, { id }));
-  const formData = useAppSelector(state => state.formData.formData);
-  const layout = useAppSelector(state => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
-  const options = useAppSelector(state => state.optionState.options);
-  const textResources = useAppSelector(state => state.textResources.resources);
+  const hidden = useAppSelector((state) => GetHiddenSelector(state, { id }));
+  const formData = useAppSelector((state) => state.formData.formData);
+  const layout = useAppSelector(
+    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
+  );
+  const options = useAppSelector((state) => state.optionState.options);
+  const textResources = useAppSelector(
+    (state) => state.textResources.resources,
+  );
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
       return repeatingGroups[containerId].index;
@@ -94,26 +107,47 @@ export function GroupContainer({
     return -1;
   };
   const repeatingGroupIndex = getRepeatingGroupIndex(id);
-  const repeatingGroupDeepCopyComponents = useMemo(() => createRepeatingGroupComponents(
-    container,
-    renderComponents,
-    repeatingGroupIndex,
-    textResources,
-    hiddenFields,
-  ), [container, renderComponents, repeatingGroupIndex, textResources, hiddenFields]);
+  const repeatingGroupDeepCopyComponents = useMemo(
+    () =>
+      createRepeatingGroupComponents(
+        container,
+        renderComponents,
+        repeatingGroupIndex,
+        textResources,
+        hiddenFields,
+      ),
+    [
+      container,
+      renderComponents,
+      repeatingGroupIndex,
+      textResources,
+      hiddenFields,
+    ],
+  );
 
-  const tableHasErrors = useMemo(() => repeatingGroupHasValidations(
-    container,
-    repeatingGroupDeepCopyComponents,
-    validations,
-    currentView,
-    repeatingGroups,
-    layout,
-  ), [container, repeatingGroupDeepCopyComponents, validations, currentView, repeatingGroups, layout]);
+  const tableHasErrors = useMemo(
+    () =>
+      repeatingGroupHasValidations(
+        container,
+        repeatingGroupDeepCopyComponents,
+        validations,
+        currentView,
+        repeatingGroups,
+        layout,
+      ),
+    [
+      container,
+      repeatingGroupDeepCopyComponents,
+      validations,
+      currentView,
+      repeatingGroups,
+      layout,
+    ],
+  );
 
   React.useEffect(() => {
     if (container.edit?.filter && container.edit.filter.length > 0) {
-      container.edit.filter.forEach((rule: any) => {
+      container.edit.filter.forEach((rule) => {
         const formDataKeys: string[] = Object.keys(formData).filter((key) => {
           const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
@@ -232,6 +266,28 @@ export function GroupContainer({
     return null;
   }
 
+  if (container.edit?.mode === 'likert') {
+    return (
+      <>
+        <RepeatingGroupsLikertContainer
+          id={id}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents.map(
+            (c) => c[0] as ILayoutComponent,
+          )}
+          textResources={textResources}
+          container={container}
+        />
+        {tableHasErrors && (
+          <Grid container={true} style={gridStyle} direction='column'>
+            <ErrorPaper
+              message={getLanguageFromKey('group.row_error', language)}
+            />
+          </Grid>
+        )}
+      </>
+    );
+  }
+
   return (
     <Grid container={true} item={true} className={classes.minusMargin}>
       {(!container.edit?.mode ||
@@ -311,7 +367,9 @@ export function GroupContainer({
                 layout={layout}
                 onClickRemove={onClickRemove}
                 onClickSave={onClickSave}
-                repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
+                repeatingGroupDeepCopyComponents={
+                  repeatingGroupDeepCopyComponents
+                }
                 hideSaveButton={true}
                 hideDeleteButton={container.edit?.deleteButton === false}
               />

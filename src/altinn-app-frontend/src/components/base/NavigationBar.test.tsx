@@ -1,28 +1,12 @@
 import * as React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../../testUtils';
-
+import { mockMediaQuery, renderWithProviders } from '../../../testUtils';
 import { NavigationBar } from './NavigationBar';
 import type { INavigationBar } from './NavigationBar';
 import { setupStore } from 'src/store';
 
-const setScreenWidth = (width) => {
-  Object.defineProperty(window, 'innerWidth', {
-    writable: true,
-    configurable: true,
-    value: width,
-  });
-  window.matchMedia = jest.fn().mockImplementation((query) => {
-    return {
-      matches: width <= 600 ? true : false,
-      media: query,
-      onchange: null,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-    };
-  });
-};
+const { setScreenWidth } = mockMediaQuery(600);
 
 const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
   const allProps = {

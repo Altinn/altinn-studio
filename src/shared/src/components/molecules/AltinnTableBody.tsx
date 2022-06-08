@@ -1,37 +1,39 @@
 import { makeStyles, TableBody } from '@material-ui/core';
 import React from 'react';
-import theme from '../../theme/altinnAppTheme';
 
 export interface IAltinnTableBody {
   children: React.ReactNode;
   id: string;
+  padding?: 'dense';
 }
 
-const useStyles = makeStyles({
-  tableBody: {
-    '& td': {
-      borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
-      padding: '0 18px 0 36px',
-      fontSize: '1.4rem',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      overflow: 'hidden',
-    },
-    '& tr': {
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueLighter,
+const useStyles = makeStyles((theme) => ({
+  tableBody: ({ padding }: IAltinnTableBody) => {
+    return {
+      '& td': {
+        borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
+        padding: padding === 'dense' ? '0 12px' : '0 18px 0px 36px',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        ...theme.typography.body1,
       },
-    },
+      '& tr': {
+        '&:hover': {
+          background: theme.altinnPalette.primary.blueLighter,
+        },
+      },
+    };
   },
-});
+}));
 
 export default function AltinnTableBody(props: IAltinnTableBody) {
   const { children, id } = props;
-  const classes = useStyles();
+  const classes = useStyles(props);
 
   return (
     <TableBody className={classes.tableBody} id={id}>
-      { children }
+      {children}
     </TableBody>
   );
 }

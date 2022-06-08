@@ -15,42 +15,43 @@ export interface IFormLegendProps {
   labelSettings?: ILabelSettings;
   helpText: React.ReactNode;
   id: string;
+  likertDisplay?: 'desktop' | 'mobile';
 }
 
 export default function Legend(props: IFormLegendProps) {
   if (!props.labelText) {
     return null;
   }
+  const LabelText = (
+    <>
+      {props.labelText}
+      <RequiredIndicator required={props.required} language={props.language} />
+      <OptionalIndicator
+        labelSettings={props.labelSettings}
+        language={props.language}
+        required={props.required}
+      />
+      {props.helpText && (
+        <HelpTextContainer
+          language={props.language}
+          helpText={props.helpText}
+        />
+      )}
+    </>
+  );
 
-  const shouldShowRequired = props.required;
-  const shouldShowOptional = props.labelSettings?.optionalIndicator && !props.required
+  if (props.likertDisplay === 'desktop') {
+    return LabelText;
+  }
 
   return (
     <>
-      <label
-        className='a-form-label title-label'
-        htmlFor={props.id}
-      >
-        {props.labelText}
-          {shouldShowRequired &&
-            <RequiredIndicator />
-          }
-          {shouldShowOptional &&
-            <OptionalIndicator />
-          }
-        {props.helpText &&
-          <HelpTextContainer
-            language={props.language}
-            helpText={props.helpText}
-          />
-        }
+      <label className='a-form-label title-label' htmlFor={props.id}>
+        {LabelText}
       </label>
-      {props.descriptionText &&
-        <Description
-          description={props.descriptionText}
-          {...props}
-        />
-      }
+      {props.descriptionText && (
+        <Description description={props.descriptionText} {...props} />
+      )}
     </>
   );
 }

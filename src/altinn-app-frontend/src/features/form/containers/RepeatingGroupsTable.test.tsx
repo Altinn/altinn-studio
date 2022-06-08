@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { render } from '@testing-library/react';
-
 import type {
   ILayoutComponent,
   ILayoutGroup,
   ISelectionComponentProps,
 } from '../layout';
-import type { IOption, ITextResource } from '../../../types';
+import type { IOption, ITextResource } from 'src/types';
 import type { ILayoutState } from '../layout/formLayoutSlice';
-
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
+import { renderWithProviders } from '../../../../testUtils';
 
 describe('features > form > containers > RepeatingGroupTable.tsx', () => {
   let mockContainer: ILayoutGroup;
@@ -133,7 +131,7 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
   });
 
   it('should match snapshot', () => {
-    const { asFragment } = render(
+    const { asFragment } = renderWithProviders(
       <RepeatingGroupTable
         container={mockContainer}
         language={mockLanguage}

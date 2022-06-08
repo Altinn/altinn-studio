@@ -5,8 +5,8 @@ import { getInitialStateMock } from '../../../../__mocks__/mocks';
 import type { ILayoutGroup } from '../layout';
 
 import { GroupContainer } from './GroupContainer';
-import { Triggers } from '../../../types';
-import { renderWithProviders } from '../../../../testUtils';
+import { Triggers } from 'src/types';
+import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
 import { setupStore } from 'src/store';
 
 const mockContainer: ILayoutGroup = {
@@ -158,17 +158,12 @@ function render({ container = mockContainer }: IRender = {}) {
   return store;
 }
 
+const { setScreenWidth } = mockMediaQuery(992);
+
 describe('GroupContainer', () => {
   beforeAll(() => {
-    window.matchMedia = jest.fn().mockImplementation((query) => {
-      return {
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-      };
-    });
+    // Set screen size to desktop
+    setScreenWidth(1200);
   });
 
   it('should render add new button with custom label when supplied', () => {

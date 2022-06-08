@@ -1,11 +1,21 @@
 import React from 'react';
-import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render } from '@testing-library/react';
-
-import InstanceSelection from './InstanceSelection';
+import InstanceSelection, {
+  IInstanceSelectionProps,
+} from './InstanceSelection';
 import { IRuntimeState, ISimpleInstance } from 'src/types';
 import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
+import { Store } from 'redux';
+import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
+
+const renderInstanceSelection = (
+  store: Store,
+  props: IInstanceSelectionProps,
+) => {
+  return renderWithProviders(<InstanceSelection {...props} />, { store });
+};
+
+const { setScreenWidth } = mockMediaQuery(992);
 
 describe('features/instantiate/InstanceSelection.tsx', () => {
   let mockInitialState: IRuntimeState;
@@ -14,6 +24,8 @@ describe('features/instantiate/InstanceSelection.tsx', () => {
   let mockActiveInstances: ISimpleInstance[];
 
   beforeEach(() => {
+    // Set screen size to desktop
+    setScreenWidth(1200);
     const createStore = configureStore();
     mockInitialState = getInitialStateMock({});
     mockStore = createStore(mockInitialState);
@@ -33,14 +45,10 @@ describe('features/instantiate/InstanceSelection.tsx', () => {
   });
 
   it('should show full size table for larger devices', () => {
-    const rendered = render(
-      <Provider store={mockStore}>
-        <InstanceSelection
-          instances={mockActiveInstances}
-          onNewInstance={mockStartNewInstance}
-        />
-      </Provider>,
-    );
+    const rendered = renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
+    });
     const altinnTable = rendered.container.querySelector(
       '#instance-selection-table',
     );
@@ -48,19 +56,12 @@ describe('features/instantiate/InstanceSelection.tsx', () => {
   });
 
   it('should display mobile table for smaller devices', () => {
-    (window as any).matchMedia = jest.fn().mockReturnValue({
-      matches: true,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
+    // Set screen size to mobile
+    setScreenWidth(600);
+    const rendered = renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
     });
-    const rendered = render(
-      <Provider store={mockStore}>
-        <InstanceSelection
-          instances={mockActiveInstances}
-          onNewInstance={mockStartNewInstance}
-        />
-      </Provider>,
-    );
     const altinnMobileTable = rendered.container.querySelector(
       '#instance-selection-mobile-table',
     );
@@ -68,14 +69,10 @@ describe('features/instantiate/InstanceSelection.tsx', () => {
   });
 
   it('should display active instances', async () => {
-    const rendered = render(
-      <Provider store={mockStore}>
-        <InstanceSelection
-          instances={mockActiveInstances}
-          onNewInstance={mockStartNewInstance}
-        />
-      </Provider>,
-    );
+    const rendered = renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
+    });
 
     const firstInstanceChangedBy = await rendered.findByText(
       mockActiveInstances[0].lastChangedBy,
@@ -95,14 +92,10 @@ describe('features/instantiate/InstanceSelection.tsx', () => {
   });
 
   it('pressing "Start på nytt" should trigger callback', () => {
-    const rendered = render(
-      <Provider store={mockStore}>
-        <InstanceSelection
-          instances={mockActiveInstances}
-          onNewInstance={mockStartNewInstance}
-        />
-      </Provider>,
-    );
+    const rendered = renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
+    });
 
     rendered.getByText('Start på nytt').click();
     expect(mockStartNewInstance).toBeCalledTimes(1);

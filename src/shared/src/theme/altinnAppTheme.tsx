@@ -10,29 +10,6 @@ const AltinnAppTheme = {
         },
       },
     },
-    MuiTypography: {
-      h1: {
-        fontSize: 36,
-      },
-      h2: {
-        fontSize: 28,
-      },
-      h3: {
-        fontSize: 20,
-      },
-      body1: {
-        fontSize: 16,
-      },
-      body2: {
-        fontSize: 14,
-      },
-      caption: {
-        fontSize: 14,
-      },
-      subtitle1: {
-        fontSize: 14,
-      },
-    },
     MuiPickersToolbar: {
       toolbar: {
         backgroundColor: '#022F51',
@@ -71,7 +48,6 @@ const AltinnAppTheme = {
   },
   typography: {
     htmlFontSize: 16,
-    useNextVariants: true,
     fontFamily: [
       '-apple-system',
       'BlinkMacSystemFont',
@@ -84,6 +60,27 @@ const AltinnAppTheme = {
       '"Segoe UI Emoji"',
       '"Segoe UI Symbol"',
     ].join(','),
+    h1: {
+      fontSize: 36,
+    },
+    h2: {
+      fontSize: 28,
+    },
+    h3: {
+      fontSize: 20,
+    },
+    body1: {
+      fontSize: 16,
+    },
+    body2: {
+      fontSize: 14,
+    },
+    caption: {
+      fontSize: 14,
+    },
+    subtitle1: {
+      fontSize: 14,
+    },
   },
 };
 

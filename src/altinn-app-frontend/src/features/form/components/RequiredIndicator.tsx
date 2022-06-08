@@ -1,12 +1,24 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { useAppSelector } from 'src/common/hooks';
+import { ILanguage } from 'altinn-shared/types';
 
-export const RequiredIndicator = () => {
-  const language = useAppSelector(state => state.language.language);
-  return (
-    <span>
-      {` ${getLanguageFromKey('form_filler.required_label', language)}`}
-    </span>
-  )
+export interface IRequiredIndicatorProps {
+  language: ILanguage;
+  required: boolean;
+  readOnly?: boolean;
 }
+
+export const RequiredIndicator = ({
+  language,
+  required,
+  readOnly,
+}: IRequiredIndicatorProps) => {
+  if (required && !readOnly) {
+    return (
+      <span>
+        {` ${getLanguageFromKey('form_filler.required_label', language)}`}
+      </span>
+    );
+  }
+  return null;
+};
