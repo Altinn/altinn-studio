@@ -99,7 +99,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 try
                 {
-                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder, options);
                 }
                 catch (Exception e)
                 {
@@ -144,7 +144,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryResponse;
         }
 
-        private static IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
+        private static IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder, QueryRequestOptions options)
         {
             foreach (KeyValuePair<string, StringValues> param in queryParams)
             {
@@ -159,7 +159,16 @@ namespace Altinn.Platform.Storage.Repository
 
                 if (queryParameter.Equals("instanceOwner.partyId"))
                 {
-                    queryBuilder = queryBuilder.Where(i => queryValues.Contains(i.InstanceOwner.PartyId));
+                    if (queryValues.Count == 1)
+                    {
+                        options.PartitionKey = new PartitionKey(queryValues.First());
+                        queryBuilder = queryBuilder.Where(i => queryValues == i.InstanceOwner.PartyId);
+                    }
+                    else
+                    {
+                        queryBuilder = queryBuilder.Where(i => queryValues.Contains(i.InstanceOwner.PartyId));
+                    }
+
                     continue;
                 }
 
