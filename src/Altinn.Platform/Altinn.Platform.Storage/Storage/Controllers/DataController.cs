@@ -114,15 +114,15 @@ namespace Altinn.Platform.Storage.Controllers
 
                 DataType dataType = application.DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
 
-                if (dataType == null || !dataType.AppLogic.AutoDeleteOnProcessEnd)
+                if (dataType == null || dataType.AppLogic?.AutoDeleteOnProcessEnd != true)
                 {
                     return BadRequest($"DataType {dataElement.DataType} does not support delayed deletion");
                 }
 
-                return await InitiateDelayedDelete(dataElement);
+                return await InitiateDelayedDelete(instance, dataElement);
             }
 
-            return await DeleteImmediately(instance, dataElement, instanceGuid, dataGuid);
+            return await DeleteImmediately(instance, dataElement, instanceGuid);
         }
 
         /// <summary>
@@ -524,7 +524,7 @@ namespace Altinn.Platform.Storage.Controllers
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
 
-        private async Task<ActionResult<DataElement>> InitiateDelayedDelete(DataElement dataElement)
+        private async Task<ActionResult<DataElement>> InitiateDelayedDelete(Instance instance, DataElement dataElement)
         {
             DateTime deletedTime = DateTime.UtcNow;
 
@@ -536,12 +536,13 @@ namespace Altinn.Platform.Storage.Controllers
 
             await _dataRepository.Update(dataElement);
 
+            await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
             return Ok(dataElement);
         }
 
-        private async Task<ActionResult<DataElement>> DeleteImmediately(Instance instance, DataElement dataElement, Guid instanceGuid, Guid dataGuid)
+        private async Task<ActionResult<DataElement>> DeleteImmediately(Instance instance, DataElement dataElement, Guid instanceGuid)
         {
-            string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
+            string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataElement.Id);
 
             await _dataRepository.DeleteDataInStorage(instance.Org, storageFileName);
 
