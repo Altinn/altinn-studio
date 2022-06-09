@@ -11,7 +11,7 @@ import * as header from '../../../buildrequestheaders.js';
  */
 export function postSubscriptions(altinnStudioRuntimeToken, subject, subjectType, orgName, appName) {
   var endpoint = config.platformEvents['subscriptions'];
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeToken, 'platform');
   var subjectFilter = subjectType === 'person' ? `/person/${subject}` : `/organisation/${subject}`;
   var body = {
     endPoint: 'https://www.altinn.no/',
@@ -31,7 +31,7 @@ export function postSubscriptions(altinnStudioRuntimeToken, subject, subjectType
  */
 export function getSubscriptionById(altinnStudioRuntimeToken, subscriptionId) {
   var endpoint = `${config.platformEvents['subscriptions']}/${subscriptionId}`;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeToken, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -43,6 +43,6 @@ export function getSubscriptionById(altinnStudioRuntimeToken, subscriptionId) {
  */
 export function deleteSubscriptionById(altinnStudioRuntimeToken, subscriptionId) {
   var endpoint = `${config.platformEvents['subscriptions']}/${subscriptionId}`;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeToken, 'platform');
   return http.del(endpoint, null, params);
 }

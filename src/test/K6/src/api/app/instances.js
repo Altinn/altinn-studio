@@ -6,21 +6,21 @@ import { httpPost } from '../../wrapper.js';
 //Api call to App Api:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + '/instances?instanceOwnerPartyId=' + partyId;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.post(endpoint, null, params);
 }
 
 //Api call to App Api:Instances to create an app instance and returns response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'instanceid');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.get(endpoint, params);
 }
 
 //Api call to App Api:Instances to validate an app instance and returns response
 export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'instanceid') + '/validate';
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.get(endpoint, params);
 }
 
@@ -29,7 +29,7 @@ export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userTy
   var requestBody = '{"instanceOwner":{}}';
   requestBody = JSON.parse(requestBody);
   var endpoint = config.appApiBaseUrl(appOwner, appName) + '/instances';
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'app');
   if (userType == 'ssn') {
     requestBody.instanceOwner.personNumber = value;
   } else if (userType == 'org') {
@@ -50,7 +50,7 @@ export function isReceiptPdfGenerated(responseJson) {
 //Api call to update the sub status of an app instance and return the response
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName, statusLabel, statusDescription) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'substatus');
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'app');
   var requestBody = JSON.parse('{}');
   requestBody.label = statusLabel;
   requestBody.description = statusDescription;
@@ -61,7 +61,7 @@ export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceI
 //Api call to mark an app instance as complete confirmed by app owner and return the response
 export function postCompleteConfirmation(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, '', 'complete');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.post(endpoint, null, params);
 }
 
@@ -75,7 +75,7 @@ export function postCompleteConfirmation(altinnStudioRuntimeCookie, partyId, ins
  */
 export function postInstanceWithMultipartData(altinnStudioRuntimeCookie, partyId, appOwner, appName, formDataXml) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + '/instances';
-  var params = header.buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntimeForMultipart(altinnStudioRuntimeCookie, 'app');
 
   var instanceJson = {
     instanceOwner: {
@@ -106,7 +106,7 @@ export function postInstanceWithMultipartData(altinnStudioRuntimeCookie, partyId
  */
 export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, null, null, 'active');
-  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'app');
   return http.get(endpoint, params);
 }
 
@@ -120,7 +120,7 @@ export function getActiveInstances(altinnToken, partyId, appOwner, appName) {
  */
 export function postSimplifiedInstantiation(altinnToken, appOwner, appName, instanceInfo) {
   var endpoint = `${config.appApiBaseUrl(appOwner, appName)}/instances/create`;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'app');
   var body = JSON.stringify(instanceInfo);
   return http.post(endpoint, body, params);
 }

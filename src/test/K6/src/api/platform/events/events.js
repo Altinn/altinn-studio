@@ -10,7 +10,7 @@ import * as support from '../../../support.js';
  */
 export function postEvents(altinnStudioRuntimeToken) {
   var endpoint = config.platformEvents['events'];
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeToken, 'platform');
   var body = [
     {
       id: '24f6554b-6e23-4132-9a72-0ac3c91478d3',
@@ -31,7 +31,7 @@ export function postEvents(altinnStudioRuntimeToken) {
 export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
   var endpoint = config.platformEvents['eventsByParty'];
   endpoint += filterParameters != null ? support.buildQueryParametersForEndpoint(filterParameters) : '';
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeToken, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -45,6 +45,6 @@ export function getEventsByparty(altinnStudioRuntimeToken, filterParameters) {
 export function getEvents(altinnStudioRuntimeToken, appOwner, appName, filterParameters) {
   var endpoint = config.platformEvents['events'] + appOwner + '/' + appName;
   endpoint += filterParameters != null ? support.buildQueryParametersForEndpoint(filterParameters) : '';
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeToken, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeToken, 'platform');
   return http.get(endpoint, params);
 }

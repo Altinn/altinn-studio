@@ -9,9 +9,9 @@
     "prettier:format": "prettier -w src/**/*.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.12",
-    "@babel/eslint-parser": "^7.17.0",
-    "eslint": "^8.15.0",
+    "@babel/core": "^7.18.2",
+    "@babel/eslint-parser": "^7.18.2",
+    "eslint": "^8.16.0",
     "prettier": "^2.6.2"
   },
   "packageManager": "yarn@3.2.1"

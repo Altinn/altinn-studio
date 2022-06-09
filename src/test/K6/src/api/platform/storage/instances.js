@@ -16,7 +16,7 @@ import * as support from '../../../support.js';
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName, instanceJson) {
   var appId = appOwner + '/' + appName;
   var endpoint = config.platformStorage['instances'] + '?appId=' + appId;
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestbody = JSON.stringify(buildInstanceInputJson(instanceJson, appId, partyId));
   return http.post(endpoint, requestbody, params);
 }
@@ -32,7 +32,7 @@ function buildInstanceInputJson(instanceJson, appId, partyId) {
 //Api call to Storage:Instances to get an instance by id and return response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'instanceid');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -40,7 +40,7 @@ export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId) 
 export function getAllinstancesWithFilters(altinnStudioRuntimeCookie, filters) {
   var endpoint = config.platformStorage['instances'];
   endpoint += filters != null ? support.buildQueryParametersForEndpoint(filters) : '';
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -59,7 +59,7 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
 
   //find archived instances of the app that has created date > createdDateTime
   var endpoint = config.platformStorage['instances'] + support.buildQueryParametersForEndpoint(filters);
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
@@ -109,14 +109,14 @@ function buildArrayWithInstanceIds(instancesArray) {
 //API call to platform:storage to completeconfirmation on the instance by an appOwner
 export function postCompleteConfirmation(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'completeconfirmation');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.post(endpoint, null, params);
 }
 
 //Api call to Storage:Instances to soft/hard delete an instance by id and return response
 export function deleteInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, hardDelete) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'instanceid') + '?hard=' + hardDelete;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.del(endpoint, null, params);
 }
 
@@ -124,7 +124,7 @@ export function deleteInstanceById(altinnStudioRuntimeCookie, partyId, instanceI
 //an instance by id and return response
 export function putUpdateReadStatus(altinnStudioRuntimeCookie, partyId, instanceId, readStatus) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'readstatus') + '?status=' + readStatus;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.put(endpoint, null, params);
 }
 
@@ -166,7 +166,7 @@ function buildArrayWithHardDeletedInstanceIds(instancesArray) {
 //Api call to Storage:Instances to update the sub status of an instance and return response
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, statusLabel, statusDescription) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'substatus');
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.parse('{}');
   requestBody.label = statusLabel;
   requestBody.description = statusDescription;
@@ -183,7 +183,7 @@ export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceI
  */
 export function putUpdatePresentationTexts(token, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'presentationtexts');
-  var params = header.buildHearderWithRuntimeandJson(token, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(token, 'platform');
   var requestBody = {
     texts: {
       text1: 'test',
@@ -201,7 +201,7 @@ export function putUpdatePresentationTexts(token, partyId, instanceId) {
  */
 export function putUpdateDataValues(token, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'datavalues');
-  var params = header.buildHearderWithRuntimeandJson(token, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(token, 'platform');
   var requestBody = {
     values: {
       value1: 'test',

@@ -6,7 +6,7 @@ import { httpGet } from '../../wrapper.js';
 //Api call to App Api:Data to get a data by id of an app instance and returns response
 export function getDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return httpGet(endpoint, params);
 }
 
@@ -29,14 +29,14 @@ export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataI
 //Api call to App Api:Data to delete a data by id of an app instance and returns response
 export function deleteDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'dataid');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.del(endpoint, '', params);
 }
 
 //Api call to App Api:Instances to validate an instance data and returns response
 export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, instanceId, dataId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, dataId, 'dataid') + '/validate';
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   return http.get(endpoint, params);
 }
 

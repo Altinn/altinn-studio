@@ -47,9 +47,9 @@ export function setup() {
   var data = {
     altinnToken: generateToken('platform', tokenGeneratorUserName, tokenGeneratorUserPwd, tokenGenParams),
     user1Data: userData1,
-    user2Data: userData2
+    user2Data: userData2,
   };
-  
+
   return data;
 }
 
