@@ -10,7 +10,7 @@ describe('components/presentation/Header.tsx', () => {
     const wrapper = mount(
       <Header language={{}} type={ProcessTaskType.Data} header='Test Header' />,
     );
-    expect(wrapper.find('div.modal-header')).toHaveLength(1);
+    expect(wrapper.find('header.modal-header')).toHaveLength(1);
     expect(wrapper.text().includes('Test Header')).toBe(true);
   });
 
@@ -25,7 +25,7 @@ describe('components/presentation/Header.tsx', () => {
         type={ProcessTaskType.Archived}
       />,
     );
-    expect(wrapper.find('div.a-modal-background-success')).toHaveLength(1);
+    expect(wrapper.find('header.a-modal-background-success')).toHaveLength(1);
     expect(wrapper.text().includes('Kvittering')).toBe(true);
   });
 });

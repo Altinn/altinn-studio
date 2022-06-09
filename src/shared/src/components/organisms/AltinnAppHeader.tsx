@@ -1,9 +1,11 @@
 
 import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import { IParty } from '../../types';
+import type { ILanguage, IParty } from '../../types';
+import { getLanguageFromKey } from '../../utils';
 import { renderPartyName } from '../../utils/party';
 import AltinnLogo from '../AltinnLogo';
+import { LandmarkShortcuts } from '../LandmarkShortcuts';
 import AltinnAppHeaderMenu from './AltinnAppHeaderMenu';
 
 export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
@@ -15,10 +17,8 @@ export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
   logoColor: string;
   /** The header background color */
   headerBackgroundColor: string;
-  /** The logout text */
-  logoutText: string;
-  /** The aria label text for profile menu */
-  ariaLabelIcon: string;
+  /** the language resource */
+  language: ILanguage;
 }
 
 const styles = createStyles({
@@ -53,16 +53,22 @@ const styles = createStyles({
   },
 });
 
-export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
-  const {
-    classes, logoColor, headerBackgroundColor: headerColor, party, userParty, logoutText, ariaLabelIcon,
-  } = props;
+export function AltinnAppHeader({
+  classes,
+  logoColor,
+  headerBackgroundColor,
+  party,
+  userParty,
+  language
+}: IAltinnAppHeaderProps) {
+
   return (
     <AppBar
       position='relative'
       classes={{ root: classes.altinnAppHeader }}
-      style={{ backgroundColor: headerColor, color: logoColor }}
+      style={{ backgroundColor: headerBackgroundColor, color: logoColor }}
     >
+      <LandmarkShortcuts shortcuts={[{ id: 'main-content', text: getLanguageFromKey('navigation.to_main_content', language) }]} />
       <Grid
         container={true}
         className={classes.mainContent}
@@ -112,8 +118,8 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
             <AltinnAppHeaderMenu
               party={party}
               logoColor={logoColor}
-              logoutText={logoutText}
-              ariaLabel={ariaLabelIcon}
+              logoutText={getLanguageFromKey('general.log_out', language)}
+              ariaLabel={getLanguageFromKey('general.header_profile_icon_label', language)}
             />
           </Grid>
         </Grid>

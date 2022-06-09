@@ -16,10 +16,18 @@ describe('>>> AltinnAppHeader.tsx', () => {
     partyId: '54321',
     name: 'Bedrift'
   } as IParty;
-  const logoutText = 'Logg ut';
-  const ariaLabel = 'Profilikon meny';
   const headerBackgroundColor = 'blue';
   const logoColor = 'blue';
+  const language = {
+    general: {
+      header_profile_icon_label: 'Profilikon meny',
+      log_out: 'Logg ut',
+    }
+  };
+
+  /*
+  general.header_profile_icon_label
+  */
 
   it('+++ should render private icon when party is person', () => {
     const wrapper = mount(
@@ -27,9 +35,8 @@ describe('>>> AltinnAppHeader.tsx', () => {
         party={partyPerson}
         userParty={partyPerson}
         logoColor={logoColor}
-        logoutText={logoutText}
-        ariaLabelIcon={ariaLabel}
         headerBackgroundColor={headerBackgroundColor}
+        language={language}
       />,
     );
     expect(wrapper.find('i.fa-private-circle-big')).toHaveLength(1);
@@ -41,9 +48,8 @@ describe('>>> AltinnAppHeader.tsx', () => {
         party={partyOrg}
         userParty={partyPerson}
         logoColor={logoColor}
-        logoutText={logoutText}
-        ariaLabelIcon={ariaLabel}
         headerBackgroundColor={headerBackgroundColor}
+        language={language}
       />,
     );
     expect(wrapper.find('i.fa-corp-circle-big')).toHaveLength(1);
@@ -55,9 +61,8 @@ describe('>>> AltinnAppHeader.tsx', () => {
         party={partyOrg}
         userParty={partyPerson}
         logoColor={logoColor}
-        logoutText={logoutText}
-        ariaLabelIcon={ariaLabel}
         headerBackgroundColor={headerBackgroundColor}
+        language={language}
       />,
     );
     wrapper.find('#profile-icon-button').hostNodes().simulate('click');

@@ -76,6 +76,11 @@ export function en() {
       summary_item_change: 'Change',
       summary_go_to_correct_page: 'Go to the correct page in the form',
     },
+    navigation: {
+      main: 'App navigation',
+      form: 'Form navigation',
+      to_main_content: 'Go to main content'
+    },
     general: {
       action: 'Action',
       add_connection: 'Add connection',

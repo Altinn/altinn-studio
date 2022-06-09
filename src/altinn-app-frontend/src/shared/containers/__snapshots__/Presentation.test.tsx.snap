@@ -18,6 +18,17 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
       }
     }
   >
+    <nav
+      className="makeStyles-jumpNav-5"
+    >
+      <button
+        className="makeStyles-button-4 makeStyles-srOnly-6"
+        onClick={[Function]}
+        role="link"
+      >
+        Hopp til hovedinnholdet
+      </button>
+    </nav>
     <div
       className="MuiGrid-root AltinnAppHeader-mainContent-2 MuiGrid-container MuiGrid-align-items-xs-center"
     >
@@ -53,7 +64,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
           <button
             aria-haspopup="true"
             aria-label="Profil ikon knapp"
-            className="MuiButtonBase-root MuiIconButton-root makeStyles-iconButton-6"
+            className="MuiButtonBase-root MuiIconButton-root makeStyles-iconButton-9"
             disabled={false}
             id="profile-icon-button"
             onBlur={[Function]}
@@ -92,7 +103,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
       </div>
     </div>
   </header>
-  <div
+  <main
     className="container"
   >
     <div
@@ -194,7 +205,8 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
             </div>
           </div>
         </div>
-        <div
+        <nav
+          aria-label="Appnavigasjon"
           className="a-modal-navbar"
         >
           <button
@@ -217,7 +229,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
               Lukk skjema
             </span>
           </button>
-        </div>
+        </nav>
         <div
           className="a-modal-content-target"
         >
@@ -230,7 +242,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
               <div
                 className="modal-content"
               >
-                <div
+                <header
                   className="modal-header a-modal-header"
                 >
                   <div
@@ -260,7 +272,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
                       </div>
                     </div>
                   </div>
-                </div>
+                </header>
                 <div
                   className="modal-body a-modal-body"
                 />
@@ -270,6 +282,6 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>
 `;

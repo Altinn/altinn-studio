@@ -106,6 +106,7 @@ export default class AppFrontend {
       mainGroup: '#group-mainGroup',
       subGroup: '[id^="group-subGroup"]',
       currentValue: 'input[id^="currentValue"]',
+      navigationBarButton: '#form-content-nav2 > div > nav > button',
       newValue: 'input[id^="newValue"]',
       newValueLabel: 'label[for^="newValue"]',
       addNewItem: 'div[class*="addButton"]',

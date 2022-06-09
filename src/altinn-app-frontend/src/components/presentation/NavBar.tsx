@@ -12,7 +12,7 @@ export interface INavBarProps {
 
 const NavBar = (props: INavBarProps) => {
   return (
-    <div className='a-modal-navbar'>
+    <nav className='a-modal-navbar' aria-label={getLanguageFromKey('navigation.main', props.language)}>
       {props.showBackArrow &&
         <button
           type='button'
@@ -43,7 +43,7 @@ const NavBar = (props: INavBarProps) => {
           </span>
         </button>
       }
-    </div>
+    </nav>
   );
 };
 

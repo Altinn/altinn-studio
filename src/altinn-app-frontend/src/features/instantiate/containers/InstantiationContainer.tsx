@@ -19,7 +19,7 @@ const styles = createStyles({
 });
 
 export interface IInstantiateContainerProps extends WithStyles<typeof styles> {
-  children?: any;
+  children?: React.ReactNode;
   type: 'normal' | 'partyChoice';
 }
 
@@ -41,7 +41,9 @@ function InstantiateContainer(props: IInstantiateContainerProps) {
         profile={profile}
         type={props.type}
       />
-      {children}
+      <main id='main-content'>
+        {children}
+      </main>
     </Grid>
   );
 }

@@ -6,6 +6,7 @@ import { Triggers } from 'src/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const useStyles = makeStyles((theme) => ({
   menu: {
@@ -114,9 +115,10 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
   );
-  const currentPageId: string = useAppSelector(
+  const currentPageId = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
+  const language = useAppSelector((state) => state.language.language);
   const [showMenu, setShowMenu] = React.useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down(600));
@@ -157,7 +159,7 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
 
   return (
     <Grid container>
-      <Grid item component='nav' xs={12} role='navigation'>
+      <Grid item component='nav' xs={12} role='navigation' aria-label={getTextFromAppOrDefault('general.navigation_form', textResources, language, undefined, true)}>
         {isMobile && (
           <NavigationButton
             hidden={showMenu}

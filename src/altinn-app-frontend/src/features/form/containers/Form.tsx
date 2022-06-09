@@ -67,6 +67,7 @@ function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout): JSX.Elem
 
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
+  const [navComponent, setNavComponent] = React.useState<ILayoutComponent | undefined>();
   const [currentLayout, setCurrentLayout] = React.useState<string>();
   const [requiredFieldsMissing, setRequiredFieldsMissing] = React.useState(false);
 
@@ -87,7 +88,6 @@ export function Form() {
   }, [currentView, language, validations]);
 
   React.useEffect(() => {
-    let componentsToRender: any[] = layout;
     let renderedInGroup: string[] = [];
     if (layout) {
       const groupComponents = layout.filter((component) => component.type.toLowerCase() === 'group');
@@ -98,34 +98,41 @@ export function Form() {
         }
         renderedInGroup = renderedInGroup.concat(childList);
       });
+      const componentsToRender = layout.filter((component) => (!renderedInGroup.includes(component.id) && component.type !== 'NavigationBar'));
+      setFilteredLayout(componentsToRender);
+      setNavComponent(layout.find((c) => c.type === 'NavigationBar') as ILayoutComponent);
     }
-
-    if (layout) {
-      componentsToRender = layout.filter((component) => {
-        return !renderedInGroup.includes(component.id);
-      });
-    }
-    setFilteredLayout(componentsToRender);
   }, [layout]);
 
   return (
     <div>
-      {hasRequiredFields(layout) &&
-        <MessageBanner
-          language={language}
-          error={requiredFieldsMissing}
-          messageKey={'form_filler.required_description'}
-        />
+      {navComponent &&
+        <Grid
+          container={true}
+          spacing={3}
+          alignItems='flex-start'
+        >
+          {renderLayoutComponent(navComponent, layout)}
+        </Grid>
       }
-      <Grid
-        container={true}
-        spacing={3}
-        alignItems='flex-start'
-      >
-        {currentView === currentLayout && filteredLayout && filteredLayout.map((component) => {
-          return renderLayoutComponent(component, layout);
-        })}
-      </Grid>
+      <section id='main-content'>
+        {hasRequiredFields(layout) &&
+          <MessageBanner
+            language={language}
+            error={requiredFieldsMissing}
+            messageKey={'form_filler.required_description'}
+          />
+        }
+        <Grid
+          container={true}
+          spacing={3}
+          alignItems='flex-start'
+        >
+          {currentView === currentLayout && filteredLayout && filteredLayout.map((component) => {
+            return renderLayoutComponent(component, layout);
+          })}
+        </Grid>
+      </section>
     </div>
   );
 }

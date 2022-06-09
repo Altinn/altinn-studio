@@ -4,6 +4,17 @@ exports[`features/altinnAppHeader.tsx should match snapshot 1`] = `
 <div
   className="AltinnAppHeader-appBarWrapper-1"
 >
+  <nav
+    className="makeStyles-jumpNav-14"
+  >
+    <button
+      className="makeStyles-button-13 makeStyles-srOnly-15"
+      onClick={[Function]}
+      role="link"
+    >
+      navigation.to_main_content
+    </button>
+  </nav>
   <header
     className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AltinnAppHeader-default-4 MuiPaper-elevation4"
   >

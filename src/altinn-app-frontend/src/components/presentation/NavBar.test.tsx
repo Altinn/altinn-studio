@@ -7,7 +7,7 @@ describe('components/presentation/NavBar.tsx', () => {
     const wrapper = mount(
       <NavBar language={{}} handleClose={null} handleBack={null} />,
     );
-    expect(wrapper.find('div.a-modal-navbar')).toHaveLength(1);
+    expect(wrapper.find('nav.a-modal-navbar')).toHaveLength(1);
     expect(wrapper.find('button.a-modal-close')).toHaveLength(1);
   });
 
@@ -20,7 +20,7 @@ describe('components/presentation/NavBar.tsx', () => {
         hideCloseButton={true}
       />,
     );
-    expect(wrapper.find('div.a-modal-navbar')).toHaveLength(1);
+    expect(wrapper.find('nav.a-modal-navbar')).toHaveLength(1);
     expect(wrapper.find('button.a-modal-close')).toHaveLength(0);
   });
 });

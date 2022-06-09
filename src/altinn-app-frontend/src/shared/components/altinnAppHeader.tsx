@@ -14,6 +14,7 @@ import {
   returnUrlToProfile,
 } from 'altinn-shared/utils/urlHelper';
 import { renderParty } from '../resources/utils/party';
+import { LandmarkShortcuts } from 'altinn-shared/components/LandmarkShortcuts';
 
 export interface IHeaderProps {
   classes: any;
@@ -107,11 +108,16 @@ const gridStyle = { flexGrow: 1 };
 
 const emptyObj = {};
 
-const AltinnAppHeader = (props: IHeaderProps) => {
-  const { classes, type } = props;
-  const party = props.profile ? props.profile.party : null;
+const AltinnAppHeader = ({
+  classes,
+  type,
+  profile,
+  language,
+}: IHeaderProps) => {
+  const party = profile ? profile.party : null;
   return (
     <div className={classes.appBarWrapper}>
+      <LandmarkShortcuts shortcuts={[{ id: 'main-content', text: getLanguageFromKey('navigation.to_main_content', language) }]} />
       <AppBar position='static' className={classes.default}>
         <Toolbar className={`container ${classes.toolbarContainer}`}>
           <Grid
@@ -136,12 +142,12 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                     party?.partyId,
                   )}
                 >
-                  {getLanguageFromKey('instantiate.inbox', props.language)}
+                  {getLanguageFromKey('instantiate.inbox', language)}
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a href={returnUrlToAllSchemas(window.location.origin)}>
-                  {getLanguageFromKey('instantiate.all_forms', props.language)}
+                  {getLanguageFromKey('instantiate.all_forms', language)}
                 </a>
               </li>
               <li className={classes.headerLink}>
@@ -151,53 +157,50 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                     party?.partyId,
                   )}
                 >
-                  {getLanguageFromKey('instantiate.profile', props.language)}
+                  {getLanguageFromKey('instantiate.profile', language)}
                 </a>
               </li>
             </ul>
           )}
           {party &&
-          <div className='a-personSwitcher' title={renderParty(props.profile)}>
-            <span className='a-personSwitcher-name' style={spanStyle}>
-              {!type && (
-                <>
-                  <span
-                    className={`d-block ${
-                      type ? classes.blueDark : classes.blueDarker
+            <div className='a-personSwitcher' title={renderParty(profile)}>
+              <span className='a-personSwitcher-name' style={spanStyle}>
+                {!type && (
+                  <>
+                    <span
+                      className={`d-block ${type ? classes.blueDark : classes.blueDarker
+                        }`}
+                    >
+                      {renderParty(profile)}
+                    </span>
+                    <span
+                      className={type ? classes.blueDark : classes.blueDarker}
+                    >
+                      {party &&
+                        party.organisation &&
+                        `${getLanguageFromKey(
+                          'general.for',
+                          language,
+                        )} ${party.organisation.name.toUpperCase()}`}
+                    </span>
+                  </>
+                )}
+                <span className='d-block' />
+              </span>
+              {party && party.organisation ? (
+                <i
+                  className={`fa fa-corp-circle-big ${classes.partyIcon} ${type ? classes.blueDark : classes.blueDarker
                     }`}
-                  >
-                    {renderParty(props.profile)}
-                  </span>
-                  <span
-                    className={type ? classes.blueDark : classes.blueDarker}
-                  >
-                    {party &&
-                      party.organisation &&
-                      `${getLanguageFromKey(
-                        'general.for',
-                        props.language,
-                      )} ${party.organisation.name.toUpperCase()}`}
-                  </span>
-                </>
+                  aria-hidden='true'
+                />
+              ) : (
+                <i
+                  className={`fa fa-private-circle-big ${classes.partyIcon} ${type ? classes.blueDark : classes.blueDarker
+                    }`}
+                  aria-hidden='true'
+                />
               )}
-              <span className='d-block' />
-            </span>
-            {party && party.organisation ? (
-              <i
-                className={`fa fa-corp-circle-big ${classes.partyIcon} ${
-                  type ? classes.blueDark : classes.blueDarker
-                }`}
-                aria-hidden='true'
-              />
-            ) : (
-              <i
-                className={`fa fa-private-circle-big ${classes.partyIcon} ${
-                  type ? classes.blueDark : classes.blueDarker
-                }`}
-                aria-hidden='true'
-              />
-            )}
-          </div>
+            </div>
           }
         </Toolbar>
       </AppBar>

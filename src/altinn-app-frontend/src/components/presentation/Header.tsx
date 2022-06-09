@@ -19,7 +19,7 @@ const Header = ({
   appOwner
 }: IHeaderProps) => {
   return (
-    <div
+    <header
       className={classNames('modal-header', 'a-modal-header', {
         'a-modal-background-success': type === ProcessTaskType.Archived,
       })}
@@ -46,7 +46,7 @@ const Header = ({
           </Grid>
         </Grid>
       </div>
-    </div>
+    </header>
   );
 };
 
