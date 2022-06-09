@@ -81,6 +81,17 @@
         "required": false,
         "readOnly": false,
         "labelSettings": {"optionalIndicator": false}
+      },
+      {
+        "id": "options",
+        "type": "Dropdown",
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.OppgavegiverEPost-datadef-27334.value"
+        },
+        "textResourceBindings": {
+          "title": "Velg epost"
+        },
+        "optionsId": "epostOptions"
       }
     ]
   }
