@@ -1,0 +1,22 @@
+/// <reference types='cypress' />
+/// <reference types="../../support" />
+
+import AppFrontend from '../../pageobjects/app-frontend';
+
+const appFrontend = new AppFrontend();
+
+describe('Anonymous (stateless) - Options', () => {
+  it('should support fetching option list and changing its value', () => {
+    cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
+    cy.startAppInstance(Cypress.env('anonymous'), true);
+    cy.wait('@getLayoutStateless');
+
+    const dropdownComponent = appFrontend.stateless.dropdown;
+
+    cy.get(dropdownComponent).should('exist').and('be.visible');
+    cy.get(dropdownComponent).should('have.value', '');
+
+    cy.get(dropdownComponent).select('test@test.com');
+    cy.get(dropdownComponent).should('have.value', 'test@test.com');
+  });
+});

@@ -129,6 +129,7 @@ export default class AppFrontend {
       number: '#number',
       idnumber: '#idnummer',
       idnummer2: '#idnummer2',
+      dropdown: '#options',
     };
 
     this.reporteeSelection = {

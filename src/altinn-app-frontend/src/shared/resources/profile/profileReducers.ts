@@ -9,13 +9,17 @@ export interface IProfileState {
   error: Error;
 }
 
-const initalState: IProfileState = {
-  profile: null,
+const initialState: IProfileState = {
+  profile: {
+    profileSettingPreference: {
+      language: 'nb',
+    },
+  } as IProfile,
   error: null,
 };
 
 const ProfileReducer: Reducer<IProfileState> = (
-  state: IProfileState = initalState,
+  state: IProfileState = initialState,
   action?: Action,
 ): IProfileState => {
   if (!action) {
