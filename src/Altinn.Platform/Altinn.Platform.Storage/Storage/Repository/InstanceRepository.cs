@@ -161,8 +161,9 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     if (queryValues.Count == 1)
                     {
-                        options.PartitionKey = new PartitionKey(queryValues.First());
-                        queryBuilder = queryBuilder.Where(i => queryValues == i.InstanceOwner.PartyId);
+                        var partyId = queryValues.First();
+                        options.PartitionKey = new PartitionKey(partyId);
+                        queryBuilder = queryBuilder.Where(i => partyId == i.InstanceOwner.PartyId);
                     }
                     else
                     {
