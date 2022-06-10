@@ -1,13 +1,18 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { PreloadedState } from '@reduxjs/toolkit';
 
 import DatepickerComponent from './DatepickerComponent';
 import type { IComponentProps } from 'src/components';
 import type { IDatePickerProps } from './DatepickerComponent';
-import { mockMediaQuery } from '../../../testUtils';
+import { mockMediaQuery, renderWithProviders } from '../../../testUtils';
+import { RootState } from 'src/store';
 
-const render = (props: Partial<IDatePickerProps> = {}) => {
+const render = (
+  props: Partial<IDatePickerProps> = {},
+  customState: PreloadedState<RootState> = {},
+  ) => {
   const allProps: IDatePickerProps = {
     format: 'DD.MM.YYYY',
     minDate: '1900-01-01T12:00:00.000Z',
@@ -17,7 +22,7 @@ const render = (props: Partial<IDatePickerProps> = {}) => {
     ...props,
   };
 
-  rtlRender(<DatepickerComponent {...allProps} />);
+  renderWithProviders(<DatepickerComponent {...allProps} />, { preloadedState: customState });
 };
 
 const currentYearNumeric = new Date().toLocaleDateString(navigator.language, {

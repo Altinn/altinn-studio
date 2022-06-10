@@ -59,7 +59,6 @@ describe('singleFieldValidationSagas', () => {
         field1: {
           simple: {
             errors: [getParsedLanguageFromText(mockErrorMessage) as any],
-            warnings: [],
           },
         },
       },

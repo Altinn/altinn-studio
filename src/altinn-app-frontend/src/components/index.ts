@@ -19,6 +19,8 @@ import { IGenericComponentProps } from './GenericComponent';
 import { IComponentFormData } from 'src/utils/formComponentUtils';
 import { ILanguage } from 'altinn-shared/types';
 import type { ITextResourceBindings } from 'src/types';
+import type { IGrid } from 'src/features/form/layout';
+import { createContext } from 'react';
 import { LikertComponent } from 'src/components/base/LikertComponent';
 
 export interface IComponent {
@@ -204,5 +206,15 @@ const components: IComponent[] = textComponents.concat(
   schemaComponents,
   advancedComponents,
 );
+
+export interface IFormComponentContext {
+  grid?: IGrid;
+  baseComponentId?: string;
+}
+
+export const FormComponentContext = createContext<IFormComponentContext>({
+  grid: undefined,
+  baseComponentId: undefined,
+});
 
 export default components;

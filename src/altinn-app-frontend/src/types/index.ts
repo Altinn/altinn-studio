@@ -39,6 +39,14 @@ export interface IComponentBindingValidation {
     | string
     | ReactNode
   )[];
+  info?: (
+    | string
+    | ReactNode
+  )[];
+  success?: (
+    | string
+    | ReactNode
+  )[];
   fixed?: (
     | string
     | ReactNode
@@ -289,6 +297,7 @@ export enum Severity {
   Warning = 2,
   Informational = 3,
   Fixed = 4,
+  Success = 5,
 }
 
 export enum Triggers {

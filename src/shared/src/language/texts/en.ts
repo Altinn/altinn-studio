@@ -224,5 +224,10 @@ export function en() {
       required: 'Field is required',
       enum: 'Only the values {0} are permitted',
     },
+    soft_validation: {
+      info_title: 'Information',
+      warning_title: 'Note',
+      success_title: 'How great!'
+    }
   };
 }

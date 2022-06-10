@@ -221,5 +221,10 @@ export function nn() {
       required: 'Feltet er påkravd',
       enum: 'Kun verdiane {0} er tillatne',
     },
+    soft_validation: {
+      info_title: 'Lurt å tenke på',
+      warning_title: 'OBS',
+      success_title: 'Så flott!'
+    }
   };
 }

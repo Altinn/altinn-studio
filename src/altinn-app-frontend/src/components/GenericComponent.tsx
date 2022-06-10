@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { shallowEqual } from 'react-redux';
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-import type { IComponentProps } from '.';
-import components from '.';
+import components, { FormComponentContext } from '.';
+import type { IComponentProps, IFormComponentContext } from '.';
 import type { ILanguage } from 'altinn-shared/types';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
 import { LayoutStyle, Triggers } from 'src/types';
@@ -42,6 +42,7 @@ export interface IGenericComponentProps {
   hidden?: boolean;
   layout?: LayoutStyle;
   groupContainerId?: string;
+  baseComponentId?: string;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -133,6 +134,13 @@ export function GenericComponent(props: IGenericComponentProps) {
     (state) => state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
   );
+  
+  const formComponentContext = useMemo<IFormComponentContext>(() => {
+    return {
+      grid: props.grid,
+      baseComponentId: props.baseComponentId,
+    }
+  }, [props.baseComponentId, props.grid]);
 
   React.useEffect(() => {
     setHasValidationMessages(
@@ -318,59 +326,61 @@ export function GenericComponent(props: IGenericComponentProps) {
   }
 
   return (
-    <Grid
-      item={true}
-      container={true}
-      xs={props.grid?.xs || 12}
-      sm={props.grid?.sm || false}
-      md={props.grid?.md || false}
-      lg={props.grid?.lg || false}
-      xl={props.grid?.xl || false}
-      key={`grid-${props.id}`}
-      className={classNames(
-        'form-group',
-        'a-form-group',
-        classes.container,
-        gridToHiddenProps(props.grid?.labelGrid, classes),
-      )}
-      alignItems='baseline'
-    >
-      {!noLabelComponents.includes(props.type) && (
-        <Grid
-          item={true}
-          xs={props.grid?.labelGrid?.xs || 12}
-          sm={props.grid?.labelGrid?.sm || false}
-          md={props.grid?.labelGrid?.md || false}
-          lg={props.grid?.labelGrid?.lg || false}
-          xl={props.grid?.labelGrid?.xl || false}
-        >
-          <RenderLabelScoped
-            props={props}
-            passThroughProps={passThroughProps}
-            language={language}
-            texts={texts}
-          />
-          <RenderDescription key={`description-${props.id}`} />
-        </Grid>
-      )}
+    <FormComponentContext.Provider value={formComponentContext}>
       <Grid
-        key={`form-content-${props.id}`}
         item={true}
-        id={`form-content-${props.id}`}
-        xs={props.grid?.innerGrid?.xs || 12}
-        sm={props.grid?.innerGrid?.sm || false}
-        md={props.grid?.innerGrid?.md || false}
-        lg={props.grid?.innerGrid?.lg || false}
-        xl={props.grid?.innerGrid?.xl || false}
+        container={true}
+        xs={props.grid?.xs || 12}
+        sm={props.grid?.sm || false}
+        md={props.grid?.md || false}
+        lg={props.grid?.lg || false}
+        xl={props.grid?.xl || false}
+        key={`grid-${props.id}`}
+        className={classNames(
+          'form-group',
+          'a-form-group',
+          classes.container,
+          gridToHiddenProps(props.grid?.labelGrid, classes),
+        )}
+        alignItems='baseline'
       >
-        <RenderComponent.Tag {...componentProps} />
-        {showValidationMessages &&
-          renderValidationMessagesForComponent(
-            componentValidations?.simpleBinding,
-            props.id,
-          )}
+        {!noLabelComponents.includes(props.type) && (
+          <Grid
+            item={true}
+            xs={props.grid?.labelGrid?.xs || 12}
+            sm={props.grid?.labelGrid?.sm || false}
+            md={props.grid?.labelGrid?.md || false}
+            lg={props.grid?.labelGrid?.lg || false}
+            xl={props.grid?.labelGrid?.xl || false}
+          >
+            <RenderLabelScoped
+              props={props}
+              passThroughProps={passThroughProps}
+              language={language}
+              texts={texts}
+            />
+            <RenderDescription key={`description-${props.id}`} />
+          </Grid>
+        )}
+        <Grid
+          key={`form-content-${props.id}`}
+          item={true}
+          id={`form-content-${props.id}`}
+          xs={props.grid?.innerGrid?.xs || 12}
+          sm={props.grid?.innerGrid?.sm || false}
+          md={props.grid?.innerGrid?.md || false}
+          lg={props.grid?.innerGrid?.lg || false}
+          xl={props.grid?.innerGrid?.xl || false}
+        >
+          <RenderComponent.Tag {...componentProps} />
+          {showValidationMessages &&
+            renderValidationMessagesForComponent(
+              componentValidations?.simpleBinding,
+              props.id,
+            )}
+        </Grid>
       </Grid>
-    </Grid>
+    </FormComponentContext.Provider>
   );
 }
 

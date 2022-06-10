@@ -35,7 +35,7 @@ describe('Validation', () => {
       });
   });
 
-  it('Custom field validation - warning', () => {
+  it('Soft validation - warning', () => {
     cy.navigateToChangeName();
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('test').blur();
@@ -43,8 +43,29 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationWarning.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.testIsNotValidValue)
-      .should('have.css', 'background-color', 'rgb(239, 239, 239)');
+      .should('have.text', texts.testIsNotValidValue);
+  });
+
+  it('Soft validation - info', () => {
+    cy.navigateToChangeName();
+    cy.intercept('GET', '**/validate').as('validateData');
+    cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('info').blur();
+    cy.wait('@validateData');
+    cy.get(appFrontend.fieldValidationInfo.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)))
+      .should('exist')
+      .should('be.visible')
+      .should('have.text', texts.infoMessage);
+  });
+
+  it('Soft validation - success', () => {
+    cy.navigateToChangeName();
+    cy.intercept('GET', '**/validate').as('validateData');
+    cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('success').blur();
+    cy.wait('@validateData');
+    cy.get(appFrontend.fieldValidationSuccess.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)))
+      .should('exist')
+      .should('be.visible')
+      .should('have.text', texts.successMessage);
   });
 
   it('Page validation on clicking next', () => {

@@ -224,5 +224,10 @@ export function nb() {
       required: 'Feltet er påkrevd',
       enum: 'Kun verdiene {0} er tillatt',
     },
+    soft_validation: {
+      info_title: 'Lurt å tenke på',
+      warning_title: 'OBS',
+      success_title: 'Så flott!'
+    }
   };
 }

@@ -13,13 +13,12 @@ import {
 } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import type { IComponentBindingValidation, ITextResourceBindings } from 'src/types';
 import { DateFlags } from 'src/types';
 import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { validateDatepickerFormData } from '../../utils/validation';
-import { IComponentProps } from '..';
+import { DatePickerFormatDefault, DatePickerMaxDateDefault, DatePickerMinDateDefault, DatePickerSaveFormatNoTimestamp, validateDatepickerFormData } from '../../utils/validation';
+import type { IComponentProps } from '..';
 
 import './DatepickerComponent.css';
 import '../../styles/shared.css';
@@ -34,7 +33,7 @@ export interface IDatePickerProps extends IComponentProps {
 
 const iconSize = '30px';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
     boxSizing: 'border-box',
     height: '36px',
@@ -42,13 +41,13 @@ const useStyles = makeStyles({
     borderWidth: '2px',
     borderStyle: 'solid',
     marginBottom: '0px',
-    borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
+    borderColor: theme.altinnPalette.primary.blueMedium,
     '&:hover': {
-      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderColor: theme.altinnPalette.primary.blueDark,
     },
     '&:focus-within': {
       outlineOffset: '0px',
-      outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
+      outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
     },
   },
   input: {
@@ -56,8 +55,8 @@ const useStyles = makeStyles({
     marginLeft: '12px',
   },
   invalid: {
-    borderColor: `${AltinnAppTheme.altinnPalette.primary.red} !important`,
-    outlineColor: `${AltinnAppTheme.altinnPalette.primary.red} !important`,
+    borderColor: `${theme.altinnPalette.primary.red} !important`,
+    outlineColor: `${theme.altinnPalette.primary.red} !important`,
   },
   icon: {
     fontSize: iconSize,
@@ -71,7 +70,7 @@ const useStyles = makeStyles({
     marginBottom: '0px',
     marginTop: '0px',
   },
-});
+}));
 
 class AltinnMomentUtils extends MomentUtils {
   getDatePickerHeaderText(date: moment.Moment) {
@@ -81,11 +80,6 @@ class AltinnMomentUtils extends MomentUtils {
     return super.getDatePickerHeaderText(date);
   }
 }
-
-export const DatePickerMinDateDefault = '1900-01-01T12:00:00.000Z';
-export const DatePickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
-export const DatePickerFormatDefault = 'DD.MM.YYYY';
-export const DatePickerSaveFormatNoTimestamp = 'YYYY-MM-DD';
 
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
 const emptyString = '';

@@ -50,7 +50,9 @@ export default class AppFrontend {
 
     //field is a placeholder which has to be replaced with the selector value of the field
     this.fieldValidationError = '[id^="error_field"]';
-    this.fieldValidationWarning = '[id^="message_field"]';
+    this.fieldValidationWarning = '[id^="warning_field"]';
+    this.fieldValidationInfo = '[id^="info_field"]';
+    this.fieldValidationSuccess = '[id^="success_field"]';
 
     //selectors for ttd/frontend-test app
     //message - task_1

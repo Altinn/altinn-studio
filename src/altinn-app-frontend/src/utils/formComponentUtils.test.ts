@@ -1,6 +1,6 @@
 import parseHtmlToReact from 'html-react-parser';
 
-import type { IOptions, ITextResource } from 'src/types';
+import type { IComponentBindingValidation, IComponentValidations, IOptions, ITextResource } from 'src/types';
 import type { IFormData } from 'src/features/form/data/formDataReducer';
 import type {
   ILayoutComponent,
@@ -19,6 +19,7 @@ import {
   isNotAttachmentError,
   isComponentValid,
   componentValidationsHandledByGenericComponent,
+  componentHasValidationMessages,
 } from './formComponentUtils';
 
 describe('formComponentUtils', () => {
@@ -72,14 +73,14 @@ describe('formComponentUtils', () => {
       ],
     },
     '{"id":"mockOptionsWithMapping","mapping":{"someDataField":"someUrlParam"}}':
-      {
-        id: 'mockOptionsWithMapping',
-        mapping: { someDataField: 'someUrlParam' },
-        options: [
-          { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
-          { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
-        ],
-      },
+    {
+      id: 'mockOptionsWithMapping',
+      mapping: { someDataField: 'someUrlParam' },
+      options: [
+        { value: 'mockOptionsWithMapping1', label: 'Value Mapping 1' },
+        { value: 'mockOptionsWithMapping2', label: 'Value Mapping 2' },
+      ],
+    },
   };
   const mockAttachments: IAttachment[] = [
     {
@@ -463,5 +464,18 @@ describe('formComponentUtils', () => {
       const result = atleastOneTagExists(mockAttachmentsWithoutTag);
       expect(result).toEqual(false);
     });
+  });
+
+  describe('componentHasValidationMessages', () => {
+    it.each(['errors', 'warnings', 'success', 'info'])
+      ('should return true if validation message exists in %p array', (type: keyof IComponentBindingValidation) => {
+        const validations: IComponentValidations = {
+          simpleBinding: {
+            [type]: ['some message'],
+          },
+        };
+        const result = componentHasValidationMessages(validations);
+        expect(result).toEqual(true);
+      });
   });
 });
