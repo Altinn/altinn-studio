@@ -128,8 +128,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
-
-            bool isOrgQuerying = false;
+            bool appOwnerRequestingInstances = false;
 
             // if user is org
             string orgClaim = User.GetOrg();
@@ -137,8 +136,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (orgClaim != null)
             {
-                isOrgQuerying = true;
-
                 if (!_authzHelper.ContainsRequiredScope(_generalSettings.InstanceReadScope, User))
                 {
                     return Forbid();
@@ -155,6 +152,8 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return Forbid();
                 }
+
+                appOwnerRequestingInstances = true;
             }
             else if (userId != null)
             {
@@ -176,15 +175,29 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            // filter out hard deleted instances if user is requesting instances          
-            if (userId != null && !queryParams.ContainsKey("status.isHardDeleted"))
+            // filter out hard deleted instances if it isn't appOwner requesting instances
+            if (!appOwnerRequestingInstances)
             {
-                queryParams.Add("status.isHardDeleted", "false");
-            }
+                bool requestingHardDeleted = false;
 
-            string host = $"https://platform.{_generalSettings.Hostname}";
-            string url = Request.Path;
-            string query = Request.QueryString.Value;
+                if (queryParams.TryGetValue("status.isHardDeleted", out StringValues hardDeletedQueryValue))
+                {
+                    _ = bool.TryParse(hardDeletedQueryValue.Single(), out requestingHardDeleted);
+                }
+
+                if (requestingHardDeleted)
+                {
+                    return new QueryResponse<Instance>()
+                    {
+                        Instances = new(),
+                        Self = BuildRequestLink(selfContinuationToken)
+                    };
+                }
+                else if (!queryParams.ContainsKey("status.isHardDeleted"))
+                {
+                    queryParams["status.isHardDeleted"] = "false";
+                }
+            }
 
             try
             {
@@ -195,8 +208,13 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest(result.Exception);
                 }
 
-                if (!isOrgQuerying)
+                if (!appOwnerRequestingInstances)
                 {
+                    foreach (Instance instance in result.Instances)
+                    {
+                        FilterOutDeletedDataElements(instance);
+                    }
+
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
                 }
@@ -204,39 +222,16 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                QueryResponse<Instance> response = new QueryResponse<Instance>
+                QueryResponse<Instance> response = new()
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
+                    Self = BuildRequestLink(selfContinuationToken, queryParams)
                 };
-
-                if (continuationToken == null)
-                {
-                    string selfUrl = $"{host}{url}{query}";
-                    response.Self = selfUrl;
-                }
-                else
-                {
-                    string selfQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        selfContinuationToken);
-
-                    string selfUrl = $"{host}{url}{selfQueryString}";
-
-                    response.Self = selfUrl;
-                }
 
                 if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
-                    string nextQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        nextContinuationToken);
-
-                    string nextUrl = $"{host}{url}{nextQueryString}";
-
-                    response.Next = nextUrl;
+                    response.Next = BuildRequestLink(nextContinuationToken, queryParams);
                 }
 
                 // add self links to platform
@@ -267,6 +262,13 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+
+                bool appOwnerRequestingElement = User.GetOrg() == result.Org;
+                if (!appOwnerRequestingElement)
+                {
+                    FilterOutDeletedDataElements(result);
+                }
+
                 result.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 return Ok(result);
@@ -781,9 +783,41 @@ namespace Altinn.Platform.Storage.Controllers
             return nextQueryString;
         }
 
+        private static void FilterOutDeletedDataElements(Instance instance)
+        {
+            if (instance.Data != null)
+            {
+                instance.Data = instance.Data.Where(d => d.DeleteStatus?.IsHardDeleted != true).ToList();
+            }
+        }
+
         private string GetUserId()
         {
             return User.GetUserOrOrgId();
+        }
+
+        private string BuildRequestLink(string continuationToken = null, Dictionary<string, StringValues> queryParams = null)
+        {
+            string host = $"https://platform.{_generalSettings.Hostname}";
+            string url = Request.Path;
+            string query = Request.QueryString.Value;
+
+            if (continuationToken == null)
+            {
+                string selfUrl = $"{host}{url}{query}";
+                return selfUrl;
+            }
+            else
+            {
+                string selfQueryString = BuildQueryStringWithOneReplacedParameter(
+                    queryParams,
+                    "continuationToken",
+                    continuationToken);
+
+                string selfUrl = $"{host}{url}{selfQueryString}";
+
+                return selfUrl;
+            }
         }
     }
 }

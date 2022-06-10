@@ -1,0 +1,29 @@
+{
+  "id": "ttd/autodelete-data-app",
+  "org": "ttd",
+  "title": {
+    "nb": "autodelete-data-ap"
+  },
+  "created": "2022-06-01T10:02:41.0839253Z",
+  "createdBy": "JohnnyDepp",
+  "lastChanged": "2022-06-01T10:02:41.0839254Z",
+  "lastChangedBy": "JohnnyDepp",
+  "dataTypes": [
+    {
+      "id": "default",
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate": true,
+        "autoDeleteOnProcessEnd": true,
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.ttd.endring_av_navn.Skjema"
+      },
+      "taskId": "Task_1"
+    },
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [ "application/pdf" ],
+      "enablePdfCreation": true
+    }
+  ]
+}

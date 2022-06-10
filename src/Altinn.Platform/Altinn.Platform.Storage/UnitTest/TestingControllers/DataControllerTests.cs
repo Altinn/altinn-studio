@@ -1,9 +1,10 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 using Altinn.Common.PEP.Interfaces;
-
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Interface.Models;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Moq;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
@@ -33,6 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
     {
         private readonly TestApplicationFactory<DataController> _factory;
         private readonly string _versionPrefix = "/storage/api/v1";
+        private readonly JsonSerializerOptions _serializerOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataControllerTests"/> class.
@@ -41,6 +44,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public DataControllerTests(TestApplicationFactory<DataController> factory)
         {
             _factory = factory;
+            _serializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         }
 
         /// <summary>
@@ -171,7 +175,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void Delete_DataElement_Ok()
         {
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
-           
+
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
@@ -183,7 +187,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void Delete_DataElementDoesNotExist_ReturnsNotFound()
         {
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11111111-6681-47a1-9626-fcf6c27308a5";
-           
+
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
@@ -237,6 +241,38 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Get_DataElementsAsEndUser_HardDeletedFilteredOut()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/dataelements/";
+            int expectedCount = 2;
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+            string content = await response.Content.ReadAsStringAsync();
+            DataElementList actual = JsonSerializer.Deserialize<DataElementList>(content, _serializerOptions);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedCount, actual.DataElements.Count);
+        }
+
+        [Fact]
+        public async void Get_DataElementsAsAppOwner_HardDeletedIncluded()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/dataelements/";
+            int expectedCount = 3;
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+            string content = await response.Content.ReadAsStringAsync();
+            DataElementList actual = JsonSerializer.Deserialize<DataElementList>(content, _serializerOptions);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedCount, actual.DataElements.Count);
         }
 
         [Fact]
@@ -303,7 +339,143 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        private HttpClient GetTestClient()
+        [Fact]
+        public async void Get_DataElementAsEndUser_HardDeleted_NotFound()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Get_DataElementAsAppOwner_HardDeletedIncluded()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Delete_Delayed_AutoDeleteMissing_BadRequest()
+        {
+            // Arrange
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9?delay=true";
+            string expected = "\"DataType default does not support delayed deletion\"";
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+            string actual = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async void Delete_Delayed_UpdateMethodCalledInRepository()
+        {
+            // Arrange
+            DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe30");
+            Mock<IDataRepository> dataRepositoryMock = new();
+            dataRepositoryMock
+                .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                .ReturnsAsync(de);
+
+            dataRepositoryMock
+                .Setup(dr => dr.Update(It.Is<DataElement>(ude => ude.DeleteStatus.IsHardDeleted)))
+                .ReturnsAsync((DataElement input) => { return input; });
+
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe30?delay=true";
+            HttpClient client = GetTestClient(dataRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            dataRepositoryMock.VerifyAll();
+        }
+
+        [Fact]
+        public async void Delete_Immediate_DeleteMethodCalledInRepository()
+        {
+            // Arrange
+            DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe30");
+            Mock<IDataRepository> dataRepositoryMock = new();
+            dataRepositoryMock
+                           .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                .ReturnsAsync(de);
+
+            dataRepositoryMock
+                .Setup(dr => dr.DeleteDataInStorage(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(true);
+
+            dataRepositoryMock
+                .Setup(dr => dr.Delete(It.IsAny<DataElement>()))
+                .ReturnsAsync(true);
+
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe30";
+            HttpClient client = GetTestClient(dataRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            dataRepositoryMock.VerifyAll();
+        }
+
+        [Fact]
+        public async void Delete_EndUserDeletingAlreadyDeletedElement_NotFound()
+        {
+            // Arrange      
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88";
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Delete_OrgDeletingAlreadyDeletedElement_RepositoryUpdateNotCalled()
+        {
+            // Arrange
+            DataElement de = TestDataUtil.GetDataElement("887c5e56-6f73-494a-9730-6ebd11bffe88");
+            Mock<IDataRepository> dataRepositoryMock = new();
+            dataRepositoryMock = new();
+            dataRepositoryMock
+                .Setup(dr => dr.Read(It.IsAny<Guid>(), It.IsAny<Guid>()))
+                .ReturnsAsync(de);
+
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/4914257c-9920-47a5-a37a-eae80f950767/data/887c5e56-6f73-494a-9730-6ebd11bffe88?delay=true";
+            HttpClient client = GetTestClient(dataRepositoryMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            dataRepositoryMock.Verify(dr => dr.Update(It.IsAny<DataElement>()), Times.Never);
+        }
+
+        private HttpClient GetTestClient(Mock<IDataRepository> repositoryMock = null)
         {
             // No setup required for these services. They are not in use by the InstanceController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
@@ -315,6 +487,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddMockRepositories();
+
+                    if (repositoryMock != null)
+                    {
+                        services.AddSingleton(repositoryMock.Object);
+                    }
 
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);

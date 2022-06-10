@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -40,7 +40,6 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
 
-        private readonly ILogger _logger;
         private readonly string _storageBaseAndHost;
 
         /// <summary>
@@ -51,20 +50,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="instanceEventRepository">the instance event repository</param>
         /// <param name="generalSettings">the general settings.</param>
-        /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
             IInstanceEventRepository instanceEventRepository,
-            IOptions<GeneralSettings> generalSettings,
-            ILogger<DataController> logger)
+            IOptions<GeneralSettings> generalSettings)
         {
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
             _instanceEventRepository = instanceEventRepository;
-            _logger = logger;
             _storageBaseAndHost = $"{generalSettings.Value.Hostname}/storage/api/v1/";
         }
 
@@ -74,6 +70,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
         /// <param name="dataGuid">The id of the data element to delete.</param>
+        /// <param name="delay">A boolean to indicate if the delete should be immediate or delayed following Altinn's business logic</param>
         /// <returns>The metadata of the deleted data element.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete("data/{dataGuid:guid}")]
@@ -81,10 +78,8 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        public async Task<ActionResult<DataElement>> Delete(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
+        public async Task<ActionResult<DataElement>> Delete(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, [FromQuery] bool delay)
         {
-            _logger.LogInformation("//DataController // Delete // Starting method");
-
             (Instance instance, ActionResult instanceError) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
@@ -97,15 +92,37 @@ namespace Altinn.Platform.Storage.Controllers
                 return dataElementError;
             }
 
-            string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
+            bool appOwnerDeletingElement = User.GetOrg() == instance.Org;
 
-            await _dataRepository.DeleteDataInStorage(instance.Org, storageFileName);
+            if (!appOwnerDeletingElement && dataElement.DeleteStatus?.IsHardDeleted == true)
+            {
+                return NotFound();
+            }
 
-            await _dataRepository.Delete(dataElement);
+            if (delay)
+            {
+                if (appOwnerDeletingElement && dataElement.DeleteStatus?.IsHardDeleted == true)
+                {
+                    return dataElement;
+                }
 
-            await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
+                (Application application, ActionResult applicationError) = await GetApplicationAsync(instance.AppId, instance.Org);
+                if (application == null)
+                {
+                    return applicationError;
+                }
 
-            return Ok(dataElement);
+                DataType dataType = application.DataTypes.FirstOrDefault(dt => dt.Id == dataElement.DataType);
+
+                if (dataType == null || dataType.AppLogic?.AutoDeleteOnProcessEnd != true)
+                {
+                    return BadRequest($"DataType {dataElement.DataType} does not support delayed deletion");
+                }
+
+                return await InitiateDelayedDelete(instance, dataElement);
+            }
+
+            return await DeleteImmediately(instance, dataElement);
         }
 
         /// <summary>
@@ -141,7 +158,14 @@ namespace Altinn.Platform.Storage.Controllers
                 return dataElementError;
             }
 
-            if (!dataElement.IsRead && User.GetOrg() != instance.Org)
+            bool appOwnerRequestingElement = User.GetOrg() == instance.Org;
+
+            if (dataElement.DeleteStatus?.IsHardDeleted == true && !appOwnerRequestingElement)
+            {
+                return NotFound();
+            }
+
+            if (!dataElement.IsRead && !appOwnerRequestingElement)
             {
                 dataElement.IsRead = true;
                 await _dataRepository.Update(dataElement);
@@ -182,7 +206,6 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter value: instanceOwnerPartyId can not be empty");
             }
 
-            // check if instance id exist and user is allowed to change the instance data
             (Instance instance, ActionResult errorResult) = await GetInstanceAsync(instanceGuid, instanceOwnerPartyId);
             if (instance == null)
             {
@@ -191,7 +214,13 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<DataElement> dataElements = await _dataRepository.ReadAll(instanceGuid);
 
-            DataElementList dataElementList = new DataElementList { DataElements = dataElements };
+            bool appOwnerRequestingElement = User.GetOrg() == instance.Org;
+
+            List<DataElement> filteredList = appOwnerRequestingElement ?
+                dataElements :
+                dataElements.Where(de => de.DeleteStatus == null || !de.DeleteStatus.IsHardDeleted).ToList();
+
+            DataElementList dataElementList = new DataElementList { DataElements = filteredList };
 
             return Ok(dataElementList);
         }
@@ -493,6 +522,35 @@ namespace Altinn.Platform.Storage.Controllers
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+        }
+
+        private async Task<ActionResult<DataElement>> InitiateDelayedDelete(Instance instance, DataElement dataElement)
+        {
+            DateTime deletedTime = DateTime.UtcNow;
+
+            dataElement.DeleteStatus = new()
+            {
+                IsHardDeleted = true,
+                HardDeleted = deletedTime
+            };
+
+            await _dataRepository.Update(dataElement);
+
+            await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
+            return Ok(dataElement);
+        }
+
+        private async Task<ActionResult<DataElement>> DeleteImmediately(Instance instance, DataElement dataElement)
+        {
+            string storageFileName = DataElementHelper.DataFileName(instance.AppId, dataElement.InstanceGuid, dataElement.Id);
+
+            await _dataRepository.DeleteDataInStorage(instance.Org, storageFileName);
+
+            await _dataRepository.Delete(dataElement);
+
+            await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
+
+            return Ok(dataElement);
         }
     }
 }

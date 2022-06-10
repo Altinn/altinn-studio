@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -26,6 +27,7 @@ using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 using Moq;
 
@@ -396,7 +398,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            int expectedNoInstances = 11;
+            int expectedNoInstances = 12;
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -482,6 +484,94 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Contains(expected, responseMessage);
+        }
+
+        /// <summary>
+        /// Test case: Get Multiple instances and specifying status.isHardDeleted=true.
+        /// Expected: No instances included in response.
+        /// </summary>
+        [Fact]
+        public async Task GetMany_UserRequestsHardDeletedInstances_EmptyListReturned()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1337&status.IsHardDeleted=true";
+
+            HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+            string responseMessage = await response.Content.ReadAsStringAsync();
+            InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(responseMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(0, queryResponse.Count);
+        }
+
+        /// <summary>
+        /// Test case: Get Multiple instances for a partyId.
+        /// Expected: status.isHardDeleted=false is included in query parameters sent to repository.
+        /// </summary>
+        [Fact]
+        public async Task GetMany_UserRequestsInstances_HardDeletedFalseQueryParamIncluded()
+        {
+            // Arrange
+            Mock<IInstanceRepository> irm = new();
+            irm
+            .Setup(irm =>
+            irm.GetInstancesFromQuery(
+                It.Is<Dictionary<string, StringValues>>(
+                    dict => dict.GetValueOrDefault("status.isHardDeleted").Single(v => v.Equals("false")) != null),
+                It.IsAny<string>(),
+                It.IsAny<int>()))
+            .ReturnsAsync(new InstanceQueryResponse { Instances = new() });
+
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1337";
+
+            HttpClient client = GetTestClient(irm);
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+            string responseMessage = await response.Content.ReadAsStringAsync();
+            InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(responseMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            irm.VerifyAll();
+        }
+
+        [Fact]
+        public async Task GetMany_ContainsContinuationToken_CorrectContTokenInSelfLink()
+        {
+            // Arrange
+            Mock<IInstanceRepository> irm = new();
+            irm
+            .Setup(irm =>
+            irm.GetInstancesFromQuery(
+                It.Is<Dictionary<string, StringValues>>(
+                    dict => dict.GetValueOrDefault("status.isHardDeleted").Single(v => v.Equals("false")) != null),
+                It.IsAny<string>(),
+                It.IsAny<int>()))
+            .ReturnsAsync(new InstanceQueryResponse { Instances = new() });
+
+            string requestUri = $"{BasePath}?instanceOwner.partyId=1337&continuationToken=thisIsTheFirstToken";
+
+            HttpClient client = GetTestClient(irm);
+            string token = PrincipalUtil.GetToken(3, 1337);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+            string responseMessage = await response.Content.ReadAsStringAsync();
+            InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(responseMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("continuationToken=thisIsTheFirstToken", queryResponse.Self);
         }
 
         /// <summary>
@@ -1393,7 +1483,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             yield return new object[] { null };
         }
 
-        private HttpClient GetTestClient()
+        private HttpClient GetTestClient(Mock<IInstanceRepository> repositoryMock = null)
         {
             // No setup required for these services. They are not in use by the InstanceController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
@@ -1404,6 +1494,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddMockRepositories();
+
+                    if (repositoryMock != null)
+                    {
+                        services.AddSingleton(repositoryMock.Object);
+                    }
 
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);

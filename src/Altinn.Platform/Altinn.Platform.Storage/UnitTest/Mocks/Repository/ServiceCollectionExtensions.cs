@@ -1,18 +1,18 @@
+using Altinn.Platform.Storage.Repository;
+
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
-    using Altinn.Platform.Storage.Repository;
-    using Microsoft.Extensions.DependencyInjection;
-
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddMockRepositories(this IServiceCollection services)
+        public static void AddMockRepositories(this IServiceCollection services)
         {
-            return services
-                .AddSingleton<IDataRepository, DataRepositoryMock>()
-                .AddSingleton<IInstanceRepository, InstanceRepositoryMock>()
-                .AddSingleton<IApplicationRepository, ApplicationRepositoryMock>()
-                .AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>()
-                .AddSingleton<ITextRepository, TextRepositoryMock>();
+            services.AddSingleton<IDataRepository, DataRepositoryMock>();
+            services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
+            services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
+            services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
+            services.AddSingleton<ITextRepository, TextRepositoryMock>();
         }
     }
 }

@@ -61,12 +61,15 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                             string content = File.ReadAllText(metadataPath);
                             Application application = (Application)JsonConvert.DeserializeObject(content, typeof(Application));
                             string titles = string.Empty;
-                            foreach (string title in application.Title.Values)
+                            if (application.Title != null)
                             {
-                                titles += title + ";";
-                            }
+                                foreach (string title in application.Title.Values)
+                                {
+                                    titles += title + ";";
+                                }
 
-                            appTitles.Add(application.Id, titles);
+                                appTitles.Add(application.Id, titles);
+                            }
                         }
                     }
                 }
