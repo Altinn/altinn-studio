@@ -65,7 +65,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<ApplicationList>> GetMany(string org)
         {
-            if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
+            if (string.IsNullOrEmpty(org) || org.Contains('-') || org.Contains(' '))
             {
                 return BadRequest($"Application owner id '{org}' is not valid");
             }
