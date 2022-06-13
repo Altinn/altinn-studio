@@ -106,8 +106,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Assert.NotNull(application);
             Assert.NotNull(application.DataTypes);
-            Assert.Single(application.DataTypes);
-            Assert.Equal("default", application.DataTypes[0].Id);
+            Assert.Empty(application.DataTypes);
         }
 
         /// <summary>
