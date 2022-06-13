@@ -1,15 +1,9 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using LocalTest.Configuration;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Repositories
 {
@@ -18,7 +12,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyInformationRepository : IPolicyInformationRepository
     {
-        private readonly IInstanceRepository _instanceRepository; 
+        private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyInformationRepository"/> class
@@ -38,15 +32,16 @@ namespace Altinn.Platform.Authorization.Repositories
                 throw new ArgumentException("Instance owner id cannot be zero or negative");
             }
 
-            return _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            string[] instanceIdParts = instanceId.Split("/");
+            return _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
         }
 
 
         /// <inheritdoc/>
         public async Task<Instance> GetInstance(string instanceId)
         {
-            int instanceOwnerId = Convert.ToInt32(instanceId.Split("/")[0]);
-            return await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            string[] instanceIdParts = instanceId.Split("/");
+            return await _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
         }
 
 
