@@ -75,7 +75,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Expected result:
         ///   Returns HttpStatus Created and the Application instance.
         /// Success criteria:
-        ///   The response has correct status and the returned application instance has been populated with a data type.
+        ///   The response has correct status and the returned application instance has been populated with an empty list of data type.
         /// </summary>
         [Fact]
         public async void Post_GivenValidApplication_ReturnsStatusCreatedAndCorrectData()
