@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using LocalTest.Configuration;
 
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -74,16 +76,14 @@ namespace Altinn.Platform.Storage.Controllers
                 Guid instanceGuid,
                 [FromBody] ProcessState processState)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance existingInstance;
             try
             {
-                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+                existingInstance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
             }
             catch (Exception e)
             {
-                string message = $"Unable to find instance {instanceId} to update: {e}";
+                string message = $"Unable to find instance {instanceOwnerPartyId}/{instanceGuid} to update: {e}";
                 _logger.LogError(message);
 
                 return NotFound(message);
@@ -139,8 +139,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
-                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
+                _logger.LogError(e, $"Unable to update instance object {instanceOwnerPartyId}/{instanceGuid}.");
+                return StatusCode(500, $"Unable to update instance object {instanceOwnerPartyId}/{instanceGuid}: {e.Message}");
             }
 
             return Ok(updatedInstance);

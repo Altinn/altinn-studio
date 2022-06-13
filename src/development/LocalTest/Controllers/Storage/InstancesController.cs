@@ -1,27 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using LocalTest.Configuration;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Documents;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 using Substatus = Altinn.Platform.Storage.Interface.Models.Substatus;
@@ -98,6 +102,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dueBefore">The due before date time.</param>
         /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
         /// <param name="isSoftDeleted">Is the instance soft deleted.</param>
+        /// <param name="isHardDeleted">Is the instance hard deleted.</param>
         /// <param name="isArchived">Is the instance archived.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
@@ -122,14 +127,14 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string dueBefore,
             [FromQuery] string excludeConfirmedBy,
             [FromQuery(Name = "status.isSoftDeleted")] bool isSoftDeleted,
+            [FromQuery(Name = "status.isHardDeleted")] bool isHardDeleted,
             [FromQuery(Name = "status.isArchived")] bool isArchived,
             string continuationToken,
             int? size)
         {
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
-
-            bool isOrgQuerying = false;
+            bool appOwnerRequestingInstances = false;
 
             // if user is org
             string orgClaim = User.GetOrg();
@@ -137,8 +142,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (orgClaim != null)
             {
-                isOrgQuerying = true;
-
                 if (!_authzHelper.ContainsRequiredScope(_instanceReadScope, User))
                 {
                     return Forbid();
@@ -155,6 +158,8 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return Forbid();
                 }
+
+                appOwnerRequestingInstances = true;
             }
             else if (userId != null)
             {
@@ -176,9 +181,29 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            string host = $"https://platform.{_generalSettings.Hostname}";
-            string url = Request.Path;
-            string query = Request.QueryString.Value;
+            // filter out hard deleted instances if it isn't appOwner requesting instances
+            if (!appOwnerRequestingInstances)
+            {
+                bool requestingHardDeleted = false;
+
+                if (queryParams.TryGetValue("status.isHardDeleted", out StringValues hardDeletedQueryValue))
+                {
+                    _ = bool.TryParse(hardDeletedQueryValue.Single(), out requestingHardDeleted);
+                }
+
+                if (requestingHardDeleted)
+                {
+                    return new QueryResponse<Instance>()
+                    {
+                        Instances = new(),
+                        Self = BuildRequestLink(selfContinuationToken)
+                    };
+                }
+                else if (!queryParams.ContainsKey("status.isHardDeleted"))
+                {
+                    queryParams["status.isHardDeleted"] = "false";
+                }
+            }
 
             try
             {
@@ -189,8 +214,13 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest(result.Exception);
                 }
 
-                if (!isOrgQuerying)
+                if (!appOwnerRequestingInstances)
                 {
+                    foreach (Instance instance in result.Instances)
+                    {
+                        FilterOutDeletedDataElements(instance);
+                    }
+
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
                 }
@@ -198,39 +228,16 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                QueryResponse<Instance> response = new QueryResponse<Instance>
+                QueryResponse<Instance> response = new()
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
+                    Self = BuildRequestLink(selfContinuationToken, queryParams)
                 };
-
-                if (continuationToken == null)
-                {
-                    string selfUrl = $"{host}{url}{query}";
-                    response.Self = selfUrl;
-                }
-                else
-                {
-                    string selfQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        selfContinuationToken);
-
-                    string selfUrl = $"{host}{url}{selfQueryString}";
-
-                    response.Self = selfUrl;
-                }
 
                 if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
-                    string nextQueryString = BuildQueryStringWithOneReplacedParameter(
-                        queryParams,
-                        "continuationToken",
-                        nextContinuationToken);
-
-                    string nextUrl = $"{host}{url}{nextQueryString}";
-
-                    response.Next = nextUrl;
+                    response.Next = BuildRequestLink(nextContinuationToken, queryParams);
                 }
 
                 // add self links to platform
@@ -240,7 +247,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unable to perform query on instances due to: {e}");
+                _logger.LogError(e, "Unable to perform query on instances");
                 return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
             }
         }
@@ -258,18 +265,23 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Get(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             try
             {
-                Instance result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+                Instance result = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+
+                bool appOwnerRequestingElement = User.GetOrg() == result.Org;
+                if (!appOwnerRequestingElement)
+                {
+                    FilterOutDeletedDataElements(result);
+                }
+
                 result.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 return Ok(result);
             }
             catch (Exception e)
             {
-                return NotFound($"Unable to find instance {instanceId}: {e}");
+                return NotFound($"Unable to find instance {instanceOwnerPartyId}/{instanceGuid}: {e}");
             }
         }
 
@@ -288,8 +300,20 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
+            Application appInfo = null;
+            ActionResult appInfoError;
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
+            try
+            {
+                (appInfo, appInfoError) = await GetApplicationOrErrorAsync(appId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during GetApplicationOrErrorAsync for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
             if (appInfoError != null)
             {
                 return appInfoError;
@@ -301,16 +325,44 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Checking that user is authorized to instantiate.
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            XacmlJsonRequestRoot request;
+            try
+            {
+                request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during CreateDecisionRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
+
+            XacmlJsonResponse response;
+            try
+            {
+                response = await _pdp.GetDecisionForRequest(request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during GetDecisionForRequest for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation("// Instances Controller // Authorization of instantiation failed with request: {request}.", JsonConvert.SerializeObject(request));
                 return Forbid();
             }
 
-            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            bool authorized;
+            try
+            {
+                authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong during ValidatePdpDecision for application id: {appId} AppInfo: {appInfo}", appId, appInfo?.ToString());
+                throw;
+            }
 
             if (!authorized)
             {
@@ -327,22 +379,24 @@ namespace Altinn.Platform.Storage.Controllers
 
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
-                _logger.LogInformation($"Created instance: {storedInstance.Id}");
+                _logger.LogInformation("Created instance: {storedInstance.Id}", storedInstance.Id);
                 storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
-
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
             catch (Exception storageException)
             {
-                _logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
+                _logger.LogError(storageException, "Unable to create {appId} instance for {instance.InstanceOwner.PartyId}", appId, instance.InstanceOwner.PartyId);
 
                 // compensating action - delete instance
-                await _instanceRepository.Delete(storedInstance);
+                if (storedInstance != null)
+                {
+                    await _instanceRepository.Delete(storedInstance);
+                }
 
-                _logger.LogError($"Deleted instance {storedInstance.Id}");
-                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
+                _logger.LogError("Deleted instance {storedInstance.Id}", storedInstance?.Id);
+                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner?.PartyId} due to {storageException.Message}");
             }
         }
 
@@ -362,27 +416,13 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] bool hard)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
             Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
 
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
-            }
-            catch (Exception e)
+            instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
+
+            if (instance == null)
             {
-                _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
-                return StatusCode(500, $"Unknown exception in delete: {e}");
+                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceOwnerPartyId}/{instanceGuid}");
             }
 
             DateTime now = DateTime.UtcNow;
@@ -416,7 +456,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                _logger.LogError(e, "Unexpected exception when deleting instance {instance.Id}", instance.Id);
                 return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
             }
         }
@@ -440,9 +480,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             string org = User.GetOrg();
 
@@ -465,7 +503,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update instance {instanceId}");
+                _logger.LogError(e, "Unable to update instance {instanceOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -496,8 +534,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             Instance updatedInstance;
             try
@@ -514,7 +551,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update read status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update read status for instance {instanceOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -545,8 +582,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
             }
 
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             string org = User.GetOrg();
             if (!instance.Org.Equals(org))
@@ -571,7 +607,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Unable to update sub status for instance {instanceId}");
+                _logger.LogError(e, "Unable to update sub status for instance {instaneOwnerPartyId}/{instanceGuid}", instanceOwnerPartyId, instanceGuid);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
@@ -591,13 +627,17 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<Instance> UpdatePresentationTexts(
+        public async Task<ActionResult<Instance>> UpdatePresentationTexts(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromBody] PresentationTexts presentationTexts)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            if (presentationTexts?.Texts == null)
+            {
+                return BadRequest($"Missing parameter value: presentationTexts is misformed or empty");
+            }
+
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             if (instance.PresentationTexts == null)
             {
@@ -643,8 +683,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest($"Missing parameter value: dataValues is misformed or empty");
             }
 
-            var instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            Instance instance = await _instanceRepository.GetOne(instanceOwnerPartyId, instanceGuid);
 
             instance.DataValues ??= new Dictionary<string, string>();
 
@@ -661,7 +700,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             var updatedInstance = await _instanceRepository.Update(instance);
-            return updatedInstance;
+            return Ok(updatedInstance);
         }
 
         private static Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
@@ -686,7 +725,7 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
+        private async Task<(Application Application, ActionResult ErrorMessage)> GetApplicationOrErrorAsync(string appId)
         {
             ActionResult errorResult = null;
             Application appInfo = null;
@@ -696,16 +735,10 @@ namespace Altinn.Platform.Storage.Controllers
                 string org = appId.Split("/")[0];
 
                 appInfo = await _applicationRepository.FindOne(appId, org);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
+
+                if (appInfo == null)
                 {
                     errorResult = NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    errorResult = StatusCode(500, $"Document database error: {dce}");
                 }
             }
             catch (Exception e)
@@ -756,9 +789,41 @@ namespace Altinn.Platform.Storage.Controllers
             return nextQueryString;
         }
 
+        private static void FilterOutDeletedDataElements(Instance instance)
+        {
+            if (instance.Data != null)
+            {
+                instance.Data = instance.Data.Where(d => d.DeleteStatus?.IsHardDeleted != true).ToList();
+            }
+        }
+
         private string GetUserId()
         {
             return User.GetUserOrOrgId();
+        }
+
+        private string BuildRequestLink(string continuationToken = null, Dictionary<string, StringValues> queryParams = null)
+        {
+            string host = $"https://platform.{_generalSettings.Hostname}";
+            string url = Request.Path;
+            string query = Request.QueryString.Value;
+
+            if (continuationToken == null)
+            {
+                string selfUrl = $"{host}{url}{query}";
+                return selfUrl;
+            }
+            else
+            {
+                string selfQueryString = BuildQueryStringWithOneReplacedParameter(
+                    queryParams,
+                    "continuationToken",
+                    continuationToken);
+
+                string selfUrl = $"{host}{url}{selfQueryString}";
+
+                return selfUrl;
+            }
         }
     }
 }
