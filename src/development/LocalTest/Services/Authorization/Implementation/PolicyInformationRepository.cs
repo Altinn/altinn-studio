@@ -12,7 +12,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyInformationRepository : IPolicyInformationRepository
     {
-        private readonly IInstanceRepository _instanceRepository; 
+        private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyInformationRepository"/> class
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.Repositories
         public async Task<Instance> GetInstance(string instanceId)
         {
             string[] instanceIdParts = instanceId.Split("/");
-            return await _instanceRepository.GetOne(int.Parse(instanceIdParts[0]),Guid.Parse(instanceIdParts[1]));
+            return await _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
         }
 
 
