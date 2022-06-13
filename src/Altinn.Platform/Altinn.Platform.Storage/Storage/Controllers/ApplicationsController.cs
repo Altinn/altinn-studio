@@ -140,6 +140,8 @@ namespace Altinn.Platform.Storage.Controllers
             application.Created = creationTime;
             application.LastChangedBy = GetUserId();
             application.LastChanged = creationTime;
+            application.DataTypes ??= new();
+
             if (application.ValidFrom == null)
             {
                 application.ValidFrom = creationTime;
