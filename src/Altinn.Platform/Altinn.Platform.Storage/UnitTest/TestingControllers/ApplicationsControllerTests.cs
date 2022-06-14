@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Application application = JsonConvert.DeserializeObject(content, typeof(Application)) as Application;
 
             Assert.NotNull(application);
@@ -140,7 +140,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 
@@ -175,7 +175,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 
@@ -209,7 +209,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
 
             Assert.Contains("not valid", content);
         }
@@ -244,7 +244,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 
@@ -278,7 +278,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 
@@ -315,7 +315,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Application application = JsonConvert.DeserializeObject(content, typeof(Application)) as Application;
 
             Assert.NotNull(application);
@@ -354,7 +354,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Application application = JsonConvert.DeserializeObject(content, typeof(Application)) as Application;
 
             Assert.NotNull(application);
@@ -394,7 +394,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 
@@ -429,7 +429,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.True(string.IsNullOrEmpty(content));
         }
 

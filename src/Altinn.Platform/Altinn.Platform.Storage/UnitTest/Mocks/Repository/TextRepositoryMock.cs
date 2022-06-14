@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string org = appId.Split("/")[0];
                 string app = appId.Split("/")[1];
 
-                TextResource resource = Get(org, app, language).Result;
+                TextResource resource = await Get(org, app, language);
                 if (resource != null)
                 {
                     result.Add(resource);

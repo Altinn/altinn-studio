@@ -66,7 +66,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 JsonContent.Create(GetValidTextResource(), new MediaTypeHeaderValue("application/json")));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            string content = response.Content.ReadAsStringAsync().Result;
+            string content = await response.Content.ReadAsStringAsync();
             Assert.False(string.IsNullOrEmpty(content));
         }
 
