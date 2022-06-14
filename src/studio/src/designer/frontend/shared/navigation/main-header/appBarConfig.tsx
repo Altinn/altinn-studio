@@ -15,6 +15,11 @@ export const menu = [
     link: '/texts',
   },
   {
+    key: 'Oversett',
+    activeSubHeaderSelection: 'Oversett1',
+    link: '/language-editor',
+  },
+  {
     key: 'Deploy',
     activeSubHeaderSelection: 'Deploy',
     link: '/deploy',
