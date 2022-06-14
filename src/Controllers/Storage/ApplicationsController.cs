@@ -140,24 +140,11 @@ namespace Altinn.Platform.Storage.Controllers
             application.Created = creationTime;
             application.LastChangedBy = GetUserId();
             application.LastChanged = creationTime;
+            application.DataTypes ??= new();
+
             if (application.ValidFrom == null)
             {
                 application.ValidFrom = creationTime;
-            }
-
-            if (application.DataTypes == null || application.DataTypes.Count == 0)
-            {
-                application.DataTypes = new List<DataType>();
-
-                DataType form = new DataType()
-                {
-                    Id = "default",
-                    AllowedContentTypes = new List<string>(),
-                };
-                form.AllowedContentTypes.Add("text/xml");
-                form.AllowedContentTypes.Add("application/xml");
-
-                application.DataTypes.Add(form);
             }
 
             Application result = await repository.Create(application);
