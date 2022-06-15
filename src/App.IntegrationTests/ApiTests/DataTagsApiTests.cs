@@ -187,6 +187,7 @@ namespace App.IntegrationTestsRef.ApiTests
             return new DataElement
             {
                 Id = dataId,
+                InstanceGuid = InstanceGuid,
                 DataType = "default",
                 Size = 0,
                 Locked = false,

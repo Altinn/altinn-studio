@@ -34,6 +34,5 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Models
     [JsonProperty("Kommune")]
     [JsonPropertyName("Kommune")]
     public string Kommune { get; set; }
-
   }
 }

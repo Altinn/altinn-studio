@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -41,12 +42,12 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             IInstance instanceService,
             ISiriusApi siriusService,
             IHttpContextAccessor httpContextAccessor) : base(
-                appResourcesService, 
-                logger, 
-                dataService, 
-                pdfService, 
-                prefillService, 
-                instanceService, 
+                appResourcesService,
+                logger,
+                dataService,
+                pdfService,
+                prefillService,
+                instanceService,
                 httpContextAccessor)
         {
             _logger = logger;
@@ -84,7 +85,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
                 DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
                 if (dataElement != null)
                 {
-                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    string app = instance.AppId.Split("/")[1];
+
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, app, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
                     bool isValidNæring = await _siriusApi.IsValidNæring(næringsStream);
                     if (!isValidNæring)
                     {
@@ -118,7 +121,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
                 DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
                 if (dataElement != null)
                 {
-                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    string app = instance.AppId.Split("/")[1];
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, app, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
                     Stream næringsPDF = await _siriusApi.GetNæringPDF(næringsStream);
                     await _dataService.InsertBinaryData(instance.Id, "næringsoppgavepdf", "application/pdf", "NæringPDF", næringsPDF);
                 }

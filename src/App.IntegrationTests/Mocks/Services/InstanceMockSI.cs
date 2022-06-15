@@ -5,10 +5,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -19,10 +21,12 @@ namespace App.IntegrationTests.Mocks.Services
     public class InstanceMockSI : IInstance
     {
         private readonly ILogger _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public InstanceMockSI(ILogger<IInstance> logger)
+        public InstanceMockSI(ILogger<IInstance> logger, IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
@@ -145,7 +149,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"../../../Data/Instances");
         }
 
-        private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+        private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
@@ -160,6 +164,12 @@ namespace App.IntegrationTests.Mocks.Services
                     {
                         string content = File.ReadAllText(Path.Combine(path, file));
                         DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+
+                        if (dataElement.DeleteStatus?.IsHardDeleted == true && string.IsNullOrEmpty(_httpContextAccessor.HttpContext.User.GetOrg()))
+                        {
+                            continue;
+                        }
+
                         dataElements.Add(dataElement);
                     }
                 }

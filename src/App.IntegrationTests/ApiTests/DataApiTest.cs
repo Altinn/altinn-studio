@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 
 using Altinn.App.Common.Models;
 using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;
 
+using Moq;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTests.ApiTests
@@ -19,7 +23,7 @@ namespace App.IntegrationTests.ApiTests
     public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-        
+
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
@@ -912,7 +916,7 @@ namespace App.IntegrationTests.ApiTests
             Instance instanceAfterCustomFieldsAdded = JsonConvert.DeserializeObject<Instance>(contentAfterCustomFieldsAdded);
 
             // Assert - after manual update
-            Assert.Equal(expectedDataValuesCountAfterManualUpdate, instanceAfterCustomFieldsAdded.DataValues.Count);            
+            Assert.Equal(expectedDataValuesCountAfterManualUpdate, instanceAfterCustomFieldsAdded.DataValues.Count);
             Assert.True(instanceAfterCustomFieldsAdded.DataValues.ContainsKey(expectedCustomKey));
             Assert.Equal(expectedCustomValue, instanceAfterCustomFieldsAdded.DataValues[expectedCustomKey]);
 
@@ -988,6 +992,35 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.NotNull(actual);
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async Task Data_Delete_BlobAndMetadataDeletedImmediatly()
+        {
+            // Arrange
+            string org = "ttd";
+            string app = "autodelete-data";
+            string instanceGuid = "447ed22d-67a8-42c7-8add-cc35eba30123";
+            string dataGuid = "590ebc27-246e-4a0a-aea3-4296cb231123";
+            string token = PrincipalUtil.GetToken(1337);
+
+            TestDataUtil.PrepareInstance(org, app, 1337, new Guid(instanceGuid));
+            Mock<IData> dataMock = new();
+            dataMock.Setup(dm => dm.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.Is<bool>(b => b == false))).ReturnsAsync(true);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app, dataMock);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/1337/{instanceGuid}/data/{dataGuid}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+
+            // Act
+            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            dataMock.VerifyAll();
         }
     }
 }

@@ -158,28 +158,40 @@ namespace App.IntegrationTests.Utils
             return null;
         }
 
-        private static string GetUserProfilePath(int userId)
+        public static string GetUserProfilePath(int userId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"../../../Data/Profile/User", userId + @".json");
         }
 
-        private static string GetApplicationPath(string org, string app)
+        public static string GetApplicationPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, "..", "..", "..", "Data", "apps", org, app, "config", "applicationmetadata.json");
         }
 
-        private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString() + @".json");
         }
 
-        private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
             return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
+        }
+
+        public static string GetDataElementPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString(), $"{dataGuid}.json");
+        }
+
+        public static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
+            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString(), "blob", dataGuid.ToString());
         }
     }
 }

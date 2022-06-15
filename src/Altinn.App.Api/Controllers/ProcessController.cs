@@ -11,24 +11,19 @@ using Altinn.App.Common.Process.Elements;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
-
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -300,7 +295,7 @@ namespace Altinn.App.Api.Controllers
 
                 bool authorized = false;
                 if (processSequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
-                { 
+                {
                     authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
                 }
                 else
@@ -333,7 +328,7 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(exception, "Process next failed.");
             }
         }
-       
+
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
         /// Notice that process must have been started.

@@ -2,29 +2,35 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
+using App.IntegrationTests.Utils;
 
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace App.IntegrationTests.Mocks.Services
 {
     public class DataMockSI : IData
     {
         private readonly IAppResources _applicationService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
-        public DataMockSI(IAppResources application)
+        public DataMockSI(IAppResources application, IHttpContextAccessor httpContextAccessor)
         {
             _applicationService = application;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
@@ -32,12 +38,50 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
+        public async Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delayed)
+        {
+            await Task.CompletedTask;
+            string dataElementPath = TestDataUtil.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+
+            if (delayed)
+            {
+                string fileContent = await File.ReadAllTextAsync(dataElementPath);
+                DataElement dataElement = JsonSerializer.Deserialize<DataElement>(fileContent, _serializerOptions);
+
+                dataElement.DeleteStatus = new()
+                {
+                    IsHardDeleted = true,
+                    HardDeleted = DateTime.UtcNow
+                };
+
+                WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+
+                return true;
+            }
+            else
+            {
+                string dataBlobPath = TestDataUtil.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+
+                if (File.Exists(dataElementPath))
+                {
+                    File.Delete(dataElementPath);
+                }
+
+                if (File.Exists(dataBlobPath))
+                {
+                    File.Delete(dataBlobPath);
+                }
+
+                return true;
+            }
+        }
+
         public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
-            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerPartyId, instanceGuid, dataId);
+            string dataPath = TestDataUtil.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
             Stream ms = new MemoryStream();
-            using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
+            using (FileStream file = new(dataPath, FileMode.Open, FileAccess.Read))
             {
                 file.CopyTo(ms);
             }
@@ -52,9 +96,9 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
         {
-            string dataPath = GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
+            string dataPath = TestDataUtil.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
-            XmlSerializer serializer = new XmlSerializer(type);
+            XmlSerializer serializer = new(type);
             try
             {
                 using FileStream sourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
@@ -70,9 +114,8 @@ namespace App.IntegrationTests.Mocks.Services
         public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, string dataType, HttpRequest request)
         {
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
-            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
+            string dataPath = TestDataUtil.GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
+            DataElement dataElement = new() { Id = dataGuid.ToString(), InstanceGuid = instanceGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
@@ -92,11 +135,8 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             dataElement.Size = filesize;
-            string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
 
-            sw.Write(jsonData.ToString());
-            sw.Close();
+            WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
             return dataElement;
         }
@@ -114,11 +154,9 @@ namespace App.IntegrationTests.Mocks.Services
         public Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType)
         {
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
+            string dataPath = TestDataUtil.GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
 
-            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
+            DataElement dataElement = new() { Id = dataGuid.ToString(), InstanceGuid = instanceGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
 
             try
             {
@@ -126,21 +164,15 @@ namespace App.IntegrationTests.Mocks.Services
 
                 using (Stream stream = File.Open(dataPath + @"blob/" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
+                    XmlSerializer serializer = new(type);
                     serializer.Serialize(stream, dataToSerialize);
                 }
 
-                string jsonData = JsonConvert.SerializeObject(dataElement);
-                using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
-
-                sw.Write(jsonData.ToString());
-                sw.Close();
+                WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
             }
             catch
             {
             }
-
-            instance.Data = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
 
             return Task.FromResult(dataElement);
         }
@@ -150,94 +182,41 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
-        public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId)
+        public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataGuid)
         {
-            string dataPath = GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
+            string dataPath = TestDataUtil.GetDataPath(org, app, instanceOwnerPartyId, instanceGuid);
 
-            Instance instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            DataElement dataElement = instance.Data.FirstOrDefault(r => r.Id.Equals(dataId.ToString()));
+            DataElement dataElement = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid).FirstOrDefault(de => de.Id == dataGuid.ToString());
 
             Directory.CreateDirectory(dataPath + @"blob");
 
-            using (Stream stream = File.Open(dataPath + $@"blob{Path.DirectorySeparatorChar}" + dataId.ToString(), FileMode.Create, FileAccess.ReadWrite))
+            using (Stream stream = File.Open(dataPath + $@"blob{Path.DirectorySeparatorChar}" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
             {
-                XmlSerializer serializer = new XmlSerializer(type);
+                XmlSerializer serializer = new(type);
                 serializer.Serialize(stream, dataToSerialize);
             }
 
             dataElement.LastChanged = DateTime.Now;
-            string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(dataPath + dataId.ToString() + @".json");
-
-            sw.Write(jsonData.ToString());
-            sw.Close();
+            WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
             return Task.FromResult(dataElement);
         }
 
-        private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString()) + Path.DirectorySeparatorChar;
-        }
-
-        private static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"../../../Data/Instances", org, app, instanceOwnerId.ToString(), instanceGuid.ToString(), "blob", dataId.ToString());
-        }
-
-        private static Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
-        {
-            string instancePath = Path.Combine(GetInstancePath(), org, app, instanceOwnerId.ToString(), instanceId.ToString() + ".json");
-            if (File.Exists(instancePath))
-            {
-                string content = File.ReadAllText(instancePath);
-                Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
-                return instance;
-            }
-
-            return null;
-        }
-
-        private static string GetInstancePath()
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
-            return Path.Combine(unitTestFolder, @"../../../Data/Instances");
-        }
-
-        private static List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
-        {
-            string path = GetDataPath(org, app, instanceOwnerId, instanceId);
-            List<DataElement> dataElements = new List<DataElement>();
-
-            if (!Directory.Exists(path))
-            {
-                return null;
-            }
-
-            string[] files = Directory.GetFiles(path);
-
-            foreach (string file in files)
-            {
-                string content = File.ReadAllText(Path.Combine(path, file));
-                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                dataElements.Add(dataElement);
-            }
-
-            return dataElements;
-        }
-
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
-            Application app = _applicationService.GetApplication();
+            Application application = _applicationService.GetApplication();
+            var instanceIdParts = instanceId.Split("/");
 
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(app.Org, app.Id.Split("/")[1], Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
 
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = contentType, };
+            string org = application.Org;
+            string app = application.Id.Split("/")[1];
+            int instanceOwnerId = int.Parse(instanceIdParts[0]);
+            Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
+
+            string dataPath = TestDataUtil.GetDataPath(org, app, instanceOwnerId, instanceGuid);
+
+            DataElement dataElement = new() { Id = dataGuid.ToString(), InstanceGuid = instanceGuid.ToString(), DataType = dataType, ContentType = contentType, };
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
@@ -257,11 +236,7 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             dataElement.Size = filesize;
-            string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
-
-            sw.Write(jsonData.ToString());
-            sw.Close();
+            WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
 
             return dataElement;
         }
@@ -271,17 +246,50 @@ namespace App.IntegrationTests.Mocks.Services
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
             int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            string path = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
 
-            string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(path + dataElement.Id + @".json");
+            return Task.FromResult(dataElement);
+        }
+
+        private static void WriteDataElementToFile(DataElement dataElement, string org, string app, int instanceOwnerPartyId)
+        {
+            string dataElementPath = TestDataUtil.GetDataElementPath(org, app, instanceOwnerPartyId, Guid.Parse(dataElement.InstanceGuid), Guid.Parse(dataElement.Id));
+
+            string jsonData = JsonSerializer.Serialize(dataElement, _serializerOptions);
+
+            using StreamWriter sw = new(dataElementPath);
 
             sw.Write(jsonData.ToString());
             sw.Close();
+        }
 
-            return Task.FromResult(dataElement);
+        private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+        {
+            string path = TestDataUtil.GetDataPath(org, app, instanceOwnerId, instanceId);
+            List<DataElement> dataElements = new();
+
+            if (!Directory.Exists(path))
+            {
+                return null;
+            }
+
+            string[] files = Directory.GetFiles(path);
+
+            foreach (string file in files)
+            {
+                string content = File.ReadAllText(Path.Combine(path, file));
+                DataElement dataElement = JsonSerializer.Deserialize<DataElement>(content, _serializerOptions);
+
+                if (dataElement.DeleteStatus?.IsHardDeleted == true && string.IsNullOrEmpty(_httpContextAccessor.HttpContext.User.GetOrg()))
+                {
+                    continue;
+                }
+
+                dataElements.Add(dataElement);
+            }
+
+            return dataElements;
         }
     }
 }

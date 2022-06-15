@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -157,6 +158,42 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(processState.CurrentTask);
             Assert.NotNull(processState.Ended);
+        }
+
+        [Fact]
+        public async void OnTaskEnd_DataElementIsHardDeleted()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "autodelete-data");
+
+            Instance instance = await CreateInstance("ttd", "autodelete-data");
+
+            string instancePath = $"/ttd/autodelete-data/instances/{instance.Id}";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+            catch
+            {
+                DeleteInstance(instance);
+                throw;
+            }
+
+            HttpRequestMessage httpRequestMessage1 = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}");
+            HttpResponseMessage response1 = await client.SendAsync(httpRequestMessage1);
+            Instance actual = JsonConvert.DeserializeObject<Instance>(await response1.Content.ReadAsStringAsync());
+
+            DeleteInstance(instance);
+
+            Assert.Single(actual.Data);
+            Assert.Null(actual.Data.FirstOrDefault(de => de.DataType == "default"));
         }
 
         [Fact]
