@@ -180,7 +180,7 @@ namespace Altinn.App.Services.Implementation
                 messages.Add(message);
             }
 
-            if (dataType.AppLogic != null)
+            if (dataType.AppLogic?.ClassRef != null)
             {
                 Type modelType = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);

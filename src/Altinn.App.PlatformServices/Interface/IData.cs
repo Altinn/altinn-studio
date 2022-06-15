@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.App.Services.Interface
@@ -89,7 +91,19 @@ namespace Altinn.App.Services.Interface
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The attachment id</param>
+        [Obsolete("Use method DeleteData with delayed=false instead.")]
         Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
+
+        /// <summary>
+        /// Method that removes a data elemen from disk/storage immediatly or marks it as deleted.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="instanceOwnerPartyId">The instance owner id</param>
+        /// <param name="instanceGuid">The instance id</param>
+        /// <param name="dataGuid">The attachment id</param>
+        /// <param name="delayed">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
+        Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delayed);
 
         /// <summary>
         /// Method that saves a form attachments to disk/storage and returns the new data element.
@@ -123,7 +137,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="stream">the stream to stream</param>
         /// <returns></returns>
         Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
-        
+
         /// <summary>
         /// Updates the data element metadata object.
         /// </summary>

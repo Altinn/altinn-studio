@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.App.Common.Models;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
@@ -32,7 +33,7 @@ namespace Altinn.App.Services.Implementation
         private readonly Application _appMetadata;
         private readonly IAppResources _resourceService;
         private readonly ILogger<AppBase> _logger;
-        private readonly IEFormidlingClient _eFormidlingClient;        
+        private readonly IEFormidlingClient _eFormidlingClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _appSettings;
         private readonly IData _dataClient;
@@ -41,6 +42,9 @@ namespace Altinn.App.Services.Implementation
         private readonly IInstance _instanceClient;
         private readonly IAccessTokenGenerator _tokenGenerator;
         private readonly PlatformSettings _platformSettings;
+
+        private readonly string _org;
+        private readonly string _app;
 
         /// <summary>
         /// Initialize a new instance of <see cref="AppBase"/> class with the given services.
@@ -81,6 +85,9 @@ namespace Altinn.App.Services.Implementation
             _eFormidlingClient = eFormidlingClient;
             _tokenGenerator = tokenGenerator;
             _platformSettings = platformSettings?.Value;
+
+            _org = _appMetadata.Org;
+            _app = _appMetadata.Id.Split("/")[1];
         }
 
         /// <inheritdoc />
@@ -234,9 +241,11 @@ namespace Altinn.App.Services.Implementation
 
             List<DataType> dataTypesToLock = _appMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
 
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             foreach (DataType dataType in dataTypesToLock)
             {
-                bool generatePdf = dataType.AppLogic != null && dataType.EnablePdfCreation;
+                bool generatePdf = dataType.AppLogic?.ClassRef != null && dataType.EnablePdfCreation;
+                bool autoDeleteDataElement = dataType.AppLogic?.AutoDeleteOnProcessEnd == true && !_appMetadata.AutoDeleteOnProcessEnd;
 
                 foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
                 {
@@ -253,6 +262,17 @@ namespace Altinn.App.Services.Implementation
                     else
                     {
                         await updateData;
+                    }
+
+                    if (autoDeleteDataElement)
+                    {
+                        await _dataClient.DeleteData(
+                            _org,
+                            _app,
+                            int.Parse(instance.InstanceOwner.PartyId),
+                            instanceGuid,
+                            Guid.Parse(dataElement.Id),
+                            true);
                     }
                 }
             }
@@ -271,8 +291,6 @@ namespace Altinn.App.Services.Implementation
             if (_appMetadata.AutoDeleteOnProcessEnd)
             {
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-                Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
                 await _instanceClient.DeleteInstance(instanceOwnerPartyId, instanceGuid, true);
             }
 
@@ -377,11 +395,10 @@ namespace Altinn.App.Services.Implementation
                     continue;
                 }
 
-                bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic != null);
+                bool appLogic = _appMetadata.DataTypes.Any(d => d.Id == dataElement.DataType && d.AppLogic?.ClassRef != null);
 
                 string fileName = appLogic ? $"{dataElement.DataType}.xml" : dataElement.Filename;
-
-                using Stream stream = await _dataClient.GetBinaryData(instance.Org, instance.AppId, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
+                using Stream stream = await _dataClient.GetBinaryData(_org, _app, instanceOwnerPartyId, instanceGuid, new Guid(dataElement.Id));
 
                 bool successful = await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName, requestHeaders);
 
@@ -462,7 +479,7 @@ namespace Altinn.App.Services.Implementation
 
         private async Task SendEFormidlingShipment(Instance instance)
         {
-            string accessToken = _tokenGenerator.GenerateAccessToken(_appMetadata.Org, _appMetadata.Id.Split("/")[1]);
+            string accessToken = _tokenGenerator.GenerateAccessToken(_org, _app);
             string authzToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
 
             var requestHeaders = new Dictionary<string, string>

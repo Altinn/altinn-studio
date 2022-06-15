@@ -501,7 +501,7 @@ namespace Altinn.App.Api.Controllers
             Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
 
             List<DataType> dts = application.DataTypes
-                .Where(dt => dt.AppLogic != null)
+                .Where(dt => dt.AppLogic?.ClassRef != null)
                 .Where(dt => dt.TaskId != null && dt.TaskId.Equals(targetInstance.Process.CurrentTask.ElementId))
                 .ToList();
             List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
@@ -847,7 +847,7 @@ namespace Altinn.App.Api.Controllers
                 DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
                 DataElement dataElement;
-                if (dataType.AppLogic != null)
+                if (dataType.AppLogic?.ClassRef != null)
                 {
                     _logger.LogInformation($"Storing part {part.Name}");
 

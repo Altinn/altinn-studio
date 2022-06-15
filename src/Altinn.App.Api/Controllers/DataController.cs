@@ -118,7 +118,7 @@ namespace Altinn.App.Api.Controllers
                     return Forbid();
                 }
 
-                bool appLogic = dataTypeFromMetadata.AppLogic != null;
+                bool appLogic = dataTypeFromMetadata.AppLogic?.ClassRef != null;
 
                 Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 if (instance == null)
@@ -453,7 +453,7 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
-            bool successfullyDeleted = await _dataClient.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            bool successfullyDeleted = await _dataClient.DeleteData(org, app, instanceOwnerId, instanceGuid, dataGuid, false);
 
             if (successfullyDeleted)
             {
@@ -472,7 +472,7 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 Application application = _appResourcesService.GetApplication();
-                appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
+                appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic?.ClassRef != null).First();
             }
             catch (Exception)
             {
