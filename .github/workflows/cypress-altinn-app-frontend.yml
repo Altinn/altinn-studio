@@ -81,10 +81,6 @@ jobs:
         run: yarn --immutable
         working-directory: test/cypress
 
-      - name: Create test files
-        run: yarn run create:testfiles
-        working-directory: test/cypress/e2e/fixtures
-
       - name: Verify cypress and run tests
         run: |
           yarn run cy:verify
