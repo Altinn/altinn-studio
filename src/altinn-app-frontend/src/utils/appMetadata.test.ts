@@ -1,10 +1,11 @@
-import type { IApplication, IData, IInstance } from '../../../shared/src/types';
+import type { IApplication, IData, IDataType, IInstance } from '../../../shared/src/types';
 import type { ILayoutSets } from 'src/types';
 
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskData,
   getCurrentTaskDataElementId,
+  getDataTaskDataTypeId,
   getLayoutSetIdForApplication,
   isStatelessApp,
 } from './appMetadata';
@@ -30,6 +31,14 @@ describe('utils/appmetadata.ts', () => {
           autoCreate: true,
           classRef: 'Altinn.App.Models.StatelessV1',
         },
+        taskId: 'Task_1',
+        maxCount: 1,
+        minCount: 1,
+      },
+      {
+        id: 'type-with-no-classRef',
+        allowedContentTypes: ['application/xml'],
+        appLogic: {},
         taskId: 'Task_1',
         maxCount: 1,
         minCount: 1,
@@ -120,7 +129,7 @@ describe('utils/appmetadata.ts', () => {
       const expected = 'Stateless';
       expect(result).toEqual(expected);
     });
-    
+
     it('should return correct data type if instance not set', () => {
       const statelessApplication = {
         ...application,
@@ -202,6 +211,62 @@ describe('utils/appmetadata.ts', () => {
         (e) => e.id === 'datamodel-data-guid',
       );
       expect(result).toEqual(expected);
+    });
+  });
+
+  describe('getDataTaskDataTypeId', () => {
+    it('should return data task type id from element that has appLogic.schemaRef and connected taskId', () => {
+      const dataTypes: IDataType[] = [
+        {
+          id: 'ref-data-as-pdf',
+          allowedContentTypes: ['application/pdf'],
+          maxCount: 0,
+          minCount: 0
+        },
+        {
+          id: 'type-with-no-schemaRef',
+          allowedContentTypes: ['application/xml'],
+          maxCount: 0,
+          minCount: 0,
+          appLogic: {},
+          taskId: 'Task_1'
+        },
+        {
+          id: 'type-with-schemaRef',
+          allowedContentTypes: ['application/xml'],
+          maxCount: 0,
+          minCount: 0,
+          appLogic: {
+            classRef: 'Altinn.Skjema'
+          },
+          taskId: 'Task_1'
+        },
+      ];
+
+      const result = getDataTaskDataTypeId('Task_1', dataTypes);
+      expect(result).toBe('type-with-schemaRef');
+    });
+
+    it('should not return data task type id if element has appLogic and connected taskId but is missing schemaRef', () => {
+      const dataTypes: IDataType[] = [
+        {
+          id: 'ref-data-as-pdf',
+          allowedContentTypes: ['application/pdf'],
+          maxCount: 0,
+          minCount: 0
+        },
+        {
+          id: 'simpel-model',
+          allowedContentTypes: ['application/xml'],
+          maxCount: 0,
+          minCount: 0,
+          appLogic: {},
+          taskId: 'Task_1'
+        },
+      ];
+
+      const result = getDataTaskDataTypeId('Task_1', dataTypes);
+      expect(result).toBe(undefined);
     });
   });
 });

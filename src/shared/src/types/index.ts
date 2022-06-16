@@ -32,7 +32,7 @@ export interface IAltinnOrgs {
 export interface IApplicationLogic {
   allowAnonymousOnStateless?: boolean;
   autoCreate?: boolean;
-  classRef: string;
+  classRef?: string;
   schemaRef?: string;
 }
 

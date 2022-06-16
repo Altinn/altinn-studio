@@ -1,14 +1,14 @@
-import { IApplication, IInstance } from 'altinn-shared/types';
+import { IApplication, IDataType, IInstance } from 'altinn-shared/types';
 import { ILayoutSets } from 'src/types';
 import { getLayoutsetForDataElement } from './layout';
 
-export function getDataTaskDataTypeId(taskId: string, dataTypes: any[]): string {
+export function getDataTaskDataTypeId(taskId: string, dataTypes: IDataType[]): string {
   if (!dataTypes || dataTypes.length === 0) {
     return null;
   }
 
   const result = dataTypes.find((dataType) => {
-    return dataType.appLogic !== null && dataType.taskId === taskId;
+    return dataType.appLogic?.classRef && dataType.taskId === taskId;
   });
   return result?.id;
 }
@@ -91,7 +91,7 @@ export function isStatelessApp(application: IApplication) {
 export const getCurrentTaskDataElementId = (appMetaData: IApplication, instance: IInstance) => {
   const currentTaskId = instance.process.currentTask.elementId;
   const appLogicDataType =
-    appMetaData.dataTypes.find((element) => element.appLogic !== null && element.taskId === currentTaskId);
+    appMetaData.dataTypes.find((element) => element.appLogic?.classRef && element.taskId === currentTaskId);
   const currentTaskDataElement = instance.data.find((element) => element.dataType === appLogicDataType.id);
   return currentTaskDataElement.id;
 };
