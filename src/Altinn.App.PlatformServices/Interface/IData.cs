@@ -102,8 +102,8 @@ namespace Altinn.App.Services.Interface
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The attachment id</param>
-        /// <param name="delayed">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
-        Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delayed);
+        /// <param name="delay">A boolean indicating whether or not the delete should be executed immediately or delayed</param>
+        Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay);
 
         /// <summary>
         /// Method that saves a form attachments to disk/storage and returns the new data element.
@@ -128,7 +128,7 @@ namespace Altinn.App.Services.Interface
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
 
         /// <summary>
-        /// Updates a binary data element. 
+        /// Updates a binary data element.
         /// </summary>
         /// <param name="instanceId">isntanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
         /// <param name="dataType">data type</param>

@@ -247,10 +247,10 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delayed)
+        public async Task<bool> DeleteData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, bool delay)
         {
             string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
-            string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delayed={delayed}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delay={delay}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
