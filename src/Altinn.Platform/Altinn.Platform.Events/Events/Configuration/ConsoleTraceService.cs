@@ -12,7 +12,7 @@ namespace Altinn.Platform.Events.Configuration
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
-        /// Debug enabled 
+        /// Debug enabled
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
 
@@ -27,7 +27,7 @@ namespace Altinn.Platform.Events.Configuration
 
         /// <summary>
         /// Info
-        /// </summary>      
+        /// </summary>
         public void Info(string message, object payload = null)
         {
             var traceMessage = $"INF   {DateTime.UtcNow.ToString("o")}   {message}{Environment.NewLine}";
