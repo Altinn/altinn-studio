@@ -96,6 +96,7 @@ describe('Summary', () => {
     cy.get(appFrontend.group.mainGroupSummary).should('be.visible').and('have.length', 1);
     cy.get(appFrontend.group.mainGroupSummary)
       .first()
+      .should('be.visible').and('have.length', 1)
       .children(mui.gridItem)
       .then((item) => {
         cy.get(item).should('have.length', 4);
