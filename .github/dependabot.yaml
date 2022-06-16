@@ -23,17 +23,6 @@ updates:
       day: "thursday"
       time: "07:00"
       timezone: "Europe/Oslo"
-  ## Events
-  - directory: "src/Altinn.Platform/Altinn.Platform.Events"
-    package-ecosystem: "nuget"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    schedule:
-      interval: "weekly"
-      day: "thursday"
-      time: "07:00"
-      timezone: "Europe/Oslo"
   ## Models
   - directory: "src/Altinn.Platform/Altinn.Platform.Models"
     package-ecosystem: "nuget"

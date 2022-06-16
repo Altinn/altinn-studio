@@ -66,9 +66,6 @@ area/receipt:
   - 'src/Altinn.Platform/Altinn.Platform.Receipt/**/*'
   - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
 
-area/events:
-  - 'src/Altinn.Platform/Altinn.Platform.Events/**/*'
-
 area/ui-editor:
   - 'src/studio/src/designer/frontend/ux-editor/**/*'
 
