@@ -12,7 +12,7 @@ namespace Altinn.Platform.Events.Configuration
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
-        /// Debug enabled 
+        /// Debug enabled
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
 
@@ -20,14 +20,17 @@ namespace Altinn.Platform.Events.Configuration
         public bool IsTraceSensitiveData { get; set; } = false;
 
         /// <inheritdoc/>>
-        public string TraceToDirectory { get; set; }
+        public bool IsTraceToFile { get; set; } = false;
 
         /// <inheritdoc/>>
-        public bool IsTraceToFile { get; set; } = false;
+        public bool IsTraceToDirectory { get; set; } = false;
+
+        /// <inheritdoc/>>
+        public string TraceDirectory { get; set; }
 
         /// <summary>
         /// Info
-        /// </summary>      
+        /// </summary>
         public void Info(string message, object payload = null)
         {
             var traceMessage = $"INF   {DateTime.UtcNow.ToString("o")}   {message}{Environment.NewLine}";
