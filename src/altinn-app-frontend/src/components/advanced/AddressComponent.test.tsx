@@ -60,9 +60,9 @@ const render = (props: Partial<IAddressComponentProps> = {}) => {
   const mockStore = createStore({ language: { language: mockLanguage } });
 
   rtlRender(
-  <Provider store={mockStore}>
-    <AddressComponent {...allProps} />
-  </Provider>);
+    <Provider store={mockStore}>
+      <AddressComponent {...allProps} />
+    </Provider>);
 };
 
 const getField = ({ method, regex }) =>

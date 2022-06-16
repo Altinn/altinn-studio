@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 import { PayloadAction } from '@reduxjs/toolkit';
 import { SagaIterator } from 'redux-saga';
-import { all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
+import { actionChannel, all, call, put, select, take, takeEvery, takeLatest } from 'redux-saga/effects';
 import { IFileUploadersWithTag, IFormFileUploaderWithTagComponent, IRepeatingGroups, IRuntimeState, IValidationIssue, IValidations, Triggers } from 'src/types';
 import { getFileUploadersWithTag, getRepeatingGroups, removeRepeatingGroupFromUIConfig } from 'src/utils/formLayout';
 import { AxiosRequestConfig } from 'axios';
@@ -26,6 +26,7 @@ const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.form
 const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
 const selectFormLayouts = (state: IRuntimeState): ILayouts => state.formLayout.layouts;
 const selectAttachmentState = (state: IRuntimeState): IAttachmentState => state.attachments;
+export const selectUnsavedChanges = (state: IRuntimeState): boolean => state.formData.unsavedChanges;
 
 function* updateFocus({ payload: { currentComponentId, step } }: PayloadAction<IUpdateFocus>): SagaIterator {
   try {
@@ -292,7 +293,16 @@ export function* watchInitialCalculagePageOrderAndMoveToNextPageSaga(): SagaIter
 }
 
 export function* watchUpdateCurrentViewSaga(): SagaIterator {
-  yield takeEvery(FormLayoutActions.updateCurrentView, updateCurrentViewSaga);
+  const requestChan = yield actionChannel(FormLayoutActions.updateCurrentView);
+  while (true) {
+    yield take(FormLayoutActions.updateCurrentView);
+    const hasUnsavedChanges = yield select(selectUnsavedChanges);
+    if (hasUnsavedChanges) {
+      yield take(FormDataActions.submitFormDataFulfilled);
+    }
+    const value = yield take(requestChan);
+    yield call(updateCurrentViewSaga, value);
+  }
 }
 
 export function* watchUpdateFocusSaga(): SagaIterator {

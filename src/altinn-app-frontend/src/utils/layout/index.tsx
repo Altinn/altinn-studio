@@ -54,7 +54,7 @@ export function getLayoutIdForComponent(id: string, layouts: ILayouts): string {
   when searching through formLayout for the component definition.
 */
 export function matchLayoutComponent(providedId: string, componentId: string) {
-  return providedId.match(`${componentId}(-[0-9]*)*$`);
+  return providedId.match(`^(${componentId})(-[0-9]+)*$`);
 }
 
 export function renderGenericComponent(

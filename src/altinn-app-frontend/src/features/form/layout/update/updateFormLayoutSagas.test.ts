@@ -1,16 +1,19 @@
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
-import { select } from 'redux-saga/effects';
+import { actionChannel, call, select } from 'redux-saga/effects';
 
 import FormDataActions from 'src/features/form/data/formDataActions';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import * as sharedUtils from 'altinn-shared/utils';
 import {
   calculatePageOrderAndMoveToNextPageSaga,
   initRepeatingGroupsSaga,
   watchInitRepeatingGroupsSaga,
+  watchUpdateCurrentViewSaga,
+  updateCurrentViewSaga,
+  selectUnsavedChanges
 } from './updateFormLayoutSagas';
 import { IRuntimeState } from 'src/types';
+import { FormLayoutActions } from '../formLayoutSlice';
 
 jest.mock('altinn-shared/utils');
 
@@ -34,6 +37,75 @@ describe('updateLayoutSagas', () => {
         )
         .next()
         .isDone();
+    });
+  });
+
+  describe('watchUpdateCurrentViewSaga', () => {
+    it('should save unsaved changes before updating from layout', () => {
+      const fakeChannel = {
+        take() { /* Intentionally empty */ },
+        flush() { /* Intentionally empty */ },
+        close() { /* Intentionally empty */},
+      };
+
+      const mockAction = FormLayoutActions.updateCurrentView({
+        newView: 'test'
+      });
+
+      const mockSaga = function*() { /* intentially empty */};
+
+      return expectSaga(watchUpdateCurrentViewSaga)
+        .provide([
+          [actionChannel(FormLayoutActions.updateCurrentView), fakeChannel],
+          [select(selectUnsavedChanges), true],
+          {
+            take({ channel }, next) {
+              if (channel === fakeChannel) {
+                return mockAction;
+              }
+              return next();
+            },
+          },
+          [call(updateCurrentViewSaga, mockAction), mockSaga]
+        ])
+        .dispatch(FormLayoutActions.updateCurrentView)
+        .dispatch(FormDataActions.submitFormDataFulfilled)
+        .take(fakeChannel)
+        .call(updateCurrentViewSaga, mockAction)
+        .run();
+    });
+    it('should not save unsaved changes before updating form layout when no unsaved changes', () => {
+      const fakeChannel = {
+        take() { /* Intentionally empty */ },
+        flush() { /* Intentionally empty */ },
+        close() { /* Intentionally empty */},
+      };
+
+      const mockAction = FormLayoutActions.updateCurrentView({
+        newView: 'test'
+      });
+
+      const mockSaga = function*() { /* intentially empty */};
+
+      return expectSaga(watchUpdateCurrentViewSaga)
+        .provide([
+          [actionChannel(FormLayoutActions.updateCurrentView), fakeChannel],
+          [select(selectUnsavedChanges), false],
+          {
+            take({ channel }, next) {
+              if (channel === fakeChannel) {
+                return mockAction;
+              }
+              return next();
+            },
+          },
+          [call(updateCurrentViewSaga, mockAction), mockSaga]
+        ])
+        .dispatch(FormLayoutActions.updateCurrentView)
+        .not.take(FormDataActions.submitFormDataFulfilled)
+        .take(fakeChannel)
+        .call(updateCurrentViewSaga, mockAction)
+        .run();
     });
   });
 

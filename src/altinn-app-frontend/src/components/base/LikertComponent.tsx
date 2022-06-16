@@ -10,7 +10,6 @@ import {
 import { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import { LayoutStyle } from 'src/types';
 
-
 export const LikertComponent = (props: IRadioButtonsContainerProps) => {
   const { layout } = props;
   const useRadioProps = useRadioButtons(props);
