@@ -135,7 +135,7 @@ __metadata:
     rivets: ^0.9.6
     select2: ^4.0.13
     sightglass: ^0.2.6
-    underscore: ^1.13.3
+    underscore: ^1.13.4
   languageName: unknown
   linkType: soft
 
@@ -3879,10 +3879,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.3":
-  version: 1.13.3
-  resolution: "underscore@npm:1.13.3"
-  checksum: 1ea0b333ee20fdb3dcf20883d505817bf9de3dc67f0a674c1c49428cec5e480178ce5f6b7c9f72c3a8fe05a1e344dcec5c918a7f89aa1661632aa378612a2264
+"underscore@npm:^1.13.4":
+  version: 1.13.4
+  resolution: "underscore@npm:1.13.4"
+  checksum: 6b04f66cd454e8793a552dc49c71e24e5208a29b9d9c0af988a96948af79103399c36fb15db43f3629bfed152f8b1fe94f44e1249e9d196069c0fc7edfadb636
   languageName: node
   linkType: hard
 
