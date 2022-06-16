@@ -313,6 +313,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     'InstantiationButton',
     'NavigationBar',
     'Likert',
+    'Panel',
   ];
 
   const showValidationMessages =

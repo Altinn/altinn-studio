@@ -16,8 +16,8 @@ const useStyles = makeStyles({
     '@media (min-width: 993px)': {
       marginLeft: '-96px',
       marginRight: '-96px',
-    }
-  }
+    },
+  },
 });
 
 export function FullWidthWrapper({ children }: IFullWidthWrapperProps) {
@@ -27,5 +27,5 @@ export function FullWidthWrapper({ children }: IFullWidthWrapperProps) {
     <div className={classes.fullWidthWrapper} data-testid='fullWidthWrapper'>
       {children}
     </div>
-  )
+  );
 }
