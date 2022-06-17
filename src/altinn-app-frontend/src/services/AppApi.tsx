@@ -35,6 +35,7 @@ const axiosBaseQuery =
 
 export enum TagTypes {
   Instances = 'Instances',
+  AppLanguage = 'AppLanguage'
 }
 
 export const appApi = createApi({

@@ -157,6 +157,16 @@ export function nb() {
       authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.',
       starting: 'Hold deg fast, nå starter vi!',
     },
+    language: {
+      full_name: {
+        nb: 'Norsk bokmål',
+        en: "Engelsk",
+        nn: "Nynorsk"
+      },
+      selector: {
+        label: 'Språk'
+      }
+    },
     party_selection: {
       error_caption_prefix: 'Feil',
       invalid_selection_first_part: 'Du har startet tjenesten som',

@@ -1,11 +1,21 @@
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
 import FormDataActions from 'src/features/form/data/formDataActions';
-import { checkIfOptionsShouldRefetchSaga, fetchOptionsSaga, fetchSpecificOptionSaga, formDataSelector, formLayoutSelector, instanceIdSelector, optionsSelector, userLanguageSelector, watchCheckIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import {
+  checkIfOptionsShouldRefetchSaga,
+  fetchOptionsSaga,
+  fetchSpecificOptionSaga,
+  formDataSelector,
+  formLayoutSelector,
+  instanceIdSelector,
+  optionsSelector,
+  watchCheckIfOptionsShouldRefetchSaga,
+} from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import type { IOptions, IRuntimeState } from 'src/types';
 import * as networking from 'altinn-shared/utils/networking';
 import type { IInstance } from 'altinn-shared/types';
 import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 
 describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
@@ -15,7 +25,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
         .next()
         .takeEvery([
           FormDataActions.updateFormDataFulfilled,
-          FormDataActions.updateFormDataSkipAutosave
+          FormDataActions.updateFormDataSkipAutosave,
         ], checkIfOptionsShouldRefetchSaga)
         .next()
         .isDone();
@@ -27,11 +37,11 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
     const action = {
       payload: {
         field: 'some_field',
-        data: ''
-      }, type: ''
+        data: '',
+      }, type: '',
     };
     const formData = {
-      someField: 'someValue'
+      someField: 'someValue',
     };
 
 
@@ -42,23 +52,23 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
           id: 'someOption',
           options: [],
           mapping: {
-            some_field: 'some_url_parm'
-          }
-        }
+            some_field: 'some_url_parm',
+          },
+        },
       };
       return expectSaga(checkIfOptionsShouldRefetchSaga, action)
         .provide([
           [select(formDataSelector), formData],
-          [select(userLanguageSelector), userLanguage],
+          [select(appLanguageStateSelector), userLanguage],
           [select(optionsSelector), optionsWithField],
-          [select(instanceIdSelector), 'someId']
+          [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'someOption',
           dataMapping: {
-            some_field: 'some_url_parm'
+            some_field: 'some_url_parm',
           },
-          secure: undefined
+          secure: undefined,
         })
         .run();
     });
@@ -69,14 +79,14 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
           id: 'someOption',
           options: [],
           mapping: {
-            some_other_field: 'some_url_parm'
-          }
-        }
+            some_other_field: 'some_url_parm',
+          },
+        },
       };
       return expectSaga(checkIfOptionsShouldRefetchSaga, action)
         .provide([
           [select(formDataSelector), formData],
-          [select(userLanguageSelector), userLanguage],
+          [select(appLanguageStateSelector), userLanguage],
           [select(optionsSelector), optionsWithoutField],
         ])
         .run();
@@ -92,48 +102,48 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
             id: 'fylke',
             type: 'Dropdown',
             textResourceBindings: {
-              'title': 'fylke'
+              'title': 'fylke',
             },
             dataModelBindings: {
-              simpleBinding: 'FlytteFra.Fylke'
+              simpleBinding: 'FlytteFra.Fylke',
             },
             optionsId: 'fylke',
-            required: true
+            required: true,
           } as ISelectionComponentProps,
           {
             id: 'fylke-2',
             type: 'Dropdown',
             textResourceBindings: {
-              title: 'fylke'
+              title: 'fylke',
             },
             dataModelBindings: {
-              simpleBinding: 'FlytteFra.Fylke'
+              simpleBinding: 'FlytteFra.Fylke',
             },
             optionsId: 'fylke',
-            required: true
+            required: true,
           } as ISelectionComponentProps,
           {
             id: 'kommune',
             type: 'Dropdown',
             textResourceBindings: {
-              title: 'kommune'
+              title: 'kommune',
             },
             dataModelBindings: {
-              simpleBinding: 'FlytteFra.Kommune'
+              simpleBinding: 'FlytteFra.Kommune',
             },
             optionsId: 'kommune',
             required: true,
             mapping: {
-              'FlytteFra.Fylke': 'fylke'
-            }
+              'FlytteFra.Fylke': 'fylke',
+            },
           } as ISelectionComponentProps,
-        ]
+        ],
       };
 
       return expectSaga(fetchOptionsSaga)
         .provide([
           [select(formLayoutSelector), formLayoutWithTwoSharedOptionIds],
-          [select(instanceIdSelector), 'someId']
+          [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'fylke',
@@ -144,7 +154,7 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'kommune',
           dataMapping: {
-            'FlytteFra.Fylke': 'fylke'
+            'FlytteFra.Fylke': 'fylke',
           },
           secure: undefined,
         })
@@ -160,51 +170,51 @@ describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
             id: 'kommune-1',
             type: 'Dropdown',
             textResourceBindings: {
-              title: 'kommune'
+              title: 'kommune',
             },
             dataModelBindings: {
-              simpleBinding: 'FlytteFra.Kommune'
+              simpleBinding: 'FlytteFra.Kommune',
             },
             optionsId: 'kommune',
             required: true,
             mapping: {
-              'FlytteFra.Fylke': 'fylke'
-            }
+              'FlytteFra.Fylke': 'fylke',
+            },
           } as ISelectionComponentProps,
           {
             id: 'kommune-2',
             type: 'Dropdown',
             textResourceBindings: {
-              title: 'kommune'
+              title: 'kommune',
             },
             dataModelBindings: {
-              simpleBinding: 'FlytteTil.Kommune'
+              simpleBinding: 'FlytteTil.Kommune',
             },
             optionsId: 'kommune',
             required: true,
             mapping: {
-              'FlytteTil.Fylke': 'fylke'
-            }
+              'FlytteTil.Fylke': 'fylke',
+            },
           } as ISelectionComponentProps,
-        ]
+        ],
       };
 
       return expectSaga(fetchOptionsSaga)
         .provide([
           [select(formLayoutSelector), formLayoutWithSameOptionIdButDifferentMapping],
-          [select(instanceIdSelector), 'someId']
+          [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'kommune',
           dataMapping: {
-            'FlytteFra.Fylke': 'fylke'
+            'FlytteFra.Fylke': 'fylke',
           },
           secure: undefined,
         })
         .fork(fetchSpecificOptionSaga, {
           optionsId: 'kommune',
           dataMapping: {
-            'FlytteTil.Fylke': 'fylke'
+            'FlytteTil.Fylke': 'fylke',
           },
           secure: undefined,
         })

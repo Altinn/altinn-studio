@@ -60,6 +60,7 @@ describe('features/instantiate/index', () => {
             starting: 'instantiate.starting',
           },
         },
+        selectedAppLanguage: '',
         error: null,
       },
     });

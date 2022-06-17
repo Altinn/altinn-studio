@@ -1,15 +1,9 @@
 import React from 'react';
-import cn from 'classnames';
-import { makeStyles } from '@material-ui/core';
-
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { IComponentProps } from '..';
-
-import '../../styles/shared.css';
 import type { IMapping, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
-import { AltinnSpinner } from 'altinn-shared/components';
+import { AltinnSpinner, Select } from 'altinn-shared/components';
 import { useGetOptions } from '../hooks';
 
 export interface IDropdownProps extends IComponentProps {
@@ -18,19 +12,6 @@ export interface IDropdownProps extends IComponentProps {
   preselectedOptionIndex?: number;
   source?: IOptionSource;
 }
-
-const useStyles = makeStyles({
-  select: {
-    fontSize: '1.6rem',
-    '&:focus': {
-      outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
-    },
-  },
-});
-
-const optionStyle = {
-  display: 'none',
-};
 
 function DropdownComponent({
   optionsId,
@@ -44,7 +25,6 @@ function DropdownComponent({
   mapping,
   source,
 }: IDropdownProps) {
-  const classes = useStyles();
   const options = useGetOptions({ optionsId, mapping, source });
   const fetchingOptions = useAppSelector(
     (state) =>
@@ -89,26 +69,23 @@ function DropdownComponent({
       {fetchingOptions ? (
         <AltinnSpinner />
       ) : (
-        <select
+        <Select
           id={id}
-          value={formData?.simpleBinding}
-          disabled={readOnly}
-          className={cn(classes.select, 'custom-select a-custom-select', {
-            'validation-error': !isValid,
-            'disabled !important': readOnly,
-          })}
           onChange={handleChange}
           onBlur={handleBlur}
-        >
-          <option style={optionStyle} />
-          {options?.map((option, index) => (
-            <option key={index} value={option.value}>
-              {getTextResourceAsString(option.label)}
-            </option>
-          ))}
-        </select>
+          value={formData?.simpleBinding}
+          disabled={readOnly}
+          error={!isValid}
+          options={
+            options?.map((option) => ({
+              label: getTextResourceAsString(option.label),
+              value: option.value,
+            })) || []
+          }
+        />
       )}
     </>
   );
 }
+
 export default DropdownComponent;

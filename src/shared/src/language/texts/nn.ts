@@ -154,6 +154,16 @@ export function nn() {
       authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukarservice {0}.',
       starting: 'Hald på hatten, no startar vi!',
     },
+    language: {
+      full_name: {
+        nb: 'Norsk bokmål',
+        en: "Engelsk",
+        nn: "Nynorsk"
+      },
+      selector: {
+        label: 'Språk'
+      }
+    },
     party_selection: {
       error_caption_prefix: 'Feil',
       invalid_selection_first_part: 'Du har starta tenesta som',

@@ -1,17 +1,16 @@
-import { call, take, all, select } from 'redux-saga/effects';
+import { call, take, all, select, takeLatest } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
 import {
+  allowAnonymousSelector,
   fetchLanguageSaga,
   watchFetchLanguageSaga,
-  allowAnonymousSelector,
 } from './fetchLanguageSagas';
-import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import { LanguageActions } from '../languageSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getLanguageFromCode } from 'altinn-shared/language';
-import type { IProfile } from 'altinn-shared/types';
 import * as language from 'altinn-shared/language';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 describe('languageActions', () => {
   it('should create an action with correct type: FETCH_LANGUAGE', () => {
@@ -56,43 +55,24 @@ describe('fetchLanguageSagas', () => {
     expect(generator.next().value).toEqual(select(allowAnonymousSelector));
     expect(generator.next().value).toEqual(take('PROFILE.FETCH_PROFILE_FULFILLED'));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
+    expect(generator.next().value).toEqual(takeLatest(LanguageActions.updateSelectedAppLanguage,fetchLanguageSaga));
     expect(generator.next().done).toBeTruthy();
-  });
-
-  it('should fetch default language when allowAnonymous is true', () => {
-
-    return expectSaga(fetchLanguageSaga)
-      .provide([
-        [select(allowAnonymousSelector), true],
-      ])
-      .put(LanguageActions.fetchLanguageFulfilled({ language: getLanguageFromCode('nb') }))
-      .run();
   });
 
   it('should fetch default language when defaultLanguage is true', () => {
 
     return expectSaga(fetchLanguageSaga, true)
+      .provide([
+        [select(appLanguageStateSelector), "en"],
+      ])
       .put(LanguageActions.fetchLanguageFulfilled({ language: getLanguageFromCode('nb') }))
       .run();
   });
 
-  it('should fetch language from profile settings when allowAnonymous is false', () => {
-    const profileMock: IProfile = {
-      userId: 1,
-      userName: '',
-      partyId: 1234,
-      party: null,
-      userType: 1,
-      profileSettingPreference: {
-        doNotPromptForParty: false,
-        language: 'en',
-        preSelectedPartyId: 0,
-      }
-    };
+  it('should fetch language from app language state', () => {
     return expectSaga(fetchLanguageSaga)
       .provide([
-        [select(allowAnonymousSelector), false],
-        [select(profileStateSelector), profileMock]
+        [select(appLanguageStateSelector), "en"]
       ])
       .put(LanguageActions.fetchLanguageFulfilled({ language: getLanguageFromCode('en') }))
       .run();

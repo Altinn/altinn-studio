@@ -7,12 +7,9 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import {
   returnUrlToMessagebox,
   getTextResourceByKey,
-  returnUrlFromQueryParameter
+  returnUrlFromQueryParameter,
 } from 'altinn-shared/utils';
-import {
-  ProcessTaskType,
-  PresentationType,
-} from 'src/types';
+import { ProcessTaskType, PresentationType } from 'src/types';
 import { getNextView } from 'src/utils/formLayout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { get } from 'src/utils/networking';
@@ -37,7 +34,6 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
   const dispatch = useAppDispatch();
   const party = useAppSelector(state => state.party?.selectedParty);
   const language = useAppSelector(state => state.language.language || {});
-  const hideCloseButton = useAppSelector(state => state.formLayout.uiConfig.hideCloseButton);
   const instance = useAppSelector(state => state.instanceData?.instance);
   const userParty = useAppSelector(state => state.profile.profile?.party);
   const textResources = useAppSelector(state => state.textResources.resources);
@@ -51,7 +47,9 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       true,
     ),
   );
-  const returnToView = useAppSelector(state => state.formLayout.uiConfig.returnToView);
+  const returnToView = useAppSelector(
+    (state) => state.formLayout.uiConfig.returnToView,
+  );
 
   const handleBackArrowButton = () => {
     if (returnToView) {
@@ -73,7 +71,10 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
 
   const handleModalCloseButton = () => {
     const queryParameterReturnUrl = returnUrlFromQueryParameter();
-    const messageBoxUrl = returnUrlToMessagebox(window.location.origin, party?.partyId);
+    const messageBoxUrl = returnUrlToMessagebox(
+      window.location.origin,
+      party?.partyId,
+    );
     if (!queryParameterReturnUrl) {
       window.location.href = messageBoxUrl;
       return;
@@ -123,13 +124,11 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
             <NavBar
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
-              language={language}
               showBackArrow={
                 !!previousFormPage &&
                 (props.type === ProcessTaskType.Data ||
                   props.type === PresentationType.Stateless)
               }
-              hideCloseButton={hideCloseButton}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>

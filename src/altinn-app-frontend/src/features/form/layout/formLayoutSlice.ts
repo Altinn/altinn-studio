@@ -57,6 +57,7 @@ const formLayoutSlice = createSlice({
       const { settings } = action.payload;
       if (settings && settings.pages) {
         state.uiConfig.hideCloseButton = settings?.pages?.hideCloseButton;
+        state.uiConfig.showLanguageSelector = settings?.pages?.showLanguageSelector;
         state.uiConfig.pageTriggers = settings.pages.triggers;
         if (settings.pages.order) {
           state.uiConfig.layoutOrder = settings.pages.order;

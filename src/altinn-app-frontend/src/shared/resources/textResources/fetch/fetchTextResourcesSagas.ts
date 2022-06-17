@@ -1,8 +1,7 @@
 import { SagaIterator } from 'redux-saga';
-import { IProfile } from 'altinn-shared/types';
-import { all, call, put, select, take } from 'redux-saga/effects';
-import { get } from '../../../../utils/networking';
-import { textResourcesUrl, oldTextResourcesUrl } from '../../../../utils/appUrlHelper';
+import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
+import { get } from 'src/utils/networking';
+import { textResourcesUrl, oldTextResourcesUrl } from 'src/utils/appUrlHelper';
 import TextResourcesActions from '../textResourcesActions';
 import { appTaskQueueError } from '../../queue/queueSlice';
 import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
@@ -10,21 +9,17 @@ import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionT
 import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { profileStateSelector } from 'src/selectors/simpleSelectors';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
+
 export function* fetchTextResources(): SagaIterator {
   try {
-    let languageCode = 'nb'; // Use 'nb' as default until we decide how to handle default language
-    const allowAnonymous = yield select(allowAnonymousSelector);
-    if (!allowAnonymous) {
-      const profile: IProfile = yield select(profileStateSelector);
-      languageCode = profile.profileSettingPreference.language;
-    }
-
+    const appLanguage = yield select(appLanguageStateSelector);
     let resource: any;
     try {
-      resource = yield call(get, textResourcesUrl(languageCode));
+      resource = yield call(get, textResourcesUrl(appLanguage));
     } catch (error) {
       if (error.response.status !== 200) {
         resource = yield call(get, oldTextResourcesUrl);
@@ -36,7 +31,11 @@ export function* fetchTextResources(): SagaIterator {
         res.unparsedValue = res.value;
       }
     });
-    yield call(TextResourcesActions.fetchTextResourcesFulfilled, resource.language, resource.resources);
+    yield call(
+      TextResourcesActions.fetchTextResourcesFulfilled,
+      resource.language,
+      resource.resources,
+    );
   } catch (error) {
     yield call(TextResourcesActions.fetchTextResourcesRejected, error);
     yield put(appTaskQueueError({ error }));
@@ -47,7 +46,7 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
   yield all([
     take(FormLayoutActions.fetchLayoutSetsFulfilled),
     take(FETCH_APPLICATION_METADATA_FULFILLED),
-    take(FETCH_TEXT_RESOURCES)
+    take(FETCH_TEXT_RESOURCES),
   ]);
 
   const allowAnonymous = yield select(allowAnonymousSelector);
@@ -56,4 +55,6 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
     yield take(FETCH_PROFILE_FULFILLED);
   }
   yield call(fetchTextResources);
+  yield takeLatest(FETCH_TEXT_RESOURCES, fetchTextResources);
+  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources);
 }

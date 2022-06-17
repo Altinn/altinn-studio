@@ -41,6 +41,11 @@ describe('watchReplaceTextResourcesSaga', () => {
         replaceTextResourcesSaga,
       )
       .next()
+      .takeLatest(
+        FETCH_TEXT_RESOURCES_FULFILLED,
+        replaceTextResourcesSaga,
+      )
+      .next()
       .isDone();
   });
 });

@@ -93,6 +93,7 @@ export function* watchReplaceTextResourcesSaga(): SagaIterator {
     FormDataActions.setFormDataFulfilled,
     replaceTextResourcesSaga,
   );
+  yield takeLatest(FETCH_TEXT_RESOURCES_FULFILLED, replaceTextResourcesSaga);
 }
 
 export function* watchReplaceTextResourcesSagaDirect(): SagaIterator {

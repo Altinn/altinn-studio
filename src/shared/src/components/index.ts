@@ -11,6 +11,7 @@ export { default as AltinnLogo } from './AltinnLogo';
 export { default as AltinnPopover } from './AltinnPopover';
 export { default as AltinnSpinner } from './AltinnSpinner';
 export { default as AltinnLoader } from './AltinnLoader';
+export { default as Select } from './Select';
 
 // atoms
 export { default as AltinnAttachment } from './atoms/AltinnAttachment';
