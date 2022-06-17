@@ -264,7 +264,7 @@ namespace Altinn.Common.PEP.Helpers
         /// <returns>true or false, valid or not</returns>
         public static bool ValidateDecisionResult(XacmlJsonResult result, ClaimsPrincipal user)
         {
-            // Checks that the result is nothing else than "permit"
+            // Checks that the result is nothing else than "Permit"
             if (!result.Decision.Equals(XacmlContextDecision.Permit.ToString()))
             {
                 return false;

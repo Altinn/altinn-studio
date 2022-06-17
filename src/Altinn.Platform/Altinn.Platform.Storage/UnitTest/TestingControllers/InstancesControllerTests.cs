@@ -587,7 +587,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:serviceowner/instances.read");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            string expected = "Org or AppId must be defined.";
+            string expected = "org or appId must be defined.";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(requestUri);
