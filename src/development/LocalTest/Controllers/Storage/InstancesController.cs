@@ -176,7 +176,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest("org or appId must be defined.");
                 }
 
-
                 if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return Forbid();
