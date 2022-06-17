@@ -140,6 +140,30 @@ namespace Altinn.Platform.Storage.Controllers
             string orgClaim = User.GetOrg();
             int? userId = User.GetUserIdAsInt();
 
+            // If appId is set - verify that appId starts with org/
+            if (!string.IsNullOrEmpty(appId))
+            {
+                if (!appId.Contains('/'))
+                {
+                    return BadRequest("appId must be on the format org/appname.");
+                }
+
+                var appParts = appId.Split('/', 2);
+                if (!string.IsNullOrEmpty(org))
+                {
+                    // Ensure that appId matches org when org is set.
+                    if (appParts[0] != org)
+                    {
+                        return BadRequest($"both appId and org is specified, but they do not match {org} != {appParts[0]}");
+                    }
+                }
+                else
+                {
+                    // set org from appId when org is not set.
+                    org = appParts[0];
+                }
+            }
+
             if (orgClaim != null)
             {
                 if (!_authzHelper.ContainsRequiredScope(_instanceReadScope, User))
@@ -152,15 +176,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest("org or appId must be defined.");
                 }
 
-                if (!string.IsNullOrEmpty(appId))
-                {
-                    var appParts = appId.Split('/', 2);
-                    if(appParts.Length != 2 || (!string.IsNullOrEmpty(org) && appParts[0] != org))
-                    {
-                        return BadRequest("appId must be on the format org/appname.");
-                    }
-                    org = appParts[0];
-                }
 
                 if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -178,7 +193,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                return BadRequest();
+                return Forbid("You must either be a org or a user");
             }
 
             if (!string.IsNullOrEmpty(continuationToken))
@@ -187,7 +202,24 @@ namespace Altinn.Platform.Storage.Controllers
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
 
-            Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+            Dictionary<string, StringValues> queryParams = new Dictionary<string, StringValues>()
+            {
+                { "org", org },
+                { "appId", appId },
+                { "process.currentTask", currentTaskId },
+                { "process.isComplete", processIsComplete?.ToString() },
+                { "process.endEvent", processEndEvent },
+                { "process.ended", processEnded },
+                { "instanceOwner.partyId", instanceOwnerPartyId?.ToString() },
+                { "lastChanged", lastChanged },
+                { "created", created },
+                { "visibleAfter", visibleAfter },
+                { "dueBefore", dueBefore },
+                { "excludeConfirmedBy", excludeConfirmedBy },
+                { "status.isSoftDeleted", isSoftDeleted ? "true" : null },
+                { "status.isHardDeleted", isHardDeleted ? "true" : null },
+                { "status.isArchived", isArchived ? "true" : null },
+            }.Where(el => el.Value != StringValues.Empty).ToDictionary(x => x.Key, x => x.Value);
 
             // filter out hard deleted instances if it isn't appOwner requesting instances
             if (!appOwnerRequestingInstances)

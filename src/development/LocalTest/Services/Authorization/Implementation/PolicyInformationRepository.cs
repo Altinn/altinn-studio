@@ -25,15 +25,14 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
+        public Task<Instance> GetInstance(Guid instanceId, int instanceOwnerId)
         {
             if (instanceOwnerId <= 0)
             {
                 throw new ArgumentException("Instance owner id cannot be zero or negative");
             }
 
-            string[] instanceIdParts = instanceId.Split("/");
-            return _instanceRepository.GetOne(int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
+            return _instanceRepository.GetOne(instanceOwnerId, instanceId);
         }
 
 

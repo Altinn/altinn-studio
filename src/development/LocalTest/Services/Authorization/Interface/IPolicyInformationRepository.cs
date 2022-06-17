@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -14,7 +15,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="instanceId">the instance id</param>
         /// <param name="instanceOwnerId">the instance owner</param>
         /// <returns></returns>
-        Task<Instance> GetInstance(string instanceId, int instanceOwnerId);
+        Task<Instance> GetInstance(Guid instanceId, int instanceOwnerId);
 
         /// <summary>
         /// Gets the information of a given instance

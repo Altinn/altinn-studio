@@ -151,7 +151,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
-        /// <returns>Returns a list of the process events.</returns>        
+        /// <returns>Returns a list of the process events.</returns>
         [HttpGet("history")]
         [Authorize(Policy = "InstanceRead")]
         [ProducesResponseType(StatusCodes.Status200OK)]

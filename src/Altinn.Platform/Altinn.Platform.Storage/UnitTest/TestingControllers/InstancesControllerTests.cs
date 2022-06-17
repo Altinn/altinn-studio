@@ -1099,7 +1099,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        /// Update an existing presentation field 
+        /// Update an existing presentation field
         /// Result:
         /// Presentation field are succesfully updated, other fields are untouched and the updated instance returned.
         /// </summary>
@@ -1144,7 +1144,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        /// Delete an existing presentation field 
+        /// Delete an existing presentation field
         /// Result:
         /// Presentation field is succesfully removed, other fields are untouched and the updated instance returned.
         /// </summary>
@@ -1242,7 +1242,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [MemberData(nameof(GetPresentationTextsData))]
         public async Task UpdatePresentationFields_PassingNullAsPresentationTexts_Returns400(PresentationTexts presentationTexts)
         {
-            // Arrange            
+            // Arrange
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "20a1353e-91cf-44d6-8ff7-f68993638ffe";
             string requestPutUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
@@ -1315,7 +1315,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        /// Update an existing data value 
+        /// Update an existing data value
         /// Result:
         /// Data values are succesfully updated, other values are untouched and the updated instance returned.
         /// </summary>
@@ -1359,7 +1359,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        /// Delete an existing data value 
+        /// Delete an existing data value
         /// Result:
         /// Data value is succesfully removed, other fields are untouched and the updated instance returned.
         /// </summary>
@@ -1412,7 +1412,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [Fact]
         public async Task UpdateDataValues_AddNewDataValueToExistingCollection_ReturnsUpdatedInstance()
         {
-            // Arrange            
+            // Arrange
             var dataValues = new DataValues
             {
                 Values = new Dictionary<string, string>
