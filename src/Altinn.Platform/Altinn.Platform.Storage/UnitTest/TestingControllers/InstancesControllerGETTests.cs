@@ -23,24 +23,24 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using NSubstitute;
+using Moq;
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers;
 
 public class InstancesControllerGETTests
 {
-    private readonly IInstanceRepository _instanceRepository = Substitute.For<IInstanceRepository>();
-    private readonly IInstanceEventRepository _instanceEventRepository = Substitute.For<IInstanceEventRepository>();
-    private readonly IApplicationRepository _applicationRepository = Substitute.For<IApplicationRepository>();
-    private readonly IPartiesWithInstancesClient _partiesWithInstancesClient = Substitute.For<IPartiesWithInstancesClient>();
-    private readonly ILogger<InstancesController> _logger = Substitute.For<ILogger<InstancesController>>();
-    private readonly ILogger<AuthorizationHelper> _authzLogger = Substitute.For<ILogger<AuthorizationHelper>>();
-    private readonly IPDP _pdp = Substitute.For<IPDP>();
-    private readonly IOptions<GeneralSettings> _generalSettings = Substitute.For<IOptions<GeneralSettings>>();
-    private readonly HttpContext _httpContext = Substitute.For<HttpContext>();
-    private readonly RouteData _routeData = Substitute.For<RouteData>();
-    private readonly ModelStateDictionary _modelState = Substitute.For<ModelStateDictionary>();
+    private readonly Mock<IInstanceRepository> _instanceRepository = new Mock<IInstanceRepository>();
+    private readonly Mock<IInstanceEventRepository> _instanceEventRepository = new Mock<IInstanceEventRepository>();
+    private readonly Mock<IApplicationRepository> _applicationRepository = new Mock<IApplicationRepository>();
+    private readonly Mock<IPartiesWithInstancesClient> _partiesWithInstancesClient = new Mock<IPartiesWithInstancesClient>();
+    private readonly Mock<ILogger<InstancesController>> _logger = new Mock<ILogger<InstancesController>>();
+    private readonly Mock<ILogger<AuthorizationHelper>> _authzLogger = new Mock<ILogger<AuthorizationHelper>>();
+    private readonly Mock<IPDP> _pdp = new Mock<IPDP>();
+    private readonly Mock<IOptions<GeneralSettings>> _generalSettings = new Mock<IOptions<GeneralSettings>>();
+    private readonly Mock<HttpContext> _httpContext = new Mock<HttpContext>();
+    private readonly Mock<RouteData> _routeData = new Mock<RouteData>();
+    private readonly Mock<ModelStateDictionary> _modelState = new Mock<ModelStateDictionary>();
     private readonly ControllerContext _controllerContext;
     private readonly ActionContext _actionContext;
 
@@ -48,25 +48,29 @@ public class InstancesControllerGETTests
 
     public InstancesControllerGETTests()
     {
-        _generalSettings.Value.Returns(new GeneralSettings { Hostname = "testHostName", InstanceReadScope = new List<string> { "altinn:serviceowner/instances.read" } });
-        _actionContext = new ActionContext(_httpContext, _routeData, new ControllerActionDescriptor(), _modelState);
+        _generalSettings.Setup(gs => gs.Value).Returns(new GeneralSettings { Hostname = "testHostName", InstanceReadScope = new List<string> { "altinn:serviceowner/instances.read" } });
+        _actionContext = new ActionContext(_httpContext.Object, _routeData.Object, new ControllerActionDescriptor(), _modelState.Object);
         _controllerContext = new ControllerContext(_actionContext);
-        _controller = new InstancesController(_instanceRepository, _instanceEventRepository, _applicationRepository, _partiesWithInstancesClient, _logger, _authzLogger, _pdp, _generalSettings);
+        _controller = new InstancesController(_instanceRepository.Object, _instanceEventRepository.Object, _applicationRepository.Object, _partiesWithInstancesClient.Object, _logger.Object, _authzLogger.Object, _pdp.Object, _generalSettings.Object);
         _controller.ControllerContext = _controllerContext;
+        _httpContext.Setup(hc => hc.Request.Path).Returns("/requestPath");
     }
 
     private void SetUserClaims(System.Security.Claims.Claim[] claims)
     {
-        _controllerContext.HttpContext.User.Returns(new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "AuthenticationTypes.Federation")));
+        _httpContext.Setup(hc => hc.User).Returns(() => new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(claims, "AuthenticationTypes.Federation")));
     }
 
     // No Auth
     [Fact]
-    public async Task NoAuth_NoQuery_ForbidResult() =>
+    public async Task NoAuth_NoQuery_ForbidResult()
+    {
+        _httpContext.Setup(hc => hc.User.HasClaim(It.IsAny<Predicate<System.Security.Claims.Claim>>())).Returns(false);
         await RunTestCase(new()
         {
             ResultType = typeof(ForbidResult),
         });
+    }
 
     // Auth Org
     [Fact]
@@ -197,7 +201,7 @@ public class InstancesControllerGETTests
             SetUserClaims(new System.Security.Claims.Claim[]
             {
                     new(AltinnCoreClaimTypes.Org, testCase.AuthOrg),
-                    new("urn:altinn:scope", _generalSettings.Value.InstanceReadScope[0])
+                    new("urn:altinn:scope", _generalSettings.Object.Value.InstanceReadScope[0])
             });
         }
         else if (testCase.AuthUserId != null)
@@ -221,10 +225,12 @@ public class InstancesControllerGETTests
                     }
                 }
             };
-        _instanceRepository.GetInstancesFromQuery(default, default, default).ReturnsForAnyArgs((arg) => Task.FromResult(new InstanceQueryResponse() { Instances = instances }));
-        _pdp.GetDecisionForRequest(default).ReturnsForAnyArgs(args =>
-        {
-            return Task.FromResult<XacmlJsonResponse>(new()
+        _instanceRepository
+            .Setup(ir => ir.GetInstancesFromQuery(It.IsAny<Dictionary<string, Microsoft.Extensions.Primitives.StringValues>>(), It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(new InstanceQueryResponse() { Instances = instances });
+        _pdp
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .ReturnsAsync(new XacmlJsonResponse()
             {
                 Response = new()
                 {
@@ -249,7 +255,6 @@ public class InstancesControllerGETTests
                         }
                 }
             });
-        });
 
         var res = await _controller.GetInstances(
                 org: testCase.Org,
@@ -278,11 +283,11 @@ public class InstancesControllerGETTests
             Assert.Equal(instances, objectResponse?.Instances);
         }
 
-        var repositoryCalls = _instanceRepository.ReceivedCalls();
-        if(testCase.QueryLength >= 0)
+        var repositoryCalls = _instanceRepository.Invocations;
+        if (testCase.QueryLength >= 0)
         {
             Assert.Single(repositoryCalls);
-            var args = repositoryCalls.First().GetOriginalArguments();
+            var args = repositoryCalls[0].Arguments;
             Assert.IsType<Dictionary<string, Microsoft.Extensions.Primitives.StringValues>>(args[0]);
             var query = args[0] as Dictionary<string, Microsoft.Extensions.Primitives.StringValues>;
             Assert.Equal(testCase.QueryLength, query?.Count);
