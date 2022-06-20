@@ -7,14 +7,14 @@ import classNames from 'classnames';
 
 const useStyles = makeStyles({
   banner: {
-    margin: '0px -24px 36px -24px',
+    margin: '-36px -24px 36px -24px',
     padding: '10px 24px',
     '@media (min-width:768px)': {
-      margin: '0px -84px 36px -84px',
+      margin: '-36px -84px 36px -84px',
       padding: '10px 84px',
     },
     '@media (min-width:993px)': {
-      margin: '0px -96px 36px -96px',
+      margin: '-36px -96px 36px -96px',
       padding: '10px 96px',
     },
   },

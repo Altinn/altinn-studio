@@ -80,8 +80,8 @@ describe('UI Components', () => {
       cy.get(button).should('be.visible').click();
       cy.wait('@getLayoutChangeName');
     });
-    cy.get(appFrontend.navMenu).should('be.visible');
     cy.get(appFrontend.navMenu)
+      .should('be.visible')
       .find('li > button')
       .then((navButtons) => {
         cy.get(navButtons).should('be.visible').and('have.length', 2);

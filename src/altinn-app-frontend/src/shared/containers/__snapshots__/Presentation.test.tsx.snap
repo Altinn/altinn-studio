@@ -244,8 +244,9 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
             <div
               className="modalPage"
             >
-              <div
+              <section
                 className="modal-content"
+                id="main-content"
               >
                 <header
                   className="modal-header a-modal-header"
@@ -281,7 +282,7 @@ exports[`containers/Presentation.tsx should match snapshot 1`] = `
                 <div
                   className="modal-body a-modal-body"
                 />
-              </div>
+              </section>
             </div>
           </div>
         </div>
