@@ -441,6 +441,10 @@
         "optionsId": "tags"
       },
       {
+        "id": "printBtn",
+        "type": "PrintButton"
+      },
+      {
         "id": "toSummary",
         "type": "NavigationButtons",
         "showPrev": false,
