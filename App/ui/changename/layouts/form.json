@@ -303,7 +303,8 @@
         "id": "dateOfEffect",
         "type": "Datepicker",
         "textResourceBindings": {
-          "title": "datofeltet"
+          "title": "datofeltet",
+          "shortName": "dato-short"
         },
         "dataModelBindings": {
           "simpleBinding": "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraArkivDato-datadef-34752.value"

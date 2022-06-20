@@ -163,6 +163,10 @@
       "value": "Når vil du at navnendringen skal skje?"
     },
     {
+      "id": "dato-short",
+      "value": "Dato for navneendring"
+    },
+    {
       "id": "error.testValue",
       "value": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>"
     },
