@@ -164,6 +164,7 @@ namespace App.IntegrationTests.Utils
                             services.AddTransient<IAltinnApp, Mocks.Apps.Ttd.AnonymousStateless.App>();
                             break;
                         case "autodelete-data":
+                        case "confirm-autodelete-data":
                             services.AddTransient<IAltinnApp, Mocks.Apps.Ttd.AutoDeleteData.App>();
                             break;
                         default:

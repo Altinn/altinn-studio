@@ -161,7 +161,7 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
-        public async void OnTaskEnd_DataElementIsHardDeleted()
+        public async void OnProcessEnd_FromDataTask_DataElementIsHardDeleted()
         {
             string token = PrincipalUtil.GetToken(1337);
 
@@ -194,6 +194,49 @@ namespace App.IntegrationTestsRef.AppBase
 
             Assert.Single(actual.Data);
             Assert.Null(actual.Data.FirstOrDefault(de => de.DataType == "default"));
+        }
+
+        [Fact]
+        public async void OnProcessEnd_FromConfirmTask_DataElementIsHardDeleted()
+        {
+            string org = "ttd";
+            string app = "confirm-autodelete-data";
+            int partyId = 1337;
+            Guid instanceGuid = new("6c70311d-e5c8-41fb-99c8-589600a13609");
+
+            TestDataUtil.PrepareInstance(org, app, partyId, instanceGuid);
+
+            string token = PrincipalUtil.GetToken(partyId);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string instancePath = $"/{org}/{app}/instances/{partyId}/{instanceGuid}";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            }
+            catch
+            {
+                TestDataUtil.DeleteInstanceAndData(org, app, partyId, instanceGuid);
+                throw;
+            }
+
+            HttpRequestMessage httpRequestMessage1 = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}");
+            HttpResponseMessage response1 = await client.SendAsync(httpRequestMessage1);
+            Instance actual = JsonConvert.DeserializeObject<Instance>(await response1.Content.ReadAsStringAsync());
+
+            Assert.Empty(actual.Data);
+            Assert.Null(actual.Data.FirstOrDefault(de => de.DataType == "default"));
+            Assert.Null(actual.Data.FirstOrDefault(de => de.DataType == "ref-data-as-pdf"));
+
+            TestDataUtil.DeleteInstanceAndData(org, app, partyId, instanceGuid);
         }
 
         [Fact]

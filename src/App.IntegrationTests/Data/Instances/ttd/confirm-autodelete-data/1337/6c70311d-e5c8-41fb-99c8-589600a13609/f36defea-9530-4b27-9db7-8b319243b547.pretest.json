@@ -1,0 +1,21 @@
+﻿{
+  "id": "f36defea-9530-4b27-9db7-8b319243b547",
+  "instanceGuid": "6c70311d-e5c8-41fb-99c8-589600a13609",
+  "dataType": "ref-data-as-pdf",
+  "filename": "test_file_pdf.pdf",
+  "contentType": "application/octet-stream",
+  "blobStoragePath": "ttd/confirm-autodelete-data/6c70311d-e5c8-41fb-99c8-589600a13609/data/f36defea-9530-4b27-9db7-8b319243b547",
+  "selfLinks": {
+    "platform": "https://platform.at22.altinn.cloud/storage/api/v1/instances/1337/6c70311d-e5c8-41fb-99c8-589600a13609/data/f36defea-9530-4b27-9db7-8b319243b547"
+  },
+  "size": 78593,
+  "locked": true,
+  "refs": [],
+  "created": "2020-03-13T07:33:05.0819752Z",
+  "lastChanged": "2020-03-13T07:33:05.0819752Z",
+  "_rid": "OkwcAPl3nkEuBQAAAAAAAA==",
+  "_self": "dbs/OkwcAA==/colls/OkwcAPl3nkE=/docs/OkwcAPl3nkEuBQAAAAAAAA==/",
+  "_etag": "\"2a00cb3a-0000-3c00-0000-6034e4650000\"",
+  "_attachments": "attachments/",
+  "_ts": 1614079077
+}
