@@ -114,6 +114,7 @@ export function en() {
       next: 'Next',
       no_options: 'No options available',
       optional: 'Optional',
+      progress: 'Page {0} of {1}',
       required: 'Required',
       save: 'Save',
       search: 'Search',

@@ -1,31 +1,53 @@
-import { mount } from 'enzyme';
 import React from 'react';
-
-import { ProcessTaskType } from '../../types';
-
+import { ProcessTaskType } from 'src/types';
 import Header from './Header';
+import { renderWithProviders } from '../../../testUtils';
+import { screen } from '@testing-library/react';
+import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
+import { getFormLayoutStateMock } from '../../../__mocks__/formLayoutStateMock';
 
 describe('components/presentation/Header.tsx', () => {
   it('should render as expected with header title', () => {
-    const wrapper = mount(
-      <Header language={{}} type={ProcessTaskType.Data} header='Test Header' />,
+    renderWithProviders(
+      <Header type={ProcessTaskType.Data} header='Test Header' />,
+      {
+        preloadedState: getInitialStateMock(),
+      },
     );
-    expect(wrapper.find('header.modal-header')).toHaveLength(1);
-    expect(wrapper.text().includes('Test Header')).toBe(true);
+    expect(screen.getByRole('banner')).toHaveTextContent('Test Header');
   });
 
   it('should render with success modal and custom text when process is archived', () => {
-    const wrapper = mount(
-      <Header
-        language={{
-          receipt: {
-            receipt: 'Kvittering',
+    renderWithProviders(<Header type={ProcessTaskType.Archived} />, {
+      preloadedState: getInitialStateMock(),
+    });
+    const header = screen.getByRole('banner');
+    expect(header).toHaveClass('a-modal-background-success');
+    expect(header).toHaveTextContent('Kvittering');
+  });
+
+  it('should not render progress', () => {
+    renderWithProviders(<Header type={ProcessTaskType.Data} />, {
+      preloadedState: getInitialStateMock(),
+    });
+    expect(screen.queryByRole('progressbar')).toBeNull();
+  });
+
+  it('should render progress', () => {
+    const mockFormLayout = getFormLayoutStateMock();
+    renderWithProviders(<Header type={ProcessTaskType.Data} />, {
+      preloadedState: getInitialStateMock({
+        formLayout: {
+          ...mockFormLayout,
+          uiConfig: {
+            ...mockFormLayout.uiConfig,
+            showProgress: true,
+            currentView: '3',
+            layoutOrder: ['1', '2', '3', '4', '5', '6'],
           },
-        }}
-        type={ProcessTaskType.Archived}
-      />,
-    );
-    expect(wrapper.find('header.a-modal-background-success')).toHaveLength(1);
-    expect(wrapper.text().includes('Kvittering')).toBe(true);
+        },
+      }),
+    });
+    screen.getByRole('progressbar', { name: /Side 3 av 6/i });
   });
 });

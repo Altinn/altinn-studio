@@ -114,6 +114,7 @@ export function nb() {
       next: 'Neste',
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
+      progress: 'Side {0} av {1}',
       required: 'Obligatorisk',
       save: 'Lagre',
       search: 'Søk',

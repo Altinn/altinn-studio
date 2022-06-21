@@ -111,6 +111,7 @@ export function nn() {
       next: 'Neste',
       no_options: 'Ingen alternativ tilgjengleg',
       optional: 'Valfri',
+      progress: 'Side {0} av {1}',
       required: 'Obligatorisk',
       save: 'Lagre',
       search: 'Søk',
