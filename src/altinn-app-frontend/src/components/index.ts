@@ -23,6 +23,8 @@ import type { ITextResourceBindings } from 'src/types';
 import type { IGrid } from 'src/features/form/layout';
 import { createContext } from 'react';
 import { LikertComponent } from 'src/components/base/LikertComponent';
+import { PrintButtonComponent } from './base/PrintButtonComponent';
+
 
 export interface IComponent {
   name: string;
@@ -54,6 +56,7 @@ export enum ComponentTypes {
   NavigationBar,
   Likert,
   Panel,
+  PrintButton,
 }
 
 export const textComponents: IComponent[] = [
@@ -175,6 +178,11 @@ export const schemaComponents: IComponent[] = [
     name: 'Panel',
     Tag: PanelComponent,
     Type: ComponentTypes.Panel,
+  },
+  {
+    name: 'PrintButton',
+    Tag: PrintButtonComponent,
+    Type: ComponentTypes.PrintButton,
   },
 ];
 

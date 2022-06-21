@@ -111,6 +111,7 @@ export function nn() {
       next: 'Neste',
       no_options: 'Ingen alternativ tilgjengleg',
       optional: 'Valfri',
+      print_button_text: 'Print / Lagre PDF',
       progress: 'Side {0} av {1}',
       required: 'Obligatorisk',
       save: 'Lagre',

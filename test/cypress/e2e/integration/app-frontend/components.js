@@ -83,14 +83,16 @@ describe('UI Components', () => {
     cy.get(appFrontend.navMenu)
       .should('be.visible')
       .find('li > button')
+      .should('be.visible')
+      .and('have.length', 2)
       .then((navButtons) => {
-        cy.get(navButtons).should('be.visible').and('have.length', 2);
         cy.get(navButtons)
           .first()
           .should('have.attr', 'aria-current', 'page')
           .and('have.css', 'background-color', 'rgb(2, 47, 81)');
         cy.get(navButtons).last().should('have.css', 'background-color', 'rgba(0, 0, 0, 0)').click();
       });
+    cy.get(`${appFrontend.navMenu} li:first-child > button`).should('not.have.attr', 'aria-current', 'page');
     cy.get(appFrontend.navMenu)
       .find('li > button')
       .then((navButtons) => {

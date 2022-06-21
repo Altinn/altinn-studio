@@ -93,13 +93,11 @@ describe('Summary', () => {
 
   it('is possible to view summary of repeating group', () => {
     cy.compelteTask3Form();
-    cy.get(appFrontend.group.mainGroupSummary).should('be.visible').and('have.length', 1);
     cy.get(appFrontend.group.mainGroupSummary)
-      .first()
       .should('be.visible').and('have.length', 1)
-      .children(mui.gridItem)
+      .first()
+      .children(mui.gridItem).should('have.length', 4)
       .then((item) => {
-        cy.get(item).should('have.length', 4);
         cy.get(item).find(mui.buttonIcon).should('have.length', 3);
         cy.get(item)
           .eq(1)

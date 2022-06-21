@@ -41,8 +41,6 @@ const useStyles = makeStyles(() => createStyles({
     width: '100%',
     borderRadius: '0',
     boxShadow: 'none',
-    marginTop: '6px',
-    marginBottom: '6px',
     '@media (min-width:576px)': {
       width: 'auto',
     },

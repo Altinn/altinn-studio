@@ -35,4 +35,3 @@ export const getTextFromAppOrDefault = (
 
   return getParsedLanguageFromKey(key, language, params, stringOutput);
 };
-

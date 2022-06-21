@@ -6,11 +6,14 @@ This project has the tests using [cypress](https://www.cypress.io/) for app fron
 
 These instructions will get you run the integration tests on altinn-app-frontend.
 
-### Install dependencies
+### Install dependencies / prerequisites
 
 ```cmd
     yarn --immutable # only needed first time, or when dependencies are updated
 ```
+
+If you are running locally you need a copy of [altinn-studio](https://github.com/altinn/altinn-studio).
+    - Make sure you have followed instructions on [running apps locally](https://github.com/Altinn/altinn-studio/blob/5c05d4c32be1b24ddd5af9ddd661b2c78f65aad4/LOCALAPP.md).
 
 ### Test data prerequisite
 
@@ -55,7 +58,10 @@ Other remote environments could also be used (see `e2e/config/*.json`).
 2. Create (or update) `.env` file with the correct paths (see `template.env`)
 
 3. To start localtest, app frontend, and the app you configured above, run the command below.
-   (Skip to step 4 if the solutions are already running). The command will not finish, but it will start the app-frontend server in development mode. This command may take some time, depending on if LocalTest has been setup earlier or not, and if the docker cache is hit or not. When the output of this command seems to have stopped, you can continue to the next step.
+   (Skip to step 4 if the solutions are already running). The command will not finish, but it
+   will start the app-frontend server in development mode. This command may take some time,
+   depending on if LocalTest has been setup earlier or not, and if the docker cache is hit or not.
+   When the output of this command seems to have stopped, you can continue to the next step.
 
 ```cmd
     yarn run before:appfrontend
