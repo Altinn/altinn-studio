@@ -44,7 +44,13 @@ public class LayoutUtils {
       height += textMargin;
     }
 
-    if (element.getType().equalsIgnoreCase("paragraph") || element.getType().equalsIgnoreCase("header")) {
+    if (textResourceBindings.getBody() != null && !textResourceBindings.getBody().isEmpty()) {
+      String body = TextUtils.getTextResourceByKey(textResourceBindings.getBody(), textResources);
+      height += TextUtils.getHeightNeededForText(body, font, fontSize, width);
+      height += textMargin;
+    }
+
+    if (element.getType().equalsIgnoreCase("paragraph") || element.getType().equalsIgnoreCase("header") || element.getType().equalsIgnoreCase("panel")) {
       // have no content, return height
       return height;
     }
