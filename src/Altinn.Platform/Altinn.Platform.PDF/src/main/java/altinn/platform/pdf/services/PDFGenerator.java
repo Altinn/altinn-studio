@@ -73,6 +73,7 @@ public class PDFGenerator {
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
   private List<String> componentsIgnoredFromGeneration = Arrays.asList(
+    "PrintButton",
     "Button",
     "Image",
     "NavigationBar",
