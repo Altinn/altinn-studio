@@ -7,7 +7,8 @@
   Command: docker-compose run k6 run /src/tests/platform/authorization/delegations/inheritancev2.js 
   -e env=*** -e org=*** -e app=*** -e tokengenuser=*** -e tokengenuserpwd=*** -e appsaccesskey=*** 
   -e user1name=*** -e user1pwd=*** -e subunitorgno=***  -e user2name=*** -e user2pwd=*** -e user2orgno=*** 
-  -e user3name=*** -e user3pwd=*** -e ecusername=*** -e ecuserpwd=*** -e ecuserorgno=***
+  -e user3name=*** -e user3pwd=*** -e ecusername=*** -e ecuserpwd=*** -e ecuserorgno=*** -e ecuseruserid=***
+  -e ecuserpartyid=*** -e showresults=***
 */
 import { check, sleep, fail } from 'k6';
 import { addErrorCount, stopIterationOnFail } from '../../../../errorcounter.js';
@@ -32,9 +33,13 @@ const user2Pwd = __ENV.user2pwd;
 const user2OrgNo = __ENV.user2orgno;
 const user3Name = __ENV.user3name;
 const user3Pwd = __ENV.user3pwd;
+const user3OrgNo = __ENV.user3orgno;
 const ecUserName = __ENV.ecusername;
 const ecUserPwd = __ENV.ecuserpwd;
 const ecUserOrgNo = __ENV.ecuserorgno;
+const ecUserUserId = __ENV.ecuseruserid;
+const ecUserPartyId = __ENV.ecuserpartyid;
+const showResults = __ENV.showresults;
 
 var altinnToken;
 var altinnBuildVersion;
@@ -73,11 +78,18 @@ export function setup() {
 
   var aspxauthCookie3 = setUpData.authenticateUser(user3Name, user3Pwd);
   var altinnStudioRuntimeCookie3 = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie3);
-  var userData3 = setUpData.getUserData(altinnStudioRuntimeCookie3, appOwner, appName);
+  var userData3 = setUpData.getUserData(altinnStudioRuntimeCookie3, appOwner, appName, user3OrgNo);
 
   var ecUserData;
-  if(minimumSBLVersion(22, 5)) {
+  if(minimumSBLVersion(22, 5) && environment != 'tt02') {
     ecUserData = setUpData.authenticateECUser(ecUserName, ecUserPwd, ecUserOrgNo);
+  }
+  else if (environment == 'tt02') {
+    ecUserData = {
+      userName: ecUserName,
+      userId: ecUserUserId,
+      partyId: ecUserPartyId
+    }
   }
 
   var tokenGenParams = {
@@ -88,7 +100,7 @@ export function setup() {
   var res = authorization.getParties(altinnStudioRuntimeCookie3, userData3['userId']);
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {
-    if (res[i].orgNumber != null) {
+    if (res[i].orgNumber != null && res[i].childParties != null) {
       for (var j = 0; j < res[i].childParties.length; j++) {
         if (res[i].childParties[j].orgNumber == subunitOrgNo) {
           userData3.childOrgNumber = res[i].childParties[j].orgNumber;
@@ -178,12 +190,12 @@ export function directDelegationFromOrgToUser() {
     'Direct delegation from org to user - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
-  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit');
+  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
     
   // Cleanup
   deleteAllRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid');
-  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable');
-  console.log('directDelegationFromOrgToUser: ' + success);
+  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
+  if(showResults == 1) {console.log('directDelegationFromOrgToUser:' + success);}
   sleep(3);
 }
 
@@ -220,13 +232,13 @@ export function directDelegationFromOrgToOrg() {
   addErrorCount(success)
 
 
-  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit');
+  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
 
 
   // Cleanup
   deleteAllRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable');
-  console.log('directDelegationFromOrgToOrg: ' + success);
+  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  if(showResults == 1) {console.log('directDelegationFromOrgToOrg:' + success);}
   sleep(3);
 }
 
@@ -260,12 +272,13 @@ export function directDelegationFromMainUnitToUser() {
     'Direct delegation from mainunit to user - type is 3': (r) => r.json('0.type') === 3,
   });
   addErrorCount(success);
-  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'Permit');
+  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
     
   // Cleanup
   deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid');
-  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable');
-  console.log('directDelegationFromMainUnitToUser: ' + success);
+  res = delegation.getRules(altinnToken, policyMatchKeys, subUnitPartyId, coveredByUserId, resources, offeredByParentPartyId, null);
+  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToUser:' + success);}
   sleep(3);
 }
 
@@ -301,12 +314,12 @@ export function directDelegationFromMainUnitToOrg() {
   });
   addErrorCount(success);
 
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit');
+  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
     
   // Cleanup
   deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable');
-  console.log('directDelegationFromMainUnitToOrg: ' + success);
+  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToOrg:' + success);}
   sleep(3);
 }
 
@@ -341,12 +354,12 @@ export function directDelegationFromMainUnitToOrg() {
   });
   addErrorCount(success);
 
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit');
+  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
     
   // Cleanup
   deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable');
-  console.log('directDelegationFromMainUnitToOrg: ' + success);
+  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole:' + success);}
   sleep(3);
 }
 
@@ -356,7 +369,6 @@ export function directDelegationFromMainUnitToOrg() {
 export function delegationToOrgIsInheritedByECUserViaKeyrole() {
 
     if(!minimumSBLVersion(22, 5)) {
-      console.log('delegationToOrgIsInheritedByECUserViaKeyrole: skipped');
       return;
     }
     // Arrange
@@ -387,12 +399,13 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
     addErrorCount(success);
   
     // Cleanup
-    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit');
+    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
       
     // Cleanup
     deleteAllRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid');
-    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable');
-    console.log('delegationToOrgIsInheritedByECUserViaKeyrole: ' + success);
+    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+    if(showResults == 1) {console.log('delegationToOrgIsInheritedByECUserViaKeyrole:' + success);}
+
 }
 
 /**
