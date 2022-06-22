@@ -125,7 +125,7 @@ export const getDisplayFormData = (
 ) => {
   const formDataValue = formData[dataModelBinding] || '';
   if (formDataValue) {
-    if (component.type === 'Dropdown' || component.type === 'RadioButtons') {
+    if (component.type === 'Dropdown' || component.type === 'RadioButtons' || component.type === 'Likert') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
       if (selectionComponent?.options) {

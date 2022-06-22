@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import { ILabelSettings } from 'src/types';
+import { ILabelSettings, LayoutStyle } from 'src/types';
 import Description from './Description';
 import { HelpTextContainer } from './HelpTextContainer';
 import { ILanguage } from 'altinn-shared/types';
@@ -15,7 +15,7 @@ export interface IFormLegendProps {
   labelSettings?: ILabelSettings;
   helpText: React.ReactNode;
   id: string;
-  likertDisplay?: 'desktop' | 'mobile';
+  layout?: LayoutStyle;
 }
 
 export default function Legend(props: IFormLegendProps) {
@@ -40,7 +40,7 @@ export default function Legend(props: IFormLegendProps) {
     </>
   );
 
-  if (props.likertDisplay === 'desktop') {
+  if (props.layout === LayoutStyle.Table) {
     return LabelText;
   }
 
