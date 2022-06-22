@@ -27,7 +27,7 @@
       {
         "id": "mainGroup",
         "type": "Group",
-        "children": ["0:currentValue", "0:newValue", "1:subGroup"],
+        "children": ["0:currentValue", "0:newValue", "1:mainUploaderSingle", "1:mainUploaderMulti", "1:subGroup"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -93,9 +93,37 @@
         "triggers": ["validation"]
       },
       {
+        "id": "mainUploaderSingle",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Single uploader in repeating group"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUpload"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+      },
+      {
+        "id": "mainUploaderMulti",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Multi uploader in repeating group"
+        },
+        "dataModelBindings": {
+          "list": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.fileUploadList"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+      },
+      {
         "id": "subGroup",
         "type": "Group",
-        "children": ["comments"],
+        "children": ["comments", "subUploader"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -127,6 +155,21 @@
         "readOnly": false,
         "labelSettings": { "optionalIndicator": false },
         "triggers": ["validation"]
+      },
+      {
+        "id": "subUploader",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Nested uploader with tags"
+        },
+        "dataModelBindings": {
+          "list": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.fileUploadList"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0,
+        "displayMode": "simple",
+        "optionsId": "list"
       },
       {
         "id": "reduxOptions",

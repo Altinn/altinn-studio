@@ -342,7 +342,16 @@
 										},
 									"$ref" : "#/definitions/SkattemeldingEndringEtterFristKommentar-datadef-37133"
 								},
-							"nested-grp-1234" : {
+						"fileUpload" : {
+							"type" : "string"
+						},
+						"fileUploadList" : {
+							"type" : "array",
+							"items" : {
+								"type" : "string"
+							}
+						},
+						"nested-grp-1234" : {
 									"type" : "array",
 									"minItems" : 0,
 									"maxItems" : 999,
@@ -394,8 +403,17 @@
 												}
 										},
 									"$ref" : "#/definitions/SkattemeldingEndringEtterFristKommentar-datadef-37133"
+								},
+							"fileUpload" : {
+								"type" : "string"
+							},
+							"fileUploadList" : {
+								"type" : "array",
+								"items" : {
+									"type" : "string"
 								}
-						},
+							}
+					},
 					"required" : [
 							"gruppeid"
 						]

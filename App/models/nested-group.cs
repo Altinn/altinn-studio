@@ -158,6 +158,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     public SkattemeldingEndringEtterFristKommentardatadef37133 SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
 
+    [XmlElement("fileUpload")]
+    [JsonProperty("fileUpload")]
+    [JsonPropertyName("fileUpload")]
+    public string fileUpload { get; set; }
+
+    [XmlElement("fileUploadList")]
+    [JsonProperty("fileUploadList")]
+    [JsonPropertyName("fileUploadList")]
+    public List<string> fileUploadList { get; set; }
+
     [XmlElement("nested-grp-1234")]
     [JsonProperty("nested-grp-1234")]
     [JsonPropertyName("nested-grp-1234")]
@@ -235,6 +245,16 @@ namespace Altinn.App.Models
     [JsonProperty("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     [JsonPropertyName("SkattemeldingEndringEtterFristKommentar-datadef-37133")]
     public SkattemeldingEndringEtterFristKommentardatadef37133 SkattemeldingEndringEtterFristKommentardatadef37133 { get; set; }
+
+    [XmlElement("fileUpload")]
+    [JsonProperty("fileUpload")]
+    [JsonPropertyName("fileUpload")]
+    public string fileUpload { get; set; }
+
+    [XmlElement("fileUploadList")]
+    [JsonProperty("fileUploadList")]
+    [JsonPropertyName("fileUploadList")]
+    public List<string> fileUploadList { get; set; }
 
   }
 }
