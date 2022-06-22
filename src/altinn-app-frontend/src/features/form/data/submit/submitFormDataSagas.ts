@@ -57,6 +57,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
       state.formLayout.uiConfig.repeatingGroups,
+      state.textResources.resources,
     );
 
     validations = mergeValidationObjects(validations, componentSpecificValidations);

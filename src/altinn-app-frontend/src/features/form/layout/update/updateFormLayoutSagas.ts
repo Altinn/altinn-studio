@@ -160,6 +160,7 @@ export function* updateCurrentViewSaga({ payload: {
         state.language.language,
         state.formLayout.uiConfig.hiddenFields,
         state.formLayout.uiConfig.repeatingGroups,
+        state.textResources.resources,
       );
       let validations = mergeValidationObjects(validationResult.validations, componentSpecificValidations, emptyFieldsValidations);
       const instanceId = state.instanceData.instance.id;

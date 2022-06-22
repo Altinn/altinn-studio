@@ -15,6 +15,7 @@
   "missingRights": "Du mangler rettigheter for å se denne tjenesten",
   "next": "Neste",
   "requiredField": "Feltet er påkrevd",
+  "requiredFieldDateFrom": "Du må fylle ut Dato for navneendring",
   "securityReasons": "Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden",
   "selectNewReportee": "Velg ny aktør under",
   "startingSoon": "Hold deg fast, nå starter vi!",

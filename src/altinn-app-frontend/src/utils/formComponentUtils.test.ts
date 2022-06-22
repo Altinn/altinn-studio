@@ -20,6 +20,7 @@ import {
   isComponentValid,
   componentValidationsHandledByGenericComponent,
   componentHasValidationMessages,
+  getFieldName,
 } from './formComponentUtils';
 
 describe('formComponentUtils', () => {
@@ -450,5 +451,60 @@ describe('formComponentUtils', () => {
         const result = componentHasValidationMessages(validations);
         expect(result).toEqual(true);
       });
+  });
+
+  describe('getFieldName', () => {
+    const mockTextResources = [
+      { id: 'title', value: 'Component name'},
+      { id: 'short', value: 'name'},
+    ];
+    const mockLanguage = {
+      form_filler: {
+        error_required: 'Du må fylle ut {0}',
+        address: 'Gateadresse',
+        postPlace: 'Poststed',
+        zipCode: 'Postnummer',
+      },
+      validation: {
+        generic_field: 'dette feltet',
+      },
+    };
+
+    it('should return field text from languages when fieldKey is present', () => {
+      const result = getFieldName(
+        { title: 'title' },
+        mockTextResources,
+        mockLanguage,
+        'address'
+      );
+      expect(result).toEqual('Gateadresse');
+    });
+
+    it('should return component shortName (textResourceBindings) when no fieldKey is present', () => {
+      const result = getFieldName(
+        { title: 'title', shortName: 'short' },
+        mockTextResources,
+        mockLanguage,
+      );
+      expect(result).toEqual('name');
+    });
+
+    it('should return component title (textResourceBindings) when no shortName (textResourceBindings) and no fieldKey is present', () => {
+      const result = getFieldName(
+        { title: 'title' },
+        mockTextResources,
+        mockLanguage,
+      );
+      expect(result).toEqual('Component name');
+    });
+
+    it('should return generic field name when fieldKey, shortName and title are all not available', () => {
+      const result = getFieldName(
+        { something: 'someTextKey' },
+        mockTextResources,
+        mockLanguage,
+      );
+      expect(result).toEqual('dette feltet');
+    });
   });
 });

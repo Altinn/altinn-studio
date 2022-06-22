@@ -4,6 +4,7 @@ import type { IMapping } from 'src/types';
 
 import {
   flattenObject,
+  getFormDataFromFieldKey,
   getKeyWithoutIndex,
   mapFormData,
   removeGroupData,
@@ -270,5 +271,32 @@ describe('utils/databindings.ts', () => {
         expect(mapFormData(formData, mapping)).toEqual(formData);
       },
     );
+  });
+
+  describe('getFormDataFromFieldKey', () => {
+    const formData = {
+      'field1': 'value1',
+      'group[0].field': 'someValue',
+      'group[1].field': 'another value',
+    }
+    it('should return correct form data for a field not in a group', () => {
+      const result = getFormDataFromFieldKey(
+        'simpleBinding',
+        { simpleBinding: 'field1' },
+        formData,
+      );
+      expect(result).toEqual('value1');
+    });
+
+    it('should return correct form data for a field in a group', () => {
+      const result = getFormDataFromFieldKey(
+        'simpleBinding',
+        { simpleBinding: 'group.field' },
+        formData,
+        'group',
+        1,
+      );
+      expect(result).toEqual('another value');
+    });
   });
 });
