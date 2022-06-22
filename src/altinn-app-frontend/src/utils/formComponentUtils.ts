@@ -128,17 +128,17 @@ export const getDisplayFormData = (
     if (component.type === 'Dropdown' || component.type === 'RadioButtons' || component.type === 'Likert') {
       const selectionComponent = component as ISelectionComponentProps;
       let label: string;
-      if (selectionComponent?.options) {
-        label = selectionComponent.options.find(
-          (option: IOption) => option.value === formDataValue,
-        )?.label;
-      } else if (selectionComponent.optionsId) {
+      if (selectionComponent.optionsId) {
         label = options[
           getOptionLookupKey(
-            selectionComponent?.optionsId,
+            selectionComponent.optionsId,
             selectionComponent.mapping,
           )
         ].options?.find(
+          (option: IOption) => option.value === formDataValue,
+        )?.label;
+      } else if (selectionComponent.options) {
+        label = selectionComponent.options.find(
           (option: IOption) => option.value === formDataValue,
         )?.label;
       }
