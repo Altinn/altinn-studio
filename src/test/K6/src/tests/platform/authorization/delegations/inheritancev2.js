@@ -84,7 +84,7 @@ export function setup() {
   if(minimumSBLVersion(22, 5) && environment != 'tt02') {
     ecUserData = setUpData.authenticateECUser(ecUserName, ecUserPwd, ecUserOrgNo);
   }
-  else {
+  else if (environment == 'tt02') {
     ecUserData = {
       userName: ecUserName,
       userId: ecUserUserId,
