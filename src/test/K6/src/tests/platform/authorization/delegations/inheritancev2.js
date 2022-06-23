@@ -17,6 +17,7 @@ import * as authorization from '../../../../api/platform/authorization/authoriza
 import { generateToken } from '../../../../api/altinn-testtools/token-generator.js';
 import { generateJUnitXML, reportPath } from '../../../../report.js';
 import * as setUpData from '../../../../setup.js';
+import * as helper from '../../../../Helpers/TestdataHelper.js';
 
 let pdpInputJson = open('../../../../data/pdpinput.json');
 
@@ -81,7 +82,7 @@ export function setup() {
   var userData3 = setUpData.getUserData(altinnStudioRuntimeCookie3, appOwner, appName, user3OrgNo);
 
   var ecUserData;
-  if(minimumSBLVersion(22, 5) && environment != 'tt02') {
+  if(helper.minimumSBLVersion(22, 5) && environment != 'tt02') {
     ecUserData = setUpData.authenticateECUser(ecUserName, ecUserPwd, ecUserOrgNo);
   }
   else if (environment == 'tt02') {
@@ -139,7 +140,7 @@ export default function (data) {
   user2_PartyId = data.user2Data['partyId'];
   user3_userId = data.user3Data['userId'];
   user3_PartyId = data.user3Data['partyId'];
-  if(minimumSBLVersion(22, 5)) {
+  if(helper.minimumSBLVersion(22, 5)) {
     ecUser_userId = data.ecUserData['userId'];
     ecUser_partyId = data.ecUserData['partyId'];
   }
@@ -156,9 +157,10 @@ export default function (data) {
 }
 
 export function CleanupBeforeTests() {
-  deleteAllRules(user1_userId, org1_partyId, user2_userId, 'userid', true);
-  deleteAllRules(user1_userId, org1_partyId, org2_partyId, 'partyid', true);
-  deleteAllRules(user3_userId, org3_partyId, user2_userId, 'userid', true);
+  helper.deleteAllRules(altinnToken, user1_userId, org1_partyId, user2_userId, 'userid', appOwner, appName);
+  helper.deleteAllRules(altinnToken, user1_userId, org1_partyId, org2_partyId, 'partyid', appOwner, appName);
+  helper.deleteAllRules(altinnToken, user3_userId, org3_partyId, user2_userId, 'userid', appOwner, appName);
+  helper.deleteAllRules(altinnToken, user3_userId, org3_partyId, org2_partyId, 'partyid', appOwner, appName);
 }
 
 /**
@@ -170,7 +172,7 @@ export function directDelegationFromOrgToUser() {
   const offeredByPartyId = org1_partyId;
   const coveredByUserId = user2_userId;
   var resources = [{ appOwner: appOwner, appName: appName }];
-  var ruleId = addRulesForTest(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read');
+  var ruleId = helper.addRulesForTest(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read');
   
   // Act
   var policyMatchKeys = {
@@ -190,12 +192,13 @@ export function directDelegationFromOrgToUser() {
     'Direct delegation from org to user - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success);
-  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', 1);
     
   // Cleanup
-  deleteAllRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid');
-  checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
+  helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', 1);
   if(showResults == 1) {console.log('directDelegationFromOrgToUser:' + success);}
+  
   sleep(3);
 }
 
@@ -209,7 +212,7 @@ export function directDelegationFromOrgToOrg() {
   const coveredByPartyId = org2_partyId;
   const DAGLUserIdForCoveredBy= user2_userId;
   var resources = [{ appOwner: appOwner, appName: appName }];
-  var ruleId = addRulesForTest(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
+  var ruleId = helper.addRulesForTest(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
 
   // Act
   var policyMatchKeys = {
@@ -230,14 +233,11 @@ export function directDelegationFromOrgToOrg() {
     'Direct delegation from org to org - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success)
-
-
-  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
-
+  helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', 1);
 
   // Cleanup
-  deleteAllRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
   if(showResults == 1) {console.log('directDelegationFromOrgToOrg:' + success);}
   sleep(3);
 }
@@ -252,7 +252,7 @@ export function directDelegationFromMainUnitToUser() {
   const subUnitPartyId = org4_partyId;
   const coveredByUserId = user2_userId;
   var resources = [{ appOwner: appOwner, appName: appName }];
-  var ruleId = addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid', 'Task_1', 'read');
+  var ruleId = helper.addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid', 'Task_1', 'read');
 
   // Act
   var policyMatchKeys = {
@@ -272,12 +272,11 @@ export function directDelegationFromMainUnitToUser() {
     'Direct delegation from mainunit to user - type is 3': (r) => r.json('0.type') === 3,
   });
   addErrorCount(success);
-  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', 1);
     
   // Cleanup
-  deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid');
-  res = delegation.getRules(altinnToken, policyMatchKeys, subUnitPartyId, coveredByUserId, resources, offeredByParentPartyId, null);
-  checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
+  helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid', appOwner, appName);
+  helper.checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', 1);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToUser:' + success);}
   sleep(3);
 }
@@ -293,7 +292,7 @@ export function directDelegationFromMainUnitToOrg() {
   const coveredByPartyId = org2_partyId;
   const DAGLUserIdForCoveredBy= user2_userId;
   var resources = [{ appOwner: appOwner, appName: appName }];
-  var ruleId = addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
+  var ruleId = helper.addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
 
   // Act
   var policyMatchKeys = {
@@ -314,11 +313,11 @@ export function directDelegationFromMainUnitToOrg() {
   });
   addErrorCount(success);
 
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', 1);
     
   // Cleanup
-  deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
+  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToOrg:' + success);}
   sleep(3);
 }
@@ -334,7 +333,7 @@ export function directDelegationFromMainUnitToOrg() {
   const coveredByPartyId = org2_partyId;
   const DAGLUserIdForCoveredBy= user2_userId;
   var resources = [{ appOwner: appOwner, appName: appName }];
-  var ruleId = addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
+  var ruleId = helper.addRulesForTest(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
 
   // Act
   var policyMatchKeys = {
@@ -354,11 +353,11 @@ export function directDelegationFromMainUnitToOrg() {
   });
   addErrorCount(success);
 
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', 1);
     
   // Cleanup
-  deleteAllRules(performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid');
-  checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+  helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
+  helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
   if(showResults == 1) {console.log('directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole:' + success);}
   sleep(3);
 }
@@ -368,7 +367,8 @@ export function directDelegationFromMainUnitToOrg() {
  */
 export function delegationToOrgIsInheritedByECUserViaKeyrole() {
 
-    if(!minimumSBLVersion(22, 5)) {
+    if(!helper.minimumSBLVersion(22, 5)) {
+      console.log('delegationToOrgIsInheritedByECUserViaKeyrole: skipped');
       return;
     }
     // Arrange
@@ -377,7 +377,7 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
     const coveredByPartyId = org2_partyId;
     const ecUserIdForCoveredBy= ecUser_userId;
     var resources = [{ appOwner: appOwner, appName: appName }];
-    var ruleId = addRulesForTest(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
+    var ruleId = helper.addRulesForTest(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read');
   
     // Act
     var policyMatchKeys = {
@@ -399,110 +399,18 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
     addErrorCount(success);
   
     // Cleanup
-    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit', showResults);
+    helper.checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'Permit', 1);
       
     // Cleanup
-    deleteAllRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid');
-    checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', showResults);
+    helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
+    helper.checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
     if(showResults == 1) {console.log('delegationToOrgIsInheritedByECUserViaKeyrole:' + success);}
-
-}
-
-/**
- * Helper function to quickly add rules for testing purposes
- * @param {*} performedByUserId The userId of the person who performed the delegation
- * @param {*} offeredByPartyId  The partyId of the user/org giving the rule
- * @param {*} coveredBy the userid/partyid of the user/org receiving the rule
- * @param {*} coveredByType 'userid' for users, 'partyid' for organizations
- * @param {*} taskName 'Task_1', 'EndEvent_1'
- * @param {*} actionName 'read', 'write', 'sign'
- * @returns the ruleid for the newly added rule
- */
- export function addRulesForTest(performedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName) {
-  var policyMatchKeys = {
-    coveredBy: 'urn:altinn:' + coveredByType,
-    resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
-  };
-  
-  var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredBy, appOwner, appName, taskName, actionName);
-  
-  // Assert
-  var success = check(res, {
-    'Add delegation rule - status is 201': (r) => r.status === 201,
-  });
-  addErrorCount(success);
-  stopIterationOnFail('Add delegation rule Failed', success, res);
-  sleep(3);
-
-  return res.json('0.ruleId');
-}
-
-/**
- * Helper function for quickly checking whether the PDP's decision is 'permit' or something else
- * @param {*} offeredByPartyId The partyid in the Resource
- * @param {*} coveredBy  The AccessSubject's userid/partyid
- * @param {*} taskName 'Task_1', 'EndEvent_1'
- * @param {*} actionName 'read', 'write', 'sign'
- * @param {*} expectedDecision 'Permit', 'NotApplicable'
- */
-export function checkPDPDecision(offeredByPartyId, coveredBy, taskName, actionName, expectedDecision) {
-  var jsonPermitData = {
-    AccessSubject: ['urn:altinn:userid'],
-    Action: [actionName],
-    Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
-  };
-  var res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredBy, offeredByPartyId, taskName);
-
-  // Assert
-  var success = check(res, {
-    'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
-    'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === expectedDecision,
-  });
-
-  if(!success) {
-    console.log('Expected decision to be ' + expectedDecision + ', but it was not.');
-  }
-
-  addErrorCount(success);
-  return success;
-}
-
-/**
- * Helper function that deletes all rules as a cleanup step before/after a test
- * @param {*} performedByUserId The userId of the user who does the deleting
- * @param {*} offeredByPartyId The partyid of the organization the rule is delegated from
- * @param {*} coveredBy The userid/partyid of the user/org the rule is delegated to
- * @param {*} coveredByType 'userid' for user, 'partyid' for organization
- * @param {*} ignoreErrors If true, the entire check/assert part is skipped
- */
-export function deleteAllRules(performedByUserId, offeredByPartyId, coveredBy, coveredByType, ignoreErrors = false) {
-  var policyMatchKeys = {
-    coveredBy: 'urn:altinn:' + coveredByType,
-    resource: ['urn:altinn:app', 'urn:altinn:org'],
-  };
-  var res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredBy, appOwner, appName, null);
-  
-  if (!ignoreErrors) {
-    var success = check(res, {
-      'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
-    });
-    addErrorCount(success);
-    sleep(3);
-  }
 }
 
 export function handleSummary(data) {
   let result = {};
   result[reportPath('authzDelegationInheritancev2.xml')] = generateJUnitXML(data, 'platform-authorization-delegation-inheritance-v2');
   return result;
-}
-
-export function minimumSBLVersion(major, minor) {
-  var altinnBuildVersion = setUpData.getSBLBuildVersion(); 
-  if (altinnBuildVersion.split('.')[0] >= major && altinnBuildVersion.split('.')[1] >= minor) {
-    return true;
-  }
-  return false;
 }
 
 export function showTestData() {

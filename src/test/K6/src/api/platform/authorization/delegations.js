@@ -42,6 +42,22 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
 }
 
 /**
+ * POST api call to add a rule that delagates access to an user
+ * @param {*} altinnToken token for authorizing the request
+ * @param {*} rulesList list of rules to add to the request
+ * @returns response of the POST request
+ */
+ export function addMultipleRules(altinnToken, rulesList) {
+  var endpoint = config.platformAuthorization.addRules;
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
+  var body = [];
+  rulesList.forEach(r => {
+    body.push(generatePolicyMatch(r.policyMatchKeys, r.delegatedByUserId, r.offeredByPartyId, r.coveredBy, r.appOwner, r.appName, r.altinnTask, r.altinnAction));
+  });
+  return http.post(endpoint, JSON.stringify(body), params);
+}
+
+/**
  * POST call to get rules matching a criteria
  * @param {*} altinnToken token for authorizing the request
  * @param {*} policyMatchKeys keys to be populated in the request
