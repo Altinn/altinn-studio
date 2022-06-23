@@ -16,8 +16,13 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         public Task<List<Instance>> GetHardDeletedInstances();
 
         /// <summary>
+        /// Retrieves data elements ready for permanent deletion.
+        /// </summary>
+        public Task<List<DataElement>> GetHardDeletedDataElements();
+
+        /// <summary>
         /// Retrieves all instances for a given app.
-        /// </summary>  
+        /// </summary>
         public Task<List<Instance>> GetAllInstancesOfApp(string app);
 
         /// <summary>
@@ -34,6 +39,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// Deletes the data element documents under the given instanceGuid.
         /// </summary>
         public Task<bool> DeleteDataElementDocuments(string instanceGuid);
+
+        /// <summary>
+        /// Deletes the data element document for the given selfLink.
+        /// </summary>
+        public Task DeleteDataElementDocument(string instanceGuid, string selfLink);
 
         /// <summary>
         /// Deletes the instance event documents for the the given instance.

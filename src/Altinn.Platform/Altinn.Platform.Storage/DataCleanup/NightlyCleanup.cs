@@ -53,7 +53,7 @@ namespace Altinn.Platform.Storage.DataCleanup
 
             foreach (Instance instance in instances)
             {
-                bool dataElementsDeleted = false;
+                bool dataBlobsDeleted = false;
                 bool instanceEventsDeleted = false;
                 bool dataElementMetadataDeleted = false;
                 bool instanceBackupDeleted = false;
@@ -62,9 +62,9 @@ namespace Altinn.Platform.Storage.DataCleanup
 
                 try
                 {
-                    dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
+                    dataBlobsDeleted = await _blobService.DeleteDataBlobs(instance);
 
-                    if (dataElementsDeleted)
+                    if (dataBlobsDeleted)
                     {
                         dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
                         dataElementsBackupDeleted = await _backupBlobService.DeleteDataBackup(instance.Id);

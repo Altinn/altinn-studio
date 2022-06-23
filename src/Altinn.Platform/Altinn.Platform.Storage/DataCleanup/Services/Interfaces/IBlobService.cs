@@ -13,5 +13,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// Deletes all the data blobs related to the instance.
         /// </summary>
         public Task<bool> DeleteDataBlobs(Instance instance);
+
+        /// <summary>
+        /// Deletes blob related to the dataElement.
+        /// </summary>
+        public Task<bool> DeleteDataBlob(DataElement dataElement);
     }
 }

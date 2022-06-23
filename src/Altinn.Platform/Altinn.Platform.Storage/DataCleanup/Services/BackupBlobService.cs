@@ -19,6 +19,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     {
         private readonly ILogger<IBackupBlobService> _logger;
         private readonly IKeyVaultService _keyVaultService;
+        private BlobContainerClient container;
         private readonly string _accountName = "altinn{0}backup01";
         private readonly string _accountEndpoint = "https://altinn{0}backup01.blob.core.windows.net/";
         private readonly string _keyVaultUri;
@@ -46,7 +47,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<bool> DeleteInstanceBackup(string instanceOwnerPartyId, string instanceGuid)
         {
-            BlobContainerClient container = await CreateBackupBlobClient();
+            if (container == null)
+            {
+                container = await CreateBackupBlobClient();
+            }
 
             try
             {
@@ -67,7 +71,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<bool> DeleteInstanceEventsBackup(string instanceOwnerPartyId, string instanceGuid)
         {
-            BlobContainerClient container = await CreateBackupBlobClient();
+            if (container == null)
+            {
+                container = await CreateBackupBlobClient();
+            }
 
             try
             {
@@ -88,7 +95,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<bool> DeleteDataBackup(string instanceGuid)
         {
-            BlobContainerClient container = await CreateBackupBlobClient();
+            if (container == null)
+            {
+                container = await CreateBackupBlobClient();
+            }
 
             try
             {
@@ -99,7 +109,28 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "BackupBlobService // DeleteInstanceEventsBackup // Instance: {InstanceGuid} // Exeption: {Exception}", instanceGuid, e);
+                _logger.LogError(e, "BackupBlobService // DeleteDataBackup // Instance: {InstanceGuid} // Exeption: {Exception}", instanceGuid, e);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteDataElementBackup(string itemName)
+        {
+            if (container == null)
+            {
+                container = await CreateBackupBlobClient();
+            }
+
+            try
+            {
+                await container.DeleteBlobIfExistsAsync(itemName, DeleteSnapshotsOption.IncludeSnapshots);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"BackupBlobService // DeleteDataElementBackup // // Blobstoragepath: {itemName} // Exeption: {e.Message}");
                 return false;
             }
 
@@ -118,7 +149,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             string backupAccountKey = await _keyVaultService.GetSecretAsync(
             _keyVaultUri,
             "AzureStorageConfiguration--BackupAccountKey");
-    
+
             StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(string.Format(_accountName, _environment), backupAccountKey);
             Uri storageUrl = new Uri(string.Format(_accountEndpoint, _environment));
 
