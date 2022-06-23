@@ -1,6 +1,4 @@
 {
-  "generatedBy": "Microsoft.NET.Sdk.Functions-3.0.6",
-  "configurationSource": "attributes",
   "bindings": [
     {
       "collectionName": "instanceEvents",
@@ -16,7 +14,10 @@
       "useMultipleWriteLocations": false
     }
   ],
+  "configurationSource": "attributes",
+  "direction": "in",
   "disabled": false,
-  "scriptFile": "../bin/Altinn.Platform.Storage.CosmosBackup.dll",
-  "entryPoint": "CosmosBackup.Functions.BackUpCollections.InstancesCollectionBackup"
+  "entryPoint": "CosmosBackup.Functions.BackUpCollections.InstancesCollectionBackup",
+  "generatedBy": "Microsoft.NET.Sdk.Functions-3.0.6",
+  "scriptFile": "../bin/Altinn.Platform.Storage.CosmosBackup.dll"
 }
