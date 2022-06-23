@@ -73,6 +73,7 @@ public class PDFGenerator {
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
   private List<String> componentsIgnoredFromGeneration = Arrays.asList(
+    "PrintButton",
     "Button",
     "Image",
     "NavigationBar",
@@ -377,11 +378,21 @@ public class PDFGenerator {
       renderAttachmentListContent(element);
     } else if (elementType.equalsIgnoreCase("AddressComponent")) {
       renderAddressComponent(element);
+    } else if (elementType.equalsIgnoreCase("Panel")) {
+      renderPanelComponent(element);
     } else {
       // all other components rendered equally
       renderLayoutElementContent(element);
     }
     yPoint -= componentMargin;
+  }
+
+  private void renderPanelComponent(FormLayoutElement element) throws IOException {
+    String bodyKey = element.getTextResourceBindings().getBody();
+    if (bodyKey != null && !bodyKey.isEmpty()) {
+      String description = TextUtils.getTextResourceByKey(bodyKey, textResources);
+      renderText(description, font, fontSize, StandardStructureTypes.P);
+    }
   }
 
   private void renderHeader() throws IOException {
