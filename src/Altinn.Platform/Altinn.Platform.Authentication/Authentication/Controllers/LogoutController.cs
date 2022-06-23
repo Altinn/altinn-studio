@@ -49,8 +49,6 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("logout")]
         public ActionResult Logout()
         {
-            ClaimsPrincipal principal = HttpContext.User;
-
             string orgIss = null;
             string tokenCookie = Request.Cookies[_generalSettings.JwtCookieName];
             if (_validator.CanReadToken(tokenCookie))
