@@ -36,7 +36,7 @@ jobs:
           token: ${{secrets.ALTINN_CDN_TOKEN}}
           path: cdn
 
-      - name: Publish to CDN
+      - name: Prepare version number
         working-directory: app-frontend
         run: |
           echo Clone, copy, commit and push to Altinn-CDN
@@ -51,6 +51,11 @@ jobs:
           AUTHOR_EMAIL=$(git log -1 | grep Author | cut -d' ' -f3 | cut -d'<' -f2 | cut -d'>' -f1)
           COMMIT_ID=$(git rev-parse HEAD~0)
           git log -1 | grep -Ev "commit|Author|Date" > ./../commitmsg.txt
+
+      - name: Copy version
+        working-directory: app-frontend
+        if: "!github.event.release.prerelease"
+        run: |
           cd ..
           echo Copy Major Version
           mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR
@@ -64,7 +69,23 @@ jobs:
           mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH
           cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.js
           cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.css
-          cd cdn
+
+      - name: Copy version (pre-release)
+        working-directory: app-frontend
+        if: "github.event.release.prerelease"
+        run: |
+          cd ..
+          echo Copy Patch
+          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.js
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.css
+
+      - name: Copy patch version and commit to CDN
+        working-directory: cdn
+        run: |
+          cd toolkits/altinn-app-frontend
+          ls -1 | grep --perl-regexp '^[\d\.]+(-[a-z]+)?$' | sort --version-sort | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' > index.json
+          cd ../..
           git config --global user.email "$AUTHOR_EMAIL"
           git config --global user.name "$AUTHOR_NAME"
           git add .
