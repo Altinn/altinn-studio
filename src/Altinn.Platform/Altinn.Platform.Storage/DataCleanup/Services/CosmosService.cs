@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
@@ -22,10 +23,14 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly string dataElementsCollectionId = "dataElements";
         private readonly string applicationsCollectionId = "applications";
 
-        private readonly DocumentClient _client;
         private readonly ILogger<ICosmosService> _logger;
 
         private bool _clientConnectionEstablished = false;
+
+        private readonly Container instancesContainer = null;
+        private readonly Container instanceEventsContainer = null;
+        private readonly Container dataElementsContainer = null;
+        private readonly Container applicationsContainer = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CosmosService"/> class.
@@ -35,35 +40,42 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         {
             _logger = logger;
 
-            ConnectionPolicy connectionPolicy = new ConnectionPolicy
+            CosmosClientOptions options = new CosmosClientOptions()
             {
                 ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
             };
-            string endpointUri = Environment.GetEnvironmentVariable("EndpointUri");
-            string primaryKey = Environment.GetEnvironmentVariable("PrimaryKey");
-            _client = new DocumentClient(new Uri(endpointUri), primaryKey, connectionPolicy);
+
+            CosmosClient client = new CosmosClient(
+                Environment.GetEnvironmentVariable("EndpointUri"),
+                Environment.GetEnvironmentVariable("PrimaryKey"),
+                options);
+
+            instancesContainer = client.GetContainer(databaseId, instanceCollectionId);
+            instanceEventsContainer = client.GetContainer(databaseId, instanceEventsCollectionId);
+            dataElementsContainer = client.GetContainer(databaseId, dataElementsCollectionId);
+            applicationsContainer = client.GetContainer(databaseId, applicationsCollectionId);
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteDataElementDocuments(string instanceGuid)
         {
-            if (!_clientConnectionEstablished)
+            QueryRequestOptions options = new QueryRequestOptions()
             {
-                _clientConnectionEstablished = await ConnectClient();
-            }
+                PartitionKey = new PartitionKey(instanceGuid)
+            };
 
-            Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, dataElementsCollectionId);
-            IDocumentQuery<Document> query = _client.CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceGuid) }).AsDocumentQuery();
+            IQueryable<DataElement> query = dataElementsContainer.GetItemLinqQueryable<DataElement>(requestOptions: options)
+               .Where(de => de.InstanceGuid == instanceGuid);
 
             try
             {
-                while (query.HasMoreResults)
+                var iterator = query.ToFeedIterator();
+                while (iterator.HasMoreResults)
                 {
-                    FeedResponse<Document> res = await query.ExecuteNextAsync<Document>();
-                    foreach (Document item in res)
+                    FeedResponse<DataElement> response = await iterator.ReadNextAsync();
+                    foreach (DataElement item in response)
                     {
-                        await _client.DeleteDocumentAsync(item.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) });
+                        await dataElementsContainer.DeleteItemAsync<DataElement>(item.Id, new PartitionKey(instanceGuid));
                     }
                 }
 
@@ -79,60 +91,36 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task DeleteDataElementDocument(string instanceGuid, string dataElementId)
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
-            Uri documentUri = UriFactory.CreateDocumentUri(databaseId, dataElementsCollectionId, dataElementId);
-            await _client.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid) });
+            await dataElementsContainer.DeleteItemAsync<DataElement>(dataElementId, new PartitionKey(instanceGuid));
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteInstanceDocument(string instanceOwnerPartyId, string instanceGuid)
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
-            Uri documentUri = UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, instanceGuid);
-
-            try
-            {
-                await _client.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId) });
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
-                return false;
-            }
+            var res = await instancesContainer.DeleteItemAsync<Instance>(instanceGuid, new PartitionKey(instanceOwnerPartyId));
+            return res.StatusCode == HttpStatusCode.NoContent;
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteInstanceEventDocuments(string instanceOwnerPartyId, string instanceGuid)
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
             string partitionKey = $"{instanceOwnerPartyId}/{instanceGuid}";
+            QueryRequestOptions options = new QueryRequestOptions()
+            {
+                PartitionKey = new PartitionKey(partitionKey)
+            };
 
-            Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceEventsCollectionId);
-            IDocumentQuery<Document> query = _client
-                .CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(partitionKey) })
-                .AsDocumentQuery();
+            IQueryable<InstanceEvent> query = dataElementsContainer.GetItemLinqQueryable<InstanceEvent>(requestOptions: options);
 
             try
             {
-                while (query.HasMoreResults)
+                var iterator = query.ToFeedIterator();
+                while (iterator.HasMoreResults)
                 {
-                    FeedResponse<Document> res = await query.ExecuteNextAsync<Document>();
-                    foreach (Document item in res)
+                    FeedResponse<InstanceEvent> response = await iterator.ReadNextAsync();
+                    foreach (InstanceEvent item in response)
                     {
-                        await _client.DeleteDocumentAsync(item.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(partitionKey) });
+                        await instanceEventsContainer.DeleteItemAsync<InstanceEvent>(item.Id.ToString(), new PartitionKey(partitionKey));
                     }
                 }
 
@@ -148,31 +136,19 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<List<Instance>> GetAllInstancesOfApp(string app)
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
             List<Instance> instances = new List<Instance>();
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = true
-            };
 
-            IQueryable<Instance> filter;
-            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
-
-            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+            IQueryable<Instance> query = instancesContainer.GetItemLinqQueryable<Instance>()
                 .Where(i => i.AppId.Equals($"ttd/{app}"));
 
             try
             {
-                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+                var iterator = query.ToFeedIterator();
 
-                while (query.HasMoreResults && instances.Count < 10000)
+                while (iterator.HasMoreResults)
                 {
-                    FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-                    instances.AddRange(feedResponse.ToList());
+                    FeedResponse<Instance> response = await iterator.ReadNextAsync();
+                    instances.AddRange(response);
                 }
             }
             catch (Exception ex)
@@ -187,33 +163,21 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<List<Application>> GetApplications(List<string> applicationIds)
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
             applicationIds = applicationIds.Select(id => id = AppIdToCosmosId(id)).ToList();
 
             List<Application> applications = new List<Application>();
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = true
-            };
 
-            IQueryable<Application> filter;
-            Uri applicationsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, applicationsCollectionId);
-
-            filter = _client.CreateDocumentQuery<Application>(applicationsCollectionUri, feedOptions)
+            IQueryable<Application> query = applicationsContainer.GetItemLinqQueryable<Application>()
                 .Where(a => applicationIds.Contains(a.Id));
 
             try
             {
-                IDocumentQuery<Application> query = filter.AsDocumentQuery();
+                var iterator = query.ToFeedIterator();
 
-                while (query.HasMoreResults)
+                while (iterator.HasMoreResults)
                 {
-                    FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
-                    applications.AddRange(feedResponse);
+                    FeedResponse<Application> response = await iterator.ReadNextAsync();
+                    applications.AddRange(response);
                 }
             }
             catch (Exception ex)
@@ -229,33 +193,20 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<List<Instance>> GetHardDeletedInstances()
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
             List<Instance> instances = new List<Instance>();
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = true
-            };
 
-            IQueryable<Instance> filter;
-            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
-
-            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+            IQueryable<Instance> query = instancesContainer.GetItemLinqQueryable<Instance>()
                 .Where(i => i.Status.IsHardDeleted && i.Status.HardDeleted.Value <= DateTime.UtcNow.AddDays(-7))
                 .Where(i => i.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(i.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)) || !i.Status.IsArchived);
 
             try
             {
-                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+                var iterator = query.ToFeedIterator();
 
-                while (query.HasMoreResults)
+                while (iterator.HasMoreResults)
                 {
-                    FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-
-                    instances.AddRange(feedResponse.ToList());
+                    FeedResponse<Instance> response = await iterator.ReadNextAsync();
+                    instances.AddRange(response);
                 }
             }
             catch (Exception ex)
@@ -270,51 +221,39 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<List<DataElement>> GetHardDeletedDataElements()
         {
-            if (!_clientConnectionEstablished)
-            {
-                _clientConnectionEstablished = await ConnectClient();
-            }
-
             List<DataElement> dataElements = new List<DataElement>();
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = true
-            };
 
-            IQueryable<DataElement> filter;
-            Uri dataElementsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, dataElementsCollectionId);
-            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
-
-            filter = _client.CreateDocumentQuery<DataElement>(dataElementsCollectionUri, feedOptions)
+            IQueryable<DataElement> query = dataElementsContainer.GetItemLinqQueryable<DataElement>()
                 .Where(d => d.DeleteStatus.IsHardDeleted && d.DeleteStatus.HardDeleted <= DateTime.UtcNow.AddDays(-7));
 
             try
             {
-                IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
-
-                while (query.HasMoreResults)
+                var iterator = query.ToFeedIterator();
+                while (iterator.HasMoreResults)
                 {
-                    Dictionary<string, Instance> confirmedInstances = new Dictionary<string, Instance>();
-                    FeedResponse<DataElement> feedResponse = await query.ExecuteNextAsync<DataElement>();
+                    Dictionary<string, Instance> retrievedInstances = new Dictionary<string, Instance>();
+                    FeedResponse<DataElement> response = await iterator.ReadNextAsync();
 
-                    foreach (DataElement dataElement in feedResponse)
+                    foreach (DataElement dataElement in response)
                     {
-                        if (confirmedInstances.ContainsKey(dataElement.InstanceGuid))
+                        if (retrievedInstances.ContainsKey(dataElement.InstanceGuid))
                         {
-                            if (confirmedInstances[dataElement.InstanceGuid].CompleteConfirmations.Any(
-                                c => c.StakeholderId.ToLower().Equals(confirmedInstances[dataElement.InstanceGuid].Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
+                            if (retrievedInstances[dataElement.InstanceGuid].CompleteConfirmations.Any(
+                                c => c.StakeholderId.ToLower().Equals(retrievedInstances[dataElement.InstanceGuid].Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
                             {
                                 dataElements.Add(dataElement);
                             }
                         }
                         else
                         {
-                            Instance instance = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
-                                .Where(i => i.Id.Equals(dataElement.InstanceGuid))
-                                .ToList()
-                                .FirstOrDefault();
+                            IQueryable<Instance> instanceQuery = instancesContainer.GetItemLinqQueryable<Instance>()
+                                .Where(i => i.Id.Equals(dataElement.InstanceGuid));
 
-                            confirmedInstances.Add(instance.Id, instance);
+                            var instanceIterator = instanceQuery.ToFeedIterator();
+                            var res = await instanceIterator.ReadNextAsync();
+                            Instance instance = res.FirstOrDefault();
+
+                            retrievedInstances.Add(instance.Id, instance);
                             if (instance.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(instance.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
                             {
                                 dataElements.Add(dataElement);
@@ -360,12 +299,6 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
 
             return appId;
-        }
-
-        private async Task<bool> ConnectClient()
-        {
-            await _client.OpenAsync();
-            return true;
         }
     }
 }
