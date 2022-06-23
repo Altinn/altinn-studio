@@ -7,7 +7,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
-using Microsoft.Azure.Documents.SystemFunctions;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
