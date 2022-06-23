@@ -13,6 +13,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         public Task<bool> DeleteDataBackup(string instanceGuid);
 
         /// <summary>
+        /// Deletes the backup of a data element.
+        /// </summary>
+        public Task<bool> DeleteDataElementBackup(string itemName);
+
+        /// <summary>
         /// Deletes the backup of the metadata for an instance.
         /// </summary>
         public Task<bool> DeleteInstanceBackup(string instanceOwnerPartyId, string instanceGuid);

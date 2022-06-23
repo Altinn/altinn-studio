@@ -70,7 +70,33 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             return true;
         }
-       
+
+        /// <inheritdoc/>
+        public async Task<bool> DeleteDataBlob(DataElement dataElement)
+        {
+            string org = dataElement.BlobStoragePath.Split("/")[0];
+            BlobContainerClient container = await CreateBlobClient(org);
+
+            if (container == null)
+            {
+                _logger.LogError($"BlobService // DeleteDataBlob // Could not connect to blob container.");
+                return false;
+            }
+
+            try
+            {
+                await container.DeleteBlobIfExistsAsync(dataElement.BlobStoragePath, DeleteSnapshotsOption.IncludeSnapshots);
+            }
+            catch (Exception e)
+            {
+                _sasTokenProvider.InvalidateSasToken(org);
+                _logger.LogError(e, $"BlobService // DeleteDataBlob // Org: {org} // Blobstoragepath: {dataElement.BlobStoragePath} // Exeption: {e.Message}");
+                return false;
+            }
+
+            return true;
+        }
+
         private async Task<BlobContainerClient> CreateBlobClient(string org)
         {
             if (!_accountName.Equals("devstoreaccount1"))

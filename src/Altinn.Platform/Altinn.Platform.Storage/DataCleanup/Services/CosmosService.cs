@@ -78,6 +78,17 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
+        public async Task DeleteDataElementDocument(string instanceGuid, string selfLink)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            await _client.DeleteDocumentAsync(selfLink, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) });
+        }
+
+        /// <inheritdoc/>
         public async Task<bool> DeleteInstanceDocument(string instanceOwnerPartyId, string instanceGuid)
         {
             if (!_clientConnectionEstablished)
@@ -243,6 +254,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 while (query.HasMoreResults)
                 {
                     FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
                     instances.AddRange(feedResponse.ToList());
                 }
             }
@@ -253,6 +265,70 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<DataElement>> GetHardDeletedDataElements()
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<DataElement> dataElements = new List<DataElement>();
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<DataElement> filter;
+            Uri dataElementsCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, dataElementsCollectionId);
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+
+            filter = _client.CreateDocumentQuery<DataElement>(dataElementsCollectionUri, feedOptions)
+                .Where(d => d.DeleteStatus.IsHardDeleted && d.DeleteStatus.HardDeleted <= DateTime.UtcNow.AddDays(-7));
+
+            try
+            {
+                IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    Dictionary<string, Instance> instanceList = new Dictionary<string, Instance>();
+                    FeedResponse<DataElement> feedResponse = await query.ExecuteNextAsync<DataElement>();
+
+                    foreach (DataElement dataElement in feedResponse)
+                    {
+                        if (instanceList.ContainsKey(dataElement.InstanceGuid))
+                        {
+                            if (instanceList[dataElement.InstanceGuid].CompleteConfirmations.Any(
+                                c => c.StakeholderId.ToLower().Equals(instanceList[dataElement.InstanceGuid].Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
+                            {
+                                dataElements.Add(dataElement);
+                            }
+                        }
+                        else
+                        {
+                            Instance instance = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+                                .Where(i => i.Id.Equals(dataElement.InstanceGuid))
+                                .ToList()
+                                .FirstOrDefault();
+
+                            instanceList.Add(instance.Id, instance);
+                            if (instance.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(instance.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
+                            {
+                                dataElements.Add(dataElement);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"CosmosService // GetHardDeletedDataElements // Exeption: {ex.Message}");
+            }
+
+            return dataElements;
         }
 
         private string AppIdToCosmosId(string appId)
