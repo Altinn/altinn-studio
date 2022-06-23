@@ -52,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(query);
-            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(10) < DateTime.UtcNow).ToList();
+            List<DeploymentEntity> laggingDeployments = deployments.Results.Where(d => d.Build.Status.Equals(BuildStatus.InProgress) && d.Build.Started.Value.AddMinutes(5) < DateTime.UtcNow).ToList();
 
             foreach (DeploymentEntity deployment in laggingDeployments)
             {

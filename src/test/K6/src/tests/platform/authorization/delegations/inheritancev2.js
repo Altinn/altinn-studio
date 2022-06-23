@@ -7,7 +7,8 @@
   Command: docker-compose run k6 run /src/tests/platform/authorization/delegations/inheritancev2.js 
   -e env=*** -e org=*** -e app=*** -e tokengenuser=*** -e tokengenuserpwd=*** -e appsaccesskey=*** 
   -e user1name=*** -e user1pwd=*** -e subunitorgno=***  -e user2name=*** -e user2pwd=*** -e user2orgno=*** 
-  -e user3name=*** -e user3pwd=*** -e ecusername=*** -e ecuserpwd=*** -e ecuserorgno=***
+  -e user3name=*** -e user3pwd=*** -e ecusername=*** -e ecuserpwd=*** -e ecuserorgno=*** -e ecuseruserid=***
+  -e ecuserpartyid=*** -e showresults=***
 */
 import { check, sleep, fail } from 'k6';
 import { addErrorCount, stopIterationOnFail } from '../../../../errorcounter.js';
@@ -33,9 +34,13 @@ const user2Pwd = __ENV.user2pwd;
 const user2OrgNo = __ENV.user2orgno;
 const user3Name = __ENV.user3name;
 const user3Pwd = __ENV.user3pwd;
+const user3OrgNo = __ENV.user3orgno;
 const ecUserName = __ENV.ecusername;
 const ecUserPwd = __ENV.ecuserpwd;
 const ecUserOrgNo = __ENV.ecuserorgno;
+const ecUserUserId = __ENV.ecuseruserid;
+const ecUserPartyId = __ENV.ecuserpartyid;
+const showResults = __ENV.showresults;
 
 var altinnToken;
 var altinnBuildVersion;
@@ -74,11 +79,18 @@ export function setup() {
 
   var aspxauthCookie3 = setUpData.authenticateUser(user3Name, user3Pwd);
   var altinnStudioRuntimeCookie3 = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie3);
-  var userData3 = setUpData.getUserData(altinnStudioRuntimeCookie3, appOwner, appName);
+  var userData3 = setUpData.getUserData(altinnStudioRuntimeCookie3, appOwner, appName, user3OrgNo);
 
   var ecUserData;
-  if(helper.minimumSBLVersion(22, 5)) {
+  if(helper.minimumSBLVersion(22, 5) && environment != 'tt02') {
     ecUserData = setUpData.authenticateECUser(ecUserName, ecUserPwd, ecUserOrgNo);
+  }
+  else if (environment == 'tt02') {
+    ecUserData = {
+      userName: ecUserName,
+      userId: ecUserUserId,
+      partyId: ecUserPartyId
+    }
   }
 
   var tokenGenParams = {
@@ -89,7 +101,7 @@ export function setup() {
   var res = authorization.getParties(altinnStudioRuntimeCookie3, userData3['userId']);
   res = JSON.parse(res.body);
   for (var i = 0; i < res.length; i++) {
-    if (res[i].orgNumber != null) {
+    if (res[i].orgNumber != null && res[i].childParties != null) {
       for (var j = 0; j < res[i].childParties.length; j++) {
         if (res[i].childParties[j].orgNumber == subunitOrgNo) {
           userData3.childOrgNumber = res[i].childParties[j].orgNumber;
@@ -183,10 +195,10 @@ export function directDelegationFromOrgToUser() {
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', 1);
     
   // Cleanup
-  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', 1);
-  console.log('directDelegationFromOrgToUser: ' + success);
+  if(showResults == 1) {console.log('directDelegationFromOrgToUser:' + success);}
+  
   sleep(3);
 }
 
@@ -221,15 +233,12 @@ export function directDelegationFromOrgToOrg() {
     'Direct delegation from org to org - type is 1': (r) => r.json('0.type') === 1,
   });
   addErrorCount(success)
-
-
   helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'Permit', 1);
-
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
-  console.log('directDelegationFromOrgToOrg: ' + success);
+  if(showResults == 1) {console.log('directDelegationFromOrgToOrg:' + success);}
   sleep(3);
 }
 
@@ -268,7 +277,7 @@ export function directDelegationFromMainUnitToUser() {
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByUserId, 'userid', appOwner, appName);
   helper.checkPDPDecision(subUnitPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', 1);
-  console.log('directDelegationFromMainUnitToUser: ' + success);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToUser:' + success);}
   sleep(3);
 }
 
@@ -309,7 +318,7 @@ export function directDelegationFromMainUnitToOrg() {
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
   helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
-  console.log('directDelegationFromMainUnitToOrg: ' + success);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToOrg:' + success);}
   sleep(3);
 }
 
@@ -349,7 +358,7 @@ export function directDelegationFromMainUnitToOrg() {
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByParentPartyId, coveredByPartyId, 'partyid', appOwner, appName);
   helper.checkPDPDecision(subUnitPartyId, DAGLUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
-  console.log('directDelegationFromMainUnitToOrg: ' + success);
+  if(showResults == 1) {console.log('directDelegationFromMainUnitToOrgInheritedByDAGLViaKeyRole:' + success);}
   sleep(3);
 }
 
@@ -395,7 +404,7 @@ export function delegationToOrgIsInheritedByECUserViaKeyrole() {
     // Cleanup
     helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
     helper.checkPDPDecision(offeredByPartyId, ecUserIdForCoveredBy, 'Task_1', 'read', 'NotApplicable', 1);
-    console.log('delegationToOrgIsInheritedByECUserViaKeyrole: ' + success);
+    if(showResults == 1) {console.log('delegationToOrgIsInheritedByECUserViaKeyrole:' + success);}
 }
 
 export function handleSummary(data) {
