@@ -293,15 +293,15 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
                 while (query.HasMoreResults)
                 {
-                    Dictionary<string, Instance> instanceList = new Dictionary<string, Instance>();
+                    Dictionary<string, Instance> confirmedInstances = new Dictionary<string, Instance>();
                     FeedResponse<DataElement> feedResponse = await query.ExecuteNextAsync<DataElement>();
 
                     foreach (DataElement dataElement in feedResponse)
                     {
-                        if (instanceList.ContainsKey(dataElement.InstanceGuid))
+                        if (confirmedInstances.ContainsKey(dataElement.InstanceGuid))
                         {
-                            if (instanceList[dataElement.InstanceGuid].CompleteConfirmations.Any(
-                                c => c.StakeholderId.ToLower().Equals(instanceList[dataElement.InstanceGuid].Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
+                            if (confirmedInstances[dataElement.InstanceGuid].CompleteConfirmations.Any(
+                                c => c.StakeholderId.ToLower().Equals(confirmedInstances[dataElement.InstanceGuid].Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
                             {
                                 dataElements.Add(dataElement);
                             }
@@ -313,7 +313,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                                 .ToList()
                                 .FirstOrDefault();
 
-                            instanceList.Add(instance.Id, instance);
+                            confirmedInstances.Add(instance.Id, instance);
                             if (instance.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(instance.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)))
                             {
                                 dataElements.Add(dataElement);
