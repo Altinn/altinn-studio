@@ -77,14 +77,15 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
-        public async Task DeleteDataElementDocument(string instanceGuid, string selfLink)
+        public async Task DeleteDataElementDocument(string instanceGuid, string dataElementId)
         {
             if (!_clientConnectionEstablished)
             {
                 _clientConnectionEstablished = await ConnectClient();
             }
 
-            await _client.DeleteDocumentAsync(selfLink, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) });
+            Uri documentUri = UriFactory.CreateDocumentUri(databaseId, dataElementsCollectionId, dataElementId);
+            await _client.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid) });
         }
 
         /// <inheritdoc/>

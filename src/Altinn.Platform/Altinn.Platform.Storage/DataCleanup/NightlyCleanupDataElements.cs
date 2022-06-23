@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                     dataElementsBackupDeleted = await _backupBlobService.DeleteDataElementBackup(dataElement.BlobStoragePath);
                     if (dataBlobDeleted && dataElementsBackupDeleted)
                     {
-                        await _cosmosService.DeleteDataElementDocument(dataElement.SelfLinks.Platform, dataElement.InstanceGuid);
+                        await _cosmosService.DeleteDataElementDocument(dataElement.InstanceGuid, dataElement.Id);
                         successfullyDeleted++;
                     }
                 }
