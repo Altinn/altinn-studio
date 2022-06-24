@@ -10,7 +10,7 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest,windows-latest] # TODO: Fix test to run on ubuntu-latest also
+        os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env: 
@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
-           dotnet build src/AppRef.sln -v m
+           dotnet build AppLibDotnet.sln -v m
       - name: Test
         run: |
-           dotnet test src/AppRef.sln -v m
+           dotnet test AppLibDotnet.sln -v m

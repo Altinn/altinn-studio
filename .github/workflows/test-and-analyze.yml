@@ -49,18 +49,17 @@ jobs:
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
       - name: Build & Test
         run: |
-           dotnet build src/AppRef.sln -v m
-           dotnet test src/AppRef.sln -v m
+           dotnet test AppLibDotnet.sln -v m
       - name: Analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Altinn_app-template-dotnet" /o:"altinn" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths="**/*.trx" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"Altinn_app-lib-dotnet" /o:"altinn" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths="**/*.trx" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
 
-          dotnet build src/AppRef.sln
-          dotnet test src/AppRef.sln `
+          dotnet build AppLibDotnet.sln
+          dotnet test AppLibDotnet.sln `
           --no-build `
           --results-directory TestResults/ `
           --collect:"XPlat Code Coverage" `
