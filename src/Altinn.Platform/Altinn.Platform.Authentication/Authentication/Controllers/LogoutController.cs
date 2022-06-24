@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Extensions;
@@ -23,6 +25,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly GeneralSettings _generalSettings;
    
         private readonly OidcProviderSettings _oidcProviderSettings;
+        private readonly JwtSecurityTokenHandler _validator;
 
         /// <summary>
         /// Defay
@@ -35,6 +38,7 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             _generalSettings = generalSettings.Value;
             _oidcProviderSettings = oidcProviderSettings.Value;
+            _validator = new JwtSecurityTokenHandler();
         }
 
         /// <summary>
@@ -45,8 +49,14 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("logout")]
         public ActionResult Logout()
         {
-            ClaimsPrincipal principal = HttpContext.User;
-            string orgIss = principal.GetClaim(OriginalIssClaimName);
+            string orgIss = null;
+            string tokenCookie = Request.Cookies[_generalSettings.JwtCookieName];
+            if (_validator.CanReadToken(tokenCookie))
+            {
+                JwtSecurityToken jwt = _validator.ReadJwtToken(tokenCookie);
+                orgIss = jwt.Claims.Where(c => c.Type.Equals(OriginalIssClaimName)).Select(c => c.Value).FirstOrDefault();
+            }
+
             OidcProvider provider = GetOidcProvider(orgIss);
             if (provider == null)
             {
