@@ -86,6 +86,19 @@
     <div class="alert alert-light" role="alert">
       To access attachments XML and other data, visit <a href="/LocalPlatformStorage/">/LocalPlatformStorage</a>
     </div>
+
+    @if(string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
+    {
+      <div class="alert alert-light" role="alert">
+        @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+      </div>
+    }
+    else
+    {
+      <div class="alert alert-primary" role="alert">
+        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+      </div>
+    }
   </div>
   }
 }
