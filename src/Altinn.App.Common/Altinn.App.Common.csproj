@@ -1,21 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <Version>5.3.0</Version>
-    <AssemblyVersion>5.3.0.0</AssemblyVersion>
     <PackageId>Altinn.App.Common</PackageId>
     <PackageTags>Altinn;Studio;App;Common</PackageTags>
     <Description>
       This class library holds classes with logic that is common for the other Altinn.App packages.
     </Description>
-    <PackageReleaseNotes>https://docs.altinn.studio/community/changelog/app-nuget/</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/Altinn/app-lib-dotnet/releases</PackageReleaseNotes>
     <Authors>Altinn Platform Contributors</Authors>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <RepositoryUrl>https://github.com/Altinn/app-lib-dotnet</RepositoryUrl>
     <IsPackable>true</IsPackable>
 
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
