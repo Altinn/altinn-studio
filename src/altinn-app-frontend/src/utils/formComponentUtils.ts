@@ -20,9 +20,10 @@ import type {
   IOption,
   IOptions,
   IValidations,
+  IRepeatingGroups,
 } from 'src/types';
 import { AsciiUnitSeparator } from './attachment';
-import { getOptionLookupKey } from './options';
+import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from './options';
 import { getTextFromAppOrDefault } from './textResource';
 import { isFileUploadComponent, isFileUploadWithTagComponent } from "src/utils/formLayout";
 
@@ -92,6 +93,7 @@ export const getDisplayFormDataForComponent = (
   component: ILayoutComponent,
   textResources: ITextResource[],
   options: IOptions,
+  repeatingGroups: IRepeatingGroups,
   multiChoice?: boolean,
 ) => {
   if (component.dataModelBindings?.simpleBinding || component.dataModelBindings?.list) {
@@ -103,6 +105,7 @@ export const getDisplayFormDataForComponent = (
       formData,
       options,
       textResources,
+      repeatingGroups,
       multiChoice,
     );
   }
@@ -118,6 +121,7 @@ export const getDisplayFormDataForComponent = (
       formData,
       options,
       textResources,
+      repeatingGroups
     );
   });
   return formDataObj;
@@ -131,6 +135,7 @@ export const getDisplayFormData = (
   formData: any,
   options: IOptions,
   textResources: ITextResource[],
+  repeatingGroups: IRepeatingGroups,
   asObject?: boolean,
 ) => {
   let formDataValue = formData[dataModelBinding] || '';
@@ -157,8 +162,20 @@ export const getDisplayFormData = (
         label = selectionComponent.options.find(
           (option: IOption) => option.value === formDataValue,
         )?.label;
+      } else if (selectionComponent.source) {
+        const reduxOptions = setupSourceOptions({
+          source: selectionComponent.source,
+          relevantTextResource: textResources.find((e) => e.id === selectionComponent.source.label),
+          relevantFormData: getRelevantFormDataForOptionSource(formData, selectionComponent.source),
+          repeatingGroups,
+          dataSources: {
+            dataModel: formData,
+          },
+        });
+        label = reduxOptions.find(option => option.value === formDataValue)?.label;
       }
-      return getTextResourceByKey(label, textResources) || '';
+
+      return getTextResourceByKey(label, textResources) || formDataValue;
     }
     if (component.type === 'Checkboxes') {
       const selectionComponent = component as ISelectionComponentProps;
@@ -170,18 +187,18 @@ export const getDisplayFormData = (
         split?.forEach((value: string) => {
           const optionsForComponent = selectionComponent?.optionsId
             ? options[
-                getOptionLookupKey(
-                  selectionComponent.optionsId,
-                  selectionComponent.mapping,
-                )
-              ].options
+              getOptionLookupKey(
+                selectionComponent.optionsId,
+                selectionComponent.mapping,
+              )
+            ].options
             : selectionComponent.options;
           const textKey =
             optionsForComponent?.find(
               (option: IOption) => option.value === value,
             )?.label || '';
           displayFormData[value] =
-            getTextResourceByKey(textKey, textResources) || '';
+            getTextResourceByKey(textKey, textResources) || formDataValue;
         });
 
         return displayFormData;
@@ -245,6 +262,7 @@ export const getFormDataForComponentInRepeatingGroup = (
   groupDataModelBinding: string,
   textResources: ITextResource[],
   options: IOptions,
+  repeatingGroups: IRepeatingGroups,
 ) => {
   if (
     !component.dataModelBindings ||
@@ -281,6 +299,7 @@ export const getFormDataForComponentInRepeatingGroup = (
     formData,
     options,
     textResources,
+    repeatingGroups
   );
 };
 
@@ -369,11 +388,11 @@ export function getFileUploadComponentValidations(
       componentValidations.simpleBinding.errors.push(
         // If validation has attachmentId, add to start of message and seperate using ASCII Universal Seperator
         attachmentId +
-          AsciiUnitSeparator +
-          getLanguageFromKey(
-            'form_filler.file_uploader_validation_error_update',
-            language,
-          ),
+        AsciiUnitSeparator +
+        getLanguageFromKey(
+          'form_filler.file_uploader_validation_error_update',
+          language,
+        ),
       );
     }
   } else if (validationError === 'delete') {

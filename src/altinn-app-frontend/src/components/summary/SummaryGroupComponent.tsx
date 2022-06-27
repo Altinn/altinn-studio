@@ -245,6 +245,7 @@ function SummaryGroupComponent({
             componentDeepCopy,
             textResources,
             options,
+            repeatingGroups,
           );
 
           if (hiddenFields.find((field) => field === `${componentId}-${i}`)) {
@@ -315,6 +316,7 @@ function SummaryGroupComponent({
             groupComponent.dataModelBindings.group,
             textResources,
             options,
+            repeatingGroups,
           );
         }
         groupContainer.children.push(summaryId);

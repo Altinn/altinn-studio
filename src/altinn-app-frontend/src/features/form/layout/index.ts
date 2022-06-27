@@ -1,5 +1,5 @@
 import { GridSize } from '@material-ui/core';
-import { IMapping, IOption, Triggers } from '../../../types';
+import { IMapping, IOption, IOptionSource, Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -98,6 +98,7 @@ export interface ISelectionComponentProps extends ILayoutComponent {
   optionsId?: string;
   mapping?: IMapping;
   secure?: boolean;
+  source?: IOptionSource;
 }
 
 export interface IGrid extends IGridStyling {

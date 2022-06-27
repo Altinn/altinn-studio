@@ -1,11 +1,10 @@
 import type { IInstanceContext, IDataSources } from "altinn-shared/types";
-import { replaceTextResourceParams } from "altinn-shared/utils";
 import { buildInstanceContext } from "altinn-shared/utils/instanceContext";
 import { useState, useEffect } from "react";
 import { shallowEqual } from "react-redux";
 import { useAppSelector } from "src/common/hooks";
 import type { IMapping, IOptionSource, IOption } from "src/types";
-import { getOptionLookupKey, getRelevantFormDataForOptionSource, replaceOptionDataField } from "src/utils/options";
+import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from "src/utils/options";
 
 interface IUseGetOptionsParams {
   optionsId: string;
@@ -39,24 +38,13 @@ export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsPara
       instanceContext: instanceContext
     };
 
-    const replacedOptionLabels =
-      replaceTextResourceParams([relevantTextResource], dataSources, repeatingGroups);
-
-    const repGroup = Object.values(repeatingGroups).find((group) => {
-      return group.dataModelBinding === source.group;
-    });
-
-
-    const newOptions: IOption[] = [];
-    for (let i = 0; i <= repGroup.index; i++) {
-      const option: IOption = {
-        label: replacedOptionLabels[i + 1].value,
-        value: replaceOptionDataField(relevantFormData, source.value, i),
-      };
-      newOptions.push(option);
-    }
-
-    setOptions(newOptions);
+    setOptions(setupSourceOptions({
+      source,
+      relevantTextResource,
+      relevantFormData,
+      repeatingGroups,
+      dataSources
+    }));
 
   }, [applicationSettings, relevantFormData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
 
