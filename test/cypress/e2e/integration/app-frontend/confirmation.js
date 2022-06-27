@@ -19,16 +19,15 @@ describe('Confirm', () => {
       .first()
       .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
 
-    const getAttachments = () => (cy.get(appFrontend.confirm.uploadedAttachments)
+    cy.get(appFrontend.confirm.uploadedAttachments)
       .last()
-      .find('a'));
-
-    getAttachments().should('have.length', 5);
-    getAttachments().eq(0).should('contain.text', `test.pdf`);
-    getAttachments().eq(1).should('contain.text', `attachment-in-single.pdf`);
-    getAttachments().eq(2).should('contain.text', `attachment-in-multi1.pdf`);
-    getAttachments().eq(3).should('contain.text', `attachment-in-multi2.pdf`);
-    getAttachments().eq(4).should('contain.text', `attachment-in-nested.pdf`);
+      .find('a')
+      .should('have.length', 5)
+      .should('contain.text', `test.pdf`)
+      .should('contain.text', `attachment-in-single.pdf`)
+      .should('contain.text', `attachment-in-multi1.pdf`)
+      .should('contain.text', `attachment-in-multi2.pdf`)
+      .should('contain.text', `attachment-in-nested.pdf`);
 
     cy.get(appFrontend.confirm.sendIn).should('be.visible');
     cy.url().then((url) => {

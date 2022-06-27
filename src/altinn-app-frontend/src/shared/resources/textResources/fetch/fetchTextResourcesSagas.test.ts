@@ -53,7 +53,7 @@ describe('fetchTextResourcesSagas', () => {
     };
     expectSaga(fetchTextResources)
       .provide([
-        [select(appLanguageStateSelector), ''],
+        [select(appLanguageStateSelector), 'nb'],
         [select(allowAnonymousSelector), true],
         [call(get, textResourcesUrl('nb')), mockTextResource],
       ])
