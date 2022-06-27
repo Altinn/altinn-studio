@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Xml;
@@ -78,6 +79,7 @@ namespace LocalTest.Controllers
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
             var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
+            model.LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -90,11 +92,6 @@ namespace LocalTest.Controllers
             }
 
             return View(model);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -197,6 +194,77 @@ namespace LocalTest.Controllers
             return await Task.FromResult(Ok(token));
         }
 
+        /// <summary>
+        ///  See src\development\loadbalancer\nginx.conf
+        /// </summary>
+        public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
+
+        [HttpGet]
+        public async Task<ActionResult> FrontendVersion([FromServices]HttpClient client)
+        {
+            var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
+
+
+
+            var frontendVersion = new FrontendVersion()
+            {
+                Version = versionFromCookie,
+                Versions = new List<SelectListItem>()
+                {
+                    new ()
+                    {
+                        Text = "Keep as is",
+                        Value = "",
+                    },
+                    new ()
+                    {
+                        Text = "localhost:8080 (local dev)",
+                        Value = "http://localhost:8080/"
+                    }
+                }
+            };
+            var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
+            var groupCdnVersions = new SelectListGroup() { Name = "Specific version from cdn" };
+            var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString);
+            versions.Reverse();
+            versions.ForEach(version =>
+            {
+                frontendVersion.Versions.Add(new()
+                {
+                    Text = version,
+                    Value = $"https://altinncdn.no/toolkits/altinn-app-frontend/{version}/",
+                    Group = groupCdnVersions
+                });
+            });
+
+            return View(frontendVersion);
+        }
+        public ActionResult FrontendVersion(FrontendVersion frontendVersion)
+        {
+            var options = new CookieOptions
+            {
+                Expires = DateTime.MaxValue,
+                HttpOnly = true,
+            };
+            ICookieManager cookieManager = new ChunkingCookieManager();
+            if (string.IsNullOrWhiteSpace(frontendVersion.Version))
+            {
+                cookieManager.DeleteCookie(HttpContext, FRONTEND_URL_COOKIE_NAME, options);
+            }
+            else
+            {
+                cookieManager.AppendResponseCookie(
+                    HttpContext,
+                    FRONTEND_URL_COOKIE_NAME,
+                    frontendVersion.Version,
+                    options
+                    );
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
         private async Task<List<UserProfile>> GetTestUsers()
         {
             List<UserProfile> users = new List<UserProfile>();
@@ -241,7 +309,8 @@ namespace LocalTest.Controllers
         }
         private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
-            try {
+            try
+            {
                 var appId = testApps.Single().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
@@ -251,7 +320,7 @@ namespace LocalTest.Controllers
                 var authLevelNode = document.SelectSingleNode("/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue", nsMngr);
                 return int.Parse(authLevelNode.InnerText);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // Return default auth level if Single app auth level can't be found.
                 return 2;

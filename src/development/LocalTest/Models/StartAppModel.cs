@@ -70,6 +70,12 @@ namespace LocalTest.Models
         public string AuthenticationLevel { get; set; }
 
         /// <summary>
+        /// Url for where to load the local frontend from
+        /// (implemented as a cookie that nginx reads and substitutes the content in index.html)
+        /// </summary>
+        public string LocalFrontendUrl { get; set; }
+
+        /// <summary>
         /// List of TestUsers for dropdown
         /// </summary>
         public IEnumerable<SelectListItem> TestUsers { get; set; }
