@@ -37,60 +37,63 @@ jobs:
           path: cdn
 
       - name: Prepare version number
+        id: prepare
         working-directory: app-frontend
         run: |
           echo Clone, copy, commit and push to Altinn-CDN
           CURRENT_VERSION=`git describe --abbrev=0 --tags 2>/dev/null`
           CURRENT_VERSION_PARTS=(${CURRENT_VERSION//./ })
-          APP_MAJOR=${CURRENT_VERSION_PARTS[0]:1}
-          APP_MINOR=${CURRENT_VERSION_PARTS[1]}
-          APP_PATCH=${CURRENT_VERSION_PARTS[2]}
-          echo altinn-app-frontend version: $APP_MAJOR.$APP_MINOR.$APP_PATCH
-          AUTHOR_FULL=$(git log -1 | grep Author)
-          AUTHOR_NAME=$(git log -1 | grep Author | cut -d' ' -f2)
-          AUTHOR_EMAIL=$(git log -1 | grep Author | cut -d' ' -f3 | cut -d'<' -f2 | cut -d'>' -f1)
-          COMMIT_ID=$(git rev-parse HEAD~0)
+          echo ::set-output name=APP_FULL::${CURRENT_VERSION:1}
+          echo ::set-output name=APP_MAJOR::${CURRENT_VERSION_PARTS[0]:1}
+          echo ::set-output name=APP_MAJOR_MINOR::${CURRENT_VERSION_PARTS[0]:1}.${CURRENT_VERSION_PARTS[1]}
+          echo ::set-output name=AUTHOR_FULL::$(git log -1 | grep Author)
+          echo ::set-output name=AUTHOR_NAME::$(git log -1 | grep Author | cut -d' ' -f2)
+          echo ::set-output name=AUTHOR_EMAIL::$(git log -1 | grep Author | cut -d' ' -f3 | cut -d'<' -f2 | cut -d'>' -f1)
+          echo ::set-output name=COMMIT_ID::$(git rev-parse HEAD~0)
           git log -1 | grep -Ev "commit|Author|Date" > ./../commitmsg.txt
 
       - name: Copy version
         working-directory: app-frontend
         if: "!github.event.release.prerelease"
         run: |
+          echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
           cd ..
           echo Copy Major Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR/altinn-app-frontend.css
+          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/altinn-app-frontend.js
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/altinn-app-frontend.css
           echo Copy Minor Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR/altinn-app-frontend.css
+          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/altinn-app-frontend.js
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/altinn-app-frontend.css
           echo Copy Patch
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.css
+          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.js
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.css
 
       - name: Copy version (pre-release)
         working-directory: app-frontend
         if: "github.event.release.prerelease"
         run: |
+          echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
           cd ..
           echo Copy Patch
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/$APP_MAJOR.$APP_MINOR.$APP_PATCH/altinn-app-frontend.css
+          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.js
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.css
 
       - name: Copy patch version and commit to CDN
         working-directory: cdn
         run: |
+          echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
           cd toolkits/altinn-app-frontend
           ls -1 | grep --perl-regexp '^[\d\.]+(-[a-z]+)?$' | sort --version-sort | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' > index.json
           cd ../..
-          git config --global user.email "$AUTHOR_EMAIL"
-          git config --global user.name "$AUTHOR_NAME"
+          git config --global user.email "${{ steps.prepare.outputs.AUTHOR_EMAIL }}"
+          git config --global user.name "${{ steps.prepare.outputs.AUTHOR_NAME }}"
           git add .
-          echo "$AUTHOR_FULL updated altinn-app-frontend to $APP_MAJOR.$APP_MINOR.$APP_PATCH" > ./../commit1.txt
-          echo "based on commit https://github.com/Altinn/altinn-studio/commit/$COMMIT_ID" > ./../commit2.txt
+          echo "${{ steps.prepare.outputs.AUTHOR_FULL }} updated altinn-app-frontend to ${{ steps.prepare.outputs.APP_FULL }}" > ./../commit1.txt
+          echo "based on commit https://github.com/Altinn/app-frontend-react/commit/${{ steps.prepare.outputs.COMMIT_ID }}" > ./../commit2.txt
           cat ./../commit1.txt ./../commit2.txt ./../commitmsg.txt > ./../commit.txt
           cat ./../commit.txt
           git commit -F ./../commit.txt
