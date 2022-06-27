@@ -46,8 +46,8 @@ describe('Group', () => {
       .find(appFrontend.group.delete)
       .should('be.visible')
       .click();
-    //cy.get(appFrontend.group.subGroup).find(mui.tableElement).eq(0).should('not.contain.text', 'automation'); //bug#6547
-    cy.get(appFrontend.group.comments).should('be.visible');
+    cy.get(appFrontend.group.subGroup).find(mui.tableElement).eq(0).should('not.contain.text', 'automation');
+    cy.get(appFrontend.group.comments).should('not.exist');
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.back)

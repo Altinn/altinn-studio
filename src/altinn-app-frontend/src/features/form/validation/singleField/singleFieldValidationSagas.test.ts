@@ -57,7 +57,7 @@ describe('singleFieldValidationSagas', () => {
     const mappedValidations: IValidations = {
       FormLayout: {
         field1: {
-          simple: {
+          simpleBinding: {
             errors: [getParsedLanguageFromText(mockErrorMessage) as any],
           },
         },

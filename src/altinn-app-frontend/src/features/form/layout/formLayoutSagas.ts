@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchFetchFormLayoutSaga, watchFetchFormLayoutSettingsSaga, watchFetchFormLayoutSetsSaga } from './fetch/fetchFormLayoutSagas';
-import { watchUpdateFocusSaga, watchUpdateRepeatingGroupsSaga, watchUpdateCurrentViewSaga, watchCalculatePageOrderAndMoveToNextPageSaga, watchInitialCalculagePageOrderAndMoveToNextPageSaga, watchUpdateRepeatingGroupsEditIndexSaga, watchInitRepeatingGroupsSaga, watchUpdateFileUploaderWithTagEditIndexSaga, watchInitFileUploaderWithTagSaga, watchUpdateFileUploaderWithTagChosenOptionsSaga } from './update/updateFormLayoutSagas';
+import { watchUpdateFocusSaga, watchUpdateRepeatingGroupsSaga, watchUpdateCurrentViewSaga, watchCalculatePageOrderAndMoveToNextPageSaga, watchInitialCalculagePageOrderAndMoveToNextPageSaga, watchUpdateRepeatingGroupsEditIndexSaga, watchInitRepeatingGroupsSaga, watchUpdateFileUploaderWithTagEditIndexSaga, watchMapFileUploaderWithTagSaga, watchUpdateFileUploaderWithTagChosenOptionsSaga } from './update/updateFormLayoutSagas';
 
 // eslint-disable-next-line func-names
 export default function* (): SagaIterator {
@@ -12,7 +12,7 @@ export default function* (): SagaIterator {
   yield fork(watchUpdateFileUploaderWithTagEditIndexSaga);
   yield fork(watchUpdateFileUploaderWithTagChosenOptionsSaga);
   yield fork(watchInitRepeatingGroupsSaga);
-  yield fork(watchInitFileUploaderWithTagSaga);
+  yield fork(watchMapFileUploaderWithTagSaga);
   yield fork(watchFetchFormLayoutSettingsSaga);
   yield fork(watchUpdateCurrentViewSaga);
   yield fork(watchFetchFormLayoutSetsSaga);

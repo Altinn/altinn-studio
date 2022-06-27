@@ -1,3 +1,5 @@
+import type { IDataModelBindings } from "src/types";
+
 export interface IFetchFormData {
   url: string;
 }
@@ -26,4 +28,10 @@ export interface IUpdateFormData {
 export interface IUpdateFormDataFulfilled {
   field: string;
   data: any;
+}
+
+export interface IDeleteAttachmentReference {
+  attachmentId: string;
+  componentId: string;
+  dataModelBindings: IDataModelBindings;
 }

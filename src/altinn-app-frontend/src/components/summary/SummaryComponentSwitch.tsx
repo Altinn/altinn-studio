@@ -10,6 +10,7 @@ import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
 import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
 import MultipleChoiceSummary from './MultipleChoiceSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import { isFileUploadComponent, isFileUploadWithTagComponent } from "src/utils/formLayout";
 
 export interface ISummaryComponentSwitch {
   change: {
@@ -41,24 +42,21 @@ export default function SummaryComponentSwitch({
   if (!formComponent) {
     return null;
   }
-  switch (formComponent.type) {
-    case 'Group':
-    case 'group': {
-      return <SummaryGroupComponent {...change} {...groupProps} componentRef={componentRef} />;
+
+  if (Object.keys(formComponent.dataModelBindings || {}).length === 0) {
+    if (isFileUploadComponent(formComponent)) {
+        return (
+          <>
+            <SummaryBoilerplate
+              {...change}
+              label={label}
+              hasValidationMessages={hasValidationMessages}
+            />
+            <AttachmentSummaryComponent componentRef={componentRef} />
+          </>
+        );
     }
-    case 'FileUpload': {
-      return (
-        <>
-          <SummaryBoilerplate
-            {...change}
-            label={label}
-            hasValidationMessages={hasValidationMessages}
-          />
-          <AttachmentSummaryComponent componentRef={componentRef} />
-        </>
-      );
-    }
-    case 'FileUploadWithTag': {
+    if (isFileUploadWithTagComponent(formComponent)) {
       return (
         <>
           <SummaryBoilerplate
@@ -72,6 +70,13 @@ export default function SummaryComponentSwitch({
           />
         </>
       );
+    }
+  }
+
+  switch (formComponent.type) {
+    case 'Group':
+    case 'group': {
+      return <SummaryGroupComponent {...change} {...groupProps} componentRef={componentRef} />;
     }
     case 'Checkboxes': {
       return (

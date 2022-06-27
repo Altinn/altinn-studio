@@ -7,9 +7,9 @@ import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { ILayoutComponent, ILayoutGroup } from '../layout';
+import type { ILayoutComponent, ILayoutGroup } from '../layout';
 import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { Triggers } from '../../../types';
+import { Triggers, IRuntimeState } from '../../../types';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
@@ -71,11 +71,20 @@ export function GroupContainer({
   );
 
   const editIndex = useAppSelector(
-    (state) => state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
+    (state: IRuntimeState) =>
+      state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
+  );
+  const deletingIndexes = useAppSelector(
+    (state: IRuntimeState) =>
+      state.formLayout.uiConfig.repeatingGroups[id]?.deletingIndex ?? [],
   );
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
+
+  const attachments = useAppSelector(
+    (state:IRuntimeState) => state.attachments.attachments,
+  );
 
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
@@ -208,12 +217,6 @@ export function GroupContainer({
 
   const onClickRemove = (groupIndex: number) => {
     dispatch(
-      FormLayoutActions.updateRepeatingGroupsEditIndex({
-        group: id,
-        index: -1,
-      }),
-    );
-    dispatch(
       FormLayoutActions.updateRepeatingGroups({
         layoutElementId: id,
         remove: true,
@@ -228,12 +231,6 @@ export function GroupContainer({
     ) {
       dispatch(
         FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }),
-      );
-      dispatch(
-        FormLayoutActions.updateRepeatingGroupsEditIndex({
-          group: id,
-          index: groupIndex,
-        }),
       );
     }
   };
@@ -297,6 +294,7 @@ export function GroupContainer({
         (container.edit?.mode === 'hideTable' && editIndex < 0)) && (
         <RepeatingGroupTable
           components={components}
+          attachments={attachments}
           container={container}
           currentView={currentView}
           editIndex={editIndex}
@@ -336,6 +334,7 @@ export function GroupContainer({
           language={language}
           textResources={textResources}
           layout={layout}
+          deleting={deletingIndexes.includes(repeatingGroupIndex)}
           onClickRemove={onClickRemove}
           onClickSave={onClickSave}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
@@ -367,6 +366,7 @@ export function GroupContainer({
                 language={language}
                 textResources={textResources}
                 layout={layout}
+                deleting={deletingIndexes.includes(index)}
                 onClickRemove={onClickRemove}
                 onClickSave={onClickSave}
                 repeatingGroupDeepCopyComponents={

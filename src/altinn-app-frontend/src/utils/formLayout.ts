@@ -1,21 +1,71 @@
-import { ITextResource } from 'altinn-shared/types';
-import { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
-import { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
-import {
+import type { ITextResource } from 'altinn-shared/types';
+import type { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
+import type { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
+import type {
   IRepeatingGroups,
   ILayoutNavigation,
   ITextResourceBindings,
   IFileUploadersWithTag,
   IOptionsChosen,
-  IFormFileUploaderWithTagComponent,
   IMapping,
 } from 'src/types';
-import {
+import type {
   IGroupEditProperties,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
 } from '../features/form/layout';
+import { IFormFileUploaderComponent, IFormFileUploaderWithTagComponent } from "src/types";
+import { IDatePickerProps } from "src/components/base/DatepickerComponent";
+
+interface SplitKey {
+  baseComponentId: string;
+  stringDepth: string;
+  stringDepthWithLeadingDash: string;
+  depth: number[];
+}
+
+/**
+ * Takes a dashed component id (possibly inside a repeating group row), like 'myComponent-0-1' and returns
+ * a workable object:
+ *   {
+ *     baseComponentId: 'myComponent',
+ *     stringDepth: '0-1',
+ *     stringDepthWithLeadingDash: '-0-1',
+ *     depth: [0, 1],
+ *   }
+ */
+export function splitDashedKey(componentId:string):SplitKey {
+  const parts = componentId.split('-');
+
+  const depth: number[] = [];
+  while (parts.length) {
+    const toConsider = parts.pop();
+
+    // Since our form component IDs are usually UUIDs, they will contain hyphens and may even end in '-<number>'.
+    // We'll assume the application has less than 5-digit repeating group elements (the last leg of UUIDs are always
+    // longer than 5 digits).
+    if (toConsider.match(/^\d{1,5}$/)) {
+      depth.push(parseInt(toConsider, 10));
+    } else {
+      depth.reverse();
+      const stringDepth = depth.join('-').toString();
+      return {
+        baseComponentId: [...parts, toConsider].join('-'),
+        stringDepth: stringDepth,
+        stringDepthWithLeadingDash: stringDepth ? `-${stringDepth}` : '',
+        depth: depth,
+      };
+    }
+  }
+
+  return {
+    baseComponentId: componentId,
+    stringDepth: '',
+    stringDepthWithLeadingDash: '',
+    depth: [],
+  };
+}
 
 export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
@@ -79,7 +129,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
               (_x: any, childGroupIndex: number) => {
                 const groupId = `${childGroup.id}-${childGroupIndex}`;
                 repeatingGroups[groupId] = {
-                  index: getIndexForRepeatingGroup(
+                  index: getIndexForNestedRepeatingGroup(
                     formData,
                     childGroup.dataModelBindings?.group,
                     groupElement.dataModelBindings.group,
@@ -104,43 +154,38 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   return repeatingGroups;
 }
 
-export function getFileUploadersWithTag(
+export function mapFileUploadersWithTag(
   formLayout: ILayout,
   attachmentState: IAttachmentState,
 ) {
   const fileUploaders: IFileUploadersWithTag = {};
-  const uploaders = formLayout.filter(
-    (layoutElement) => layoutElement.type.toLowerCase() === 'fileuploadwithtag',
-  );
-  uploaders.forEach((component: ILayoutComponent) => {
-    const uploader = component as unknown as IFormFileUploaderWithTagComponent;
-    const attachments = attachmentState.attachments[uploader.id];
-    if (attachments !== undefined) {
-      const chosenOptions: IOptionsChosen = {};
-      for (let index = 0; index < attachments.length; index++) {
-        chosenOptions[attachments[index].id] = attachments[index].tags[0];
-      }
-      fileUploaders[uploader.id] = {
-        editIndex: -1,
-        chosenOptions,
-      };
-    } else {
-      fileUploaders[uploader.id] = {
-        editIndex: -1,
-        chosenOptions: {} as IOptionsChosen,
-      };
+  for (const componentId of Object.keys(attachmentState.attachments)) {
+    const baseComponentId = splitDashedKey(componentId).baseComponentId;
+    const component = formLayout.find((layoutElement) => layoutElement.id === baseComponentId);
+    if (!component || component.type.toLowerCase() !== 'fileuploadwithtag') {
+      continue;
     }
-  });
+
+    const attachments = attachmentState.attachments[componentId];
+    const chosenOptions: IOptionsChosen = {};
+    for (let index = 0; index < attachments.length; index++) {
+      chosenOptions[attachments[index].id] = attachments[index].tags[0];
+    }
+    fileUploaders[componentId] = {
+      editIndex: -1,
+      chosenOptions,
+    };
+  }
   return fileUploaders;
 }
 
-function getIndexForRepeatingGroup(
+function getIndexForNestedRepeatingGroup(
   formData: any,
   groupBinding: string,
   parentGroupBinding: string,
   parentIndex: number,
 ): number {
-  const regex = new RegExp(/\[([0-9]+)](?!.*\[([0-9]+)])/);
+  const regex = new RegExp(/^.+?\[(\d+)].+?\[(\d+)]/);
   const indexedGroupBinding = groupBinding.replace(
     parentGroupBinding,
     `${parentGroupBinding}[${parentIndex}]`,
@@ -151,8 +196,8 @@ function getIndexForRepeatingGroup(
   if (groupFormData && groupFormData.length > 0) {
     const lastItem = groupFormData[groupFormData.length - 1];
     const match = lastItem.match(regex);
-    if (match && match[1]) {
-      return parseInt(match[1], 10);
+    if (match && match[2]) {
+      return parseInt(match[2], 10);
     }
   }
   return -1;
@@ -267,7 +312,7 @@ export function createRepeatingGroupComponents(
           textResourceBindings: componentDeepCopy.textResourceBindings,
           dataModelBindings,
           id: deepCopyId,
-          baseComponentId: componentDeepCopy.id,
+          baseComponentId: (componentDeepCopy as any).baseComponentId || componentDeepCopy.id,
           hidden,
           mapping,
         };
@@ -327,4 +372,94 @@ export function setVariableTextKeysForRepeatingGroupComponent(
 
 export function hasRequiredFields(layout: ILayout) {
   return layout.find((c: ILayoutComponent) => c.required);
+}
+
+/**
+ * Find child components in layout (or inside some group) matching some criteria. Returns a list of just those
+ * components.
+ * @param layout Layout list
+ * @param options Optional options
+ * @param options.matching Function which should return true for every component to be included in the returned list.
+ *    If not provided, all components are returned.
+ * @param options.rootGroupId Component id for a group to use as root, instead of iterating the entire layout.
+ */
+export function findChildren(
+  layout: ILayout,
+  options?: {
+    matching?:(component:ILayoutComponent)=>boolean,
+    rootGroupId?:string
+  },
+):ILayoutComponent[] {
+  const out:ILayoutComponent[] = [];
+  const root:string = options?.rootGroupId || '';
+  const toConsider = new Set<string>();
+  const otherGroupComponents:{[groupId:string]:Set<string>} = {};
+
+  if (root) {
+    for (const item of layout) {
+      if (isGroupComponent(item)) {
+        for (const childId of item.children) {
+          const cleanId = item.edit?.multiPage ? childId.match(/^\d+:(.*)$/)[1] : childId;
+          if (item.id === root) {
+            toConsider.add(cleanId);
+          } else {
+            if (typeof otherGroupComponents[item.id] === 'undefined') {
+              otherGroupComponents[item.id] = new Set();
+            }
+            otherGroupComponents[item.id].add(cleanId);
+          }
+        }
+      }
+    }
+
+    // Go over other groups, catching child groups defined out-of-order
+    for (const otherGroupId in otherGroupComponents) {
+      if (toConsider.has(otherGroupId)) {
+        otherGroupComponents[otherGroupId].forEach((id) => toConsider.add(id));
+      }
+    }
+  }
+
+  for (const item of layout) {
+    if (isGroupComponent(item) || (root && !toConsider.has(item.id))) {
+      continue;
+    }
+    if (options && options.matching) {
+      options.matching(item) && out.push(item);
+    } else {
+      out.push(item);
+    }
+  }
+
+  return out;
+}
+
+
+/**
+ * Type guards for inferring component types
+ * @see https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
+ */
+
+export function isGroupComponent(
+  component:ILayoutComponent|ILayoutGroup
+):component is ILayoutGroup {
+  return component.type.toLowerCase() === 'group';
+}
+
+export function isFileUploadComponent(
+  component:ILayoutComponent|ILayoutGroup
+):component is (IFormFileUploaderComponent & ILayoutComponent) {
+  return component.type.toLowerCase() === 'fileupload';
+}
+
+export function isFileUploadWithTagComponent(
+  component:ILayoutComponent|ILayoutGroup
+):component is (IFormFileUploaderWithTagComponent & ILayoutComponent) {
+  return component.type.toLowerCase() === 'fileuploadwithtag';
+}
+
+export function isDatePickerComponent(
+  component:ILayoutComponent|ILayoutGroup
+):component is (IDatePickerProps & ILayoutComponent) {
+  return component.type.toLowerCase() === 'datepicker';
 }

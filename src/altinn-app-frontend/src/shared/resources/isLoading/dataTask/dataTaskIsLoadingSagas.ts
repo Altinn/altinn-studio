@@ -6,6 +6,7 @@ import { FETCH_RULE_MODEL_FULFILLED } from '../../../../features/form/rules/rule
 import { FETCH_SERVICE_CONFIG_FULFILLED } from '../../../../features/form/dynamics/formDynamicsActionTypes';
 import { finishDataTaskIsLoading } from '../isLoadingSlice';
 import { startInitialDataTaskQueue } from '../../queue/queueSlice';
+import AttachmentActions from "src/shared/resources/attachments/attachmentActions";
 
 export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
   while (true) {
@@ -16,6 +17,7 @@ export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
       take(FormLayoutActions.fetchLayoutSettingsFulfilled),
       take(FETCH_RULE_MODEL_FULFILLED),
       take(FETCH_SERVICE_CONFIG_FULFILLED),
+      take(AttachmentActions.mapAttachmentsFulfilled),
     ]);
 
     yield put(finishDataTaskIsLoading());

@@ -6,7 +6,7 @@ import type {
   ILayoutComponent,
   ISelectionComponentProps,
 } from 'src/features/form/layout';
-import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 
 import { parseOptions } from 'altinn-shared/utils/language';
 
@@ -36,6 +36,9 @@ describe('formComponentUtils', () => {
     mockBindingRadioButtonsWithMapping: 'mockOptionsWithMapping1',
     mockBindingLikert: 'optionValue1',
     mockBindingLikertWithMapping: 'mockOptionsWithMapping1',
+    mockBindingAttachmentSingle: '12345',
+    'mockBindingAttachmentMulti[0]': '123457',
+    'mockBindingAttachmentMulti[1]': '123456',
   };
   const mockTextResources: ITextResource[] = [
     {
@@ -85,35 +88,37 @@ describe('formComponentUtils', () => {
       ],
     },
   };
-  const mockAttachments: IAttachment[] = [
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      tags: ['mockTag'],
-      id: '12345',
-    },
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      tags: [],
-      id: '123456',
-    },
-    {
-      uploaded: true,
-      updating: false,
-      deleting: false,
-      name: 'mockName',
-      size: 12345,
-      tags: null,
-      id: '123457',
-    },
-  ];
+  const mockAttachments: IAttachments = {
+    upload: [
+      {
+        uploaded: true,
+        updating: false,
+        deleting: false,
+        name: 'mockNameAttachment1',
+        size: 12345,
+        tags: ['mockTag'],
+        id: '12345',
+      },
+      {
+        uploaded: true,
+        updating: false,
+        deleting: false,
+        name: 'mockNameAttachment2',
+        size: 12345,
+        tags: [],
+        id: '123456',
+      },
+      {
+        uploaded: true,
+        updating: false,
+        deleting: false,
+        name: 'mockNameAttachment3',
+        size: 12345,
+        tags: null,
+        id: '123457',
+      },
+    ],
+  };
   const mockAttachmentsWithoutTag: IAttachment[] = [
     {
       uploaded: true,
@@ -152,6 +157,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         'mockBindingInput',
         inputComponent,
+        inputComponent.id,
+        {},
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -167,6 +174,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         'mockBindingCheckbox',
         checkboxComponent,
+        checkboxComponent.id,
+        mockAttachments,
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -183,6 +192,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         'mockBindingCheckboxWithMapping',
         checkboxComponent,
+        checkboxComponent.id,
+        mockAttachments,
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -198,6 +209,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         'mockBindingCheckbox',
         checkboxComponent,
+        checkboxComponent.id,
+        mockAttachments,
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -218,6 +231,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         `mockBinding${type}`,
         component,
+        component.id,
+        mockAttachments,
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -234,6 +249,8 @@ describe('formComponentUtils', () => {
       const result = getDisplayFormData(
         `mockBinding${type}WithMapping`,
         component,
+        component.id,
+        mockAttachments,
         mockFormData,
         mockOptions,
         mockTextResources,
@@ -241,7 +258,45 @@ describe('formComponentUtils', () => {
       expect(result).toEqual('Value Mapping 1');
     })
 
+    it('should return a single attachment name for a FileUpload component', () => {
+      const component = {
+        id: 'upload',
+        type: 'FileUpload',
+        dataModelBindings: {
+          simpleBinding: 'mockBindingAttachmentSingle',
+        },
+      } as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        component.dataModelBindings.simpleBinding,
+        component,
+        component.id,
+        mockAttachments,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('mockNameAttachment1');
+    });
 
+    it('should return multiple attachment names for a FileUpload component', () => {
+      const component = {
+        id: 'upload',
+        type: 'FileUpload',
+        dataModelBindings: {
+          list: 'mockBindingAttachmentMulti',
+        },
+      } as ISelectionComponentProps;
+      const result = getDisplayFormData(
+        component.dataModelBindings.list,
+        component,
+        component.id,
+        mockAttachments,
+        mockFormData,
+        mockOptions,
+        mockTextResources,
+      );
+      expect(result).toEqual('mockNameAttachment3, mockNameAttachment2');
+    });
   });
 
   describe('getFormDataForComponentInRepeatingGroup', () => {
@@ -255,6 +310,7 @@ describe('formComponentUtils', () => {
       } as unknown as ISelectionComponentProps;
       const result = getFormDataForComponentInRepeatingGroup(
         mockFormData,
+        mockAttachments,
         checkboxComponent,
         0,
         'group',
@@ -430,7 +486,7 @@ describe('formComponentUtils', () => {
 
   describe('atleastOneTagExists', () => {
     it('should return true if one or more attachments has a tag', () => {
-      const result = atleastOneTagExists(mockAttachments);
+      const result = atleastOneTagExists(mockAttachments['upload']);
       expect(result).toEqual(true);
     });
 

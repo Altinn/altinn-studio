@@ -26,7 +26,7 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
           type: 'Input',
           id: 'mockId',
           dataModelBindings: {
-            simpleBiding: 'mockDataBinding',
+            simpleBinding: 'mockDataBinding',
           },
           readOnly: false,
           required: false,

@@ -4,15 +4,15 @@ import type {
   ILayoutGroup,
 } from 'src/features/form/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
-import type { IRepeatingGroups, IMapping } from 'src/types';
+import type { IRepeatingGroups, IMapping, ITextResource } from 'src/types';
 
 import {
   createRepeatingGroupComponents,
-  getFileUploadersWithTag,
+  mapFileUploadersWithTag,
   getRepeatingGroups,
   hasRequiredFields,
   removeRepeatingGroupFromUIConfig,
-  setMappingForRepeatingGroupComponent,
+  setMappingForRepeatingGroupComponent, findChildren,
 } from './formLayout';
 
 describe('setMappingForRepeatingGroupComponent', () => {
@@ -33,53 +33,54 @@ describe('setMappingForRepeatingGroupComponent', () => {
 });
 
 describe('formLayout', () => {
+  const testLayout: ILayout = [
+    {
+      id: 'Group1',
+      type: 'group',
+      dataModelBindings: {
+        group: 'Group1',
+      },
+      children: ['field1', 'Group2'],
+      maxCount: 3,
+    } as ILayoutGroup,
+    {
+      id: 'Group2',
+      type: 'Group',
+      dataModelBindings: {
+        group: 'Group1.Group2',
+      },
+      maxCount: 4,
+      children: ['field2'],
+    } as ILayoutGroup,
+    {
+      id: 'field1',
+      type: 'Input',
+      dataModelBindings: {
+        simple: 'Group1.prop1',
+      },
+      textResourceBindings: {
+        title: 'Title',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+    } as ILayoutComponent,
+    {
+      id: 'field2',
+      type: 'Input',
+      dataModelBindings: {
+        simple: 'Group1.Group2.prop1',
+      },
+      textResourceBindings: {
+        title: 'Title',
+      },
+      readOnly: false,
+      required: false,
+      disabled: false,
+    } as ILayoutComponent,
+  ];
+
   it('getRepeatingGroups should handle nested groups', () => {
-    const testLayout: ILayout = [
-      {
-        id: 'Group1',
-        type: 'group',
-        dataModelBindings: {
-          group: 'Group1',
-        },
-        children: ['field1', 'Group2'],
-        maxCount: 3,
-      } as ILayoutGroup,
-      {
-        id: 'Group2',
-        type: 'Group',
-        dataModelBindings: {
-          group: 'Group1.Group2',
-        },
-        maxCount: 4,
-        children: ['field2'],
-      } as ILayoutGroup,
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.prop1',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      } as ILayoutComponent,
-      {
-        id: 'field2',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.Group2.prop1',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      } as ILayoutComponent,
-    ];
     const formData = {
       'Group1[0].prop1': 'value-0-1',
       'Group1[0].Group2[0].group2prop': 'group2-0-0-value',
@@ -331,10 +332,86 @@ describe('formLayout', () => {
     expect(result).toEqual(expected);
   });
 
+  it('baseComponentId should never contain group index', () => {
+      const groupProps: Pick<
+        ILayoutGroup,
+        'type' | 'dataModelBindings' | 'textResourceBindings' | 'maxCount'
+      > = {
+        type: 'Group',
+        dataModelBindings: {},
+        textResourceBindings: { label: 't' },
+        maxCount: 3,
+      };
+      const layout: ((ILayoutGroup | ILayoutComponent) & { baseComponentId: string })[] = [
+        {
+          id: 'first-0',
+          baseComponentId: 'first',
+          children: ['second'],
+          ...groupProps,
+        },
+        {
+          id: 'second-0-1',
+          baseComponentId: 'second',
+          children: ['third'],
+          ...groupProps,
+        },
+        {
+          id: 'third-0-1-1',
+          baseComponentId: 'third',
+          children: ['fourth'],
+          ...groupProps,
+        },
+        {
+          id: 'input-0-1-1-2',
+          type: 'Input',
+          baseComponentId: 'input',
+          dataModelBindings: {},
+          textResourceBindings: { label: 't' },
+        },
+      ];
+
+    const mockTextResources:ITextResource[] = [
+      {
+        id: 't',
+        value: 'Text',
+      },
+    ];
+
+    const result = createRepeatingGroupComponents(
+      layout[0] as ILayoutGroup,
+      layout,
+      1,
+      mockTextResources,
+    );
+
+    const allBaseComponentIds = [];
+    const findBaseComponentId = (obj:any) => {
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          findBaseComponentId(item);
+        }
+        return;
+      }
+      for (const key of Object.keys(obj)) {
+        if (key === 'baseComponentId') {
+          allBaseComponentIds.push(obj[key]);
+        }
+        if (typeof obj[key] === 'object') {
+          findBaseComponentId(obj[key]);
+        }
+      }
+    };
+
+    findBaseComponentId(result);
+    const numericBaseComponentIds = allBaseComponentIds.filter(id => id.match(/\d+/));
+
+    expect(numericBaseComponentIds).toEqual([]);
+  });
+
   it('getFileUploadersWithTag should return expected uiConfig', () => {
     const testLayout: ILayout = [
       {
-        id: 'file-upload-with-tag-1',
+        id: 'file-upload-with-tag1',
         type: 'FileUploadWithTag',
         textResourceBindings: {
           title: 'VedleggTest',
@@ -352,7 +429,7 @@ describe('formLayout', () => {
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
       } as ILayoutComponent,
       {
-        id: 'file-upload-with-tag-2',
+        id: 'file-upload-with-tag2',
         type: 'FileUploadWithTag',
         textResourceBindings: {
           title: 'VedleggTest',
@@ -370,7 +447,7 @@ describe('formLayout', () => {
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
       } as ILayoutComponent,
       {
-        id: 'file-upload-with-tag-3',
+        id: 'file-upload-with-tag3',
         type: 'FileUploadWithTag',
         textResourceBindings: {
           title: 'VedleggTest',
@@ -391,7 +468,7 @@ describe('formLayout', () => {
 
     const testAttachments: IAttachmentState = {
       attachments: {
-        'file-upload-with-tag-1': [
+        'file-upload-with-tag1': [
           {
             name: 'test-1.pdf',
             size: 18302,
@@ -411,7 +488,7 @@ describe('formLayout', () => {
             updating: false,
           },
         ],
-        'file-upload-with-tag-2': [
+        'file-upload-with-tag2': [
           {
             name: 'test-3.pdf',
             size: 18302,
@@ -434,26 +511,22 @@ describe('formLayout', () => {
       },
     };
     const expected = {
-      'file-upload-with-tag-1': {
+      'file-upload-with-tag1': {
         editIndex: -1,
         chosenOptions: {
           'id-1': 'TAG-1',
           'id-2': 'TAG-2',
         },
       },
-      'file-upload-with-tag-2': {
+      'file-upload-with-tag2': {
         editIndex: -1,
         chosenOptions: {
           'id-3': 'TAG-3',
           'id-4': 'TAG-4',
         },
       },
-      'file-upload-with-tag-3': {
-        editIndex: -1,
-        chosenOptions: {},
-      },
     };
-    const result = getFileUploadersWithTag(testLayout, testAttachments);
+    const result = mapFileUploadersWithTag(testLayout, testAttachments);
     expect(result).toEqual(expected);
   });
 
@@ -470,5 +543,114 @@ describe('formLayout', () => {
     ];
     const result = hasRequiredFields(layout);
     expect(result).toBeTruthy();
+  });
+
+  it('findChildren should work with simple layouts', () => {
+    const result1 = findChildren(testLayout);
+    expect(result1).toHaveLength(2);
+
+    const result2 = findChildren(testLayout, {rootGroupId: 'Group2'});
+    expect(result2).toHaveLength(1);
+    expect(result2[0].id).toEqual('field2');
+
+    const result3 = findChildren(testLayout, {matching: (c) => c.id === 'field1'});
+    expect(result3).toHaveLength(1);
+    expect(result3[0].id).toEqual('field1');
+
+    const result4 = findChildren(testLayout, {
+      matching: (c) => c.id === 'field1',
+      rootGroupId: 'Group2',
+    });
+    expect(result4).toHaveLength(0);
+  });
+
+  it('findChildren should work with multi-page groups', () => {
+    const layout:ILayout = [
+      {
+        id: 'field1',
+        type: 'Input',
+      } as ILayoutComponent,
+      {
+        id: 'group1',
+        type: 'Group',
+        children: ['0:field2', '1:field3:0'],
+        edit: {multiPage: true},
+      } as ILayoutGroup,
+      {
+        id: 'field2',
+        required: true,
+        type: 'Input',
+      } as ILayoutComponent,
+      {
+        id: 'field3:0',
+        required: false,
+        type: 'Input',
+      } as ILayoutComponent,
+    ];
+
+    const result1 = findChildren(layout, {
+      matching: (c) => c.required,
+      rootGroupId: 'group1',
+    });
+
+    expect(result1).toHaveLength(1);
+    expect(result1[0].id).toEqual('field2');
+
+    const result2 = findChildren(layout, {
+      rootGroupId: 'group1',
+    });
+
+    expect(result2).toHaveLength(2);
+    expect(result2.map(c => c.id)).toEqual(['field2', 'field3:0']);
+  });
+
+  it('findChildren should work with nested groups out-of-order', () => {
+    const layout:ILayout = [
+      {
+        id: 'field1',
+        type: 'Input',
+      } as ILayoutComponent,
+      {
+        id: 'group0',
+        type: 'Group',
+        children: ['field4'],
+        maxCount: 3,
+      } as ILayoutGroup,
+      {
+        id: 'group1',
+        type: 'Group',
+        children: ['field2', 'field3', 'group0'],
+        maxCount: 3,
+      } as ILayoutGroup,
+      {
+        id: 'field2',
+        required: true,
+        type: 'Input',
+      } as ILayoutComponent,
+      {
+        id: 'field3',
+        required: false,
+        type: 'Input',
+      } as ILayoutComponent,
+      {
+        id: 'field4',
+        required: true,
+        type: 'Input',
+      } as ILayoutComponent,
+    ];
+
+    const result1 = findChildren(layout, {
+      matching: (c) => c.required,
+    });
+
+    expect(result1).toHaveLength(2);
+    expect(result1.map(c => c.id)).toEqual(['field2', 'field4']);
+
+    const result2 = findChildren(layout, {
+      rootGroupId: 'group1',
+    });
+
+    expect(result2).toHaveLength(3);
+    expect(result2.map(c => c.id)).toEqual(['field2', 'field3', 'field4']);
   });
 });

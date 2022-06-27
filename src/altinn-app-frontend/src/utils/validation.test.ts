@@ -552,6 +552,7 @@ describe('utils > validation', () => {
         mockFormData,
         mockLanguage.language,
         [],
+        {},
       );
 
       const mockResult = {
@@ -579,6 +580,7 @@ describe('utils > validation', () => {
         mockFormData,
         mockLanguage.language,
         [],
+        {},
       );
 
       const mockResult = {
@@ -614,6 +616,7 @@ describe('utils > validation', () => {
         mockFormData,
         mockLanguage.language,
         [],
+        {},
       );
 
       const mockResult = {
@@ -642,6 +645,7 @@ describe('utils > validation', () => {
         mockFormData,
         mockLanguage.language,
         ['componentId_4'],
+        {},
       );
 
       const mockResult = {
@@ -670,6 +674,7 @@ describe('utils > validation', () => {
         mockFormData,
         mockLanguage.language,
         [],
+        {},
       );
 
       expect(componentSpesificValidations).toEqual({});
@@ -922,23 +927,42 @@ describe('utils > validation', () => {
     });
 
     it('should support multiPage repeating and nesting groups', () => {
+      const makeComponent = (id:string):ILayoutComponent => ({
+        id,
+        type: 'Input',
+        required: true,
+        dataModelBindings: {
+          simpleBinding: 'Group.' + id,
+        },
+        textResourceBindings: {
+          title: id,
+        },
+        readOnly: false,
+      });
+
       expect(_with({
         formLayout: [
-          mockGroup1,
-          mockGroup2,
-          {...mockGroup3, children: [`0:${mockGroup1.id}`, `1:${mockGroup2.id}`]},
-          mockComponent4,
-          {...mockComponent5, required: true},
+          {...mockGroup1, children: [mockGroup2.id, mockGroup3.id, 'required0']},
+          {...mockGroup2, children: ['required1']},
+          {...mockGroup3, children: [`0:required2`, `1:required3`]},
+          makeComponent('required0'),
+          makeComponent('required1'),
+          makeComponent('required2'),
+          makeComponent('required3'),
         ],
         repeatingGroups: {
-          group3: { index: 1 },
           'group1': { index: 1 },
           'group2-0': { index: 0 },
+          'group3-0': { index: 1 },
         },
       })).toEqual({
-        'componentId_4-0': requiredError('component_4'),
-        'componentId_4-1': requiredError('component_4'),
-        'componentId_5-0-0': requiredError('component_5'),
+        'required0-0': requiredError('required0'),
+        'required0-1': requiredError('required0'),
+        'required1-0-0': requiredError('required1'),
+        'required2-0-0': requiredError('required2'),
+        'required2-0-1': requiredError('required2'),
+        'required3-0-0': requiredError('required3'),
+        'required3-0-1': requiredError('required3'),
       });
     });
   });

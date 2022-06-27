@@ -20,7 +20,7 @@ describe('Form.tsx', () => {
       id: 'field1',
       type: 'Input',
       dataModelBindings: {
-        simple: 'Group.prop1',
+        simpleBinding: 'Group.prop1',
       },
       textResourceBindings: {
         title: 'First title',
@@ -33,7 +33,7 @@ describe('Form.tsx', () => {
       id: 'field2',
       type: 'Input',
       dataModelBindings: {
-        simple: 'Group.prop2',
+        simpleBinding: 'Group.prop2',
       },
       textResourceBindings: {
         title: 'Second title',
@@ -46,7 +46,7 @@ describe('Form.tsx', () => {
       id: 'field3',
       type: 'Input',
       dataModelBindings: {
-        simple: 'Group.prop3',
+        simpleBinding: 'Group.prop3',
       },
       textResourceBindings: {
         title: 'Third title',
@@ -65,6 +65,13 @@ describe('Form.tsx', () => {
       children: ['field1', 'field2', 'field3'],
     }
   ];
+
+  it('should render components and groups', () => {
+    renderForm();
+    expect(screen.getByText('First title')).toBeInTheDocument();
+    expect(screen.getByText('Second title')).toBeInTheDocument();
+    expect(screen.getByText('Third title')).toBeInTheDocument();
+  });
 
   it('should render components and groups', () => {
     renderForm();

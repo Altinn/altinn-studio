@@ -3,7 +3,6 @@ import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IParty } from 'altinn-shared/types';
 import { AxiosResponse } from 'axios';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
-import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
 import { post, putWithoutConfig } from '../../../../../utils/networking';
 import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/appUrlHelper';
@@ -38,7 +37,6 @@ function* instantiationSaga(): SagaIterator {
       }
 
       yield call(InstanceDataActions.getInstanceDataFulfilled, instanceResponse.data);
-      yield call(AttachmentActions.mapAttachments);
       yield call(InstantiationActions.instantiateFulfilled, instanceResponse.data.id);
     }
   } catch (err) {

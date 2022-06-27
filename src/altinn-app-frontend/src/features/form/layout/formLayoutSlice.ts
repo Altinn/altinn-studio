@@ -110,9 +110,22 @@ const formLayoutSlice = createSlice({
       const { componentsToHide } = action.payload;
       state.uiConfig.hiddenFields = componentsToHide;
     },
+    updateRepeatingGroups: (state, action:PayloadAction<LayoutTypes.IUpdateRepeatingGroups>) => {
+      const { layoutElementId, remove, index } = action.payload;
+      if (remove) {
+        state.uiConfig.repeatingGroups[layoutElementId].deletingIndex =
+          state.uiConfig.repeatingGroups[layoutElementId].deletingIndex || [];
+        state.uiConfig.repeatingGroups[layoutElementId].deletingIndex.push(index);
+      }
+    },
     updateRepeatingGroupsFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsFulfilled>) => {
       const { repeatingGroups } = action.payload;
       state.uiConfig.repeatingGroups = repeatingGroups;
+    },
+    updateRepeatingGroupsRemoveCancelled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsRemoveCancelled>) => {
+      const { layoutElementId, index } = action.payload;
+      state.uiConfig.repeatingGroups[layoutElementId].deletingIndex =
+        (state.uiConfig.repeatingGroups[layoutElementId].deletingIndex || []).filter((value) => value !== index);
     },
     updateRepeatingGroupsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
       const { error } = action.payload;
@@ -135,18 +148,23 @@ const formLayoutSlice = createSlice({
       state.error = error;
     },
     updateFileUploaderWithTagEditIndexFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>) => {
-      const { uploader, index } = action.payload;
-      state.uiConfig.fileUploadersWithTag[uploader].editIndex = index;
+      const { componentId, index } = action.payload;
+      state.uiConfig.fileUploadersWithTag[componentId].editIndex = index;
     },
     updateFileUploaderWithTagEditIndexRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
     updateFileUploaderWithTagChosenOptionsFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>) => {
-      const {
-        uploader, id, option,
-      } = action.payload;
-      state.uiConfig.fileUploadersWithTag[uploader].chosenOptions[id] = option.value;
+      const { componentId, id, option } = action.payload;
+      if (state.uiConfig.fileUploadersWithTag[componentId]) {
+        state.uiConfig.fileUploadersWithTag[componentId].chosenOptions[id] = option.value;
+      } else {
+        state.uiConfig.fileUploadersWithTag[componentId] = {
+          editIndex: -1,
+          chosenOptions: { [id]: option.value },
+        };
+      }
     },
     updateFileUploaderWithTagChosenOptionsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
       const { error } = action.payload;
@@ -170,12 +188,10 @@ const actions = {
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
   updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
-  updateRepeatingGroups: createAction<LayoutTypes.IUpdateRepeatingGroups>(`${moduleName}/updateRepeatingGroups`),
   updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),
   updateFileUploaderWithTagEditIndex: createAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>(`${moduleName}/updateFileUploaderWithTagEditIndex`),
   updateFileUploaderWithTagChosenOptions: createAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>(`${moduleName}/updateFileUploaderWithTagChosenOptions`),
   initRepeatingGroups: createAction(`${moduleName}/initRepeatingGroups`),
-  initFileUploaderWithTag: createAction(`${moduleName}/initFileUploaderWithTag`),
 };
 
 export const FormLayoutActions = {

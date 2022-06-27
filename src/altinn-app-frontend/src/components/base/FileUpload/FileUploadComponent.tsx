@@ -5,11 +5,11 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnLoader } from 'altinn-shared/components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
-import { IAttachment } from '../../../shared/resources/attachments';
+import { IAttachment } from 'src/shared/resources/attachments';
 import AttachmentDispatcher from '../../../shared/resources/attachments/attachmentActions';
 import './FileUploadComponent.css';
-import { IComponentValidations } from '../../../types';
-import { renderValidationMessagesForComponent } from '../../../utils/render';
+import { IComponentValidations } from 'src/types';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { v4 as uuidv4 } from 'uuid';
 import { useAppSelector } from 'src/common/hooks';
 import { AttachmentsCounter, FileName } from './shared/render';
@@ -25,6 +25,7 @@ export const emptyArray = [];
 
 export function FileUploadComponent({
   id,
+  baseComponentId,
   componentValidations,
   readOnly,
   maxNumberOfAttachments,
@@ -34,7 +35,8 @@ export function FileUploadComponent({
   language,
   displayMode,
   hasCustomFileEndings,
-  textResourceBindings
+  textResourceBindings,
+  dataModelBindings,
 }: IFileUploadProps) {
   const [validations, setValidations] = React.useState([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
@@ -62,7 +64,7 @@ export function FileUploadComponent({
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
-    const fileType = id; // component id used as filetype identifier for now, see issue #1364
+    const fileType = baseComponentId || id;
     const tmpValidations: string[] = [];
     const totalAttachments =
       acceptedFiles.length + rejectedFiles.length + attachments.length;
@@ -80,7 +82,7 @@ export function FileUploadComponent({
       );
     } else {
       // we should upload all files, if any rejected files we should display an error
-      acceptedFiles.forEach((file: File) => {
+      acceptedFiles.forEach((file: File, index) => {
         if (
           attachments.length + newFiles.length <
           maxNumberOfAttachments
@@ -100,6 +102,8 @@ export function FileUploadComponent({
             fileType,
             tmpId,
             id,
+            dataModelBindings,
+            attachments.length + index
           );
         }
       });
@@ -146,11 +150,12 @@ export function FileUploadComponent({
 
   const handleDeleteFile = (index: number) => {
     const attachmentToDelete = attachments[index];
-    const fileType = id; // component id used as filetype identifier for now, see issue #1364
+    const fileType = baseComponentId || id;
     AttachmentDispatcher.deleteAttachment(
       attachmentToDelete,
       fileType,
       id,
+      dataModelBindings,
     );
   };
 
@@ -194,7 +199,21 @@ export function FileUploadComponent({
             </tr>
           </thead>
           <tbody>
-            {attachments.map((attachment: IAttachment, index: number) => {
+            {attachments.map((attachment, index: number) => {
+              const readableSize = `${(attachment.size / bytesInOneMB).toFixed(
+                2,
+              )} ${getLanguageFromKey(
+                'form_filler.file_uploader_mb',
+                language,
+              )}`;
+
+              const status = attachment.uploaded
+                ? getLanguageFromKey(
+                    'form_filler.file_uploader_list_status_done',
+                    language,
+                  )
+                : getLanguageFromKey('general.loading', language);
+
               return (
                 <tr
                   key={attachment.id}
@@ -210,55 +229,29 @@ export function FileUploadComponent({
                           color: AltinnAppTheme.altinnPalette.primary.grey,
                         }}
                       >
-                        {`${(attachment.size / bytesInOneMB).toFixed(
-                          2,
-                        )} ${getLanguageFromKey(
-                          'form_filler.file_uploader_mb',
-                          language,
-                        )}`}
+                        {readableSize}
                       </div>
                     ) : null}
                   </td>
-                  {!mobileView ? (
-                    <td>
-                      {`${(attachment.size / bytesInOneMB).toFixed(
-                        2,
-                      )} ${getLanguageFromKey(
-                        'form_filler.file_uploader_mb',
-                        language,
-                      )}`}
-                    </td>
-                  ) : null}
+                  {!mobileView ? <td>{readableSize}</td> : null}
                   <td>
-                    {attachment.uploaded && (
+                    {attachment.uploaded ? (
                       <div>
-                        {!mobileView
-                          ? getLanguageFromKey(
-                              'form_filler.file_uploader_list_status_done',
-                              language,
-                            )
-                          : null}
+                        {mobileView ? null : status}
                         <i
                           className='ai ai-check-circle'
-                          aria-label={getLanguageFromKey(
-                            'form_filler.file_uploader_list_status_done',
-                            language,
-                          )}
+                          aria-label={status}
                           style={mobileView ? { marginLeft: '10px' } : null}
                         />
                       </div>
-                    )}
-                    {!attachment.uploaded && (
+                    ) : (
                       <AltinnLoader
                         id='loader-upload'
                         style={{
                           marginBottom: '1.6rem',
                           marginRight: '1.3rem',
                         }}
-                        srContent={getLanguageFromKey(
-                          'general.loading',
-                          language,
-                        )}
+                        srContent={status}
                       />
                     )}
                   </td>
@@ -270,13 +263,22 @@ export function FileUploadComponent({
                       tabIndex={0}
                       role='button'
                     >
-                      {!attachment.deleting && (
+                      {attachment.deleting ? (
+                        <AltinnLoader
+                          id='loader-delete'
+                          style={{
+                            marginBottom: '1.6rem',
+                            marginRight: '1.0rem',
+                          }}
+                          srContent={getLanguageFromKey(
+                            'general.loading',
+                            language,
+                          )}
+                        />
+                      ) : (
                         <>
                           {mobileView
-                            ? getLanguageFromKey(
-                                'general.delete',
-                                language,
-                              )
+                            ? getLanguageFromKey('general.delete', language)
                             : getLanguageFromKey(
                                 'form_filler.file_uploader_list_delete',
                                 language,
@@ -289,19 +291,6 @@ export function FileUploadComponent({
                             )}
                           />
                         </>
-                      )}
-                      {attachment.deleting && (
-                        <AltinnLoader
-                          id='loader-delete'
-                          style={{
-                            marginBottom: '1.6rem',
-                            marginRight: '1.0rem',
-                          }}
-                          srContent={getLanguageFromKey(
-                            'general.loading',
-                            language,
-                          )}
-                        />
                       )}
                     </div>
                   </td>

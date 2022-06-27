@@ -10,10 +10,18 @@ import {
   watchInitRepeatingGroupsSaga,
   watchUpdateCurrentViewSaga,
   updateCurrentViewSaga,
-  selectUnsavedChanges
+  selectUnsavedChanges,
+  updateRepeatingGroupsSaga,
+  selectFormLayoutState, selectFormData, selectAttachmentState, selectValidations
 } from './updateFormLayoutSagas';
-import { IRuntimeState } from 'src/types';
 import { FormLayoutActions } from '../formLayoutSlice';
+import { IRuntimeState, IDataModelBindings } from 'src/types';
+import { IUpdateRepeatingGroups } from "src/features/form/layout/formLayoutTypes";
+import { PayloadAction } from "@reduxjs/toolkit";
+import * as AttachmentDeleteActions from "src/shared/resources/attachments/delete/deleteAttachmentActions";
+import { IAttachment } from "src/shared/resources/attachments";
+import { updateValidations } from "src/features/form/validation/validationSlice";
+import ConditionalRenderingActions from "src/features/form/dynamics/formDynamicsActions";
 
 jest.mock('altinn-shared/utils');
 
@@ -37,6 +45,104 @@ describe('updateLayoutSagas', () => {
         )
         .next()
         .isDone();
+    });
+  });
+
+  describe('updateRepeatingGroupsSaga', () => {
+    it('should remove attachment references from formData', () => {
+      const state:IRuntimeState = getInitialStateMock();
+      state.formLayout.layouts.FormLayout.push({
+        id: 'repeating-group',
+        type: 'Group',
+        dataModelBindings: {
+          group: 'Group',
+        },
+        textResourceBindings: {},
+        maxCount: 3,
+        children: ['uploader'],
+      });
+      state.formLayout.uiConfig.repeatingGroups = {
+        'repeating-group': {
+          index: 0,
+          editIndex: -1,
+        },
+      };
+      const dataModelBinding:IDataModelBindings = {
+        simpleBinding: 'Group.attachmentRef',
+      };
+      state.formLayout.layouts.FormLayout.push({
+        id: 'uploader',
+        type: 'FileUpload',
+        dataModelBindings: dataModelBinding,
+        textResourceBindings: {},
+      });
+
+      const initialFormData = { ...state.formData.formData };
+      state.formData.formData['Group[0].attachmentRef'] = 'abc123';
+
+      const attachment:IAttachment = {
+        name: 'attachment.pdf',
+        id: 'abc123',
+        uploaded: true,
+        deleting: false,
+        size: 1234,
+        tags: [],
+        updating: false,
+      };
+      state.attachments.attachments = {
+        'uploader-0': [attachment],
+      };
+
+      const action:PayloadAction<IUpdateRepeatingGroups> = {
+        type: 'formLayout/updateRepeatingGroups',
+        payload: {
+          layoutElementId: 'repeating-group',
+          index: 0,
+          remove: true,
+        },
+      };
+
+      return expectSaga(updateRepeatingGroupsSaga, action)
+        .provide([
+          [select(selectFormLayoutState), selectFormLayoutState(state)],
+          [select(selectFormData), selectFormData(state)],
+          [select(selectAttachmentState), selectAttachmentState(state)],
+          [select(selectValidations), selectValidations(state)],
+          [
+            call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun),
+            null,
+          ],
+        ])
+        .put(
+          AttachmentDeleteActions.deleteAttachment(
+            attachment,
+            'uploader',
+            'uploader-0',
+            {},
+          ),
+        )
+        .dispatch(
+          AttachmentDeleteActions.deleteAttachmentFulfilled(attachment.id, 'uploader', 'uploader-0'),
+        )
+        .put(updateValidations({ validations: {} }))
+        .put(
+          FormLayoutActions.updateRepeatingGroupsFulfilled({
+            repeatingGroups: {
+              'repeating-group': {
+                index: -1,
+                editIndex: -1,
+                deletingIndex: undefined,
+              },
+            },
+          }),
+        )
+        .put(
+          FormDataActions.setFormDataFulfilled({ formData: initialFormData }),
+        )
+        .put(
+          FormDataActions.saveFormData(),
+        )
+        .run();
     });
   });
 

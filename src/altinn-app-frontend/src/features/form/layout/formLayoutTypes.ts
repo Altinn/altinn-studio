@@ -60,6 +60,11 @@ export interface IUpdateRepeatingGroupsFulfilled {
   repeatingGroups: any;
 }
 
+export interface IUpdateRepeatingGroupsRemoveCancelled {
+  layoutElementId: string;
+  index: number;
+}
+
 export interface IUpdateRepeatingGroupsEditIndex {
   group: string;
   index: number;
@@ -76,24 +81,28 @@ export interface IUpdateFileUploadersWithTagFulfilled {
 }
 
 export interface IUpdateFileUploaderWithTagEditIndex {
-  uploader: string;
+  componentId: string;
+  baseComponentId: string;
   index: number;
   attachmentId?: string;
 }
 
 export interface IUpdateFileUploaderWithTagEditIndexFulfilled {
-  uploader: string;
+  componentId: string;
+  baseComponentId: string;
   index: number;
 }
 
 export interface IUpdateFileUploaderWithTagChosenOptions {
-  uploader: string;
+  componentId: string;
+  baseComponentId: string;
   id: string;
   option: IOption;
 }
 
 export interface IUpdateFileUploaderWithTagChosenOptionsFulfilled {
-  uploader: string;
+  componentId: string;
+  baseComponentId: string;
   id: string;
   option: IOption;
 }

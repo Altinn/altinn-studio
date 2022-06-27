@@ -134,7 +134,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     (state) => state.formValidations.validations[currentView]?.[props.id],
     shallowEqual,
   );
-  
+
   const formComponentContext = useMemo<IFormComponentContext>(() => {
     return {
       grid: props.grid,
@@ -152,8 +152,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
-  const handleDataUpdate = (
-    value: string,
+  const handleDataChange: IComponentProps['handleDataChange'] = (
+    value,
     key = 'simpleBinding',
     skipValidation = false,
   ) => {
@@ -284,7 +284,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const componentProps: IComponentProps = {
-    handleDataChange: handleDataUpdate,
+    handleDataChange,
     handleFocusUpdate,
     getTextResource: getTextResourceWrapper,
     getTextResourceAsString,

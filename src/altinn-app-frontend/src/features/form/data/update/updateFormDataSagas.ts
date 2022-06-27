@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { actionChannel, call, put, select, take } from 'redux-saga/effects';
+import { actionChannel, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState, IValidationResult } from 'src/types';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { getLayoutComponentById, getLayoutIdForComponent } from '../../../../utils/layout';
@@ -7,9 +7,13 @@ import { getValidator, validateComponentFormData } from '../../../../utils/valid
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import { updateComponentValidations } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
-import { IUpdateFormData } from '../formDataTypes';
+import type { IUpdateFormData, IDeleteAttachmentReference } from '../formDataTypes';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
+import { removeAttachmentReference } from "src/utils/databindings";
+import type { IFormData } from "src/features/form/data/formDataReducer";
+import type { ILayouts } from "src/features/form/layout";
+import type { IAttachments } from "src/shared/resources/attachments";
 
 function* updateFormDataSaga({ payload: {
   field,
@@ -111,4 +115,34 @@ export function* watchUpdateFormDataSaga(): SagaIterator {
     const value = yield take(requestChan);
     yield call(updateFormDataSaga, value);
   }
+}
+
+export const SelectFormData = (s: IRuntimeState) => s.formData.formData;
+export const SelectLayouts = (s: IRuntimeState) => s.formLayout.layouts;
+export const SelectAttachments = (s: IRuntimeState) => s.attachments.attachments;
+export const SelectCurrentView = (s: IRuntimeState) => s.formLayout.uiConfig.currentView;
+
+export function* deleteAttachmentReferenceSaga({ payload: {
+  attachmentId,
+  componentId,
+  dataModelBindings
+} }: PayloadAction<IDeleteAttachmentReference>): SagaIterator {
+  try {
+    const formData: IFormData = yield select(SelectFormData);
+    const layouts: ILayouts = yield select(SelectLayouts);
+    const attachments: IAttachments = yield select(SelectAttachments);
+    const currentView:string = yield select(SelectCurrentView);
+    const layout = layouts[currentView];
+
+    const updatedFormData = removeAttachmentReference(formData, attachmentId, layout, attachments, dataModelBindings, componentId);
+
+    yield put(FormDataActions.setFormDataFulfilled({ formData: updatedFormData }));
+    yield put(FormDataActions.saveFormData());
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export function* watchDeleteAttachmentReferenceSaga(): SagaIterator {
+  yield takeLatest(FormDataActions.deleteAttachmentReference, deleteAttachmentReferenceSaga);
 }

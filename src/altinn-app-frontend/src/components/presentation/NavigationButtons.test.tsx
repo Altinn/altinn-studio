@@ -24,7 +24,7 @@ describe('components/presentation/NavigationButton.tsx', () => {
             type: 'Input',
             id: 'mockId1',
             dataModelBindings: {
-              simpleBiding: 'mockDataBinding1',
+              simpleBinding: 'mockDataBinding1',
             },
             readOnly: false,
             required: false,
@@ -45,7 +45,7 @@ describe('components/presentation/NavigationButton.tsx', () => {
             type: 'Input',
             id: 'mockId2',
             dataModelBindings: {
-              simpleBiding: 'mockDataBinding2',
+              simpleBinding: 'mockDataBinding2',
             },
             readOnly: false,
             required: false,

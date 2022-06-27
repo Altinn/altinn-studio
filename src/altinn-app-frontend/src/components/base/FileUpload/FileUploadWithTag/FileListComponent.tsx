@@ -2,13 +2,13 @@ import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Grid, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnLoader } from 'altinn-shared/components';
-import { IAttachment } from '../../../../shared/resources/attachments';
-import { IOption } from 'src/types';
+import type { IAttachment } from '../../../../shared/resources/attachments';
+import type { IOption, IDataModelBindings } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
 import { FileName } from '../shared/render';
 import { EditWindowComponent } from './EditWindowComponent';
-import { IComponentProps } from 'src/components';
+import type { IComponentProps } from 'src/components';
 
 const useStyles = makeStyles({
   table: {
@@ -126,6 +126,7 @@ export interface FileListProps extends IComponentProps {
     id: string;
     message: string;
   }[];
+  dataModelBindings:IDataModelBindings;
 }
 
 export const bytesInOneMB = 1048576;
@@ -259,7 +260,7 @@ export function FileList(props: FileListProps): JSX.Element {
                   </TableRow>
                 );
               }
-              return ( // If no tag on attachment, show edit window
+              return (
                 <TableRow
                   key={`altinn-unchosen-option-attachment-row-${index}`}
                 >
@@ -269,6 +270,7 @@ export function FileList(props: FileListProps): JSX.Element {
                   >
                     <EditWindowComponent
                         id={props.id}
+                        dataModelBindings={props.dataModelBindings}
                         attachment={props.attachments[index]}
                         attachmentValidations={props.attachmentValidations}
                         language={props.language}

@@ -1,16 +1,18 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
-import { AxiosRequestConfig } from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import { customEncodeURI } from 'altinn-shared/utils';
 import { updateComponentValidations } from 'src/features/form/validation/validationSlice';
-import { IAttachment } from '..';
+import type { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import { IRuntimeState } from '../../../../types';
+import type { IRuntimeState } from '../../../../types';
 import { post } from '../../../../utils/networking';
 import { fileUploadUrl } from '../../../../utils/appUrlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
+import FormDataActions from "src/features/form/data/formDataActions";
+import type { ILanguage } from "altinn-shared/types";
 
 export function* uploadAttachmentSaga(
   {
@@ -18,11 +20,16 @@ export function* uploadAttachmentSaga(
     attachmentType,
     tmpAttachmentId,
     componentId,
+    dataModelBindings,
+    index,
   }: uploadActions.IUploadAttachmentAction,
 ): SagaIterator {
-  const state: IRuntimeState = yield select();
-  const currentView = state.formLayout.uiConfig.currentView;
-  const language = state.language.language;
+  const currentView: string = yield select(
+    (s: IRuntimeState) => s.formLayout.uiConfig.currentView,
+  );
+  const language: ILanguage = yield select(
+    (s: IRuntimeState) => s.language.language,
+  );
 
   try {
     // Sets validations to empty.
@@ -65,6 +72,16 @@ export function* uploadAttachmentSaga(
       };
       yield call(AttachmentDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);
+
+      if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
+        yield put(FormDataActions.updateFormData({
+          componentId: componentId,
+          data: response.data.id,
+          field: dataModelBindings.simpleBinding
+            ? `${dataModelBindings.simpleBinding}`
+            : `${dataModelBindings.list}[${index}]`,
+        }));
+      }
     } else {
       const validations = getFileUploadComponentValidations('upload', language);
       yield put(updateComponentValidations({

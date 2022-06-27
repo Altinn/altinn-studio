@@ -57,9 +57,35 @@ export type ComponentTypes =
   | 'Likert'
   | 'Panel';
 
-export interface IDataModelBindings {
-  [id: string]: string;
+export interface IDataModelBindingsSimple {
+  simpleBinding: string;
 }
+
+export interface IDataModelBindingsForGroup {
+  group: string;
+}
+
+/**
+ * A middle ground between group and simple bindings, a list binding can be used to
+ * store a list of primitive values, like string[].
+ */
+export interface IDataModelBindingsList {
+  list: string;
+}
+
+export interface IDataModelBindingsForAddress {
+  address: string;
+  zipCode: string;
+  postPlace: string;
+  careOf?: string;
+  houseNumber?: string;
+}
+
+export type IDataModelBindings =
+  & Partial<IDataModelBindingsSimple>
+  & Partial<IDataModelBindingsList>
+  & Partial<IDataModelBindingsForGroup>
+  & Partial<IDataModelBindingsForAddress>;
 
 export interface ITextResourceBindings {
   [id: string]: string;

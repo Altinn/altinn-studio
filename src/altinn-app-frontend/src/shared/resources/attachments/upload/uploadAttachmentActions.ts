@@ -1,12 +1,15 @@
 import { Action } from 'redux';
 import { IAttachment } from '..';
 import * as ActionTypes from '../attachmentActionTypes';
+import type { IDataModelBindings } from "src/types";
 
 export interface IUploadAttachmentAction extends Action {
   file: File;
   attachmentType: string;
   tmpAttachmentId: string;
   componentId: string;
+  dataModelBindings: IDataModelBindings;
+  index: number;
 }
 
 export interface IUploadAttachmentActionFulfilled extends Action {
@@ -27,6 +30,8 @@ export function uploadAttachment(
   attachmentType: string,
   tmpAttachmentId: string,
   componentId: string,
+  dataModelBindings: IDataModelBindings,
+  index: number,
 ): IUploadAttachmentAction {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT,
@@ -34,6 +39,8 @@ export function uploadAttachment(
     attachmentType,
     tmpAttachmentId,
     componentId,
+    dataModelBindings,
+    index,
   };
 }
 

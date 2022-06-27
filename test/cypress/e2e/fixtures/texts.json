@@ -25,5 +25,6 @@
   "ttd": "Testdepartementet",
   "uploadWithTag": "Last opp vedlegg og knytte den mot en tag",
   "uplodDocs": "Last opp eventuell dokumentasjon for ditt nye navn",
-  "zeroIsNotValid": "0 er ikke en gyldig verdi"
+  "zeroIsNotValid": "0 er ikke en gyldig verdi",
+  "finishedUploading": "Ferdig lastet"
 }

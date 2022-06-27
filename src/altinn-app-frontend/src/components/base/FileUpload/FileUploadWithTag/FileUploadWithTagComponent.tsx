@@ -28,6 +28,7 @@ export const emptyArray = [];
 
 export function FileUploadWithTagComponent({
   id,
+  baseComponentId,
   componentValidations,
   language,
   maxFileSizeInMB,
@@ -40,7 +41,8 @@ export function FileUploadWithTagComponent({
   mapping,
   getTextResource,
   getTextResourceAsString,
-  textResourceBindings
+  textResourceBindings,
+  dataModelBindings,
 }: IFileUploadWithTagProps): JSX.Element {
   const dataDispatch = useDispatch();
   const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
@@ -61,7 +63,9 @@ export function FileUploadWithTagComponent({
 
   const setEditIndex = (index: number) => {
     dataDispatch(FormLayoutActions.updateFileUploaderWithTagEditIndex({
-      uploader: id, index
+      componentId: id,
+      baseComponentId: baseComponentId || id,
+      index
     }));
   };
 
@@ -100,9 +104,14 @@ export function FileUploadWithTagComponent({
     if (value !== undefined) {
       const option = options?.find((o) => o.value === value);
       if (option !== undefined) {
-        dataDispatch(FormLayoutActions.updateFileUploaderWithTagChosenOptions({
-          uploader: id, id: attachmentId, option
-        }));
+        dataDispatch(
+          FormLayoutActions.updateFileUploaderWithTagChosenOptions({
+            componentId: id,
+            baseComponentId: baseComponentId || id,
+            id: attachmentId,
+            option,
+          }),
+        );
       } else {
         console.error(`Could not find option for ${value}`);
       }
@@ -112,7 +121,7 @@ export function FileUploadWithTagComponent({
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
-      AttachmentDispatcher.updateAttachment(attachment, id, option.value);
+      AttachmentDispatcher.updateAttachment(attachment, id, baseComponentId, option.value);
     } else {
       console.error(`Could not find option for ${optionValue}`);
     }
@@ -124,7 +133,7 @@ export function FileUploadWithTagComponent({
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
-    const fileType = id;
+    const fileType = baseComponentId || id;
     const tmpValidations: string[] = [];
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
@@ -136,13 +145,26 @@ export function FileUploadWithTagComponent({
       );
     } else {
       // we should upload all files, if any rejected files we should display an error
-      acceptedFiles.forEach((file: File) => {
+      acceptedFiles.forEach((file: File, index) => {
         if ((attachments.length + newFiles.length) < maxNumberOfAttachments) {
           const tmpId: string = uuidv4();
           newFiles.push({
-            name: file.name, size: file.size, uploaded: false, tags: [], id: tmpId, deleting: false, updating: false,
+            name: file.name,
+            size: file.size,
+            uploaded: false,
+            tags: [],
+            id: tmpId,
+            deleting: false,
+            updating: false,
           });
-          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, id);
+          AttachmentDispatcher.uploadAttachment(
+            file,
+            fileType,
+            tmpId,
+            id,
+            dataModelBindings,
+            attachments.length + index,
+          );
         }
       });
 
@@ -220,6 +242,7 @@ export function FileUploadWithTagComponent({
         onDropdownDataChange={handleDropdownDataChange}
         setEditIndex={setEditIndex}
         textResourceBindings={textResourceBindings}
+        dataModelBindings={dataModelBindings}
         {...({} as IComponentProps)}
       />
 

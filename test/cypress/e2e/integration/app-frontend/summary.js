@@ -92,18 +92,22 @@ describe('Summary', () => {
   });
 
   it('is possible to view summary of repeating group', () => {
-    cy.compelteTask3Form();
+    cy.completeTask3Form();
     cy.get(appFrontend.group.mainGroupSummary)
       .should('be.visible').and('have.length', 1)
       .first()
-      .children(mui.gridItem).should('have.length', 4)
+      .children(mui.gridItem).should('have.length', 6)
       .then((item) => {
-        cy.get(item).find(mui.buttonIcon).should('have.length', 3);
+        cy.get(item).find(mui.buttonIcon).should('have.length', 5);
         cy.get(item)
           .eq(1)
           .children(mui.gridContainer)
           .should('have.css', 'border-bottom', '1px dashed rgb(0, 143, 214)');
-        cy.get(item).eq(3).should('contain.text', 'automation');
+        cy.get(item).eq(3).should('contain.text', 'attachment-in-single.pdf');
+        cy.get(item).eq(4).should('contain.text', 'attachment-in-multi1.pdf');
+        cy.get(item).eq(4).should('contain.text', 'attachment-in-multi2.pdf');
+        cy.get(item).eq(5).should('contain.text', 'attachment-in-nested.pdf');
+        cy.get(item).eq(5).should('contain.text', 'automation');
       });
   });
 });

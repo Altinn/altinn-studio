@@ -25,6 +25,13 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
 
 export const store = setupStore();
 
+// Expose store when running in Cypress. This allows for using cy.getReduxState() to run assertions against the redux
+// state at various points in the tests. Testing the state directly might expose problems not easily/visibly testable
+// in the app itself.
+if ((window as any).Cypress) {
+  (window as any).reduxStore = store;
+}
+
 export type RootState = ReturnType<typeof reducers>;
 export type AppStore = ReturnType<typeof setupStore>;
 export type AppDispatch = AppStore['dispatch'];

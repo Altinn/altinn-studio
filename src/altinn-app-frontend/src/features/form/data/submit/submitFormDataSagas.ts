@@ -47,9 +47,15 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       validator, state.language.language, state.textResources.resources,
     );
     let validations = validationResult.validations;
-    const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, layoutOrder, state.formData.formData,
-        state.language.language, state.formLayout.uiConfig.hiddenFields);
+    const componentSpecificValidations = validateFormComponents(
+      state.attachments.attachments,
+      state.formLayout.layouts,
+      layoutOrder,
+      state.formData.formData,
+      state.language.language,
+      state.formLayout.uiConfig.hiddenFields,
+      state.formLayout.uiConfig.repeatingGroups,
+    );
     const emptyFieldsValidations = validateEmptyFields(
       state.formData.formData,
       state.formLayout.layouts,

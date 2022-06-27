@@ -15,6 +15,7 @@ export interface IRepeatingGroupsEditContainer {
   language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout;
+  deleting: boolean;
   editIndex: number;
   onClickRemove: (groupIndex: number) => void;
   onClickSave: () => void;
@@ -113,6 +114,7 @@ export function RepeatingGroupsEditContainer({
   language,
   textResources,
   layout,
+  deleting,
   editIndex,
   onClickRemove,
   onClickSave,
@@ -152,6 +154,7 @@ export function RepeatingGroupsEditContainer({
             <Grid item={true}>
               <IconButton
                 classes={{ root: classes.deleteButton }}
+                disabled={deleting}
                 onClick={removeClicked}
               >
                 <i className='ai ai-trash' />

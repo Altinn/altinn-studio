@@ -9,11 +9,13 @@ import type { ILayoutState } from '../layout/formLayoutSlice';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { RepeatingGroupTable } from './RepeatingGroupTable';
 import { renderWithProviders } from '../../../../testUtils';
+import { IAttachments } from "src/shared/resources/attachments";
 
 describe('features > form > containers > RepeatingGroupTable.tsx', () => {
   let mockContainer: ILayoutGroup;
   let mockLanguage: any;
   let mockTextResources: ITextResource[];
+  let mockAttachments: IAttachments;
   let mockComponents: ILayoutComponent[];
   let mockLayout: ILayoutState;
   let mockCurrentView: string;
@@ -134,6 +136,7 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
     const { asFragment } = renderWithProviders(
       <RepeatingGroupTable
         container={mockContainer}
+        attachments={mockAttachments}
         language={mockLanguage}
         textResources={mockTextResources}
         components={mockComponents}

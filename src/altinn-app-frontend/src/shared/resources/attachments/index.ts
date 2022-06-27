@@ -8,5 +8,5 @@ export interface IAttachment {
   id: string;
 }
 export interface IAttachments {
-  [attachmentType: string]: IAttachment[];
+  [attachmentComponentId: string]: IAttachment[];
 }

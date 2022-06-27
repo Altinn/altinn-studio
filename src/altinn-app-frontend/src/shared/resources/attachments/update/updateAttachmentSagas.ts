@@ -14,7 +14,8 @@ import { fileTagUrl } from 'src/utils/appUrlHelper';
 export function* updateAttachmentSaga(
   {
     attachment,
-    attachmentType,
+    componentId,
+    baseComponentId,
     tag,
   }: updateActions.IUpdateAttachmentAction,
 ): SagaIterator {
@@ -26,7 +27,7 @@ export function* updateAttachmentSaga(
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield put(updateComponentValidations({
-      componentId: attachmentType,
+      componentId,
       layoutId: currentView,
       validations: newValidations,
     }));
@@ -38,12 +39,12 @@ export function* updateAttachmentSaga(
       if (deleteResponse.status !== 204) {
         const validations = getFileUploadComponentValidations('update', language, attachment.id);
         yield put(updateComponentValidations({
-          componentId: attachmentType,
+          componentId,
           layoutId: currentView,
           validations,
         }));
         yield call(AttachmentDispatcher.updateAttachmentRejected,
-          attachment, attachmentType, attachment.tags[0]);
+          attachment, componentId, baseComponentId, attachment.tags[0]);
         return;
       }
     }
@@ -62,26 +63,26 @@ export function* updateAttachmentSaga(
         tags: response.data.tags,
       };
       yield call(AttachmentDispatcher.updateAttachmentFulfilled,
-        newAttachment, attachmentType);
+        newAttachment, componentId, baseComponentId);
     } else {
       const validations = getFileUploadComponentValidations('update', language, attachment.id);
       yield put(updateComponentValidations({
-        componentId: attachmentType,
+        componentId,
         layoutId: currentView,
         validations,
       }));
       yield call(AttachmentDispatcher.updateAttachmentRejected,
-        attachment, attachmentType, undefined);
+        attachment, componentId, baseComponentId, undefined);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('update', language, attachment.id);
     yield put(updateComponentValidations({
-      componentId: attachmentType,
+      componentId,
       layoutId: currentView,
       validations,
     }));
     yield call(AttachmentDispatcher.updateAttachmentRejected,
-      attachment, attachmentType, undefined);
+      attachment, componentId, baseComponentId, undefined);
   }
 }
 

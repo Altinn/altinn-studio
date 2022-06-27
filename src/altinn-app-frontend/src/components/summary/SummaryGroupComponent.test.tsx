@@ -39,7 +39,7 @@ describe('SummaryGroupComponent', () => {
             type: 'Input',
             id: 'mockId1',
             dataModelBindings: {
-              simpleBiding: 'mockGroup.mockDataBinding1',
+              simpleBinding: 'mockGroup.mockDataBinding1',
             },
             readOnly: false,
             required: false,
@@ -53,7 +53,7 @@ describe('SummaryGroupComponent', () => {
             type: 'Input',
             id: 'mockId2',
             dataModelBindings: {
-              simpleBiding: 'mockGroup.mockDataBinding2',
+              simpleBinding: 'mockGroup.mockDataBinding2',
             },
             readOnly: false,
             required: false,

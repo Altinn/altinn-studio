@@ -9,10 +9,12 @@ import * as updateActions from './update/updateAttachmentActions';
 
 export interface IAttachmentState {
   attachments: IAttachments;
+  error?: Error,
 }
 
 const initialState: IAttachmentState = {
   attachments: {},
+  error: undefined,
 };
 
 const attachmentReducer: Reducer<IAttachmentState> = (
@@ -26,19 +28,19 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     case (AttachmentActionsTypes.UPLOAD_ATTACHMENT): {
       const {
         file,
-        attachmentType,
+        componentId,
         tmpAttachmentId,
       } = action as uploadActions.IUploadAttachmentAction;
-      if (!state.attachments[attachmentType]) {
+      if (!state.attachments[componentId]) {
         state = update<IAttachmentState>(state, {
           attachments: {
-            [attachmentType]: { $set: [] },
+            [componentId]: { $set: [] },
           },
         });
       }
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             $push: [{
               name: file.name,
               size: file.size,
@@ -53,12 +55,12 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     }
 
     case (AttachmentActionsTypes.UPLOAD_ATTACHMENT_REJECTED): {
-      const { attachmentType, attachmentId } =
+      const { componentId, attachmentId } =
         action as uploadActions.IUploadAttachmentActionRejected;
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
-            $set: state.attachments[attachmentType].filter((attachment) => attachment.id !== attachmentId),
+          [componentId]: {
+            $set: state.attachments[componentId].filter((attachment) => attachment.id !== attachmentId),
           },
         },
       });
@@ -67,16 +69,16 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     case (AttachmentActionsTypes.UPLOAD_ATTACHMENT_FULFILLED): {
       const {
         attachment,
-        attachmentType,
+        componentId,
         tmpAttachmentId,
       } = action as uploadActions.IUploadAttachmentActionFulfilled;
-      const index = state.attachments[attachmentType].findIndex((item) => item.id === tmpAttachmentId);
+      const index = state.attachments[componentId].findIndex((item) => item.id === tmpAttachmentId);
       if (index < 0) {
         return state;
       }
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             [index]: { $set: attachment },
           },
         },
@@ -86,20 +88,20 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     case (AttachmentActionsTypes.UPDATE_ATTACHMENT): {
       const {
         attachment,
-        attachmentType,
+        componentId,
       } = action as updateActions.IUpdateAttachmentAction;
-      if (!state.attachments[attachmentType]) {
+      if (!state.attachments[componentId]) {
         state = update<IAttachmentState>(state, {
           attachments: {
-            [attachmentType]: { $set: [] },
+            [componentId]: { $set: [] },
           },
         });
       }
       const newAttachment = { ...attachment, updating: true };
-      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             [index]: { $set: newAttachment },
           },
         },
@@ -107,18 +109,15 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     }
 
     case (AttachmentActionsTypes.UPDATE_ATTACHMENT_REJECTED): {
-      const {
-        attachment,
-        attachmentType,
-        tag,
-      } = action as updateActions.IUpdateAttachmentActionRejected;
+      const { attachment, componentId, tag } =
+        action as updateActions.IUpdateAttachmentActionRejected;
       const newAttachment = {
         ...attachment, tag, updating: false,
       };
-      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             [index]: { $set: newAttachment },
           },
         },
@@ -126,15 +125,13 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     }
 
     case (AttachmentActionsTypes.UPDATE_ATTACHMENT_FULFILLED): {
-      const {
-        attachment,
-        attachmentType,
-      } = action as updateActions.IUpdateAttachmentActionFulfilled;
+      const { attachment, componentId } =
+        action as updateActions.IUpdateAttachmentActionFulfilled;
       const newAttachment = { ...attachment, updating: false };
-      const index = state.attachments[attachmentType].findIndex((item) => item.id === attachment.id);
+      const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             [index]: { $set: newAttachment },
           },
         },
@@ -142,44 +139,42 @@ const attachmentReducer: Reducer<IAttachmentState> = (
     }
 
     case (AttachmentActionsTypes.DELETE_ATTACHMENT): {
-      const { attachment, attachmentType } =
-        action as deleteActions.IDeleteAttachmentAction;
-      const newAttachment = { ...attachment, deleting: true };
-      const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
+      const { attachment, componentId } = action as deleteActions.IDeleteAttachmentAction;
+      const index = state.attachments[componentId].findIndex((element) => element.id === attachment.id);
       if (index < 0) {
         return state;
       }
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
-            [index]: { $set: newAttachment },
+          [componentId]: {
+            [index]: { deleting: { $set: true } },
           },
         },
       });
     }
 
     case (AttachmentActionsTypes.DELETE_ATTACHMENT_FULFILLED): {
-      const { attachmentId: id, attachmentType } = action as deleteActions.IDeleteAttachmentActionFulfilled;
+      const { attachmentId: id, componentId } = action as deleteActions.IDeleteAttachmentActionFulfilled;
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
-            $set: state.attachments[attachmentType].filter((attachment) => attachment.id !== id),
+          [componentId]: {
+            $set: state.attachments[componentId].filter((attachment) => attachment.id !== id),
           },
         },
       });
     }
 
     case (AttachmentActionsTypes.DELETE_ATTACHMENT_REJECTED): {
-      const { attachment, attachmentType } =
+      const { attachment, componentId } =
         action as deleteActions.IDeleteAttachmentActionRejected;
       const newAttachment = { ...attachment, deleting: false };
-      const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
+      const index = state.attachments[componentId].findIndex((element) => element.id === attachment.id);
       if (index < 0) {
         return state;
       }
       return update<IAttachmentState>(state, {
         attachments: {
-          [attachmentType]: {
+          [componentId]: {
             [index]: { $set: newAttachment },
           },
         },
@@ -194,6 +189,16 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         },
       });
     }
+
+    case (AttachmentActionsTypes.MAP_ATTACHMENTS_REJECTED): {
+      const { error } = action as mapActions.IMapAttachmentsActionRejected;
+      return update<IAttachmentState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
     default:
       return state;
   }

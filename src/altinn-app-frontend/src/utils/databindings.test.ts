@@ -60,7 +60,7 @@ describe('utils/databindings.ts', () => {
         id: 'field1',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop1',
+          simpleBinding: 'Group.prop1',
         },
         textResourceBindings: {
           title: 'Title',
@@ -73,7 +73,7 @@ describe('utils/databindings.ts', () => {
         id: 'field2',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop2',
+          simpleBinding: 'Group.prop2',
         },
         textResourceBindings: {
           title: 'Title',
@@ -86,7 +86,7 @@ describe('utils/databindings.ts', () => {
         id: 'field3',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop3',
+          simpleBinding: 'Group.prop3',
         },
         textResourceBindings: {
           title: 'Title',
@@ -99,7 +99,7 @@ describe('utils/databindings.ts', () => {
         id: 'field4',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.Group2.group2prop',
+          simpleBinding: 'Group.Group2.group2prop',
         },
         textResourceBindings: {
           title: 'Title',
@@ -194,6 +194,26 @@ describe('utils/databindings.ts', () => {
       const expected = {
         'person.name.firstName': 'Navn',
         'person.name.lastName': 'Navnesen',
+      };
+
+      const result = flattenObject(testObject);
+      expect(result).toEqual(expected);
+    });
+
+    it('should flatten arrays with primitive types as expected', () => {
+      const testObject = {
+        employees: [
+          {name: 'Jane Smith'},
+          {name: 'John Smith'},
+        ],
+        industries: ['Carpentry', 'Construction'],
+      };
+
+      const expected = {
+        'employees[0].name': 'Jane Smith',
+        'employees[1].name': 'John Smith',
+        'industries[0]': 'Carpentry',
+        'industries[1]': 'Construction',
       };
 
       const result = flattenObject(testObject);

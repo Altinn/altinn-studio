@@ -3,6 +3,7 @@
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
+    "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,

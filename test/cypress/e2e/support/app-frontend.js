@@ -66,12 +66,36 @@ Cypress.Commands.add('navigateToTask3', () => {
 /**
  * Fill in and complete task 3 form
  */
-Cypress.Commands.add('compelteTask3Form', () => {
+Cypress.Commands.add('completeTask3Form', () => {
+  const mkFile = (fileName) => ({
+    fileName,
+    mimeType: 'application/pdf',
+    lastModified: Date.now(),
+    contents: Cypress.Buffer.from('hello world'),
+  });
+
   cy.navigateToTask3();
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
     cy.get(checkbox).should('be.visible').find('input').check();
   });
   cy.addItemToGroup(1, 2, 'automation');
+  cy.get(appFrontend.group.rows[0].editBtn).click();
+  cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+  cy.get(appFrontend.group.rows[0].uploadSingle.dropZone)
+    .selectFile(mkFile('attachment-in-single.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone)
+    .selectFile(mkFile('attachment-in-multi1.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
+  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone)
+    .selectFile(mkFile('attachment-in-multi2.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.dropZone)
+    .selectFile(mkFile('attachment-in-nested.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector)
+    .should('be.visible').select('altinn');
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave).click();
+  cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
+
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
   cy.contains(mui.button, texts.next).click();
@@ -79,7 +103,7 @@ Cypress.Commands.add('compelteTask3Form', () => {
 });
 
 Cypress.Commands.add('navigateToTask4', () => {
-  cy.compelteTask3Form();
+  cy.completeTask3Form();
   cy.url().then((url) => {
     var instanceId = url.split('/').slice(-2).join('/');
     cy.intercept('GET', `**/instances/${instanceId}`).as('getInstance');
@@ -112,4 +136,14 @@ Cypress.Commands.add('startStateFullFromStateless', () => {
   cy.get(appFrontend.instantiationButton).should('be.visible').click();
   cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
   cy.wait('@getLayoutSettings');
+});
+
+Cypress.Commands.add('getReduxState', (selector) => {
+  return cy.window().its('reduxStore').invoke('getState').then((state) => {
+    if (selector) {
+      return selector(state);
+    }
+
+    return state;
+  });
 });

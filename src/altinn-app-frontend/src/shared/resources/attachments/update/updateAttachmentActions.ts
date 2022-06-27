@@ -4,54 +4,63 @@ import * as ActionTypes from '../attachmentActionTypes';
 
 export interface IUpdateAttachmentAction extends Action {
   attachment: IAttachment;
-  attachmentType: string;
+  componentId: string;
+  baseComponentId: string;
   tag: string;
 }
 
 export interface IUpdateAttachmentActionFulfilled extends Action {
   attachment: IAttachment;
-  attachmentType: string;
+  componentId: string;
+  baseComponentId: string;
 }
 
 export interface IUpdateAttachmentActionRejected extends Action {
   attachment: IAttachment;
-  attachmentType: string;
+  componentId: string;
+  baseComponentId: string;
   tag: string;
 }
 
 export function updateAttachment(
   attachment: IAttachment,
-  attachmentType: string,
+  componentId: string,
+  baseComponentId: string,
   tag: string,
 ): IUpdateAttachmentAction {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT,
     attachment,
-    attachmentType,
+    componentId,
+    baseComponentId,
     tag,
   };
 }
 
 export function updateAttachmentFulfilled(
   attachment: IAttachment,
-  attachmentType: string,
+  componentId: string,
+  baseComponentId: string,
 ): IUpdateAttachmentActionFulfilled {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT_FULFILLED,
     attachment,
-    attachmentType,
+    componentId,
+    baseComponentId,
   };
 }
 
 export function updateAttachmentRejected(
   attachment: IAttachment,
-  attachmentType: string,
+  componentId: string,
+  baseComponentId: string,
   tag: string,
 ): IUpdateAttachmentActionRejected {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT_REJECTED,
     attachment,
-    attachmentType,
+    componentId,
+    baseComponentId,
     tag,
   };
 }

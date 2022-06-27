@@ -66,11 +66,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
 
     const formData = convertModelToDataBinding(fetchedData);
     yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
-
-    yield call(
-      FormRulesActions.fetchRuleModel,
-    );
-
+    yield call(FormRulesActions.fetchRuleModel);
     yield call(FormDynamicsActions.fetchFormDynamics);
   } catch (error) {
     yield put(FormDataActions.fetchFormDataRejected({ error }));

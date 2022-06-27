@@ -1,31 +1,95 @@
-import { IData } from 'altinn-shared/types';
-import { IAttachments } from '../shared/resources/attachments';
+import type { IData } from 'altinn-shared/types';
+import type { IAttachments } from '../shared/resources/attachments';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import { getKeyIndex, deleteGroupData } from "src/utils/databindings";
+import { ILayouts, ILayoutComponent, ILayoutGroup } from "src/features/form/layout";
+import { isFileUploadComponent, isFileUploadWithTagComponent, splitDashedKey } from "src/utils/formLayout";
 
-export function mapAttachmentListToAttachments(data: IData[], defaultElementId: string): IAttachments {
+export function mapAttachmentListToAttachments(
+  data: IData[],
+  defaultElementId: string,
+  formData: IFormData,
+  layouts: ILayouts
+): IAttachments {
   const attachments: IAttachments = {};
+  const allComponents = [].concat(...Object.values(layouts)) as (ILayoutComponent | ILayoutGroup)[];
 
   data.forEach((element: IData) => {
-    if (element.id === defaultElementId || element.dataType === 'ref-data-as-pdf') {
+    const baseComponentId = element.dataType;
+    if (
+      element.id === defaultElementId ||
+      baseComponentId === 'ref-data-as-pdf'
+    ) {
       return;
     }
 
-    if (!attachments[element.dataType]) {
-      attachments[element.dataType] = [];
+    const component = allComponents.find((c) => c.id === baseComponentId);
+    if (!component || (!isFileUploadComponent(component) && !isFileUploadWithTagComponent(component))) {
+      return;
     }
 
-    attachments[element.dataType].push(
-      {
-        uploaded: true,
-        deleting: false,
-        updating: false,
-        name: element.filename,
-        size: element.size,
-        tags: element.tags,
-        id: element.id,
-      },
+    let [key, index] = convertToDashedComponentId(
+      baseComponentId,
+      formData,
+      element.id,
+      component.maxNumberOfAttachments > 1,
     );
+
+    if (!key) {
+      key = baseComponentId;
+      index = attachments[key]?.length || 0;
+    }
+
+    if (!attachments[key]) {
+      attachments[key] = [];
+    }
+
+    attachments[key][index] = {
+      uploaded: true,
+      deleting: false,
+      updating: false,
+      name: element.filename,
+      size: element.size,
+      tags: element.tags,
+      id: element.id,
+    };
   });
+
   return attachments;
+}
+
+function convertToDashedComponentId(
+  baseComponentId: string,
+  formData: IFormData,
+  attachmentUuid: string,
+  hasIndex:boolean,
+): [string, number] {
+  const formDataKey = Object.keys(formData).find(
+    (key) => formData[key] === attachmentUuid,
+  );
+
+  if (!formDataKey) {
+    return ['', 0];
+  }
+
+  const groups = getKeyIndex(formDataKey);
+  let componentId: string;
+  let index:number;
+  if (hasIndex) {
+    const groupSuffix =
+      groups.length > 1 ? `-${groups.slice(0, groups.length - 1).join('-')}` : '';
+
+    componentId = `${baseComponentId}${groupSuffix}`;
+    index = groups[groups.length - 1];
+  } else {
+    const groupSuffix =
+      groups.length ? `-${groups.join('-')}` : '';
+
+    componentId = `${baseComponentId}${groupSuffix}`;
+    index = 0;
+  }
+
+  return [componentId, index];
 }
 
 export function getFileEnding(filename: string): string {
@@ -48,6 +112,37 @@ export function removeFileEnding(filename: string): string {
     return filename;
   }
   return filename.replace(`.${split[split.length - 1]}`, '');
+}
+
+/**
+ * When removing a row in a repeating group, this function shifts attachments bound to later rows upwards. Pass in the
+ * groupId and index for the row being deleted.
+ */
+export function shiftAttachmentRowInRepeatingGroup(
+  attachments: IAttachments,
+  uploaderComponents:ILayoutComponent[],
+  groupId: string,
+  index: number,
+):IAttachments {
+  const result = { ...attachments };
+  const splitId = splitDashedKey(groupId);
+  const lookForComponents = new Set(uploaderComponents.map((c) => c.id));
+
+  let lastIndex = -1;
+  for (const key of Object.keys(attachments)) {
+    const thisSplitId = splitDashedKey(key);
+    if (lookForComponents.has(thisSplitId.baseComponentId)) {
+      lastIndex = Math.max(lastIndex, thisSplitId.depth[splitId.depth.length] || -1);
+    }
+  }
+
+  for (let laterIdx = index + 1; laterIdx <= lastIndex; laterIdx++) {
+    for (const componentId of lookForComponents) {
+      deleteGroupData(result, componentId + splitId.stringDepthWithLeadingDash, laterIdx, false, true);
+    }
+  }
+
+  return result;
 }
 
 export const AsciiUnitSeparator = String.fromCharCode(31); // Used to separate units within a string.

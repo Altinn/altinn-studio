@@ -38,6 +38,7 @@ import {
   ITextResourceBindings,
 } from '../../../types';
 import { ILanguage } from 'altinn-shared/types';
+import { IAttachments } from "src/shared/resources/attachments";
 
 export interface IRepeatingGroupTableProps {
   id: string;
@@ -48,6 +49,7 @@ export interface IRepeatingGroupTableProps {
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
   formData: any;
+  attachments: IAttachments,
   options: IOptions;
   textResources: ITextResource[];
   language: ILanguage;
@@ -116,6 +118,7 @@ export function RepeatingGroupTable({
   repeatingGroupDeepCopyComponents,
   editIndex,
   formData,
+  attachments,
   options,
   textResources,
   currentView,
@@ -150,6 +153,7 @@ export function RepeatingGroupTable({
   ): string => {
     return getFormDataForComponentInRepeatingGroup(
       formData,
+      attachments,
       component,
       index,
       container.dataModelBindings.group,
