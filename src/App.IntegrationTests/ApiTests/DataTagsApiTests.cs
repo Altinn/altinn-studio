@@ -17,15 +17,15 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class DataTagsApiTests : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class DataTagsApiTests : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
         private const string Org = "tdd";
         private const string App = "endring-av-navn";
         private const string InstanceGuid = "9bca707e-466d-4565-9497-317f379d046e";
 
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
 
-        public DataTagsApiTests(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public DataTagsApiTests(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }

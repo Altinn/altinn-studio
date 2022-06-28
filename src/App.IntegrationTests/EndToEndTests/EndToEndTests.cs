@@ -34,9 +34,9 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.EndToEndTests
 {
-    public class EndToEndTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class EndToEndTests : IClassFixture<WebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly WebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<Altinn.App.AppLogic.App> _factory;
 
         private string org;
         private string app;
@@ -49,7 +49,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
         private readonly Dictionary<string, DataElement> dataElements = new Dictionary<string, DataElement>();
         private readonly Dictionary<string, object> dataBlobs = new Dictionary<string, object>();
 
-        public EndToEndTests(WebApplicationFactory<Startup> factory)
+        public EndToEndTests(WebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }
@@ -272,7 +272,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
                         return dataBlobs[dataId.ToString()];
                     });
 
-            WebApplicationFactory<Startup> factory = _factory.WithWebHostBuilder(builder =>
+            WebApplicationFactory<Altinn.App.AppLogic.App> factory = _factory.WithWebHostBuilder(builder =>
             {
                 string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.Location).LocalPath);
                 string path = Path.Combine(unitTestFolder, $"../../../Data/apps/{org}/{app}/");

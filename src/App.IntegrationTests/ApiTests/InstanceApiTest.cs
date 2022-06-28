@@ -26,12 +26,12 @@ using Xunit.Abstractions;
 
 namespace App.IntegrationTests.ApiTests
 {
-    public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
         private readonly ITestOutputHelper _output;
 
-        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory, ITestOutputHelper output)
+        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory, ITestOutputHelper output)
         {
             _factory = factory;
             _output = output;

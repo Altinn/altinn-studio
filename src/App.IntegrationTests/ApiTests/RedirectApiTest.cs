@@ -14,11 +14,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class RedirectApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class RedirectApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
 
-        public RedirectApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public RedirectApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }

@@ -12,11 +12,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class ApplicationSettingsApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class ApplicationSettingsApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
 
-        public ApplicationSettingsApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public ApplicationSettingsApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }

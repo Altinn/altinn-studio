@@ -35,12 +35,13 @@ namespace App.IntegrationTests.Utils
     public static class SetupUtil
     {
         public static HttpClient GetTestClient(
-            CustomWebApplicationFactory<Startup> customFactory,
+            CustomWebApplicationFactory<Altinn.App.AppLogic.App> customFactory,
             string org,
-            string app,
-            Mock<IData> dataMock = null)
+            string app,            
+            Mock<IData> dataMock = null,
+            bool allowRedirect = true)
         {
-            WebApplicationFactory<Startup> factory = customFactory.WithWebHostBuilder(builder =>
+            WebApplicationFactory<Altinn.App.AppLogic.App> factory = customFactory.WithWebHostBuilder(builder =>
             {
                 string path = GetAppPath(org, app);
                 builder.ConfigureAppConfiguration((context, conf) =>
@@ -173,8 +174,12 @@ namespace App.IntegrationTests.Utils
                     }
                 });
             });
-            factory.Server.AllowSynchronousIO = true;
-            return factory.CreateClient();
+            var opts = new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = allowRedirect
+            };
+            factory.Server.AllowSynchronousIO = true;            
+            return factory.CreateClient(opts);
         }
 
         public static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)

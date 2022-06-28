@@ -18,11 +18,11 @@ namespace App.IntegrationTestsRef.ApiTests
     /// <summary>
     /// Test clas for PagesController
     /// </summary>
-    public class PagesApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class PagesApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
 
-        public PagesApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        public PagesApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }

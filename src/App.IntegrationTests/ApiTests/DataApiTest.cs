@@ -20,11 +20,11 @@ using Xunit;
 
 namespace App.IntegrationTests.ApiTests
 {
-    public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-
-        public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        
+        public DataApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
         {
             _factory = factory;
         }
@@ -167,7 +167,7 @@ namespace App.IntegrationTests.ApiTests
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Contains("\"journalnummerdatadef33316\":{\"orid\":33316,\"value\":1001}", responseContent);
@@ -180,7 +180,7 @@ namespace App.IntegrationTests.ApiTests
             string token = PrincipalUtil.GetToken(1337);
             TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new Guid("182e053b-3c74-46d4-92ec-a2828289a877"));
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation", null, false);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9");
 
