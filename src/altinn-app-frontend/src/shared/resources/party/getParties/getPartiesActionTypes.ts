@@ -1,4 +1,4 @@
-const moduleName = 'PARTY';
+const moduleName = "PARTY";
 
 // Fetch Party actions
 export const GET_PARTIES = `${moduleName}.GET_PARTIES`;

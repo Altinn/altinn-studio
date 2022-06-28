@@ -23,89 +23,95 @@ export interface IAltinnButtonComponentProvidedProps {
 
 const theme = createTheme(altinnTheme);
 
-const useStyles = makeStyles(() => createStyles({
-  borderBottom: {
-    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
-  },
-  borderBottomDisabled: {
-    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
-  },
-  button: {
-    color: theme.altinnPalette.primary.white,
-    background: theme.altinnPalette.primary.blueDark,
-    textTransform: 'none',
-    transition: 'none',
-    fontWeight: 400,
-    fontFamily: 'Altinn-DIN',
-    height: 36,
-    width: '100%',
-    borderRadius: '0',
-    boxShadow: 'none',
-    '@media (min-width:576px)': {
-      width: 'auto',
+const useStyles = makeStyles(() =>
+  createStyles({
+    borderBottom: {
+      borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
     },
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueDarkHover,
+    borderBottomDisabled: {
+      borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+    },
+    button: {
       color: theme.altinnPalette.primary.white,
+      background: theme.altinnPalette.primary.blueDark,
+      textTransform: 'none',
+      transition: 'none',
+      fontWeight: 400,
+      fontFamily: 'Altinn-DIN',
+      height: 36,
+      width: '100%',
+      borderRadius: '0',
       boxShadow: 'none',
+      '@media (min-width:576px)': {
+        width: 'auto',
+      },
+      '&:hover': {
+        background: theme.altinnPalette.primary.blueDarkHover,
+        color: theme.altinnPalette.primary.white,
+        boxShadow: 'none',
+      },
+      '&:focus': {
+        background: theme.altinnPalette.primary.blueDarkHover,
+        color: theme.altinnPalette.primary.white,
+        boxShadow: 'none',
+        outline: '2px solid',
+        outlineColor: theme.altinnPalette.primary.blueDarker,
+      },
     },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueDarkHover,
-      color: theme.altinnPalette.primary.white,
-      boxShadow: 'none',
-      outline: '2px solid',
-      outlineColor: theme.altinnPalette.primary.blueDarker,
-    },
-  },
-  secondaryButton: {
-    fontSize: '14px',
-    color: theme.altinnPalette.primary.blueDarker,
-    background: 'transparent',
-    height: 36,
-    textTransform: 'none',
-    fontWeight: 400,
-    borderRadius: '0',
-    '&:hover': {
-      background: theme.altinnPalette.primary.greyLight,
+    secondaryButton: {
+      fontSize: '14px',
       color: theme.altinnPalette.primary.blueDarker,
+      background: 'transparent',
+      height: 36,
+      textTransform: 'none',
+      fontWeight: 400,
+      borderRadius: '0',
+      '&:hover': {
+        background: theme.altinnPalette.primary.greyLight,
+        color: theme.altinnPalette.primary.blueDarker,
+      },
+      '&:focus': {
+        background: theme.altinnPalette.primary.greyLight,
+        color: theme.altinnPalette.primary.black,
+        outline: 'none',
+      },
     },
-    '&:focus': {
-      background: theme.altinnPalette.primary.greyLight,
-      color: theme.altinnPalette.primary.black,
-      outline: 'none',
-    },
-  },
-}));
+  }),
+);
 
-const _AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
-  const classes = useStyles(props);
+const _AltinnButton = React.forwardRef(
+  (props: IAltinnButtonComponentProvidedProps, ref: any) => {
+    const classes = useStyles(props);
 
-  return (
-    <Button
-      id={props.id}
-      disabled={props.disabled}
-      variant={props.secondaryButton === true ? 'text' : 'contained'}
-      color='primary'
-      className={classNames(props.className, {
-        [classes.button]: props.secondaryButton !== true,
-        [classes.secondaryButton]: props.secondaryButton === true,
-      })}
-      onClick={props.onClickFunction}
-      style={{ fontSize: 16 }}
-      ref={ref}
-      aria-label={props.btnText}
-    >
-      <span
-        className={classNames({
-          [classes.borderBottom]: props.secondaryButton === true && props.disabled !== true,
-          [classes.borderBottomDisabled]: props.secondaryButton === true && props.disabled === true,
+    return (
+      <Button
+        id={props.id}
+        disabled={props.disabled}
+        variant={props.secondaryButton === true ? 'text' : 'contained'}
+        color='primary'
+        className={classNames(props.className, {
+          [classes.button]: props.secondaryButton !== true,
+          [classes.secondaryButton]: props.secondaryButton === true,
         })}
+        onClick={props.onClickFunction}
+        style={{ fontSize: 16 }}
+        ref={ref}
+        aria-label={props.btnText}
       >
-        {props.btnText}
-      </span>
-    </Button>
-  );
-});
+        <span
+          className={classNames({
+            [classes.borderBottom]:
+              props.secondaryButton === true && props.disabled !== true,
+            [classes.borderBottomDisabled]:
+              props.secondaryButton === true && props.disabled === true,
+          })}
+        >
+          {props.btnText}
+        </span>
+      </Button>
+    );
+  },
+);
 
 _AltinnButton.displayName = 'AltinnButton';
 

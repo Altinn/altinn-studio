@@ -1,5 +1,5 @@
-import { makeStyles } from "@material-ui/core";
-import React from "react";
+import { makeStyles } from '@material-ui/core';
+import React from 'react';
 import cn from 'classnames';
 
 export interface ILandmarkShortcutsProps {
@@ -19,7 +19,7 @@ const useStyles = makeStyles({
     paddingLeft: '10px',
   },
   jumpNav: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   srOnly: {
     position: 'absolute',
@@ -33,9 +33,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function LandmarkShortcuts({
-  shortcuts,
-}: ILandmarkShortcutsProps) {
+export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
   const classes = useStyles();
 
   const handleClick = (id: string) => {
@@ -46,7 +44,7 @@ export function LandmarkShortcuts({
     target.tabIndex = -1;
     target.focus();
     target.tabIndex = currentTabIndex;
-  }
+  };
 
   return (
     <nav className={cn(classes.jumpNav)}>

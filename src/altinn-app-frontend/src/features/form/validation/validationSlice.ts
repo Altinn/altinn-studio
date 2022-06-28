@@ -1,5 +1,10 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from 'src/types';
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
+import type {
+  IComponentValidations,
+  ICurrentSingleFieldValidation,
+  IValidations,
+} from "src/types";
 
 export interface IValidationState {
   validations: IValidations;
@@ -36,42 +41,43 @@ export const initialState: IValidationState = {
   currentSingleFieldValidation: {},
 };
 
-const moduleName = 'validation';
+const moduleName = "validation";
 
 const validationSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    runSingleFieldValidationFulfilled: (state: IValidationState, action: PayloadAction<IUpdateValidations>) => {
+    runSingleFieldValidationFulfilled: (
+      state: IValidationState,
+      action: PayloadAction<IUpdateValidations>
+    ) => {
       const { validations } = action.payload;
       state.validations = validations;
     },
-    runSingleFieldValidationRejected: (state: IValidationState, action: PayloadAction<IValidationActionRejected>) => {
+    runSingleFieldValidationRejected: (
+      state: IValidationState,
+      action: PayloadAction<IValidationActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
     setCurrentSingleFieldValidation: (
       state: IValidationState,
-      action: PayloadAction<ISetCurrentSingleFieldValidationAction>,
+      action: PayloadAction<ISetCurrentSingleFieldValidationAction>
     ) => {
-      const {
-        dataModelBinding,
-        componentId,
-        layoutId,
-      } = action.payload;
+      const { dataModelBinding, componentId, layoutId } = action.payload;
       state.currentSingleFieldValidation = {
         dataModelBinding,
         componentId,
         layoutId,
       };
     },
-    updateComponentValidations: (state: IValidationState, action: PayloadAction<IUpdateComponentValidations>) => {
-      const {
-        layoutId,
-        validations,
-        componentId,
-        invalidDataTypes,
-      } = action.payload;
+    updateComponentValidations: (
+      state: IValidationState,
+      action: PayloadAction<IUpdateComponentValidations>
+    ) => {
+      const { layoutId, validations, componentId, invalidDataTypes } =
+        action.payload;
 
       if (!state.validations[layoutId]) {
         state.validations[layoutId] = {};
@@ -80,14 +86,19 @@ const validationSlice = createSlice({
       state.validations[layoutId][componentId] = validations;
       state.invalidDataTypes = invalidDataTypes;
     },
-    updateValidations: (state: IValidationState, action: PayloadAction<IUpdateValidations>) => {
+    updateValidations: (
+      state: IValidationState,
+      action: PayloadAction<IUpdateValidations>
+    ) => {
       const { validations } = action.payload;
       state.validations = validations;
     },
   },
 });
 
-export const runSingleFieldValidation = createAction(`${moduleName}/runSingleFieldValidation`);
+export const runSingleFieldValidation = createAction(
+  `${moduleName}/runSingleFieldValidation`
+);
 
 export const {
   runSingleFieldValidationFulfilled,

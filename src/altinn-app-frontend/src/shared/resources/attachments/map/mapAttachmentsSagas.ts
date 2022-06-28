@@ -1,14 +1,14 @@
-import { SagaIterator } from 'redux-saga';
-import { call, select, take, all, takeLatest } from 'redux-saga/effects';
-import { IData, IInstance } from 'altinn-shared/types';
-import { IAttachments } from '..';
-import { IRuntimeState } from 'src/types';
-import { mapAttachmentListToAttachments } from 'src/utils/attachment';
-import AttachmentDispatcher from '../attachmentActions';
-import * as AttachmentActionsTypes from '../attachmentActionTypes';
-import { IApplicationMetadata } from '../../applicationMetadata';
-import { getCurrentTaskData } from 'src/utils/appMetadata';
-import { IFormData } from "src/features/form/data/formDataReducer";
+import type { SagaIterator } from "redux-saga";
+import { call, select, take, all, takeLatest } from "redux-saga/effects";
+import type { IData, IInstance } from "altinn-shared/types";
+import type { IAttachments } from "..";
+import type { IRuntimeState } from "src/types";
+import { mapAttachmentListToAttachments } from "src/utils/attachment";
+import AttachmentDispatcher from "../attachmentActions";
+import * as AttachmentActionsTypes from "../attachmentActionTypes";
+import type { IApplicationMetadata } from "../../applicationMetadata";
+import { getCurrentTaskData } from "src/utils/appMetadata";
+import type { IFormData } from "src/features/form/data/formDataReducer";
 import FormDataActions from "src/features/form/data/formDataActions";
 import type { ILayouts } from "src/features/form/layout";
 import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
@@ -28,12 +28,17 @@ export function* watchMapAttachmentsSaga(): SagaIterator {
   yield takeLatest(AttachmentActionsTypes.MAP_ATTACHMENTS, mapAttachments);
 }
 
-export const SelectInstanceData = (state: IRuntimeState): IData[] => state.instanceData.instance.data;
-export const SelectInstance = (state: IRuntimeState): IInstance => state.instanceData.instance;
-export const SelectApplicationMetaData =
-  (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
-export const SelectFormData = (state:IRuntimeState) : IFormData => state.formData.formData;
-export const SelectFormLayouts = (state:IRuntimeState) : ILayouts => state.formLayout.layouts;
+export const SelectInstanceData = (state: IRuntimeState): IData[] =>
+  state.instanceData.instance.data;
+export const SelectInstance = (state: IRuntimeState): IInstance =>
+  state.instanceData.instance;
+export const SelectApplicationMetaData = (
+  state: IRuntimeState
+): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
+export const SelectFormData = (state: IRuntimeState): IFormData =>
+  state.formData.formData;
+export const SelectFormLayouts = (state: IRuntimeState): ILayouts =>
+  state.formLayout.layouts;
 
 export function* mapAttachments(): SagaIterator {
   try {
@@ -46,7 +51,10 @@ export function* mapAttachments(): SagaIterator {
 
     const instanceAttachments: IData[] = yield select(SelectInstanceData);
     const mappedAttachments: IAttachments = mapAttachmentListToAttachments(
-      instanceAttachments, defaultElement.id, formData, layouts
+      instanceAttachments,
+      defaultElement.id,
+      formData,
+      layouts
     );
 
     yield call(AttachmentDispatcher.mapAttachmentsFulfilled, mappedAttachments);

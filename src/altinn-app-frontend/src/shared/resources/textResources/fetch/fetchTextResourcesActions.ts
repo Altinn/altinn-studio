@@ -1,6 +1,6 @@
-import { Action } from 'redux';
-import { ITextResource } from 'src/types';
-import * as ActionTypes from './fetchTextResourcesActionTypes';
+import type { Action } from "redux";
+import type { ITextResource } from "src/types";
+import * as ActionTypes from "./fetchTextResourcesActionTypes";
 
 export interface IFetchTextResourcesFulfilled extends Action {
   language: string;
@@ -17,7 +17,10 @@ export function fetchTextResources(): Action {
   };
 }
 
-export function fetchFormResourceFulfilled(language: string, resources: ITextResource[]): IFetchTextResourcesFulfilled {
+export function fetchFormResourceFulfilled(
+  language: string,
+  resources: ITextResource[]
+): IFetchTextResourcesFulfilled {
   return {
     type: ActionTypes.FETCH_TEXT_RESOURCES_FULFILLED,
     language,
@@ -25,7 +28,9 @@ export function fetchFormResourceFulfilled(language: string, resources: ITextRes
   };
 }
 
-export function fetchFormResourceRejected(error: Error): IFetchTextResourcesRejected {
+export function fetchFormResourceRejected(
+  error: Error
+): IFetchTextResourcesRejected {
   return {
     type: ActionTypes.FETCH_TEXT_RESOURCES_REJECTED,
     error,

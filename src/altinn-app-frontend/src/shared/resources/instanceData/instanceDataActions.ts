@@ -1,7 +1,7 @@
-import { bindActionCreators } from 'redux';
-import { store } from 'src/store';
+import { bindActionCreators } from "redux";
+import { store } from "src/store";
 
-import * as GetInstanceData from './get/getInstanceDataActions';
+import * as GetInstanceData from "./get/getInstanceDataActions";
 
 export type IInstanceDataActions = typeof actions;
 
@@ -11,6 +11,9 @@ const actions = {
   getInstanceDataRejected: GetInstanceData.getInstanceDataRejected,
 };
 
-const InstanceDataActions: IInstanceDataActions = bindActionCreators<any, any>(actions, store.dispatch);
+const InstanceDataActions: IInstanceDataActions = bindActionCreators<any, any>(
+  actions,
+  store.dispatch
+);
 
 export default InstanceDataActions;

@@ -1,9 +1,9 @@
-import { Grid, makeStyles, Typography } from '@material-ui/core';
-import * as React from 'react';
-import { IAttachment } from 'src/shared/resources/attachments';
-import { ISelectionComponentProps } from 'src/features/form/layout';
-import { getOptionLookupKey } from 'src/utils/options';
-import { useAppSelector } from 'src/common/hooks';
+import { Grid, makeStyles, Typography } from "@material-ui/core";
+import * as React from "react";
+import type { IAttachment } from "src/shared/resources/attachments";
+import type { ISelectionComponentProps } from "src/features/form/layout";
+import { getOptionLookupKey } from "src/utils/options";
+import { useAppSelector } from "src/common/hooks";
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;
@@ -12,29 +12,29 @@ export interface IAttachmentWithTagSummaryComponent {
 
 const useStyles = makeStyles({
   row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    borderTop: '1px dashed #008FD6',
+    display: "flex",
+    justifyContent: "space-between",
+    borderTop: "1px dashed #008FD6",
     marginTop: 10,
     paddingTop: 10,
   },
 });
 
 export function AttachmentWithTagSummaryComponent(
-  props: IAttachmentWithTagSummaryComponent,
+  props: IAttachmentWithTagSummaryComponent
 ) {
   const classes = useStyles();
   const attachments: IAttachment[] = useAppSelector(
-    (state) => state.attachments.attachments[props.componentRef],
+    (state) => state.attachments.attachments[props.componentRef]
   );
   const textResources = useAppSelector(
-    (state) => state.textResources.resources,
+    (state) => state.textResources.resources
   );
   const options = useAppSelector(
     (state) =>
       state.optionState.options[
         getOptionLookupKey(props.component.optionsId, props.component.mapping)
-      ]?.options,
+      ]?.options
   );
 
   const getOptionsTagLabel = ({ tags }: { tags: string[] }) => {
@@ -42,10 +42,17 @@ export function AttachmentWithTagSummaryComponent(
   };
   const tryToGetTextResource = (attachment) => {
     const optionsTagLabel = getOptionsTagLabel(attachment);
-    return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;
-  }
+    return (
+      textResources?.find(({ id }) => id === optionsTagLabel)?.value ||
+      optionsTagLabel
+    );
+  };
   return (
-    <Grid item xs={12} data-testid={'attachment-with-tag-summary'}>
+    <Grid
+      item
+      xs={12}
+      data-testid={"attachment-with-tag-summary"}
+    >
       {attachments?.map((attachment) => (
         <Grid
           container={true}
@@ -54,13 +61,13 @@ export function AttachmentWithTagSummaryComponent(
         >
           <Typography
             key={`attachment-summary-name-${attachment.id}`}
-            variant='body1'
+            variant="body1"
           >
             {attachment.name}
           </Typography>
           <Typography
             key={`attachment-summary-tag-${attachment.id}`}
-            variant='body1'
+            variant="body1"
           >
             {attachment.tags[0] && tryToGetTextResource(attachment)}
           </Typography>

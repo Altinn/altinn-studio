@@ -1,39 +1,40 @@
-import { createStyles, Grid, withStyles, WithStyles } from '@material-ui/core';
-import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import Header from '../../../shared/components/altinnAppHeader';
-import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { useAppSelector } from 'src/common/hooks';
+import type { WithStyles } from "@material-ui/core";
+import { createStyles, Grid, withStyles } from "@material-ui/core";
+import * as React from "react";
+import { AltinnAppTheme } from "altinn-shared/theme";
+import Header from "../../../shared/components/altinnAppHeader";
+import { changeBodyBackground } from "../../../utils/bodyStyling";
+import { useAppSelector } from "src/common/hooks";
 
 const styles = createStyles({
   instantiatePage: {
-    width: '100%',
-    maxWidth: '1056px',
+    width: "100%",
+    maxWidth: "1056px",
     backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
-    display: 'flex',
-    flexDirection: 'column',
-    alignSelf: 'center',
+    display: "flex",
+    flexDirection: "column",
+    alignSelf: "center",
     padding: 12,
-    'ms-flex-wrap': 'nowrap',
+    "ms-flex-wrap": "nowrap",
   },
 });
 
 export interface IInstantiateContainerProps extends WithStyles<typeof styles> {
   children?: React.ReactNode;
-  type: 'normal' | 'partyChoice';
+  type: "normal" | "partyChoice";
 }
 
 function InstantiateContainer(props: IInstantiateContainerProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const { classes, children } = props;
 
-  const language = useAppSelector(state => state.language.language);
-  const profile = useAppSelector(state => state.profile.profile);
+  const language = useAppSelector((state) => state.language.language);
+  const profile = useAppSelector((state) => state.profile.profile);
 
   return (
     <Grid
       container={true}
-      direction='column'
+      direction="column"
       className={`container ${classes.instantiatePage}`}
     >
       <Header
@@ -41,9 +42,7 @@ function InstantiateContainer(props: IInstantiateContainerProps) {
         profile={profile}
         type={props.type}
       />
-      <main id='main-content'>
-        {children}
-      </main>
+      <main id="main-content">{children}</main>
     </Grid>
   );
 }

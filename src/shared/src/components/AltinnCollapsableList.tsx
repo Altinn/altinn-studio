@@ -1,7 +1,4 @@
-import {
-  Collapse,
-  Grid,
-} from '@material-ui/core';
+import { Collapse, Grid } from '@material-ui/core';
 import * as React from 'react';
 
 export interface IAltinnCollapsableListProps {
@@ -13,13 +10,10 @@ export interface IAltinnCollapsableListProps {
   listHeader: React.ReactNode;
 }
 
-const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (props) => {
-  const {
-    transition,
-    listHeader,
-    onClickExpand,
-    children,
-  } = props;
+const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (
+  props,
+) => {
+  const { transition, listHeader, onClickExpand, children } = props;
 
   function onKeyPress(event: React.KeyboardEvent) {
     event.stopPropagation();
@@ -29,10 +23,7 @@ const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (props) =>
   }
 
   return (
-    <Grid
-      container={true}
-      direction={'column'}
-    >
+    <Grid container={true} direction={'column'}>
       <Grid
         container={true}
         direction={'row'}
@@ -40,17 +31,12 @@ const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (props) =>
         onKeyPress={onKeyPress}
         tabIndex={0}
       >
-        <Grid
-          container={true}
-          direction={'row'}
-        >
+        <Grid container={true} direction={'row'}>
           {listHeader}
         </Grid>
       </Grid>
       <Grid item={true}>
-        <Collapse in={transition}>
-          {children}
-        </Collapse>
+        <Collapse in={transition}>{children}</Collapse>
       </Grid>
     </Grid>
   );

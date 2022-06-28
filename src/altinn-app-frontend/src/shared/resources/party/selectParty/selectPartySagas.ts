@@ -1,11 +1,11 @@
-import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
-import { IAltinnWindow } from 'src/types';
-import { putWithoutConfig } from '../../../../utils/networking';
-import { updateCookieUrl } from '../../../../utils/appUrlHelper';
-import PartyActions from '../partyActions';
-import { ISelectParty } from './selectPartyActions';
-import * as SelectPartyActionTypes from './selectPartyActionTypes';
+import type { SagaIterator } from "redux-saga";
+import { call, takeLatest } from "redux-saga/effects";
+import type { IAltinnWindow } from "src/types";
+import { putWithoutConfig } from "../../../../utils/networking";
+import { updateCookieUrl } from "../../../../utils/appUrlHelper";
+import PartyActions from "../partyActions";
+import type { ISelectParty } from "./selectPartyActions";
+import * as SelectPartyActionTypes from "./selectPartyActionTypes";
 
 function* selectPartySaga({ party, redirect }: ISelectParty): SagaIterator {
   try {

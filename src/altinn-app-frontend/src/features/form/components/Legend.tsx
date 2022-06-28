@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
-import * as React from 'react';
-import { ILabelSettings, LayoutStyle } from 'src/types';
-import Description from './Description';
-import { HelpTextContainer } from './HelpTextContainer';
-import { ILanguage } from 'altinn-shared/types';
-import { RequiredIndicator } from './RequiredIndicator';
-import { OptionalIndicator } from './OptionalIndicator';
+import * as React from "react";
+import type { ILabelSettings } from "src/types";
+import { LayoutStyle } from "src/types";
+import Description from "./Description";
+import { HelpTextContainer } from "./HelpTextContainer";
+import type { ILanguage } from "altinn-shared/types";
+import { RequiredIndicator } from "./RequiredIndicator";
+import { OptionalIndicator } from "./OptionalIndicator";
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;
@@ -25,7 +26,10 @@ export default function Legend(props: IFormLegendProps) {
   const LabelText = (
     <>
       {props.labelText}
-      <RequiredIndicator required={props.required} language={props.language} />
+      <RequiredIndicator
+        required={props.required}
+        language={props.language}
+      />
       <OptionalIndicator
         labelSettings={props.labelSettings}
         language={props.language}
@@ -46,11 +50,17 @@ export default function Legend(props: IFormLegendProps) {
 
   return (
     <>
-      <label className='a-form-label title-label' htmlFor={props.id}>
+      <label
+        className="a-form-label title-label"
+        htmlFor={props.id}
+      >
         {LabelText}
       </label>
       {props.descriptionText && (
-        <Description description={props.descriptionText} {...props} />
+        <Description
+          description={props.descriptionText}
+          {...props}
+        />
       )}
     </>
   );

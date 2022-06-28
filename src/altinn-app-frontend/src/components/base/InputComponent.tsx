@@ -1,10 +1,11 @@
-import * as React from 'react';
-import classNames from 'classnames';
-import NumberFormat, { NumberFormatProps } from 'react-number-format';
-import { Input, makeStyles } from '@material-ui/core';
+import * as React from "react";
+import classNames from "classnames";
+import type { NumberFormatProps } from "react-number-format";
+import NumberFormat from "react-number-format";
+import { Input, makeStyles } from "@material-ui/core";
 
-import '../../styles/shared.css';
-import { IComponentProps } from '..';
+import "../../styles/shared.css";
+import type { IComponentProps } from "..";
 
 export interface IInputBaseProps {
   id: string;
@@ -16,7 +17,7 @@ export interface IInputBaseProps {
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
-  align?: 'right' | 'center' | 'left';
+  align?: "right" | "center" | "left";
 }
 
 export interface IInputProps extends IComponentProps {
@@ -37,7 +38,7 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
 
 const useStyles = makeStyles({
   input: {
-    boxSizing: 'border-box',
+    boxSizing: "border-box",
   },
 });
 
@@ -66,7 +67,11 @@ function NumberFormatCustom(props: IFormattedNumberInputProps) {
 export function BasicInputComponent({ inputRef, ...rest }: IBasicInputProps) {
   return (
     <>
-      <input data-testid={rest.id} ref={inputRef} {...rest} />
+      <input
+        data-testid={rest.id}
+        ref={inputRef}
+        {...rest}
+      />
     </>
   );
 }
@@ -79,13 +84,13 @@ export function InputComponent({
   formData,
   formatting,
   handleDataChange,
-  textResourceBindings
+  textResourceBindings,
 }: IInputProps) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(formData?.simpleBinding ?? '');
+  const [value, setValue] = React.useState(formData?.simpleBinding ?? "");
 
   React.useEffect(() => {
-    setValue(formData?.simpleBinding ?? '');
+    setValue(formData?.simpleBinding ?? "");
   }, [formData?.simpleBinding]);
 
   const onDataChanged = (e: any) => {
@@ -107,14 +112,16 @@ export function InputComponent({
       fullWidth={true}
       disableUnderline={true}
       value={value}
-      aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
+      aria-describedby={
+        textResourceBindings?.description ? `description-${id}` : undefined
+      }
       inputComponent={
         formatting?.number ? NumberFormatCustom : BasicInputComponent
       }
       inputProps={{
         formatting,
-        className: classNames('form-control', classes.input, {
-          'validation-error': !isValid,
+        className: classNames("form-control", classes.input, {
+          "validation-error": !isValid,
           disabled: readOnly,
         }),
         style: {

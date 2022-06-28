@@ -1,33 +1,34 @@
 import {
   AltinnContentIconFormData,
   AltinnContentLoader,
-} from 'altinn-shared/components';
-import { AxiosError } from 'axios';
-import * as React from 'react';
-import { Redirect } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
-import { selectAppName, selectAppOwner } from 'src/selectors/language';
-import Presentation from 'src/shared/containers/Presentation';
-import { ShowTypes } from 'src/shared/resources/applicationMetadata';
-import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
-import { ISimpleInstance, PresentationType, ProcessTaskType } from 'src/types';
-import { isStatelessApp } from 'src/utils/appMetadata';
+} from "altinn-shared/components";
+import type { AxiosError } from "axios";
+import * as React from "react";
+import { Redirect } from "react-router-dom";
+import { useAppSelector, useAppDispatch } from "src/common/hooks";
+import { selectAppName, selectAppOwner } from "src/selectors/language";
+import Presentation from "src/shared/containers/Presentation";
+import type { ShowTypes } from "src/shared/resources/applicationMetadata";
+import { startInitialStatelessQueue } from "src/shared/resources/queue/queueSlice";
+import type { ISimpleInstance } from "src/types";
+import { PresentationType, ProcessTaskType } from "src/types";
+import { isStatelessApp } from "src/utils/appMetadata";
 import {
   checkIfAxiosError,
   get,
   HttpStatusCodes,
   post,
-} from 'src/utils/networking';
+} from "src/utils/networking";
 import {
   getActiveInstancesUrl,
   getPartyValidationUrl,
-} from 'src/utils/appUrlHelper';
-import { Form } from '../form/containers/Form';
-import { updateValidations } from '../form/validation/validationSlice';
-import Instantiate from '../instantiate/containers';
-import InstanceSelection from '../instantiate/containers/InstanceSelection';
-import MissingRolesError from '../instantiate/containers/MissingRolesError';
-import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
+} from "src/utils/appUrlHelper";
+import { Form } from "../form/containers/Form";
+import { updateValidations } from "../form/validation/validationSlice";
+import Instantiate from "../instantiate/containers";
+import InstanceSelection from "../instantiate/containers/InstanceSelection";
+import MissingRolesError from "../instantiate/containers/MissingRolesError";
+import NoValidPartiesError from "../instantiate/containers/NoValidPartiesError";
 
 export default function Entrypoint({ allowAnonymous }: any) {
   const [action, setAction] = React.useState<ShowTypes>(null);
@@ -35,30 +36,30 @@ export default function Entrypoint({ allowAnonymous }: any) {
   const [activeInstances, setActiveInstances] =
     React.useState<ISimpleInstance[]>(null);
   const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata?.applicationMetadata,
+    (state) => state.applicationMetadata?.applicationMetadata
   );
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
   const statelessLoading = useAppSelector((state) => state.isLoading.stateless);
   const formDataError = useAppSelector((state) => state.formData.error);
   const appName = useAppSelector(selectAppName);
-  const appOwner = useAppSelector (selectAppOwner);
+  const appOwner = useAppSelector(selectAppOwner);
   const dispatch = useAppDispatch();
 
   const handleNewInstance = () => {
-    setAction('new-instance');
+    setAction("new-instance");
   };
 
   React.useEffect(() => {
-    if (action === 'select-instance' && partyValidation?.valid) {
+    if (action === "select-instance" && partyValidation?.valid) {
       const fetchExistingInstances = async () => {
         try {
           const instances = await get(
-            getActiveInstancesUrl(selectedParty.partyId),
+            getActiveInstancesUrl(selectedParty.partyId)
           );
           setActiveInstances(instances || []);
         } catch (err) {
           console.error(err);
-          throw new Error('Server did not return active instances');
+          throw new Error("Server did not return active instances");
         }
       };
 
@@ -74,12 +75,12 @@ export default function Entrypoint({ allowAnonymous }: any) {
         }
         try {
           const { data } = await post(
-            getPartyValidationUrl(selectedParty.partyId),
+            getPartyValidationUrl(selectedParty.partyId)
           );
           setPartyValidation(data);
         } catch (err) {
           console.error(err);
-          throw new Error('Server did not respond with party validation');
+          throw new Error("Server did not respond with party validation");
         }
       };
 
@@ -95,8 +96,8 @@ export default function Entrypoint({ allowAnonymous }: any) {
   React.useEffect(() => {
     if (applicationMetadata) {
       const onEntry = applicationMetadata.onEntry;
-      if (!onEntry || onEntry.show === 'new-instance') {
-        setAction('new-instance');
+      if (!onEntry || onEntry.show === "new-instance") {
+        setAction("new-instance");
       } else {
         setAction(onEntry.show);
       }
@@ -119,12 +120,12 @@ export default function Entrypoint({ allowAnonymous }: any) {
   }
 
   // regular view with instance
-  if (action === 'new-instance' && partyValidation?.valid) {
+  if (action === "new-instance" && partyValidation?.valid) {
     return <Instantiate />;
   }
 
   if (
-    action === 'select-instance' &&
+    action === "select-instance" &&
     partyValidation?.valid &&
     activeInstances !== null
   ) {
@@ -148,7 +149,10 @@ export default function Entrypoint({ allowAnonymous }: any) {
   }
 
   // stateless view
-  if (isStatelessApp(applicationMetadata) && (allowAnonymous || partyValidation?.valid)) {
+  if (
+    isStatelessApp(applicationMetadata) &&
+    (allowAnonymous || partyValidation?.valid)
+  ) {
     if (statelessLoading === null) {
       dispatch(startInitialStatelessQueue());
     }
@@ -168,8 +172,14 @@ export default function Entrypoint({ allowAnonymous }: any) {
   }
 
   return (
-    <Presentation header='' type={ProcessTaskType.Unknown}>
-      <AltinnContentLoader width='100%' height='400'>
+    <Presentation
+      header=""
+      type={ProcessTaskType.Unknown}
+    >
+      <AltinnContentLoader
+        width="100%"
+        height="400"
+      >
         <AltinnContentIconFormData />
       </AltinnContentLoader>
     </Presentation>

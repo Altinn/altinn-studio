@@ -1,4 +1,4 @@
-import { IInstance } from "altinn-shared/types";
+import type { IInstance } from "altinn-shared/types";
 import { appApi } from "./AppApi";
 
 export interface Prefill {
@@ -17,12 +17,12 @@ export interface Instantiation {
 export const instancesApi = appApi.injectEndpoints({
   endpoints: (builder) => ({
     instantiateWithPrefill: builder.mutation<IInstance, Instantiation>({
-      query: (instantiation => ({
-        url: '/instances/create',
-        method: 'POST',
-        data: instantiation
-      })),
-    })
+      query: (instantiation) => ({
+        url: "/instances/create",
+        method: "POST",
+        data: instantiation,
+      }),
+    }),
   }),
 });
 

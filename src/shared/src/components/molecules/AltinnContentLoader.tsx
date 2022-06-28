@@ -13,7 +13,6 @@ export const AltinnContentLoader = ({
   height = 200,
   children,
 }: IAltinnContentLoaderProps) => {
-
   return (
     <ContentLoader height={height} width={width}>
       {children ? children : <AltinnContentIcon />}

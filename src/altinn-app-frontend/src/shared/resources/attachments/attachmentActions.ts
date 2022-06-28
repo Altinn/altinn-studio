@@ -1,10 +1,10 @@
-import { bindActionCreators } from 'redux';
-import { store } from 'src/store';
+import { bindActionCreators } from "redux";
+import { store } from "src/store";
 
-import * as deleteActions from './delete/deleteAttachmentActions';
-import * as mapActions from './map/mapAttachmentsActions';
-import * as uploadActions from './upload/uploadAttachmentActions';
-import * as updateActions from './update/updateAttachmentActions';
+import * as deleteActions from "./delete/deleteAttachmentActions";
+import * as mapActions from "./map/mapAttachmentsActions";
+import * as uploadActions from "./upload/uploadAttachmentActions";
+import * as updateActions from "./update/updateAttachmentActions";
 
 export type IAttachmentActions = typeof actions;
 
@@ -23,6 +23,9 @@ const actions = {
   mapAttachmentsRejected: mapActions.mapAttachmentsRejected,
 };
 
-const AttachmentDispatcher: IAttachmentActions = bindActionCreators<any, any>(actions, store.dispatch);
+const AttachmentDispatcher: IAttachmentActions = bindActionCreators<any, any>(
+  actions,
+  store.dispatch
+);
 
 export default AttachmentDispatcher;

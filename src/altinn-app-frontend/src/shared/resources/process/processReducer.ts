@@ -1,9 +1,9 @@
-import update from 'immutability-helper';
-import { Action, Reducer } from 'redux';
-import { ProcessTaskType } from '../../../types';
-import * as CompleteProcessActions from './completeProcess/completeProcessActions';
-import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
-import * as ProcessActionTypes from './processActionTypes';
+import update from "immutability-helper";
+import type { Action, Reducer } from "redux";
+import type { ProcessTaskType } from "../../../types";
+import type * as CompleteProcessActions from "./completeProcess/completeProcessActions";
+import type * as GetProcessStateActions from "./getProcessState/getProcessStateActions";
+import * as ProcessActionTypes from "./processActionTypes";
 
 export interface IProcessState {
   taskType: ProcessTaskType;
@@ -19,14 +19,15 @@ const initialState: IProcessState = {
 
 const processReducer: Reducer<IProcessState> = (
   state: IProcessState = initialState,
-  action?: Action,
+  action?: Action
 ): IProcessState => {
   if (!action) {
     return state;
   }
   switch (action.type) {
     case ProcessActionTypes.GET_PROCESS_STATE_FULFILLED: {
-      const { processStep, taskId } = action as GetProcessStateActions.IGetProcessStateFulfilled;
+      const { processStep, taskId } =
+        action as GetProcessStateActions.IGetProcessStateFulfilled;
       return update<IProcessState>(state, {
         $set: {
           taskType: processStep,
@@ -37,7 +38,8 @@ const processReducer: Reducer<IProcessState> = (
     }
 
     case ProcessActionTypes.GET_PROCESS_STATE_REJECTED: {
-      const error = (action as GetProcessStateActions.IGetProcessStateRejected).error;
+      const error = (action as GetProcessStateActions.IGetProcessStateRejected)
+        .error;
       return update<IProcessState>(state, {
         $set: {
           error,
@@ -46,7 +48,8 @@ const processReducer: Reducer<IProcessState> = (
     }
 
     case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED: {
-      const { processStep, taskId } = action as CompleteProcessActions.ICompleteProcessFulfilled;
+      const { processStep, taskId } =
+        action as CompleteProcessActions.ICompleteProcessFulfilled;
       return update<IProcessState>(state, {
         $set: {
           taskType: processStep,
@@ -57,7 +60,8 @@ const processReducer: Reducer<IProcessState> = (
     }
 
     case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
-      const error = (action as CompleteProcessActions.ICompleteProcessRejected).error;
+      const error = (action as CompleteProcessActions.ICompleteProcessRejected)
+        .error;
       return update<IProcessState>(state, {
         $set: {
           error,
@@ -65,7 +69,9 @@ const processReducer: Reducer<IProcessState> = (
       });
     }
 
-    default: { return state; }
+    default: {
+      return state;
+    }
   }
 };
 

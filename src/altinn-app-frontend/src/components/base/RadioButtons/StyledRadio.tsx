@@ -1,7 +1,8 @@
-import Radio, { RadioProps } from '@material-ui/core/Radio';
-import cn from 'classnames';
-import React from 'react';
-import { useRadioStyles } from 'src/components/base/RadioButtons/radioButtonsUtils';
+import type { RadioProps } from "@material-ui/core/Radio";
+import Radio from "@material-ui/core/Radio";
+import cn from "classnames";
+import React from "react";
+import { useRadioStyles } from "src/components/base/RadioButtons/radioButtonsUtils";
 
 export const StyledRadio = (radioProps: RadioProps) => {
   const classes = useRadioStyles();

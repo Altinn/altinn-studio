@@ -1,21 +1,28 @@
-import { SagaIterator } from 'redux-saga';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { IParty } from 'altinn-shared/types';
-import { AxiosResponse } from 'axios';
-import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
-import { IRuntimeState } from '../../../../../types';
-import { post, putWithoutConfig } from '../../../../../utils/networking';
-import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/appUrlHelper';
-import InstantiationActions from '../../actions';
-import * as InstantiationActionTypes from '../../actions/types';
-import { IInstantiationState } from '../../reducer';
+import type { SagaIterator } from "redux-saga";
+import { call, put, select, takeLatest } from "redux-saga/effects";
+import type { IParty } from "altinn-shared/types";
+import type { AxiosResponse } from "axios";
+import InstanceDataActions from "../../../../../shared/resources/instanceData/instanceDataActions";
+import type { IRuntimeState } from "../../../../../types";
+import { post, putWithoutConfig } from "../../../../../utils/networking";
+import {
+  getCreateInstancesUrl,
+  redirectToUpgrade,
+  invalidateCookieUrl,
+} from "../../../../../utils/appUrlHelper";
+import InstantiationActions from "../../actions";
+import * as InstantiationActionTypes from "../../actions/types";
+import type { IInstantiationState } from "../../reducer";
 
-const InstantiatingSelector = ((state: IRuntimeState) => state.instantiation);
-const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
+const InstantiatingSelector = (state: IRuntimeState) => state.instantiation;
+const SelectedPartySelector = (state: IRuntimeState) =>
+  state.party.selectedParty;
 
 function* instantiationSaga(): SagaIterator {
   try {
-    const instantitationState: IInstantiationState = yield select(InstantiatingSelector);
+    const instantitationState: IInstantiationState = yield select(
+      InstantiatingSelector
+    );
     if (!instantitationState.instantiating) {
       yield put(InstantiationActions.instantiateToggle());
 
@@ -24,9 +31,16 @@ function* instantiationSaga(): SagaIterator {
       // Creates a new instance
       let instanceResponse: AxiosResponse;
       try {
-        instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
+        instanceResponse = yield call(
+          post,
+          getCreateInstancesUrl(selectedParty.partyId)
+        );
       } catch (error) {
-        if (error.response && error.response.status === 403 && error.response.data) {
+        if (
+          error.response &&
+          error.response.status === 403 &&
+          error.response.data
+        ) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
           if (reqAuthLevel) {
             putWithoutConfig(invalidateCookieUrl);
@@ -36,8 +50,14 @@ function* instantiationSaga(): SagaIterator {
         throw error;
       }
 
-      yield call(InstanceDataActions.getInstanceDataFulfilled, instanceResponse.data);
-      yield call(InstantiationActions.instantiateFulfilled, instanceResponse.data.id);
+      yield call(
+        InstanceDataActions.getInstanceDataFulfilled,
+        instanceResponse.data
+      );
+      yield call(
+        InstantiationActions.instantiateFulfilled,
+        instanceResponse.data.id
+      );
     }
   } catch (err) {
     yield call(InstantiationActions.instantiateRejected, err);

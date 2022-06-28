@@ -1,7 +1,7 @@
-import { bindActionCreators } from 'redux';
-import { store } from 'src/store';
-import * as GetPartiesActions from './getParties/getPartiesActions';
-import * as SelectPartyActions from './selectParty/selectPartyActions';
+import { bindActionCreators } from "redux";
+import { store } from "src/store";
+import * as GetPartiesActions from "./getParties/getPartiesActions";
+import * as SelectPartyActions from "./selectParty/selectPartyActions";
 
 export type IPartyActions = typeof actions;
 

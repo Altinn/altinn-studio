@@ -1,22 +1,27 @@
-import * as React from 'react';
-import { FileRejection } from 'react-dropzone';
-import { useDispatch, useSelector } from 'react-redux';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { isMobile } from 'react-device-detect';
-import { IAttachment } from '../../../../shared/resources/attachments';
-import AttachmentDispatcher from '../../../../shared/resources/attachments/attachmentActions';
-import { IMapping, IRuntimeState } from '../../../../types';
-import { renderValidationMessagesForComponent } from '../../../../utils/render';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { v4 as uuidv4 } from 'uuid';
-import { getFileUploadWithTagComponentValidations, isAttachmentError, isNotAttachmentError, parseFileUploadComponentWithTagValidationObject } from 'src/utils/formComponentUtils';
-import { AttachmentsCounter } from '../shared/render';
-import { FileList } from './FileListComponent';
-import { DropzoneComponent } from '../shared/DropzoneComponent';
-import { IFileUploadGenericProps } from '../shared/props';
-import { IComponentProps } from 'src/components';
-import { getOptionLookupKey } from 'src/utils/options';
+import * as React from "react";
+import type { FileRejection } from "react-dropzone";
+import { useDispatch, useSelector } from "react-redux";
+import { getLanguageFromKey } from "altinn-shared/utils";
+import useMediaQuery from "@material-ui/core/useMediaQuery";
+import { isMobile } from "react-device-detect";
+import type { IAttachment } from "../../../../shared/resources/attachments";
+import AttachmentDispatcher from "../../../../shared/resources/attachments/attachmentActions";
+import type { IMapping, IRuntimeState } from "../../../../types";
+import { renderValidationMessagesForComponent } from "../../../../utils/render";
+import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
+import { v4 as uuidv4 } from "uuid";
+import {
+  getFileUploadWithTagComponentValidations,
+  isAttachmentError,
+  isNotAttachmentError,
+  parseFileUploadComponentWithTagValidationObject,
+} from "src/utils/formComponentUtils";
+import { AttachmentsCounter } from "../shared/render";
+import { FileList } from "./FileListComponent";
+import { DropzoneComponent } from "../shared/DropzoneComponent";
+import type { IFileUploadGenericProps } from "../shared/props";
+import type { IComponentProps } from "src/components";
+import { getOptionLookupKey } from "src/utils/options";
 
 export interface IFileUploadWithTagProps extends IFileUploadGenericProps {
   optionsId: string;
@@ -45,28 +50,41 @@ export function FileUploadWithTagComponent({
   dataModelBindings,
 }: IFileUploadWithTagProps): JSX.Element {
   const dataDispatch = useDispatch();
-  const [validations, setValidations] = React.useState<Array<{ id: string, message: string }>>([]);
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const options = useSelector((state: IRuntimeState) => state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options);
-  const editIndex = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[id]?.editIndex ?? -1);
-  const chosenOptions = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions ?? {});
+  const [validations, setValidations] = React.useState<
+    Array<{ id: string; message: string }>
+  >([]);
+  const mobileView = useMediaQuery("(max-width:992px)"); // breakpoint on altinn-modal
+  const options = useSelector(
+    (state: IRuntimeState) =>
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.options
+  );
+  const editIndex = useSelector(
+    (state: IRuntimeState) =>
+      state.formLayout.uiConfig.fileUploadersWithTag[id]?.editIndex ?? -1
+  );
+  const chosenOptions = useSelector(
+    (state: IRuntimeState) =>
+      state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions ?? {}
+  );
 
   const attachments: IAttachment[] = useSelector(
-    (state: IRuntimeState) => state.attachments.attachments[id] || emptyArray,
+    (state: IRuntimeState) => state.attachments.attachments[id] || emptyArray
   );
 
   const setValidationsFromArray = (validationArray: string[]) => {
     setValidations(
-      parseFileUploadComponentWithTagValidationObject(validationArray),
+      parseFileUploadComponentWithTagValidationObject(validationArray)
     );
   };
 
   const setEditIndex = (index: number) => {
-    dataDispatch(FormLayoutActions.updateFileUploaderWithTagEditIndex({
-      componentId: id,
-      baseComponentId: baseComponentId || id,
-      index
-    }));
+    dataDispatch(
+      FormLayoutActions.updateFileUploaderWithTagEditIndex({
+        componentId: id,
+        baseComponentId: baseComponentId || id,
+        index,
+      })
+    );
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -82,21 +100,34 @@ export function FileUploadWithTagComponent({
   };
 
   const handleSave = (attachment: IAttachment) => {
-    if (chosenOptions[attachment.id] !== undefined && chosenOptions[attachment.id].length !== 0) {
+    if (
+      chosenOptions[attachment.id] !== undefined &&
+      chosenOptions[attachment.id].length !== 0
+    ) {
       setEditIndex(-1);
-      if (attachment.tags === undefined || chosenOptions[attachment.id] !== attachment.tags[0]) {
+      if (
+        attachment.tags === undefined ||
+        chosenOptions[attachment.id] !== attachment.tags[0]
+      ) {
         setAttachmentTag(attachment, chosenOptions[attachment.id]);
       }
       setValidations(validations.filter((obj) => obj.id !== attachment.id)); // Remove old validation if exists
     } else {
-      const tmpValidations: { id: string, message: string }[] = [];
-      tmpValidations.push(
-        {
-          id: attachment.id,
-          message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${getTextResource(textResourceBindings.tagTitle).toString().toLowerCase()}.`,
-        },
+      const tmpValidations: { id: string; message: string }[] = [];
+      tmpValidations.push({
+        id: attachment.id,
+        message: `${getLanguageFromKey(
+          "form_filler.file_uploader_validation_error_no_chosen_tag",
+          language
+        )} ${getTextResource(textResourceBindings.tagTitle)
+          .toString()
+          .toLowerCase()}.`,
+      });
+      setValidations(
+        validations
+          .filter((obj) => obj.id !== tmpValidations[0].id)
+          .concat(tmpValidations)
       );
-      setValidations(validations.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
     }
   };
 
@@ -110,7 +141,7 @@ export function FileUploadWithTagComponent({
             baseComponentId: baseComponentId || id,
             id: attachmentId,
             option,
-          }),
+          })
         );
       } else {
         console.error(`Could not find option for ${value}`);
@@ -121,32 +152,46 @@ export function FileUploadWithTagComponent({
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
-      AttachmentDispatcher.updateAttachment(attachment, id, baseComponentId, option.value);
+      AttachmentDispatcher.updateAttachment(
+        attachment,
+        id,
+        baseComponentId,
+        option.value
+      );
     } else {
       console.error(`Could not find option for ${optionValue}`);
     }
   };
 
   const shouldShowFileUpload = (): boolean => {
-    return attachments.length < maxNumberOfAttachments
+    return attachments.length < maxNumberOfAttachments;
   };
 
-  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+  const handleDrop = (
+    acceptedFiles: File[],
+    rejectedFiles: FileRejection[]
+  ) => {
     const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
     const tmpValidations: string[] = [];
-    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
+    const totalAttachments =
+      acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
       tmpValidations.push(
-        `${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', language)
-        } ${maxNumberOfAttachments} ${getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', language)}`,
+        `${getLanguageFromKey(
+          "form_filler.file_uploader_validation_error_exceeds_max_files_1",
+          language
+        )} ${maxNumberOfAttachments} ${getLanguageFromKey(
+          "form_filler.file_uploader_validation_error_exceeds_max_files_2",
+          language
+        )}`
       );
     } else {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File, index) => {
-        if ((attachments.length + newFiles.length) < maxNumberOfAttachments) {
+        if (attachments.length + newFiles.length < maxNumberOfAttachments) {
           const tmpId: string = uuidv4();
           newFiles.push({
             name: file.name,
@@ -163,20 +208,29 @@ export function FileUploadWithTagComponent({
             tmpId,
             id,
             dataModelBindings,
-            attachments.length + index,
+            attachments.length + index
           );
         }
       });
 
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach((fileRejection) => {
-          if (fileRejection.file.size > (maxFileSizeInMB * bytesInOneMB)) {
+          if (fileRejection.file.size > maxFileSizeInMB * bytesInOneMB) {
             tmpValidations.push(
-              `${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', language)}`,
+              `${fileRejection.file.name} ${getLanguageFromKey(
+                "form_filler.file_uploader_validation_error_file_size",
+                language
+              )}`
             );
           } else {
             tmpValidations.push(
-              `${getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', language)} ${fileRejection.file.name} ${getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', language)}`,
+              `${getLanguageFromKey(
+                "form_filler.file_uploader_validation_error_general_1",
+                language
+              )} ${fileRejection.file.name} ${getLanguageFromKey(
+                "form_filler.file_uploader_validation_error_general_2",
+                language
+              )}`
             );
           }
         });
@@ -186,18 +240,26 @@ export function FileUploadWithTagComponent({
   };
 
   // Get validations and filter general from identified validations.
-  const tmpValidationMessages = getFileUploadWithTagComponentValidations(componentValidations, validations);
-  const validationMessages = { errors: tmpValidationMessages.filter(isNotAttachmentError).map((el) => (el.message)) };
-  const attachmentValidationMessages = tmpValidationMessages.filter(isAttachmentError);
+  const tmpValidationMessages = getFileUploadWithTagComponentValidations(
+    componentValidations,
+    validations
+  );
+  const validationMessages = {
+    errors: tmpValidationMessages
+      .filter(isNotAttachmentError)
+      .map((el) => el.message),
+  };
+  const attachmentValidationMessages =
+    tmpValidationMessages.filter(isAttachmentError);
   const hasValidationMessages: boolean = validationMessages.errors.length > 0;
 
   return (
     <div
-      className='container'
+      className="container"
       id={`altinn-fileuploader-${id}`}
-      style={{ padding: '0px' }}
+      style={{ padding: "0px" }}
     >
-      {shouldShowFileUpload() &&
+      {shouldShowFileUpload() && (
         <DropzoneComponent
           id={id}
           isMobile={isMobile}
@@ -211,20 +273,19 @@ export function FileUploadWithTagComponent({
           validFileEndings={validFileEndings}
           textResourceBindings={textResourceBindings}
         />
-      }
+      )}
 
       {shouldShowFileUpload() &&
         AttachmentsCounter({
           language: language,
           currentNumberOfAttachments: attachments.length,
           minNumberOfAttachments: minNumberOfAttachments,
-          maxNumberOfAttachments: maxNumberOfAttachments
-        })
-      }
+          maxNumberOfAttachments: maxNumberOfAttachments,
+        })}
 
-      {(hasValidationMessages && shouldShowFileUpload()) &&
-        renderValidationMessagesForComponent(validationMessages, id)
-      }
+      {hasValidationMessages &&
+        shouldShowFileUpload() &&
+        renderValidationMessagesForComponent(validationMessages, id)}
 
       <FileList
         id={id}
@@ -251,15 +312,12 @@ export function FileUploadWithTagComponent({
           language: language,
           currentNumberOfAttachments: attachments.length,
           minNumberOfAttachments: minNumberOfAttachments,
-          maxNumberOfAttachments: maxNumberOfAttachments
-        })
-      }
+          maxNumberOfAttachments: maxNumberOfAttachments,
+        })}
 
-      {(hasValidationMessages && !shouldShowFileUpload()) &&
-        renderValidationMessagesForComponent(validationMessages, id)
-      }
-
+      {hasValidationMessages &&
+        !shouldShowFileUpload() &&
+        renderValidationMessagesForComponent(validationMessages, id)}
     </div>
   );
 }
-

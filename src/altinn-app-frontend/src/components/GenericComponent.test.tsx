@@ -1,19 +1,19 @@
-import React from 'react';
-import { screen } from '@testing-library/react';
+import React from "react";
+import { screen } from "@testing-library/react";
 
-import { renderWithProviders } from '../../testUtils';
+import { renderWithProviders } from "../../testUtils";
 
-import { GenericComponent } from './GenericComponent';
-import type { IGenericComponentProps } from './GenericComponent';
+import { GenericComponent } from "./GenericComponent";
+import type { IGenericComponentProps } from "./GenericComponent";
 import {
   getFormDataStateMock,
   getFormLayoutStateMock,
-} from '../../__mocks__/mocks';
+} from "../../__mocks__/mocks";
 
 const render = (props: Partial<IGenericComponentProps> = {}) => {
   const allProps: IGenericComponentProps = {
-    id: 'mockId',
-    type: 'type',
+    id: "mockId",
+    type: "type",
     textResourceBindings: {},
     dataModelBindings: {},
     ...props,
@@ -23,10 +23,10 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
     layouts: {
       FormLayout: [
         {
-          type: 'Input',
-          id: 'mockId',
+          type: "Input",
+          id: "mockId",
           dataModelBindings: {
-            simpleBinding: 'mockDataBinding',
+            simpleBinding: "mockDataBinding",
           },
           readOnly: false,
           required: false,
@@ -54,7 +54,7 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
 
   const formData = getFormDataStateMock({
     formData: {
-      mockDataBinding: 'value',
+      mockDataBinding: "value",
     },
   });
 
@@ -66,55 +66,55 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
   });
 };
 
-describe('GenericComponent', () => {
-  it('should render Unknown component when passing unknown type', () => {
-    render({ type: 'unknown-type' });
+describe("GenericComponent", () => {
+  it("should render Unknown component when passing unknown type", () => {
+    render({ type: "unknown-type" });
 
     expect(screen.getByText(/unknown component type/i)).toBeInTheDocument();
   });
 
-  it('should render Input component when passing Input type', () => {
-    render({ type: 'Input' });
+  it("should render Input component when passing Input type", () => {
+    render({ type: "Input" });
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
     expect(
-      screen.queryByText(/unknown component type/i),
+      screen.queryByText(/unknown component type/i)
     ).not.toBeInTheDocument();
   });
 
-  it('should render description and label when textResourceBindings includes description and title', () => {
+  it("should render description and label when textResourceBindings includes description and title", () => {
     render({
-      type: 'Input',
+      type: "Input",
       textResourceBindings: {
-        title: 'titleKey',
-        description: 'descriptionKey',
+        title: "titleKey",
+        description: "descriptionKey",
       },
     });
 
-    expect(screen.getByTestId('description-mockId')).toBeInTheDocument();
-    expect(screen.getByTestId('label-mockId')).toBeInTheDocument();
+    expect(screen.getByTestId("description-mockId")).toBeInTheDocument();
+    expect(screen.getByTestId("label-mockId")).toBeInTheDocument();
   });
 
-  it('should not render description and label when textResourceBindings does not include description and title', () => {
+  it("should not render description and label when textResourceBindings does not include description and title", () => {
     render({
-      type: 'Input',
+      type: "Input",
       textResourceBindings: {},
     });
 
-    expect(screen.queryByTestId('description-mockId')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('label-mockId')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("description-mockId")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("label-mockId")).not.toBeInTheDocument();
   });
 
   it('should not render description and label when textResourceBindings includes description and title, but the component is listed in "noLabelComponents"', () => {
     render({
-      type: 'NavigationBar',
+      type: "NavigationBar",
       textResourceBindings: {
-        title: 'titleKey',
-        description: 'descriptionKey',
+        title: "titleKey",
+        description: "descriptionKey",
       },
     });
 
-    expect(screen.queryByTestId('description-mockId')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('label-mockId')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("description-mockId")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("label-mockId")).not.toBeInTheDocument();
   });
 });

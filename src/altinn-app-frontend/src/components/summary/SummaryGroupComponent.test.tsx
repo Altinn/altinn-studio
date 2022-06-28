@@ -1,18 +1,18 @@
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
-import { render } from '@testing-library/react';
+import * as React from "react";
+import { Provider } from "react-redux";
+import configureStore from "redux-mock-store";
+import { render } from "@testing-library/react";
 
 import {
   getInitialStateMock,
   getFormDataStateMock,
   getFormLayoutStateMock,
-} from '../../../__mocks__/mocks';
-import type { ISummaryGroupComponent } from './SummaryGroupComponent';
+} from "../../../__mocks__/mocks";
+import type { ISummaryGroupComponent } from "./SummaryGroupComponent";
 
-import SummaryGroupComponent from './SummaryGroupComponent';
+import SummaryGroupComponent from "./SummaryGroupComponent";
 
-describe('SummaryGroupComponent', () => {
+describe("SummaryGroupComponent", () => {
   let mockHandleDataChange: () => void;
   let mockStore;
 
@@ -22,44 +22,44 @@ describe('SummaryGroupComponent', () => {
       layouts: {
         page1: [
           {
-            type: 'Group',
-            id: 'groupComponent',
+            type: "Group",
+            id: "groupComponent",
             dataModelBindings: {
-              group: 'mockGroup',
+              group: "mockGroup",
             },
             textResourceBindings: {
-              title: 'mockGroupTitle',
+              title: "mockGroupTitle",
             },
-            children: ['0:mockId1', '1:mockId2'],
+            children: ["0:mockId1", "1:mockId2"],
             edit: {
               multiPage: true,
             },
           },
           {
-            type: 'Input',
-            id: 'mockId1',
+            type: "Input",
+            id: "mockId1",
             dataModelBindings: {
-              simpleBinding: 'mockGroup.mockDataBinding1',
+              simpleBinding: "mockGroup.mockDataBinding1",
             },
             readOnly: false,
             required: false,
             disabled: false,
             textResourceBindings: {
-              title: 'mockField1',
+              title: "mockField1",
             },
             triggers: [],
           },
           {
-            type: 'Input',
-            id: 'mockId2',
+            type: "Input",
+            id: "mockId2",
             dataModelBindings: {
-              simpleBinding: 'mockGroup.mockDataBinding2',
+              simpleBinding: "mockGroup.mockDataBinding2",
             },
             readOnly: false,
             required: false,
             disabled: false,
             textResourceBindings: {
-              title: 'mockField2',
+              title: "mockField2",
             },
             triggers: [],
           },
@@ -72,10 +72,10 @@ describe('SummaryGroupComponent', () => {
         repeatingGroups: {
           groupComponent: {
             index: 0,
-            dataModelBinding: 'mockGroup',
+            dataModelBinding: "mockGroup",
           },
         },
-        currentView: 'FormLayout',
+        currentView: "FormLayout",
         navigationConfig: {},
         layoutOrder: [],
       },
@@ -83,8 +83,8 @@ describe('SummaryGroupComponent', () => {
 
     const formData = getFormDataStateMock({
       formData: {
-        'mockGroup[0].mockDataBinding1': '1',
-        'mockGroup[0].mockDataBinding2': '2',
+        "mockGroup[0].mockDataBinding1": "1",
+        "mockGroup[0].mockDataBinding2": "2",
       },
     });
 
@@ -93,19 +93,19 @@ describe('SummaryGroupComponent', () => {
       formLayout,
       textResources: {
         error: null,
-        language: 'nb',
+        language: "nb",
         resources: [
           {
-            id: 'mockGroupTitle',
-            value: 'Mock group',
+            id: "mockGroupTitle",
+            value: "Mock group",
           },
           {
-            id: 'mockField1',
-            value: 'Mock field 1',
+            id: "mockField1",
+            value: "Mock field 1",
           },
           {
-            id: 'mockField2',
-            value: 'Mock field 2',
+            id: "mockField2",
+            value: "Mock field 2",
           },
         ],
       },
@@ -117,26 +117,29 @@ describe('SummaryGroupComponent', () => {
     mockHandleDataChange = jest.fn();
   });
 
-  test('SummaryGroupComponent -- should match snapshot', () => {
+  test("SummaryGroupComponent -- should match snapshot", () => {
     const { asFragment } = renderSummaryGroupComponent();
     expect(asFragment()).toMatchSnapshot();
   });
 
   function renderSummaryGroupComponent(
-    props: Partial<ISummaryGroupComponent> = {},
+    props: Partial<ISummaryGroupComponent> = {}
   ) {
     const defaultProps: ISummaryGroupComponent = {
-      pageRef: 'page1',
-      componentRef: 'groupComponent',
+      pageRef: "page1",
+      componentRef: "groupComponent",
       largeGroup: false,
-      changeText: 'Change',
+      changeText: "Change",
       onChangeClick: mockHandleDataChange,
     };
 
     return render(
       <Provider store={mockStore}>
-        <SummaryGroupComponent {...defaultProps} {...props} />
-      </Provider>,
+        <SummaryGroupComponent
+          {...defaultProps}
+          {...props}
+        />
+      </Provider>
     );
   }
 });

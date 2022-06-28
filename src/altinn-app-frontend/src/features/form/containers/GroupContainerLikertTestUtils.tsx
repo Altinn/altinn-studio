@@ -1,31 +1,31 @@
-import React from 'react';
-import { screen, within } from '@testing-library/react';
-import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
-import { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
-import { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import { IFormDataState } from 'src/features/form/data/formDataReducer';
-import { ITextResourcesState } from 'src/shared/resources/textResources/textResourcesReducer';
-import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
-import { setupStore } from 'src/store';
-import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import { ILayoutValidations, ITextResource } from 'src/types';
-import { IValidationState } from 'src/features/form/validation/validationSlice';
+import React from "react";
+import { screen, within } from "@testing-library/react";
+import { mockMediaQuery, renderWithProviders } from "../../../../testUtils";
+import type { ILayoutComponent, ILayoutGroup } from "src/features/form/layout";
+import type { ILayoutState } from "src/features/form/layout/formLayoutSlice";
+import type { IFormDataState } from "src/features/form/data/formDataReducer";
+import type { ITextResourcesState } from "src/shared/resources/textResources/textResourcesReducer";
+import { getInitialStateMock } from "../../../../__mocks__/initialStateMock";
+import { setupStore } from "src/store";
+import { GroupContainer } from "src/features/form/containers/GroupContainer";
+import type { ILayoutValidations, ITextResource } from "src/types";
+import type { IValidationState } from "src/features/form/validation/validationSlice";
 
 export const defaultMockQuestions = [
-  { Question: 'Hvordan trives du på skolen?', Answer: '' },
-  { Question: 'Har du det bra?', Answer: '' },
-  { Question: 'Hvor god er du i matte?', Answer: '' },
-  { Question: 'Hvor god er du i javascript?', Answer: '' },
-  { Question: 'Hvor god er du i css?', Answer: '' },
-  { Question: 'Hvordan trives du ute i skogen?', Answer: '' },
+  { Question: "Hvordan trives du på skolen?", Answer: "" },
+  { Question: "Har du det bra?", Answer: "" },
+  { Question: "Hvor god er du i matte?", Answer: "" },
+  { Question: "Hvor god er du i javascript?", Answer: "" },
+  { Question: "Hvor god er du i css?", Answer: "" },
+  { Question: "Hvordan trives du ute i skogen?", Answer: "" },
 ];
 
-const groupBinding = 'Questions';
-const answerBinding = 'Answer';
-const questionBinding = 'Question';
+const groupBinding = "Questions";
+const answerBinding = "Answer";
+const questionBinding = "Question";
 
 export const generateMockFormData = (
-  likertQuestions: IQuestion[],
+  likertQuestions: IQuestion[]
 ): Record<string, string> => {
   return likertQuestions.reduce((formData, likertQuestion, index) => {
     return {
@@ -38,48 +38,48 @@ export const generateMockFormData = (
 
 export const mockOptions = [
   {
-    label: 'Bra',
-    value: '1',
+    label: "Bra",
+    value: "1",
   },
   {
-    label: 'Ok',
-    value: '2',
+    label: "Ok",
+    value: "2",
   },
   {
-    label: 'Dårlig',
-    value: '3',
+    label: "Dårlig",
+    value: "3",
   },
 ];
 
 const createLikertContainer = (props: Partial<ILayoutGroup>): ILayoutGroup => {
   return {
-    id: 'likert-repeating-group-id',
-    type: 'Group',
-    children: ['field1'],
+    id: "likert-repeating-group-id",
+    type: "Group",
+    children: ["field1"],
     maxCount: 99,
     dataModelBindings: {
       group: groupBinding,
     },
     edit: {
-      mode: 'likert',
+      mode: "likert",
     },
     ...props,
   };
 };
 
 const createRadioButton = (
-  props: Partial<ILayoutComponent>,
+  props: Partial<ILayoutComponent>
 ): ILayoutComponent => {
   return {
-    id: 'field1',
-    type: 'Likert',
+    id: "field1",
+    type: "Likert",
     dataModelBindings: {
       simpleBinding: `${groupBinding}.${answerBinding}`,
     },
     textResourceBindings: {
-      title: 'likert-questions',
+      title: "likert-questions",
     },
-    optionsId: 'option-test',
+    optionsId: "option-test",
     readOnly: false,
     required: false,
     disabled: false,
@@ -89,7 +89,7 @@ const createRadioButton = (
 
 export const createFormDataUpdateAction = (
   index: number,
-  optionValue: string,
+  optionValue: string
 ) => {
   return {
     payload: {
@@ -98,14 +98,14 @@ export const createFormDataUpdateAction = (
       field: `Questions[${index}].Answer`,
       skipValidation: false,
     },
-    type: 'formData/update',
+    type: "formData/update",
   };
 };
 
 const createLayout = (
   container: ILayoutGroup,
   components: ILayoutComponent[],
-  groupIndex: number,
+  groupIndex: number
 ): ILayoutState => {
   return {
     error: null,
@@ -116,12 +116,12 @@ const createLayout = (
     uiConfig: {
       hiddenFields: [],
       repeatingGroups: {
-        'likert-repeating-group-id': {
+        "likert-repeating-group-id": {
           index: groupIndex,
           editIndex: -1,
         },
       },
-      currentView: 'FormLayout',
+      currentView: "FormLayout",
       focus: null,
       autoSave: null,
       fileUploadersWithTag: {},
@@ -136,7 +136,7 @@ export const createFormError = (index: number): ILayoutValidations => {
   return {
     [`field1-${index}`]: {
       simpleBinding: {
-        errors: ['Feltet er påkrevd'],
+        errors: ["Feltet er påkrevd"],
         warnings: [],
       },
     },
@@ -144,7 +144,7 @@ export const createFormError = (index: number): ILayoutValidations => {
 };
 
 const createFormValidationsForCurrentView = (
-  validations: ILayoutValidations = {},
+  validations: ILayoutValidations = {}
 ): IValidationState => {
   return {
     error: null,
@@ -156,17 +156,17 @@ const createFormValidationsForCurrentView = (
 
 const createTextResource = (
   questions: IQuestion[],
-  extraResources: ITextResource[],
+  extraResources: ITextResource[]
 ): ITextResourcesState => {
   return {
     resources: [
       {
-        id: 'likert-questions',
-        value: '{0}',
+        id: "likert-questions",
+        value: "{0}",
         variables: [
           {
             key: `${groupBinding}[{0}].${questionBinding}`,
-            dataSource: 'dataModel.default',
+            dataSource: "dataModel.default",
           },
         ],
       },
@@ -178,7 +178,7 @@ const createTextResource = (
       }),
       ...extraResources,
     ],
-    language: 'nb',
+    language: "nb",
     error: null,
   };
 };
@@ -223,15 +223,15 @@ export const render = ({
     formLayout: createLayout(
       mockLikertContainer,
       components,
-      mockQuestions.length - 1,
+      mockQuestions.length - 1
     ),
     formData: mockData,
     formValidations: createFormValidationsForCurrentView(validations),
     textResources: createTextResource(mockQuestions, extraTextResources),
     optionState: {
       options: {
-        'option-test': {
-          id: 'option-test',
+        "option-test": {
+          id: "option-test",
           options: mockOptions,
           loading: false,
         },
@@ -252,17 +252,17 @@ export const render = ({
     />,
     {
       store: mockStore,
-    },
+    }
   );
 
   return { mockStorDispatch };
 };
 
 export const validateTableLayout = (questions: IQuestion[]) => {
-  screen.getByRole('table');
+  screen.getByRole("table");
 
   for (const option of mockOptions) {
-    screen.getByRole('columnheader', {
+    screen.getByRole("columnheader", {
       name: new RegExp(option.label),
     });
   }
@@ -271,13 +271,13 @@ export const validateTableLayout = (questions: IQuestion[]) => {
 };
 
 export const validateRadioLayout = (questions: IQuestion[]) => {
-  expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
+  expect(screen.getAllByRole("radiogroup")).toHaveLength(questions.length);
   for (const question of questions) {
-    const row = screen.getByRole('radiogroup', {
+    const row = screen.getByRole("radiogroup", {
       name: question.Question,
     });
     for (const option of mockOptions) {
-      const radio = within(row).getByRole('radio', {
+      const radio = within(row).getByRole("radio", {
         name: new RegExp(option.label),
       });
       if (question.Answer && option.value === question.Answer) {

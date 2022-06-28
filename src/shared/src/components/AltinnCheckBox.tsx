@@ -1,8 +1,8 @@
+import type { WithStyles } from '@material-ui/core';
 import {
   Checkbox,
   createTheme,
   createStyles,
-  WithStyles,
   withStyles,
 } from '@material-ui/core';
 import React = require('react');

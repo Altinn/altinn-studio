@@ -9,12 +9,12 @@ export interface IAltinnLogoProps {
 function getLogoColor(color: string) {
   const colors = appTheme.altinnPalette.primary;
   switch (color) {
-    case ('white'):
-    case (colors.white):
+    case 'white':
+    case colors.white:
       return 'white';
 
-    case ('blueDark'):
-    case (colors.blueDark):
+    case 'blueDark':
+    case colors.blueDark:
       return 'blue';
 
     default:

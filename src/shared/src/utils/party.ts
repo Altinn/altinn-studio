@@ -1,4 +1,4 @@
-import { IParty } from '../types';
+import type { IParty } from '../types';
 
 export function renderPartyName(party: IParty) {
   if (!party) {

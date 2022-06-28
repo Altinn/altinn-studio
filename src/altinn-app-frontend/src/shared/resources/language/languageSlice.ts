@@ -1,6 +1,7 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { ILanguage } from 'altinn-shared/types';
-import { IAltinnWindow } from 'src/types';
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
+import type { ILanguage } from "altinn-shared/types";
+import type { IAltinnWindow } from "src/types";
 
 export interface IFetchLanguageFulfilled {
   language: ILanguage;
@@ -24,29 +25,39 @@ const localStorageSlectedAppLanguageKey = `selectedAppLanguage${app}`;
 
 export const initialState: ILanguageState = {
   language: null,
-  selectedAppLanguage: localStorage.getItem(localStorageSlectedAppLanguageKey) || '',
+  selectedAppLanguage:
+    localStorage.getItem(localStorageSlectedAppLanguageKey) || "",
   error: null,
 };
 
-const moduleName = 'language';
+const moduleName = "language";
 const languageSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchLanguageFulfilled: (state, action: PayloadAction<IFetchLanguageFulfilled>) => {
+    fetchLanguageFulfilled: (
+      state,
+      action: PayloadAction<IFetchLanguageFulfilled>
+    ) => {
       const { language } = action.payload;
       state.language = language;
     },
-    fetchLanguageRejected: (state, action: PayloadAction<IFetchLanguageRejected>) => {
+    fetchLanguageRejected: (
+      state,
+      action: PayloadAction<IFetchLanguageRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateSelectedAppLanguage: (state, action: PayloadAction<IUpdateSelectedAppLanguage>)=>{
+    updateSelectedAppLanguage: (
+      state,
+      action: PayloadAction<IUpdateSelectedAppLanguage>
+    ) => {
       const { selected } = action.payload;
       localStorage.setItem(localStorageSlectedAppLanguageKey, selected);
       state.selectedAppLanguage = selected;
-    }
-  }
+    },
+  },
 });
 
 const actions = {
@@ -57,6 +68,6 @@ const actions = {
 export const LanguageActions = {
   ...actions,
   ...languageSlice.actions,
-}
+};
 
 export default languageSlice.reducer;

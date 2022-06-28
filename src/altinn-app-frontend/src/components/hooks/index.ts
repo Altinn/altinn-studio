@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { shallowEqual } from "react-redux";
 import { useAppSelector } from "src/common/hooks";
 import type { IMapping, IOptionSource, IOption } from "src/types";
-import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from "src/utils/options";
+import {
+  getOptionLookupKey,
+  getRelevantFormDataForOptionSource,
+  setupSourceOptions,
+} from "src/utils/options";
 
 interface IUseGetOptionsParams {
   optionsId: string;
@@ -12,13 +16,27 @@ interface IUseGetOptionsParams {
   source?: IOptionSource;
 }
 
-export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsParams) => {
-  const relevantFormData = useAppSelector(state => getRelevantFormDataForOptionSource(state.formData.formData, source), shallowEqual);
-  const instance = useAppSelector(state => state.instanceData.instance);
-  const relevantTextResource = useAppSelector(state => state.textResources.resources.find((e => e.id === source?.label)));
-  const repeatingGroups = useAppSelector(state => state.formLayout.uiConfig.repeatingGroups);
-  const applicationSettings = useAppSelector(state => state.applicationSettings?.applicationSettings);
-  const optionState = useAppSelector(state => state.optionState.options);
+export const useGetOptions = ({
+  optionsId,
+  mapping,
+  source,
+}: IUseGetOptionsParams) => {
+  const relevantFormData = useAppSelector(
+    (state) =>
+      getRelevantFormDataForOptionSource(state.formData.formData, source),
+    shallowEqual
+  );
+  const instance = useAppSelector((state) => state.instanceData.instance);
+  const relevantTextResource = useAppSelector((state) =>
+    state.textResources.resources.find((e) => e.id === source?.label)
+  );
+  const repeatingGroups = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups
+  );
+  const applicationSettings = useAppSelector(
+    (state) => state.applicationSettings?.applicationSettings
+  );
+  const optionState = useAppSelector((state) => state.optionState.options);
   const [options, setOptions] = useState<IOption[]>(undefined);
 
   useEffect(() => {
@@ -35,21 +53,31 @@ export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsPara
     const dataSources: IDataSources = {
       dataModel: relevantFormData,
       applicationSettings: applicationSettings,
-      instanceContext: instanceContext
+      instanceContext: instanceContext,
     };
 
-    setOptions(setupSourceOptions({
-      source,
-      relevantTextResource,
-      relevantFormData,
-      repeatingGroups,
-      dataSources
-    }));
-
-  }, [applicationSettings, relevantFormData, instance, mapping, optionState, optionsId, repeatingGroups, source, relevantTextResource]);
+    setOptions(
+      setupSourceOptions({
+        source,
+        relevantTextResource,
+        relevantFormData,
+        repeatingGroups,
+        dataSources,
+      })
+    );
+  }, [
+    applicationSettings,
+    relevantFormData,
+    instance,
+    mapping,
+    optionState,
+    optionsId,
+    repeatingGroups,
+    source,
+    relevantTextResource,
+  ]);
 
   return options;
-}
+};
 
-export { useDisplayData } from './useDisplayData';
-
+export { useDisplayData } from "./useDisplayData";

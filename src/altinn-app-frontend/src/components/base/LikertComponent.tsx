@@ -1,14 +1,12 @@
-import React from 'react';
-import { Box, TableCell, TableRow } from '@material-ui/core';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
-import { StyledRadio } from 'src/components/base/RadioButtons/StyledRadio';
-import {
-  ControlledRadioGroup,
-  IControlledRadioGroupProps,
-} from 'src/components/base/RadioButtons/ControlledRadioGroup';
-import { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
-import { LayoutStyle } from 'src/types';
+import React from "react";
+import { Box, TableCell, TableRow } from "@material-ui/core";
+import { renderValidationMessagesForComponent } from "src/utils/render";
+import { useRadioButtons } from "src/components/base/RadioButtons/radioButtonsUtils";
+import { StyledRadio } from "src/components/base/RadioButtons/StyledRadio";
+import type { IControlledRadioGroupProps } from "src/components/base/RadioButtons/ControlledRadioGroup";
+import { ControlledRadioGroup } from "src/components/base/RadioButtons/ControlledRadioGroup";
+import type { IRadioButtonsContainerProps } from "src/components/base/RadioButtons/RadioButtonsContainerComponent";
+import { LayoutStyle } from "src/types";
 
 export const LikertComponent = (props: IRadioButtonsContainerProps) => {
   const { layout } = props;
@@ -16,9 +14,19 @@ export const LikertComponent = (props: IRadioButtonsContainerProps) => {
 
   switch (layout) {
     case LayoutStyle.Table:
-      return <RadioGroupTableRow {...props} {...useRadioProps} />;
+      return (
+        <RadioGroupTableRow
+          {...props}
+          {...useRadioProps}
+        />
+      );
     default:
-      return <ControlledRadioGroup {...props} {...useRadioProps} />;
+      return (
+        <ControlledRadioGroup
+          {...props}
+          {...useRadioProps}
+        />
+      );
   }
 };
 
@@ -35,13 +43,23 @@ const RadioGroupTableRow = ({
   const RenderLegend = legend;
   const rowLabelId = `row-label-${id}`;
   return (
-    <TableRow role={'radiogroup'} aria-labelledby={rowLabelId}>
-      <TableCell scope='row' id={rowLabelId} style={{ whiteSpace: 'normal' }}>
-        <Box pt={1} pb={1}>
+    <TableRow
+      role={"radiogroup"}
+      aria-labelledby={rowLabelId}
+    >
+      <TableCell
+        scope="row"
+        id={rowLabelId}
+        style={{ whiteSpace: "normal" }}
+      >
+        <Box
+          pt={1}
+          pb={1}
+        >
           <RenderLegend />
           {renderValidationMessagesForComponent(
             componentValidations?.simpleBinding,
-            id,
+            id
           )}
         </Box>
       </TableCell>
@@ -55,18 +73,18 @@ const RadioGroupTableRow = ({
             <label
               htmlFor={inputId}
               style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
               }}
             >
               <StyledRadio
                 inputProps={{
-                  'aria-labelledby': `${rowLabelId} ${colLabelId}`,
+                  "aria-labelledby": `${rowLabelId} ${colLabelId}`,
                   id: inputId,
-                  role: 'radio',
+                  role: "radio",
                   name: rowLabelId,
-                  'aria-checked': isChecked,
+                  "aria-checked": isChecked,
                 }}
                 checked={isChecked}
                 onChange={handleChange}

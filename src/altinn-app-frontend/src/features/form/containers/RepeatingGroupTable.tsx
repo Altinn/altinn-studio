@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Grid,
   makeStyles,
@@ -7,18 +7,18 @@ import {
   TableCell,
   IconButton,
   useMediaQuery,
-} from '@material-ui/core';
-import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
+} from "@material-ui/core";
+import altinnAppTheme from "altinn-shared/theme/altinnAppTheme";
+import { getLanguageFromKey, getTextResourceByKey } from "altinn-shared/utils";
 import {
   componentHasValidations,
   repeatingGroupHasValidations,
-} from 'src/utils/validation';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+} from "src/utils/validation";
+import { createRepeatingGroupComponents } from "src/utils/formLayout";
 import {
   getFormDataForComponentInRepeatingGroup,
   getTextResource,
-} from 'src/utils/formComponentUtils';
+} from "src/utils/formComponentUtils";
 import {
   AltinnMobileTable,
   AltinnMobileTableItem,
@@ -26,19 +26,19 @@ import {
   AltinnTableBody,
   AltinnTableHeader,
   AltinnTableRow,
-} from 'altinn-shared/components';
-import { IMobileTableItem } from 'altinn-shared/components/molecules/AltinnMobileTableItem';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import { setupGroupComponents } from '../../../utils/layout';
-import {
+} from "altinn-shared/components";
+import type { IMobileTableItem } from "altinn-shared/components/molecules/AltinnMobileTableItem";
+import type { ILayout, ILayoutComponent, ILayoutGroup } from "../layout";
+import { setupGroupComponents } from "../../../utils/layout";
+import type {
   ITextResource,
   IRepeatingGroups,
   IValidations,
   IOptions,
   ITextResourceBindings,
-} from '../../../types';
-import { ILanguage } from 'altinn-shared/types';
-import { IAttachments } from "src/shared/resources/attachments";
+} from "../../../types";
+import type { ILanguage } from "altinn-shared/types";
+import type { IAttachments } from "src/shared/resources/attachments";
 
 export interface IRepeatingGroupTableProps {
   id: string;
@@ -49,7 +49,7 @@ export interface IRepeatingGroupTableProps {
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
   formData: any;
-  attachments: IAttachments,
+  attachments: IAttachments;
   options: IOptions;
   textResources: ITextResource[];
   language: ILanguage;
@@ -65,49 +65,56 @@ const theme = createTheme(altinnAppTheme);
 
 const useStyles = makeStyles({
   errorIcon: {
-    fontSize: '2em',
-    minWidth: '0px',
-    minHeight: '0px',
-    width: 'auto',
+    fontSize: "2em",
+    minWidth: "0px",
+    minHeight: "0px",
+    width: "auto",
     color: theme.altinnPalette.primary.red,
-    marginBottom: '2px',
-    marginTop: '1px',
-    paddingRight: '4px',
+    marginBottom: "2px",
+    marginTop: "1px",
+    paddingRight: "4px",
   },
   editIcon: {
-    paddingRight: '6px',
-    fontSize: '28px',
-    marginTop: '-2px',
+    paddingRight: "6px",
+    fontSize: "28px",
+    marginTop: "-2px",
   },
   tableEditButton: {
     color: theme.altinnPalette.primary.blueDark,
     fontWeight: 700,
-    borderRadius: '5px',
-    padding: '6px 12px',
-    margin: '8px 2px',
-    '&:hover': {
-      background: 'none',
-      outline: `1px dotted ${theme.altinnPalette.primary.blueDark}`
+    borderRadius: "5px",
+    padding: "6px 12px",
+    margin: "8px 2px",
+    "&:hover": {
+      background: "none",
+      outline: `1px dotted ${theme.altinnPalette.primary.blueDark}`,
     },
-    '&:focus': {
+    "&:focus": {
       background: theme.altinnPalette.primary.blueLighter,
-      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
-    }
-  }
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
+    },
+  },
 });
 
 function getEditButtonText(
   language: ILanguage,
   isEditing: boolean,
   textResources: ITextResource[],
-  textResourceBindings?: ITextResourceBindings) {
+  textResourceBindings?: ITextResourceBindings
+) {
   if (isEditing && textResourceBindings?.edit_button_close) {
-    return getTextResourceByKey(textResourceBindings?.edit_button_close, textResources);
+    return getTextResourceByKey(
+      textResourceBindings?.edit_button_close,
+      textResources
+    );
   } else if (!isEditing && textResourceBindings?.edit_button_open) {
-    return getTextResourceByKey(textResourceBindings?.edit_button_open, textResources);
+    return getTextResourceByKey(
+      textResourceBindings?.edit_button_open,
+      textResources
+    );
   }
 
-  return getLanguageFromKey('general.edit_alt', language);
+  return getLanguageFromKey("general.edit_alt", language);
 }
 
 export function RepeatingGroupTable({
@@ -132,24 +139,24 @@ export function RepeatingGroupTable({
 }: IRepeatingGroupTableProps): JSX.Element {
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(
-    JSON.stringify(components),
+    JSON.stringify(components)
   );
   const tableHeaderComponents =
     container.tableHeaders ||
     components.map((c) => (c as any).baseComponentId || c.id) ||
     [];
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileView = useMediaQuery("(max-width:992px)"); // breakpoint on altinn-modal
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
     const childId = (component as any).baseComponentId || component.id;
     if (tableHeaderComponents.includes(childId)) {
-      componentTitles.push(component.textResourceBindings?.title || '');
+      componentTitles.push(component.textResourceBindings?.title || "");
     }
   });
 
   const getFormDataForComponent = (
     component: ILayoutComponent | ILayoutGroup,
-    index: number,
+    index: number
   ): string => {
     return getFormDataForComponentInRepeatingGroup(
       formData,
@@ -159,7 +166,7 @@ export function RepeatingGroupTable({
       container.dataModelBindings.group,
       textResources,
       options,
-      repeatingGroups,
+      repeatingGroups
     );
   };
 
@@ -173,9 +180,9 @@ export function RepeatingGroupTable({
 
   const childElementHasErrors = (
     element: ILayoutGroup | ILayoutComponent,
-    index: number,
+    index: number
   ) => {
-    if (element.type === 'Group') {
+    if (element.type === "Group") {
       return childGroupHasErrors(element as ILayoutGroup, index);
     }
     return componentHasValidations(validations, currentView, `${element.id}`);
@@ -184,19 +191,19 @@ export function RepeatingGroupTable({
   const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
     const childGroupIndex = repeatingGroups[childGroup.id]?.index;
     const childGroupComponents = layout.filter(
-      (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
+      (childElement) => childGroup.children?.indexOf(childElement.id) > -1
     );
     const childRenderComponents = setupGroupComponents(
       childGroupComponents,
       childGroup.dataModelBindings?.group,
-      index,
+      index
     );
     const deepCopyComponents = createRepeatingGroupComponents(
       childGroup,
       childRenderComponents,
       childGroupIndex,
       textResources,
-      hiddenFields,
+      hiddenFields
     );
     return repeatingGroupHasValidations(
       childGroup,
@@ -205,7 +212,7 @@ export function RepeatingGroupTable({
       currentView,
       repeatingGroups,
       layout,
-      hiddenFields,
+      hiddenFields
     );
   };
 
@@ -221,7 +228,10 @@ export function RepeatingGroupTable({
           <AltinnTableHeader id={`group-${id}-table-header`}>
             <TableRow>
               {componentTitles.map((title: string) => (
-                <TableCell align='left' key={title}>
+                <TableCell
+                  align="left"
+                  key={title}
+                >
                   {getTextResource(title, textResources)}
                 </TableCell>
               ))}
@@ -244,7 +254,10 @@ export function RepeatingGroupTable({
                   }
 
                   return (
-                    <AltinnTableRow valid={!rowHasErrors} key={index}>
+                    <AltinnTableRow
+                      valid={!rowHasErrors}
+                      key={index}
+                    >
                       {components.map((component: ILayoutComponent) => {
                         const childId =
                           (component as any).baseComponentId || component.id;
@@ -257,7 +270,10 @@ export function RepeatingGroupTable({
                           </TableCell>
                         );
                       })}
-                      <TableCell align='right' key={`delete-${index}`}>
+                      <TableCell
+                        align="right"
+                        key={`delete-${index}`}
+                      >
                         <IconButton
                           className={classes.tableEditButton}
                           onClick={() => onClickEdit(index)}
@@ -271,20 +287,20 @@ export function RepeatingGroupTable({
                           />
                           {rowHasErrors
                             ? getLanguageFromKey(
-                              'general.edit_alt_error',
-                              language,
-                            )
+                                "general.edit_alt_error",
+                                language
+                              )
                             : getEditButtonText(
-                              language,
-                              editIndex === index,
-                              textResources,
-                              container.textResourceBindings
-                            )}
+                                language,
+                                editIndex === index,
+                                textResources,
+                                container.textResourceBindings
+                              )}
                         </IconButton>
                       </TableCell>
                     </AltinnTableRow>
                   );
-                },
+                }
               )}
           </AltinnTableBody>
         </AltinnTable>
@@ -308,7 +324,7 @@ export function RepeatingGroupTable({
                       key: component.id,
                       label: getTextResource(
                         component?.textResourceBindings?.title,
-                        textResources,
+                        textResources
                       ),
                       value: getFormDataForComponent(component, index),
                     });
@@ -331,20 +347,20 @@ export function RepeatingGroupTable({
                         />
                         {rowHasErrors
                           ? getLanguageFromKey(
-                            'general.edit_alt_error',
-                            language,
-                          )
+                              "general.edit_alt_error",
+                              language
+                            )
                           : getEditButtonText(
-                            language,
-                            editIndex === index,
-                            textResources,
-                            container.textResourceBindings
-                          )}
+                              language,
+                              editIndex === index,
+                              textResources,
+                              container.textResourceBindings
+                            )}
                       </>
                     }
                   />
                 );
-              },
+              }
             )}
         </AltinnMobileTable>
       )}

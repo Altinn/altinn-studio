@@ -16,8 +16,8 @@ const theme = createTheme(altinnTheme);
 
 const styles = {
   link: {
-    'borderBottom': '1px solid ' + theme.altinnPalette.primary.blueDark,
-    'color': theme.altinnPalette.primary.blueDarker,
+    borderBottom: '1px solid ' + theme.altinnPalette.primary.blueDark,
+    color: theme.altinnPalette.primary.blueDarker,
     '&:hover': {
       fontWeight: 500,
       textDecoration: 'none',
@@ -31,9 +31,14 @@ export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedPro
   public render() {
     const { classes, openInNewTab } = this.props;
     return (
-      <a href={this.props.url} className={classes.link} target={openInNewTab ? '_blank' : ''} rel="noreferrer">
+      <a
+        href={this.props.url}
+        className={classes.link}
+        target={openInNewTab ? '_blank' : ''}
+        rel='noreferrer'
+      >
         {this.props.linkTxt}
-        {this.props.shouldShowIcon &&
+        {this.props.shouldShowIcon && (
           <AltinnIconComponent
             isActive={false}
             iconClass='ai ai-arrowrightup'
@@ -41,7 +46,7 @@ export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedPro
             iconSize={20}
             margin={'5px'}
           />
-        }
+        )}
       </a>
     );
   }

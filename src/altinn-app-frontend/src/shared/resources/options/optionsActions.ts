@@ -1,7 +1,7 @@
-import { bindActionCreators } from 'redux';
-import { store } from 'src/store';
+import { bindActionCreators } from "redux";
+import { store } from "src/store";
 
-import * as FetchOptions from './fetch/fetchOptionsActions';
+import * as FetchOptions from "./fetch/fetchOptionsActions";
 
 export type IOptionsActions = typeof actions;
 
@@ -12,6 +12,9 @@ const actions = {
   fetchOptionsRejected: FetchOptions.fetchOptionsRejected,
 };
 
-const optionsActions: IOptionsActions = bindActionCreators<any, any>(actions, store.dispatch);
+const optionsActions: IOptionsActions = bindActionCreators<any, any>(
+  actions,
+  store.dispatch
+);
 
 export default optionsActions;

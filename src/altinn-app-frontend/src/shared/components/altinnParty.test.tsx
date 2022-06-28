@@ -1,13 +1,14 @@
-import { mount, ReactWrapper } from 'enzyme';
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
+import type { ReactWrapper } from "enzyme";
+import { mount } from "enzyme";
+import * as React from "react";
+import { Provider } from "react-redux";
+import configureStore from "redux-mock-store";
 
-import type { IParty } from 'altinn-shared/types';
+import type { IParty } from "altinn-shared/types";
 
-import AltinnParty from './altinnParty';
+import AltinnParty from "./altinnParty";
 
-describe('altinnParty', () => {
+describe("altinnParty", () => {
   let mountedComponent: ReactWrapper;
   let mockParty: IParty;
   let selectedParty: IParty;
@@ -18,12 +19,12 @@ describe('altinnParty', () => {
   beforeEach(() => {
     mockParty = {
       childParties: [],
-      partyId: 'partyId',
+      partyId: "partyId",
       partyTypeName: 1,
       orgNumber: null,
-      ssn: 'ssn',
-      unitType: 'test',
-      name: 'Testing Testing',
+      ssn: "ssn",
+      unitType: "test",
+      name: "Testing Testing",
       isDeleted: false,
       onlyHierarchyElementWithNoAccess: false,
     };
@@ -42,14 +43,14 @@ describe('altinnParty', () => {
           onSelectParty={onSelectPartyMock}
           showSubUnits={true}
         />
-      </Provider>,
+      </Provider>
     );
   });
 
-  it('should use callback to select party', () => {
+  it("should use callback to select party", () => {
     mountedComponent
       .findWhere((n: ReactWrapper<any, any>) => {
-        if (n.type() === 'div') {
+        if (n.type() === "div") {
           if (n.getDOMNode().id === `party-${mockParty.partyId}`) {
             return true;
           }
@@ -57,20 +58,20 @@ describe('altinnParty', () => {
         }
         return false;
       })
-      .simulate('click');
+      .simulate("click");
     expect(selectedParty).toEqual(mockParty);
   });
 
-  describe('should render with correct icon based on what kind of party it is', () => {
+  describe("should render with correct icon based on what kind of party it is", () => {
     it("should render with class 'fa fa-private' if party is a person", () => {
       mockParty = {
         childParties: [],
-        partyId: 'partyId',
+        partyId: "partyId",
         partyTypeName: 1,
         orgNumber: null,
-        ssn: 'ssn',
-        unitType: 'test',
-        name: 'Testing Testing',
+        ssn: "ssn",
+        unitType: "test",
+        name: "Testing Testing",
         isDeleted: false,
         onlyHierarchyElementWithNoAccess: false,
       };
@@ -81,22 +82,22 @@ describe('altinnParty', () => {
             onSelectParty={onSelectPartyMock}
             showSubUnits={true}
           />
-        </Provider>,
+        </Provider>
       );
       mountedComponent.containsMatchingElement(
-        <i className={'partyIcon fa fa-private'} />,
+        <i className={"partyIcon fa fa-private"} />
       );
     });
 
     it("should render with class 'fa fa-corp' if party is a organisation", () => {
       mockParty = {
         childParties: [],
-        partyId: 'partyId',
+        partyId: "partyId",
         partyTypeName: 1,
         orgNumber: 1000000,
-        ssn: 'ssn',
-        unitType: 'test',
-        name: 'Testing Testing',
+        ssn: "ssn",
+        unitType: "test",
+        name: "Testing Testing",
         isDeleted: false,
         onlyHierarchyElementWithNoAccess: false,
       };
@@ -107,10 +108,10 @@ describe('altinnParty', () => {
             onSelectParty={onSelectPartyMock}
             showSubUnits={true}
           />
-        </Provider>,
+        </Provider>
       );
       mountedComponent.containsMatchingElement(
-        <i className={'partyIcon fa fa-corp'} />,
+        <i className={"partyIcon fa fa-corp"} />
       );
     });
   });

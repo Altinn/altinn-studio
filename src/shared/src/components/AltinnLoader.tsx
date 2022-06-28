@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export interface IAltinnLoaderProps {
   /** The id, defaults to 'altinn-loader' */
@@ -11,14 +11,14 @@ export interface IAltinnLoaderProps {
 
 export default function AltinnLoader(props: IAltinnLoaderProps) {
   return (
-    <div 
-      aria-live="polite"
-      className="a-loader float-left"
+    <div
+      aria-live='polite'
+      className='a-loader float-left'
       id={props.id || 'altinn-loader'}
       style={props.style}
     >
-      <div className="loader loader-ellipsis"/>
-      <p className="sr-only">{props.srContent}</p>
+      <div className='loader loader-ellipsis' />
+      <p className='sr-only'>{props.srContent}</p>
     </div>
   );
 }

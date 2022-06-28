@@ -1,5 +1,11 @@
-
-import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import type { WithStyles } from '@material-ui/core';
+import {
+  AppBar,
+  createStyles,
+  Grid,
+  Typography,
+  withStyles,
+} from '@material-ui/core';
 import * as React from 'react';
 import type { ILanguage, IParty } from '../../types';
 import { getLanguageFromKey } from '../../utils';
@@ -59,26 +65,28 @@ export function AltinnAppHeader({
   headerBackgroundColor,
   party,
   userParty,
-  language
+  language,
 }: IAltinnAppHeaderProps) {
-
   return (
     <AppBar
       position='relative'
       classes={{ root: classes.altinnAppHeader }}
       style={{ backgroundColor: headerBackgroundColor, color: logoColor }}
     >
-      <LandmarkShortcuts shortcuts={[{ id: 'main-content', text: getLanguageFromKey('navigation.to_main_content', language) }]} />
+      <LandmarkShortcuts
+        shortcuts={[
+          {
+            id: 'main-content',
+            text: getLanguageFromKey('navigation.to_main_content', language),
+          },
+        ]}
+      />
       <Grid
         container={true}
         className={classes.mainContent}
         alignItems='center'
       >
-        <Grid
-          container={true}
-          item={true}
-          xs={6}
-        >
+        <Grid container={true} item={true} xs={6}>
           <Grid item={true}>
             <AltinnLogo color={logoColor} />
           </Grid>
@@ -91,16 +99,13 @@ export function AltinnAppHeader({
           xs={6}
         >
           <Grid item={true}>
-            {(party && userParty && party.partyId === userParty.partyId) &&
+            {party && userParty && party.partyId === userParty.partyId && (
               <Typography className={classes.appHeaderText}>
                 {renderPartyName(userParty)}
               </Typography>
-            }
-            {(party && userParty && party.partyId !== userParty.partyId) &&
-              <Grid
-                container={true} direction='column'
-                alignItems='flex-end'
-              >
+            )}
+            {party && userParty && party.partyId !== userParty.partyId && (
+              <Grid container={true} direction='column' alignItems='flex-end'>
                 <Grid item={true}>
                   <Typography className={classes.appHeaderText}>
                     {renderPartyName(userParty)}
@@ -112,14 +117,17 @@ export function AltinnAppHeader({
                   </Typography>
                 </Grid>
               </Grid>
-            }
+            )}
           </Grid>
           <Grid item={true}>
             <AltinnAppHeaderMenu
               party={party}
               logoColor={logoColor}
               logoutText={getLanguageFromKey('general.log_out', language)}
-              ariaLabel={getLanguageFromKey('general.header_profile_icon_label', language)}
+              ariaLabel={getLanguageFromKey(
+                'general.header_profile_icon_label',
+                language,
+              )}
             />
           </Grid>
         </Grid>

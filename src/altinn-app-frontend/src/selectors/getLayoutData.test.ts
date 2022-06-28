@@ -1,6 +1,6 @@
-import { makeGetFocus, makeGetHidden } from '../../src/selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden } from "../../src/selectors/getLayoutData";
 
-describe('selectors > getLayoutData', () => {
+describe("selectors > getLayoutData", () => {
   let initialState: any;
   let mockProps: any;
   let mockPropsFocus: any;
@@ -10,19 +10,19 @@ describe('selectors > getLayoutData', () => {
       formLayout: {
         layout: [
           {
-            type: 'Input',
-            id: 'mockId',
+            type: "Input",
+            id: "mockId",
             hidden: false,
           },
           {
-            type: 'FileUpload',
-            id: 'mockId_2',
+            type: "FileUpload",
+            id: "mockId_2",
             hidden: false,
           },
         ],
         uiConfig: {
-          focus: 'mockId',
-          hiddenFields: ['mockId_2'],
+          focus: "mockId",
+          hiddenFields: ["mockId_2"],
         },
       },
       formDataModel: {},
@@ -40,25 +40,25 @@ describe('selectors > getLayoutData', () => {
       formData: {
         unsavedChanges: false,
         formData: {
-          mockDataBinding: 'value',
+          mockDataBinding: "value",
         },
       },
     };
     mockProps = {
-      id: 'mockId_2',
+      id: "mockId_2",
     };
     mockPropsFocus = {
-      id: 'mockId',
+      id: "mockId",
     };
   });
 
-  it('getHidden should return correct hidden status for layout element', () => {
+  it("getHidden should return correct hidden status for layout element", () => {
     const getHidden = makeGetHidden();
     const result = getHidden(initialState, mockProps);
     expect(result).toEqual(true);
   });
 
-  it('getFocus should return correct focus status for layout element', () => {
+  it("getFocus should return correct focus status for layout element", () => {
     const getFocus = makeGetFocus();
     const result = getFocus(initialState, mockPropsFocus);
     expect(result).toEqual(true);

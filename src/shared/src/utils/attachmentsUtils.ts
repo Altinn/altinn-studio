@@ -1,4 +1,11 @@
-import { IAttachment, IData, ITextResource, IAttachmentGrouping, IDataType, IApplication } from '../types/index';
+import type {
+  IAttachment,
+  IData,
+  ITextResource,
+  IAttachmentGrouping,
+  IDataType,
+  IApplication,
+} from '../types/index';
 import { getTextResourceByKey } from './language';
 
 export const mapInstanceAttachments = (
@@ -11,13 +18,18 @@ export const mapInstanceAttachments = (
   }
   const tempAttachments: IAttachment[] = [];
   data.forEach((dataElement: IData) => {
-    if (defaultElementIds.indexOf(dataElement.dataType) > -1 || dataElement.dataType === 'ref-data-as-pdf') {
+    if (
+      defaultElementIds.indexOf(dataElement.dataType) > -1 ||
+      dataElement.dataType === 'ref-data-as-pdf'
+    ) {
       return;
     }
 
     tempAttachments.push({
       name: dataElement.filename,
-      url: platform ? dataElement.selfLinks.platform : dataElement.selfLinks.apps,
+      url: platform
+        ? dataElement.selfLinks.platform
+        : dataElement.selfLinks.apps,
       iconClass: 'reg reg-attachment',
       dataType: dataElement.dataType,
     });
@@ -25,19 +37,26 @@ export const mapInstanceAttachments = (
   return tempAttachments;
 };
 
-export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment[] => {
+export const getInstancePdf = (
+  data: IData[],
+  platform?: boolean,
+): IAttachment[] => {
   if (!data) {
     return null;
   }
 
-  const pdfElements = data.filter((element) => element.dataType === 'ref-data-as-pdf');
+  const pdfElements = data.filter(
+    (element) => element.dataType === 'ref-data-as-pdf',
+  );
 
   if (!pdfElements) {
     return null;
   }
 
   const result = pdfElements.map((element) => {
-    const pdfUrl = platform ? element.selfLinks.platform : element.selfLinks.apps;
+    const pdfUrl = platform
+      ? element.selfLinks.platform
+      : element.selfLinks.apps;
     return {
       name: element.filename,
       url: pdfUrl,

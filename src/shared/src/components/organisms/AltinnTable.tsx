@@ -1,10 +1,5 @@
-import {
-  Grid,
-  makeStyles,
-  Table,
-  TableContainer,
-  TableProps,
-} from '@material-ui/core';
+import type { TableProps } from '@material-ui/core';
+import { Grid, makeStyles, Table, TableContainer } from '@material-ui/core';
 import React from 'react';
 
 export interface IAltinnTableProps {

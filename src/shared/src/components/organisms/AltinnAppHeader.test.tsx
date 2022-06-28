@@ -2,19 +2,19 @@ import * as React from 'react';
 import 'jest';
 import { mount } from 'enzyme';
 import { AltinnAppHeader } from '..';
-import { IParty } from '../../types';
+import type { IParty } from '../../types';
 
 describe('>>> AltinnAppHeader.tsx', () => {
   const partyPerson = {
     name: 'Test Testesen',
     ssn: '01010000000',
-    partyId: '12345'
+    partyId: '12345',
   } as IParty;
 
   const partyOrg = {
     orgNumber: 12345678,
     partyId: '54321',
-    name: 'Bedrift'
+    name: 'Bedrift',
   } as IParty;
   const headerBackgroundColor = 'blue';
   const logoColor = 'blue';
@@ -22,7 +22,7 @@ describe('>>> AltinnAppHeader.tsx', () => {
     general: {
       header_profile_icon_label: 'Profilikon meny',
       log_out: 'Logg ut',
-    }
+    },
   };
 
   /*
@@ -68,6 +68,8 @@ describe('>>> AltinnAppHeader.tsx', () => {
     wrapper.find('#profile-icon-button').hostNodes().simulate('click');
     expect(wrapper.find('#profile-menu').hostNodes()).toHaveLength(1);
     expect(wrapper.find('#logout-menu-item').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#logout-menu-item').hostNodes().text()).toEqual("Logg ut");
+    expect(wrapper.find('#logout-menu-item').hostNodes().text()).toEqual(
+      'Logg ut',
+    );
   });
 });

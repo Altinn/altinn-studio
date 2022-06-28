@@ -1,18 +1,19 @@
-import * as React from 'react';
-import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import { IInstance } from 'altinn-shared/types';
-import { GenericComponent } from '../../components/GenericComponent';
-import {
+import * as React from "react";
+import { GroupContainer } from "src/features/form/containers/GroupContainer";
+import type { IInstance } from "altinn-shared/types";
+import { GenericComponent } from "../../components/GenericComponent";
+import type {
   ILayouts,
   ILayoutComponent,
   ILayoutGroup,
   ILayout,
-} from '../../features/form/layout';
-import { ILayoutSets, ILayoutSet, LayoutStyle } from 'src/types';
+} from "../../features/form/layout";
+import type { ILayoutSets, ILayoutSet } from "src/types";
+import { LayoutStyle } from "src/types";
 
 export function getLayoutComponentById(
   id: string,
-  layouts: ILayouts,
+  layouts: ILayouts
 ): ILayoutComponent {
   let component: ILayoutComponent;
   Object.keys(layouts).forEach((layoutId) => {
@@ -60,22 +61,27 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 export function renderGenericComponent(
   component: ILayoutComponent,
   layout: ILayout,
-  index = -1,
+  index = -1
 ) {
-  if (component.type.toLowerCase() === 'group') {
+  if (component.type.toLowerCase() === "group") {
     return renderLayoutGroup(
       component as unknown as ILayoutGroup,
       layout,
-      index,
+      index
     );
   }
-  return <GenericComponent key={component.id} {...component} />;
+  return (
+    <GenericComponent
+      key={component.id}
+      {...component}
+    />
+  );
 }
 
 export function renderLayoutGroup(
   layoutGroup: ILayoutGroup,
   layout: ILayout,
-  index?: number,
+  index?: number
 ) {
   const groupComponents = layoutGroup.children.map((child) => {
     return layout.find((c) => c.id === child) as ILayoutComponent;
@@ -83,7 +89,7 @@ export function renderLayoutGroup(
   const deepCopyComponents = setupGroupComponents(
     groupComponents,
     layoutGroup.dataModelBindings.group,
-    index,
+    index
   );
   const repeating = layoutGroup.maxCount > 1;
   if (!repeating) {
@@ -110,21 +116,21 @@ export function renderLayoutGroup(
 export function setupGroupComponents(
   components: (ILayoutComponent | ILayoutGroup)[],
   groupDataModelBinding: string,
-  index: number,
+  index: number
 ): (ILayoutGroup | ILayoutComponent)[] {
   const childComponents = components.map((component: ILayoutComponent) => {
     const componentDeepCopy: ILayoutComponent = JSON.parse(
-      JSON.stringify(component),
+      JSON.stringify(component)
     );
     const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
     Object.keys(dataModelBindings).forEach((key) => {
       const originalGroupBinding = groupDataModelBinding.replace(
         `[${index}]`,
-        '',
+        ""
       );
       dataModelBindings[key] = dataModelBindings[key].replace(
         originalGroupBinding,
-        groupDataModelBinding,
+        groupDataModelBinding
       );
     });
     const deepCopyId = `${componentDeepCopy.id}-${index}`;
@@ -142,7 +148,7 @@ export function setupGroupComponents(
 export function getLayoutsetForDataElement(
   instance: IInstance,
   datatype: string,
-  layoutsets: ILayoutSets,
+  layoutsets: ILayoutSets
 ) {
   const currentTaskId = instance.process.currentTask.elementId;
   const foundLayout = layoutsets.sets.find((layoutSet: ILayoutSet) => {
@@ -156,11 +162,11 @@ export function getLayoutsetForDataElement(
 
 export function getHiddenFieldsForGroup(
   hiddenFields: string[],
-  components: (ILayoutGroup | ILayoutComponent)[],
+  components: (ILayoutGroup | ILayoutComponent)[]
 ) {
   const result = [];
   hiddenFields.forEach((fieldKey) => {
-    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, "");
     if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
       result.push(fieldKey);
     }

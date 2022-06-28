@@ -1,8 +1,8 @@
-import React from 'react';
-import { IComponentProps } from '../../index';
-import type { IMapping, IOption, IOptionSource } from 'src/types';
-import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
-import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
+import React from "react";
+import type { IComponentProps } from "../../index";
+import type { IMapping, IOption, IOptionSource } from "src/types";
+import { useRadioButtons } from "src/components/base/RadioButtons/radioButtonsUtils";
+import { ControlledRadioGroup } from "src/components/base/RadioButtons/ControlledRadioGroup";
 
 export interface IRadioButtonsContainerProps extends IComponentProps {
   validationMessages?: any;
@@ -15,8 +15,13 @@ export interface IRadioButtonsContainerProps extends IComponentProps {
 }
 
 export const RadioButtonContainerComponent = (
-  props: IRadioButtonsContainerProps,
+  props: IRadioButtonsContainerProps
 ) => {
   const useRadioProps = useRadioButtons(props);
-  return <ControlledRadioGroup {...props} {...useRadioProps} />;
+  return (
+    <ControlledRadioGroup
+      {...props}
+      {...useRadioProps}
+    />
+  );
 };

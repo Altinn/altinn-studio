@@ -1,4 +1,4 @@
-import type { IRuntimeState } from 'src/types';
+import type { IRuntimeState } from "src/types";
 
 export const appMetaDataSelector = (state: IRuntimeState) =>
   state.applicationMetadata.applicationMetadata;

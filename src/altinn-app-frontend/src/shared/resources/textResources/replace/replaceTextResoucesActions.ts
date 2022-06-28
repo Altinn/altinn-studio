@@ -1,6 +1,6 @@
-import { Action } from 'redux';
-import { ITextResource } from 'src/types';
-import * as ActionTypes from './replaceTextResourcesActionTypes';
+import type { Action } from "redux";
+import type { ITextResource } from "src/types";
+import * as ActionTypes from "./replaceTextResourcesActionTypes";
 
 export interface IReplaceTextResourcesFulfilled extends Action {
   language: string;
@@ -19,7 +19,7 @@ export function replaceTextResources(): Action {
 
 export function replaceFormResourceFulfilled(
   language: string,
-  resources: ITextResource[],
+  resources: ITextResource[]
 ): IReplaceTextResourcesFulfilled {
   return {
     type: ActionTypes.REPLACE_TEXT_RESOURCES_FULFILLED,
@@ -28,7 +28,9 @@ export function replaceFormResourceFulfilled(
   };
 }
 
-export function replaceFormResourceRejected(error: Error): IReplaceTextResourcesRejected {
+export function replaceFormResourceRejected(
+  error: Error
+): IReplaceTextResourcesRejected {
   return {
     type: ActionTypes.REPLACE_TEXT_RESOURCES_REJECTED,
     error,

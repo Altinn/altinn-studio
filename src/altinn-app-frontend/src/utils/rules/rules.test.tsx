@@ -1,5 +1,5 @@
-import type { IFormDataState } from '../../features/form/data/formDataReducer';
-import { checkIfRuleShouldRun, getRuleModelFields } from '.';
+import type { IFormDataState } from "../../features/form/data/formDataReducer";
+import { checkIfRuleShouldRun, getRuleModelFields } from ".";
 
 const ruleHandleFn = (obj) => {
   obj.a = +obj.a;
@@ -8,7 +8,7 @@ const ruleHandleFn = (obj) => {
   return obj.a + obj.b + obj.c;
 };
 
-describe('features/rules checkIfRuleShouldRun', () => {
+describe("features/rules checkIfRuleShouldRun", () => {
   let mockRuleConnectionState: any;
   let mockFormDataState: Partial<IFormDataState>;
   let mockFormLayoutState: any;
@@ -21,7 +21,7 @@ describe('features/rules checkIfRuleShouldRun', () => {
     mockRuleHandlerHelper = {
       sum: () => {
         return {
-          number: '1',
+          number: "1",
         };
       },
     };
@@ -31,58 +31,58 @@ describe('features/rules checkIfRuleShouldRun', () => {
     mockLayout = {
       FormLayout: [
         {
-          type: 'Input',
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
+          type: "Input",
+          dataModelBindings: { simpleBinding: "mockDataModelBinding1" },
           disabled: false,
-          id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
+          id: "78e3616e-44cb-4a94-a1bd-83768539d31c",
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'appName' },
+          textResourceBindings: { title: "appName" },
         },
         {
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
+          dataModelBindings: { simpleBinding: "mockDataModelBinding2" },
           disabled: false,
-          id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
+          id: "d48096d4-7365-4392-b745-b7e4c8c933e6",
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'appName' },
-          type: 'Input',
+          textResourceBindings: { title: "appName" },
+          type: "Input",
         },
         {
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
+          dataModelBindings: { simpleBinding: "mockDataModelBinding3" },
           disabled: false,
-          id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
+          id: "1d61265e-66a4-48c6-800a-a77c50a8ca41",
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'appName' },
-          type: 'Input',
+          textResourceBindings: { title: "appName" },
+          type: "Input",
         },
         {
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
+          dataModelBindings: { simpleBinding: "mockDataModelBinding4" },
           disabled: false,
-          id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
+          id: "69fa4c53-6c04-490c-aadb-98a47b145a82",
           readOnly: false,
           required: false,
-          textResourceBindings: { title: 'appName' },
-          type: 'Input',
+          textResourceBindings: { title: "appName" },
+          type: "Input",
         },
       ],
     };
     mockRuleConnectionState = {
-      'fc4136a0-73c3-11e9-acee-8f5155710498': {
+      "fc4136a0-73c3-11e9-acee-8f5155710498": {
         inputParams: {
-          a: 'mockDataModelBinding1',
-          b: 'mockDataModelBinding2',
-          c: 'mockDataModelBinding3',
+          a: "mockDataModelBinding1",
+          b: "mockDataModelBinding2",
+          c: "mockDataModelBinding3",
         },
-        selectedFunction: 'sum',
-        outParams: { outParam0: 'mockDataModelBinding4' },
+        selectedFunction: "sum",
+        outParams: { outParam0: "mockDataModelBinding4" },
       },
     };
     mockFormDataState = {
       error: null,
       formData: {
-        mockDataModelBinding1: '1',
+        mockDataModelBinding1: "1",
       },
       unsavedChanges: false,
     };
@@ -90,67 +90,67 @@ describe('features/rules checkIfRuleShouldRun', () => {
       error: null,
       layouts: mockLayout,
     };
-    mockLastUpdatedDataBinding = 'mockDataModelBinding2';
+    mockLastUpdatedDataBinding = "mockDataModelBinding2";
     (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
     (window as any).ruleHandlerObject = mockRuleHandlerObject;
   });
 
-  it('should return true if rule should be triggered', () => {
+  it("should return true if rule should be triggered", () => {
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules[0].ruleShouldRun).toBe(true);
-    expect(rules[0].dataBindingName).toEqual('mockDataModelBinding4');
+    expect(rules[0].dataBindingName).toEqual("mockDataModelBinding4");
   });
 
-  it('should return false if no rule should be triggered', () => {
-    mockLastUpdatedDataBinding = 'mockDataModelBinding5';
+  it("should return false if no rule should be triggered", () => {
+    mockLastUpdatedDataBinding = "mockDataModelBinding5";
 
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('no ruleConnection, no rules ', () => {
+  it("no ruleConnection, no rules ", () => {
     mockRuleConnectionState = {};
 
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('no dataBindingkey, no rules ', () => {
+  it("no dataBindingkey, no rules ", () => {
     mockFormLayoutState = {
       error: null,
       layouts: {
         FormLayout: [
           {
-            type: 'Input',
+            type: "Input",
             dataModelBindings: {},
             disabled: false,
-            id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
+            id: "78e3616e-44cb-4a94-a1bd-83768539d31c",
             readOnly: false,
             required: false,
-            textResourceBindings: { title: 'appName' },
+            textResourceBindings: { title: "appName" },
           },
           {
-            type: 'Input',
+            type: "Input",
             dataModelBindings: {},
-            id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
+            id: "d48096d4-7365-4392-b745-b7e4c8c933e6",
             readOnly: false,
             required: false,
-            textResourceBindings: { title: 'appName' },
+            textResourceBindings: { title: "appName" },
           },
         ],
       },
@@ -159,12 +159,12 @@ describe('features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('if no components, no rules ', () => {
+  it("if no components, no rules ", () => {
     mockFormLayoutState = {
       error: null,
       layouts: {
@@ -175,55 +175,55 @@ describe('features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('if no input params, no rules ', () => {
+  it("if no input params, no rules ", () => {
     const rules = checkIfRuleShouldRun(
       {
-        'fc4136a0-73c3-11e9-acee-8f5155710498': {
+        "fc4136a0-73c3-11e9-acee-8f5155710498": {
           inputParams: {},
-          selectedFunction: 'sum',
-          outParams: { outParam0: 'mockDataModelBinding4' },
+          selectedFunction: "sum",
+          outParams: { outParam0: "mockDataModelBinding4" },
         },
       },
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('if no output params, no rules ', () => {
+  it("if no output params, no rules ", () => {
     const rules = checkIfRuleShouldRun(
       {
-        'fc4136a0-73c3-11e9-acee-8f5155710498': {
+        "fc4136a0-73c3-11e9-acee-8f5155710498": {
           inputParams: {
-            a: 'mockDataModelBinding1',
-            b: 'mockDataModelBinding2',
-            c: 'mockDataModelBinding3',
+            a: "mockDataModelBinding1",
+            b: "mockDataModelBinding2",
+            c: "mockDataModelBinding3",
           },
-          selectedFunction: 'sum',
+          selectedFunction: "sum",
           outParams: {},
         },
       },
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 
-  it('if container the function should continue ', () => {
+  it("if container the function should continue ", () => {
     mockFormLayoutState = {
       error: null,
       layouts: {
         FormLayout: [
           {
-            id: 'mockId',
-            type: 'container',
+            id: "mockId",
+            type: "container",
             hidden: false,
             children: {},
           },
@@ -234,13 +234,13 @@ describe('features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormLayoutState.layouts,
-      mockLastUpdatedDataBinding,
+      mockLastUpdatedDataBinding
     );
     expect(rules.length).toBe(0);
   });
 });
 
-describe('features/rules getRuleModelFields', () => {
+describe("features/rules getRuleModelFields", () => {
   let mockRuleHandlerHelper: any;
   let mockConditionalRuleHandlerHelper: any;
   let mockConditionalRuleHandlerObject: any;
@@ -249,7 +249,7 @@ describe('features/rules getRuleModelFields', () => {
   beforeEach(() => {
     const numberFn = () => {
       return {
-        number: 'number',
+        number: "number",
       };
     };
 
@@ -260,7 +260,7 @@ describe('features/rules getRuleModelFields', () => {
       biggerThan10: numberFn,
       lengthBiggerThan4: () => {
         return {
-          value: 'value',
+          value: "value",
         };
       },
     };
@@ -280,16 +280,16 @@ describe('features/rules getRuleModelFields', () => {
       sum: ruleHandleFn,
     };
     const mockRuleScript =
-      'var ruleHandlerObject = { sum: (obj) => { obj.a = +obj.a; obj.b = +obj.b; obj.c = +obj.c; return' +
+      "var ruleHandlerObject = { sum: (obj) => { obj.a = +obj.a; obj.b = +obj.b; obj.c = +obj.c; return" +
       'obj.a + obj.b + obj.c; }, fullName: (obj) => { return obj.first + " " + obj.last; } } var ruleHandlerHelper' +
       ' = { fullName: () => { return { first: "first name", last: "last name" }; }, sum: () => { return { a: "a", b: ' +
       '"b", c: "c" } } } var conditionalRuleHandlerObject = { biggerThan10: (obj) => { obj.number = +obj.number;' +
-      'return obj.number > 10; }, smallerThan10: (obj) => { obj.number = +obj.number; return obj.number > 10; }, ' +
-      'lengthBiggerThan4: (obj) => { if (obj.value == null) return false; return obj.value.length >= 4; } } ' +
+      "return obj.number > 10; }, smallerThan10: (obj) => { obj.number = +obj.number; return obj.number > 10; }, " +
+      "lengthBiggerThan4: (obj) => { if (obj.value == null) return false; return obj.value.length >= 4; } } " +
       'var conditionalRuleHandlerHelper = { biggerThan10: () => { return { number: "number" }; }, smallerThan10:' +
       ' () => { return { number: "number" } }, lengthBiggerThan4: () => { return { value: "value" } } }';
 
-    const scriptEle = (window as any).document.createElement('script');
+    const scriptEle = (window as any).document.createElement("script");
     scriptEle.innerHTML = mockRuleScript;
     (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
     (window as any).conditionalRuleHandlerHelper =
@@ -299,23 +299,23 @@ describe('features/rules getRuleModelFields', () => {
     (window as any).ruleHandlerObject = mockRuleHandlerObject;
   });
 
-  it('should return an array ', () => {
+  it("should return an array ", () => {
     const ruleModelFields = getRuleModelFields();
     const expectedResult = [
       {
-        inputs: { number: 'number' },
-        name: 'sum',
-        type: 'rule',
+        inputs: { number: "number" },
+        name: "sum",
+        type: "rule",
       },
       {
-        inputs: { number: 'number' },
-        name: 'biggerThan10',
-        type: 'condition',
+        inputs: { number: "number" },
+        name: "biggerThan10",
+        type: "condition",
       },
       {
-        inputs: { value: 'value' },
-        name: 'lengthBiggerThan4',
-        type: 'condition',
+        inputs: { value: "value" },
+        name: "lengthBiggerThan4",
+        type: "condition",
       },
     ];
     expect(Array.isArray(ruleModelFields)).toBe(true);

@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { ILanguage } from 'altinn-shared/types';
-import { ILabelSettings } from 'src/types';
+import * as React from "react";
+import { getLanguageFromKey } from "altinn-shared/utils/language";
+import type { ILanguage } from "altinn-shared/types";
+import type { ILabelSettings } from "src/types";
 
 interface IOptionalIndicatorProps {
   language: ILanguage;
@@ -17,8 +17,8 @@ export const OptionalIndicator = (props: IOptionalIndicatorProps) => {
     !props.readOnly;
   if (shouldShowOptionalMarking) {
     return (
-      <span className='label-optional'>
-        {` (${getLanguageFromKey('general.optional', props.language)})`}
+      <span className="label-optional">
+        {` (${getLanguageFromKey("general.optional", props.language)})`}
       </span>
     );
   }

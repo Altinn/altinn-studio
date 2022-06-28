@@ -1,11 +1,11 @@
-import { SagaIterator } from 'redux-saga';
-import { all, put, take } from 'redux-saga/effects';
-import FormDataActions from '../../../../features/form/data/formDataActions';
-import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
-import { FETCH_RULE_MODEL_FULFILLED } from '../../../../features/form/rules/rulesActionTypes';
-import { FETCH_SERVICE_CONFIG_FULFILLED } from '../../../../features/form/dynamics/formDynamicsActionTypes';
-import { finishDataTaskIsLoading } from '../isLoadingSlice';
-import { startInitialDataTaskQueue } from '../../queue/queueSlice';
+import type { SagaIterator } from "redux-saga";
+import { all, put, take } from "redux-saga/effects";
+import FormDataActions from "../../../../features/form/data/formDataActions";
+import { FormLayoutActions } from "../../../../features/form/layout/formLayoutSlice";
+import { FETCH_RULE_MODEL_FULFILLED } from "../../../../features/form/rules/rulesActionTypes";
+import { FETCH_SERVICE_CONFIG_FULFILLED } from "../../../../features/form/dynamics/formDynamicsActionTypes";
+import { finishDataTaskIsLoading } from "../isLoadingSlice";
+import { startInitialDataTaskQueue } from "../../queue/queueSlice";
 import AttachmentActions from "src/shared/resources/attachments/attachmentActions";
 
 export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {

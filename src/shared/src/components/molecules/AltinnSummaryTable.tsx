@@ -1,9 +1,20 @@
 import * as React from 'react';
-import {Table, TableBody, TableRow, TableCell, Typography } from '@material-ui/core';
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+  Typography,
+} from '@material-ui/core';
 import classNames from 'classnames';
 import { makeStyles } from '@material-ui/styles';
 
-const returnGridRow = (name: string, prop: string, classes: any, index: number) => {
+const returnGridRow = (
+  name: string,
+  prop: string,
+  classes: any,
+  index: number,
+) => {
   return (
     <TableRow
       key={index}
@@ -17,9 +28,7 @@ const returnGridRow = (name: string, prop: string, classes: any, index: number) 
           root: classNames(classes.tableCell),
         }}
       >
-        <Typography variant='body1'>
-          {name}:
-        </Typography>
+        <Typography variant='body1'>{name}:</Typography>
       </TableCell>
       <TableCell
         padding='none'
@@ -27,9 +36,7 @@ const returnGridRow = (name: string, prop: string, classes: any, index: number) 
           root: classNames(classes.tableCell),
         }}
       >
-        <Typography variant='body1'>
-          {prop}
-        </Typography>
+        <Typography variant='body1'>{prop}</Typography>
       </TableCell>
     </TableRow>
   );
@@ -61,10 +68,10 @@ export default function AltinnSummaryTable(props: IAltinnSummaryTableProps) {
       className={classes.instanceMetaData}
     >
       <TableBody>
-        {Object.keys(props.summaryDataObject).map((name, i) => (
-          returnGridRow(name, props.summaryDataObject[name], classes, i)
-        ))}
+        {Object.keys(props.summaryDataObject).map((name, i) =>
+          returnGridRow(name, props.summaryDataObject[name], classes, i),
+        )}
       </TableBody>
     </Table>
-  )
+  );
 }

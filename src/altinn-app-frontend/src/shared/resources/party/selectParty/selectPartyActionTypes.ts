@@ -1,4 +1,4 @@
-const moduleName = 'PARTY';
+const moduleName = "PARTY";
 
 // Set profile action types
 export const SELECT_PARTY = `${moduleName}.SELECT_PARTY`;

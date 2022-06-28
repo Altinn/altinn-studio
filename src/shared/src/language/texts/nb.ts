@@ -1,11 +1,11 @@
-
 export function nb() {
   return {
     address_component: {
       address: 'Gateadresse',
       care_of: 'C/O eller annen tilleggsadresse',
       house_number: 'Bolignummer',
-      house_number_helper: 'Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
+      house_number_helper:
+        'Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
       post_place: 'Poststed',
       simplified: 'Enkel',
       title_text_binding: 'Søk etter ledetekst for Adressekomponenten',
@@ -40,7 +40,8 @@ export function nb() {
     form_filler: {
       back_to_summary: 'Tilbake til oppsummering',
       error_report_header: 'Det er feil i skjema',
-      error_report_description: 'Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.',
+      error_report_description:
+        'Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.',
       error_required: 'Du må fylle ut {0}',
       file_upload_valid_file_format_all: 'alle',
       file_uploader_add_attachment: 'Legg til flere vedlegg',
@@ -57,17 +58,26 @@ export function nb() {
       file_uploader_upload: 'Last opp fil',
       file_uploader_number_of_files: 'Antall filer',
       file_uploader_valid_file_format: 'Tillatte filformater er:',
-      file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
-      file_uploader_validation_error_exceeds_max_files_1: 'Du kan ikke laste opp flere enn',
-      file_uploader_validation_error_exceeds_max_files_2: 'filer. Ingen filer ble lastet opp.',
-      file_uploader_validation_error_file_ending: 'er ikke blant de tillatte filtypene.',
-      file_uploader_validation_error_file_number_1: 'For å fortsette må du laste opp',
+      file_uploader_validation_error_delete:
+        'Noe gikk galt under slettingen av filen, prøv igjen senere.',
+      file_uploader_validation_error_exceeds_max_files_1:
+        'Du kan ikke laste opp flere enn',
+      file_uploader_validation_error_exceeds_max_files_2:
+        'filer. Ingen filer ble lastet opp.',
+      file_uploader_validation_error_file_ending:
+        'er ikke blant de tillatte filtypene.',
+      file_uploader_validation_error_file_number_1:
+        'For å fortsette må du laste opp',
       file_uploader_validation_error_file_number_2: 'vedlegg',
-      file_uploader_validation_error_file_size: 'overskrider tillatt filstørrelse.',
+      file_uploader_validation_error_file_size:
+        'overskrider tillatt filstørrelse.',
       file_uploader_validation_error_general_1: 'Det var et problem med filen',
-      file_uploader_validation_error_general_2: '. Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.',
-      file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
-      file_uploader_validation_error_update: 'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
+      file_uploader_validation_error_general_2:
+        '. Forsikre deg om at filen har rett filtype og ikke overskrider maks filstørrelse.',
+      file_uploader_validation_error_upload:
+        'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
+      file_uploader_validation_error_update:
+        'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
       file_uploader_validation_error_no_chosen_tag: 'Du må velge',
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
@@ -84,7 +94,7 @@ export function nb() {
     navigation: {
       main: 'Appnavigasjon',
       form: 'Skjemanavigasjon',
-      to_main_content: 'Hopp til hovedinnholdet'
+      to_main_content: 'Hopp til hovedinnholdet',
     },
     general: {
       action: 'Handling',
@@ -135,12 +145,14 @@ export function nb() {
       version: 'Versjon',
     },
     group: {
-      row_error: 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
+      row_error:
+        'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
     },
     instance_selection: {
       changed_by: 'Endret av',
       continue: 'Fortsett her',
-      description: 'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
+      description:
+        'Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.',
       header: 'Du har allerede startet å fylle ut dette skjemaet.',
       last_changed: 'Sist endret',
       left_of: 'Fortsett der du slapp',
@@ -151,28 +163,38 @@ export function nb() {
       inbox: 'innboks',
       profile: 'profil',
       unknown_error_title: 'Ukjent feil',
-      unknown_error_text: 'Det har skjedd en ukjent feil, vennligst prøv igjen senere.',
+      unknown_error_text:
+        'Det har skjedd en ukjent feil, vennligst prøv igjen senere.',
       unknown_error_status: 'Ukjent feil',
-      unknown_error_customer_support: 'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
-      authorization_error_main_title: 'Du mangler rettigheter for å se denne tjenesten.',
-      authorization_error_instantiate_validation_title: 'Du kan ikke starte denne tjenesten',
-      authorization_error_rights: 'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {0}',
-      authorization_error_ask: 'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
-      authorization_error_check_rights: '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
-      authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
-      authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {0}.',
-      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.',
+      unknown_error_customer_support:
+        'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
+      authorization_error_main_title:
+        'Du mangler rettigheter for å se denne tjenesten.',
+      authorization_error_instantiate_validation_title:
+        'Du kan ikke starte denne tjenesten',
+      authorization_error_rights:
+        'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {0}',
+      authorization_error_ask:
+        'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
+      authorization_error_check_rights:
+        '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      authorization_error_info_rights:
+        '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
+      authorization_error_info_customer_service:
+        'Du kan også kontakte oss på brukerservice {0}.',
+      authorization_error_instantiate_validation_info_customer_service:
+        'Om du står fast kontakt oss på brukerservice {0}.',
       starting: 'Hold deg fast, nå starter vi!',
     },
     language: {
       full_name: {
         nb: 'Norsk bokmål',
-        en: "Engelsk",
-        nn: "Nynorsk"
+        en: 'Engelsk',
+        nn: 'Nynorsk',
       },
       selector: {
-        label: 'Språk'
-      }
+        label: 'Språk',
+      },
     },
     party_selection: {
       error_caption_prefix: 'Feil',
@@ -180,11 +202,14 @@ export function nb() {
       invalid_selection_second_part: 'Denne tjenesten er kun tilgjengelig for',
       invalid_selection_third_part: 'Velg ny aktør under.',
       no_valid_selection_first_part: 'Dette er en tjeneste for {0}',
-      no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{0}</b>.',
-      no_valid_selection_third_part: 'For å starte denne tjenesten må du ha tilganger som knytter deg til en {0}.',
+      no_valid_selection_second_part:
+        'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{0}</b>.',
+      no_valid_selection_third_part:
+        'For å starte denne tjenesten må du ha tilganger som knytter deg til en {0}.',
       no_valid_selection_binding_word: 'og',
       change_party: 'skift aktør her',
-      read_more_roles_link: 'Her finner du mer informasjon om roller og rettigheter',
+      read_more_roles_link:
+        'Her finner du mer informasjon om roller og rettigheter',
       binding_word: 'eller',
       header: 'Hvem vil du sende inn for?',
       load_more: 'Last flere',
@@ -208,7 +233,8 @@ export function nb() {
     receipt: {
       attachments: 'Vedlegg',
       body: 'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.',
-      body_simple: 'Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden.',
+      body_simple:
+        'Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden.',
       date_sent: 'Dato sendt',
       receiver: 'Mottaker',
       receipt: 'Kvittering',
@@ -221,7 +247,8 @@ export function nb() {
     receipt_platform: {
       attachments: 'Vedlegg',
       date_sent: 'Dato sendt',
-      helper_text: 'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.',
+      helper_text:
+        'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.',
       is_sent: 'er sendt inn',
       receipt: 'Kvittering',
       receiver: 'Mottaker',
@@ -234,7 +261,7 @@ export function nb() {
     soft_validation: {
       info_title: 'Lurt å tenke på',
       warning_title: 'OBS',
-      success_title: 'Så flott!'
+      success_title: 'Så flott!',
     },
     validation: {
       generic_field: 'dette feltet',

@@ -1,24 +1,25 @@
-import * as React from 'react';
-import { AxiosError } from 'axios';
+import * as React from "react";
+import type { AxiosError } from "axios";
 import {
   AltinnContentLoader,
   AltinnContentIconFormData,
-} from 'altinn-shared/components';
-import { Redirect } from 'react-router-dom';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { checkIfAxiosError } from 'altinn-shared/utils';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import Presentation from 'src/shared/containers/Presentation';
-import { IAltinnWindow, ProcessTaskType } from '../../../types';
-import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { HttpStatusCodes } from '../../../utils/networking';
-import InstantiationActions from '../instantiation/actions';
-import MissingRolesError from './MissingRolesError';
-import UnknownError from './UnknownError';
-import InstantiateValidationError from './InstantiateValidationError';
-import { useAppSelector } from 'src/common/hooks';
+} from "altinn-shared/components";
+import { Redirect } from "react-router-dom";
+import { AltinnAppTheme } from "altinn-shared/theme";
+import { checkIfAxiosError } from "altinn-shared/utils";
+import { getTextFromAppOrDefault } from "src/utils/textResource";
+import Presentation from "src/shared/containers/Presentation";
+import type { IAltinnWindow } from "../../../types";
+import { ProcessTaskType } from "../../../types";
+import { changeBodyBackground } from "../../../utils/bodyStyling";
+import { HttpStatusCodes } from "../../../utils/networking";
+import InstantiationActions from "../instantiation/actions";
+import MissingRolesError from "./MissingRolesError";
+import UnknownError from "./UnknownError";
+import InstantiateValidationError from "./InstantiateValidationError";
+import { useAppSelector } from "src/common/hooks";
 
-const titleKey = 'instantiate.starting';
+const titleKey = "instantiate.starting";
 
 const InstantiateContainer = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
@@ -32,9 +33,9 @@ const InstantiateContainer = () => {
       state.textResources.resources,
       state.language.language,
       [],
-      true,
+      true
     );
-    return text === titleKey ? '' : text;
+    return text === titleKey ? "" : text;
   });
 
   React.useEffect(() => {
@@ -66,8 +67,14 @@ const InstantiateContainer = () => {
   }
 
   return (
-    <Presentation header={titleText} type={ProcessTaskType.Unknown}>
-      <AltinnContentLoader width='100%' height='400'>
+    <Presentation
+      header={titleText}
+      type={ProcessTaskType.Unknown}
+    >
+      <AltinnContentLoader
+        width="100%"
+        height="400"
+      >
         <AltinnContentIconFormData />
       </AltinnContentLoader>
     </Presentation>

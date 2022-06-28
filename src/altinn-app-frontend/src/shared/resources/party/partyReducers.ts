@@ -1,10 +1,16 @@
-import update from 'immutability-helper';
-import { Action, Reducer } from 'redux';
-import { IParty } from 'altinn-shared/types';
-import { IGetPartiesFulfilled, IGetPartiesRejected } from './getParties/getPartiesActions';
-import * as GetPartyActionTypes from './getParties/getPartiesActionTypes';
-import { ISelectPartyFulfilled, ISelectPartyRejected } from './selectParty/selectPartyActions';
-import * as SelectPartyActionTypes from './selectParty/selectPartyActionTypes';
+import update from "immutability-helper";
+import type { Action, Reducer } from "redux";
+import type { IParty } from "altinn-shared/types";
+import type {
+  IGetPartiesFulfilled,
+  IGetPartiesRejected,
+} from "./getParties/getPartiesActions";
+import * as GetPartyActionTypes from "./getParties/getPartiesActionTypes";
+import type {
+  ISelectPartyFulfilled,
+  ISelectPartyRejected,
+} from "./selectParty/selectPartyActions";
+import * as SelectPartyActionTypes from "./selectParty/selectPartyActionTypes";
 
 export interface IPartyState {
   parties: IParty[];
@@ -20,7 +26,7 @@ const initialState: IPartyState = {
 
 const partyReducer: Reducer<IPartyState> = (
   state: IPartyState = initialState,
-  action?: Action,
+  action?: Action
 ): IPartyState => {
   if (!action) {
     return state;
@@ -58,7 +64,9 @@ const partyReducer: Reducer<IPartyState> = (
         },
       });
     }
-    default: { return state; }
+    default: {
+      return state;
+    }
   }
 };
 

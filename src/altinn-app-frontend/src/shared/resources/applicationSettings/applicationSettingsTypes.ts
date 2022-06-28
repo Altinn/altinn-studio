@@ -1,4 +1,4 @@
-import { IApplicationSettings } from 'altinn-shared/types';
+import type { IApplicationSettings } from "altinn-shared/types";
 
 export interface IFetchApplicationSettingsFulfilled {
   settings: IApplicationSettings;

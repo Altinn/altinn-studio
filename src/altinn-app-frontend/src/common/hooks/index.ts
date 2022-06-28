@@ -1,6 +1,7 @@
-import { useRef, useEffect } from 'react';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import type { RootState, AppDispatch } from '../../store/index';
+import { useRef, useEffect } from "react";
+import type { TypedUseSelectorHook } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "../../store/index";
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -13,7 +14,7 @@ export const useHasChangedIgnoreUndefined = (val: any) => {
     return false;
   }
   return prevVal !== stringifiedVal;
-}
+};
 
 export const usePrevious = (value: any) => {
   const ref = useRef();
@@ -21,4 +22,4 @@ export const usePrevious = (value: any) => {
     ref.current = value;
   });
   return ref.current;
-}
+};

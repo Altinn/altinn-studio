@@ -1,40 +1,40 @@
-import { select } from 'redux-saga/effects';
-import { expectSaga } from 'redux-saga-test-plan';
+import { select } from "redux-saga/effects";
+import { expectSaga } from "redux-saga-test-plan";
 
-import { applicationMetadataMock } from '../../../../../__mocks__/applicationMetadataMock';
-import { getInstanceDataStateMock } from '../../../../../__mocks__/instanceDataStateMock';
+import { applicationMetadataMock } from "../../../../../__mocks__/applicationMetadataMock";
+import { getInstanceDataStateMock } from "../../../../../__mocks__/instanceDataStateMock";
 
-import type { ITextResource } from 'src/types';
-import type { IInstance } from '../../../../../../shared/src/types';
-import type { IApplicationMetadata } from '../../applicationMetadata';
+import type { ITextResource } from "src/types";
+import type { IInstance } from "../../../../../../shared/src/types";
+import type { IApplicationMetadata } from "../../applicationMetadata";
 
 import {
   finishDataTaskIsLoading,
   startDataTaskIsLoading,
-} from '../../isLoading/isLoadingSlice';
-import { startInitialInfoTaskQueueFulfilled } from '../queueSlice';
-import FormDataActions from '../../../../features/form/data/formDataActions';
-import TextResourcesActions from '../../textResources/textResourcesActions';
+} from "../../isLoading/isLoadingSlice";
+import { startInitialInfoTaskQueueFulfilled } from "../queueSlice";
+import FormDataActions from "../../../../features/form/data/formDataActions";
+import TextResourcesActions from "../../textResources/textResourcesActions";
 import {
   startInitialInfoTaskQueueSaga,
   ApplicationMetadataSelector,
   TextResourceSelector,
   InstanceDataSelector,
-} from './infoTaskQueueSaga';
+} from "./infoTaskQueueSaga";
 
-describe('infoTaskQueueSaga', () => {
+describe("infoTaskQueueSaga", () => {
   let textResources: ITextResource[];
 
   beforeAll(() => {
     textResources = [
       {
-        id: 'text1',
-        value: 'some text',
+        id: "text1",
+        value: "some text",
       },
     ];
   });
 
-  it('startInitialInfoTaskQueueSaga, text resources with no variables', () => {
+  it("startInitialInfoTaskQueueSaga, text resources with no variables", () => {
     return expectSaga(startInitialInfoTaskQueueSaga)
       .provide([
         [select(ApplicationMetadataSelector), applicationMetadataMock],
@@ -47,16 +47,16 @@ describe('infoTaskQueueSaga', () => {
       .run();
   });
 
-  it('startInitialInfoTaskQueueSaga, text resources with variables should load form data', () => {
+  it("startInitialInfoTaskQueueSaga, text resources with variables should load form data", () => {
     const textsWithVariables = [
       ...textResources,
       {
-        id: 'someTextWithVariable',
-        value: '{0}',
+        id: "someTextWithVariable",
+        value: "{0}",
         variables: [
           {
-            dataSource: 'dataModel.testModel',
-            key: 'someField',
+            dataSource: "dataModel.testModel",
+            key: "someField",
           },
         ],
       },
@@ -65,8 +65,8 @@ describe('infoTaskQueueSaga', () => {
       ...applicationMetadataMock,
       dataTypes: [
         {
-          id: 'testModel',
-          allowedContentTypes: '',
+          id: "testModel",
+          allowedContentTypes: "",
           maxCount: 1,
           minCount: 0,
         },

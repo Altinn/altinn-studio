@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import moment from 'moment';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import moment from "moment";
+import { useParams } from "react-router-dom";
 
 import {
   AltinnContentIconReceipt,
   AltinnContentLoader,
   AltinnReceipt,
   AltinnReceiptSimple,
-} from 'altinn-shared/components';
+} from "altinn-shared/components";
 import {
   mapInstanceAttachments,
   getLanguageFromKey,
   returnUrlToArchive,
-} from 'altinn-shared/utils';
+} from "altinn-shared/utils";
 import {
   getAttachmentGroupings,
   getInstancePdf,
-} from 'altinn-shared/utils/attachmentsUtils';
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppSelector } from 'src/common/hooks';
-import { selectAppName } from 'src/selectors/language';
-import type { IParty, IAttachment } from 'altinn-shared/types';
+} from "altinn-shared/utils/attachmentsUtils";
+import InstanceDataActions from "../../../shared/resources/instanceData/instanceDataActions";
+import { getTextFromAppOrDefault } from "../../../utils/textResource";
+import { useAppSelector } from "src/common/hooks";
+import { selectAppName } from "src/selectors/language";
+import type { IParty, IAttachment } from "altinn-shared/types";
 
 interface IParams {
   partyId: string;
@@ -35,32 +35,32 @@ export const returnInstanceMetaDataObject = (
   instanceGuid: string,
   userLanguageString: string,
   lastChangedDateTime: string,
-  org: any,
+  org: any
 ) => {
   const obj: any = {};
 
-  obj[getLanguageFromKey('receipt.date_sent', languageData)] =
+  obj[getLanguageFromKey("receipt.date_sent", languageData)] =
     lastChangedDateTime;
 
-  let sender = '';
+  let sender = "";
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
-  obj[getLanguageFromKey('receipt.sender', languageData)] = sender;
+  obj[getLanguageFromKey("receipt.sender", languageData)] = sender;
 
   if (orgsData[org]) {
-    obj[getLanguageFromKey('receipt.receiver', languageData)] =
+    obj[getLanguageFromKey("receipt.receiver", languageData)] =
       orgsData[org].name[userLanguageString];
   } else {
     // This is only related to testing in Altinn Studio Dev
-    obj[getLanguageFromKey('receipt.receiver', languageData)] =
-      'Error: Receiver org not found';
+    obj[getLanguageFromKey("receipt.receiver", languageData)] =
+      "Error: Receiver org not found";
   }
 
-  obj[getLanguageFromKey('receipt.ref_num', languageData)] =
-    instanceGuid.split('-')[4];
+  obj[getLanguageFromKey("receipt.ref_num", languageData)] =
+    instanceGuid.split("-")[4];
 
   return obj;
 };
@@ -68,19 +68,19 @@ export const returnInstanceMetaDataObject = (
 const ReceiptContainer = () => {
   const [attachments, setAttachments] = useState([]);
   const [pdf, setPdf] = useState<IAttachment[]>(null);
-  const [lastChangedDateTime, setLastChangedDateTime] = useState('');
+  const [lastChangedDateTime, setLastChangedDateTime] = useState("");
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
-  const [userLanguage, setUserLanguage] = useState('nb');
+  const [userLanguage, setUserLanguage] = useState("nb");
 
   const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
   const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata,
+    (state) => state.applicationMetadata.applicationMetadata
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
   const textResources = useAppSelector(
-    (state) => state.textResources.resources,
+    (state) => state.textResources.resources
   );
   const profile = useAppSelector((state) => state.profile.profile);
   const appName = useAppSelector(selectAppName);
@@ -120,7 +120,7 @@ const ReceiptContainer = () => {
         instanceGuid,
         userLanguage,
         lastChangedDateTime,
-        instance.org,
+        instance.org
       );
       setInstanceMetaObject(obj);
     }
@@ -137,17 +137,17 @@ const ReceiptContainer = () => {
   useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
-        (dataType) => !!dataType.appLogic,
+        (dataType) => !!dataType.appLogic
       );
 
       const attachmentsResult = mapInstanceAttachments(
         instance.data,
-        appLogicDataTypes.map((type) => type.id),
+        appLogicDataTypes.map((type) => type.id)
       );
       setAttachments(attachmentsResult);
       setPdf(getInstancePdf(instance.data));
       setLastChangedDateTime(
-        moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm'),
+        moment(instance.lastChanged).format("DD.MM.YYYY / HH:mm")
       );
     }
   }, [instance, applicationMetadata]);
@@ -155,7 +155,10 @@ const ReceiptContainer = () => {
   return (
     <>
       {isLoading() ? (
-        <AltinnContentLoader width={705} height={561}>
+        <AltinnContentLoader
+          width={705}
+          height={561}
+        >
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
       ) : (
@@ -165,23 +168,23 @@ const ReceiptContainer = () => {
               attachmentGroupings={getAttachmentGroupings(
                 attachments,
                 applicationMetadata,
-                textResources,
+                textResources
               )}
-              body={getLanguageFromKey('receipt.body', language)}
+              body={getLanguageFromKey("receipt.body", language)}
               collapsibleTitle={getLanguageFromKey(
-                'receipt.attachments',
-                language,
+                "receipt.attachments",
+                language
               )}
               instanceMetaDataObject={instanceMetaObject}
-              subtitle={getLanguageFromKey('receipt.subtitle', language)}
+              subtitle={getLanguageFromKey("receipt.subtitle", language)}
               subtitleurl={returnUrlToArchive(origin)}
               title={`${appName} ${getLanguageFromKey(
-                'receipt.title_part_is_submitted',
-                language,
+                "receipt.title_part_is_submitted",
+                language
               )}`}
               titleSubmitted={getLanguageFromKey(
-                'receipt.title_submitted',
-                language,
+                "receipt.title_submitted",
+                language
               )}
               pdf={pdf || null}
             />
@@ -189,15 +192,15 @@ const ReceiptContainer = () => {
           {applicationMetadata.autoDeleteOnProcessEnd && (
             <AltinnReceiptSimple
               body={getTextFromAppOrDefault(
-                'receipt.body_simple',
+                "receipt.body_simple",
                 textResources,
                 language,
                 null,
-                false,
+                false
               )}
               title={`${appName} ${getLanguageFromKey(
-                'receipt.title_part_is_submitted',
-                language,
+                "receipt.title_part_is_submitted",
+                language
               )}`}
             />
           )}

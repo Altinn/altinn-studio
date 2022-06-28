@@ -1,9 +1,17 @@
-import type { IData } from 'altinn-shared/types';
-import type { IAttachments } from '../shared/resources/attachments';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IData } from "altinn-shared/types";
+import type { IAttachments } from "../shared/resources/attachments";
+import type { IFormData } from "src/features/form/data/formDataReducer";
 import { getKeyIndex, deleteGroupData } from "src/utils/databindings";
-import { ILayouts, ILayoutComponent, ILayoutGroup } from "src/features/form/layout";
-import { isFileUploadComponent, isFileUploadWithTagComponent, splitDashedKey } from "src/utils/formLayout";
+import type {
+  ILayouts,
+  ILayoutComponent,
+  ILayoutGroup,
+} from "src/features/form/layout";
+import {
+  isFileUploadComponent,
+  isFileUploadWithTagComponent,
+  splitDashedKey,
+} from "src/utils/formLayout";
 
 export function mapAttachmentListToAttachments(
   data: IData[],
@@ -12,19 +20,26 @@ export function mapAttachmentListToAttachments(
   layouts: ILayouts
 ): IAttachments {
   const attachments: IAttachments = {};
-  const allComponents = [].concat(...Object.values(layouts)) as (ILayoutComponent | ILayoutGroup)[];
+  const allComponents = [].concat(...Object.values(layouts)) as (
+    | ILayoutComponent
+    | ILayoutGroup
+  )[];
 
   data.forEach((element: IData) => {
     const baseComponentId = element.dataType;
     if (
       element.id === defaultElementId ||
-      baseComponentId === 'ref-data-as-pdf'
+      baseComponentId === "ref-data-as-pdf"
     ) {
       return;
     }
 
     const component = allComponents.find((c) => c.id === baseComponentId);
-    if (!component || (!isFileUploadComponent(component) && !isFileUploadWithTagComponent(component))) {
+    if (
+      !component ||
+      (!isFileUploadComponent(component) &&
+        !isFileUploadWithTagComponent(component))
+    ) {
       return;
     }
 
@@ -32,7 +47,7 @@ export function mapAttachmentListToAttachments(
       baseComponentId,
       formData,
       element.id,
-      component.maxNumberOfAttachments > 1,
+      component.maxNumberOfAttachments > 1
     );
 
     if (!key) {
@@ -62,28 +77,29 @@ function convertToDashedComponentId(
   baseComponentId: string,
   formData: IFormData,
   attachmentUuid: string,
-  hasIndex:boolean,
+  hasIndex: boolean
 ): [string, number] {
   const formDataKey = Object.keys(formData).find(
-    (key) => formData[key] === attachmentUuid,
+    (key) => formData[key] === attachmentUuid
   );
 
   if (!formDataKey) {
-    return ['', 0];
+    return ["", 0];
   }
 
   const groups = getKeyIndex(formDataKey);
   let componentId: string;
-  let index:number;
+  let index: number;
   if (hasIndex) {
     const groupSuffix =
-      groups.length > 1 ? `-${groups.slice(0, groups.length - 1).join('-')}` : '';
+      groups.length > 1
+        ? `-${groups.slice(0, groups.length - 1).join("-")}`
+        : "";
 
     componentId = `${baseComponentId}${groupSuffix}`;
     index = groups[groups.length - 1];
   } else {
-    const groupSuffix =
-      groups.length ? `-${groups.join('-')}` : '';
+    const groupSuffix = groups.length ? `-${groups.join("-")}` : "";
 
     componentId = `${baseComponentId}${groupSuffix}`;
     index = 0;
@@ -94,24 +110,24 @@ function convertToDashedComponentId(
 
 export function getFileEnding(filename: string): string {
   if (!filename) {
-    return '';
+    return "";
   }
-  const split: string[] = filename.split('.');
+  const split: string[] = filename.split(".");
   if (split.length === 1) {
-    return '';
+    return "";
   }
   return `.${split[split.length - 1]}`;
 }
 
 export function removeFileEnding(filename: string): string {
   if (!filename) {
-    return '';
+    return "";
   }
-  const split: string[] = filename.split('.');
+  const split: string[] = filename.split(".");
   if (split.length === 1) {
     return filename;
   }
-  return filename.replace(`.${split[split.length - 1]}`, '');
+  return filename.replace(`.${split[split.length - 1]}`, "");
 }
 
 /**
@@ -120,10 +136,10 @@ export function removeFileEnding(filename: string): string {
  */
 export function shiftAttachmentRowInRepeatingGroup(
   attachments: IAttachments,
-  uploaderComponents:ILayoutComponent[],
+  uploaderComponents: ILayoutComponent[],
   groupId: string,
-  index: number,
-):IAttachments {
+  index: number
+): IAttachments {
   const result = { ...attachments };
   const splitId = splitDashedKey(groupId);
   const lookForComponents = new Set(uploaderComponents.map((c) => c.id));
@@ -132,13 +148,22 @@ export function shiftAttachmentRowInRepeatingGroup(
   for (const key of Object.keys(attachments)) {
     const thisSplitId = splitDashedKey(key);
     if (lookForComponents.has(thisSplitId.baseComponentId)) {
-      lastIndex = Math.max(lastIndex, thisSplitId.depth[splitId.depth.length] || -1);
+      lastIndex = Math.max(
+        lastIndex,
+        thisSplitId.depth[splitId.depth.length] || -1
+      );
     }
   }
 
   for (let laterIdx = index + 1; laterIdx <= lastIndex; laterIdx++) {
     for (const componentId of lookForComponents) {
-      deleteGroupData(result, componentId + splitId.stringDepthWithLeadingDash, laterIdx, false, true);
+      deleteGroupData(
+        result,
+        componentId + splitId.stringDepthWithLeadingDash,
+        laterIdx,
+        false,
+        true
+      );
     }
   }
 

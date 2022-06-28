@@ -1,4 +1,4 @@
-import { IComponentProps } from "src/components";
+import type { IComponentProps } from "src/components";
 
 export interface IFileUploadGenericProps extends IComponentProps {
   hasCustomFileEndings?: boolean;

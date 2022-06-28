@@ -1,5 +1,5 @@
-import * as React from 'react';
-import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import * as React from "react";
+import UnknownError from "src/features/instantiate/containers/UnknownError";
 
 interface IErrorBoundary {
   hasError: boolean;
@@ -21,7 +21,7 @@ class ErrorBoundary extends React.Component<any, IErrorBoundary> {
 
   render() {
     if (this.state.hasError) {
-      return  <UnknownError />;
+      return <UnknownError />;
     }
 
     return this.props.children;

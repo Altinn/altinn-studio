@@ -1,26 +1,43 @@
-import { SagaIterator } from 'redux-saga';
-import { call, all, put, take, select, takeLatest } from 'redux-saga/effects';
-import { IInstance } from 'altinn-shared/types';
-import { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
-import { getLayoutSettingsUrl, getLayoutSetsUrl, getLayoutsUrl } from 'src/utils/appUrlHelper';
-import { get } from '../../../../utils/networking';
-import { FormLayoutActions as Actions } from '../formLayoutSlice';
-import FormDataActions from '../../data/formDataActions';
-import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
-import { ILayoutSettings, IRuntimeState, ILayoutSets } from '../../../../types';
-import { ILayouts } from '../index';
-import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
+import type { SagaIterator } from "redux-saga";
+import { call, all, put, take, select, takeLatest } from "redux-saga/effects";
+import type { IInstance } from "altinn-shared/types";
+import type { IApplicationMetadata } from "src/shared/resources/applicationMetadata";
+import {
+  getLayoutSettingsUrl,
+  getLayoutSetsUrl,
+  getLayoutsUrl,
+} from "src/utils/appUrlHelper";
+import { get } from "../../../../utils/networking";
+import { FormLayoutActions as Actions } from "../formLayoutSlice";
+import FormDataActions from "../../data/formDataActions";
+import { dataTaskQueueError } from "../../../../shared/resources/queue/queueSlice";
+import type {
+  ILayoutSettings,
+  IRuntimeState,
+  ILayoutSets,
+} from "../../../../types";
+import type { ILayouts } from "../index";
+import { getLayoutSetIdForApplication } from "../../../../utils/appMetadata";
 
-export const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
-export const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
-export const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+export const layoutSetsSelector = (state: IRuntimeState) =>
+  state.formLayout.layoutsets;
+export const instanceSelector = (state: IRuntimeState) =>
+  state.instanceData.instance;
+export const applicationMetadataSelector = (state: IRuntimeState) =>
+  state.applicationMetadata.applicationMetadata;
 
 export function* fetchLayoutSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const applicationMetadata: IApplicationMetadata = yield select(applicationMetadataSelector);
-    const layoutSetId = getLayoutSetIdForApplication(applicationMetadata, instance, layoutSets);
+    const applicationMetadata: IApplicationMetadata = yield select(
+      applicationMetadataSelector
+    );
+    const layoutSetId = getLayoutSetIdForApplication(
+      applicationMetadata,
+      instance,
+      layoutSets
+    );
     const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
@@ -28,7 +45,7 @@ export function* fetchLayoutSaga(): SagaIterator {
     let firstLayoutKey: string;
     if (layoutResponse.data?.layout) {
       layouts.FormLayout = layoutResponse.data.layout;
-      firstLayoutKey = 'FormLayout';
+      firstLayoutKey = "FormLayout";
       autoSave = layoutResponse.data.autoSave;
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
@@ -53,7 +70,12 @@ export function* fetchLayoutSaga(): SagaIterator {
 
     yield put(Actions.fetchLayoutFulfilled({ layouts, navigationConfig }));
     yield put(Actions.updateAutoSave({ autoSave }));
-    yield put(Actions.updateCurrentView({ newView: firstLayoutKey, skipPageCaching: true }));
+    yield put(
+      Actions.updateCurrentView({
+        newView: firstLayoutKey,
+        skipPageCaching: true,
+      })
+    );
   } catch (error) {
     yield put(Actions.fetchLayoutRejected({ error }));
     yield put(dataTaskQueueError({ error }));
@@ -76,10 +98,19 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const aplicationMetadataState: IApplicationMetadata = yield select(applicationMetadataSelector);
+    const aplicationMetadataState: IApplicationMetadata = yield select(
+      applicationMetadataSelector
+    );
 
-    const layoutSetId = getLayoutSetIdForApplication(aplicationMetadataState, instance, layoutSets);
-    const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl(layoutSetId));
+    const layoutSetId = getLayoutSetIdForApplication(
+      aplicationMetadataState,
+      instance,
+      layoutSets
+    );
+    const settings: ILayoutSettings = yield call(
+      get,
+      getLayoutSettingsUrl(layoutSetId)
+    );
     yield put(Actions.fetchLayoutSettingsFulfilled({ settings }));
   } catch (error) {
     if (error?.response?.status === 404) {

@@ -1,5 +1,5 @@
-import { Action } from 'redux';
-import * as ActionTypes from '../formDynamicsActionTypes';
+import type { Action } from "redux";
+import * as ActionTypes from "../formDynamicsActionTypes";
 
 export interface ICheckIfApiShouldFetchAction extends Action {
   updatedComponentId: string;
@@ -16,7 +16,7 @@ export function checkIfApiShouldFetch(
   updatedData: string,
   repeating: boolean,
   dataModelGroup?: string,
-  index?: number,
+  index?: number
 ): ICheckIfApiShouldFetchAction {
   return {
     type: ActionTypes.CHECK_IF_API_ACTIONS_SHOULD_RUN,

@@ -81,12 +81,12 @@ function AltinnInput(props: IAltinnInputProps) {
         <InputLabel className={classes.inputLabel}>{label}</InputLabel>
       ) : null}
       <Grid
-        {...(validationError && {'data-testid': 'input-validation-error'})}
+        {...(validationError && { 'data-testid': 'input-validation-error' })}
         container={true}
         direction={'row'}
         className={cn(
           classes.input,
-          validationError && classes.inputValidationError
+          validationError && classes.inputValidationError,
         )}
       >
         {iconString ? (

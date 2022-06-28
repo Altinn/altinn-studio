@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 export interface IIsLoadingState {
   dataTask: boolean;
@@ -10,7 +10,7 @@ export const initialState: IIsLoadingState = {
   stateless: null,
 };
 
-const moduleName = 'isLoading';
+const moduleName = "isLoading";
 
 const isLoadingSlice = createSlice({
   name: moduleName,

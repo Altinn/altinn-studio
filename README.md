@@ -79,6 +79,20 @@ After you make the changes to the `views/Home/Index.cshtml` file as mentioned ab
 
 If you prefer to run the application locally (useful if you also want to make rapid changes to the application itself), you also need to clone [Altinn Studio repository](https://github.com/Altinn/altinn-studio), and follow the steps in the [LOCALAPP.md documentation](https://github.com/Altinn/altinn-studio/blob/master/LOCALAPP.md).
 
+## Code style
+
+We use [eslint](https://eslint.org/) and [prettier](https://prettier.io/), and automatically set up git hooks to enforce
+these on commits. To avoid confusion, it is recommended to set this up your IDE.
+
+### Visual Studio Code
+
+Install the [eslint extension from the marketplace](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint).
+
+### WebStorm and IntelliJ IDEA
+
+Configure your IDE to run `eslint --fix` on save (prettier will also reformat your code when doing this). It is also recommended to
+[set up Prettier as the default formatter](https://www.jetbrains.com/help/webstorm/prettier.html#ws_prettier_default_formatter).
+
 ## Running tests
 
 ### End to end tests

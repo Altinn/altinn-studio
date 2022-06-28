@@ -1,5 +1,5 @@
-import moment from 'moment';
-import { DateFlags } from 'src/types';
+import moment from "moment";
+import { DateFlags } from "src/types";
 
 /*
   Creates a specific date based on different flags (DatepickerRestrictionFlags)
@@ -8,10 +8,10 @@ import { DateFlags } from 'src/types';
 export function getFlagBasedDate(flag: DateFlags): string | undefined {
   if (flag === DateFlags.Today) {
     return moment()
-      .set('hour', 12)
-      .set('minute', 0)
-      .set('seconds', 0)
-      .set('milliseconds', 0)
+      .set("hour", 12)
+      .set("minute", 0)
+      .set("seconds", 0)
+      .set("milliseconds", 0)
       .toISOString();
   }
 

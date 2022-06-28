@@ -11,9 +11,7 @@ export default class Wrapper extends React.Component {
   public render() {
     return (
       <MuiThemeProvider theme={theme}>
-        <div>
-          {this.props.children}
-        </div>
+        <div>{this.props.children}</div>
       </MuiThemeProvider>
     );
   }

@@ -1,8 +1,12 @@
-import type { IRuntimeState } from 'src/types';
-import { createSelector } from 'reselect';
-import { getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
+import type { IRuntimeState } from "src/types";
+import { createSelector } from "reselect";
+import {
+  getDataTypeByLayoutSetId,
+  isStatelessApp,
+} from "src/utils/appMetadata";
 
-const getApplicationMetadata = (state: IRuntimeState) => state.applicationMetadata?.applicationMetadata;
+const getApplicationMetadata = (state: IRuntimeState) =>
+  state.applicationMetadata?.applicationMetadata;
 const getLayoutSets = (state: IRuntimeState) => state.formLayout.layoutsets;
 
 const getAllowAnonymous = () => {
@@ -20,14 +24,17 @@ const getAllowAnonymous = () => {
         return undefined;
       }
 
-      const dataTypeId = getDataTypeByLayoutSetId(application.onEntry.show, layoutsets);
-      const dataType = application.dataTypes.find(d => d.id === dataTypeId);
+      const dataTypeId = getDataTypeByLayoutSetId(
+        application.onEntry.show,
+        layoutsets
+      );
+      const dataType = application.dataTypes.find((d) => d.id === dataTypeId);
       if (dataType?.appLogic?.allowAnonymousOnStateless !== undefined) {
         return dataType.appLogic.allowAnonymousOnStateless;
       }
 
       return false;
-    },
+    }
   );
 };
 

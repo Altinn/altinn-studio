@@ -1,6 +1,6 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+import React from "react";
+import { useParams } from "react-router-dom";
+import { makeStyles } from "@material-ui/core/styles";
 
 import {
   AltinnReceipt,
@@ -8,38 +8,41 @@ import {
   AltinnContentIconReceipt,
   AltinnButton,
   AltinnLoader,
-} from 'altinn-shared/components';
-import type { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
-import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { mapInstanceAttachments } from 'altinn-shared/utils';
-import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
-import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
-import { IAltinnWindow } from '../../../types';
-import { get } from '../../../utils/networking';
-import { getValidationUrl } from '../../../utils/appUrlHelper';
-import { updateValidations } from '../../form/validation/validationSlice';
-import { mapDataElementValidationToRedux } from '../../../utils/validation';
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { selectAppName } from 'src/selectors/language';
+} from "altinn-shared/components";
+import type { ILanguage, IParty, ITextResource } from "altinn-shared/types";
+import { getLanguageFromKey } from "altinn-shared/utils/language";
+import { mapInstanceAttachments } from "altinn-shared/utils";
+import {
+  getAttachmentGroupings,
+  getInstancePdf,
+} from "altinn-shared/utils/attachmentsUtils";
+import ProcessDispatcher from "../../../shared/resources/process/processDispatcher";
+import type { IAltinnWindow } from "../../../types";
+import { get } from "../../../utils/networking";
+import { getValidationUrl } from "../../../utils/appUrlHelper";
+import { updateValidations } from "../../form/validation/validationSlice";
+import { mapDataElementValidationToRedux } from "../../../utils/validation";
+import InstanceDataActions from "../../../shared/resources/instanceData/instanceDataActions";
+import { getTextFromAppOrDefault } from "../../../utils/textResource";
+import { useAppDispatch, useAppSelector } from "src/common/hooks";
+import { selectAppName } from "src/selectors/language";
 
 const useStyles = makeStyles((theme) => ({
   button: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.blue,
-    textTransform: 'none',
+    textTransform: "none",
     fontWeight: 400,
     height: 36,
-    borderRadius: '0',
-    '&:hover': {
+    borderRadius: "0",
+    "&:hover": {
       background: theme.altinnPalette.primary.blueDarker,
       color: theme.altinnPalette.primary.white,
     },
-    '&:focus': {
+    "&:focus": {
       background: theme.altinnPalette.primary.blueDarker,
       color: theme.altinnPalette.primary.white,
-      outline: 'none',
+      outline: "none",
     },
     marginTop: 28,
   },
@@ -52,17 +55,17 @@ export interface ISummaryData {
 }
 
 const loaderStyles = {
-  paddingTop: '30px',
-  marginLeft: '40px',
-  height: '64px',
+  paddingTop: "30px",
+  marginLeft: "40px",
+  height: "64px",
 };
 
 export const returnConfirmSummaryObject = ({
   languageData,
   instanceOwnerParty,
-  textResources
+  textResources,
 }: ISummaryData) => {
-  let sender = '';
+  let sender = "";
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
   } else if (instanceOwnerParty?.orgNumber) {
@@ -71,11 +74,11 @@ export const returnConfirmSummaryObject = ({
 
   return {
     [getTextFromAppOrDefault(
-      'confirm.sender',
+      "confirm.sender",
       textResources,
       languageData,
       null,
-      true,
+      true
     )]: sender,
   };
 };
@@ -87,14 +90,14 @@ interface IParams {
 
 const Confirm = () => {
   const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata,
+    (state) => state.applicationMetadata.applicationMetadata
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
   const appName = useAppSelector(selectAppName);
   const textResources = useAppSelector(
-    (state) => state.textResources.resources,
+    (state) => state.textResources.resources
   );
 
   const { partyId, instanceGuid }: IParams = useParams();
@@ -124,12 +127,12 @@ const Confirm = () => {
   const getAttachments = () => {
     if (instance && instance.data && applicationMetadata) {
       const appLogicDataTypes = applicationMetadata.dataTypes.filter(
-        (dataType) => !!dataType.appLogic,
+        (dataType) => !!dataType.appLogic
       );
 
       return mapInstanceAttachments(
         instance.data,
-        appLogicDataTypes.map((type) => type.id),
+        appLogicDataTypes.map((type) => type.id)
       );
     }
   };
@@ -137,7 +140,10 @@ const Confirm = () => {
   return (
     <>
       {isLoading ? (
-        <AltinnContentLoader width={705} height={561}>
+        <AltinnContentLoader
+          width={705}
+          height={561}
+        >
           <AltinnContentIconReceipt />
         </AltinnContentLoader>
       ) : (
@@ -146,36 +152,36 @@ const Confirm = () => {
             attachmentGroupings={getAttachmentGroupings(
               getAttachments(),
               applicationMetadata,
-              textResources,
+              textResources
             )}
             body={getTextFromAppOrDefault(
-              'confirm.body',
+              "confirm.body",
               textResources,
               language,
-              [appName],
+              [appName]
             )}
             collapsibleTitle={getTextFromAppOrDefault(
-              'confirm.attachments',
+              "confirm.attachments",
               textResources,
               language,
               null,
-              true,
+              true
             )}
             hideCollapsibleCount={true}
             instanceMetaDataObject={getInstanceMetaObject()}
             title={getTextFromAppOrDefault(
-              'confirm.title',
+              "confirm.title",
               textResources,
               language,
               null,
-              true,
+              true
             )}
             titleSubmitted={getTextFromAppOrDefault(
-              'confirm.answers',
+              "confirm.answers",
               textResources,
               language,
               null,
-              true,
+              true
             )}
             pdf={getInstancePdf(instance.data)}
           />
@@ -192,7 +198,7 @@ const SubmitButton = () => {
   const dispatch = useAppDispatch();
 
   const textResources = useAppSelector(
-    (state) => state.textResources.resources,
+    (state) => state.textResources.resources
   );
   const language = useAppSelector((state) => state.language.language);
 
@@ -207,7 +213,7 @@ const SubmitButton = () => {
         const mappedValidations = mapDataElementValidationToRedux(
           data,
           {},
-          textResources,
+          textResources
         );
         dispatch(updateValidations({ validations: mappedValidations }));
         if (data.length === 0) {
@@ -225,7 +231,7 @@ const SubmitButton = () => {
     return (
       <AltinnLoader
         style={loaderStyles}
-        srContent={getLanguageFromKey('general.loading', language)}
+        srContent={getLanguageFromKey("general.loading", language)}
       />
     );
   }
@@ -233,13 +239,13 @@ const SubmitButton = () => {
   return (
     <AltinnButton
       btnText={getTextFromAppOrDefault(
-        'confirm.button_text',
+        "confirm.button_text",
         textResources,
-        language,
+        language
       )}
       onClickFunction={handleConfirmClick}
       className={classes.button}
-      id='confirm-button'
+      id="confirm-button"
     />
   );
 };

@@ -1,8 +1,8 @@
-import { bindActionCreators } from 'redux';
-import { store } from 'src/store';
-import * as CompleteProcessActions from './completeProcess/completeProcessActions';
-import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
-import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessUpdatedActions';
+import { bindActionCreators } from "redux";
+import { store } from "src/store";
+import * as CompleteProcessActions from "./completeProcess/completeProcessActions";
+import * as GetProcessStateActions from "./getProcessState/getProcessStateActions";
+import * as CheckProcessUpdatedActions from "./checkProcessUpdated/checkProcessUpdatedActions";
 
 /**
  * Define a interface describing the different Actions available
@@ -15,10 +15,12 @@ export type IProcessDispatchers = typeof actions;
  */
 const actions = {
   getProcessState: GetProcessStateActions.getProcessStateAction,
-  getProcessStateFulfilled: GetProcessStateActions.getProcessStateFulfilledAction,
+  getProcessStateFulfilled:
+    GetProcessStateActions.getProcessStateFulfilledAction,
   getProcessStateRejected: GetProcessStateActions.getProcessStateRejectedAction,
   completeProcess: CompleteProcessActions.completeProcess,
-  completeProcessFulfilled: CompleteProcessActions.getProcessStateFulfilledAction,
+  completeProcessFulfilled:
+    CompleteProcessActions.getProcessStateFulfilledAction,
   completeProcessRejected: CompleteProcessActions.getProcessStateRejectedAction,
   checkProcessUpdated: CheckProcessUpdatedActions.CheckProcessUpdated,
 };

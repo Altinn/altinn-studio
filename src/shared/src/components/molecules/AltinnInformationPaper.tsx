@@ -22,13 +22,10 @@ export interface IAltinnInformationPaperProps {
 
 export default function AltinnInformationPaper({
   children,
-} : IAltinnInformationPaperProps) {
+}: IAltinnInformationPaperProps) {
   const classes = useStyles();
   return (
-    <Paper
-      elevation={0}
-      className={classes.paper}
-    >
+    <Paper elevation={0} className={classes.paper}>
       {children}
     </Paper>
   );

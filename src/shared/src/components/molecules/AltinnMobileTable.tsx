@@ -14,7 +14,10 @@ const useStyles = makeStyles({
   },
 });
 
-export default function AltinnMobileTable({ children, id }: IAltinnMobileTableProps) {
+export default function AltinnMobileTable({
+  children,
+  id,
+}: IAltinnMobileTableProps) {
   const classes = useStyles();
 
   return (

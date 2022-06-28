@@ -1,10 +1,14 @@
-import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
-import { get, putWithoutConfig } from '../../../../utils/networking';
-import { instancesControllerUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../utils/appUrlHelper';
-import InstanceDataActions from '../instanceDataActions';
-import * as getInstanceDataActions from './getInstanceDataActions';
-import * as InstanceDataActionTypes from './getInstanceDataActionTypes';
+import type { SagaIterator } from "redux-saga";
+import { call, takeLatest } from "redux-saga/effects";
+import { get, putWithoutConfig } from "../../../../utils/networking";
+import {
+  instancesControllerUrl,
+  redirectToUpgrade,
+  invalidateCookieUrl,
+} from "../../../../utils/appUrlHelper";
+import InstanceDataActions from "../instanceDataActions";
+import type * as getInstanceDataActions from "./getInstanceDataActions";
+import * as InstanceDataActionTypes from "./getInstanceDataActionTypes";
 
 export function* getInstanceDataSaga({
   instanceOwner,
@@ -15,7 +19,11 @@ export function* getInstanceDataSaga({
     const result = yield call(get, url);
     yield call(InstanceDataActions.getInstanceDataFulfilled, result);
   } catch (error) {
-    if (error.response && error.response.status === 403 && error.response.data) {
+    if (
+      error.response &&
+      error.response.status === 403 &&
+      error.response.data
+    ) {
       const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
       if (reqAuthLevel) {
         putWithoutConfig(invalidateCookieUrl);
@@ -30,6 +38,6 @@ export function* getInstanceDataSaga({
 export function* watchGetInstanceDataSaga(): SagaIterator {
   yield takeLatest(
     InstanceDataActionTypes.GET_INSTANCEDATA,
-    getInstanceDataSaga,
+    getInstanceDataSaga
   );
 }

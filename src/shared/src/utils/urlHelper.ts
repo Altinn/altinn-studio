@@ -1,4 +1,3 @@
-
 const altinnWindow = window as any;
 const { org, app } = altinnWindow;
 const origin = window.location.origin;
@@ -7,11 +6,15 @@ export const getApplicationMetadataUrl = (): string => {
   return `${origin}/designer/api/v1/${org}/${app}`;
 };
 
-export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
-export const altinnAppsImgLogoBlueSvgUrl = 'https://altinncdn.no/img/a-logo-blue.svg';
+export const altinnAppsIllustrationHelpCircleSvgUrl =
+  'https://altinncdn.no/img/illustration-help-circle.svg';
+export const altinnAppsImgLogoBlueSvgUrl =
+  'https://altinncdn.no/img/a-logo-blue.svg';
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
-export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';
+export const altinnStudioDocsUrl =
+  'https://altinn.github.io/docs/altinn-studio/';
+export const altinnImgLogoHeaderUrl =
+  'https://altinncdn.no/img/altinn_logo_header.png';
 export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamodel`;
 export const dataModelXsdUrl = `${origin}/designer/${org}/${app}/Model/GetXsd`;
 export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
@@ -28,7 +31,10 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (url: string, partyId?: string | undefined): string => {
+export const returnUrlToMessagebox = (
+  url: string,
+  partyId?: string | undefined,
+): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -44,7 +50,7 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
 export const returnUrlFromQueryParameter = (): string => {
   const params = new URLSearchParams(window.location.search);
   return params.get('returnUrl');
-}
+};
 
 export const returnUrlToArchive = (url: string): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
@@ -55,7 +61,10 @@ export const returnUrlToArchive = (url: string): string => {
   return baseUrl + pathToArchive;
 };
 
-export const returnUrlToProfile = (url: string, partyId?: string | undefined): string => {
+export const returnUrlToProfile = (
+  url: string,
+  partyId?: string | undefined,
+): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;

@@ -1,4 +1,4 @@
-const moduleName = 'PROCESS';
+const moduleName = "PROCESS";
 
 export const GET_PROCESS_STATE = `${moduleName}.GET_PROCESS_STATE`;
 export const GET_PROCESS_STATE_FULFILLED = `${moduleName}.GET_PROCESS_STATE_FULFILLED`;

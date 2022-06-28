@@ -1,7 +1,7 @@
 import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
 import * as React from 'react';
 import { AltinnIcon } from '..';
-import { IParty } from '../../types';
+import type { IParty } from '../../types';
 import { logoutUrlAltinn } from '../../utils';
 
 export interface IAltinnAppHeaderMenuProps {
@@ -30,12 +30,7 @@ const useStyles = makeStyles({
 });
 
 function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
-  const {
-    party,
-    logoColor,
-    ariaLabel,
-    logoutText,
-  } = props;
+  const { party, logoColor, ariaLabel, logoutText } = props;
   const [anchorEl, setAnchorEl] = React.useState(null);
   const classes = useStyles();
 
@@ -61,22 +56,22 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
         className={classes.iconButton}
         id='profile-icon-button'
       >
-        {party.ssn &&
+        {party.ssn && (
           <AltinnIcon
             iconClass='fa fa-private-circle-big'
             iconColor={logoColor}
             iconSize={31}
             margin='0px 0px 0px 5px'
           />
-        }
-        {party.orgNumber &&
+        )}
+        {party.orgNumber && (
           <AltinnIcon
             iconClass='fa fa-corp-circle-big'
             iconColor={logoColor}
             iconSize={31}
             margin='0px 0px 0px 5px'
           />
-        }
+        )}
       </IconButton>
       <Menu
         id='profile-menu'
@@ -96,20 +91,13 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
           horizontal: 'center',
         }}
       >
-        <MenuItem
-          key='placeholder'
-          style={{ display: 'none' }}
-        />
-        {// workaround for highlighted menu item not changing.
+        <MenuItem key='placeholder' style={{ display: 'none' }} />
+        {
+          // workaround for highlighted menu item not changing.
           // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
         }
-        <MenuItem
-          className={classes.menuItem}
-          id='logout-menu-item'
-        >
-          <a href={logoutUrlAltinn(window.location.origin)}>
-            {logoutText}
-          </a>
+        <MenuItem className={classes.menuItem} id='logout-menu-item'>
+          <a href={logoutUrlAltinn(window.location.origin)}>{logoutText}</a>
         </MenuItem>
       </Menu>
     </>

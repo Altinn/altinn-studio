@@ -1,15 +1,15 @@
-import { testSaga } from 'redux-saga-test-plan';
-import { take } from 'redux-saga/effects';
-import FormDataActions from 'src/features/form/data/formDataActions';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { FETCH_TEXT_RESOURCES_FULFILLED } from 'src/shared/resources/textResources/fetch/fetchTextResourcesActionTypes';
+import { testSaga } from "redux-saga-test-plan";
+import { take } from "redux-saga/effects";
+import FormDataActions from "src/features/form/data/formDataActions";
+import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
+import { FETCH_TEXT_RESOURCES_FULFILLED } from "src/shared/resources/textResources/fetch/fetchTextResourcesActionTypes";
 import {
   replaceTextResourcesSaga,
   watchReplaceTextResourcesSaga,
-} from './replaceTextResourcesSagas';
+} from "./replaceTextResourcesSagas";
 
-describe('watchReplaceTextResourcesSaga', () => {
-  it('should wait for required data then take latest for relevant actions', () => {
+describe("watchReplaceTextResourcesSaga", () => {
+  it("should wait for required data then take latest for relevant actions", () => {
     const saga = testSaga(watchReplaceTextResourcesSaga);
     saga
       .next()
@@ -23,28 +23,25 @@ describe('watchReplaceTextResourcesSaga', () => {
       .next()
       .takeLatest(
         FormDataActions.fetchFormDataFulfilled,
-        replaceTextResourcesSaga,
+        replaceTextResourcesSaga
       )
       .next()
       .takeLatest(
         FormDataActions.updateFormDataFulfilled,
-        replaceTextResourcesSaga,
+        replaceTextResourcesSaga
       )
       .next()
       .takeLatest(
         FormDataActions.updateFormDataSkipAutosave,
-        replaceTextResourcesSaga,
+        replaceTextResourcesSaga
       )
       .next()
       .takeLatest(
         FormDataActions.setFormDataFulfilled,
-        replaceTextResourcesSaga,
+        replaceTextResourcesSaga
       )
       .next()
-      .takeLatest(
-        FETCH_TEXT_RESOURCES_FULFILLED,
-        replaceTextResourcesSaga,
-      )
+      .takeLatest(FETCH_TEXT_RESOURCES_FULFILLED, replaceTextResourcesSaga)
       .next()
       .isDone();
   });

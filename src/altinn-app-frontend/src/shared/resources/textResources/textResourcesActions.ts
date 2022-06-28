@@ -1,8 +1,8 @@
-import { bindActionCreators } from 'redux';
-import * as FetchActions from './fetch/fetchTextResourcesActions';
-import * as ReplaceActions from './replace/replaceTextResoucesActions';
+import { bindActionCreators } from "redux";
+import * as FetchActions from "./fetch/fetchTextResourcesActions";
+import * as ReplaceActions from "./replace/replaceTextResoucesActions";
 
-import { store } from 'src/store';
+import { store } from "src/store";
 
 export type ITextResourcesActions = typeof actions;
 

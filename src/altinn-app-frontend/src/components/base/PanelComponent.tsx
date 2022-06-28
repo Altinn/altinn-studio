@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
-import { Panel } from 'src/features/form/components/Panel';
+import { Panel } from "src/features/form/components/Panel";
 
-import type { IComponentProps } from 'src/components';
+import type { IComponentProps } from "src/components";
 
 interface IPanelProps extends IComponentProps {
   variant?: string;

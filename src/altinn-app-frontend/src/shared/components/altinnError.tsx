@@ -1,14 +1,9 @@
-import {
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
-import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { altinnAppsIllustrationHelpCircleSvgUrl } from 'altinn-shared/utils';
+import type { WithStyles } from "@material-ui/core";
+import { createStyles, Grid, Typography, withStyles } from "@material-ui/core";
+import classNames from "classnames";
+import * as React from "react";
+import { AltinnAppTheme } from "altinn-shared/theme";
+import { altinnAppsIllustrationHelpCircleSvgUrl } from "altinn-shared/utils";
 
 interface IAltinnErrorClasses {
   root?: string;
@@ -45,7 +40,7 @@ const styles = createStyles({
   },
   gridContainer: {
     maxWidth: 750,
-    '-ms-flex-wrap': 'nowrap',
+    "-ms-flex-wrap": "nowrap",
   },
 });
 
@@ -56,16 +51,19 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
       container={true}
       className={`${classes.gridContainer} ${styling ? styling.root : null}`}
     >
-      <Grid item={true} md={8}>
+      <Grid
+        item={true}
+        md={8}
+      >
         <div className={classes.contentMargin}>
-          <Typography variant='caption'>{props.statusCode}</Typography>
+          <Typography variant="caption">{props.statusCode}</Typography>
         </div>
         <div className={classes.contentMargin}>
           <Typography
-            variant='h1'
+            variant="h1"
             className={classNames(
               classes.title,
-              styling ? styling.title : null,
+              styling ? styling.title : null
             )}
           >
             {props.title}
@@ -80,18 +78,21 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
           </Typography>
         </div>
         <div>
-          <Typography variant='body1'>
+          <Typography variant="body1">
             <a href={props.url}>{props.urlText}</a>
           </Typography>
         </div>
         <div>
-          <Typography variant='body1'>{props.urlTextSuffix}</Typography>
+          <Typography variant="body1">{props.urlTextSuffix}</Typography>
         </div>
       </Grid>
-      <Grid item={true} md={4}>
+      <Grid
+        item={true}
+        md={4}
+      >
         <div className={classes.imageContainer}>
           <img
-            alt={props.imageAlt ? props.imageAlt : 'Altinn Help Illustration'}
+            alt={props.imageAlt ? props.imageAlt : "Altinn Help Illustration"}
             src={
               props.imageUrl
                 ? props.imageUrl

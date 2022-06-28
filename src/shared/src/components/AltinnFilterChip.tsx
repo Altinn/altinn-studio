@@ -20,14 +20,14 @@ const theme = createTheme(altinnTheme);
 
 const styles = {
   chip: {
-    'color': theme.altinnPalette.primary.black,
-    'borderColor': theme.altinnPalette.primary.blueDark,
-    'borderWidth': '1px',
-    'borderStyle': 'dotted',
-    'backgroundColor': theme.altinnPalette.primary.white,
-    'borderRadius': '36px',
-    'minHeight': '36px',
-    'fontSize': '16px',
+    color: theme.altinnPalette.primary.black,
+    borderColor: theme.altinnPalette.primary.blueDark,
+    borderWidth: '1px',
+    borderStyle: 'dotted',
+    backgroundColor: theme.altinnPalette.primary.white,
+    borderRadius: '36px',
+    minHeight: '36px',
+    fontSize: '16px',
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -39,11 +39,11 @@ const styles = {
     },
   },
   chipActive: {
-    'backgroundColor': theme.altinnPalette.primary.blueLight + ' !Important',
-    'border': '1px solid ' + theme.altinnPalette.primary.blueDark,
-    'borderRadius': '36px',
-    'minHeight': '36px',
-    'fontSize': '16px',
+    backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
+    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+    borderRadius: '36px',
+    minHeight: '36px',
+    fontSize: '16px',
     '&:hover': {
       backgroundColor: theme.altinnPalette.primary.blueLighter + ' !Important',
     },
@@ -61,7 +61,6 @@ const styles = {
   },
 };
 
-
 export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps> {
   public render() {
     const { classes } = this.props;
@@ -74,11 +73,16 @@ export class AltinnFilterChip extends React.Component<IAltinnFilterChipComponent
         variant='outlined'
         onClick={this.props.onclickFunction}
         onDelete={this.props.onDeleteFunction}
-        deleteIcon={this.props.sortIcon ? <i className={classNames(classes.down)} /> : this.props.deleteIcon}
-        className={classNames(
-          this.props.className,
-          classes.chip,
-          { [classes.chipActive]: this.props.active })}
+        deleteIcon={
+          this.props.sortIcon ? (
+            <i className={classNames(classes.down)} />
+          ) : (
+            this.props.deleteIcon
+          )
+        }
+        className={classNames(this.props.className, classes.chip, {
+          [classes.chipActive]: this.props.active,
+        })}
       />
     );
   }

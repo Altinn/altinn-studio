@@ -1,6 +1,6 @@
-import { Action } from 'redux';
-import * as ActionTypes from '../rulesActionTypes';
-import { IRuleModelFieldElement } from '..';
+import type { Action } from "redux";
+import * as ActionTypes from "../rulesActionTypes";
+import type { IRuleModelFieldElement } from "..";
 
 export interface IFetchRuleModelFulfilled extends Action {
   ruleModel: IRuleModelFieldElement[];
@@ -17,7 +17,7 @@ export function fetchRuleModelAction(): Action {
 }
 
 export function fetchRuleModelFulfilledAction(
-  ruleModel: IRuleModelFieldElement[],
+  ruleModel: IRuleModelFieldElement[]
 ): IFetchRuleModelFulfilled {
   return {
     type: ActionTypes.FETCH_RULE_MODEL_FULFILLED,
@@ -26,7 +26,7 @@ export function fetchRuleModelFulfilledAction(
 }
 
 export function fetchRuleModelRejectedAction(
-  error: Error,
+  error: Error
 ): IFetchRuleModelRejected {
   return {
     type: ActionTypes.FETCH_RULE_MODEL_REJECTED,

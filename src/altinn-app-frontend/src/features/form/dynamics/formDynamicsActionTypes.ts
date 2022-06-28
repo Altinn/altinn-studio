@@ -1,4 +1,4 @@
-const moduleName = 'FORM_DYNAMIC';
+const moduleName = "FORM_DYNAMIC";
 
 // Action for running conditional rendering rules
 export const CHECK_IF_CONDITIONAL_RULE_SHOULD_RUN = `${moduleName}.CHECK_IF_CONDITIONAL_RULE_SHOULD_RUN`;

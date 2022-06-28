@@ -273,8 +273,9 @@ Session.vim
 # Sonarqube
 .scannerwork
 
-# ESLint report
+# ESLint report and cache
 eslint_report.json
+.eslintcache
 
 
 ## -- Repositories --

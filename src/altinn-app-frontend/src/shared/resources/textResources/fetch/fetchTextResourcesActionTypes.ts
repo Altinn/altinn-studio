@@ -1,4 +1,4 @@
-const moduleName = 'TEXT_RESOURCES';
+const moduleName = "TEXT_RESOURCES";
 
 export const FETCH_TEXT_RESOURCES = `${moduleName}.FETCH_TEXT_RESOURCES`;
 export const FETCH_TEXT_RESOURCES_FULFILLED = `${moduleName}.FETCH_TEXT_RESOURCES_FULFILLED`;

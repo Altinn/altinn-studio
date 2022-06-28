@@ -1,4 +1,3 @@
-
 import { Typography } from '@material-ui/core';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
@@ -6,10 +5,11 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import createStyles from '@material-ui/core/styles/createStyles';
-import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
+import type { WithStyles } from '@material-ui/core/styles/withStyles';
+import withStyles from '@material-ui/core/styles/withStyles';
 import classNames from 'classnames';
 import * as React from 'react';
-import { IAttachment } from '../../types';
+import type { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 
@@ -23,7 +23,7 @@ const styles = createStyles({
   transition: {
     transitionDuration: '0.1s',
     minWidth: '0px',
-    marginRight: '10px'
+    marginRight: '10px',
   },
   collapsedTitle: {
     fontSize: '20px',
@@ -37,27 +37,32 @@ interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
   hideCount?: boolean;
 }
 
-export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachmentsProps) {
+export function AltinnCollapsibleAttachments(
+  props: IAltinnCollapsibleAttachmentsProps,
+) {
   const [open, setOpen] = React.useState(true);
 
   function handleOpenClose() {
     setOpen(!open);
   }
 
-  const attachmentCount = props.hideCount ? '' : `(${props.attachments && props.attachments.length})`;
+  const attachmentCount = props.hideCount
+    ? ''
+    : `(${props.attachments && props.attachments.length})`;
 
-  return(
+  return (
     <>
       {props.collapsible ? (
-        <List
-          component='nav'
-          id='attachment-collapsible-list'
-        >
-          <ListItem button={true} onClick={handleOpenClose} disableGutters={true}>
+        <List component='nav' id='attachment-collapsible-list'>
+          <ListItem
+            button={true}
+            onClick={handleOpenClose}
+            disableGutters={true}
+          >
             <ListItemIcon
               classes={{
                 root: classNames(
-                  {[props.classes.transformArrowRight]: !open},
+                  { [props.classes.transformArrowRight]: !open },
                   props.classes.transition,
                 ),
               }}
@@ -96,11 +101,9 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
             id='attachment-list'
           />
         </>
-
       )}
     </>
   );
-
 }
 
 export default withStyles(styles)(AltinnCollapsibleAttachments);

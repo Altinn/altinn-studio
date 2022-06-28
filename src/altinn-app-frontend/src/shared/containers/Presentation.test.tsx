@@ -1,21 +1,21 @@
-import axios from 'axios';
-import { mount } from 'enzyme';
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router';
-import * as renderer from 'react-test-renderer';
-import configureStore from 'redux-mock-store';
-import { getInitialStateMock } from '../../../__mocks__/mocks';
-import { mockParty } from '../../../__mocks__/initialStateMock';
-import type { IRuntimeState } from 'src/types';
-import { ProcessTaskType } from 'src/types';
-import NavBar from 'src/components/presentation/NavBar';
-import { AltinnAppTheme, returnUrlToMessagebox } from '../../../../shared/src';
-import { HttpStatusCodes } from 'src/utils/networking';
-import Presentation from './Presentation';
-import { mockMediaQuery } from '../../../testUtils';
+import axios from "axios";
+import { mount } from "enzyme";
+import * as React from "react";
+import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router";
+import * as renderer from "react-test-renderer";
+import configureStore from "redux-mock-store";
+import { getInitialStateMock } from "../../../__mocks__/mocks";
+import { mockParty } from "../../../__mocks__/initialStateMock";
+import type { IRuntimeState } from "src/types";
+import { ProcessTaskType } from "src/types";
+import NavBar from "src/components/presentation/NavBar";
+import { AltinnAppTheme, returnUrlToMessagebox } from "../../../../shared/src";
+import { HttpStatusCodes } from "src/utils/networking";
+import Presentation from "./Presentation";
+import { mockMediaQuery } from "../../../testUtils";
 
-jest.mock('axios');
+jest.mock("axios");
 
 function flushPromises() {
   return new Promise((resolve) => window.setTimeout(resolve, 0));
@@ -23,7 +23,7 @@ function flushPromises() {
 
 const { setScreenWidth } = mockMediaQuery(992);
 
-describe('containers/Presentation.tsx', () => {
+describe("containers/Presentation.tsx", () => {
   let mockHeader: string;
   let mockStore: any;
   let mockInitialState: IRuntimeState;
@@ -34,16 +34,16 @@ describe('containers/Presentation.tsx', () => {
   });
 
   beforeEach(() => {
-    mockHeader = 'mock-service-name';
+    mockHeader = "mock-service-name";
     const createStore = configureStore();
     mockInitialState = getInitialStateMock({
       formValidations: {
         validations: {
           FormLayout: {
-            'mock-component-id': {
+            "mock-component-id": {
               simpleBinding: {
-                errors: ['mock-error-message'],
-                warnings: ['mock-warning-message'],
+                errors: ["mock-error-message"],
+                warnings: ["mock-warning-message"],
               },
             },
           },
@@ -56,80 +56,89 @@ describe('containers/Presentation.tsx', () => {
     mockStore = createStore(mockInitialState);
   });
 
-  it('should match snapshot', () => {
+  it("should match snapshot", () => {
     const rendered = renderer.create(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data} />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          />
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
     expect(rendered).toMatchSnapshot();
   });
 
-  it('should change window.location.href to query parameter returnUrl if valid URL', async () => {
-    const returnUrl = 'foo';
+  it("should change window.location.href to query parameter returnUrl if valid URL", async () => {
+    const returnUrl = "foo";
     (axios.get as jest.Mock).mockResolvedValue({
       data: returnUrl,
       status: HttpStatusCodes.Ok,
     });
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       value: {
         ...window,
-        search: '?returnUrl=' + returnUrl,
+        search: "?returnUrl=" + returnUrl,
       },
       writable: true,
     });
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data}>
-            <div id='mockFormFiller' />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id="mockFormFiller" />
           </Presentation>
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
+    const closeButton = wrapper.find(NavBar).find(".a-modal-close");
+    closeButton.simulate("click");
     await flushPromises();
     expect(window.location.href).toEqual(returnUrl);
   });
 
-  it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
-    const origin = 'https://altinn3local.no';
-    const returnUrl = 'https://altinn.cloud.no';
+  it("should change window.location.href to default messagebox url if query parameter returnUrl is not valid", async () => {
+    const origin = "https://altinn3local.no";
+    const returnUrl = "https://altinn.cloud.no";
     (axios.get as jest.Mock).mockRejectedValue({
-      data: 'Error',
+      data: "Error",
       status: HttpStatusCodes.BadRequest,
     });
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       value: {
         ...window,
         origin,
-        search: '?returnUrl=' + returnUrl,
+        search: "?returnUrl=" + returnUrl,
       },
       writable: true,
     });
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data}>
-            <div id='mockFormFiller' />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id="mockFormFiller" />
           </Presentation>
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
+    const closeButton = wrapper.find(NavBar).find(".a-modal-close");
+    closeButton.simulate("click");
     await flushPromises();
     expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, mockParty.partyId),
+      returnUrlToMessagebox(origin, mockParty.partyId)
     );
   });
 
-  it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', () => {
-    const origin = 'https://altinn3local.no';
-    Object.defineProperty(window, 'location', {
+  it("should change window.location.href to default messagebox url if query parameter returnUrl is not found", () => {
+    const origin = "https://altinn3local.no";
+    Object.defineProperty(window, "location", {
       value: {
         ...window,
         origin,
@@ -139,16 +148,19 @@ describe('containers/Presentation.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data}>
-            <div id='mockFormFiller' />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id="mockFormFiller" />
           </Presentation>
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
+    const closeButton = wrapper.find(NavBar).find(".a-modal-close");
+    closeButton.simulate("click");
     expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, mockParty.partyId),
+      returnUrlToMessagebox(origin, mockParty.partyId)
     );
   });
 
@@ -156,26 +168,32 @@ describe('containers/Presentation.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data}>
-            <div id='mockFormFiller' />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          >
+            <div id="mockFormFiller" />
           </Presentation>
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    expect(wrapper.exists('#mockFormFiller')).toEqual(true);
+    expect(wrapper.exists("#mockFormFiller")).toEqual(true);
   });
 
   it('the background color should be greyLight if step is "data"', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data} />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          />
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(wrapper.find('AltinnAppHeader').prop('headerBackgroundColor')).toBe(
-      AltinnAppTheme.altinnPalette.primary.greyLight,
+    expect(wrapper.find("AltinnAppHeader").prop("headerBackgroundColor")).toBe(
+      AltinnAppTheme.altinnPalette.primary.greyLight
     );
   });
 
@@ -183,24 +201,27 @@ describe('containers/Presentation.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Archived} />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Archived}
+          />
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
 
-    expect(wrapper.find('AltinnAppHeader').prop('headerBackgroundColor')).toBe(
-      AltinnAppTheme.altinnPalette.primary.greenLight,
+    expect(wrapper.find("AltinnAppHeader").prop("headerBackgroundColor")).toBe(
+      AltinnAppTheme.altinnPalette.primary.greenLight
     );
   });
 
-  it('should map validations if there are any and create error report', () => {
+  it("should map validations if there are any and create error report", () => {
     const createStore = configureStore();
     const newState = getInitialStateMock({
       language: {
         language: {
           form_filler: {
-            error_report_header: 'Mock error report',
-            placeholder_user: 'OLA PRIVATPERSON',
+            error_report_header: "Mock error report",
+            placeholder_user: "OLA PRIVATPERSON",
           },
         },
         selectedAppLanguage: "",
@@ -210,8 +231,8 @@ describe('containers/Presentation.tsx', () => {
         validations: {
           FormLayout: {
             unmapped: {
-              'mock-component-id': {
-                errors: ['mock-error-message', 'another-mock-error-message'],
+              "mock-component-id": {
+                errors: ["mock-error-message", "another-mock-error-message"],
               },
             },
           },
@@ -225,24 +246,30 @@ describe('containers/Presentation.tsx', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data} />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          />
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    expect(wrapper.exists('#errorReport')).toBe(true);
+    expect(wrapper.exists("#errorReport")).toBe(true);
   });
 
-  it('should hide error report when there are no validation errors', () => {
+  it("should hide error report when there are no validation errors", () => {
     const createStore = configureStore();
     const newState = getInitialStateMock();
     mockStore = createStore(newState);
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <Presentation header={mockHeader} type={ProcessTaskType.Data} />
+          <Presentation
+            header={mockHeader}
+            type={ProcessTaskType.Data}
+          />
         </Provider>
-      </MemoryRouter>,
+      </MemoryRouter>
     );
-    expect(wrapper.exists('#errorReport')).toBe(false);
+    expect(wrapper.exists("#errorReport")).toBe(false);
   });
 });

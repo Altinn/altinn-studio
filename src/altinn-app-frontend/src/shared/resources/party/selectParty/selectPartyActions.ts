@@ -1,6 +1,6 @@
-import { Action } from 'redux';
-import { IParty } from 'altinn-shared/types';
-import * as ActionTypes from './selectPartyActionTypes';
+import type { Action } from "redux";
+import type { IParty } from "altinn-shared/types";
+import * as ActionTypes from "./selectPartyActionTypes";
 
 export interface ISelectParty extends Action {
   party: IParty;

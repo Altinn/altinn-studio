@@ -1,50 +1,83 @@
 /* eslint-disable max-len */
-import { SagaIterator } from 'redux-saga';
-import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
-import { get, put } from 'altinn-shared/utils';
-import { IRuntimeState, IRuntimeStore, IUiConfig, Severity } from 'src/types';
-import { isIE } from 'react-device-detect';
-import { PayloadAction } from '@reduxjs/toolkit';
-import { post } from 'src/utils/networking';
-import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from '../../../../utils/databindings';
-import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from '../../../../utils/appUrlHelper';
-import { canFormBeSaved,
+import type { SagaIterator } from "redux-saga";
+import { call, put as sagaPut, select, takeLatest } from "redux-saga/effects";
+import { get, put } from "altinn-shared/utils";
+import type { IRuntimeState, IRuntimeStore, IUiConfig } from "src/types";
+import { Severity } from "src/types";
+import { isIE } from "react-device-detect";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { post } from "src/utils/networking";
+import ProcessDispatcher from "../../../../shared/resources/process/processDispatcher";
+import {
+  convertDataBindingToModel,
+  convertModelToDataBinding,
+  filterOutInvalidData,
+} from "../../../../utils/databindings";
+import {
+  dataElementUrl,
+  getStatelessFormDataUrl,
+  getValidationUrl,
+} from "../../../../utils/appUrlHelper";
+import {
+  canFormBeSaved,
   hasValidationsOfSeverity,
   getValidator,
   mapDataElementValidationToRedux,
   mergeValidationObjects,
   validateEmptyFields,
   validateFormComponents,
-  validateFormData } from '../../../../utils/validation';
-import { FormLayoutActions, ILayoutState } from '../../layout/formLayoutSlice';
-import { runSingleFieldValidation, updateValidations } from '../../validation/validationSlice';
-import FormDataActions from '../formDataActions';
-import FormDynamicsActions from '../../dynamics/formDynamicsActions';
-import { ISubmitDataAction } from '../formDataTypes';
-import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, getDataTaskDataTypeId, isStatelessApp } from '../../../../utils/appMetadata';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+  validateFormData,
+} from "../../../../utils/validation";
+import type { ILayoutState } from "../../layout/formLayoutSlice";
+import { FormLayoutActions } from "../../layout/formLayoutSlice";
+import {
+  runSingleFieldValidation,
+  updateValidations,
+} from "../../validation/validationSlice";
+import FormDataActions from "../formDataActions";
+import FormDynamicsActions from "../../dynamics/formDynamicsActions";
+import type { ISubmitDataAction } from "../formDataTypes";
+import {
+  getCurrentDataTypeForApplication,
+  getCurrentTaskDataElementId,
+  getDataTaskDataTypeId,
+  isStatelessApp,
+} from "../../../../utils/appMetadata";
+import { makeGetAllowAnonymousSelector } from "src/selectors/getAllowAnonymous";
 
-const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
-const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
+const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (
+  store: IRuntimeStore
+) => store.formLayout;
+const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (
+  store: IRuntimeStore
+) => store.formLayout.uiConfig;
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
 // eslint-disable-next-line consistent-return
-function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadAction<ISubmitDataAction>): SagaIterator {
+function* submitFormSaga({
+  payload: { apiMode, stopWithWarnings },
+}: PayloadAction<ISubmitDataAction>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const currentDataTaskDataTypeId = getDataTaskDataTypeId(
       state.instanceData.instance.process.currentTask.elementId,
-      state.applicationMetadata.applicationMetadata.dataTypes,
+      state.applicationMetadata.applicationMetadata.dataTypes
     );
 
     // Run client validations
-    const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
+    const validator = getValidator(
+      currentDataTaskDataTypeId,
+      state.formDataModel.schemas
+    );
     const model = convertDataBindingToModel(state.formData.formData);
     const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
     const validationResult = validateFormData(
-      model, state.formLayout.layouts, layoutOrder,
-      validator, state.language.language, state.textResources.resources,
+      model,
+      state.formLayout.layouts,
+      layoutOrder,
+      validator,
+      state.language.language,
+      state.textResources.resources
     );
     let validations = validationResult.validations;
     const componentSpecificValidations = validateFormComponents(
@@ -54,7 +87,7 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       state.formData.formData,
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
-      state.formLayout.uiConfig.repeatingGroups,
+      state.formLayout.uiConfig.repeatingGroups
     );
     const emptyFieldsValidations = validateEmptyFields(
       state.formData.formData,
@@ -63,22 +96,27 @@ function* submitFormSaga({ payload: { apiMode, stopWithWarnings } }: PayloadActi
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
       state.formLayout.uiConfig.repeatingGroups,
-      state.textResources.resources,
+      state.textResources.resources
     );
 
-    validations = mergeValidationObjects(validations, componentSpecificValidations);
+    validations = mergeValidationObjects(
+      validations,
+      componentSpecificValidations
+    );
 
-    if (apiMode === 'Complete') {
+    if (apiMode === "Complete") {
       validations = mergeValidationObjects(validations, emptyFieldsValidations);
     }
     validationResult.validations = validations;
     if (!canFormBeSaved(validationResult, apiMode)) {
       yield sagaPut(updateValidations({ validations }));
-      return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
+      return yield sagaPut(
+        FormDataActions.submitFormDataRejected({ error: null })
+      );
     }
 
     yield call(putFormData, state, model);
-    if (apiMode === 'Complete') {
+    if (apiMode === "Complete") {
       yield call(submitComplete, state, stopWithWarnings);
     }
     yield sagaPut(FormDataActions.submitFormDataFulfilled());
@@ -94,14 +132,22 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   const serverValidation: any = yield call(get, getValidationUrl(instanceId));
   // update validation state
   const layoutState: ILayoutState = yield select(LayoutSelector);
-  const mappedValidations =
-    mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
+  const mappedValidations = mapDataElementValidationToRedux(
+    serverValidation,
+    layoutState.layouts,
+    state.textResources.resources
+  );
   yield sagaPut(updateValidations({ validations: mappedValidations }));
   const hasErrors = hasValidationsOfSeverity(mappedValidations, Severity.Error);
-  const hasWarnings = hasValidationsOfSeverity(mappedValidations, Severity.Warning);
+  const hasWarnings = hasValidationsOfSeverity(
+    mappedValidations,
+    Severity.Warning
+  );
   if (hasErrors || (stopWithWarnings && hasWarnings)) {
     // we have validation errors or warnings that should be shown, do not submit
-    return yield sagaPut(FormDataActions.submitFormDataRejected({ error: null }));
+    return yield sagaPut(
+      FormDataActions.submitFormDataRejected({ error: null })
+    );
   }
 
   if (layoutState.uiConfig.currentViewCacheKey) {
@@ -118,20 +164,31 @@ export function* putFormData(state: IRuntimeState, model: any) {
   // updates the default data element
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance,
+    state.instanceData.instance
   );
   try {
     yield call(put, dataElementUrl(defaultDataElementGuid), model);
   } catch (error) {
     if (isIE) {
       // 303 is treated as en error in IE - we try to fetch.
-      yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+      yield sagaPut(
+        FormDataActions.fetchFormData({
+          url: dataElementUrl(defaultDataElementGuid),
+        })
+      );
     } else if (error.response && error.response.status === 303) {
       // 303 means that data has been changed by calculation on server. Try to update from response.
-      const calculationUpdateHandled = yield call(handleCalculationUpdate, error.response.data?.changedFields);
+      const calculationUpdateHandled = yield call(
+        handleCalculationUpdate,
+        error.response.data?.changedFields
+      );
       if (!calculationUpdateHandled) {
         // No changedFields property returned, try to fetch
-        yield sagaPut(FormDataActions.fetchFormData({ url: dataElementUrl(defaultDataElementGuid) }));
+        yield sagaPut(
+          FormDataActions.fetchFormData({
+            url: dataElementUrl(defaultDataElementGuid),
+          })
+        );
       } else {
         yield sagaPut(FormLayoutActions.initRepeatingGroups());
       }
@@ -147,12 +204,14 @@ function* handleCalculationUpdate(changedFields) {
   }
   // eslint-disable-next-line no-restricted-syntax
   for (const fieldKey of Object.keys(changedFields)) {
-    yield sagaPut(FormDataActions.updateFormData({
-      data: changedFields[fieldKey]?.toString(),
-      field: fieldKey,
-      skipValidation: true,
-      skipAutoSave: true,
-    }));
+    yield sagaPut(
+      FormDataActions.updateFormData({
+        data: changedFields[fieldKey]?.toString(),
+        field: fieldKey,
+        skipValidation: true,
+        skipAutoSave: true,
+      })
+    );
   }
 
   return true;
@@ -165,7 +224,10 @@ export function* saveFormDataSaga(): SagaIterator {
     // updates the default data element
     const application = state.applicationMetadata.applicationMetadata;
     const model = convertDataBindingToModel(
-      filterOutInvalidData(state.formData.formData, state.formValidations.invalidDataTypes || []),
+      filterOutInvalidData(
+        state.formData.formData,
+        state.formValidations.invalidDataTypes || []
+      )
     );
 
     if (isStatelessApp(application)) {
@@ -193,7 +255,7 @@ export function* saveStatelessData(state: IRuntimeState, model: any) {
     const selectedPartyId = state.party.selectedParty.partyId;
     options = {
       headers: {
-        party: `partyid:${selectedPartyId}`
+        party: `partyid:${selectedPartyId}`,
       },
     };
   }
@@ -203,7 +265,12 @@ export function* saveStatelessData(state: IRuntimeState, model: any) {
     instance: state.instanceData.instance,
     layoutSets: state.formLayout.layoutsets,
   });
-  const response = yield call(post, getStatelessFormDataUrl(currentDataType, allowAnonymous), options, model);
+  const response = yield call(
+    post,
+    getStatelessFormDataUrl(currentDataType, allowAnonymous),
+    options,
+    model
+  );
   const formData = convertModelToDataBinding(response?.data);
   yield sagaPut(FormDataActions.fetchFormDataFulfilled({ formData }));
   yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);

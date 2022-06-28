@@ -1,16 +1,16 @@
-import { SagaIterator } from 'redux-saga';
-import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
-import { get } from 'src/utils/networking';
-import { textResourcesUrl, oldTextResourcesUrl } from 'src/utils/appUrlHelper';
-import TextResourcesActions from '../textResourcesActions';
-import { appTaskQueueError } from '../../queue/queueSlice';
-import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
-import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionTypes';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import type { SagaIterator } from "redux-saga";
+import { all, call, put, select, take, takeLatest } from "redux-saga/effects";
+import { get } from "src/utils/networking";
+import { textResourcesUrl, oldTextResourcesUrl } from "src/utils/appUrlHelper";
+import TextResourcesActions from "../textResourcesActions";
+import { appTaskQueueError } from "../../queue/queueSlice";
+import { FETCH_TEXT_RESOURCES } from "./fetchTextResourcesActionTypes";
+import { FETCH_PROFILE_FULFILLED } from "../../profile/fetch/fetchProfileActionTypes";
+import { FETCH_APPLICATION_METADATA_FULFILLED } from "src/shared/resources/applicationMetadata/actions/types";
+import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
+import { makeGetAllowAnonymousSelector } from "src/selectors/getAllowAnonymous";
+import { appLanguageStateSelector } from "src/selectors/appLanguageStateSelector";
+import { LanguageActions } from "src/shared/resources/language/languageSlice";
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
@@ -34,7 +34,7 @@ export function* fetchTextResources(): SagaIterator {
     yield call(
       TextResourcesActions.fetchTextResourcesFulfilled,
       resource.language,
-      resource.resources,
+      resource.resources
     );
   } catch (error) {
     yield call(TextResourcesActions.fetchTextResourcesRejected, error);
@@ -56,5 +56,8 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
   }
   yield call(fetchTextResources);
   yield takeLatest(FETCH_TEXT_RESOURCES, fetchTextResources);
-  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources);
+  yield takeLatest(
+    LanguageActions.updateSelectedAppLanguage,
+    fetchTextResources
+  );
 }

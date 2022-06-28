@@ -1,17 +1,17 @@
-import * as React from 'react';
+import * as React from "react";
 import type {
   ILayoutComponent,
   ILayoutGroup,
   ISelectionComponentProps,
-} from '../layout';
-import type { IOption, ITextResource } from 'src/types';
-import type { ILayoutState } from '../layout/formLayoutSlice';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { RepeatingGroupTable } from './RepeatingGroupTable';
-import { renderWithProviders } from '../../../../testUtils';
-import { IAttachments } from "src/shared/resources/attachments";
+} from "../layout";
+import type { IOption, ITextResource } from "src/types";
+import type { ILayoutState } from "../layout/formLayoutSlice";
+import { createRepeatingGroupComponents } from "src/utils/formLayout";
+import { RepeatingGroupTable } from "./RepeatingGroupTable";
+import { renderWithProviders } from "../../../../testUtils";
+import type { IAttachments } from "src/shared/resources/attachments";
 
-describe('features > form > containers > RepeatingGroupTable.tsx', () => {
+describe("features > form > containers > RepeatingGroupTable.tsx", () => {
   let mockContainer: ILayoutGroup;
   let mockLanguage: any;
   let mockTextResources: ITextResource[];
@@ -27,55 +27,55 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
   >;
 
   beforeEach(() => {
-    mockOptions = [{ value: 'option.value', label: 'option.label' }];
+    mockOptions = [{ value: "option.value", label: "option.label" }];
     mockComponents = [
       {
-        id: 'field1',
-        type: 'Input',
+        id: "field1",
+        type: "Input",
         dataModelBindings: {
-          simpleBinding: 'Group.prop1',
+          simpleBinding: "Group.prop1",
         },
         textResourceBindings: {
-          title: 'Title1',
+          title: "Title1",
         },
         readOnly: false,
         required: false,
         disabled: false,
       },
       {
-        id: 'field2',
-        type: 'Input',
+        id: "field2",
+        type: "Input",
         dataModelBindings: {
-          simpleBinding: 'Group.prop2',
+          simpleBinding: "Group.prop2",
         },
         textResourceBindings: {
-          title: 'Title2',
+          title: "Title2",
         },
         readOnly: false,
         required: false,
         disabled: false,
       },
       {
-        id: 'field3',
-        type: 'Input',
+        id: "field3",
+        type: "Input",
         dataModelBindings: {
-          simpleBinding: 'Group.prop3',
+          simpleBinding: "Group.prop3",
         },
         textResourceBindings: {
-          title: 'Title3',
+          title: "Title3",
         },
         readOnly: false,
         required: false,
         disabled: false,
       },
       {
-        id: 'field4',
-        type: 'Checkboxes',
+        id: "field4",
+        type: "Checkboxes",
         dataModelBindings: {
-          simpleBinding: 'some-group.checkboxBinding',
+          simpleBinding: "some-group.checkboxBinding",
         },
         textResourceBindings: {
-          title: 'Title4',
+          title: "Title4",
         },
         readOnly: false,
         required: false,
@@ -85,12 +85,12 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
     ];
 
     mockContainer = {
-      type: 'Group',
-      id: 'mock-container-id',
-      children: ['field1', 'field2', 'field3', 'field4'],
+      type: "Group",
+      id: "mock-container-id",
+      children: ["field1", "field2", "field3", "field4"],
       maxCount: 8,
       dataModelBindings: {
-        group: 'some-group',
+        group: "some-group",
       },
     };
 
@@ -101,14 +101,14 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
       uiConfig: {
         hiddenFields: [],
         repeatingGroups: {
-          'mock-container-id': {
+          "mock-container-id": {
             index: 3,
           },
         },
         autoSave: false,
-        currentView: 'FormLayout',
+        currentView: "FormLayout",
         focus: undefined,
-        layoutOrder: ['FormLayout'],
+        layoutOrder: ["FormLayout"],
       },
       error: null,
       layoutsets: null,
@@ -116,23 +116,23 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
 
     mockData = {
       formData: {
-        'some-group[1].checkboxBinding': 'option.value',
+        "some-group[1].checkboxBinding": "option.value",
       },
     };
 
-    mockTextResources = [{ id: 'option.label', value: 'Value to be shown' }];
+    mockTextResources = [{ id: "option.label", value: "Value to be shown" }];
 
-    mockCurrentView = 'FormLayout';
+    mockCurrentView = "FormLayout";
     repeatingGroupIndex = 3;
     mockRepeatingGroupDeepCopyComponents = createRepeatingGroupComponents(
       mockContainer,
       mockComponents,
       repeatingGroupIndex,
-      mockTextResources,
+      mockTextResources
     );
   });
 
-  it('should match snapshot', () => {
+  it("should match snapshot", () => {
     const { asFragment } = renderWithProviders(
       <RepeatingGroupTable
         container={mockContainer}
@@ -152,7 +152,7 @@ describe('features > form > containers > RepeatingGroupTable.tsx', () => {
         repeatingGroups={mockLayout.uiConfig.repeatingGroups}
         setEditIndex={jest.fn()}
         validations={{}}
-      />,
+      />
     );
     expect(asFragment()).toMatchSnapshot();
   });

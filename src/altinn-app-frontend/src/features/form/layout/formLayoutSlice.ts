@@ -1,7 +1,8 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ILayoutSets, IUiConfig } from 'src/types';
-import { ILayouts } from './index';
-import * as LayoutTypes from './formLayoutTypes';
+import type { PayloadAction } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
+import type { ILayoutSets, IUiConfig } from "src/types";
+import type { ILayouts } from "./index";
+import type * as LayoutTypes from "./formLayoutTypes";
 
 export interface ILayoutState {
   layouts: ILayouts;
@@ -19,7 +20,7 @@ export const initialState: ILayoutState = {
     autoSave: null,
     repeatingGroups: {},
     fileUploadersWithTag: {},
-    currentView: 'FormLayout',
+    currentView: "FormLayout",
     navigationConfig: {},
     layoutOrder: null,
     pageTriggers: [],
@@ -27,13 +28,16 @@ export const initialState: ILayoutState = {
   layoutsets: null,
 };
 
-const moduleName = 'formLayout';
+const moduleName = "formLayout";
 
 const formLayoutSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchLayoutFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutFulfilled>) => {
+    fetchLayoutFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IFetchLayoutFulfilled>
+    ) => {
       const { layouts, navigationConfig } = action.payload;
       state.layouts = layouts;
       state.uiConfig.navigationConfig = navigationConfig;
@@ -41,31 +45,49 @@ const formLayoutSlice = createSlice({
       state.error = null;
       state.uiConfig.repeatingGroups = {};
     },
-    fetchLayoutRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    fetchLayoutRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchLayoutSetsFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutSetsFulfilled>) => {
+    fetchLayoutSetsFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IFetchLayoutSetsFulfilled>
+    ) => {
       const { layoutSets } = action.payload;
       state.layoutsets = layoutSets;
     },
-    fetchLayoutSetsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    fetchLayoutSetsRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchLayoutSettingsFulfilled: (state, action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>) => {
+    fetchLayoutSettingsFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>
+    ) => {
       const { settings } = action.payload;
       if (settings && settings.pages) {
         state.uiConfig.hideCloseButton = settings?.pages?.hideCloseButton;
         state.uiConfig.showProgress = settings.pages.showProgress;
-        state.uiConfig.showLanguageSelector = settings?.pages?.showLanguageSelector;
+        state.uiConfig.showLanguageSelector =
+          settings?.pages?.showLanguageSelector;
         state.uiConfig.pageTriggers = settings.pages.triggers;
         if (settings.pages.order) {
           state.uiConfig.layoutOrder = settings.pages.order;
           if (state.uiConfig.currentViewCacheKey) {
             let currentView: string;
-            const lastVisitedPage = localStorage.getItem(state.uiConfig.currentViewCacheKey);
-            if (lastVisitedPage && settings.pages.order.includes(lastVisitedPage)) {
+            const lastVisitedPage = localStorage.getItem(
+              state.uiConfig.currentViewCacheKey
+            );
+            if (
+              lastVisitedPage &&
+              settings.pages.order.includes(lastVisitedPage)
+            ) {
               currentView = lastVisitedPage;
             } else {
               currentView = settings.pages.order[0];
@@ -77,88 +99,149 @@ const formLayoutSlice = createSlice({
         }
       }
     },
-    fetchLayoutSettingsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    fetchLayoutSettingsRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    setCurrentViewCacheKey: (state, action: PayloadAction<LayoutTypes.ISetCurrentViewCacheKey>) => {
+    setCurrentViewCacheKey: (
+      state,
+      action: PayloadAction<LayoutTypes.ISetCurrentViewCacheKey>
+    ) => {
       const { key } = action.payload;
       state.uiConfig.currentViewCacheKey = key;
     },
-    updateAutoSave: (state, action: PayloadAction<LayoutTypes.IUpdateAutoSave>) => {
+    updateAutoSave: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateAutoSave>
+    ) => {
       const { autoSave } = action.payload;
       state.uiConfig.autoSave = autoSave;
     },
-    updateCurrentViewFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateCurrentViewFulfilled>) => {
+    updateCurrentViewFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateCurrentViewFulfilled>
+    ) => {
       const { newView, returnToView } = action.payload;
       state.uiConfig.currentView = newView;
       state.uiConfig.returnToView = returnToView;
     },
-    updateCurrentViewRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateCurrentViewRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateFocusFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFocusFulfilled>) => {
+    updateFocusFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateFocusFulfilled>
+    ) => {
       const { focusComponentId } = action.payload;
       state.uiConfig.focus = focusComponentId;
     },
-    updateFocusRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateFocusRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateHiddenComponents: (state, action: PayloadAction<LayoutTypes.IUpdateHiddenComponents>) => {
+    updateHiddenComponents: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateHiddenComponents>
+    ) => {
       const { componentsToHide } = action.payload;
       state.uiConfig.hiddenFields = componentsToHide;
     },
-    updateRepeatingGroups: (state, action:PayloadAction<LayoutTypes.IUpdateRepeatingGroups>) => {
+    updateRepeatingGroups: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateRepeatingGroups>
+    ) => {
       const { layoutElementId, remove, index } = action.payload;
       if (remove) {
         state.uiConfig.repeatingGroups[layoutElementId].deletingIndex =
           state.uiConfig.repeatingGroups[layoutElementId].deletingIndex || [];
-        state.uiConfig.repeatingGroups[layoutElementId].deletingIndex.push(index);
+        state.uiConfig.repeatingGroups[layoutElementId].deletingIndex.push(
+          index
+        );
       }
     },
-    updateRepeatingGroupsFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsFulfilled>) => {
+    updateRepeatingGroupsFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsFulfilled>
+    ) => {
       const { repeatingGroups } = action.payload;
       state.uiConfig.repeatingGroups = repeatingGroups;
     },
-    updateRepeatingGroupsRemoveCancelled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsRemoveCancelled>) => {
+    updateRepeatingGroupsRemoveCancelled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsRemoveCancelled>
+    ) => {
       const { layoutElementId, index } = action.payload;
-      state.uiConfig.repeatingGroups[layoutElementId].deletingIndex =
-        (state.uiConfig.repeatingGroups[layoutElementId].deletingIndex || []).filter((value) => value !== index);
+      state.uiConfig.repeatingGroups[layoutElementId].deletingIndex = (
+        state.uiConfig.repeatingGroups[layoutElementId].deletingIndex || []
+      ).filter((value) => value !== index);
     },
-    updateRepeatingGroupsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateRepeatingGroupsRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateRepeatingGroupsEditIndexFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsEditIndexFulfilled>) => {
+    updateRepeatingGroupsEditIndexFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateRepeatingGroupsEditIndexFulfilled>
+    ) => {
       const { group, index } = action.payload;
       state.uiConfig.repeatingGroups[group].editIndex = index;
     },
-    updateRepeatingGroupsEditIndexRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateRepeatingGroupsEditIndexRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateFileUploadersWithTagFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploadersWithTagFulfilled>) => {
+    updateFileUploadersWithTagFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateFileUploadersWithTagFulfilled>
+    ) => {
       const { uploaders } = action.payload;
       state.uiConfig.fileUploadersWithTag = uploaders;
     },
-    updateFileUploaderWithTagRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateFileUploaderWithTagRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateFileUploaderWithTagEditIndexFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>) => {
+    updateFileUploaderWithTagEditIndexFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>
+    ) => {
       const { componentId, index } = action.payload;
       state.uiConfig.fileUploadersWithTag[componentId].editIndex = index;
     },
-    updateFileUploaderWithTagEditIndexRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateFileUploaderWithTagEditIndexRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateFileUploaderWithTagChosenOptionsFulfilled: (state, action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>) => {
+    updateFileUploaderWithTagChosenOptionsFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>
+    ) => {
       const { componentId, id, option } = action.payload;
       if (state.uiConfig.fileUploadersWithTag[componentId]) {
-        state.uiConfig.fileUploadersWithTag[componentId].chosenOptions[id] = option.value;
+        state.uiConfig.fileUploadersWithTag[componentId].chosenOptions[id] =
+          option.value;
       } else {
         state.uiConfig.fileUploadersWithTag[componentId] = {
           editIndex: -1,
@@ -166,15 +249,24 @@ const formLayoutSlice = createSlice({
         };
       }
     },
-    updateFileUploaderWithTagChosenOptionsRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    updateFileUploaderWithTagChosenOptionsRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    calculatePageOrderAndMoveToNextPageFulfilled: (state, action: PayloadAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>) => {
+    calculatePageOrderAndMoveToNextPageFulfilled: (
+      state,
+      action: PayloadAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPageFulfilled>
+    ) => {
       const { order } = action.payload;
       state.uiConfig.layoutOrder = order;
     },
-    calculatePageOrderAndMoveToNextPageRejected: (state, action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>) => {
+    calculatePageOrderAndMoveToNextPageRejected: (
+      state,
+      action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -182,15 +274,31 @@ const formLayoutSlice = createSlice({
 });
 
 const actions = {
-  calculatePageOrderAndMoveToNextPage: createAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>(`${moduleName}/calculatePageOrderAndMoveToNextPage`),
+  calculatePageOrderAndMoveToNextPage:
+    createAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>(
+      `${moduleName}/calculatePageOrderAndMoveToNextPage`
+    ),
   fetchLayout: createAction(`${moduleName}/fetchLayout`),
   fetchLayoutSets: createAction(`${moduleName}/fetchLayoutSets`),
   fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
-  updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(`${moduleName}/updateCurrentView`),
-  updateFocus: createAction<LayoutTypes.IUpdateFocus>(`${moduleName}/updateFocus`),
-  updateRepeatingGroupsEditIndex: createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(`${moduleName}/updateRepeatingGroupsEditIndex`),
-  updateFileUploaderWithTagEditIndex: createAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>(`${moduleName}/updateFileUploaderWithTagEditIndex`),
-  updateFileUploaderWithTagChosenOptions: createAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>(`${moduleName}/updateFileUploaderWithTagChosenOptions`),
+  updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(
+    `${moduleName}/updateCurrentView`
+  ),
+  updateFocus: createAction<LayoutTypes.IUpdateFocus>(
+    `${moduleName}/updateFocus`
+  ),
+  updateRepeatingGroupsEditIndex:
+    createAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>(
+      `${moduleName}/updateRepeatingGroupsEditIndex`
+    ),
+  updateFileUploaderWithTagEditIndex:
+    createAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndex>(
+      `${moduleName}/updateFileUploaderWithTagEditIndex`
+    ),
+  updateFileUploaderWithTagChosenOptions:
+    createAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptions>(
+      `${moduleName}/updateFileUploaderWithTagChosenOptions`
+    ),
   initRepeatingGroups: createAction(`${moduleName}/initRepeatingGroups`),
 };
 

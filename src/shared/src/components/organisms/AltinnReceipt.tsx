@@ -1,15 +1,15 @@
 import { Typography } from '@material-ui/core';
+import type { WithStyles } from '@material-ui/core/styles';
 import {
   createTheme,
   createStyles,
   MuiThemeProvider,
-  WithStyles,
   withStyles,
 } from '@material-ui/core/styles';
 import * as React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
-import { IAttachment, IAttachmentGrouping } from '../../types';
+import type { IAttachment, IAttachmentGrouping } from '../../types';
 import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachmentsComponent from '../molecules/AltinnCollapsibleAttachments';
 import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
@@ -143,7 +143,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         </Typography>
         {props.pdf && props.pdf.length > 0 && (
           <>
-              {props.titleSubmitted && (
+            {props.titleSubmitted && (
               <Typography
                 variant='h3'
                 style={{
@@ -160,8 +160,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
               id='attachment-list-pdf'
             />
           </>
-          )
-        }
+        )}
         {props.attachmentGroupings && (
           <RenderAttachmentGroupings
             attachmentGroupings={props.attachmentGroupings}

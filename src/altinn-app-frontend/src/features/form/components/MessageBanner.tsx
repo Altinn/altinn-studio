@@ -1,21 +1,21 @@
-import * as React from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import type { ILanguage } from 'altinn-shared/types';
-import classNames from 'classnames';
+import * as React from "react";
+import { Grid, makeStyles } from "@material-ui/core";
+import { AltinnAppTheme } from "altinn-shared/theme";
+import { getLanguageFromKey } from "altinn-shared/utils";
+import type { ILanguage } from "altinn-shared/types";
+import classNames from "classnames";
 
 const useStyles = makeStyles({
   banner: {
-    margin: '-36px -24px 36px -24px',
-    padding: '10px 24px',
-    '@media (min-width:768px)': {
-      margin: '-36px -84px 36px -84px',
-      padding: '10px 84px',
+    margin: "-36px -24px 36px -24px",
+    padding: "10px 24px",
+    "@media (min-width:768px)": {
+      margin: "-36px -84px 36px -84px",
+      padding: "10px 84px",
     },
-    '@media (min-width:993px)': {
-      margin: '-36px -96px 36px -96px',
-      padding: '10px 96px',
+    "@media (min-width:993px)": {
+      margin: "-36px -96px 36px -96px",
+      padding: "10px 96px",
     },
   },
   default: {
@@ -23,7 +23,7 @@ const useStyles = makeStyles({
   },
   error: {
     backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
-  }
+  },
 });
 
 interface IMessageBannerProps {
@@ -32,18 +32,22 @@ interface IMessageBannerProps {
   messageKey: string;
 }
 
-export default function MessageBanner({ language, error, messageKey}: IMessageBannerProps) {
+export default function MessageBanner({
+  language,
+  error,
+  messageKey,
+}: IMessageBannerProps) {
   const classes = useStyles();
 
   return (
     <Grid
-      id='MessageBanner-container'
+      id="MessageBanner-container"
       item={true}
       className={classNames(
         classes.banner,
         error ? classes.error : classes.default
       )}
-      data-testid='MessageBanner-container'
+      data-testid="MessageBanner-container"
     >
       <span>{getLanguageFromKey(messageKey, language)}</span>
     </Grid>

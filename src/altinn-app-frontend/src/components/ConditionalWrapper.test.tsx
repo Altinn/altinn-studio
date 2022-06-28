@@ -1,12 +1,12 @@
-import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import React from "react";
+import { render as rtlRender, screen } from "@testing-library/react";
 
-import { ConditionalWrapper } from './ConditionalWrapper';
+import { ConditionalWrapper } from "./ConditionalWrapper";
 
-describe('ConditionalWrapper', () => {
-  it('should pass children to wrapper callback when condition is true', () => {
+describe("ConditionalWrapper", () => {
+  it("should pass children to wrapper callback when condition is true", () => {
     const wrapperCb = jest.fn((children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
+      <div data-testid="conditional-wrapper">{children}</div>
     ));
     render({
       condition: true,
@@ -14,15 +14,15 @@ describe('ConditionalWrapper', () => {
     });
 
     expect(wrapperCb).toHaveBeenCalledWith(
-      <div data-testid='children'>Children</div>,
+      <div data-testid="children">Children</div>
     );
-    expect(screen.getByTestId('conditional-wrapper')).toBeInTheDocument();
-    expect(screen.getByTestId('children')).toBeInTheDocument();
+    expect(screen.getByTestId("conditional-wrapper")).toBeInTheDocument();
+    expect(screen.getByTestId("children")).toBeInTheDocument();
   });
 
-  it('should not pass children to wrapper callback when condition is false', () => {
+  it("should not pass children to wrapper callback when condition is false", () => {
     const wrapperCb = jest.fn((children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
+      <div data-testid="conditional-wrapper">{children}</div>
     ));
     render({
       condition: false,
@@ -30,8 +30,8 @@ describe('ConditionalWrapper', () => {
     });
 
     expect(wrapperCb).toHaveBeenCalledTimes(0);
-    expect(screen.queryByTestId('conditional-wrapper')).not.toBeInTheDocument();
-    expect(screen.getByTestId('children')).toBeInTheDocument();
+    expect(screen.queryByTestId("conditional-wrapper")).not.toBeInTheDocument();
+    expect(screen.getByTestId("children")).toBeInTheDocument();
   });
 });
 
@@ -39,14 +39,14 @@ const render = (props) => {
   const allProps = {
     condition: false,
     wrapper: (children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
+      <div data-testid="conditional-wrapper">{children}</div>
     ),
     ...props,
   };
 
   return rtlRender(
     <ConditionalWrapper {...allProps}>
-      <div data-testid='children'>Children</div>
-    </ConditionalWrapper>,
+      <div data-testid="children">Children</div>
+    </ConditionalWrapper>
   );
 };

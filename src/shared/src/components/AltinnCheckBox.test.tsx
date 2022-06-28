@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
+import userEvent, {
+  PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 
 import AltinnCheckBoxComponent from './AltinnCheckBox';
 
@@ -30,7 +32,9 @@ describe('AltinnCheckBox', () => {
 
     const checkbox = screen.getByRole('checkbox');
 
-    await userEvent.click(checkbox, { pointerEventsCheck: PointerEventsCheckLevel.Never});
+    await userEvent.click(checkbox, {
+      pointerEventsCheck: PointerEventsCheckLevel.Never,
+    });
     expect(handleChange).not.toHaveBeenCalled();
   });
 

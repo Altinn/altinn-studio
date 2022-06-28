@@ -9,7 +9,7 @@ export interface IAltinnIconCompontentProvidedProps {
   isActive?: boolean;
   isActiveIconColor?: string;
   iconColor: any;
-  iconSize?: number|string;
+  iconSize?: number | string;
   padding?: string;
   margin?: string;
   weight?: number;
@@ -27,12 +27,11 @@ export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedPro
   public render() {
     return (
       <i
-        className={
-          classNames(
-            this.props.iconClass,
-          )}
+        className={classNames(this.props.iconClass)}
         style={{
-          color: this.props.isActive ? this.props.isActiveIconColor : this.props.iconColor,
+          color: this.props.isActive
+            ? this.props.isActiveIconColor
+            : this.props.iconColor,
           fontSize: this.props.iconSize ? this.props.iconSize : null,
           fontWeight: this.props.weight ? this.props.weight : null,
           margin: this.props.margin ? this.props.margin : null,

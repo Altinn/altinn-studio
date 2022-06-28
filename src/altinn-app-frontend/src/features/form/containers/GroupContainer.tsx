@@ -1,20 +1,21 @@
-import React, { useCallback, useMemo } from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { repeatingGroupHasValidations } from 'src/utils/validation';
-import ErrorPaper from 'src/components/message/ErrorPaper';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { makeGetHidden } from 'src/selectors/getLayoutData';
-import { getHiddenFieldsForGroup } from 'src/utils/layout';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { ILayoutComponent, ILayoutGroup } from '../layout';
-import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { Triggers, IRuntimeState } from '../../../types';
-import { RepeatingGroupTable } from './RepeatingGroupTable';
-import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
-import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { RepeatingGroupsLikertContainer } from 'src/features/form/containers/RepeatingGroupsLikertContainer';
+import React, { useCallback, useMemo } from "react";
+import { Grid, makeStyles } from "@material-ui/core";
+import { getLanguageFromKey } from "altinn-shared/utils";
+import { repeatingGroupHasValidations } from "src/utils/validation";
+import ErrorPaper from "src/components/message/ErrorPaper";
+import { createRepeatingGroupComponents } from "src/utils/formLayout";
+import { makeGetHidden } from "src/selectors/getLayoutData";
+import { getHiddenFieldsForGroup } from "src/utils/layout";
+import { renderValidationMessagesForComponent } from "src/utils/render";
+import type { ILayoutComponent, ILayoutGroup } from "../layout";
+import { FormLayoutActions } from "../layout/formLayoutSlice";
+import type { IRuntimeState } from "../../../types";
+import { Triggers } from "../../../types";
+import { RepeatingGroupTable } from "./RepeatingGroupTable";
+import { RepeatingGroupAddButton } from "../components/RepeatingGroupAddButton";
+import { RepeatingGroupsEditContainer } from "./RepeatingGroupsEditContainer";
+import { useAppDispatch, useAppSelector } from "src/common/hooks";
+import { RepeatingGroupsLikertContainer } from "src/features/form/containers/RepeatingGroupsLikertContainer";
 
 export interface IGroupProps {
   id: string;
@@ -24,37 +25,37 @@ export interface IGroupProps {
 }
 
 const gridStyle = {
-  paddingTop: '12px',
+  paddingTop: "12px",
 };
 
 const useStyles = makeStyles({
   minusMargin: {
-    left: '24px',
-    width: 'calc(100% + 48px)',
-    position: 'relative',
-    marginLeft: '-48px',
-    '@media (min-width:768px)': {
-      left: '50px',
-      width: 'calc(100% + 48px)',
-      marginLeft: '-74px',
+    left: "24px",
+    width: "calc(100% + 48px)",
+    position: "relative",
+    marginLeft: "-48px",
+    "@media (min-width:768px)": {
+      left: "50px",
+      width: "calc(100% + 48px)",
+      marginLeft: "-74px",
     },
-    '@media (min-width:993px)': {
-      left: '37px',
-      width: 'calc(100% + 154px)',
+    "@media (min-width:993px)": {
+      left: "37px",
+      width: "calc(100% + 154px)",
     },
-    '& &': {
-      width: 'auto',
-      marginLeft: '0',
-      left: '0',
+    "& &": {
+      width: "auto",
+      marginLeft: "0",
+      left: "0",
 
-      '@media (min-width:768px)': {
-        left: '0px',
-        width: 'auto',
-        marginLeft: '0',
+      "@media (min-width:768px)": {
+        left: "0px",
+        width: "auto",
+        marginLeft: "0",
       },
-      '@media (min-width:993px)': {
-        width: 'auto',
-        left: '0',
+      "@media (min-width:993px)": {
+        width: "auto",
+        left: "0",
       },
     },
   },
@@ -67,49 +68,47 @@ export function GroupContainer({
 }: IGroupProps): JSX.Element {
   const dispatch = useAppDispatch();
   const renderComponents: ILayoutComponent[] = JSON.parse(
-    JSON.stringify(components),
+    JSON.stringify(components)
   );
 
   const editIndex = useAppSelector(
     (state: IRuntimeState) =>
-      state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1,
+      state.formLayout.uiConfig.repeatingGroups[id]?.editIndex ?? -1
   );
   const deletingIndexes = useAppSelector(
     (state: IRuntimeState) =>
-      state.formLayout.uiConfig.repeatingGroups[id]?.deletingIndex ?? [],
+      state.formLayout.uiConfig.repeatingGroups[id]?.deletingIndex ?? []
   );
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
   const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
 
   const attachments = useAppSelector(
-    (state:IRuntimeState) => state.attachments.attachments,
+    (state: IRuntimeState) => state.attachments.attachments
   );
 
   const validations = useAppSelector(
-    (state) => state.formValidations.validations,
+    (state) => state.formValidations.validations
   );
   const currentView = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView,
+    (state) => state.formLayout.uiConfig.currentView
   );
-  const language = useAppSelector(
-    (state) => state.language.language
-  );
+  const language = useAppSelector((state) => state.language.language);
   const repeatingGroups = useAppSelector(
-    (state) => state.formLayout.uiConfig.repeatingGroups,
+    (state) => state.formLayout.uiConfig.repeatingGroups
   );
   const hiddenFields = useAppSelector((state) =>
-    getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components),
+    getHiddenFieldsForGroup(state.formLayout.uiConfig.hiddenFields, components)
   );
   const GetHiddenSelector = makeGetHidden();
   const hidden = useAppSelector((state) => GetHiddenSelector(state, { id }));
   const formData = useAppSelector((state) => state.formData.formData);
   const layout = useAppSelector(
-    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
+    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]
   );
   const options = useAppSelector((state) => state.optionState.options);
   const textResources = useAppSelector(
-    (state) => state.textResources.resources,
+    (state) => state.textResources.resources
   );
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
@@ -125,7 +124,7 @@ export function GroupContainer({
         renderComponents,
         repeatingGroupIndex,
         textResources,
-        hiddenFields,
+        hiddenFields
       ),
     [
       container,
@@ -133,7 +132,7 @@ export function GroupContainer({
       repeatingGroupIndex,
       textResources,
       hiddenFields,
-    ],
+    ]
   );
 
   const tableHasErrors = useMemo(
@@ -144,7 +143,7 @@ export function GroupContainer({
         validations,
         currentView,
         repeatingGroups,
-        layout,
+        layout
       ),
     [
       container,
@@ -153,14 +152,14 @@ export function GroupContainer({
       currentView,
       repeatingGroups,
       layout,
-    ],
+    ]
   );
 
   React.useEffect(() => {
     if (container.edit?.filter && container.edit.filter.length > 0) {
       container.edit.filter.forEach((rule) => {
         const formDataKeys: string[] = Object.keys(formData).filter((key) => {
-          const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
+          const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, "");
           return keyWithoutIndex === rule.key && formData[key] === rule.value;
         });
         if (formDataKeys && formDataKeys.length > 0) {
@@ -168,8 +167,8 @@ export function GroupContainer({
             const match = key.match(/\[(\d*)\]/g);
             const currentIndex = match[match.length - 1];
             return parseInt(
-              currentIndex.substring(1, currentIndex.indexOf(']')),
-              10,
+              currentIndex.substring(1, currentIndex.indexOf("]")),
+              10
             );
           });
           setFilteredIndexList(filtered);
@@ -180,12 +179,12 @@ export function GroupContainer({
 
   const onClickAdd = useCallback(() => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
-    if (container.edit?.mode !== 'showAll') {
+    if (container.edit?.mode !== "showAll") {
       dispatch(
         FormLayoutActions.updateRepeatingGroupsEditIndex({
           group: id,
           index: repeatingGroupIndex + 1,
-        }),
+        })
       );
     }
   }, [container.edit?.mode, dispatch, id, repeatingGroupIndex]);
@@ -207,9 +206,9 @@ export function GroupContainer({
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (
-      event.key === 'Enter' ||
-      event.key === ' ' ||
-      event.key === 'Spacebar'
+      event.key === "Enter" ||
+      event.key === " " ||
+      event.key === "Spacebar"
     ) {
       onClickAdd();
     }
@@ -221,7 +220,7 @@ export function GroupContainer({
         layoutElementId: id,
         remove: true,
         index: groupIndex,
-      }),
+      })
     );
 
     if (
@@ -230,7 +229,7 @@ export function GroupContainer({
       repeatingGroups[id].index === 0
     ) {
       dispatch(
-        FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }),
+        FormLayoutActions.updateRepeatingGroups({ layoutElementId: id })
       );
     }
   };
@@ -242,7 +241,7 @@ export function GroupContainer({
         group: id,
         index: -1,
         validate,
-      }),
+      })
     );
   };
 
@@ -255,7 +254,7 @@ export function GroupContainer({
         group: id,
         index,
         validate,
-      }),
+      })
     );
   };
 
@@ -265,21 +264,25 @@ export function GroupContainer({
     return null;
   }
 
-  if (container.edit?.mode === 'likert') {
+  if (container.edit?.mode === "likert") {
     return (
       <>
         <RepeatingGroupsLikertContainer
           id={id}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents.map(
-            (c) => c[0] as ILayoutComponent,
+            (c) => c[0] as ILayoutComponent
           )}
           textResources={textResources}
           container={container}
         />
         {tableHasErrors && (
-          <Grid container={true} style={gridStyle} direction='column'>
+          <Grid
+            container={true}
+            style={gridStyle}
+            direction="column"
+          >
             <ErrorPaper
-              message={getLanguageFromKey('group.row_error', language)}
+              message={getLanguageFromKey("group.row_error", language)}
             />
           </Grid>
         )}
@@ -288,10 +291,14 @@ export function GroupContainer({
   }
 
   return (
-    <Grid container={true} item={true} className={classes.minusMargin}>
+    <Grid
+      container={true}
+      item={true}
+      className={classes.minusMargin}
+    >
       {(!container.edit?.mode ||
-        container.edit?.mode === 'showTable' ||
-        (container.edit?.mode === 'hideTable' && editIndex < 0)) && (
+        container.edit?.mode === "showTable" ||
+        (container.edit?.mode === "hideTable" && editIndex < 0)) && (
         <RepeatingGroupTable
           components={components}
           attachments={attachments}
@@ -313,8 +320,11 @@ export function GroupContainer({
           filteredIndexes={filteredIndexList}
         />
       )}
-      <Grid container={true} justifyContent='flex-end' />
-      {container.edit?.mode !== 'showAll' &&
+      <Grid
+        container={true}
+        justifyContent="flex-end"
+      />
+      {container.edit?.mode !== "showAll" &&
         container.edit?.addButton !== false &&
         editIndex < 0 &&
         repeatingGroupIndex + 1 < container.maxCount && (
@@ -344,7 +354,7 @@ export function GroupContainer({
           setMultiPageIndex={setMultiPageIndex}
         />
       )}
-      {container.edit?.mode === 'showAll' &&
+      {container.edit?.mode === "showAll" &&
         // Generate array of length repeatingGroupIndex and iterate over indexes
         Array(repeatingGroupIndex + 1)
           .fill(0)
@@ -377,7 +387,7 @@ export function GroupContainer({
               />
             );
           })}
-      {container.edit?.mode === 'showAll' &&
+      {container.edit?.mode === "showAll" &&
         container.edit?.addButton !== false &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
@@ -389,19 +399,26 @@ export function GroupContainer({
           />
         )}
       {tableHasErrors && (
-        <Grid container={true} style={gridStyle} direction='column'>
+        <Grid
+          container={true}
+          style={gridStyle}
+          direction="column"
+        >
           <ErrorPaper
-            message={getLanguageFromKey('group.row_error', language)}
+            message={getLanguageFromKey("group.row_error", language)}
           />
         </Grid>
       )}
-      <Grid item={true} xs={12}>
+      <Grid
+        item={true}
+        xs={12}
+      >
         {validations &&
           validations[currentView] &&
           validations[currentView][id] &&
           renderValidationMessagesForComponent(
             validations[currentView][id].group,
-            container.id,
+            container.id
           )}
       </Grid>
     </Grid>

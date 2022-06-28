@@ -1,4 +1,14 @@
-import { Grid, IconButton, makeStyles, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@material-ui/core';
+import {
+  Grid,
+  IconButton,
+  makeStyles,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Typography,
+} from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnStudioTheme';
 
@@ -52,12 +62,12 @@ const useStyles = makeStyles({
     margin: '8px 2px 8px -12px',
     '&:hover': {
       background: 'none',
-      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
     },
     '&:focus': {
       background: theme.altinnPalette.primary.blueLighter,
-      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`
-    }
+      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
+    },
   },
   textContainer: {
     width: '100%',
@@ -69,14 +79,19 @@ const useStyles = makeStyles({
 });
 
 export default function AltinnMobileTableItem({
-  items, valid = true, onClick, iconNode,
+  items,
+  valid = true,
+  onClick,
+  iconNode,
 }: IAltinnMobileTableItemProps) {
   const classes = useStyles();
 
   return (
     <TableContainer
       component={Grid}
-      className={`${classes.tableContainer} ${valid ? '' : classes.tableRowError}`}
+      className={`${classes.tableContainer} ${
+        valid ? '' : classes.tableRowError
+      }`}
     >
       <Table className={classes.table}>
         <TableBody>
@@ -84,7 +99,10 @@ export default function AltinnMobileTableItem({
             return (
               <TableRow key={item.key}>
                 <TableCell variant='head' width='40%'>
-                  <Typography variant='body1' className={`${classes.labelText} ${classes.textContainer}`}>
+                  <Typography
+                    variant='body1'
+                    className={`${classes.labelText} ${classes.textContainer}`}
+                  >
                     {item.label}
                   </Typography>
                 </TableCell>
@@ -99,16 +117,13 @@ export default function AltinnMobileTableItem({
           <TableRow>
             <TableCell width='40%' />
             <TableCell>
-              <IconButton
-                className={classes.tableEditButton}
-                onClick={onClick}
-              >
+              <IconButton className={classes.tableEditButton} onClick={onClick}>
                 {iconNode}
               </IconButton>
             </TableCell>
           </TableRow>
         </TableBody>
       </Table>
-    </ TableContainer>
+    </TableContainer>
   );
 }

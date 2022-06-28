@@ -1,5 +1,11 @@
 import { Typography } from '@material-ui/core';
-import { createTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
+import type { WithStyles } from '@material-ui/core/styles';
+import {
+  createTheme,
+  createStyles,
+  MuiThemeProvider,
+  withStyles,
+} from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
 
@@ -23,9 +29,7 @@ export function ReceiptComponentSimple(props: IReceiptComponentProps) {
   return (
     <div className={props.classes.wordBreak}>
       <MuiThemeProvider theme={theme}>
-        <Typography variant='h2'>
-          {props.title}
-        </Typography>
+        <Typography variant='h2'>{props.title}</Typography>
 
         <Typography variant='body1' className={props.classes.paddingTop24}>
           {props.body}

@@ -1,8 +1,8 @@
-import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import type { SagaIterator } from "redux-saga";
+import { call, takeLatest } from "redux-saga/effects";
 
-import { ICheckIfApiShouldFetchAction } from './apiActions';
-import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
+import type { ICheckIfApiShouldFetchAction } from "./apiActions";
+import * as FormDynamicsActionTypes from "../formDynamicsActionTypes";
 
 function* checkIfApiShouldFetchSaga({
   updatedComponentId,
@@ -15,23 +15,24 @@ function* checkIfApiShouldFetchSaga({
   try {
     // Todo: implement checks if the api should fetch
     // eslint-disable-next-line no-console
-    yield call(console.log,
-      'Check if API should fetch',
+    yield call(
+      console.log,
+      "Check if API should fetch",
       updatedComponentId,
       updatedDataField,
       updatedData,
       repeating,
       dataModelGroup,
-      index);
-  } catch (err) {
-    yield call(
-      console.error,
-      'Oh noes',
-      err,
+      index
     );
+  } catch (err) {
+    yield call(console.error, "Oh noes", err);
   }
 }
 
 export function* watchCheckIfApiShouldFetchSaga(): SagaIterator {
-  yield takeLatest(FormDynamicsActionTypes.CHECK_IF_API_ACTIONS_SHOULD_RUN, checkIfApiShouldFetchSaga);
+  yield takeLatest(
+    FormDynamicsActionTypes.CHECK_IF_API_ACTIONS_SHOULD_RUN,
+    checkIfApiShouldFetchSaga
+  );
 }

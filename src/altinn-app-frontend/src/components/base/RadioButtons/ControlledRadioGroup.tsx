@@ -1,16 +1,16 @@
-import React from 'react';
-import { IOption } from 'src/types';
-import FormControl from '@material-ui/core/FormControl';
-import { FormLabel } from '@material-ui/core';
-import cn from 'classnames';
-import { AltinnSpinner } from 'altinn-shared/components';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import { shouldUseRowLayout } from 'src/utils/layout';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
-import { useRadioStyles } from 'src/components/base/RadioButtons/radioButtonsUtils';
-import { StyledRadio } from 'src/components/base/RadioButtons/StyledRadio';
+import React from "react";
+import type { IOption } from "src/types";
+import FormControl from "@material-ui/core/FormControl";
+import { FormLabel } from "@material-ui/core";
+import cn from "classnames";
+import { AltinnSpinner } from "altinn-shared/components";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import { shouldUseRowLayout } from "src/utils/layout";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import { renderValidationMessagesForComponent } from "src/utils/render";
+import type { IRadioButtonsContainerProps } from "src/components/base/RadioButtons/RadioButtonsContainerComponent";
+import { useRadioStyles } from "src/components/base/RadioButtons/radioButtonsUtils";
+import { StyledRadio } from "src/components/base/RadioButtons/StyledRadio";
 
 export interface IControlledRadioGroupProps
   extends IRadioButtonsContainerProps {
@@ -37,9 +37,9 @@ export const ControlledRadioGroup = ({
   const classes = useRadioStyles();
   const RenderLegend = legend;
   return (
-    <FormControl component='fieldset'>
+    <FormControl component="fieldset">
       <FormLabel
-        component='legend'
+        component="legend"
         classes={{ root: cn(classes.legend) }}
         id={`${id}-label`}
       >
@@ -76,7 +76,7 @@ export const ControlledRadioGroup = ({
                 selected === option.value &&
                 renderValidationMessagesForComponent(
                   validationMessages.simpleBinding,
-                  id,
+                  id
                 )}
             </React.Fragment>
           ))}

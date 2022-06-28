@@ -1,6 +1,5 @@
-
 import 'jest';
-import { IData } from '../types';
+import type { IData } from '../types';
 import { getInstancePdf, mapInstanceAttachments } from './attachmentsUtils';
 
 test('mapInstanceAttachments() returns correct attachment array', () => {
@@ -31,7 +30,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
         filename: '585b2f4e-5ecb-417b-9d01-82b6e889e1d1.xml',
         contentType: 'application/Xml',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
         },
@@ -47,7 +47,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '4mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/03e06136-88be-4866-a216-7959afe46137',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/03e06136-88be-4866-a216-7959afe46137',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/03e06136-88be-4866-a216-7959afe46137',
         },
@@ -63,7 +64,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '8mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/11943e38-9fc4-43f6-84c4-12e529eebd28',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/11943e38-9fc4-43f6-84c4-12e529eebd28',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/11943e38-9fc4-43f6-84c4-12e529eebd28',
         },
@@ -79,7 +81,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '2mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/092f032d-f54f-49c1-ae42-ebc0d10a2fcb',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/092f032d-f54f-49c1-ae42-ebc0d10a2fcb',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/092f032d-f54f-49c1-ae42-ebc0d10a2fcb',
         },
@@ -95,7 +98,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '4mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/8698103b-fad1-4665-85c6-bf88a75ad708',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/8698103b-fad1-4665-85c6-bf88a75ad708',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/8698103b-fad1-4665-85c6-bf88a75ad708',
         },
@@ -111,7 +115,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '8mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/e950864d-e304-41ca-a60c-0c5019166df8',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/e950864d-e304-41ca-a60c-0c5019166df8',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/e950864d-e304-41ca-a60c-0c5019166df8',
         },
@@ -127,7 +132,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         filename: '2mb.txt',
         contentType: 'text/plain',
-        storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
+        storageUrl:
+          'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
         selfLinks: {
           apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
         },
@@ -180,7 +186,11 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
     },
   ];
 
-  expect(mapInstanceAttachments(instance.data as unknown as IData[], ['585b2f4e-5ecb-417b-9d01-82b6e889e1d1'])).toEqual(attachmentsTestData);
+  expect(
+    mapInstanceAttachments(instance.data as unknown as IData[], [
+      '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
+    ]),
+  ).toEqual(attachmentsTestData);
 });
 
 test('getInstancePdf() returns correct attachement', () => {
@@ -190,7 +200,8 @@ test('getInstancePdf() returns correct attachement', () => {
       dataType: 'ref-data-as-pdf',
       filename: 'kvittering.pdf',
       contentType: 'application/pdf',
-      storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
+      storageUrl:
+        'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
       selfLinks: {
         apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
       },
@@ -206,7 +217,8 @@ test('getInstancePdf() returns correct attachement', () => {
       dataType: 'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
       filename: '2mb.txt',
       contentType: 'text/plain',
-      storageUrl: 'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
+      storageUrl:
+        'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
       selfLinks: {
         apps: 'https://altinn3.no/matsgm/tjeneste-190814-1426/instances/50001/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
       },

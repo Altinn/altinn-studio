@@ -1,10 +1,10 @@
-import React from 'react';
-import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
-import { IComponentProps } from '..';
-import type { IMapping, IOptionSource } from 'src/types';
-import { getOptionLookupKey } from 'src/utils/options';
-import { AltinnSpinner, Select } from 'altinn-shared/components';
-import { useGetOptions } from '../hooks';
+import React from "react";
+import { useAppSelector, useHasChangedIgnoreUndefined } from "src/common/hooks";
+import type { IComponentProps } from "..";
+import type { IMapping, IOptionSource } from "src/types";
+import { getOptionLookupKey } from "src/utils/options";
+import { AltinnSpinner, Select } from "altinn-shared/components";
+import { useGetOptions } from "../hooks";
 
 export interface IDropdownProps extends IComponentProps {
   optionsId?: string;
@@ -28,8 +28,7 @@ function DropdownComponent({
   const options = useGetOptions({ optionsId, mapping, source });
   const fetchingOptions = useAppSelector(
     (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
-        ?.loading,
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading
   );
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
@@ -52,7 +51,7 @@ function DropdownComponent({
     if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
       // We also skip any required validations
-      handleDataChange(undefined, 'simpleBinding', true);
+      handleDataChange(undefined, "simpleBinding", true);
     }
   }, [handleDataChange, optionsHasChanged, formData]);
 

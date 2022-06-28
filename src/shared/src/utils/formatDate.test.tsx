@@ -2,7 +2,6 @@ import 'jest';
 import { formatNameAndDate, returnDatestringFromDate } from './formatDate';
 
 describe('formatNameAndDate', () => {
-
   it('should return positive result with date and name', () => {
     const name = 'Ali Nordmann';
     const date = new Date('Jan 31 2019 00:00').toString();
@@ -23,11 +22,9 @@ describe('formatNameAndDate', () => {
     const res = formatNameAndDate(name, date);
     expect(res).toMatch(`${name} `);
   });
-
 });
 
 describe('returnDatestringFromDate', () => {
-
   it('should return positive result for "DD.MM.YYYY"', () => {
     const dateFromDatepicker = '31.01.2019';
     const format = 'DD.MM.YYYY';
@@ -55,5 +52,4 @@ describe('returnDatestringFromDate', () => {
     const res = returnDatestringFromDate(dateFromDatepicker, format);
     expect(res).toMatch('Invalid date');
   });
-
 });

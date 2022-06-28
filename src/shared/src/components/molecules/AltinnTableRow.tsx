@@ -1,4 +1,5 @@
-import { makeStyles, TableRow, TableRowProps } from '@material-ui/core';
+import type { TableRowProps } from '@material-ui/core';
+import { makeStyles, TableRow } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnAppTheme';
 
