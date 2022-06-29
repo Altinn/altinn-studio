@@ -1,30 +1,30 @@
-import type { SagaIterator } from "redux-saga";
-import { call, put, select, takeLatest } from "redux-saga/effects";
-import type { AxiosRequestConfig } from "axios";
-import type { IRuntimeState, IValidationIssue } from "src/types";
-import { getDataValidationUrl } from "src/utils/appUrlHelper";
-import { get } from "src/utils/networking";
+import type { SagaIterator } from 'redux-saga';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
+import type { AxiosRequestConfig } from 'axios';
+import type { IRuntimeState, IValidationIssue } from 'src/types';
+import { getDataValidationUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
 import {
   mapDataElementValidationToRedux,
   mergeValidationObjects,
-} from "../../../../utils/validation";
+} from '../../../../utils/validation';
 import {
   runSingleFieldValidation,
   runSingleFieldValidationFulfilled,
   runSingleFieldValidationRejected,
   setCurrentSingleFieldValidation,
-} from "../validationSlice";
-import { getCurrentTaskDataElementId } from "src/utils/appMetadata";
+} from '../validationSlice';
+import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 
 export function* runSingleFieldValidationSaga(): SagaIterator {
   const state: IRuntimeState = yield select();
   const currentTaskDataId = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance
+    state.instanceData.instance,
   );
   const url = getDataValidationUrl(
     state.instanceData.instance.id,
-    currentTaskDataId
+    currentTaskDataId,
   );
   const { currentSingleFieldValidation } = state.formValidations;
 
@@ -45,17 +45,17 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       const serverValidation: IValidationIssue[] = yield call(
         get,
         url,
-        options
+        options,
       );
       const mappedValidations = mapDataElementValidationToRedux(
         serverValidation,
         state.formLayout.layouts,
-        state.textResources.resources
+        state.textResources.resources,
       );
 
       const validations = mergeValidationObjects(
         state.formValidations.validations,
-        mappedValidations
+        mappedValidations,
       );
 
       // Replace/reset validations for field that triggered validation

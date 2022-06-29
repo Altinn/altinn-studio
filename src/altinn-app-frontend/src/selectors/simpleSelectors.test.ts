@@ -5,17 +5,17 @@ import {
   currentSelectedPartyIdSelector,
   layoutSetsSelector,
   profileStateSelector,
-} from "./simpleSelectors";
+} from './simpleSelectors';
 
-import { getInitialStateMock } from "../../__mocks__/initialStateMock";
-import { ProcessTaskType } from "src/types";
-import { getFormLayoutStateMock } from "../../__mocks__/formLayoutStateMock";
+import { getInitialStateMock } from '../../__mocks__/initialStateMock';
+import { ProcessTaskType } from 'src/types';
+import { getFormLayoutStateMock } from '../../__mocks__/formLayoutStateMock';
 
-describe("simpleSelectors", () => {
+describe('simpleSelectors', () => {
   const state = getInitialStateMock({
     process: {
       error: null,
-      taskId: "Task1",
+      taskId: 'Task1',
       taskType: ProcessTaskType.Data,
     },
     formLayout: {
@@ -23,41 +23,41 @@ describe("simpleSelectors", () => {
       layoutsets: {
         sets: [
           {
-            id: "layout",
-            dataType: "default",
+            id: 'layout',
+            dataType: 'default',
           },
         ],
       },
     },
   });
 
-  it("should fetch application metadata", () => {
+  it('should fetch application metadata', () => {
     const appMetadata = appMetaDataSelector(state);
-    expect(appMetadata.id).toBe("mockOrg/test-app");
+    expect(appMetadata.id).toBe('mockOrg/test-app');
   });
 
-  it("should fetch instance metadata", () => {
+  it('should fetch instance metadata', () => {
     const instance = instanceDataSelector(state);
-    expect(instance.id).toBe("91cefc5e-c47b-40ff-a8a4-05971205f783");
+    expect(instance.id).toBe('91cefc5e-c47b-40ff-a8a4-05971205f783');
   });
 
-  it("should fetch process state", () => {
+  it('should fetch process state', () => {
     const process = processStateSelector(state);
-    expect(process.taskId).toBe("Task1");
+    expect(process.taskId).toBe('Task1');
   });
 
-  it("should fetch selected party id", () => {
+  it('should fetch selected party id', () => {
     const selectedPartyId = currentSelectedPartyIdSelector(state);
-    expect(selectedPartyId).toBe("12345");
+    expect(selectedPartyId).toBe('12345');
   });
 
-  it("should fetch layout sets", () => {
+  it('should fetch layout sets', () => {
     const layoutSets = layoutSetsSelector(state);
     expect(layoutSets.sets.length).toBe(1);
-    expect(layoutSets.sets[0].id).toBe("layout");
+    expect(layoutSets.sets[0].id).toBe('layout');
   });
 
-  it("should fetch profile", () => {
+  it('should fetch profile', () => {
     const profile = profileStateSelector(state);
     expect(profile.partyId).toBe(12345);
   });

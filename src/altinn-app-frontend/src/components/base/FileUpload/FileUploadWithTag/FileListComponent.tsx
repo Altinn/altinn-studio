@@ -1,5 +1,5 @@
-import * as React from "react";
-import { AltinnAppTheme } from "altinn-shared/theme";
+import * as React from 'react';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import {
   Grid,
   TableContainer,
@@ -10,116 +10,116 @@ import {
   TableBody,
   IconButton,
   makeStyles,
-} from "@material-ui/core";
-import { AltinnLoader } from "altinn-shared/components";
-import type { IAttachment } from "../../../../shared/resources/attachments";
-import type { IOption, IDataModelBindings } from "src/types";
-import { getLanguageFromKey } from "altinn-shared/utils";
-import { atleastOneTagExists } from "src/utils/formComponentUtils";
-import { FileName } from "../shared/render";
-import { EditWindowComponent } from "./EditWindowComponent";
-import type { IComponentProps } from "src/components";
+} from '@material-ui/core';
+import { AltinnLoader } from 'altinn-shared/components';
+import type { IAttachment } from '../../../../shared/resources/attachments';
+import type { IOption, IDataModelBindings } from 'src/types';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import { atleastOneTagExists } from 'src/utils/formComponentUtils';
+import { FileName } from '../shared/render';
+import { EditWindowComponent } from './EditWindowComponent';
+import type { IComponentProps } from 'src/components';
 
 const useStyles = makeStyles({
   table: {
-    marginTop: "2.4rem",
-    tableLayout: "fixed",
-    marginBottom: "12px",
-    wordBreak: "break-word",
-    textOverflow: "ellipsis",
+    marginTop: '2.4rem',
+    tableLayout: 'fixed',
+    marginBottom: '12px',
+    wordBreak: 'break-word',
+    textOverflow: 'ellipsis',
   },
   tableMobile: {
-    marginTop: "2.4rem",
-    tableLayout: "fixed",
-    marginBottom: "12px",
-    width: "100%",
-    display: "grid",
-    gridTemplateColumns: "5fr 3fr 4fr",
-    "& thead": {
-      display: "contents",
-      "& tr": {
-        display: "contents",
-        "& th": {
+    marginTop: '2.4rem',
+    tableLayout: 'fixed',
+    marginBottom: '12px',
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: '5fr 3fr 4fr',
+    '& thead': {
+      display: 'contents',
+      '& tr': {
+        display: 'contents',
+        '& th': {
           borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
         },
       },
     },
-    "& tbody": {
-      display: "contents",
-      "& tr": {
-        display: "contents",
+    '& tbody': {
+      display: 'contents',
+      '& tr': {
+        display: 'contents',
         borderBottom: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-        "& td": {
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+        '& td': {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         },
       },
     },
   },
   mobileTableRow: {
-    "& td": {
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-      overflow: "hidden",
-      alignItems: "center",
-      display: "flex",
-      alignSelf: "stretch",
-      color: "#000",
+    '& td': {
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      alignItems: 'center',
+      display: 'flex',
+      alignSelf: 'stretch',
+      color: '#000',
     },
   },
   fullGrid: {
-    gridColumn: "1 / -1",
+    gridColumn: '1 / -1',
   },
   tableHeader: {
     borderBottom: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-    "& tr": {
-      "& th": {
-        padding: "0px",
-        paddingLeft: "6px",
-        fontSize: "1.4rem",
-        fontFamily: "Altinn-DIN",
-        fontWeight: "500 !important" as any,
-        color: "#000",
+    '& tr': {
+      '& th': {
+        padding: '0px',
+        paddingLeft: '6px',
+        fontSize: '1.4rem',
+        fontFamily: 'Altinn-DIN',
+        fontWeight: '500 !important' as any,
+        color: '#000',
       },
     },
   },
   tableBody: {
-    "& tr": {
-      "& td": {
-        padding: "0px",
-        paddingLeft: "6px",
-        fontSize: "12px",
-        whiteSpace: "nowrap",
-        textOverflow: "ellipsis",
-        overflow: "hidden",
-        fontFamily: "Altinn-DIN",
+    '& tr': {
+      '& td': {
+        padding: '0px',
+        paddingLeft: '6px',
+        fontSize: '12px',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        fontFamily: 'Altinn-DIN',
         fontWeight: 400,
         borderBottom: `1px dotted ${AltinnAppTheme.altinnPalette.primary.blueMedium}`,
-        color: "#000",
+        color: '#000',
       },
     },
   },
   editIcon: {
-    paddingLeft: "6px",
-    fontSize: "1.4rem !important",
-    fontWeight: "800 !important" as any,
+    paddingLeft: '6px',
+    fontSize: '1.4rem !important',
+    fontWeight: '800 !important' as any,
   },
   editTextContainer: {
-    whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    color: "#000",
-    fontWeight: "500 !important" as any,
-    fontSize: "1.2rem",
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    color: '#000',
+    fontWeight: '500 !important' as any,
+    fontSize: '1.2rem',
   },
   textContainer: {
-    whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    color: "#000",
-    fontWeight: "500 !important" as any,
-    fontSize: "1.4rem",
-    minWidth: "0px",
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    color: '#000',
+    fontWeight: '500 !important' as any,
+    fontSize: '1.4rem',
+    minWidth: '0px',
   },
 });
 
@@ -150,8 +150,8 @@ export function FileList(props: FileListProps): JSX.Element {
     <Grid
       container={true}
       item={true}
-      data-testid="tagFile"
-      id="tagFile"
+      data-testid='tagFile'
+      id='tagFile'
       spacing={1}
     >
       <TableContainer component={Grid}>
@@ -161,30 +161,30 @@ export function FileList(props: FileListProps): JSX.Element {
           {atleastOneTagExists(props.attachments) && (
             <TableHead className={classes.tableHeader}>
               <TableRow
-                className={props.mobileView ? classes.mobileTableRow : ""}
+                className={props.mobileView ? classes.mobileTableRow : ''}
               >
-                <TableCell align="left">
+                <TableCell align='left'>
                   {getLanguageFromKey(
-                    "form_filler.file_uploader_list_header_name",
-                    props.language
+                    'form_filler.file_uploader_list_header_name',
+                    props.language,
                   )}
                 </TableCell>
-                <TableCell align="left">
+                <TableCell align='left'>
                   {props.getTextResource(props.textResourceBindings.tagTitle)}
                 </TableCell>
                 {!props.mobileView ? (
-                  <TableCell align="left">
+                  <TableCell align='left'>
                     {getLanguageFromKey(
-                      "form_filler.file_uploader_list_header_file_size",
-                      props.language
+                      'form_filler.file_uploader_list_header_file_size',
+                      props.language,
                     )}
                   </TableCell>
                 ) : null}
                 {!props.mobileView ? (
-                  <TableCell align="left">
+                  <TableCell align='left'>
                     {getLanguageFromKey(
-                      "form_filler.file_uploader_list_header_status",
-                      props.language
+                      'form_filler.file_uploader_list_header_status',
+                      props.language,
                     )}
                   </TableCell>
                 ) : null}
@@ -206,14 +206,14 @@ export function FileList(props: FileListProps): JSX.Element {
                       <TableRow
                         key={`altinn-file-list-row-${attachment.id}`}
                         className={
-                          props.mobileView ? classes.mobileTableRow : ""
+                          props.mobileView ? classes.mobileTableRow : ''
                         }
                       >
                         <TableCell
                           key={`attachment-name-${index}`}
                           className={classes.textContainer}
                         >
-                          <div style={{ minWidth: "0px" }}>
+                          <div style={{ minWidth: '0px' }}>
                             {FileName(props.attachments[index].name)}
                             {props.mobileView ? (
                               <div
@@ -225,21 +225,21 @@ export function FileList(props: FileListProps): JSX.Element {
                                 {attachment.uploaded ? (
                                   <div>
                                     {(attachment.size / bytesInOneMB).toFixed(
-                                      2
-                                    )}{" "}
+                                      2,
+                                    )}{' '}
                                     {getLanguageFromKey(
-                                      "form_filler.file_uploader_mb",
-                                      props.language
+                                      'form_filler.file_uploader_mb',
+                                      props.language,
                                     )}
                                     <i
-                                      className="ai ai-check-circle"
+                                      className='ai ai-check-circle'
                                       aria-label={getLanguageFromKey(
-                                        "form_filler.file_uploader_list_status_done",
-                                        props.language
+                                        'form_filler.file_uploader_list_status_done',
+                                        props.language,
                                       )}
                                       style={
                                         props.mobileView
-                                          ? { marginLeft: "10px" }
+                                          ? { marginLeft: '10px' }
                                           : null
                                       }
                                     />
@@ -249,12 +249,12 @@ export function FileList(props: FileListProps): JSX.Element {
                                   <AltinnLoader
                                     id={`attachment-loader-upload-${props.attachments[index].id}`}
                                     style={{
-                                      marginBottom: "1.6rem",
-                                      marginRight: "1.3rem",
+                                      marginBottom: '1.6rem',
+                                      marginRight: '1.3rem',
                                     }}
                                     srContent={getLanguageFromKey(
-                                      "general.loading",
-                                      props.language
+                                      'general.loading',
+                                      props.language,
                                     )}
                                   />
                                 )}
@@ -268,8 +268,8 @@ export function FileList(props: FileListProps): JSX.Element {
                         >
                           {props.getTextResourceAsString(
                             props.options?.find(
-                              (option) => option.value === attachment.tags[0]
-                            ).label
+                              (option) => option.value === attachment.tags[0],
+                            ).label,
                           )}
                         </TableCell>
                         {!props.mobileView ? (
@@ -278,10 +278,10 @@ export function FileList(props: FileListProps): JSX.Element {
                             className={classes.textContainer}
                           >
                             {`${(attachment.size / bytesInOneMB).toFixed(
-                              2
+                              2,
                             )} ${getLanguageFromKey(
-                              "form_filler.file_uploader_mb",
-                              props.language
+                              'form_filler.file_uploader_mb',
+                              props.language,
                             )}`}
                           </TableCell>
                         ) : null}
@@ -293,14 +293,14 @@ export function FileList(props: FileListProps): JSX.Element {
                             {attachment.uploaded && (
                               <div>
                                 {getLanguageFromKey(
-                                  "form_filler.file_uploader_list_status_done",
-                                  props.language
+                                  'form_filler.file_uploader_list_status_done',
+                                  props.language,
                                 )}
                                 <i
-                                  className="ai ai-check-circle"
+                                  className='ai ai-check-circle'
                                   aria-label={getLanguageFromKey(
-                                    "form_filler.file_uploader_list_status_done",
-                                    props.language
+                                    'form_filler.file_uploader_list_status_done',
+                                    props.language,
                                   )}
                                 />
                               </div>
@@ -309,30 +309,30 @@ export function FileList(props: FileListProps): JSX.Element {
                               <AltinnLoader
                                 id={`attachment-loader-upload-${attachment.id}`}
                                 style={{
-                                  marginBottom: "1.6rem",
-                                  marginRight: "1.3rem",
+                                  marginBottom: '1.6rem',
+                                  marginRight: '1.3rem',
                                 }}
                                 srContent={getLanguageFromKey(
-                                  "general.loading",
-                                  props.language
+                                  'general.loading',
+                                  props.language,
                                 )}
                               />
                             )}
                           </TableCell>
                         ) : null}
                         <TableCell
-                          align="right"
+                          align='right'
                           key={`edit-${index}`}
                         >
                           <IconButton
-                            style={{ color: "black" }}
+                            style={{ color: 'black' }}
                             onClick={() => props.onEdit(index)}
                             tabIndex={0}
                             className={classes.editTextContainer}
                           >
                             {getLanguageFromKey(
-                              "general.edit_alt",
-                              props.language
+                              'general.edit_alt',
+                              props.language,
                             )}
                             <i
                               className={`fa fa-editing-file ${classes.editIcon}`}
@@ -347,7 +347,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       key={`altinn-unchosen-option-attachment-row-${index}`}
                     >
                       <TableCell
-                        className={props.mobileView ? classes.fullGrid : ""}
+                        className={props.mobileView ? classes.fullGrid : ''}
                         colSpan={!props.mobileView ? 5 : undefined}
                       >
                         <EditWindowComponent
@@ -372,7 +372,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       </TableCell>
                     </TableRow>
                   );
-                }
+                },
               )}
           </TableBody>
         </Table>

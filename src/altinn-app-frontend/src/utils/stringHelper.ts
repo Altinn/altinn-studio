@@ -1,10 +1,10 @@
 export const capitalizeName: (name: string) => string = (name: string) => {
   return name
     .toLowerCase()
-    .split(" ")
+    .split(' ')
     .map((str: string) =>
-      [str.split("")[0].toUpperCase(), str.substring(1)].join("")
+      [str.split('')[0].toUpperCase(), str.substring(1)].join(''),
     )
-    .join(" ")
+    .join(' ')
     .trim();
 };

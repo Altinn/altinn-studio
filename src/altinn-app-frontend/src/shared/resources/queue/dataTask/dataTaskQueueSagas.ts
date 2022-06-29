@@ -1,12 +1,12 @@
-import type { SagaIterator } from "redux-saga";
-import { put, takeEvery } from "redux-saga/effects";
-import { fetchJsonSchema } from "src/features/form/datamodel/datamodelSlice";
-import FormDataActions from "../../../../features/form/data/formDataActions";
-import { FormLayoutActions } from "../../../../features/form/layout/formLayoutSlice";
+import type { SagaIterator } from 'redux-saga';
+import { put, takeEvery } from 'redux-saga/effects';
+import { fetchJsonSchema } from 'src/features/form/datamodel/datamodelSlice';
+import FormDataActions from '../../../../features/form/data/formDataActions';
+import { FormLayoutActions } from '../../../../features/form/layout/formLayoutSlice';
 import {
   startInitialDataTaskQueue,
   startInitialDataTaskQueueFulfilled,
-} from "../queueSlice";
+} from '../queueSlice';
 
 export function* startInitialDataTaskQueueSaga(): SagaIterator {
   yield put(FormDataActions.fetchFormDataInitial());

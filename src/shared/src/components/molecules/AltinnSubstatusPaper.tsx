@@ -13,7 +13,10 @@ export default function AltinnSubstatusPaper({
 }: IInformationPaperProps) {
   return (
     <AltinnInformationPaper>
-      <Grid container={true} direction='column'>
+      <Grid
+        container={true}
+        direction='column'
+      >
         <Grid item={true}>
           <Typography
             id='substatus-label'
@@ -26,7 +29,10 @@ export default function AltinnSubstatusPaper({
           </Typography>
         </Grid>
         <Grid item={true}>
-          <Typography id='substatus-description' style={{ fontSize: '1.8rem' }}>
+          <Typography
+            id='substatus-description'
+            style={{ fontSize: '1.8rem' }}
+          >
             {description}
           </Typography>
         </Grid>

@@ -1,13 +1,13 @@
-import * as React from "react";
-import configureStore from "redux-mock-store";
-import { mount } from "enzyme";
-import { Provider } from "react-redux";
+import * as React from 'react';
+import configureStore from 'redux-mock-store';
+import { mount } from 'enzyme';
+import { Provider } from 'react-redux';
 
-import type { IComponentProps } from "src/components";
+import type { IComponentProps } from 'src/components';
 
-import { ButtonComponent } from "./ButtonComponent";
+import { ButtonComponent } from './ButtonComponent';
 
-describe("components/base/ButtonComponent.tsx", () => {
+describe('components/base/ButtonComponent.tsx', () => {
   let mockId: string;
   let mockText: string;
   let formDataCount: number;
@@ -21,10 +21,10 @@ describe("components/base/ButtonComponent.tsx", () => {
 
   beforeAll(() => {
     const createStore = configureStore();
-    mockId = "mock-id";
+    mockId = 'mock-id';
     mockHandleDataChange = jest.fn();
     mockDisabled = false;
-    mockText = "Submit form";
+    mockText = 'Submit form';
     formDataCount = 0;
     initialState = {
       formData: {
@@ -52,7 +52,7 @@ describe("components/base/ButtonComponent.tsx", () => {
     mockLanguage = {};
   });
 
-  it("should render button when isSubmitting is false", () => {
+  it('should render button when isSubmitting is false', () => {
     const wrapper = mount(
       <Provider store={mockStore}>
         <ButtonComponent
@@ -64,13 +64,13 @@ describe("components/base/ButtonComponent.tsx", () => {
           language={mockLanguage}
           {...({} as IComponentProps)}
         />
-      </Provider>
+      </Provider>,
     );
-    const submitBtn = wrapper.find("button#" + mockId);
+    const submitBtn = wrapper.find('button#' + mockId);
     expect(submitBtn.text()).toEqual(mockText);
   });
 
-  it("should render loader when isSubmitting is true", () => {
+  it('should render loader when isSubmitting is true', () => {
     const wrapper = mount(
       <Provider store={mockStoreSubmitting}>
         <ButtonComponent
@@ -82,8 +82,8 @@ describe("components/base/ButtonComponent.tsx", () => {
           language={mockLanguage}
           {...({} as IComponentProps)}
         />
-      </Provider>
+      </Provider>,
     );
-    expect(wrapper.find("#altinn-loader")).toHaveLength(1);
+    expect(wrapper.find('#altinn-loader')).toHaveLength(1);
   });
 });

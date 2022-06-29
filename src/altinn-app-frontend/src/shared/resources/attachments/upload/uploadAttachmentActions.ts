@@ -1,7 +1,7 @@
-import type { Action } from "redux";
-import type { IAttachment } from "..";
-import * as ActionTypes from "../attachmentActionTypes";
-import type { IDataModelBindings } from "src/types";
+import type { Action } from 'redux';
+import type { IAttachment } from '..';
+import * as ActionTypes from '../attachmentActionTypes';
+import type { IDataModelBindings } from 'src/types';
 
 export interface IUploadAttachmentAction extends Action {
   file: File;
@@ -31,7 +31,7 @@ export function uploadAttachment(
   tmpAttachmentId: string,
   componentId: string,
   dataModelBindings: IDataModelBindings,
-  index: number
+  index: number,
 ): IUploadAttachmentAction {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT,
@@ -48,7 +48,7 @@ export function uploadAttachmentFulfilled(
   attachment: IAttachment,
   attachmentType: string,
   tmpAttachmentId: string,
-  componentId: string
+  componentId: string,
 ): IUploadAttachmentActionFulfilled {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT_FULFILLED,
@@ -62,7 +62,7 @@ export function uploadAttachmentFulfilled(
 export function uploadAttachmentRejected(
   attachmentId: string,
   attachmentType: string,
-  componentId: string
+  componentId: string,
 ): IUploadAttachmentActionRejected {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT_REJECTED,

@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { IApplicationMetadata } from "../..";
-import * as ApplicationMetadataActionTypes from "../types";
+import type { Action } from 'redux';
+import type { IApplicationMetadata } from '../..';
+import * as ApplicationMetadataActionTypes from '../types';
 
 export function getApplicationMetadata(): Action {
   return {
@@ -13,7 +13,7 @@ export interface IGetApplicationMetadataFulfilled extends Action {
 }
 
 export function getApplicationMetadataFulfilled(
-  applicationMetadata: IApplicationMetadata
+  applicationMetadata: IApplicationMetadata,
 ): IGetApplicationMetadataFulfilled {
   return {
     type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_FULFILLED,
@@ -26,7 +26,7 @@ export interface IGetApplicationMetadataRejected extends Action {
 }
 
 export function getApplicationMetadataRejected(
-  error: Error
+  error: Error,
 ): IGetApplicationMetadataRejected {
   return {
     type: ApplicationMetadataActionTypes.FETCH_APPLICATION_METADATA_REJECTED,

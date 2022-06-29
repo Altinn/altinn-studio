@@ -1,47 +1,47 @@
-import * as React from "react";
-import cn from "classnames";
-import { Grid, makeStyles, useTheme, useMediaQuery } from "@material-ui/core";
+import * as React from 'react';
+import cn from 'classnames';
+import { Grid, makeStyles, useTheme, useMediaQuery } from '@material-ui/core';
 
-import { Triggers } from "src/types";
-import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
-import { getTextResource } from "../../utils/formComponentUtils";
-import { useAppDispatch, useAppSelector } from "src/common/hooks";
-import { getTextFromAppOrDefault } from "src/utils/textResource";
+import { Triggers } from 'src/types';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getTextResource } from '../../utils/formComponentUtils';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const useStyles = makeStyles((theme) => ({
   menu: {
-    listStyleType: "none",
-    textDecoration: "none",
-    paddingLeft: "0px !important", // ".form-group.a-form-group ul" selector is stronger
-    display: "flex",
-    flexWrap: "wrap",
+    listStyleType: 'none',
+    textDecoration: 'none',
+    paddingLeft: '0px !important', // ".form-group.a-form-group ul" selector is stronger
+    display: 'flex',
+    flexWrap: 'wrap',
     gap: 6,
 
     [theme.breakpoints.down(600)]: {
-      flexDirection: "column",
+      flexDirection: 'column',
     },
   },
   containerBase: {
-    borderRadius: "40px",
+    borderRadius: '40px',
 
-    "&:active": {
+    '&:active': {
       backgroundColor: theme.altinnPalette.primary.blueDark,
     },
   },
   buttonBase: {
-    cursor: "pointer",
-    background: "none",
-    font: "inherit",
+    cursor: 'pointer',
+    background: 'none',
+    font: 'inherit',
     border: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
-    width: "100%",
-    height: "100%",
-    display: "block",
-    textAlign: "left",
-    padding: "6px 12px",
-    borderRadius: "40px",
-    fontSize: "1.6rem",
+    width: '100%',
+    height: '100%',
+    display: 'block',
+    textAlign: 'left',
+    padding: '6px 12px',
+    borderRadius: '40px',
+    fontSize: '1.6rem',
 
-    "&:hover": {
+    '&:hover': {
       outline: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     },
   },
@@ -50,14 +50,14 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.altinnPalette.primary.blueDarker,
   },
   dropdownMenuContent: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   dropdownIcon: {
-    marginLeft: "1rem",
-    marginTop: "0 !important", // "".form-group i" selector is stronger
-    fontSize: "1em !important", // "".form-group i" selector is stronger
+    marginLeft: '1rem',
+    marginTop: '0 !important', // "".form-group i" selector is stronger
+    fontSize: '1em !important', // "".form-group i" selector is stronger
   },
 }));
 
@@ -75,48 +75,48 @@ interface INavigationButton {
 const NavigationButton = React.forwardRef(
   (
     { onClick, hidden = false, children, current, ...rest }: INavigationButton,
-    ref: any
+    ref: any,
   ) => {
     const classes = useStyles();
 
     return (
       <button
         hidden={hidden}
-        type="button"
+        type='button'
         className={cn(classes.buttonBase, {
           [classes.buttonSelected]: current,
         })}
         onClick={onClick}
         ref={ref}
-        {...(current && { "aria-current": "page" })}
+        {...(current && { 'aria-current': 'page' })}
         {...rest}
       >
         {children}
       </button>
     );
-  }
+  },
 );
 
-NavigationButton.displayName = "NavigationButton";
+NavigationButton.displayName = 'NavigationButton';
 
 export const NavigationBar = ({ triggers }: INavigationBar) => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const pageIds = useAppSelector(
-    (state) => state.formLayout.uiConfig.layoutOrder
+    (state) => state.formLayout.uiConfig.layoutOrder,
   );
   const returnToView = useAppSelector(
-    (state) => state.formLayout.uiConfig.returnToView
+    (state) => state.formLayout.uiConfig.returnToView,
   );
   const pageTriggers = useAppSelector(
-    (state) => state.formLayout.uiConfig.pageTriggers
+    (state) => state.formLayout.uiConfig.pageTriggers,
   );
   const pageOrPropTriggers = triggers || pageTriggers;
   const textResources = useAppSelector(
-    (state) => state.textResources.resources
+    (state) => state.textResources.resources,
   );
   const currentPageId = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView
+    (state) => state.formLayout.uiConfig.currentView,
   );
   const language = useAppSelector((state) => state.language.language);
   const [showMenu, setShowMenu] = React.useState(false);
@@ -135,12 +135,12 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
       returnToView || pageOrPropTriggers?.includes(Triggers.ValidateAllPages);
 
     const runValidations =
-      (runAllValidations && "allPages") ||
-      (runPageValidations && "page") ||
+      (runAllValidations && 'allPages') ||
+      (runPageValidations && 'page') ||
       null;
 
     dispatch(
-      FormLayoutActions.updateCurrentView({ newView: pageId, runValidations })
+      FormLayoutActions.updateCurrentView({ newView: pageId, runValidations }),
     );
   };
 
@@ -161,15 +161,15 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
     <Grid container>
       <Grid
         item
-        component="nav"
+        component='nav'
         xs={12}
-        role="navigation"
+        role='navigation'
         aria-label={getTextFromAppOrDefault(
-          "general.navigation_form",
+          'general.navigation_form',
           textResources,
           language,
           undefined,
-          true
+          true,
         )}
       >
         {isMobile && (
@@ -178,22 +178,22 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
             current={true}
             onClick={handleShowMenu}
             aria-expanded={showMenu}
-            aria-controls="navigation-menu"
-            aria-haspopup="true"
+            aria-controls='navigation-menu'
+            aria-haspopup='true'
           >
             <span className={classes.dropdownMenuContent}>
               <span>
-                {pageIds.indexOf(currentPageId) + 1}/{pageIds.length}{" "}
+                {pageIds.indexOf(currentPageId) + 1}/{pageIds.length}{' '}
                 {getTextResource(currentPageId, textResources)}
               </span>
-              <i className={cn("ai ai-arrow-down", classes.dropdownIcon)} />
+              <i className={cn('ai ai-arrow-down', classes.dropdownIcon)} />
             </span>
           </NavigationButton>
         )}
         <ul
           hidden={!shouldShowMenu}
-          id="navigation-menu"
-          data-testid="navigation-menu"
+          id='navigation-menu'
+          data-testid='navigation-menu'
           className={classes.menu}
         >
           {pageIds.map((pageId, index) => {

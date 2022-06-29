@@ -1,17 +1,17 @@
-import * as React from "react";
-import { AltinnButton } from "altinn-shared/components";
-import { Grid, makeStyles } from "@material-ui/core";
-import type { INavigationConfig, ILayoutNavigation } from "src/types";
-import { Triggers } from "src/types";
-import classNames from "classnames";
-import { getTextFromAppOrDefault } from "src/utils/textResource";
-import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
-import { useAppDispatch, useAppSelector } from "src/common/hooks";
-import type { IComponentProps } from "..";
+import * as React from 'react';
+import { AltinnButton } from 'altinn-shared/components';
+import { Grid, makeStyles } from '@material-ui/core';
+import type { INavigationConfig, ILayoutNavigation } from 'src/types';
+import { Triggers } from 'src/types';
+import classNames from 'classnames';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import type { IComponentProps } from '..';
 
 const useStyles = makeStyles({
   backButton: {
-    marginRight: "1.2em",
+    marginRight: '1.2em',
   },
 });
 
@@ -25,32 +25,32 @@ export function NavigationButtons(props: INavigationButtons) {
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView
+    (state) => state.formLayout.uiConfig.currentView,
   );
   const orderedLayoutKeys = useAppSelector(
-    (state) => state.formLayout.uiConfig.layoutOrder
+    (state) => state.formLayout.uiConfig.layoutOrder,
   );
   const returnToView = useAppSelector(
-    (state) => state.formLayout.uiConfig.returnToView
+    (state) => state.formLayout.uiConfig.returnToView,
   );
   const textResources = useAppSelector(
-    (state) => state.textResources.resources
+    (state) => state.textResources.resources,
   );
   const language = useAppSelector((state) => state.language.language);
   const pageTriggers = useAppSelector(
-    (state) => state.formLayout.uiConfig.pageTriggers
+    (state) => state.formLayout.uiConfig.pageTriggers,
   );
   const { next, previous } = useAppSelector((state) =>
     getNavigationConfigForCurrentView(
       state.formLayout.uiConfig.navigationConfig,
-      state.formLayout.uiConfig.currentView
-    )
+      state.formLayout.uiConfig.currentView,
+    ),
   );
   const triggers = props.triggers || pageTriggers;
   const nextTextKey = returnToView
-    ? "form_filler.back_to_summary"
-    : props.textResourceBindings?.next || "next";
-  const backTextKey = props.textResourceBindings?.back || "back";
+    ? 'form_filler.back_to_summary'
+    : props.textResourceBindings?.next || 'next';
+  const backTextKey = props.textResourceBindings?.back || 'back';
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys?.indexOf(currentView);
@@ -58,7 +58,7 @@ export function NavigationButtons(props: INavigationButtons) {
     setDisableNext(
       !returnToView &&
         !next &&
-        currentViewIndex === orderedLayoutKeys.length - 1
+        currentViewIndex === orderedLayoutKeys.length - 1,
     );
   }, [currentView, orderedLayoutKeys, next, previous, returnToView]);
 
@@ -76,14 +76,14 @@ export function NavigationButtons(props: INavigationButtons) {
     const runAllValidations =
       returnToView || triggers?.includes(Triggers.ValidateAllPages);
     const runValidations =
-      (runAllValidations && "allPages") ||
-      (runPageValidations && "page") ||
+      (runAllValidations && 'allPages') ||
+      (runPageValidations && 'page') ||
       null;
     if (triggers?.includes(Triggers.CalculatePageOrder)) {
       dispatch(
         FormLayoutActions.calculatePageOrderAndMoveToNextPage({
           runValidations,
-        })
+        }),
       );
     } else {
       const goToView =
@@ -95,7 +95,7 @@ export function NavigationButtons(props: INavigationButtons) {
           FormLayoutActions.updateCurrentView({
             newView: goToView,
             runValidations,
-          })
+          }),
         );
       }
     }
@@ -104,7 +104,7 @@ export function NavigationButtons(props: INavigationButtons) {
   return (
     <Grid
       container={true}
-      justifyContent="space-between"
+      justifyContent='space-between'
     >
       <Grid
         item={true}
@@ -117,7 +117,7 @@ export function NavigationButtons(props: INavigationButtons) {
               textResources,
               language,
               null,
-              true
+              true,
             )}
             onClickFunction={onClickPrevious}
             disabled={disableBack}
@@ -131,7 +131,7 @@ export function NavigationButtons(props: INavigationButtons) {
               textResources,
               language,
               null,
-              true
+              true,
             )}
             onClickFunction={OnClickNext}
             disabled={disableNext}
@@ -144,7 +144,7 @@ export function NavigationButtons(props: INavigationButtons) {
 
 function getNavigationConfigForCurrentView(
   navigationConfig: INavigationConfig,
-  currentView: string
+  currentView: string,
 ): ILayoutNavigation {
   if (navigationConfig && navigationConfig[currentView]) {
     return navigationConfig[currentView];

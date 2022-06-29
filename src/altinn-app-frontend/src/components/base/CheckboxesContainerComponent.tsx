@@ -1,27 +1,27 @@
-import React from "react";
-import { FormControlLabel, FormGroup, FormLabel } from "@material-ui/core";
-import type { CheckboxProps } from "@material-ui/core/Checkbox";
-import Checkbox from "@material-ui/core/Checkbox";
-import FormControl from "@material-ui/core/FormControl";
-import { makeStyles } from "@material-ui/core/styles";
-import cn from "classnames";
+import React from 'react';
+import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
+import type { CheckboxProps } from '@material-ui/core/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControl from '@material-ui/core/FormControl';
+import { makeStyles } from '@material-ui/core/styles';
+import cn from 'classnames';
 
-import type { IComponentProps } from "..";
+import type { IComponentProps } from '..';
 import type {
   IOption,
   IComponentValidations,
   IMapping,
   IOptionSource,
   LayoutStyle,
-} from "src/types";
+} from 'src/types';
 
-import { shouldUseRowLayout } from "src/utils/layout";
+import { shouldUseRowLayout } from 'src/utils/layout';
 
-import { renderValidationMessagesForComponent } from "../../utils/render";
-import { useAppSelector, useHasChangedIgnoreUndefined } from "src/common/hooks";
-import { getOptionLookupKey } from "src/utils/options";
-import { AltinnSpinner } from "altinn-shared/components";
-import { useGetOptions } from "../hooks";
+import { renderValidationMessagesForComponent } from '../../utils/render';
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { getOptionLookupKey } from 'src/utils/options';
+import { AltinnSpinner } from 'altinn-shared/components';
+import { useGetOptions } from '../hooks';
 
 export interface ICheckboxContainerProps extends IComponentProps {
   validationMessages: IComponentValidations;
@@ -39,32 +39,32 @@ interface IStyledCheckboxProps extends CheckboxProps {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    "&:hover": {
-      backgroundColor: "transparent",
+    '&:hover': {
+      backgroundColor: 'transparent',
     },
   },
   icon: {
     border: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     width: 24,
     height: 24,
-    backgroundColor: "#ffffff",
-    "$root.Mui-focusVisible &": {
-      outline: "2px solid #ff0000",
+    backgroundColor: '#ffffff',
+    '$root.Mui-focusVisible &': {
+      outline: '2px solid #ff0000',
       outlineOffset: 0,
       outlineColor: theme.altinnPalette.primary.blueDark,
     },
-    "input:hover ~ &": {
+    'input:hover ~ &': {
       borderColor: theme.altinnPalette.primary.blueDark,
     },
-    "input:disabled ~ &": {
-      boxShadow: "none",
-      background: "rgba(206,217,224,.5)",
+    'input:disabled ~ &': {
+      boxShadow: 'none',
+      background: 'rgba(206,217,224,.5)',
     },
   },
   checkedIcon: {
-    backgroundColor: "#ffffff",
-    "&:before": {
-      display: "block",
+    backgroundColor: '#ffffff',
+    '&:before': {
+      display: 'block',
       width: 20,
       height: 20,
 
@@ -72,15 +72,15 @@ const useStyles = makeStyles((theme) => ({
         "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000000' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E\")",
       content: '""',
     },
-    "input:hover ~ &": {
+    'input:hover ~ &': {
       borderColor: theme.altinnPalette.primary.blueDark,
     },
   },
   legend: {
-    color: "#000000",
+    color: '#000000',
   },
   margin: {
-    marginBottom: "1.2rem",
+    marginBottom: '1.2rem',
   },
 }));
 
@@ -111,11 +111,12 @@ export const CheckboxContainerComponent = ({
 
   const fetchingOptions = useAppSelector(
     (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
   const selected = formData?.simpleBinding
-    ? formData.simpleBinding.split(",")
+    ? formData.simpleBinding.split(',')
     : defaultSelectedOptions;
 
   React.useEffect(() => {
@@ -141,7 +142,7 @@ export const CheckboxContainerComponent = ({
     if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
       // We also skip any required validations
-      handleDataChange(undefined, "simpleBinding", true);
+      handleDataChange(undefined, 'simpleBinding', true);
     }
   }, [handleDataChange, optionsHasChanged, formData]);
 
@@ -150,15 +151,15 @@ export const CheckboxContainerComponent = ({
     const isSelected = isOptionSelected(clickedItem);
 
     if (isSelected) {
-      handleDataChange(selected.filter((x) => x !== clickedItem).join(","));
+      handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
     } else {
-      handleDataChange(selected.concat(clickedItem).join(","));
+      handleDataChange(selected.concat(clickedItem).join(','));
     }
     handleFocusUpdate(id);
   };
 
   const handleBlur = () => {
-    handleDataChange(formData?.simpleBinding ?? "");
+    handleDataChange(formData?.simpleBinding ?? '');
   };
 
   const isOptionSelected = (option: string) => selected.includes(option);
@@ -168,10 +169,10 @@ export const CheckboxContainerComponent = ({
   return (
     <FormControl
       key={`checkboxes_control_${id}`}
-      component="fieldset"
+      component='fieldset'
     >
       <FormLabel
-        component="legend"
+        component='legend'
         classes={{ root: cn(classes.legend) }}
       >
         <RenderLegend />
@@ -210,7 +211,7 @@ export const CheckboxContainerComponent = ({
                   isOptionSelected(option.value) &&
                   renderValidationMessagesForComponent(
                     validationMessages.simpleBinding,
-                    id
+                    id,
                   )}
               </React.Fragment>
             ))}
@@ -228,10 +229,10 @@ const StyledCheckbox = ({ label, ...rest }: IStyledCheckboxProps) => {
     <Checkbox
       className={classes.root}
       disableRipple={true}
-      color="default"
+      color='default'
       checkedIcon={<span className={cn(classes.icon, classes.checkedIcon)} />}
       icon={<span className={classes.icon} />}
-      inputProps={{ "aria-label": label }}
+      inputProps={{ 'aria-label': label }}
       {...rest}
     />
   );

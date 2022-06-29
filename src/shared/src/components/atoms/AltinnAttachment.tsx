@@ -55,7 +55,13 @@ interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
 }
 
 function ListItemLink(props: any) {
-  return <ListItem button={true} component='a' {...props} />;
+  return (
+    <ListItem
+      button={true}
+      component='a'
+      {...props}
+    />
+  );
 }
 
 export function AltinnAttachment(props: IAltinnAttachmentProps) {

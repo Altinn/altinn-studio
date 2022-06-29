@@ -1,11 +1,11 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { IAttachments } from ".";
-import * as AttachmentActionsTypes from "./attachmentActionTypes";
-import type * as deleteActions from "./delete/deleteAttachmentActions";
-import type * as mapActions from "./map/mapAttachmentsActions";
-import type * as uploadActions from "./upload/uploadAttachmentActions";
-import type * as updateActions from "./update/updateAttachmentActions";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { IAttachments } from '.';
+import * as AttachmentActionsTypes from './attachmentActionTypes';
+import type * as deleteActions from './delete/deleteAttachmentActions';
+import type * as mapActions from './map/mapAttachmentsActions';
+import type * as uploadActions from './upload/uploadAttachmentActions';
+import type * as updateActions from './update/updateAttachmentActions';
 
 export interface IAttachmentState {
   attachments: IAttachments;
@@ -19,7 +19,7 @@ const initialState: IAttachmentState = {
 
 const attachmentReducer: Reducer<IAttachmentState> = (
   state: IAttachmentState = initialState,
-  action?: Action
+  action?: Action,
 ): IAttachmentState => {
   if (!action) {
     return state;
@@ -60,7 +60,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         attachments: {
           [componentId]: {
             $set: state.attachments[componentId].filter(
-              (attachment) => attachment.id !== attachmentId
+              (attachment) => attachment.id !== attachmentId,
             ),
           },
         },
@@ -71,7 +71,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       const { attachment, componentId, tmpAttachmentId } =
         action as uploadActions.IUploadAttachmentActionFulfilled;
       const index = state.attachments[componentId].findIndex(
-        (item) => item.id === tmpAttachmentId
+        (item) => item.id === tmpAttachmentId,
       );
       if (index < 0) {
         return state;
@@ -97,7 +97,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       }
       const newAttachment = { ...attachment, updating: true };
       const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id
+        (item) => item.id === attachment.id,
       );
       return update<IAttachmentState>(state, {
         attachments: {
@@ -117,7 +117,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         updating: false,
       };
       const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id
+        (item) => item.id === attachment.id,
       );
       return update<IAttachmentState>(state, {
         attachments: {
@@ -133,7 +133,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         action as updateActions.IUpdateAttachmentActionFulfilled;
       const newAttachment = { ...attachment, updating: false };
       const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id
+        (item) => item.id === attachment.id,
       );
       return update<IAttachmentState>(state, {
         attachments: {
@@ -148,7 +148,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       const { attachment, componentId } =
         action as deleteActions.IDeleteAttachmentAction;
       const index = state.attachments[componentId].findIndex(
-        (element) => element.id === attachment.id
+        (element) => element.id === attachment.id,
       );
       if (index < 0) {
         return state;
@@ -169,7 +169,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         attachments: {
           [componentId]: {
             $set: state.attachments[componentId].filter(
-              (attachment) => attachment.id !== id
+              (attachment) => attachment.id !== id,
             ),
           },
         },
@@ -181,7 +181,7 @@ const attachmentReducer: Reducer<IAttachmentState> = (
         action as deleteActions.IDeleteAttachmentActionRejected;
       const newAttachment = { ...attachment, deleting: false };
       const index = state.attachments[componentId].findIndex(
-        (element) => element.id === attachment.id
+        (element) => element.id === attachment.id,
       );
       if (index < 0) {
         return state;

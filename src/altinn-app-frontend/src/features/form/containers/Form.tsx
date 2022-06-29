@@ -1,26 +1,26 @@
 /* eslint-disable no-undef */
-import Grid from "@material-ui/core/Grid";
-import * as React from "react";
-import { SummaryComponent } from "src/components/summary/SummaryComponent";
-import type { ILayout, ILayoutComponent, ILayoutGroup } from "../layout";
-import { GroupContainer } from "./GroupContainer";
-import { renderGenericComponent } from "src/utils/layout";
-import { DisplayGroupContainer } from "./DisplayGroupContainer";
-import { useAppSelector } from "src/common/hooks";
-import MessageBanner from "src/features/form/components/MessageBanner";
-import { hasRequiredFields } from "src/utils/formLayout";
-import { missingFieldsInLayoutValidations } from "src/utils/validation";
+import Grid from '@material-ui/core/Grid';
+import * as React from 'react';
+import { SummaryComponent } from 'src/components/summary/SummaryComponent';
+import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import { GroupContainer } from './GroupContainer';
+import { renderGenericComponent } from 'src/utils/layout';
+import { DisplayGroupContainer } from './DisplayGroupContainer';
+import { useAppSelector } from 'src/common/hooks';
+import MessageBanner from 'src/features/form/components/MessageBanner';
+import { hasRequiredFields } from 'src/utils/formLayout';
+import { missingFieldsInLayoutValidations } from 'src/utils/validation';
 
 export function renderLayoutComponent(
   layoutComponent: ILayoutComponent | ILayoutGroup,
-  layout: ILayout
+  layout: ILayout,
 ) {
   switch (layoutComponent.type) {
-    case "group":
-    case "Group": {
+    case 'group':
+    case 'Group': {
       return RenderLayoutGroup(layoutComponent as ILayoutGroup, layout);
     }
-    case "Summary": {
+    case 'Summary': {
       return (
         <SummaryComponent
           key={layoutComponent.id}
@@ -45,12 +45,12 @@ function RenderGenericComponent(component: ILayoutComponent, layout: ILayout) {
 
 function RenderLayoutGroup(
   layoutGroup: ILayoutGroup,
-  layout: ILayout
+  layout: ILayout,
 ): JSX.Element {
   const groupComponents = layoutGroup.children.map((child) => {
     let childId = child;
     if (layoutGroup.edit?.multiPage) {
-      childId = child.split(":")[1] || child;
+      childId = child.split(':')[1] || child;
     }
     return layout.find((c) => c.id === childId) as ILayoutComponent;
   });
@@ -84,14 +84,14 @@ export function Form() {
     React.useState(false);
 
   const currentView = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView
+    (state) => state.formLayout.uiConfig.currentView,
   );
   const layout = useAppSelector(
-    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]
+    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
   );
   const language = useAppSelector((state) => state.language.language);
   const validations = useAppSelector(
-    (state) => state.formValidations.validations
+    (state) => state.formValidations.validations,
   );
 
   React.useEffect(() => {
@@ -102,7 +102,7 @@ export function Form() {
     if (validations && validations[currentView]) {
       const areRequiredFieldsMissing = missingFieldsInLayoutValidations(
         validations[currentView],
-        language
+        language,
       );
       setRequiredFieldsMissing(areRequiredFieldsMissing);
     }
@@ -112,19 +112,19 @@ export function Form() {
     let renderedInGroup: string[] = [];
     if (layout) {
       const groupComponents = layout.filter(
-        (component) => component.type.toLowerCase() === "group"
+        (component) => component.type.toLowerCase() === 'group',
       );
       groupComponents.forEach((component: ILayoutGroup) => {
         let childList = component.children;
         if (component.edit?.multiPage) {
           childList = component.children.map(
-            (childId) => childId.split(":")[1] || childId
+            (childId) => childId.split(':')[1] || childId,
           );
         }
         renderedInGroup = renderedInGroup.concat(childList);
       });
       const componentsToRender = layout.filter(
-        (component) => !renderedInGroup.includes(component.id)
+        (component) => !renderedInGroup.includes(component.id),
       );
       setFilteredLayout(componentsToRender);
     }
@@ -136,13 +136,13 @@ export function Form() {
         <MessageBanner
           language={language}
           error={requiredFieldsMissing}
-          messageKey={"form_filler.required_description"}
+          messageKey={'form_filler.required_description'}
         />
       )}
       <Grid
         container={true}
         spacing={3}
-        alignItems="flex-start"
+        alignItems='flex-start'
       >
         {currentView === currentLayout &&
           filteredLayout &&

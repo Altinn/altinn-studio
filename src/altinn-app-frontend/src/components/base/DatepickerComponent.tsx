@@ -1,36 +1,36 @@
-import moment from "moment";
-import * as React from "react";
+import moment from 'moment';
+import * as React from 'react';
 import {
   Grid,
   useMediaQuery,
   useTheme,
   Icon,
   makeStyles,
-} from "@material-ui/core";
+} from '@material-ui/core';
 import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
-import MomentUtils from "@date-io/moment";
-import { getLanguageFromKey } from "altinn-shared/utils";
+} from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import type {
   IComponentBindingValidation,
   ITextResourceBindings,
   DateFlags,
-} from "src/types";
-import { getFlagBasedDate, getISOString } from "../../utils/dateHelpers";
-import { renderValidationMessagesForComponent } from "../../utils/render";
+} from 'src/types';
+import { getFlagBasedDate, getISOString } from '../../utils/dateHelpers';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 import {
   DatePickerFormatDefault,
   DatePickerMaxDateDefault,
   DatePickerMinDateDefault,
   DatePickerSaveFormatNoTimestamp,
   validateDatepickerFormData,
-} from "../../utils/validation";
-import type { IComponentProps } from "..";
+} from '../../utils/validation';
+import type { IComponentProps } from '..';
 
-import "./DatepickerComponent.css";
-import "../../styles/shared.css";
+import './DatepickerComponent.css';
+import '../../styles/shared.css';
 
 export interface IDatePickerProps extends IComponentProps {
   timeStamp?: boolean;
@@ -40,28 +40,28 @@ export interface IDatePickerProps extends IComponentProps {
   textResourceBindings: ITextResourceBindings;
 }
 
-const iconSize = "30px";
+const iconSize = '30px';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    boxSizing: "border-box",
-    height: "36px",
-    fontSize: "1.6rem",
-    borderWidth: "2px",
-    borderStyle: "solid",
-    marginBottom: "0px",
+    boxSizing: 'border-box',
+    height: '36px',
+    fontSize: '1.6rem',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    marginBottom: '0px',
     borderColor: theme.altinnPalette.primary.blueMedium,
-    "&:hover": {
+    '&:hover': {
       borderColor: theme.altinnPalette.primary.blueDark,
     },
-    "&:focus-within": {
-      outlineOffset: "0px",
+    '&:focus-within': {
+      outlineOffset: '0px',
       outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
     },
   },
   input: {
-    padding: "0px",
-    marginLeft: "12px",
+    padding: '0px',
+    marginLeft: '12px',
   },
   invalid: {
     borderColor: `${theme.altinnPalette.primary.red} !important`,
@@ -72,26 +72,26 @@ const useStyles = makeStyles((theme) => ({
     lineHeight: iconSize,
   },
   formHelperText: {
-    fontSize: "1.4rem",
+    fontSize: '1.4rem',
   },
   datepicker: {
-    width: "auto",
-    marginBottom: "0px",
-    marginTop: "0px",
+    width: 'auto',
+    marginBottom: '0px',
+    marginTop: '0px',
   },
 }));
 
 class AltinnMomentUtils extends MomentUtils {
   getDatePickerHeaderText(date: moment.Moment) {
-    if (date && date.locale() === "nb") {
-      return date.format("ddd, D MMM");
+    if (date && date.locale() === 'nb') {
+      return date.format('ddd, D MMM');
     }
     return super.getDatePickerHeaderText(date);
   }
 }
 
 // We dont use the built-in validation for the 3rd party component, so it is always empty string
-const emptyString = "";
+const emptyString = '';
 
 function DatepickerComponent({
   minDate,
@@ -116,7 +116,7 @@ function DatepickerComponent({
   const locale =
     window.navigator?.language ||
     (window.navigator as any)?.userLanguage ||
-    "nb";
+    'nb';
   moment.locale(locale);
 
   const calculatedMinDate =
@@ -129,11 +129,11 @@ function DatepickerComponent({
     DatePickerMaxDateDefault;
 
   const calculatedFormat =
-    moment.localeData().longDateFormat("L") ||
+    moment.localeData().longDateFormat('L') ||
     format ||
     DatePickerFormatDefault;
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const isDateEmpty = React.useCallback(() => {
     return date && date.parsingFlags().parsedDateParts.length === 0;
@@ -142,7 +142,7 @@ function DatepickerComponent({
   const getValidationMessages = React.useCallback(() => {
     let checkDate: string;
     if (!date || isDateEmpty()) {
-      checkDate = "";
+      checkDate = '';
     } else if (date.isValid()) {
       checkDate = date.toISOString();
     } else {
@@ -153,7 +153,7 @@ function DatepickerComponent({
       calculatedMinDate,
       calculatedMaxDate,
       calculatedFormat,
-      language
+      language,
     );
     const suppliedValidations = componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
@@ -194,10 +194,10 @@ function DatepickerComponent({
 
   const handleDateChange = (dateValue: moment.Moment) => {
     dateValue
-      ?.set("hour", 12)
-      ?.set("minute", 0)
-      ?.set("second", 0)
-      ?.set("millisecond", 0);
+      ?.set('hour', 12)
+      ?.set('minute', 0)
+      ?.set('second', 0)
+      ?.set('millisecond', 0);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
@@ -212,7 +212,7 @@ function DatepickerComponent({
       }
     } else if (!dateValue) {
       setDate(null);
-      handleDataChange("");
+      handleDataChange('');
     } else if (
       dateValue.parsingFlags().charsLeftOver == 0 &&
       !dateValue.isValid()
@@ -226,10 +226,10 @@ function DatepickerComponent({
       return true;
     }
     dateValue
-      .set("hour", 12)
-      .set("minute", 0)
-      .set("second", 0)
-      .set("millisecond", 0);
+      .set('hour', 12)
+      .set('minute', 0)
+      .set('second', 0)
+      .set('millisecond', 0);
     return (
       dateValue.isValid() &&
       dateValue.isSameOrAfter(calculatedMinDate) &&
@@ -246,20 +246,20 @@ function DatepickerComponent({
         timeStamp === false
           ? date?.format(DatePickerSaveFormatNoTimestamp)
           : date?.toISOString(true);
-      const saveDate = isDateEmpty() ? "" : dateString;
+      const saveDate = isDateEmpty() ? '' : dateString;
       handleDataChange(saveDate);
     } else {
       if (formData?.simpleBinding) {
-        handleDataChange("");
+        handleDataChange('');
       }
     }
   };
 
   const mobileOnlyProps = isMobile
     ? {
-        cancelLabel: getLanguageFromKey("date_picker.cancel_label", language),
-        clearLabel: getLanguageFromKey("date_picker.clear_label", language),
-        todayLabel: getLanguageFromKey("date_picker.today_label", language),
+        cancelLabel: getLanguageFromKey('date_picker.cancel_label', language),
+        clearLabel: getLanguageFromKey('date_picker.clear_label', language),
+        todayLabel: getLanguageFromKey('date_picker.today_label', language),
       }
     : {};
 
@@ -274,9 +274,9 @@ function DatepickerComponent({
           <KeyboardDatePicker
             readOnly={readOnly}
             required={required}
-            variant={isMobile ? "dialog" : "inline"}
+            variant={isMobile ? 'dialog' : 'inline'}
             format={calculatedFormat}
-            margin="normal"
+            margin='normal'
             id={id}
             data-testid={id}
             value={date}
@@ -299,12 +299,12 @@ function DatepickerComponent({
                   classes.root +
                   (validationMessages?.errors?.length || !validDate
                     ? ` ${classes.invalid}`
-                    : "") +
-                  (readOnly ? " disabled" : ""),
+                    : '') +
+                  (readOnly ? ' disabled' : ''),
                 input: classes.input,
               },
               ...(textResourceBindings?.description && {
-                "aria-describedby": `description-${id}`,
+                'aria-describedby': `description-${id}`,
               }),
             }}
             FormHelperTextProps={{
@@ -313,29 +313,29 @@ function DatepickerComponent({
               },
             }}
             KeyboardButtonProps={{
-              "aria-label": getLanguageFromKey(
-                "date_picker.aria_label_icon",
-                language
+              'aria-label': getLanguageFromKey(
+                'date_picker.aria_label_icon',
+                language,
               ),
-              id: "date-icon-button",
+              id: 'date-icon-button',
             }}
             leftArrowButtonProps={{
-              "aria-label": getLanguageFromKey(
-                "date_picker.aria_label_left_arrow",
-                language
+              'aria-label': getLanguageFromKey(
+                'date_picker.aria_label_left_arrow',
+                language,
               ),
-              id: "date-left-icon-button",
+              id: 'date-left-icon-button',
             }}
             rightArrowButtonProps={{
-              "aria-label": getLanguageFromKey(
-                "date_picker.aria_label_right_arrow",
-                language
+              'aria-label': getLanguageFromKey(
+                'date_picker.aria_label_right_arrow',
+                language,
               ),
-              id: "date-right-icon-button",
+              id: 'date-right-icon-button',
             }}
             keyboardIcon={
               <Icon
-                id="date-icon"
+                id='date-icon'
                 className={`${classes.icon} ai ai-date`}
               />
             }
@@ -346,7 +346,7 @@ function DatepickerComponent({
       </MuiPickersUtilsProvider>
       {renderValidationMessagesForComponent(
         validationMessages,
-        `${id}_validations`
+        `${id}_validations`,
       )}
     </>
   );

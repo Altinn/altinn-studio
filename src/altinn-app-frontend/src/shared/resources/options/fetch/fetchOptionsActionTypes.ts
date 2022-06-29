@@ -1,4 +1,4 @@
-const moduleName = "OPTIONS";
+const moduleName = 'OPTIONS';
 
 export const FETCH_OPTIONS = `${moduleName}.FETCH_OPTIONS`;
 export const FETCHING_OPTION = `${moduleName}.FETCHING_OPTIONS`;

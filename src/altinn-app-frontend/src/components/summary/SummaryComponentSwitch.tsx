@@ -1,19 +1,19 @@
-import * as React from "react";
+import * as React from 'react';
 import type {
   ILayoutComponent,
   ILayoutGroup,
   ISelectionComponentProps,
-} from "src/features/form/layout";
-import SummaryGroupComponent from "./SummaryGroupComponent";
-import SingleInputSummary from "./SingleInputSummary";
-import { AttachmentSummaryComponent } from "./AttachmentSummaryComponent";
-import { AttachmentWithTagSummaryComponent } from "./AttachmentWithTagSummaryComponent";
-import MultipleChoiceSummary from "./MultipleChoiceSummary";
-import SummaryBoilerplate from "src/components/summary/SummaryBoilerplate";
+} from 'src/features/form/layout';
+import SummaryGroupComponent from './SummaryGroupComponent';
+import SingleInputSummary from './SingleInputSummary';
+import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
+import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
+import MultipleChoiceSummary from './MultipleChoiceSummary';
+import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 import {
   isFileUploadComponent,
   isFileUploadWithTagComponent,
-} from "src/utils/formLayout";
+} from 'src/utils/formLayout';
 
 export interface ISummaryComponentSwitch {
   change: {
@@ -77,8 +77,8 @@ export default function SummaryComponentSwitch({
   }
 
   switch (formComponent.type) {
-    case "Group":
-    case "group": {
+    case 'Group':
+    case 'group': {
       return (
         <SummaryGroupComponent
           {...change}
@@ -87,7 +87,7 @@ export default function SummaryComponentSwitch({
         />
       );
     }
-    case "Checkboxes": {
+    case 'Checkboxes': {
       return (
         <MultipleChoiceSummary
           {...change}

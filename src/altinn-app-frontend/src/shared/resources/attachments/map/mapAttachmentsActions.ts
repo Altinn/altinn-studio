@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { IAttachments } from "..";
-import * as ActionTypes from "../attachmentActionTypes";
+import type { Action } from 'redux';
+import type { IAttachments } from '..';
+import * as ActionTypes from '../attachmentActionTypes';
 
 export interface IMapAttachmentsActionFulfilled extends Action {
   attachments: IAttachments;
@@ -17,7 +17,7 @@ export function mapAttachments(): Action {
 }
 
 export function mapAttachmentsFulfilled(
-  attachments: IAttachments
+  attachments: IAttachments,
 ): IMapAttachmentsActionFulfilled {
   return {
     type: ActionTypes.MAP_ATTACHMENTS_FULFILLED,
@@ -26,7 +26,7 @@ export function mapAttachmentsFulfilled(
 }
 
 export function mapAttachmentsRejected(
-  error: Error
+  error: Error,
 ): IMapAttachmentsActionRejected {
   return {
     type: ActionTypes.MAP_ATTACHMENTS_REJECTED,

@@ -1,10 +1,10 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
 import type {
   IInstantiateFulfilled,
   IInstantiateRejected,
-} from "../actions/instantiate";
-import * as InstantiateActionTypes from "../actions/types";
+} from '../actions/instantiate';
+import * as InstantiateActionTypes from '../actions/types';
 
 export interface IInstantiationState {
   instantiating: boolean;
@@ -20,7 +20,7 @@ const initialState: IInstantiationState = {
 
 const InstantiationReducer: Reducer<IInstantiationState> = (
   state: IInstantiationState = initialState,
-  action?: Action
+  action?: Action,
 ) => {
   if (!action) {
     return state;

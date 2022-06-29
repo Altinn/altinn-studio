@@ -91,12 +91,18 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
           horizontal: 'center',
         }}
       >
-        <MenuItem key='placeholder' style={{ display: 'none' }} />
+        <MenuItem
+          key='placeholder'
+          style={{ display: 'none' }}
+        />
         {
           // workaround for highlighted menu item not changing.
           // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
         }
-        <MenuItem className={classes.menuItem} id='logout-menu-item'>
+        <MenuItem
+          className={classes.menuItem}
+          id='logout-menu-item'
+        >
           <a href={logoutUrlAltinn(window.location.origin)}>{logoutText}</a>
         </MenuItem>
       </Menu>

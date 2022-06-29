@@ -1,11 +1,11 @@
-import * as React from "react";
-import classNames from "classnames";
-import type { NumberFormatProps } from "react-number-format";
-import NumberFormat from "react-number-format";
-import { Input, makeStyles } from "@material-ui/core";
+import * as React from 'react';
+import classNames from 'classnames';
+import type { NumberFormatProps } from 'react-number-format';
+import NumberFormat from 'react-number-format';
+import { Input, makeStyles } from '@material-ui/core';
 
-import "../../styles/shared.css";
-import type { IComponentProps } from "..";
+import '../../styles/shared.css';
+import type { IComponentProps } from '..';
 
 export interface IInputBaseProps {
   id: string;
@@ -17,7 +17,7 @@ export interface IInputBaseProps {
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
-  align?: "right" | "center" | "left";
+  align?: 'right' | 'center' | 'left';
 }
 
 export interface IInputProps extends IComponentProps {
@@ -38,7 +38,7 @@ export interface IFormattedNumberInputProps extends IInputBaseProps {
 
 const useStyles = makeStyles({
   input: {
-    boxSizing: "border-box",
+    boxSizing: 'border-box',
   },
 });
 
@@ -87,10 +87,10 @@ export function InputComponent({
   textResourceBindings,
 }: IInputProps) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(formData?.simpleBinding ?? "");
+  const [value, setValue] = React.useState(formData?.simpleBinding ?? '');
 
   React.useEffect(() => {
-    setValue(formData?.simpleBinding ?? "");
+    setValue(formData?.simpleBinding ?? '');
   }, [formData?.simpleBinding]);
 
   const onDataChanged = (e: any) => {
@@ -120,8 +120,8 @@ export function InputComponent({
       }
       inputProps={{
         formatting,
-        className: classNames("form-control", classes.input, {
-          "validation-error": !isValid,
+        className: classNames('form-control', classes.input, {
+          'validation-error': !isValid,
           disabled: readOnly,
         }),
         style: {

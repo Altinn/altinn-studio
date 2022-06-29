@@ -1,12 +1,12 @@
-import type { IOptions } from "src/types";
-import type { Action, Reducer } from "redux";
-import update from "immutability-helper";
-import * as FetchOptionsActionTypes from "./fetch/fetchOptionsActionTypes";
+import type { IOptions } from 'src/types';
+import type { Action, Reducer } from 'redux';
+import update from 'immutability-helper';
+import * as FetchOptionsActionTypes from './fetch/fetchOptionsActionTypes';
 import type {
   IFetchOptionsFulfilledAction,
   IFetchOptionsRejectedAction,
   IFetchingOptionsAction,
-} from "./fetch/fetchOptionsActions";
+} from './fetch/fetchOptionsActions';
 
 export interface IOptionsState {
   error: Error;
@@ -20,7 +20,7 @@ const initialState: IOptionsState = {
 
 const OptionsReducer: Reducer<IOptionsState> = (
   state: IOptionsState = initialState,
-  action?: Action
+  action?: Action,
 ): IOptionsState => {
   if (!action) {
     return state;

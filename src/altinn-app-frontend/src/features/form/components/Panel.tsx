@@ -1,13 +1,13 @@
-import React, { useContext } from "react";
+import React, { useContext } from 'react';
 
 import {
   Panel as PanelDesignSystem,
   PanelVariant,
-} from "@altinn/altinn-design-system";
+} from '@altinn/altinn-design-system';
 
-import { FormComponentContext } from "src/components";
-import { ConditionalWrapper } from "src/components/ConditionalWrapper";
-import { FullWidthWrapper } from "src/features/form/components/FullWidthWrapper";
+import { FormComponentContext } from 'src/components';
+import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 
 interface IGetVariantProps {
   variant?: string;
@@ -17,11 +17,11 @@ const defaultObj = {};
 
 export const getVariant = ({ variant }: IGetVariantProps = defaultObj) => {
   switch (variant) {
-    case "info":
+    case 'info':
       return PanelVariant.Info;
-    case "success":
+    case 'success':
       return PanelVariant.Success;
-    case "warning":
+    case 'warning':
       return PanelVariant.Warning;
   }
 

@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
-import * as React from "react";
-import { Grid } from "@material-ui/core";
-import type { ILabelSettings } from "src/types";
-import { HelpTextContainer } from "./HelpTextContainer";
-import type { ILanguage } from "altinn-shared/types";
-import { RequiredIndicator } from "./RequiredIndicator";
-import { OptionalIndicator } from "./OptionalIndicator";
+import * as React from 'react';
+import { Grid } from '@material-ui/core';
+import type { ILabelSettings } from 'src/types';
+import { HelpTextContainer } from './HelpTextContainer';
+import type { ILanguage } from 'altinn-shared/types';
+import { RequiredIndicator } from './RequiredIndicator';
+import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLabelProps {
   labelText: any;
@@ -30,7 +30,7 @@ export default function Label(props: IFormLabelProps) {
     >
       <Grid item={true}>
         <label
-          className="a-form-label title-label"
+          className='a-form-label title-label'
           htmlFor={props.id}
           data-testid={`label-${props.id}`}
         >

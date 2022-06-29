@@ -32,7 +32,10 @@ export default function AltinnTableBody(props: IAltinnTableBody) {
   const classes = useStyles(props);
 
   return (
-    <TableBody className={classes.tableBody} id={id}>
+    <TableBody
+      className={classes.tableBody}
+      id={id}
+    >
       {children}
     </TableBody>
   );

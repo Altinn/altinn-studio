@@ -1,15 +1,15 @@
-import type { SagaIterator } from "redux-saga";
-import { call, takeEvery, put, select } from "redux-saga/effects";
-import { updateComponentValidations } from "src/features/form/validation/validationSlice";
-import { post, httpDelete } from "src/utils/networking";
-import type { AxiosRequestConfig } from "axios";
-import type { IAttachment } from "..";
-import { getFileUploadComponentValidations } from "../../../../utils/formComponentUtils";
-import type { IRuntimeState } from "../../../../types";
-import AttachmentDispatcher from "../attachmentActions";
-import * as AttachmentActionsTypes from "../attachmentActionTypes";
-import type * as updateActions from "./updateAttachmentActions";
-import { fileTagUrl } from "src/utils/appUrlHelper";
+import type { SagaIterator } from 'redux-saga';
+import { call, takeEvery, put, select } from 'redux-saga/effects';
+import { updateComponentValidations } from 'src/features/form/validation/validationSlice';
+import { post, httpDelete } from 'src/utils/networking';
+import type { AxiosRequestConfig } from 'axios';
+import type { IAttachment } from '..';
+import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
+import type { IRuntimeState } from '../../../../types';
+import AttachmentDispatcher from '../attachmentActions';
+import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import type * as updateActions from './updateAttachmentActions';
+import { fileTagUrl } from 'src/utils/appUrlHelper';
 
 export function* updateAttachmentSaga({
   attachment,
@@ -29,7 +29,7 @@ export function* updateAttachmentSaga({
         componentId,
         layoutId: currentView,
         validations: newValidations,
-      })
+      }),
     );
 
     const fileUpdateLink = fileTagUrl(attachment.id);
@@ -41,27 +41,27 @@ export function* updateAttachmentSaga({
     ) {
       const deleteResponse: any = yield call(
         httpDelete,
-        `${fileUpdateLink}/${attachment.tags[0]}`
+        `${fileUpdateLink}/${attachment.tags[0]}`,
       );
       if (deleteResponse.status !== 204) {
         const validations = getFileUploadComponentValidations(
-          "update",
+          'update',
           language,
-          attachment.id
+          attachment.id,
         );
         yield put(
           updateComponentValidations({
             componentId,
             layoutId: currentView,
             validations,
-          })
+          }),
         );
         yield call(
           AttachmentDispatcher.updateAttachmentRejected,
           attachment,
           componentId,
           baseComponentId,
-          attachment.tags[0]
+          attachment.tags[0],
         );
         return;
       }
@@ -69,7 +69,7 @@ export function* updateAttachmentSaga({
 
     const config: AxiosRequestConfig = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     };
 
@@ -84,48 +84,48 @@ export function* updateAttachmentSaga({
         AttachmentDispatcher.updateAttachmentFulfilled,
         newAttachment,
         componentId,
-        baseComponentId
+        baseComponentId,
       );
     } else {
       const validations = getFileUploadComponentValidations(
-        "update",
+        'update',
         language,
-        attachment.id
+        attachment.id,
       );
       yield put(
         updateComponentValidations({
           componentId,
           layoutId: currentView,
           validations,
-        })
+        }),
       );
       yield call(
         AttachmentDispatcher.updateAttachmentRejected,
         attachment,
         componentId,
         baseComponentId,
-        undefined
+        undefined,
       );
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations(
-      "update",
+      'update',
       language,
-      attachment.id
+      attachment.id,
     );
     yield put(
       updateComponentValidations({
         componentId,
         layoutId: currentView,
         validations,
-      })
+      }),
     );
     yield call(
       AttachmentDispatcher.updateAttachmentRejected,
       attachment,
       componentId,
       baseComponentId,
-      undefined
+      undefined,
     );
   }
 }
@@ -133,6 +133,6 @@ export function* updateAttachmentSaga({
 export function* watchUpdateAttachmentSaga(): SagaIterator {
   yield takeEvery(
     AttachmentActionsTypes.UPDATE_ATTACHMENT,
-    updateAttachmentSaga
+    updateAttachmentSaga,
   );
 }

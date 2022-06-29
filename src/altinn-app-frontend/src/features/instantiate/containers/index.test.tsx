@@ -1,19 +1,19 @@
-import React from "react";
-import { Provider } from "react-redux";
-import configureStore from "redux-mock-store";
+import React from 'react';
+import { Provider } from 'react-redux';
+import configureStore from 'redux-mock-store';
 import {
   render as renderRtl,
   screen,
   waitFor,
   within,
-} from "@testing-library/react";
+} from '@testing-library/react';
 
-import { BrowserRouter, Route } from "react-router-dom";
-import type { IRuntimeState } from "src/types";
-import Instantiate from "./index";
-import { HttpStatusCodes } from "../../../utils/networking";
-import { getInitialStateMock } from "../../../../__mocks__/initialStateMock";
-import InstantiationActions from "../instantiation/actions";
+import { BrowserRouter, Route } from 'react-router-dom';
+import type { IRuntimeState } from 'src/types';
+import Instantiate from './index';
+import { HttpStatusCodes } from '../../../utils/networking';
+import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
+import InstantiationActions from '../instantiation/actions';
 
 const render = (initialState: Partial<IRuntimeState> = {}) => {
   const createStore = configureStore();
@@ -28,28 +28,28 @@ const render = (initialState: Partial<IRuntimeState> = {}) => {
       <Provider store={mockStore}>
         <Instantiate />
       </Provider>
-      <Route path="/instance/1">Instance page</Route>
-    </BrowserRouter>
+      <Route path='/instance/1'>Instance page</Route>
+    </BrowserRouter>,
   );
 };
 
-describe("features/instantiate/index", () => {
-  it("should show content loader on initial render and start instantiation if valid party", async () => {
+describe('features/instantiate/index', () => {
+  it('should show content loader on initial render and start instantiation if valid party', async () => {
     render();
 
     await waitFor(() => {
       expect(InstantiationActions.instantiate).toHaveBeenCalledTimes(1);
     });
 
-    const contentLoader = await screen.findByText("Loading...");
+    const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).toBeInTheDocument();
 
     const instantiationText = within(
-      await screen.findByTestId("presentation-heading")
-    ).getByText("Hold deg fast, nå starter vi!");
+      await screen.findByTestId('presentation-heading'),
+    ).getByText('Hold deg fast, nå starter vi!');
 
     expect(instantiationText).toBeInTheDocument();
-    expect(screen.queryByText("Instance page")).not.toBeInTheDocument();
+    expect(screen.queryByText('Instance page')).not.toBeInTheDocument();
   });
 
   it('should show header as "" when translations have not been initialized properly loader on initial render and start instantiation if valid party', async () => {
@@ -57,10 +57,10 @@ describe("features/instantiate/index", () => {
       language: {
         language: {
           instantiate: {
-            starting: "instantiate.starting",
+            starting: 'instantiate.starting',
           },
         },
-        selectedAppLanguage: "",
+        selectedAppLanguage: '',
         error: null,
       },
     });
@@ -69,17 +69,17 @@ describe("features/instantiate/index", () => {
       expect(InstantiationActions.instantiate).toHaveBeenCalledTimes(1);
     });
 
-    const contentLoader = await screen.findByText("Loading...");
+    const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).toBeInTheDocument();
 
     const instantiationText = within(
-      await screen.findByTestId("presentation-heading")
-    ).getByText("");
+      await screen.findByTestId('presentation-heading'),
+    ).getByText('');
 
     expect(instantiationText).toBeInTheDocument();
   });
 
-  it("should not call InstantiationActions.instantiate when no selected party", async () => {
+  it('should not call InstantiationActions.instantiate when no selected party', async () => {
     render({
       party: {
         parties: [],
@@ -93,27 +93,27 @@ describe("features/instantiate/index", () => {
     });
   });
 
-  it("should redirect when instanceId is set", () => {
+  it('should redirect when instanceId is set', () => {
     render({
       instantiation: {
         error: null,
-        instanceId: "1",
+        instanceId: '1',
         instantiating: null,
       },
     });
 
-    expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Hold deg fast, nå starter vi!")
+      screen.queryByText('Hold deg fast, nå starter vi!'),
     ).not.toBeInTheDocument();
 
-    expect(screen.getByText("Instance page")).toBeInTheDocument();
+    expect(screen.getByText('Instance page')).toBeInTheDocument();
   });
 
-  it("should show unknown error for generic errors", async () => {
+  it('should show unknown error for generic errors', async () => {
     const error = {
-      message: "instantiation error",
-      name: "instantiation error",
+      message: 'instantiation error',
+      name: 'instantiation error',
       config: {},
       isAxiosError: true,
       response: {
@@ -129,13 +129,13 @@ describe("features/instantiate/index", () => {
       },
     });
 
-    expect(screen.getAllByText("Ukjent feil")[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Ukjent feil')[0]).toBeInTheDocument();
   });
 
-  it("should show missing access when http status is forbidden", async () => {
+  it('should show missing access when http status is forbidden', async () => {
     const error = {
-      message: "instantiation error",
-      name: "instantiation error",
+      message: 'instantiation error',
+      name: 'instantiation error',
       config: {},
       isAxiosError: true,
       response: {
@@ -151,22 +151,22 @@ describe("features/instantiate/index", () => {
       },
     });
 
-    expect(screen.getByText("Feil 403")).toBeInTheDocument();
+    expect(screen.getByText('Feil 403')).toBeInTheDocument();
     expect(
-      screen.getByText("Du mangler rettigheter for å se denne tjenesten.")
+      screen.getByText('Du mangler rettigheter for å se denne tjenesten.'),
     ).toBeInTheDocument();
   });
 
-  it("should show instantiation error page when axios error contains a message", async () => {
+  it('should show instantiation error page when axios error contains a message', async () => {
     const error = {
-      message: "instantiation error",
-      name: "instantiation error",
+      message: 'instantiation error',
+      name: 'instantiation error',
       config: {},
       isAxiosError: true,
       response: {
         status: HttpStatusCodes.Forbidden,
         data: {
-          message: "axios error",
+          message: 'axios error',
         },
       },
     };
@@ -179,7 +179,7 @@ describe("features/instantiate/index", () => {
       },
     });
 
-    expect(screen.getByText("Feil 403")).toBeInTheDocument();
-    expect(screen.getByText("axios error")).toBeInTheDocument();
+    expect(screen.getByText('Feil 403')).toBeInTheDocument();
+    expect(screen.getByText('axios error')).toBeInTheDocument();
   });
 });

@@ -14,14 +14,20 @@ describe('>>> AltinnSubstatusPaper.tsx', () => {
 
   it('+++ should match snapshot', () => {
     const rendered = renderer.create(
-      <AltinnSubstatusPaper label={label} description={description} />,
+      <AltinnSubstatusPaper
+        label={label}
+        description={description}
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should render label and description', () => {
     const wrapper = mount(
-      <AltinnSubstatusPaper label={label} description={description} />,
+      <AltinnSubstatusPaper
+        label={label}
+        description={description}
+      />,
     );
     expect(wrapper.find(`#substatus-label`).first().text()).toEqual(label);
     expect(wrapper.find(`#substatus-description`).first().text()).toEqual(

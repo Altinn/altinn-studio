@@ -1,53 +1,53 @@
-import { call, select } from "redux-saga/effects";
-import { expectSaga } from "redux-saga-test-plan";
+import { call, select } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
 
 import {
   fetchFormDataSaga,
   fetchFormDataInitialSaga,
   allowAnonymousSelector,
   watchFetchFormDataInitialSaga,
-} from "./fetchFormDataSagas";
+} from './fetchFormDataSagas';
 import {
   appMetaDataSelector,
   instanceDataSelector,
   layoutSetsSelector,
   processStateSelector,
   currentSelectedPartyIdSelector,
-} from "src/selectors/simpleSelectors";
-import { getInitialStateMock } from "src/../__mocks__/initialStateMock";
-import * as appUrlHelper from "src/utils/appUrlHelper";
-import * as networking from "altinn-shared/utils/networking";
+} from 'src/selectors/simpleSelectors';
+import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
+import * as appUrlHelper from 'src/utils/appUrlHelper';
+import * as networking from 'altinn-shared/utils/networking';
 import {
   getCurrentTaskDataElementId,
   getDataTypeByLayoutSetId,
-} from "src/utils/appMetadata";
-import FormDataActions from "../formDataActions";
-import type { IApplication } from "altinn-shared/types";
-import type { ILayoutSets } from "src/types";
-import { GET_INSTANCEDATA_FULFILLED } from "src/shared/resources/instanceData/get/getInstanceDataActionTypes";
-import { fetchJsonSchemaFulfilled } from "../../datamodel/datamodelSlice";
-import { dataTaskQueueError } from "src/shared/resources/queue/queueSlice";
-import type { AxiosError } from "axios";
+} from 'src/utils/appMetadata';
+import FormDataActions from '../formDataActions';
+import type { IApplication } from 'altinn-shared/types';
+import type { ILayoutSets } from 'src/types';
+import { GET_INSTANCEDATA_FULFILLED } from 'src/shared/resources/instanceData/get/getInstanceDataActionTypes';
+import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { dataTaskQueueError } from 'src/shared/resources/queue/queueSlice';
+import type { AxiosError } from 'axios';
 
-describe("fetchFormDataSagas", () => {
+describe('fetchFormDataSagas', () => {
   let mockInitialState;
   const mockFormData = {
-    someField: "test test",
-    otherField: "testing 123",
+    someField: 'test test',
+    otherField: 'testing 123',
     group: {
-      groupField: "this is a field in a group",
+      groupField: 'this is a field in a group',
     },
   };
   const flattenedFormData = {
-    someField: "test test",
-    otherField: "testing 123",
-    "group.groupField": "this is a field in a group",
+    someField: 'test test',
+    otherField: 'testing 123',
+    'group.groupField': 'this is a field in a group',
   };
 
   beforeEach(() => {
     mockInitialState = getInitialStateMock();
   });
-  it("should fetch form data", () => {
+  it('should fetch form data', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const taskId = getCurrentTaskDataElementId(appMetadata, instance);
@@ -66,19 +66,19 @@ describe("fetchFormDataSagas", () => {
         [call(networking.get, url), mockFormData],
       ])
       .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData })
+        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
       )
       .run();
   });
 
-  it("should handle error in fetchFormData", () => {
+  it('should handle error in fetchFormData', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const error: AxiosError = {
       config: {},
       isAxiosError: true,
-      message: "error",
-      name: "error",
+      message: 'error',
+      name: 'error',
       toJSON: () => {
         return {};
       },
@@ -87,11 +87,11 @@ describe("fetchFormDataSagas", () => {
         data: null,
         headers: {},
         status: 500,
-        statusText: "error",
+        statusText: 'error',
       },
     };
 
-    jest.spyOn(networking, "get").mockImplementation(() => {
+    jest.spyOn(networking, 'get').mockImplementation(() => {
       throw error;
     });
 
@@ -104,7 +104,7 @@ describe("fetchFormDataSagas", () => {
       .run();
   });
 
-  it("should fetch form data initial", () => {
+  it('should fetch form data initial', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const taskId = getCurrentTaskDataElementId(appMetadata, instance);
@@ -123,19 +123,19 @@ describe("fetchFormDataSagas", () => {
         [call(networking.get, url), mockFormData],
       ])
       .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData })
+        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
       )
       .run();
   });
 
-  it("should handle error in fetchFormDataInitial", () => {
+  it('should handle error in fetchFormDataInitial', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const error: AxiosError = {
       config: {},
       isAxiosError: true,
-      message: "error",
-      name: "error",
+      message: 'error',
+      name: 'error',
       toJSON: () => {
         return {};
       },
@@ -144,11 +144,11 @@ describe("fetchFormDataSagas", () => {
         data: null,
         headers: {},
         status: 500,
-        statusText: "error",
+        statusText: 'error',
       },
     };
 
-    jest.spyOn(networking, "get").mockImplementation(() => {
+    jest.spyOn(networking, 'get').mockImplementation(() => {
       throw error;
     });
 
@@ -162,27 +162,27 @@ describe("fetchFormDataSagas", () => {
       .run();
   });
 
-  it("should fetch form data initial for stateless app", () => {
+  it('should fetch form data initial for stateless app', () => {
     const appMetadata: IApplication = {
       ...appMetaDataSelector(mockInitialState),
       onEntry: {
-        show: "stateless",
+        show: 'stateless',
       },
     };
     const mockLayoutSets: ILayoutSets = {
       sets: [
         {
-          id: "stateless",
-          dataType: "test-data-model",
+          id: 'stateless',
+          dataType: 'test-data-model',
         },
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId("stateless", mockLayoutSets);
+    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets);
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {
       headers: {
-        party: "partyid:1234",
+        party: 'partyid:1234',
       },
     };
 
@@ -191,33 +191,33 @@ describe("fetchFormDataSagas", () => {
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
         [select(allowAnonymousSelector), false],
-        [select(currentSelectedPartyIdSelector), "1234"],
+        [select(currentSelectedPartyIdSelector), '1234'],
         [call(networking.get, url, options), mockFormData],
       ])
       .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData })
+        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
       )
       .run();
   });
 
-  it("should fetch form data initial for stateless app with allowAnonymousOnStateless", () => {
+  it('should fetch form data initial for stateless app with allowAnonymousOnStateless', () => {
     const appMetadata: IApplication = {
       ...appMetaDataSelector(mockInitialState),
       onEntry: {
-        show: "stateless",
+        show: 'stateless',
       },
     };
 
     const mockLayoutSets: ILayoutSets = {
       sets: [
         {
-          id: "stateless",
-          dataType: "test-data-model",
+          id: 'stateless',
+          dataType: 'test-data-model',
         },
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId("stateless", mockLayoutSets);
+    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets);
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {};
 
@@ -229,24 +229,24 @@ describe("fetchFormDataSagas", () => {
         [call(networking.get, url, options), mockFormData],
       ])
       .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData })
+        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
       )
       .run();
   });
 
-  it("should handle error in fetchFormDataStateless", () => {
+  it('should handle error in fetchFormDataStateless', () => {
     const appMetadata: IApplication = {
       ...appMetaDataSelector(mockInitialState),
       onEntry: {
-        show: "stateless",
+        show: 'stateless',
       },
     };
 
     const mockLayoutSets: ILayoutSets = {
       sets: [
         {
-          id: "stateless",
-          dataType: "test-data-model",
+          id: 'stateless',
+          dataType: 'test-data-model',
         },
       ],
     };
@@ -254,8 +254,8 @@ describe("fetchFormDataSagas", () => {
     const error: AxiosError = {
       config: {},
       isAxiosError: true,
-      message: "error",
-      name: "error",
+      message: 'error',
+      name: 'error',
       toJSON: () => {
         return {};
       },
@@ -264,11 +264,11 @@ describe("fetchFormDataSagas", () => {
         data: null,
         headers: {},
         status: 500,
-        statusText: "error",
+        statusText: 'error',
       },
     };
 
-    jest.spyOn(networking, "get").mockImplementation(() => {
+    jest.spyOn(networking, 'get').mockImplementation(() => {
       throw error;
     });
 
@@ -283,19 +283,19 @@ describe("fetchFormDataSagas", () => {
       .run();
   });
 
-  it("should handle redirect to authentication in fetchFormDataStateless", () => {
+  it('should handle redirect to authentication in fetchFormDataStateless', () => {
     const appMetadata: IApplication = {
       ...appMetaDataSelector(mockInitialState),
       onEntry: {
-        show: "stateless",
+        show: 'stateless',
       },
     };
 
     const mockLayoutSets: ILayoutSets = {
       sets: [
         {
-          id: "stateless",
-          dataType: "test-data-model",
+          id: 'stateless',
+          dataType: 'test-data-model',
         },
       ],
     };
@@ -303,8 +303,8 @@ describe("fetchFormDataSagas", () => {
     const error: AxiosError = {
       config: {},
       isAxiosError: true,
-      message: "error",
-      name: "error",
+      message: 'error',
+      name: 'error',
       toJSON: () => {
         return {};
       },
@@ -313,15 +313,15 @@ describe("fetchFormDataSagas", () => {
         data: null,
         headers: {},
         status: 403,
-        statusText: "error",
+        statusText: 'error',
       },
     };
 
-    jest.spyOn(networking, "get").mockImplementation(() => {
+    jest.spyOn(networking, 'get').mockImplementation(() => {
       throw error;
     });
 
-    jest.spyOn(appUrlHelper, "redirectToUpgrade").mockImplementation(() => {
+    jest.spyOn(appUrlHelper, 'redirectToUpgrade').mockImplementation(() => {
       return;
     });
 
@@ -335,7 +335,7 @@ describe("fetchFormDataSagas", () => {
       .run();
   });
 
-  it("should trigger fetchFormDataInitialSaga", () => {
+  it('should trigger fetchFormDataInitialSaga', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const processState = processStateSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
@@ -352,7 +352,7 @@ describe("fetchFormDataSagas", () => {
       .run();
   });
 
-  it("should trigger fetchFormDataInitialSaga, stateless app", () => {
+  it('should trigger fetchFormDataInitialSaga, stateless app', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
 
     expectSaga(watchFetchFormDataInitialSaga)

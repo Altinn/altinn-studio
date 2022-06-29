@@ -1,10 +1,10 @@
-import type { GridSize } from "@material-ui/core";
+import type { GridSize } from '@material-ui/core';
 import type {
   IMapping,
   IOption,
   IOptionSource,
   Triggers,
-} from "../../../types";
+} from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -38,29 +38,29 @@ export interface ILayoutComponent extends ILayoutEntry {
   grid?: IGrid;
 }
 
-export type GroupTypes = "Group" | "group";
+export type GroupTypes = 'Group' | 'group';
 
 export type ComponentTypes =
-  | "AddressComponent"
-  | "AttachmentList"
-  | "Button"
-  | "Checkboxes"
-  | "Datepicker"
-  | "Dropdown"
-  | "FileUpload"
-  | "FileUploadWithTag"
-  | "Header"
-  | "Input"
-  | "NavigationButtons"
-  | "InstantiationButton"
-  | "Paragraph"
-  | "Image"
-  | "RadioButtons"
-  | "Summary"
-  | "TextArea"
-  | "NavigationBar"
-  | "Likert"
-  | "Panel";
+  | 'AddressComponent'
+  | 'AttachmentList'
+  | 'Button'
+  | 'Checkboxes'
+  | 'Datepicker'
+  | 'Dropdown'
+  | 'FileUpload'
+  | 'FileUploadWithTag'
+  | 'Header'
+  | 'Input'
+  | 'NavigationButtons'
+  | 'InstantiationButton'
+  | 'Paragraph'
+  | 'Image'
+  | 'RadioButtons'
+  | 'Summary'
+  | 'TextArea'
+  | 'NavigationBar'
+  | 'Likert'
+  | 'Panel';
 
 export interface IDataModelBindingsSimple {
   simpleBinding: string;
@@ -119,7 +119,7 @@ export interface IGridStyling {
 }
 
 export interface IGroupEditProperties {
-  mode?: "hideTable" | "showTable" | "showAll" | "likert";
+  mode?: 'hideTable' | 'showTable' | 'showAll' | 'likert';
   filter?: IGroupFilter[];
   addButton?: boolean;
   saveButton?: boolean;

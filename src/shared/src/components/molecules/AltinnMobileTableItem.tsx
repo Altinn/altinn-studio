@@ -98,7 +98,10 @@ export default function AltinnMobileTableItem({
           {items.map((item) => {
             return (
               <TableRow key={item.key}>
-                <TableCell variant='head' width='40%'>
+                <TableCell
+                  variant='head'
+                  width='40%'
+                >
                   <Typography
                     variant='body1'
                     className={`${classes.labelText} ${classes.textContainer}`}
@@ -107,7 +110,10 @@ export default function AltinnMobileTableItem({
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant='body1' className={classes.textContainer}>
+                  <Typography
+                    variant='body1'
+                    className={classes.textContainer}
+                  >
                     {item.value}
                   </Typography>
                 </TableCell>
@@ -117,7 +123,10 @@ export default function AltinnMobileTableItem({
           <TableRow>
             <TableCell width='40%' />
             <TableCell>
-              <IconButton className={classes.tableEditButton} onClick={onClick}>
+              <IconButton
+                className={classes.tableEditButton}
+                onClick={onClick}
+              >
                 {iconNode}
               </IconButton>
             </TableCell>

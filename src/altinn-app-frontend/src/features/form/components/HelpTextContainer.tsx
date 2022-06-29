@@ -1,9 +1,9 @@
-import React from "react";
+import React from 'react';
 
-import type { ILanguage } from "altinn-shared/types";
+import type { ILanguage } from 'altinn-shared/types';
 
-import HelpTextPopover from "./HelpTextPopover";
-import HelpTextIcon from "./HelpTextIcon";
+import HelpTextPopover from './HelpTextPopover';
+import HelpTextIcon from './HelpTextIcon';
 
 export interface IHelpTextContainerProps {
   language: ILanguage;
@@ -24,7 +24,7 @@ export function HelpTextContainer({
   };
 
   const handlePopoverKeypress = (event: React.KeyboardEvent): void => {
-    if ((event.key === " " || event.key === "Enter") && !openPopover) {
+    if ((event.key === ' ' || event.key === 'Enter') && !openPopover) {
       setOpenPopover(true);
     }
   };

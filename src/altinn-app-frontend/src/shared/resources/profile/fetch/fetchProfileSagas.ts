@@ -1,11 +1,11 @@
-import type { SagaIterator } from "redux-saga";
-import { call, put, takeLatest } from "redux-saga/effects";
-import type { IProfile } from "altinn-shared/types";
-import { get } from "../../../../utils/networking";
-import ProfileActions from "../profileActions";
-import type { IFetchProfile } from "./fetchProfileActions";
-import * as ProfileActionTypes from "./fetchProfileActionTypes";
-import { userTaskQueueError } from "../../queue/queueSlice";
+import type { SagaIterator } from 'redux-saga';
+import { call, put, takeLatest } from 'redux-saga/effects';
+import type { IProfile } from 'altinn-shared/types';
+import { get } from '../../../../utils/networking';
+import ProfileActions from '../profileActions';
+import type { IFetchProfile } from './fetchProfileActions';
+import * as ProfileActionTypes from './fetchProfileActionTypes';
+import { userTaskQueueError } from '../../queue/queueSlice';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {

@@ -1,13 +1,13 @@
-import type { IFormDataState } from "../../features/form/data/formDataReducer";
-import type { IRuleConnections } from "../../features/form/dynamics";
-import type { ILayouts, ILayoutComponent } from "../../features/form/layout";
-import type { IRuleModelFieldElement } from "../../features/form/rules";
+import type { IFormDataState } from '../../features/form/data/formDataReducer';
+import type { IRuleConnections } from '../../features/form/dynamics';
+import type { ILayouts, ILayoutComponent } from '../../features/form/layout';
+import type { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections,
   formDataState: Partial<IFormDataState>,
   layouts: ILayouts,
-  lastUpdatedDataBinding: string
+  lastUpdatedDataBinding: string,
 ) {
   const rules: any[] = [];
   if (!ruleConnectionState) {
@@ -47,7 +47,7 @@ export function checkIfRuleShouldRun(
             acc[elem] = formDataState.formData[inputParamBinding];
             return acc;
           },
-          {}
+          {},
         );
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding = connectionDef.outParams.outParam0;
@@ -55,14 +55,14 @@ export function checkIfRuleShouldRun(
         Object.keys(layouts).forEach((id) => {
           const layout = layouts[id];
           layout.forEach((layoutElement) => {
-            if (layoutElement.type.toLowerCase() === "group") {
+            if (layoutElement.type.toLowerCase() === 'group') {
               return;
             }
             const layoutComponent = layoutElement as ILayoutComponent;
             let ruleDataBindingKey = null;
             if (layoutComponent.dataModelBindings) {
               ruleDataBindingKey = Object.keys(
-                layoutComponent.dataModelBindings
+                layoutComponent.dataModelBindings,
               ).find((dataBindingKey) => {
                 return (
                   layoutComponent.dataModelBindings[dataBindingKey] ===
@@ -106,7 +106,7 @@ export function getRuleModelFields() {
     const innerFuncObj = {
       name: functionName,
       inputs: (window as any).ruleHandlerHelper[functionName](),
-      type: "rule",
+      type: 'rule',
     };
     ruleModelFields.push(innerFuncObj);
   });
@@ -116,10 +116,10 @@ export function getRuleModelFields() {
       const innerFuncObj = {
         name: functionName,
         inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
-        type: "condition",
+        type: 'condition',
       };
       ruleModelFields.push(innerFuncObj);
-    }
+    },
   );
 
   return ruleModelFields;

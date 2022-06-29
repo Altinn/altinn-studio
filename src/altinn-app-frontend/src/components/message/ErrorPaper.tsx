@@ -1,6 +1,6 @@
-import { Paper, Grid, createTheme, makeStyles } from "@material-ui/core";
-import * as React from "react";
-import { AltinnAppTheme } from "altinn-shared/theme";
+import { Paper, Grid, createTheme, makeStyles } from '@material-ui/core';
+import * as React from 'react';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 export interface IErrorPaperProps {
   message: string;
@@ -9,16 +9,16 @@ export interface IErrorPaperProps {
 const theme = createTheme(AltinnAppTheme);
 
 const gridStyle = {
-  paddingRight: "6px",
+  paddingRight: '6px',
 };
 
 const useStyles = makeStyles({
   paper: {
     backgroundColor: theme.altinnPalette.primary.redLight,
-    maxWidth: "330px",
+    maxWidth: '330px',
   },
   grid: {
-    padding: "12px",
+    padding: '12px',
   },
 });
 
@@ -31,9 +31,9 @@ export default function ErrorPaper(props: IErrorPaperProps) {
     >
       <Grid
         container={true}
-        alignItems="center"
-        direction="row"
-        justifyContent="flex-start"
+        alignItems='center'
+        direction='row'
+        justifyContent='flex-start'
         className={classes.grid}
         spacing={2}
       >
@@ -42,7 +42,7 @@ export default function ErrorPaper(props: IErrorPaperProps) {
           xs={2}
           style={gridStyle}
         >
-          <i className="ai ai-circle-exclamation" />
+          <i className='ai ai-circle-exclamation' />
         </Grid>
         <Grid
           item={true}

@@ -129,7 +129,10 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='h2'>{props.title}</Typography>
         <AltinnSummaryTable summaryDataObject={props.instanceMetaDataObject} />
         {props.subtitle && (
-          <Typography variant='body1' className={props.classes.paddingTop24}>
+          <Typography
+            variant='body1'
+            className={props.classes.paddingTop24}
+          >
             <a href={props.subtitleurl}>{props.subtitle}</a>
           </Typography>
         )}

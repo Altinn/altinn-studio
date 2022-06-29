@@ -1,15 +1,15 @@
-import type { SagaIterator } from "redux-saga";
-import { call, put as sagaPut, select, takeLatest } from "redux-saga/effects";
-import { put } from "altinn-shared/utils";
-import type { IProcess } from "altinn-shared/types";
-import type { IRuntimeState } from "../../../../types";
-import { ProcessTaskType } from "../../../../types";
-import { getCompleteProcessUrl } from "../../../../utils/appUrlHelper";
-import * as ProcessStateActionTypes from "../processActionTypes";
-import ProcessDispatcher from "../processDispatcher";
-import InstanceDataActions from "../../instanceData/instanceDataActions";
-import type { IInstanceDataState } from "../../instanceData/instanceDataReducers";
-import { startDataTaskIsLoading } from "../../isLoading/isLoadingSlice";
+import type { SagaIterator } from 'redux-saga';
+import { call, put as sagaPut, select, takeLatest } from 'redux-saga/effects';
+import { put } from 'altinn-shared/utils';
+import type { IProcess } from 'altinn-shared/types';
+import type { IRuntimeState } from '../../../../types';
+import { ProcessTaskType } from '../../../../types';
+import { getCompleteProcessUrl } from '../../../../utils/appUrlHelper';
+import * as ProcessStateActionTypes from '../processActionTypes';
+import ProcessDispatcher from '../processDispatcher';
+import InstanceDataActions from '../../instanceData/instanceDataActions';
+import type { IInstanceDataState } from '../../instanceData/instanceDataReducers';
+import { startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
@@ -17,19 +17,19 @@ export function* completeProcessSaga(): SagaIterator {
   try {
     const result: IProcess = yield call(put, getCompleteProcessUrl(), null);
     if (!result) {
-      throw new Error("Error: no process returned.");
+      throw new Error('Error: no process returned.');
     }
     if (result.ended) {
       yield call(
         ProcessDispatcher.completeProcessFulfilled,
         ProcessTaskType.Archived,
-        null
+        null,
       );
     } else {
       yield call(
         ProcessDispatcher.completeProcessFulfilled,
         result.currentTask.altinnTaskType as ProcessTaskType,
-        result.currentTask.elementId
+        result.currentTask.elementId,
       );
       if (
         (result.currentTask.altinnTaskType as ProcessTaskType) ===
@@ -37,13 +37,13 @@ export function* completeProcessSaga(): SagaIterator {
       ) {
         yield sagaPut(startDataTaskIsLoading());
         const instanceData: IInstanceDataState = yield select(
-          instanceDataSelector
+          instanceDataSelector,
         );
-        const [instanceOwner, instanceId] = instanceData.instance.id.split("/");
+        const [instanceOwner, instanceId] = instanceData.instance.id.split('/');
         yield call(
           InstanceDataActions.getInstanceData,
           instanceOwner,
-          instanceId
+          instanceId,
         );
       }
     }
@@ -55,6 +55,6 @@ export function* completeProcessSaga(): SagaIterator {
 export function* watchCompleteProcessSaga(): SagaIterator {
   yield takeLatest(
     ProcessStateActionTypes.COMPLETE_PROCESS,
-    completeProcessSaga
+    completeProcessSaga,
   );
 }

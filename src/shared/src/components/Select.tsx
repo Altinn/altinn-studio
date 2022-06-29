@@ -60,7 +60,10 @@ const Select = ({
     >
       <option style={optionStyle} />
       {options.map((option, index) => (
-        <option key={index} value={option.value}>
+        <option
+          key={index}
+          value={option.value}
+        >
           {option.label}
         </option>
       ))}

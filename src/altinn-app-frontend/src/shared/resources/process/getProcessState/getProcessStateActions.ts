@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { ProcessTaskType } from "../../../../types";
-import * as ActionTypes from "../processActionTypes";
+import type { Action } from 'redux';
+import type { ProcessTaskType } from '../../../../types';
+import * as ActionTypes from '../processActionTypes';
 
 export interface IGetProcessStateFulfilled extends Action {
   processStep: ProcessTaskType;
@@ -16,7 +16,7 @@ export function getProcessStateAction(): Action {
 }
 export function getProcessStateFulfilledAction(
   processStep: ProcessTaskType,
-  taskId: string
+  taskId: string,
 ): IGetProcessStateFulfilled {
   return {
     type: ActionTypes.GET_PROCESS_STATE_FULFILLED,
@@ -25,7 +25,7 @@ export function getProcessStateFulfilledAction(
   };
 }
 export function getProcessStateRejectedAction(
-  error: Error
+  error: Error,
 ): IGetProcessStateRejected {
   return {
     type: ActionTypes.GET_PROCESS_STATE_REJECTED,

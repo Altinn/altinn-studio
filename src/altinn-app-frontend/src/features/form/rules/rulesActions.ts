@@ -1,6 +1,6 @@
-import { bindActionCreators } from "redux";
-import { store } from "src/store";
-import * as FetchRuleModel from "./fetch/fetchRulesActions";
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
+import * as FetchRuleModel from './fetch/fetchRulesActions';
 
 export type IFormRulesActions = typeof actions;
 

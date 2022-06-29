@@ -1,6 +1,6 @@
-import type { ITextResource } from "altinn-shared/types";
-import type { IInstantiationButtonProps } from "src/components/base/InstantiationButtonComponent";
-import type { IAttachmentState } from "src/shared/resources/attachments/attachmentReducer";
+import type { ITextResource } from 'altinn-shared/types';
+import type { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
+import type { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
 import type {
   IRepeatingGroups,
   ILayoutNavigation,
@@ -10,14 +10,14 @@ import type {
   IMapping,
   IFormFileUploaderComponent,
   IFormFileUploaderWithTagComponent,
-} from "src/types";
+} from 'src/types';
 import type {
   IGroupEditProperties,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
-} from "../features/form/layout";
-import type { IDatePickerProps } from "src/components/base/DatepickerComponent";
+} from '../features/form/layout';
+import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
 
 interface SplitKey {
   baseComponentId: string;
@@ -37,7 +37,7 @@ interface SplitKey {
  *   }
  */
 export function splitDashedKey(componentId: string): SplitKey {
-  const parts = componentId.split("-");
+  const parts = componentId.split('-');
 
   const depth: number[] = [];
   while (parts.length) {
@@ -50,11 +50,11 @@ export function splitDashedKey(componentId: string): SplitKey {
       depth.push(parseInt(toConsider, 10));
     } else {
       depth.reverse();
-      const stringDepth = depth.join("-").toString();
+      const stringDepth = depth.join('-').toString();
       return {
-        baseComponentId: [...parts, toConsider].join("-"),
+        baseComponentId: [...parts, toConsider].join('-'),
         stringDepth: stringDepth,
-        stringDepthWithLeadingDash: stringDepth ? `-${stringDepth}` : "",
+        stringDepthWithLeadingDash: stringDepth ? `-${stringDepth}` : '',
         depth: depth,
       };
     }
@@ -62,8 +62,8 @@ export function splitDashedKey(componentId: string): SplitKey {
 
   return {
     baseComponentId: componentId,
-    stringDepth: "",
-    stringDepthWithLeadingDash: "",
+    stringDepth: '',
+    stringDepthWithLeadingDash: '',
     depth: [],
   };
 }
@@ -73,7 +73,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const regex = new RegExp(/\[([0-9]+)\]/);
 
   const groups = formLayout.filter(
-    (layoutElement) => layoutElement.type.toLowerCase() === "group"
+    (layoutElement) => layoutElement.type.toLowerCase() === 'group',
   );
 
   const childGroups: string[] = [];
@@ -81,9 +81,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
     group.children?.forEach((childId: string) => {
       formLayout
         .filter((element) => {
-          if (element.type.toLowerCase() !== "group") return false;
+          if (element.type.toLowerCase() !== 'group') return false;
           if (group.edit?.multiPage) {
-            return childId.split(":")[1] === element.id;
+            return childId.split(':')[1] === element.id;
           }
           return element.id === childId;
         })
@@ -93,7 +93,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
 
   // filter away groups that should be rendered as child groups
   const filteredGroups = formLayout.filter(
-    (group) => childGroups.indexOf(group.id) === -1
+    (group) => childGroups.indexOf(group.id) === -1,
   );
 
   filteredGroups.forEach((groupElement: ILayoutGroup) => {
@@ -115,16 +115,16 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
           groupElement.children?.forEach((id) => {
             if (
               groupElement.edit?.multiPage &&
-              childGroups.includes(id.split(":")[1])
+              childGroups.includes(id.split(':')[1])
             ) {
-              groupElementChildGroups.push(id.split(":")[1]);
+              groupElementChildGroups.push(id.split(':')[1]);
             } else if (childGroups.includes(id)) {
               groupElementChildGroups.push(id);
             }
           });
           groupElementChildGroups.forEach((childGroupId: string) => {
             const childGroup = groups.find(
-              (element) => element.id === childGroupId
+              (element) => element.id === childGroupId,
             );
             [...Array(index + 1)].forEach(
               (_x: any, childGroupIndex: number) => {
@@ -134,12 +134,12 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
                     formData,
                     childGroup.dataModelBindings?.group,
                     groupElement.dataModelBindings.group,
-                    childGroupIndex
+                    childGroupIndex,
                   ),
                   baseGroupId: childGroup.id,
                   editIndex: -1,
                 };
-              }
+              },
             );
           });
         }
@@ -157,15 +157,15 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
 
 export function mapFileUploadersWithTag(
   formLayout: ILayout,
-  attachmentState: IAttachmentState
+  attachmentState: IAttachmentState,
 ) {
   const fileUploaders: IFileUploadersWithTag = {};
   for (const componentId of Object.keys(attachmentState.attachments)) {
     const baseComponentId = splitDashedKey(componentId).baseComponentId;
     const component = formLayout.find(
-      (layoutElement) => layoutElement.id === baseComponentId
+      (layoutElement) => layoutElement.id === baseComponentId,
     );
-    if (!component || component.type.toLowerCase() !== "fileuploadwithtag") {
+    if (!component || component.type.toLowerCase() !== 'fileuploadwithtag') {
       continue;
     }
 
@@ -186,12 +186,12 @@ function getIndexForNestedRepeatingGroup(
   formData: any,
   groupBinding: string,
   parentGroupBinding: string,
-  parentIndex: number
+  parentIndex: number,
 ): number {
   const regex = new RegExp(/^.+?\[(\d+)].+?\[(\d+)]/);
   const indexedGroupBinding = groupBinding.replace(
     parentGroupBinding,
-    `${parentGroupBinding}[${parentIndex}]`
+    `${parentGroupBinding}[${parentIndex}]`,
   );
   const groupFormData = Object.keys(formData).filter((key) => {
     return key.startsWith(indexedGroupBinding);
@@ -210,7 +210,7 @@ export function getNextView(
   navOptions: ILayoutNavigation,
   layoutOrder: string[],
   currentView: string,
-  goBack?: boolean
+  goBack?: boolean,
 ) {
   let result;
   if (navOptions) {
@@ -236,13 +236,13 @@ export function removeRepeatingGroupFromUIConfig(
   repeatingGroups: IRepeatingGroups,
   repeatingGroupId: string,
   index: number,
-  shiftData?: boolean
+  shiftData?: boolean,
 ): IRepeatingGroups {
   const newRepGroups = { ...repeatingGroups };
   delete newRepGroups[`${repeatingGroupId}-${index}`];
   if (shiftData) {
     const groupKeys = Object.keys(repeatingGroups).filter((key: string) =>
-      key.startsWith(repeatingGroupId)
+      key.startsWith(repeatingGroupId),
     );
 
     groupKeys.forEach((shiftFrom: string, keyIndex: number) => {
@@ -258,10 +258,10 @@ export function removeRepeatingGroupFromUIConfig(
 
 export const getRepeatingGroupStartStopIndex = (
   repeatingGroupIndex: number,
-  edit: IGroupEditProperties | undefined
+  edit: IGroupEditProperties | undefined,
 ) => {
-  const start = edit?.filter?.find(({ key }) => key === "start")?.value;
-  const stop = edit?.filter?.find(({ key }) => key === "stop")?.value;
+  const start = edit?.filter?.find(({ key }) => key === 'start')?.value;
+  const stop = edit?.filter?.find(({ key }) => key === 'stop')?.value;
   const startIndex = start ? parseInt(start) : 0;
   const stopIndex = stop ? parseInt(stop) - 1 : repeatingGroupIndex;
   return { startIndex, stopIndex };
@@ -272,18 +272,18 @@ export function createRepeatingGroupComponents(
   renderComponents: (ILayoutComponent | ILayoutGroup)[],
   repeatingGroupIndex: number,
   textResources: ITextResource[],
-  hiddenFields?: string[]
+  hiddenFields?: string[],
 ): Array<Array<ILayoutComponent | ILayoutGroup>> {
   const componentArray: Array<Array<ILayoutComponent | ILayoutGroup>> = [];
   const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
     repeatingGroupIndex,
-    container.edit
+    container.edit,
   );
   for (let i = startIndex; i <= stopIndex; i++) {
     const childComponents = renderComponents.map(
       (component: ILayoutComponent | ILayoutGroup) => {
         const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(
-          JSON.stringify(component)
+          JSON.stringify(component),
         );
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
         const groupDataModelBinding = container.dataModelBindings.group;
@@ -291,23 +291,23 @@ export function createRepeatingGroupComponents(
           // eslint-disable-next-line no-param-reassign
           dataModelBindings[key] = dataModelBindings[key].replace(
             groupDataModelBinding,
-            `${groupDataModelBinding}[${i}]`
+            `${groupDataModelBinding}[${i}]`,
           );
         });
         const deepCopyId = `${componentDeepCopy.id}-${i}`;
         setVariableTextKeysForRepeatingGroupComponent(
           textResources,
           componentDeepCopy.textResourceBindings,
-          i
+          i,
         );
         const hidden = !!hiddenFields?.find(
-          (field) => field === `${deepCopyId}[${i}]`
+          (field) => field === `${deepCopyId}[${i}]`,
         );
         let mapping;
-        if (componentDeepCopy.type === "InstantiationButton") {
+        if (componentDeepCopy.type === 'InstantiationButton') {
           mapping = setMappingForRepeatingGroupComponent(
             (componentDeepCopy as IInstantiationButtonProps).mapping,
-            i
+            i,
           );
         }
         return {
@@ -320,7 +320,7 @@ export function createRepeatingGroupComponents(
           hidden,
           mapping,
         };
-      }
+      },
     );
     componentArray.push(childComponents);
   }
@@ -329,18 +329,18 @@ export function createRepeatingGroupComponents(
 
 export function setMappingForRepeatingGroupComponent(
   mapping: IMapping,
-  index: number
+  index: number,
 ) {
   if (mapping) {
     const indexedMapping: IMapping = {
       ...mapping,
     };
     const mappingsWithRepeatingGroupSources = Object.keys(mapping).filter(
-      (source) => source.includes("[{0}]")
+      (source) => source.includes('[{0}]'),
     );
     mappingsWithRepeatingGroupSources.forEach((sourceMapping) => {
       delete indexedMapping[sourceMapping];
-      const newSource = sourceMapping.replace("[{0}]", `[${index}]`);
+      const newSource = sourceMapping.replace('[{0}]', `[${index}]`);
       indexedMapping[newSource] = mapping[sourceMapping];
       delete indexedMapping[sourceMapping];
     });
@@ -353,18 +353,18 @@ export function setMappingForRepeatingGroupComponent(
 export function setVariableTextKeysForRepeatingGroupComponent(
   textResources: ITextResource[],
   textResourceBindings: ITextResourceBindings,
-  index: number
+  index: number,
 ) {
   if (textResources && textResourceBindings) {
     const bindingsWithVariablesForRepeatingGroups = Object.keys(
-      textResourceBindings
+      textResourceBindings,
     ).filter((key) => {
       const textKey = textResourceBindings[key];
       const textResource = textResources.find((text) => text.id === textKey);
       return (
         textResource &&
         textResource.variables &&
-        textResource.variables.find((v) => v.key.indexOf("[{0}]") > -1)
+        textResource.variables.find((v) => v.key.indexOf('[{0}]') > -1)
       );
     });
 
@@ -392,10 +392,10 @@ export function findChildren(
   options?: {
     matching?: (component: ILayoutComponent) => boolean;
     rootGroupId?: string;
-  }
+  },
 ): ILayoutComponent[] {
   const out: ILayoutComponent[] = [];
-  const root: string = options?.rootGroupId || "";
+  const root: string = options?.rootGroupId || '';
   const toConsider = new Set<string>();
   const otherGroupComponents: { [groupId: string]: Set<string> } = {};
 
@@ -409,7 +409,7 @@ export function findChildren(
           if (item.id === root) {
             toConsider.add(cleanId);
           } else {
-            if (typeof otherGroupComponents[item.id] === "undefined") {
+            if (typeof otherGroupComponents[item.id] === 'undefined') {
               otherGroupComponents[item.id] = new Set();
             }
             otherGroupComponents[item.id].add(cleanId);
@@ -446,25 +446,25 @@ export function findChildren(
  */
 
 export function isGroupComponent(
-  component: ILayoutComponent | ILayoutGroup
+  component: ILayoutComponent | ILayoutGroup,
 ): component is ILayoutGroup {
-  return component.type.toLowerCase() === "group";
+  return component.type.toLowerCase() === 'group';
 }
 
 export function isFileUploadComponent(
-  component: ILayoutComponent | ILayoutGroup
+  component: ILayoutComponent | ILayoutGroup,
 ): component is IFormFileUploaderComponent & ILayoutComponent {
-  return component.type.toLowerCase() === "fileupload";
+  return component.type.toLowerCase() === 'fileupload';
 }
 
 export function isFileUploadWithTagComponent(
-  component: ILayoutComponent | ILayoutGroup
+  component: ILayoutComponent | ILayoutGroup,
 ): component is IFormFileUploaderWithTagComponent & ILayoutComponent {
-  return component.type.toLowerCase() === "fileuploadwithtag";
+  return component.type.toLowerCase() === 'fileuploadwithtag';
 }
 
 export function isDatePickerComponent(
-  component: ILayoutComponent | ILayoutGroup
+  component: ILayoutComponent | ILayoutGroup,
 ): component is IDatePickerProps & ILayoutComponent {
-  return component.type.toLowerCase() === "datepicker";
+  return component.type.toLowerCase() === 'datepicker';
 }

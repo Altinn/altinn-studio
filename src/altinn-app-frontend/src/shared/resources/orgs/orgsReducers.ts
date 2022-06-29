@@ -1,11 +1,11 @@
-import type { IAltinnOrgs } from "altinn-shared/types";
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
+import type { IAltinnOrgs } from 'altinn-shared/types';
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
 import type {
   IFetchOrgsFulfilled,
   IFetchOrgsRejected,
-} from "./fetch/fetchOrgsActions";
-import * as OrgsActionTypes from "./fetch/fetchOrgsActionTypes";
+} from './fetch/fetchOrgsActions';
+import * as OrgsActionTypes from './fetch/fetchOrgsActionTypes';
 
 export interface IOrgsState {
   allOrgs: IAltinnOrgs;
@@ -19,7 +19,7 @@ const initialState: IOrgsState = {
 
 const orgsReducer: Reducer<IOrgsState> = (
   state: IOrgsState = initialState,
-  action?: Action
+  action?: Action,
 ): IOrgsState => {
   if (!action) {
     return state;

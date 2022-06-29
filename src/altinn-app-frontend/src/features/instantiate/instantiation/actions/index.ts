@@ -1,6 +1,6 @@
-import { bindActionCreators } from "redux";
-import { store } from "src/store";
-import * as InstantiateActions from "./instantiate";
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
+import * as InstantiateActions from './instantiate';
 
 export type IInstantiationActions = typeof actions;
 
@@ -13,6 +13,6 @@ const actions = {
 
 const InstantiationActions: IInstantiationActions = bindActionCreators(
   actions,
-  store.dispatch
+  store.dispatch,
 );
 export default InstantiationActions;

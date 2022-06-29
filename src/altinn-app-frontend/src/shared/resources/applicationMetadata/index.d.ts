@@ -1,4 +1,4 @@
-import type { ITitle, IDataType } from "../../../../../shared/src/types";
+import type { ITitle, IDataType } from '../../../../../shared/src/types';
 
 export interface IApplicationMetadata {
   createdBy: string;
@@ -19,9 +19,9 @@ export interface IOnEntry {
 }
 
 export type ShowTypes =
-  | "new-instance"
-  | "select-instance"
-  | "startpage"
+  | 'new-instance'
+  | 'select-instance'
+  | 'startpage'
   | string;
 
 interface IPartyTypesAllowed {

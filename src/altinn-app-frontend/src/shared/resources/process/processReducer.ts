@@ -1,9 +1,9 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { ProcessTaskType } from "../../../types";
-import type * as CompleteProcessActions from "./completeProcess/completeProcessActions";
-import type * as GetProcessStateActions from "./getProcessState/getProcessStateActions";
-import * as ProcessActionTypes from "./processActionTypes";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { ProcessTaskType } from '../../../types';
+import type * as CompleteProcessActions from './completeProcess/completeProcessActions';
+import type * as GetProcessStateActions from './getProcessState/getProcessStateActions';
+import * as ProcessActionTypes from './processActionTypes';
 
 export interface IProcessState {
   taskType: ProcessTaskType;
@@ -19,7 +19,7 @@ const initialState: IProcessState = {
 
 const processReducer: Reducer<IProcessState> = (
   state: IProcessState = initialState,
-  action?: Action
+  action?: Action,
 ): IProcessState => {
   if (!action) {
     return state;

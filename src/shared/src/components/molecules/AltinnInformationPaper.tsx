@@ -25,7 +25,10 @@ export default function AltinnInformationPaper({
 }: IAltinnInformationPaperProps) {
   const classes = useStyles();
   return (
-    <Paper elevation={0} className={classes.paper}>
+    <Paper
+      elevation={0}
+      className={classes.paper}
+    >
       {children}
     </Paper>
   );

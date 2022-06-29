@@ -1,5 +1,5 @@
-import { IconButton, makeStyles, Typography } from "@material-ui/core";
-import * as React from "react";
+import { IconButton, makeStyles, Typography } from '@material-ui/core';
+import * as React from 'react';
 
 export interface IEditButtonProps {
   onClick: () => void;
@@ -8,16 +8,16 @@ export interface IEditButtonProps {
 
 const useStyles = makeStyles({
   editButton: {
-    color: "black",
+    color: 'black',
     padding: 0,
   },
   editIcon: {
-    paddingLeft: "6px",
-    fontSize: "1.8rem !important",
+    paddingLeft: '6px',
+    fontSize: '1.8rem !important',
   },
   change: {
-    fontSize: "1.8rem",
-    cursor: "pointer",
+    fontSize: '1.8rem',
+    cursor: 'pointer',
   },
 });
 
@@ -30,7 +30,7 @@ export function EditButton(props: IEditButtonProps) {
       className={classes.editButton}
     >
       <Typography
-        variant="body1"
+        variant='body1'
         className={classes.change}
       >
         <span>{props.editText}</span>

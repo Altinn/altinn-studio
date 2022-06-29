@@ -1,11 +1,11 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { IProfile } from "altinn-shared/types";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { IProfile } from 'altinn-shared/types';
 import type {
   IFetchProfileFulfilled,
   IFetchProfileRejected,
-} from "./fetch/fetchProfileActions";
-import * as ActionTypes from "./fetch/fetchProfileActionTypes";
+} from './fetch/fetchProfileActions';
+import * as ActionTypes from './fetch/fetchProfileActionTypes';
 
 export interface IProfileState {
   profile: IProfile;
@@ -15,7 +15,7 @@ export interface IProfileState {
 const initialState: IProfileState = {
   profile: {
     profileSettingPreference: {
-      language: "nb",
+      language: 'nb',
     },
   } as IProfile,
   error: null,
@@ -23,7 +23,7 @@ const initialState: IProfileState = {
 
 const ProfileReducer: Reducer<IProfileState> = (
   state: IProfileState = initialState,
-  action?: Action
+  action?: Action,
 ): IProfileState => {
   if (!action) {
     return state;

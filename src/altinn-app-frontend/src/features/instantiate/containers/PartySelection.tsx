@@ -1,33 +1,33 @@
-import type { WithStyles } from "@material-ui/core";
-import { createStyles, Grid, Typography, withStyles } from "@material-ui/core";
-import AddIcon from "@material-ui/icons/Add";
-import * as React from "react";
-import type { RouteComponentProps } from "react-router";
-import { withRouter } from "react-router";
-import { AltinnCheckBox } from "altinn-shared/components";
-import { AltinnAppTheme } from "altinn-shared/theme";
-import type { IParty } from "altinn-shared/types";
-import AltinnParty from "../../../shared/components/altinnParty";
-import AltinnPartySearch from "../../../shared/components/altinnPartySearch";
-import PartyActions from "../../../shared/resources/party/partyActions";
-import { changeBodyBackground } from "../../../utils/bodyStyling";
-import { HttpStatusCodes } from "../../../utils/networking";
-import { capitalizeName } from "../../../utils/stringHelper";
-import InstantiationContainer from "./InstantiationContainer";
-import NoValidPartiesError from "./NoValidPartiesError";
-import InstantiationActions from "../instantiation/actions/index";
-import { useAppSelector } from "src/common/hooks";
-import { getLanguageFromKey } from "altinn-shared/utils";
+import type { WithStyles } from '@material-ui/core';
+import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
+import * as React from 'react';
+import type { RouteComponentProps } from 'react-router';
+import { withRouter } from 'react-router';
+import { AltinnCheckBox } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import type { IParty } from 'altinn-shared/types';
+import AltinnParty from '../../../shared/components/altinnParty';
+import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
+import PartyActions from '../../../shared/resources/party/partyActions';
+import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
+import { capitalizeName } from '../../../utils/stringHelper';
+import InstantiationContainer from './InstantiationContainer';
+import NoValidPartiesError from './NoValidPartiesError';
+import InstantiationActions from '../instantiation/actions/index';
+import { useAppSelector } from 'src/common/hooks';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({
   partySelectionTitle: {
-    fontSize: "3.5rem",
+    fontSize: '3.5rem',
     fontWeight: 200,
     paddingBottom: 18,
     padding: 12,
   },
   partySelectionError: {
-    fontSize: "1.75rem",
+    fontSize: '1.75rem',
     fontWeight: 300,
     backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
     padding: 12,
@@ -38,7 +38,7 @@ const styles = createStyles({
     paddingLeft: 12,
   },
   partySelectionSubTitle: {
-    fontSize: "1.75rem",
+    fontSize: '1.75rem',
     fontWeight: 600,
     paddingTop: 24,
     paddingBottom: 18,
@@ -50,13 +50,13 @@ const styles = createStyles({
     border: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blue}`,
   },
   loadMoreButtonIcon: {
-    marginLeft: "1.5rem",
+    marginLeft: '1.5rem',
   },
   loadMoreButtonText: {
-    display: "flex",
-    alignItems: "center",
-    fontSize: "1.75rem",
-    marginLeft: "1.2rem",
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1.75rem',
+    marginLeft: '1.2rem',
     fontWeight: 500,
   },
   partySelectionCheckbox: {
@@ -64,7 +64,7 @@ const styles = createStyles({
     padding: 12,
   },
   checkboxLabes: {
-    paddingTop: "1.2rem",
+    paddingTop: '1.2rem',
   },
 });
 
@@ -83,11 +83,11 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
   const appMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata
+    (state) => state.applicationMetadata.applicationMetadata,
   );
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
 
-  const [filterString, setFilterString] = React.useState("");
+  const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
   const [showSubUnits, setShowSubUnits] = React.useState(true);
   const [showDeleted, setShowDeleted] = React.useState(false);
@@ -133,13 +133,13 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                   );
                 })()
               : null
-            : null
+            : null,
         )}
         {numberOfPartiesRendered === numberOfPartiesShown &&
         numberOfPartiesRendered < parties.length ? (
           <Grid
             container={true}
-            direction="row"
+            direction='row'
           >
             {renderShowMoreButton()}
           </Grid>
@@ -150,7 +150,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
 
   function getRepresentedPartyName(): string {
     if (!selectedParty || selectedParty.name === null) {
-      return "";
+      return '';
     }
     return capitalizeName(selectedParty.name);
   }
@@ -169,20 +169,20 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
             return (
               <Typography
                 className={classes.partySelectionError}
-                id="party-selection-error"
+                id='party-selection-error'
               >
                 {`
                   ${getLanguageFromKey(
-                    "party_selection.invalid_selection_first_part",
-                    language
+                    'party_selection.invalid_selection_first_part',
+                    language,
                   )} ${getRepresentedPartyName()}.
                   ${getLanguageFromKey(
-                    "party_selection.invalid_selection_second_part",
-                    language
+                    'party_selection.invalid_selection_second_part',
+                    language,
                   )} ${templatePartyTypesString()}.
                   ${getLanguageFromKey(
-                    "party_selection.invalid_selection_third_part",
-                    language
+                    'party_selection.invalid_selection_third_part',
+                    language,
                   )}
                 `}
               </Typography>
@@ -194,7 +194,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.info("Could not parse number from params");
+        console.info('Could not parse number from params');
       }
     }
     return null;
@@ -214,29 +214,32 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     const { partyTypesAllowed } = appMetadata;
     const partyTypes: string[] = [];
 
-    let returnString = "";
+    let returnString = '';
 
     if (partyTypesAllowed.person) {
       partyTypes.push(
-        getLanguageFromKey("party_selection.unit_type_private_person", language)
+        getLanguageFromKey(
+          'party_selection.unit_type_private_person',
+          language,
+        ),
       );
     }
     if (partyTypesAllowed.organisation) {
       partyTypes.push(
-        getLanguageFromKey("party_selection.unit_type_company", language)
+        getLanguageFromKey('party_selection.unit_type_company', language),
       );
     }
     if (partyTypesAllowed.subUnit) {
       partyTypes.push(
-        getLanguageFromKey("party_selection.unit_type_subunit", language)
+        getLanguageFromKey('party_selection.unit_type_subunit', language),
       );
     }
     if (partyTypesAllowed.bankruptcyEstate) {
       partyTypes.push(
         getLanguageFromKey(
-          "party_selection.unit_type_bankruptcy_state",
-          language
-        )
+          'party_selection.unit_type_bankruptcy_state',
+          language,
+        ),
       );
     }
 
@@ -249,8 +252,8 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         returnString += partyTypes[i];
       } else if (i === partyTypes.length - 1) {
         returnString += ` ${getLanguageFromKey(
-          "party_selection.binding_word",
-          language
+          'party_selection.binding_word',
+          language,
         )} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
@@ -279,11 +282,11 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       >
         <Grid
           container={true}
-          direction="row"
+          direction='row'
         >
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
-            {getLanguageFromKey("party_selection.load_more", language)}
+            {getLanguageFromKey('party_selection.load_more', language)}
           </Typography>
         </Grid>
       </button>
@@ -303,46 +306,46 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   }
 
   return (
-    <InstantiationContainer type="partyChoice">
+    <InstantiationContainer type='partyChoice'>
       <Grid
         container={true}
-        direction="row"
+        direction='row'
         style={{
-          display: "flex",
-          flexDirection: "row",
+          display: 'flex',
+          flexDirection: 'row',
         }}
       >
         <Typography className={classes.partySelectionTitle}>
-          {getLanguageFromKey("party_selection.header", language)}
+          {getLanguageFromKey('party_selection.header', language)}
         </Typography>
         {templateErrorMessage()}
       </Grid>
       <Grid
         container={true}
-        direction="column"
+        direction='column'
         className={classes.partySearchFieldContainer}
       >
         <AltinnPartySearch onSearchUpdated={onFilterStringChange} />
       </Grid>
       <Grid
         container={true}
-        direction="column"
+        direction='column'
       >
         <Grid
           container={true}
-          justifyContent="space-between"
-          direction="row"
+          justifyContent='space-between'
+          direction='row'
         >
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
-              {getLanguageFromKey("party_selection.subheader", language)}
+              {getLanguageFromKey('party_selection.subheader', language)}
             </Typography>
           </Grid>
 
           <Grid item={true}>
             <Grid
               container={true}
-              direction="row"
+              direction='row'
             >
               <Grid
                 item={true}
@@ -350,7 +353,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
               >
                 <Grid
                   container={true}
-                  direction="row"
+                  direction='row'
                 >
                   <AltinnCheckBox
                     checked={showDeleted}
@@ -358,8 +361,8 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                   />
                   <Typography className={classes.checkboxLabes}>
                     {getLanguageFromKey(
-                      "party_selection.show_deleted",
-                      language
+                      'party_selection.show_deleted',
+                      language,
                     )}
                   </Typography>
                 </Grid>
@@ -370,7 +373,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
               >
                 <Grid
                   container={true}
-                  direction="row"
+                  direction='row'
                 >
                   <AltinnCheckBox
                     checked={showSubUnits}
@@ -378,8 +381,8 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
                   />
                   <Typography className={classes.checkboxLabes}>
                     {getLanguageFromKey(
-                      "party_selection.show_sub_unit",
-                      language
+                      'party_selection.show_sub_unit',
+                      language,
                     )}
                   </Typography>
                 </Grid>

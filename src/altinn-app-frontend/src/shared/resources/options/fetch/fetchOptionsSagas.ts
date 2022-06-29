@@ -1,28 +1,28 @@
-import type { SagaIterator } from "redux-saga";
-import { fork, call, select, takeLatest, takeEvery } from "redux-saga/effects";
+import type { SagaIterator } from 'redux-saga';
+import { fork, call, select, takeLatest, takeEvery } from 'redux-saga/effects';
 import type {
   IRuntimeState,
   IOption,
   IFetchSpecificOptionSaga,
   IOptions,
   IOptionsMetaData,
-} from "src/types";
+} from 'src/types';
 import type {
   ILayouts,
   ISelectionComponentProps,
-} from "src/features/form/layout";
-import { get } from "altinn-shared/utils";
-import { getOptionsUrl } from "src/utils/appUrlHelper";
-import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
-import * as fetchOptionActionTypes from "./fetchOptionsActionTypes";
-import OptionsActions from "../optionsActions";
-import FormDataActions from "src/features/form/data/formDataActions";
-import type { IUpdateFormDataFulfilled } from "src/features/form/data/formDataTypes";
-import type { PayloadAction } from "@reduxjs/toolkit";
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import { getOptionLookupKey } from "src/utils/options";
-import { appLanguageStateSelector } from "src/selectors/appLanguageStateSelector";
-import { LanguageActions } from "src/shared/resources/language/languageSlice";
+} from 'src/features/form/layout';
+import { get } from 'altinn-shared/utils';
+import { getOptionsUrl } from 'src/utils/appUrlHelper';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
+import OptionsActions from '../optionsActions';
+import FormDataActions from 'src/features/form/data/formDataActions';
+import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import { getOptionLookupKey } from 'src/utils/options';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;
@@ -109,14 +109,14 @@ export function* watchCheckIfOptionsShouldRefetchSaga(): SagaIterator {
       FormDataActions.updateFormDataFulfilled,
       FormDataActions.updateFormDataSkipAutosave,
     ],
-    checkIfOptionsShouldRefetchSaga
+    checkIfOptionsShouldRefetchSaga,
   );
 }
 
 export function* watchInitialFetchOptionSaga(): SagaIterator {
   yield takeLatest(
     FormLayoutActions.fetchLayoutFulfilled,
-    OptionsActions.fetchOptions
+    OptionsActions.fetchOptions,
   );
 }
 

@@ -31,7 +31,10 @@ export function ReceiptComponentSimple(props: IReceiptComponentProps) {
       <MuiThemeProvider theme={theme}>
         <Typography variant='h2'>{props.title}</Typography>
 
-        <Typography variant='body1' className={props.classes.paddingTop24}>
+        <Typography
+          variant='body1'
+          className={props.classes.paddingTop24}
+        >
           {props.body}
         </Typography>
       </MuiThemeProvider>

@@ -1,4 +1,4 @@
-const moduleName = "FILE_UPLOAD";
+const moduleName = 'FILE_UPLOAD';
 
 export const UPLOAD_ATTACHMENT = `${moduleName}.UPLOAD_ATTACHMENT`;
 export const UPLOAD_ATTACHMENT_FULFILLED = `${moduleName}.UPLOAD_ATTACHMENT_FULFILLED`;

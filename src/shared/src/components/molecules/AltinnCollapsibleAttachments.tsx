@@ -53,7 +53,10 @@ export function AltinnCollapsibleAttachments(
   return (
     <>
       {props.collapsible ? (
-        <List component='nav' id='attachment-collapsible-list'>
+        <List
+          component='nav'
+          id='attachment-collapsible-list'
+        >
           <ListItem
             button={true}
             onClick={handleOpenClose}
@@ -81,7 +84,11 @@ export function AltinnCollapsibleAttachments(
               }}
             />
           </ListItem>
-          <Collapse in={open} timeout='auto' unmountOnExit={true}>
+          <Collapse
+            in={open}
+            timeout='auto'
+            unmountOnExit={true}
+          >
             <AltinnAttachmentComponent
               attachments={props.attachments}
               nested={true}

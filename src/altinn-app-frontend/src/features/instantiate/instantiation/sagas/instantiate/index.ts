@@ -1,18 +1,18 @@
-import type { SagaIterator } from "redux-saga";
-import { call, put, select, takeLatest } from "redux-saga/effects";
-import type { IParty } from "altinn-shared/types";
-import type { AxiosResponse } from "axios";
-import InstanceDataActions from "../../../../../shared/resources/instanceData/instanceDataActions";
-import type { IRuntimeState } from "../../../../../types";
-import { post, putWithoutConfig } from "../../../../../utils/networking";
+import type { SagaIterator } from 'redux-saga';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
+import type { IParty } from 'altinn-shared/types';
+import type { AxiosResponse } from 'axios';
+import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
+import type { IRuntimeState } from '../../../../../types';
+import { post, putWithoutConfig } from '../../../../../utils/networking';
 import {
   getCreateInstancesUrl,
   redirectToUpgrade,
   invalidateCookieUrl,
-} from "../../../../../utils/appUrlHelper";
-import InstantiationActions from "../../actions";
-import * as InstantiationActionTypes from "../../actions/types";
-import type { IInstantiationState } from "../../reducer";
+} from '../../../../../utils/appUrlHelper';
+import InstantiationActions from '../../actions';
+import * as InstantiationActionTypes from '../../actions/types';
+import type { IInstantiationState } from '../../reducer';
 
 const InstantiatingSelector = (state: IRuntimeState) => state.instantiation;
 const SelectedPartySelector = (state: IRuntimeState) =>
@@ -21,7 +21,7 @@ const SelectedPartySelector = (state: IRuntimeState) =>
 function* instantiationSaga(): SagaIterator {
   try {
     const instantitationState: IInstantiationState = yield select(
-      InstantiatingSelector
+      InstantiatingSelector,
     );
     if (!instantitationState.instantiating) {
       yield put(InstantiationActions.instantiateToggle());
@@ -33,7 +33,7 @@ function* instantiationSaga(): SagaIterator {
       try {
         instanceResponse = yield call(
           post,
-          getCreateInstancesUrl(selectedParty.partyId)
+          getCreateInstancesUrl(selectedParty.partyId),
         );
       } catch (error) {
         if (
@@ -52,11 +52,11 @@ function* instantiationSaga(): SagaIterator {
 
       yield call(
         InstanceDataActions.getInstanceDataFulfilled,
-        instanceResponse.data
+        instanceResponse.data,
       );
       yield call(
         InstantiationActions.instantiateFulfilled,
-        instanceResponse.data.id
+        instanceResponse.data.id,
       );
     }
   } catch (err) {

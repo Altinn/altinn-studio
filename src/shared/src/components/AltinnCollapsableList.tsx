@@ -23,7 +23,10 @@ const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (
   }
 
   return (
-    <Grid container={true} direction={'column'}>
+    <Grid
+      container={true}
+      direction={'column'}
+    >
       <Grid
         container={true}
         direction={'row'}
@@ -31,7 +34,10 @@ const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (
         onKeyPress={onKeyPress}
         tabIndex={0}
       >
-        <Grid container={true} direction={'row'}>
+        <Grid
+          container={true}
+          direction={'row'}
+        >
           {listHeader}
         </Grid>
       </Grid>

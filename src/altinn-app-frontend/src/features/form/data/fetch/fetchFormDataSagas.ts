@@ -1,38 +1,38 @@
 /* eslint-disable max-len */
-import type { SagaIterator } from "redux-saga";
-import { call, select, takeLatest, all, take, put } from "redux-saga/effects";
-import { get } from "altinn-shared/utils";
-import type { IInstance } from "altinn-shared/types";
+import type { SagaIterator } from 'redux-saga';
+import { call, select, takeLatest, all, take, put } from 'redux-saga/effects';
+import { get } from 'altinn-shared/utils';
+import type { IInstance } from 'altinn-shared/types';
 import {
   getCurrentTaskDataElementId,
   getDataTypeByLayoutSetId,
   isStatelessApp,
-} from "src/utils/appMetadata";
-import { putWithoutConfig } from "src/utils/networking";
-import { convertModelToDataBinding } from "../../../../utils/databindings";
-import FormDataActions from "../formDataActions";
-import type { ILayoutSets, IRuntimeState } from "../../../../types";
-import type { IApplicationMetadata } from "../../../../shared/resources/applicationMetadata";
-import FormRulesActions from "../../rules/rulesActions";
-import FormDynamicsActions from "../../dynamics/formDynamicsActions";
-import { dataTaskQueueError } from "../../../../shared/resources/queue/queueSlice";
-import { GET_INSTANCEDATA_FULFILLED } from "../../../../shared/resources/instanceData/get/getInstanceDataActionTypes";
-import type { IProcessState } from "../../../../shared/resources/process/processReducer";
+} from 'src/utils/appMetadata';
+import { putWithoutConfig } from 'src/utils/networking';
+import { convertModelToDataBinding } from '../../../../utils/databindings';
+import FormDataActions from '../formDataActions';
+import type { ILayoutSets, IRuntimeState } from '../../../../types';
+import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
+import FormRulesActions from '../../rules/rulesActions';
+import FormDynamicsActions from '../../dynamics/formDynamicsActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
+import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
+import type { IProcessState } from '../../../../shared/resources/process/processReducer';
 import {
   getFetchFormDataUrl,
   getStatelessFormDataUrl,
   invalidateCookieUrl,
   redirectToUpgrade,
-} from "../../../../utils/appUrlHelper";
-import { fetchJsonSchemaFulfilled } from "../../datamodel/datamodelSlice";
-import { makeGetAllowAnonymousSelector } from "src/selectors/getAllowAnonymous";
+} from '../../../../utils/appUrlHelper';
+import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import {
   appMetaDataSelector,
   instanceDataSelector,
   processStateSelector,
   currentSelectedPartyIdSelector,
   layoutSetsSelector,
-} from "src/selectors/simpleSelectors";
+} from 'src/selectors/simpleSelectors';
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
@@ -40,16 +40,16 @@ export function* fetchFormDataSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(
-      appMetaDataSelector
+      appMetaDataSelector,
     );
     const instance: IInstance = yield select(instanceDataSelector);
     const currentTaskDataElementId = getCurrentTaskDataElementId(
       applicationMetadata,
-      instance
+      instance,
     );
     const fetchedData: any = yield call(
       get,
-      getFetchFormDataUrl(instance.id, currentTaskDataElementId)
+      getFetchFormDataUrl(instance.id, currentTaskDataElementId),
     );
     const formData = convertModelToDataBinding(fetchedData);
     yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
@@ -66,7 +66,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(
-      appMetaDataSelector
+      appMetaDataSelector,
     );
     let fetchedData: any;
 
@@ -78,11 +78,11 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
       const instance: IInstance = yield select(instanceDataSelector);
       const currentTaskDataId = getCurrentTaskDataElementId(
         applicationMetadata,
-        instance
+        instance,
       );
       fetchedData = yield call(
         get,
-        getFetchFormDataUrl(instance.id, currentTaskDataId)
+        getFetchFormDataUrl(instance.id, currentTaskDataId),
       );
     }
 
@@ -100,7 +100,7 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
   const dataType = getDataTypeByLayoutSetId(
     applicationMetadata.onEntry.show,
-    layoutSets
+    layoutSets,
   );
 
   const allowAnonymous = yield select(allowAnonymousSelector);
@@ -120,7 +120,7 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
     return yield call(
       get,
       getStatelessFormDataUrl(dataType, allowAnonymous),
-      options
+      options,
     );
   } catch (error) {
     if (error?.response?.status === 403 && error.response.data) {
@@ -142,7 +142,7 @@ function* waitFor(selector) {
     return;
   }
   while (true) {
-    yield take("*");
+    yield take('*');
     if (yield select(selector)) {
       return;
     }
@@ -162,7 +162,7 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
         call(
           waitFor,
           (state: IRuntimeState) =>
-            currentSelectedPartyIdSelector(state) !== undefined
+            currentSelectedPartyIdSelector(state) !== undefined,
         );
       }
     } else if (

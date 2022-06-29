@@ -1,24 +1,24 @@
-import { createTheme, MuiThemeProvider } from "@material-ui/core";
-import * as React from "react";
-import { Route, Switch } from "react-router-dom";
-import { AltinnAppTheme } from "altinn-shared/theme";
-import ProcessWrapper from "./shared/containers/ProcessWrapper";
-import UnknownError from "./features/instantiate/containers/UnknownError";
-import PartySelection from "./features/instantiate/containers/PartySelection";
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
+import * as React from 'react';
+import { Route, Switch } from 'react-router-dom';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import ProcessWrapper from './shared/containers/ProcessWrapper';
+import UnknownError from './features/instantiate/containers/UnknownError';
+import PartySelection from './features/instantiate/containers/PartySelection';
 import {
   startInitialAppTaskQueue,
   startInitialUserTaskQueue,
-} from "./shared/resources/queue/queueSlice";
-import { get } from "./utils/networking";
+} from './shared/resources/queue/queueSlice';
+import { get } from './utils/networking';
 import {
   getEnvironmentLoginUrl,
   refreshJwtTokenUrl,
-} from "./utils/appUrlHelper";
-import { makeGetHasErrorsSelector } from "./selectors/getErrors";
-import Entrypoint from "./features/entrypoint/Entrypoint";
-import { useAppDispatch, useAppSelector } from "./common/hooks";
-import { makeGetAllowAnonymousSelector } from "./selectors/getAllowAnonymous";
-import { AppWrapper } from "@altinn/altinn-design-system";
+} from './utils/appUrlHelper';
+import { makeGetHasErrorsSelector } from './selectors/getErrors';
+import Entrypoint from './features/entrypoint/Entrypoint';
+import { useAppDispatch, useAppSelector } from './common/hooks';
+import { makeGetAllowAnonymousSelector } from './selectors/getAllowAnonymous';
+import { AppWrapper } from '@altinn/altinn-design-system';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -30,7 +30,7 @@ export const App = () => {
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useAppSelector(hasErrorSelector);
   const appOidcProvider = useAppSelector(
-    (state) => state.applicationSettings?.applicationSettings?.appOidcProvider
+    (state) => state.applicationSettings?.applicationSettings?.appOidcProvider,
   );
   const lastRefreshTokenTimestamp = React.useRef(0);
 
@@ -41,17 +41,17 @@ export const App = () => {
 
   React.useEffect(() => {
     function setUpEventListeners() {
-      window.addEventListener("mousemove", refreshJwtToken);
-      window.addEventListener("scroll", refreshJwtToken);
-      window.addEventListener("onfocus", refreshJwtToken);
-      window.addEventListener("keydown", refreshJwtToken);
+      window.addEventListener('mousemove', refreshJwtToken);
+      window.addEventListener('scroll', refreshJwtToken);
+      window.addEventListener('onfocus', refreshJwtToken);
+      window.addEventListener('keydown', refreshJwtToken);
     }
 
     function removeEventListeners() {
-      window.removeEventListener("mousemove", refreshJwtToken);
-      window.removeEventListener("scroll", refreshJwtToken);
-      window.removeEventListener("onfocus", refreshJwtToken);
-      window.removeEventListener("keydown", refreshJwtToken);
+      window.removeEventListener('mousemove', refreshJwtToken);
+      window.removeEventListener('scroll', refreshJwtToken);
+      window.removeEventListener('onfocus', refreshJwtToken);
+      window.removeEventListener('keydown', refreshJwtToken);
     }
 
     function refreshJwtToken() {
@@ -105,18 +105,18 @@ export const App = () => {
       <MuiThemeProvider theme={theme}>
         <Switch>
           <Route
-            path="/"
+            path='/'
             exact={true}
           >
             <Entrypoint allowAnonymous={allowAnonymous} />
           </Route>
           <Route
-            path="/partyselection/:errorCode?"
+            path='/partyselection/:errorCode?'
             exact={true}
             component={PartySelection}
           />
           <Route
-            path="/instance/:partyId/:instanceGuid"
+            path='/instance/:partyId/:instanceGuid'
             exact={true}
             component={ProcessWrapper}
           />

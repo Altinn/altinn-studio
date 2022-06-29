@@ -1,9 +1,9 @@
-import * as React from "react";
-import { Typography, createTheme, MuiThemeProvider } from "@material-ui/core";
-import { AltinnAppTheme } from "altinn-shared/theme";
-import ProcessDispatcher from "../../shared/resources/process/processDispatcher";
-import { getTextFromAppOrDefault } from "../../utils/textResource";
-import { useAppSelector } from "src/common/hooks";
+import * as React from 'react';
+import { Typography, createTheme, MuiThemeProvider } from '@material-ui/core';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import ProcessDispatcher from '../../shared/resources/process/processDispatcher';
+import { getTextFromAppOrDefault } from '../../utils/textResource';
+import { useAppSelector } from 'src/common/hooks';
 
 const theme = createTheme(AltinnAppTheme);
 
@@ -21,11 +21,11 @@ export default function Feedback() {
   return (
     <React.Fragment>
       <MuiThemeProvider theme={theme}>
-        <Typography variant="body1">
-          {getTextFromAppOrDefault("feedback.title", textResouces, language)}
+        <Typography variant='body1'>
+          {getTextFromAppOrDefault('feedback.title', textResouces, language)}
         </Typography>
-        <Typography variant="body1">
-          {getTextFromAppOrDefault("feedback.body", textResouces, language)}
+        <Typography variant='body1'>
+          {getTextFromAppOrDefault('feedback.body', textResouces, language)}
         </Typography>
       </MuiThemeProvider>
     </React.Fragment>

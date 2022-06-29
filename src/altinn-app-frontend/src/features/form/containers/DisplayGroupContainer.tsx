@@ -1,9 +1,9 @@
-import { Grid, Typography, makeStyles } from "@material-ui/core";
-import * as React from "react";
-import { useAppSelector } from "src/common/hooks";
-import { makeGetHidden } from "src/selectors/getLayoutData";
-import { getTextFromAppOrDefault } from "src/utils/textResource";
-import type { ILayout, ILayoutComponent, ILayoutGroup } from "../layout";
+import { Grid, Typography, makeStyles } from '@material-ui/core';
+import * as React from 'react';
+import { useAppSelector } from 'src/common/hooks';
+import { makeGetHidden } from 'src/selectors/getLayoutData';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 
 export interface IDisplayGroupContainer {
   container: ILayoutGroup;
@@ -11,14 +11,14 @@ export interface IDisplayGroupContainer {
   // eslint-disable-next-line no-undef
   renderLayoutComponent: (
     components: ILayoutComponent | ILayoutGroup,
-    layout: ILayout
+    layout: ILayout,
   ) => JSX.Element;
 }
 
 const useStyles = makeStyles({
   groupTitle: {
     fontWeight: 700,
-    fontSize: "2.4rem",
+    fontSize: '2.4rem',
     paddingBottom: 12,
   },
   groupContainer: {
@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 export function DisplayGroupContainer(props: IDisplayGroupContainer) {
   const GetHiddenSelector = makeGetHidden();
   const hidden: boolean = useAppSelector((state) =>
-    GetHiddenSelector(state, { id: props.container.id })
+    GetHiddenSelector(state, { id: props.container.id }),
   );
   const classes = useStyles();
   const title = useAppSelector((state) => {
@@ -40,13 +40,13 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
         state.textResources.resources,
         state.language.language,
         [],
-        true
+        true,
       );
     }
     return undefined;
   });
   const layout = useAppSelector(
-    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]
+    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
   );
 
   if (hidden) {
@@ -60,7 +60,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
       id={props.container.id}
       className={classes.groupContainer}
       spacing={3}
-      alignItems="flex-start"
+      alignItems='flex-start'
     >
       <Grid
         item={true}
@@ -69,7 +69,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
         {title && (
           <Typography
             className={classes.groupTitle}
-            variant="body1"
+            variant='body1'
           >
             {title}
           </Typography>

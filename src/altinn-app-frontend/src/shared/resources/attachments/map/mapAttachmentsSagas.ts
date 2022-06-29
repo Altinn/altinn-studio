@@ -1,19 +1,19 @@
-import type { SagaIterator } from "redux-saga";
-import { call, select, take, all, takeLatest } from "redux-saga/effects";
-import type { IData, IInstance } from "altinn-shared/types";
-import type { IAttachments } from "..";
-import type { IRuntimeState } from "src/types";
-import { mapAttachmentListToAttachments } from "src/utils/attachment";
-import AttachmentDispatcher from "../attachmentActions";
-import * as AttachmentActionsTypes from "../attachmentActionTypes";
-import type { IApplicationMetadata } from "../../applicationMetadata";
-import { getCurrentTaskData } from "src/utils/appMetadata";
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import FormDataActions from "src/features/form/data/formDataActions";
-import type { ILayouts } from "src/features/form/layout";
-import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
-import { GET_INSTANCEDATA_FULFILLED } from "src/shared/resources/instanceData/get/getInstanceDataActionTypes";
-import { FETCH_APPLICATION_METADATA_FULFILLED } from "src/shared/resources/applicationMetadata/actions/types";
+import type { SagaIterator } from 'redux-saga';
+import { call, select, take, all, takeLatest } from 'redux-saga/effects';
+import type { IData, IInstance } from 'altinn-shared/types';
+import type { IAttachments } from '..';
+import type { IRuntimeState } from 'src/types';
+import { mapAttachmentListToAttachments } from 'src/utils/attachment';
+import AttachmentDispatcher from '../attachmentActions';
+import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import type { IApplicationMetadata } from '../../applicationMetadata';
+import { getCurrentTaskData } from 'src/utils/appMetadata';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import FormDataActions from 'src/features/form/data/formDataActions';
+import type { ILayouts } from 'src/features/form/layout';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { GET_INSTANCEDATA_FULFILLED } from 'src/shared/resources/instanceData/get/getInstanceDataActionTypes';
+import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {
   yield all([
@@ -33,7 +33,7 @@ export const SelectInstanceData = (state: IRuntimeState): IData[] =>
 export const SelectInstance = (state: IRuntimeState): IInstance =>
   state.instanceData.instance;
 export const SelectApplicationMetaData = (
-  state: IRuntimeState
+  state: IRuntimeState,
 ): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
 export const SelectFormData = (state: IRuntimeState): IFormData =>
   state.formData.formData;
@@ -54,7 +54,7 @@ export function* mapAttachments(): SagaIterator {
       instanceAttachments,
       defaultElement.id,
       formData,
-      layouts
+      layouts,
     );
 
     yield call(AttachmentDispatcher.mapAttachmentsFulfilled, mappedAttachments);

@@ -1,13 +1,13 @@
-import * as React from "react";
-import { Link } from "react-router-dom";
+import * as React from 'react';
+import { Link } from 'react-router-dom';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
   getParsedLanguageFromText,
-} from "altinn-shared/utils";
-import { getHostname } from "../../../utils/appUrlHelper";
-import InstantiationErrorPage from "./InstantiationErrorPage";
-import { useAppSelector } from "src/common/hooks";
+} from 'altinn-shared/utils';
+import { getHostname } from '../../../utils/appUrlHelper';
+import InstantiationErrorPage from './InstantiationErrorPage';
+import { useAppSelector } from 'src/common/hooks';
 
 function MissingRolesError() {
   const language = useAppSelector((state) => state.language.language);
@@ -19,33 +19,33 @@ function MissingRolesError() {
 
   function getErrorRights() {
     return getParsedLanguageFromKey(
-      "instantiate.authorization_error_rights",
+      'instantiate.authorization_error_rights',
       language,
-      [selectedParty.name]
+      [selectedParty.name],
     );
   }
 
   function getCustomerService() {
     return getParsedLanguageFromKey(
-      "instantiate.authorization_error_info_customer_service",
+      'instantiate.authorization_error_info_customer_service',
       language,
-      [getLanguageFromKey("general.customer_service_phone_number", language)]
+      [getLanguageFromKey('general.customer_service_phone_number', language)],
     );
   }
 
   function getCheckRights(hostName: string) {
     return getParsedLanguageFromKey(
-      "instantiate.authorization_error_check_rights",
+      'instantiate.authorization_error_check_rights',
       language,
-      [hostName]
+      [hostName],
     );
   }
 
   function getErrorInfoRights(hostName: string) {
     return getParsedLanguageFromKey(
-      "instantiate.authorization_error_info_rights",
+      'instantiate.authorization_error_info_rights',
       language,
-      [hostName]
+      [hostName],
     );
   }
 
@@ -54,14 +54,14 @@ function MissingRolesError() {
 
     const errorRights = getErrorRights();
     const errorChangeParty = (
-      <Link to="/partyselection">
+      <Link to='/partyselection'>
         {getParsedLanguageFromText(
-          getLanguageFromKey("party_selection.change_party", language)
+          getLanguageFromKey('party_selection.change_party', language),
         )}
       </Link>
     );
     const errorAsk = getParsedLanguageFromText(
-      getLanguageFromKey("instantiate.authorization_error_ask", language)
+      getLanguageFromKey('instantiate.authorization_error_ask', language),
     );
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);
@@ -70,7 +70,7 @@ function MissingRolesError() {
     return (
       <>
         <span>
-          {errorRights} ({errorChangeParty}).{" "}
+          {errorRights} ({errorChangeParty}).{' '}
         </span>
         <br />
         <br />
@@ -88,13 +88,13 @@ function MissingRolesError() {
   return (
     <InstantiationErrorPage
       title={getLanguageFromKey(
-        "instantiate.authorization_error_main_title",
-        language
+        'instantiate.authorization_error_main_title',
+        language,
       )}
       content={createErrorContent()}
       statusCode={`${getLanguageFromKey(
-        "party_selection.error_caption_prefix",
-        language
+        'party_selection.error_caption_prefix',
+        language,
       )} 403`}
     />
   );

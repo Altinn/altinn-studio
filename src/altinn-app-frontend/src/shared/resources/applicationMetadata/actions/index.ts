@@ -1,7 +1,7 @@
-import { bindActionCreators } from "redux";
-import { store } from "src/store";
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
 
-import * as getActions from "./get";
+import * as getActions from './get';
 
 export type IApplicationMetadataActions = typeof actions;
 

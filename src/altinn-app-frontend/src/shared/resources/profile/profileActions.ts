@@ -1,6 +1,6 @@
-import { bindActionCreators } from "redux";
-import { store } from "src/store";
-import * as FetchProfileActions from "./fetch/fetchProfileActions";
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
+import * as FetchProfileActions from './fetch/fetchProfileActions';
 
 export type IProfileActions = typeof actions;
 
@@ -12,7 +12,7 @@ const actions = {
 
 const ProfileActions: IProfileActions = bindActionCreators(
   actions,
-  store.dispatch
+  store.dispatch,
 );
 
 export default ProfileActions;

@@ -1,4 +1,4 @@
-const moduleName = "RULE_CONNECTION";
+const moduleName = 'RULE_CONNECTION';
 
 // Fetch rule handler actions
 export const FETCH_RULE_MODEL = `${moduleName}.FETCH_RULE_MODEL`;

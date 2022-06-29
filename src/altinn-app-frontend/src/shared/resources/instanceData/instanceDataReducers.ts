@@ -1,11 +1,11 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { IInstance } from "altinn-shared/types";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { IInstance } from 'altinn-shared/types';
 import type {
   IGetInstanceDataFulfilled,
   IGetInstanceDataRejected,
-} from "./get/getInstanceDataActions";
-import * as InstanceDataActionTypes from "./get/getInstanceDataActionTypes";
+} from './get/getInstanceDataActions';
+import * as InstanceDataActionTypes from './get/getInstanceDataActionTypes';
 
 export interface IInstanceDataState {
   instance: IInstance;
@@ -19,7 +19,7 @@ const initialState: IInstanceDataState = {
 
 const instanceDataReducer: Reducer<IInstanceDataState> = (
   state: IInstanceDataState = initialState,
-  action?: Action
+  action?: Action,
 ): IInstanceDataState => {
   if (!action) {
     return state;

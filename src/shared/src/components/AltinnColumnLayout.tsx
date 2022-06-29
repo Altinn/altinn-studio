@@ -97,9 +97,19 @@ export class AltinnColumnLayout extends React.Component<IAltinnColumnLayoutProps
           className={classes.mainLayout}
           id={'altinn-column-layout-container'}
         >
-          <Grid container={true} className={classes.layout}>
-            <Grid item={true} md={8}>
-              <Grid item={true} md={12} className={classes.mainStyle}>
+          <Grid
+            container={true}
+            className={classes.layout}
+          >
+            <Grid
+              item={true}
+              md={8}
+            >
+              <Grid
+                item={true}
+                md={12}
+                className={classes.mainStyle}
+              >
                 <Typography
                   id={'altinn-column-layout-header'}
                   className={classes.headerStyle}

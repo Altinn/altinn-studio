@@ -1,9 +1,9 @@
-import * as React from "react";
-import { Grid } from "@material-ui/core";
+import * as React from 'react';
+import { Grid } from '@material-ui/core';
 
-import classNames from "classnames";
+import classNames from 'classnames';
 
-export type MessageType = "message" | "info" | "error" | "success";
+export type MessageType = 'message' | 'info' | 'error' | 'success';
 
 export interface IMessageComponentProps {
   id: string;
@@ -14,8 +14,8 @@ export interface IMessageComponentProps {
 }
 
 const iconStyles = {
-  marginTop: "-2px",
-  fontSize: "1.8em",
+  marginTop: '-2px',
+  fontSize: '1.8em',
 };
 
 export function MessageComponent(props: IMessageComponentProps) {
@@ -23,10 +23,10 @@ export function MessageComponent(props: IMessageComponentProps) {
     <div
       id={props.id}
       key={props.id}
-      className={classNames("field-validation-error", "a-message", {
-        "a-message-info": props.messageType === "info",
-        "a-message-error": props.messageType === "error",
-        "a-message-success": props.messageType === "success",
+      className={classNames('field-validation-error', 'a-message', {
+        'a-message-info': props.messageType === 'info',
+        'a-message-error': props.messageType === 'error',
+        'a-message-success': props.messageType === 'success',
       })}
       style={props.style}
     >
@@ -40,7 +40,7 @@ export function MessageComponent(props: IMessageComponentProps) {
         >
           <i
             className={classNames({
-              "fa fa-circle-exclamation": props.messageType === "error",
+              'fa fa-circle-exclamation': props.messageType === 'error',
             })}
             style={iconStyles}
           />

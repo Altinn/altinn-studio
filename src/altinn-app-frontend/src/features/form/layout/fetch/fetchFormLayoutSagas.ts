@@ -1,23 +1,23 @@
-import type { SagaIterator } from "redux-saga";
-import { call, all, put, take, select, takeLatest } from "redux-saga/effects";
-import type { IInstance } from "altinn-shared/types";
-import type { IApplicationMetadata } from "src/shared/resources/applicationMetadata";
+import type { SagaIterator } from 'redux-saga';
+import { call, all, put, take, select, takeLatest } from 'redux-saga/effects';
+import type { IInstance } from 'altinn-shared/types';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import {
   getLayoutSettingsUrl,
   getLayoutSetsUrl,
   getLayoutsUrl,
-} from "src/utils/appUrlHelper";
-import { get } from "../../../../utils/networking";
-import { FormLayoutActions as Actions } from "../formLayoutSlice";
-import FormDataActions from "../../data/formDataActions";
-import { dataTaskQueueError } from "../../../../shared/resources/queue/queueSlice";
+} from 'src/utils/appUrlHelper';
+import { get } from '../../../../utils/networking';
+import { FormLayoutActions as Actions } from '../formLayoutSlice';
+import FormDataActions from '../../data/formDataActions';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import type {
   ILayoutSettings,
   IRuntimeState,
   ILayoutSets,
-} from "../../../../types";
-import type { ILayouts } from "../index";
-import { getLayoutSetIdForApplication } from "../../../../utils/appMetadata";
+} from '../../../../types';
+import type { ILayouts } from '../index';
+import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
 export const layoutSetsSelector = (state: IRuntimeState) =>
   state.formLayout.layoutsets;
@@ -31,12 +31,12 @@ export function* fetchLayoutSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const applicationMetadata: IApplicationMetadata = yield select(
-      applicationMetadataSelector
+      applicationMetadataSelector,
     );
     const layoutSetId = getLayoutSetIdForApplication(
       applicationMetadata,
       instance,
-      layoutSets
+      layoutSets,
     );
     const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
     const layouts: ILayouts = {};
@@ -45,7 +45,7 @@ export function* fetchLayoutSaga(): SagaIterator {
     let firstLayoutKey: string;
     if (layoutResponse.data?.layout) {
       layouts.FormLayout = layoutResponse.data.layout;
-      firstLayoutKey = "FormLayout";
+      firstLayoutKey = 'FormLayout';
       autoSave = layoutResponse.data.autoSave;
     } else {
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
@@ -74,7 +74,7 @@ export function* fetchLayoutSaga(): SagaIterator {
       Actions.updateCurrentView({
         newView: firstLayoutKey,
         skipPageCaching: true,
-      })
+      }),
     );
   } catch (error) {
     yield put(Actions.fetchLayoutRejected({ error }));
@@ -99,17 +99,17 @@ export function* fetchLayoutSettingsSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const aplicationMetadataState: IApplicationMetadata = yield select(
-      applicationMetadataSelector
+      applicationMetadataSelector,
     );
 
     const layoutSetId = getLayoutSetIdForApplication(
       aplicationMetadataState,
       instance,
-      layoutSets
+      layoutSets,
     );
     const settings: ILayoutSettings = yield call(
       get,
-      getLayoutSettingsUrl(layoutSetId)
+      getLayoutSettingsUrl(layoutSetId),
     );
     yield put(Actions.fetchLayoutSettingsFulfilled({ settings }));
   } catch (error) {

@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from 'react';
 
-import type { ILanguage } from "altinn-shared/types";
-import type { ILabelSettings } from "src/types";
-import { getLanguageFromKey } from "altinn-shared/utils";
-import { RequiredIndicator } from "src/features/form/components/RequiredIndicator";
-import { OptionalIndicator } from "src/features/form/components/OptionalIndicator";
+import type { ILanguage } from 'altinn-shared/types';
+import type { ILabelSettings } from 'src/types';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
+import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 
 interface IAddressLabel {
   labelKey: string;
@@ -26,7 +26,7 @@ export const AddressLabel = ({
   const label = getLanguageFromKey(labelKey, language);
   return (
     <label
-      className="a-form-label title-label"
+      className='a-form-label title-label'
       htmlFor={id}
     >
       {label}

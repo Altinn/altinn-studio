@@ -1,4 +1,4 @@
-const moduleName = "ORGS_DATA";
+const moduleName = 'ORGS_DATA';
 
 export const FETCH_ORGS = `${moduleName}.FETCH_ORGS`;
 export const FETCH_ORGS_FULFILLED = `${moduleName}.FETCH_ORGS_FULFILLED`;

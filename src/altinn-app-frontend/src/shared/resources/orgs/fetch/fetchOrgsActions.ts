@@ -1,6 +1,6 @@
-import type { IAltinnOrgs } from "altinn-shared/types";
-import type { Action } from "redux";
-import * as ActionTypes from "./fetchOrgsActionTypes";
+import type { IAltinnOrgs } from 'altinn-shared/types';
+import type { Action } from 'redux';
+import * as ActionTypes from './fetchOrgsActionTypes';
 
 export type IFetchOrgs = Action;
 export interface IFetchOrgsFulfilled extends Action {

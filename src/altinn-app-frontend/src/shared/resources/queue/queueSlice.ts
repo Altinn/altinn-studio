@@ -1,5 +1,5 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export interface IQueueState {
   dataTask: IQueueTask;
@@ -27,7 +27,7 @@ export const initialState: IQueueState = {
   stateless: { ...commonState },
 };
 
-const moduleName = "queue";
+const moduleName = 'queue';
 
 const queueSlice = createSlice({
   name: moduleName,
@@ -35,35 +35,35 @@ const queueSlice = createSlice({
   reducers: {
     appTaskQueueError: (
       state: IQueueState,
-      action: PayloadAction<IQueueError>
+      action: PayloadAction<IQueueError>,
     ) => {
       const { error } = action.payload;
       state.appTask.error = error;
     },
     userTaskQueueError: (
       state: IQueueState,
-      action: PayloadAction<IQueueError>
+      action: PayloadAction<IQueueError>,
     ) => {
       const { error } = action.payload;
       state.userTask.error = error;
     },
     dataTaskQueueError: (
       state: IQueueState,
-      action: PayloadAction<IQueueError>
+      action: PayloadAction<IQueueError>,
     ) => {
       const { error } = action.payload;
       state.dataTask.error = error;
     },
     infoTaskQueueError: (
       state: IQueueState,
-      action: PayloadAction<IQueueError>
+      action: PayloadAction<IQueueError>,
     ) => {
       const { error } = action.payload;
       state.infoTask.error = error;
     },
     statelessQueueError: (
       state: IQueueState,
-      action: PayloadAction<IQueueError>
+      action: PayloadAction<IQueueError>,
     ) => {
       const { error } = action.payload;
       state.stateless.error = error;

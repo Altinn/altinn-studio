@@ -1,24 +1,24 @@
-import * as React from "react";
-import { Grid, makeStyles } from "@material-ui/core";
+import * as React from 'react';
+import { Grid, makeStyles } from '@material-ui/core';
 import {
   componentHasValidationMessages,
   getComponentValidations,
   getDisplayFormDataForComponent,
-} from "src/utils/formComponentUtils";
-import { shallowEqual } from "react-redux";
-import { getTextFromAppOrDefault } from "src/utils/textResource";
-import type { IGrid, ILayoutComponent } from "src/features/form/layout";
-import { FormLayoutActions } from "src/features/form/layout/formLayoutSlice";
-import type { IComponentValidations, IRuntimeState } from "src/types";
-import { makeGetHidden } from "src/selectors/getLayoutData";
-import ErrorPaper from "../message/ErrorPaper";
-import { useAppDispatch, useAppSelector } from "src/common/hooks";
-import SummaryComponentSwitch from "src/components/summary/SummaryComponentSwitch";
+} from 'src/utils/formComponentUtils';
+import { shallowEqual } from 'react-redux';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { IGrid, ILayoutComponent } from 'src/features/form/layout';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import type { IComponentValidations, IRuntimeState } from 'src/types';
+import { makeGetHidden } from 'src/selectors/getLayoutData';
+import ErrorPaper from '../message/ErrorPaper';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import SummaryComponentSwitch from 'src/components/summary/SummaryComponentSwitch';
 import {
   isGroupComponent,
   isFileUploadComponent,
   isFileUploadWithTagComponent,
-} from "src/utils/formLayout";
+} from 'src/utils/formLayout';
 
 export interface ISummaryComponent {
   id: string;
@@ -33,15 +33,15 @@ export interface ISummaryComponent {
 
 const useStyles = makeStyles({
   row: {
-    borderBottom: "1px dashed #008FD6",
+    borderBottom: '1px dashed #008FD6',
     marginBottom: 10,
     paddingBottom: 10,
   },
   link: {
-    background: "none",
-    border: "none",
-    borderBottom: "2px solid #008FD6",
-    cursor: "pointer",
+    background: 'none',
+    border: 'none',
+    borderBottom: '2px solid #008FD6',
+    cursor: 'pointer',
     paddingLeft: 0,
   },
 });
@@ -61,37 +61,37 @@ export function SummaryComponent({
   const [hasValidationMessages, setHasValidationMessages] =
     React.useState(false);
   const hidden: boolean = useAppSelector((state) =>
-    GetHiddenSelector(state, { id })
+    GetHiddenSelector(state, { id }),
   );
   const summaryPageName = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView
+    (state) => state.formLayout.uiConfig.currentView,
   );
   const changeText = useAppSelector((state) =>
     getTextFromAppOrDefault(
-      "form_filler.summary_item_change",
+      'form_filler.summary_item_change',
       state.textResources.resources,
       state.language.language,
       null,
-      true
-    )
+      true,
+    ),
   );
   const formValidations = useAppSelector(
-    (state) => state.formValidations.validations
+    (state) => state.formValidations.validations,
   );
   const layout = useAppSelector((state) => state.formLayout.layouts[pageRef]);
   const attachments = useAppSelector(
-    (state: IRuntimeState) => state.attachments.attachments
+    (state: IRuntimeState) => state.attachments.attachments,
   );
   const formComponent = useAppSelector((state) => {
     return state.formLayout.layouts[pageRef].find((c) => c.id === componentRef);
   });
   const goToCorrectPageLinkText = useAppSelector((state) => {
     return getTextFromAppOrDefault(
-      "form_filler.summary_go_to_correct_page",
+      'form_filler.summary_go_to_correct_page',
       state.textResources.resources,
       state.language.language,
       [],
-      true
+      true,
     );
   });
   const formData = useAppSelector((state) => {
@@ -114,7 +114,7 @@ export function SummaryComponent({
         state.textResources.resources,
         state.optionState.options,
         state.formLayout.uiConfig.repeatingGroups,
-        true
+        true,
       )
     );
   }, shallowEqual);
@@ -126,7 +126,7 @@ export function SummaryComponent({
         state.textResources.resources,
         state.language.language,
         [],
-        false
+        false,
       );
     }
     return undefined;
@@ -138,18 +138,18 @@ export function SummaryComponent({
         newView: pageRef,
         runValidations: null,
         returnToView: summaryPageName,
-      })
+      }),
     );
   };
 
   React.useEffect(() => {
-    if (formComponent && formComponent.type.toLowerCase() !== "group") {
+    if (formComponent && formComponent.type.toLowerCase() !== 'group') {
       const componentId =
         index >= 0 ? `${componentRef}-${index}` : componentRef;
       const validations = getComponentValidations(
         formValidations,
         componentId,
-        pageRef
+        pageRef,
       );
       setComponentValidations(validations);
       setHasValidationMessages(componentHasValidationMessages(validations));
@@ -188,7 +188,7 @@ export function SummaryComponent({
         {hasValidationMessages && (
           <Grid
             container={true}
-            style={{ paddingTop: "12px" }}
+            style={{ paddingTop: '12px' }}
             spacing={2}
           >
             {Object.keys(componentValidations).map((binding: string) =>
@@ -198,8 +198,8 @@ export function SummaryComponent({
                     key={`key-${validationText}`}
                     message={validationText}
                   />
-                )
-              )
+                ),
+              ),
             )}
             <Grid
               item={true}
@@ -208,7 +208,7 @@ export function SummaryComponent({
               <button
                 className={classes.link}
                 onClick={onChangeClick}
-                type="button"
+                type='button'
               >
                 {goToCorrectPageLinkText}
               </button>

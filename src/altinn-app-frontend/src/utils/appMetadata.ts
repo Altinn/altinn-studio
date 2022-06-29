@@ -1,10 +1,10 @@
-import type { IApplication, IDataType, IInstance } from "altinn-shared/types";
-import type { ILayoutSets } from "src/types";
-import { getLayoutsetForDataElement } from "./layout";
+import type { IApplication, IDataType, IInstance } from 'altinn-shared/types';
+import type { ILayoutSets } from 'src/types';
+import { getLayoutsetForDataElement } from './layout';
 
 export function getDataTaskDataTypeId(
   taskId: string,
-  dataTypes: IDataType[]
+  dataTypes: IDataType[],
 ): string {
   if (!dataTypes || dataTypes.length === 0) {
     return null;
@@ -18,7 +18,7 @@ export function getDataTaskDataTypeId(
 
 export function getDataTypeByLayoutSetId(
   layoutSetId: string,
-  layoutSets: ILayoutSets
+  layoutSets: ILayoutSets,
 ) {
   return layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
 }
@@ -27,9 +27,9 @@ export function getDataTypeByLayoutSetId(
  * Application metadata onEntry.show values that have a state full application
  */
 export const onEntryValuesThatHaveState: string[] = [
-  "new-instance",
-  "select-instance",
-  "start-page",
+  'new-instance',
+  'select-instance',
+  'start-page',
 ];
 
 /**
@@ -42,7 +42,7 @@ export const onEntryValuesThatHaveState: string[] = [
 export function getLayoutSetIdForApplication(
   application: IApplication,
   instance?: IInstance,
-  layoutSets?: ILayoutSets
+  layoutSets?: ILayoutSets,
 ): string {
   const showOnEntry: string = application?.onEntry?.show;
   if (isStatelessApp(application)) {
@@ -56,7 +56,7 @@ export function getLayoutSetIdForApplication(
   }
   const dataType = getDataTaskDataTypeId(
     instance.process.currentTask.elementId,
-    application.dataTypes
+    application.dataTypes,
   );
   return getLayoutsetForDataElement(instance, dataType, layoutSets);
 }
@@ -88,12 +88,12 @@ export function getCurrentDataTypeForApplication({
   // instance - get data element based on current process step
   return getDataTaskDataTypeId(
     instance.process.currentTask.elementId,
-    application.dataTypes
+    application.dataTypes,
   );
 }
 
 export function isStatelessApp(application: IApplication) {
-  if (window.location.hash.includes("#/instance/")) {
+  if (window.location.hash.includes('#/instance/')) {
     // app can be setup as stateless but then go over to a statefull app
     return false;
   }
@@ -103,27 +103,27 @@ export function isStatelessApp(application: IApplication) {
 
 export const getCurrentTaskDataElementId = (
   appMetaData: IApplication,
-  instance: IInstance
+  instance: IInstance,
 ) => {
   const currentTaskId = instance.process.currentTask.elementId;
   const appLogicDataType = appMetaData.dataTypes.find(
-    (element) => element.appLogic?.classRef && element.taskId === currentTaskId
+    (element) => element.appLogic?.classRef && element.taskId === currentTaskId,
   );
   const currentTaskDataElement = instance.data.find(
-    (element) => element.dataType === appLogicDataType.id
+    (element) => element.dataType === appLogicDataType.id,
   );
   return currentTaskDataElement.id;
 };
 
 export const getCurrentTaskData = (
   appMetaData: IApplication,
-  instance: IInstance
+  instance: IInstance,
 ) => {
   const currentTaskId = instance.process.currentTask.elementId;
   const currentDataType = appMetaData.dataTypes.find(
-    (element) => element.appLogic !== null && element.taskId === currentTaskId
+    (element) => element.appLogic !== null && element.taskId === currentTaskId,
   );
   return instance.data.find(
-    (element) => element.dataType === currentDataType.id
+    (element) => element.dataType === currentDataType.id,
   );
 };

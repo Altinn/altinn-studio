@@ -1,14 +1,14 @@
-import type { IInstanceContext, IDataSources } from "altinn-shared/types";
-import { buildInstanceContext } from "altinn-shared/utils/instanceContext";
-import { useState, useEffect } from "react";
-import { shallowEqual } from "react-redux";
-import { useAppSelector } from "src/common/hooks";
-import type { IMapping, IOptionSource, IOption } from "src/types";
+import type { IInstanceContext, IDataSources } from 'altinn-shared/types';
+import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
+import { useState, useEffect } from 'react';
+import { shallowEqual } from 'react-redux';
+import { useAppSelector } from 'src/common/hooks';
+import type { IMapping, IOptionSource, IOption } from 'src/types';
 import {
   getOptionLookupKey,
   getRelevantFormDataForOptionSource,
   setupSourceOptions,
-} from "src/utils/options";
+} from 'src/utils/options';
 
 interface IUseGetOptionsParams {
   optionsId: string;
@@ -24,17 +24,17 @@ export const useGetOptions = ({
   const relevantFormData = useAppSelector(
     (state) =>
       getRelevantFormDataForOptionSource(state.formData.formData, source),
-    shallowEqual
+    shallowEqual,
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
   const relevantTextResource = useAppSelector((state) =>
-    state.textResources.resources.find((e) => e.id === source?.label)
+    state.textResources.resources.find((e) => e.id === source?.label),
   );
   const repeatingGroups = useAppSelector(
-    (state) => state.formLayout.uiConfig.repeatingGroups
+    (state) => state.formLayout.uiConfig.repeatingGroups,
   );
   const applicationSettings = useAppSelector(
-    (state) => state.applicationSettings?.applicationSettings
+    (state) => state.applicationSettings?.applicationSettings,
   );
   const optionState = useAppSelector((state) => state.optionState.options);
   const [options, setOptions] = useState<IOption[]>(undefined);
@@ -63,7 +63,7 @@ export const useGetOptions = ({
         relevantFormData,
         repeatingGroups,
         dataSources,
-      })
+      }),
     );
   }, [
     applicationSettings,
@@ -80,4 +80,4 @@ export const useGetOptions = ({
   return options;
 };
 
-export { useDisplayData } from "./useDisplayData";
+export { useDisplayData } from './useDisplayData';

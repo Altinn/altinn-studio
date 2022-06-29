@@ -1,6 +1,6 @@
-import * as React from "react";
-import { getLanguageFromKey } from "altinn-shared/utils/language";
-import type { ILanguage } from "altinn-shared/types";
+import * as React from 'react';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
+import type { ILanguage } from 'altinn-shared/types';
 
 export interface IRequiredIndicatorProps {
   language: ILanguage;
@@ -16,7 +16,7 @@ export const RequiredIndicator = ({
   if (required && !readOnly) {
     return (
       <span>
-        {` ${getLanguageFromKey("form_filler.required_label", language)}`}
+        {` ${getLanguageFromKey('form_filler.required_label', language)}`}
       </span>
     );
   }

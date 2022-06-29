@@ -117,8 +117,16 @@ export class AltinnInformationCard extends React.Component<IAltinnInformationCar
             container={true}
             item={true}
           >
-            <Grid container={true} item={true}>
-              <Grid sm={12} md={7} item={true} container={true}>
+            <Grid
+              container={true}
+              item={true}
+            >
+              <Grid
+                sm={12}
+                md={7}
+                item={true}
+                container={true}
+              >
                 <Grid item={true}>
                   <h1 className={classes.header}>
                     {getLanguageFromKey(
@@ -168,7 +176,10 @@ export class AltinnInformationCard extends React.Component<IAltinnInformationCar
                 justifyContent={'center'}
                 alignContent={'center'}
               >
-                <img alt='information' src={this.props.imageSource} />
+                <img
+                  alt='information'
+                  src={this.props.imageSource}
+                />
               </Grid>
             </Grid>
           </Grid>

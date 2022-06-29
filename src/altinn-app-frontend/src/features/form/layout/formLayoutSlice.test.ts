@@ -1,18 +1,18 @@
-import type { ILayoutState } from "./formLayoutSlice";
-import reducer, { initialState, FormLayoutActions } from "./formLayoutSlice";
+import type { ILayoutState } from './formLayoutSlice';
+import reducer, { initialState, FormLayoutActions } from './formLayoutSlice';
 
-describe("features > form > layout > layoutSlice.ts", () => {
-  describe("fetchLayoutFulfilled", () => {
+describe('features > form > layout > layoutSlice.ts', () => {
+  describe('fetchLayoutFulfilled', () => {
     const layouts = {};
     const navigationConfig = {};
 
-    it("should set layout state accordingly", () => {
+    it('should set layout state accordingly', () => {
       const nextState = reducer(
         initialState,
         FormLayoutActions.fetchLayoutFulfilled({
           layouts,
           navigationConfig,
-        })
+        }),
       );
 
       expect(nextState.layouts).toEqual(layouts);
@@ -20,7 +20,7 @@ describe("features > form > layout > layoutSlice.ts", () => {
       expect(nextState.uiConfig.navigationConfig).toEqual(navigationConfig);
     });
 
-    it("should reset repeatingGroups if set", () => {
+    it('should reset repeatingGroups if set', () => {
       const stateWithRepGroups: ILayoutState = {
         ...initialState,
         uiConfig: {
@@ -37,55 +37,55 @@ describe("features > form > layout > layoutSlice.ts", () => {
         FormLayoutActions.fetchLayoutFulfilled({
           layouts,
           navigationConfig,
-        })
+        }),
       );
 
       expect(nextState.uiConfig.repeatingGroups).toEqual({});
     });
 
-    it("should reset error if set", () => {
+    it('should reset error if set', () => {
       const stateWithError: ILayoutState = {
         ...initialState,
-        error: new Error("mock"),
+        error: new Error('mock'),
       };
       const nextState = reducer(
         stateWithError,
         FormLayoutActions.fetchLayoutFulfilled({
           layouts,
           navigationConfig,
-        })
+        }),
       );
 
       expect(nextState.error).toEqual(null);
     });
   });
 
-  describe("fetchFormLayoutSettingsFulfilled", () => {
-    it("should set currentView to first page in settings.pages.order if no key is cached in localStorage", () => {
+  describe('fetchFormLayoutSettingsFulfilled', () => {
+    it('should set currentView to first page in settings.pages.order if no key is cached in localStorage', () => {
       const settings = {
         pages: {
-          order: ["page1", "page2"],
+          order: ['page1', 'page2'],
         },
       };
       const nextState = reducer(
         initialState,
         FormLayoutActions.fetchLayoutSettingsFulfilled({
           settings,
-        })
+        }),
       );
 
-      expect(nextState.uiConfig.currentView).toEqual("page1");
+      expect(nextState.uiConfig.currentView).toEqual('page1');
     });
 
-    it("should set currentView to cached key in localStorage if key exists in settings.pages.order", () => {
-      jest.spyOn(window.localStorage.__proto__, "getItem");
+    it('should set currentView to cached key in localStorage if key exists in settings.pages.order', () => {
+      jest.spyOn(window.localStorage.__proto__, 'getItem');
       window.localStorage.__proto__.getItem = jest
         .fn()
-        .mockReturnValue("page2");
+        .mockReturnValue('page2');
 
       const settings = {
         pages: {
-          order: ["page1", "page2"],
+          order: ['page1', 'page2'],
         },
       };
       const nextState = reducer(
@@ -93,26 +93,26 @@ describe("features > form > layout > layoutSlice.ts", () => {
           ...initialState,
           uiConfig: {
             ...initialState.uiConfig,
-            currentViewCacheKey: "some-cache-key",
+            currentViewCacheKey: 'some-cache-key',
           },
         },
         FormLayoutActions.fetchLayoutSettingsFulfilled({
           settings,
-        })
+        }),
       );
 
-      expect(nextState.uiConfig.currentView).toEqual("page2");
+      expect(nextState.uiConfig.currentView).toEqual('page2');
     });
 
-    it("should set currentView to first page in settings.pages.order if key is cached in localStorage but does not exist in order", () => {
-      jest.spyOn(window.localStorage.__proto__, "getItem");
+    it('should set currentView to first page in settings.pages.order if key is cached in localStorage but does not exist in order', () => {
+      jest.spyOn(window.localStorage.__proto__, 'getItem');
       window.localStorage.__proto__.getItem = jest
         .fn()
-        .mockReturnValue("page3");
+        .mockReturnValue('page3');
 
       const settings = {
         pages: {
-          order: ["page1", "page2"],
+          order: ['page1', 'page2'],
         },
       };
       const nextState = reducer(
@@ -120,15 +120,15 @@ describe("features > form > layout > layoutSlice.ts", () => {
           ...initialState,
           uiConfig: {
             ...initialState.uiConfig,
-            currentViewCacheKey: "some-cache-key",
+            currentViewCacheKey: 'some-cache-key',
           },
         },
         FormLayoutActions.fetchLayoutSettingsFulfilled({
           settings,
-        })
+        }),
       );
 
-      expect(nextState.uiConfig.currentView).toEqual("page1");
+      expect(nextState.uiConfig.currentView).toEqual('page1');
     });
   });
 });

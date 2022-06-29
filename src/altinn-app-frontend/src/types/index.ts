@@ -1,26 +1,26 @@
-import type { IIsLoadingState } from "src/shared/resources/isLoading/isLoadingSlice";
-import type { IOptionsState } from "src/shared/resources/options/optionsReducer";
-import type { IFormRuleState } from "src/features/form/rules/rulesReducer";
-import type { IDataModelState } from "src/features/form/datamodel/datamodelSlice";
-import type { ReactNode } from "react";
-import type Ajv from "ajv/dist/core";
-import type { IFormDataState } from "../features/form/data/formDataReducer";
-import type { IFormDynamicState } from "../features/form/dynamics";
-import type { ILayoutState } from "../features/form/layout/formLayoutSlice";
-import type { IValidationState } from "../features/form/validation/validationSlice";
-import type { IInstantiationState } from "../features/instantiate/instantiation/reducer";
-import type { IApplicationMetadataState } from "../shared/resources/applicationMetadata/reducer";
-import type { IAttachmentState } from "../shared/resources/attachments/attachmentReducer";
-import type { IInstanceDataState } from "../shared/resources/instanceData/instanceDataReducers";
-import type { ILanguageState } from "../shared/resources/language/languageSlice";
-import type { IOrgsState } from "../shared/resources/orgs/orgsReducers";
-import type { IPartyState } from "../shared/resources/party/partyReducers";
-import type { IProcessState } from "../shared/resources/process/processReducer";
-import type { IProfileState } from "../shared/resources/profile/profileReducers";
-import type { IQueueState } from "../shared/resources/queue/queueSlice";
-import type { ITextResourcesState } from "../shared/resources/textResources/textResourcesReducer";
-import type { IApplicationSettingsState } from "src/shared/resources/applicationSettings/applicationSettingsSlice";
-import type { IFormData } from "src/features/form/data/formDataReducer";
+import type { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
+import type { IOptionsState } from 'src/shared/resources/options/optionsReducer';
+import type { IFormRuleState } from 'src/features/form/rules/rulesReducer';
+import type { IDataModelState } from 'src/features/form/datamodel/datamodelSlice';
+import type { ReactNode } from 'react';
+import type Ajv from 'ajv/dist/core';
+import type { IFormDataState } from '../features/form/data/formDataReducer';
+import type { IFormDynamicState } from '../features/form/dynamics';
+import type { ILayoutState } from '../features/form/layout/formLayoutSlice';
+import type { IValidationState } from '../features/form/validation/validationSlice';
+import type { IInstantiationState } from '../features/instantiate/instantiation/reducer';
+import type { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
+import type { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
+import type { IInstanceDataState } from '../shared/resources/instanceData/instanceDataReducers';
+import type { ILanguageState } from '../shared/resources/language/languageSlice';
+import type { IOrgsState } from '../shared/resources/orgs/orgsReducers';
+import type { IPartyState } from '../shared/resources/party/partyReducers';
+import type { IProcessState } from '../shared/resources/process/processReducer';
+import type { IProfileState } from '../shared/resources/profile/profileReducers';
+import type { IQueueState } from '../shared/resources/queue/queueSlice';
+import type { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import type { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
 
 export interface IAltinnWindow extends Window {
   app: string;
@@ -42,7 +42,7 @@ export interface IComponentValidations {
   [id: string]: IComponentBindingValidation;
 }
 
-export { IDataModelBindings } from "../features/form/layout/index";
+export { IDataModelBindings } from '../features/form/layout/index';
 
 export interface IFormComponent {
   id: string;
@@ -262,21 +262,21 @@ export interface IVariable {
 }
 
 export enum ProcessTaskType {
-  Unknown = "unknown",
-  Data = "data",
-  Archived = "ended",
-  Confirm = "confirmation",
-  Feedback = "feedback",
+  Unknown = 'unknown',
+  Data = 'data',
+  Archived = 'ended',
+  Confirm = 'confirmation',
+  Feedback = 'feedback',
 }
 
 export enum PresentationType {
-  Stateless = "stateless",
+  Stateless = 'stateless',
 }
 
 export enum LayoutStyle {
-  Column = "column",
-  Row = "row",
-  Table = "table",
+  Column = 'column',
+  Row = 'row',
+  Table = 'table',
 }
 
 export enum Severity {
@@ -289,10 +289,10 @@ export enum Severity {
 }
 
 export enum Triggers {
-  Validation = "validation",
-  CalculatePageOrder = "calculatePageOrder",
-  ValidatePage = "validatePage",
-  ValidateAllPages = "validateAllPages",
+  Validation = 'validation',
+  CalculatePageOrder = 'calculatePageOrder',
+  ValidatePage = 'validatePage',
+  ValidateAllPages = 'validateAllPages',
 }
 
 export interface ILabelSettings {
@@ -300,7 +300,7 @@ export interface ILabelSettings {
 }
 
 export enum DateFlags {
-  Today = "today",
+  Today = 'today',
 }
 
 // source, target dict

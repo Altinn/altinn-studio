@@ -1,11 +1,11 @@
-import type { SagaIterator } from "redux-saga";
-import { fork } from "redux-saga/effects";
+import type { SagaIterator } from 'redux-saga';
+import { fork } from 'redux-saga/effects';
 
-import { watchFetchTextResourcesSaga } from "./fetch/fetchTextResourcesSagas";
+import { watchFetchTextResourcesSaga } from './fetch/fetchTextResourcesSagas';
 import {
   watchReplaceTextResourcesSaga,
   watchReplaceTextResourcesSagaDirect,
-} from "./replace/replaceTextResourcesSagas";
+} from './replace/replaceTextResourcesSagas';
 
 export default function* textResourceSagas(): SagaIterator {
   yield fork(watchFetchTextResourcesSaga);

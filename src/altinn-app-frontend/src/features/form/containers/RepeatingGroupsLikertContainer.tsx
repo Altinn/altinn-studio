@@ -1,22 +1,22 @@
-import type { ILayoutComponent, ILayoutGroup } from "src/features/form/layout";
-import type { ITextResource } from "src/types";
-import { LayoutStyle } from "src/types";
-import * as React from "react";
-import { Grid, TableCell, Typography } from "@material-ui/core";
-import { GenericComponent } from "src/components/GenericComponent";
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { ITextResource } from 'src/types';
+import { LayoutStyle } from 'src/types';
+import * as React from 'react';
+import { Grid, TableCell, Typography } from '@material-ui/core';
+import { GenericComponent } from 'src/components/GenericComponent';
 import {
   AltinnSpinner,
   AltinnTable,
   AltinnTableBody,
   AltinnTableHeader,
   AltinnTableRow,
-} from "altinn-shared/components";
-import { getTextResource } from "src/utils/formComponentUtils";
-import { useGetOptions } from "src/components/hooks";
-import { useAppSelector } from "src/common/hooks";
-import { getOptionLookupKey } from "src/utils/options";
-import type { IRadioButtonsContainerProps } from "src/components/base/RadioButtons/RadioButtonsContainerComponent";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
+} from 'altinn-shared/components';
+import { getTextResource } from 'src/utils/formComponentUtils';
+import { useGetOptions } from 'src/components/hooks';
+import { useAppSelector } from 'src/common/hooks';
+import { getOptionLookupKey } from 'src/utils/options';
+import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 type RepeatingGroupsLikertContainerProps = {
   id: string;
@@ -33,12 +33,13 @@ export const RepeatingGroupsLikertContainer = ({
 }: RepeatingGroupsLikertContainerProps) => {
   const { optionsId, mapping, source, options } =
     repeatingGroupDeepCopyComponents[0] as IRadioButtonsContainerProps;
-  const mobileView = useMediaQuery("(max-width:992px)"); // breakpoint on altinn-modal
+  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || [];
   const fetchingOptions = useAppSelector(
     (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]?.loading
+      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+        ?.loading,
   );
 
   const getText = (key: string | undefined) => {
@@ -57,9 +58,9 @@ export const RepeatingGroupsLikertContainer = ({
     >
       {title && (
         <Typography
-          component="h5"
-          variant="h3"
-          style={{ width: "100%" }}
+          component='h5'
+          variant='h3'
+          style={{ width: '100%' }}
           id={titleId}
         >
           {title}
@@ -67,7 +68,7 @@ export const RepeatingGroupsLikertContainer = ({
       )}
       {description && (
         <Typography
-          variant="body1"
+          variant='body1'
           gutterBottom
           id={descriptionId}
         >
@@ -85,7 +86,7 @@ export const RepeatingGroupsLikertContainer = ({
       >
         {Header}
         <div
-          role="group"
+          role='group'
           aria-labelledby={title && titleId}
           aria-describedby={description && descriptionId}
         >
@@ -110,14 +111,14 @@ export const RepeatingGroupsLikertContainer = ({
       ) : (
         <AltinnTable
           id={id}
-          tableLayout="auto"
-          wordBreak="normal"
+          tableLayout='auto'
+          wordBreak='normal'
           aria-labelledby={title && titleId}
           aria-describedby={description && descriptionId}
         >
           <AltinnTableHeader
             id={`likert-table-header-${id}`}
-            padding={"dense"}
+            padding={'dense'}
           >
             <AltinnTableRow>
               <TableCell />
@@ -127,7 +128,7 @@ export const RepeatingGroupsLikertContainer = ({
                   <TableCell
                     key={option.value}
                     id={colLabelId}
-                    align="center"
+                    align='center'
                   >
                     {getTextResource(option.label, textResources)}
                   </TableCell>
@@ -137,7 +138,7 @@ export const RepeatingGroupsLikertContainer = ({
           </AltinnTableHeader>
           <AltinnTableBody
             id={`likert-table-body-${id}`}
-            padding={"dense"}
+            padding={'dense'}
           >
             {repeatingGroupDeepCopyComponents.map((comp) => {
               return (

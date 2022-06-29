@@ -1,6 +1,6 @@
-import type { ParametricSelector } from "reselect";
-import { createSelector } from "reselect";
-import type { RootState } from "src/store";
+import type { ParametricSelector } from 'reselect';
+import { createSelector } from 'reselect';
+import type { RootState } from 'src/store';
 
 const selectFocusedLayout = (state: RootState) =>
   state.formLayout.uiConfig.focus;
@@ -28,5 +28,5 @@ export const makeGetHidden = (): ParametricSelector<
 > =>
   createSelector(
     [selectHiddenFields, selectId],
-    (fields, id) => fields.findIndex((itemId) => itemId === id) > -1
+    (fields, id) => fields.findIndex((itemId) => itemId === id) > -1,
   );

@@ -1,8 +1,8 @@
-import { bindActionCreators } from "redux";
-import { store } from "src/store";
-import * as CompleteProcessActions from "./completeProcess/completeProcessActions";
-import * as GetProcessStateActions from "./getProcessState/getProcessStateActions";
-import * as CheckProcessUpdatedActions from "./checkProcessUpdated/checkProcessUpdatedActions";
+import { bindActionCreators } from 'redux';
+import { store } from 'src/store';
+import * as CompleteProcessActions from './completeProcess/completeProcessActions';
+import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
+import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessUpdatedActions';
 
 /**
  * Define a interface describing the different Actions available

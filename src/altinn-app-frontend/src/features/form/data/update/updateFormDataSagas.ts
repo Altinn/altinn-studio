@@ -1,4 +1,4 @@
-import type { SagaIterator } from "redux-saga";
+import type { SagaIterator } from 'redux-saga';
 import {
   actionChannel,
   call,
@@ -6,30 +6,30 @@ import {
   select,
   take,
   takeLatest,
-} from "redux-saga/effects";
-import type { IRuntimeState, IValidationResult } from "src/types";
-import type { PayloadAction } from "@reduxjs/toolkit";
+} from 'redux-saga/effects';
+import type { IRuntimeState, IValidationResult } from 'src/types';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import {
   getLayoutComponentById,
   getLayoutIdForComponent,
-} from "../../../../utils/layout";
+} from '../../../../utils/layout';
 import {
   getValidator,
   validateComponentFormData,
-} from "../../../../utils/validation";
-import FormDynamicActions from "../../dynamics/formDynamicsActions";
-import { updateComponentValidations } from "../../validation/validationSlice";
-import FormDataActions from "../formDataActions";
+} from '../../../../utils/validation';
+import FormDynamicActions from '../../dynamics/formDynamicsActions';
+import { updateComponentValidations } from '../../validation/validationSlice';
+import FormDataActions from '../formDataActions';
 import type {
   IUpdateFormData,
   IDeleteAttachmentReference,
-} from "../formDataTypes";
-import { FormLayoutActions } from "../../layout/formLayoutSlice";
-import { getCurrentDataTypeForApplication } from "../../../../utils/appMetadata";
-import { removeAttachmentReference } from "src/utils/databindings";
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import type { ILayouts } from "src/features/form/layout";
-import type { IAttachments } from "src/shared/resources/attachments";
+} from '../formDataTypes';
+import { FormLayoutActions } from '../../layout/formLayoutSlice';
+import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
+import { removeAttachmentReference } from 'src/utils/databindings';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { ILayouts } from 'src/features/form/layout';
+import type { IAttachments } from 'src/shared/resources/attachments';
 
 function* updateFormDataSaga({
   payload: { field, data, componentId, skipValidation, skipAutoSave },
@@ -54,8 +54,8 @@ function* updateFormDataSaga({
       yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
     }
 
-    if (focus && focus !== "" && componentId !== focus) {
-      yield put(FormLayoutActions.updateFocus({ currentComponentId: "" }));
+    if (focus && focus !== '' && componentId !== focus) {
+      yield put(FormLayoutActions.updateFocus({ currentComponentId: '' }));
     }
   } catch (error) {
     console.error(error);
@@ -67,13 +67,13 @@ function* runValidations(
   field: string,
   data: any,
   componentId: string,
-  state: IRuntimeState
+  state: IRuntimeState,
 ) {
   if (!componentId) {
     yield put(
       FormDataActions.updateFormDataRejected({
-        error: new Error("Missing component ID!"),
-      })
+        error: new Error('Missing component ID!'),
+      }),
     );
   }
 
@@ -84,15 +84,15 @@ function* runValidations(
   });
   const validator = getValidator(
     currentDataTypeId,
-    state.formDataModel.schemas
+    state.formDataModel.schemas,
   );
   const component = getLayoutComponentById(
     componentId,
-    state.formLayout.layouts
+    state.formLayout.layouts,
   );
   const layoutId = getLayoutIdForComponent(
     componentId,
-    state.formLayout.layouts
+    state.formLayout.layouts,
   );
 
   const validationResult: IValidationResult = validateComponentFormData(
@@ -104,14 +104,14 @@ function* runValidations(
     state.textResources.resources,
     validator,
     state.formValidations.validations[componentId],
-    componentId !== component.id ? componentId : null
+    componentId !== component.id ? componentId : null,
   );
 
   const componentValidations =
     validationResult?.validations[layoutId][componentId];
   const invalidDataComponents = state.formValidations.invalidDataTypes || [];
   const updatedInvalidDataComponents = invalidDataComponents.filter(
-    (item) => item !== field
+    (item) => item !== field,
   );
   if (validationResult?.invalidDataTypes) {
     updatedInvalidDataComponents.push(field);
@@ -123,12 +123,12 @@ function* runValidations(
       layoutId,
       validations: componentValidations,
       invalidDataTypes: updatedInvalidDataComponents,
-    })
+    }),
   );
 }
 
 function shouldUpdateFormData(currentData: any, newData: any): boolean {
-  if (newData && newData !== "" && !currentData) {
+  if (newData && newData !== '' && !currentData) {
     return true;
   }
 
@@ -170,11 +170,11 @@ export function* deleteAttachmentReferenceSaga({
       layout,
       attachments,
       dataModelBindings,
-      componentId
+      componentId,
     );
 
     yield put(
-      FormDataActions.setFormDataFulfilled({ formData: updatedFormData })
+      FormDataActions.setFormDataFulfilled({ formData: updatedFormData }),
     );
     yield put(FormDataActions.saveFormData());
   } catch (err) {
@@ -185,6 +185,6 @@ export function* deleteAttachmentReferenceSaga({
 export function* watchDeleteAttachmentReferenceSaga(): SagaIterator {
   yield takeLatest(
     FormDataActions.deleteAttachmentReference,
-    deleteAttachmentReferenceSaga
+    deleteAttachmentReferenceSaga,
   );
 }

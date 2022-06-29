@@ -1,18 +1,18 @@
-import * as React from "react";
-import { Provider } from "react-redux";
-import { render, screen } from "@testing-library/react";
-import configureStore from "redux-mock-store";
+import * as React from 'react';
+import { Provider } from 'react-redux';
+import { render, screen } from '@testing-library/react';
+import configureStore from 'redux-mock-store';
 
 import {
   getFormLayoutStateMock,
   getInitialStateMock,
-} from "../../../__mocks__/mocks";
+} from '../../../__mocks__/mocks';
 
-import type { IComponentProps } from "src/components";
+import type { IComponentProps } from 'src/components';
 
-import { NavigationButtons } from "./NavigationButtons";
+import { NavigationButtons } from './NavigationButtons';
 
-describe("components/presentation/NavigationButton.tsx", () => {
+describe('components/presentation/NavigationButton.tsx', () => {
   let mockStore;
   let mockLayout;
 
@@ -21,10 +21,10 @@ describe("components/presentation/NavigationButton.tsx", () => {
       layouts: {
         layout1: [
           {
-            type: "Input",
-            id: "mockId1",
+            type: 'Input',
+            id: 'mockId1',
             dataModelBindings: {
-              simpleBinding: "mockDataBinding1",
+              simpleBinding: 'mockDataBinding1',
             },
             readOnly: false,
             required: false,
@@ -32,8 +32,8 @@ describe("components/presentation/NavigationButton.tsx", () => {
             textResourceBindings: {},
           },
           {
-            id: "nav-button-1",
-            type: "NavigationButtons",
+            id: 'nav-button-1',
+            type: 'NavigationButtons',
             textResourceBindings: {},
             dataModelBindings: {},
             readOnly: false,
@@ -42,10 +42,10 @@ describe("components/presentation/NavigationButton.tsx", () => {
         ],
         layout2: [
           {
-            type: "Input",
-            id: "mockId2",
+            type: 'Input',
+            id: 'mockId2',
             dataModelBindings: {
-              simpleBinding: "mockDataBinding2",
+              simpleBinding: 'mockDataBinding2',
             },
             readOnly: false,
             required: false,
@@ -53,8 +53,8 @@ describe("components/presentation/NavigationButton.tsx", () => {
             textResourceBindings: {},
           },
           {
-            id: "nav-button-2",
-            type: "NavigationButtons",
+            id: 'nav-button-2',
+            type: 'NavigationButtons',
             textResourceBindings: {},
             dataModelBindings: {},
             readOnly: false,
@@ -63,18 +63,18 @@ describe("components/presentation/NavigationButton.tsx", () => {
         ],
       },
       uiConfig: {
-        currentView: "layout1",
+        currentView: 'layout1',
         autoSave: true,
         focus: null,
         hiddenFields: [],
         repeatingGroups: null,
-        layoutOrder: ["layout1", "layout2"],
+        layoutOrder: ['layout1', 'layout2'],
         navigationConfig: {
           layout1: {
-            next: "layout2",
+            next: 'layout2',
           },
           layout2: {
-            previous: "layout1",
+            previous: 'layout1',
           },
         },
       },
@@ -89,42 +89,42 @@ describe("components/presentation/NavigationButton.tsx", () => {
     mockStore = createStore(mockInitialState);
   });
 
-  test("renders default NavigationButtons component", () => {
+  test('renders default NavigationButtons component', () => {
     render(
       <Provider store={mockStore}>
         <NavigationButtons
-          id="nav-button-1"
+          id='nav-button-1'
           showBackButton={false}
           textResourceBindings={null}
           {...({} as IComponentProps)}
         />
-      </Provider>
+      </Provider>,
     );
 
-    expect(screen.getByText("next")).toBeTruthy();
-    expect(screen.queryByText("back")).toBeFalsy();
+    expect(screen.getByText('next')).toBeTruthy();
+    expect(screen.queryByText('back')).toBeFalsy();
   });
 
-  test("renders NavigationButtons component without back button if there is no previous page", () => {
+  test('renders NavigationButtons component without back button if there is no previous page', () => {
     render(
       <Provider store={mockStore}>
         <NavigationButtons
-          id="nav-button-1"
+          id='nav-button-1'
           showBackButton={true}
           textResourceBindings={null}
           {...({} as IComponentProps)}
         />
-      </Provider>
+      </Provider>,
     );
 
-    expect(screen.getByText("next")).toBeTruthy();
-    expect(screen.queryByText("back")).toBeNull();
+    expect(screen.getByText('next')).toBeTruthy();
+    expect(screen.queryByText('back')).toBeNull();
   });
 
-  test("renders NavigationButtons component with back button if there is a previous page", () => {
+  test('renders NavigationButtons component with back button if there is a previous page', () => {
     const uiConfig = {
       ...mockLayout.uiConfig,
-      currentView: "layout2",
+      currentView: 'layout2',
     };
     const layoutState = getFormLayoutStateMock({
       ...mockLayout,
@@ -139,14 +139,14 @@ describe("components/presentation/NavigationButton.tsx", () => {
     render(
       <Provider store={store}>
         <NavigationButtons
-          id="nav-button-2"
+          id='nav-button-2'
           showBackButton={true}
           textResourceBindings={null}
           {...({} as IComponentProps)}
         />
-      </Provider>
+      </Provider>,
     );
 
-    expect(screen.queryByText("back")).toBeTruthy();
+    expect(screen.queryByText('back')).toBeTruthy();
   });
 });

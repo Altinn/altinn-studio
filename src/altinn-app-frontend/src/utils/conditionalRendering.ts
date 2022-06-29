@@ -2,14 +2,14 @@ import type {
   IAltinnWindow,
   IRepeatingGroup,
   IRepeatingGroups,
-} from "src/types";
-import type { IFormData } from "../features/form/data/formDataReducer";
+} from 'src/types';
+import type { IFormData } from '../features/form/data/formDataReducer';
 import type {
   IConditionalRenderingRule,
   IConditionalRenderingRules,
   IParameters,
   ISelectedFields,
-} from "../features/form/dynamics/types";
+} from '../features/form/dynamics/types';
 
 /*
  * Runs conditional rendering rules, returns array of affected layout elements
@@ -17,7 +17,7 @@ import type {
 export function runConditionalRenderingRules(
   rules: IConditionalRenderingRules,
   formData: IFormData,
-  repeatingGroups?: IRepeatingGroups
+  repeatingGroups?: IRepeatingGroups,
 ): any[] {
   let componentsToHide: string[] = [];
   if (!(window as Window as IAltinnWindow).conditionalRuleHandlerHelper) {
@@ -44,7 +44,7 @@ export function runConditionalRenderingRules(
 
       for (let index = 0; index <= repeatingGroup.index; index++) {
         const connectionCopy: IConditionalRenderingRule = JSON.parse(
-          JSON.stringify(connection)
+          JSON.stringify(connection),
         );
         connectionCopy.inputParams = mapRepeatingGroupIndex({
           ruleObject: connectionCopy.inputParams,
@@ -59,7 +59,7 @@ export function runConditionalRenderingRules(
         if (connection.repeatingGroup.childGroupId) {
           const childGroup: IRepeatingGroup =
             repeatingGroups[
-              connection.repeatingGroup.childGroupId + "-" + index
+              connection.repeatingGroup.childGroupId + '-' + index
             ];
           for (
             let childIndex = 0;
@@ -67,7 +67,7 @@ export function runConditionalRenderingRules(
             childIndex++
           ) {
             const connectionNestedCopy: IConditionalRenderingRule = JSON.parse(
-              JSON.stringify(connectionCopy)
+              JSON.stringify(connectionCopy),
             );
             connectionNestedCopy.inputParams = mapRepeatingGroupIndex({
               ruleObject: connectionCopy.inputParams,
@@ -81,17 +81,17 @@ export function runConditionalRenderingRules(
               nested: true,
             });
             componentsToHide = componentsToHide.concat(
-              runConditionalRenderingRule(connectionNestedCopy, formData)
+              runConditionalRenderingRule(connectionNestedCopy, formData),
             );
           }
         }
         componentsToHide = componentsToHide.concat(
-          runConditionalRenderingRule(connectionCopy, formData)
+          runConditionalRenderingRule(connectionCopy, formData),
         );
       }
     } else {
       componentsToHide = componentsToHide.concat(
-        runConditionalRenderingRule(connection, formData)
+        runConditionalRenderingRule(connection, formData),
       );
     }
   });
@@ -116,8 +116,8 @@ function mapRepeatingGroupIndex({
   Object.keys(ruleObject).forEach((key) => {
     const field = ruleObject[key];
     result[key] = field.replace(
-      nested ? "{1}" : "{0}",
-      dataModelField ? `[${index}]` : `-${index}`
+      nested ? '{1}' : '{0}',
+      dataModelField ? `[${index}]` : `-${index}`,
     );
   });
   return result;
@@ -125,7 +125,7 @@ function mapRepeatingGroupIndex({
 
 function runConditionalRenderingRule(
   rule: IConditionalRenderingRule,
-  formData: IFormData
+  formData: IFormData,
 ) {
   const functionToRun = rule.selectedFunction;
   const componentsToHide: string[] = [];
@@ -141,10 +141,10 @@ function runConditionalRenderingRule(
   }, {});
 
   const result = (window as any).conditionalRuleHandlerObject[functionToRun](
-    newObj
+    newObj,
   );
   const action = rule.selectedAction;
-  const hide = (action === "Show" && !result) || (action === "Hide" && result);
+  const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
   Object.keys(rule.selectedFields).forEach((elementToPerformActionOn) => {
     if (elementToPerformActionOn && hide) {
       const elementId = rule.selectedFields[elementToPerformActionOn];

@@ -1,4 +1,4 @@
-import { createAction } from "@reduxjs/toolkit";
+import { createAction } from '@reduxjs/toolkit';
 import type {
   IFetchFormData,
   IFetchFormDataFulfilled,
@@ -7,39 +7,39 @@ import type {
   IUpdateFormData,
   IUpdateFormDataFulfilled,
   IDeleteAttachmentReference,
-} from "./formDataTypes";
+} from './formDataTypes';
 
-const moduleName = "formData";
+const moduleName = 'formData';
 const FormDataActions = {
   fetchFormData: createAction<IFetchFormData>(`${moduleName}/fetch`),
   fetchFormDataFulfilled: createAction<IFetchFormDataFulfilled>(
-    `${moduleName}/fetchFulfilled`
+    `${moduleName}/fetchFulfilled`,
   ),
   fetchFormDataInitial: createAction(`${moduleName}/fetchInitial`),
   fetchFormDataRejected: createAction<IFormDataRejected>(
-    `${moduleName}/fetchRejected`
+    `${moduleName}/fetchRejected`,
   ),
   saveFormData: createAction(`${moduleName}/save`),
   setFormDataFulfilled: createAction<IFetchFormDataFulfilled>(
-    `${moduleName}/setFormDataFulfilled`
+    `${moduleName}/setFormDataFulfilled`,
   ),
   submitFormData: createAction<ISubmitDataAction>(`${moduleName}/submit`),
   submitFormDataFulfilled: createAction(`${moduleName}/submitFulfilled`),
   submitFormDataRejected: createAction<IFormDataRejected>(
-    `${moduleName}/submitRejected`
+    `${moduleName}/submitRejected`,
   ),
   updateFormData: createAction<IUpdateFormData>(`${moduleName}/update`),
   updateFormDataFulfilled: createAction<IUpdateFormDataFulfilled>(
-    `${moduleName}/updateFulfilled`
+    `${moduleName}/updateFulfilled`,
   ),
   updateFormDataSkipAutosave: createAction<IUpdateFormDataFulfilled>(
-    `${moduleName}/updateSkipAutosave`
+    `${moduleName}/updateSkipAutosave`,
   ),
   updateFormDataRejected: createAction<IFormDataRejected>(
-    `${moduleName}/updateRejected`
+    `${moduleName}/updateRejected`,
   ),
   deleteAttachmentReference: createAction<IDeleteAttachmentReference>(
-    `${moduleName}/deleteAttachmentReference`
+    `${moduleName}/deleteAttachmentReference`,
   ),
 };
 

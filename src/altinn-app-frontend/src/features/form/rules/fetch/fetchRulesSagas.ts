@@ -1,15 +1,15 @@
-import type { SagaIterator } from "redux-saga";
-import { call, takeLatest, select, put } from "redux-saga/effects";
-import type { IInstance } from "altinn-shared/types";
-import type { IApplicationMetadata } from "src/shared/resources/applicationMetadata";
-import { getRulehandlerUrl } from "src/utils/appUrlHelper";
-import { get } from "../../../../utils/networking";
-import { getRuleModelFields } from "../../../../utils/rules";
-import Actions from "../rulesActions";
-import * as ActionTypes from "../rulesActionTypes";
-import { dataTaskQueueError } from "../../../../shared/resources/queue/queueSlice";
-import type { IRuntimeState, ILayoutSets } from "../../../../types";
-import { getLayoutSetIdForApplication } from "../../../../utils/appMetadata";
+import type { SagaIterator } from 'redux-saga';
+import { call, takeLatest, select, put } from 'redux-saga/effects';
+import type { IInstance } from 'altinn-shared/types';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import { getRulehandlerUrl } from 'src/utils/appUrlHelper';
+import { get } from '../../../../utils/networking';
+import { getRuleModelFields } from '../../../../utils/rules';
+import Actions from '../rulesActions';
+import * as ActionTypes from '../rulesActionTypes';
+import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
+import type { IRuntimeState, ILayoutSets } from '../../../../types';
+import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
 
 const layoutSetsSelector = (state: IRuntimeState) =>
   state.formLayout.layoutsets;
@@ -25,16 +25,16 @@ function* fetchRuleModelSaga(): SagaIterator {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
     const application: IApplicationMetadata = yield select(
-      applicationMetadataSelector
+      applicationMetadataSelector,
     );
     const layoutSetId = getLayoutSetIdForApplication(
       application,
       instance,
-      layoutSets
+      layoutSets,
     );
 
     const ruleModel = yield call(get, getRulehandlerUrl(layoutSetId));
-    const scriptEle = window.document.createElement("script");
+    const scriptEle = window.document.createElement('script');
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);
     const ruleModelFields = getRuleModelFields();

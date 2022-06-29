@@ -1,31 +1,31 @@
-import React from "react";
-import { createTheme, makeStyles } from "@material-ui/core";
-import { isMobile } from "react-device-detect";
+import React from 'react';
+import { createTheme, makeStyles } from '@material-ui/core';
+import { isMobile } from 'react-device-detect';
 
-import type { ILanguage } from "altinn-shared/types";
+import type { ILanguage } from 'altinn-shared/types';
 
-import { AltinnPopover } from "altinn-shared/components";
-import { getLanguageFromKey } from "altinn-shared/utils";
-import { AltinnAppTheme } from "altinn-shared/theme";
+import { AltinnPopover } from 'altinn-shared/components';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextPopoverPaper: {
     backgroundColor: theme.altinnPalette.primary.yellowLight,
-    height: "auto",
-    width: "auto",
+    height: 'auto',
+    width: 'auto',
   },
 });
 
 const anchorOrigin = {
-  horizontal: "right",
-  vertical: "bottom",
+  horizontal: 'right',
+  vertical: 'bottom',
 };
 
 const transformOrigin = {
-  horizontal: "left",
-  vertical: "bottom",
+  horizontal: 'left',
+  vertical: 'bottom',
 };
 
 export interface IHelpTextPopoverProps {
@@ -49,7 +49,7 @@ export default function HelpTextPopover({
     <>
       {!!helpIconRef && (
         <AltinnPopover
-          ariaLabel={`${getLanguageFromKey("popover.popover_open", language)}`}
+          ariaLabel={`${getLanguageFromKey('popover.popover_open', language)}`}
           anchorOrigin={anchorOrigin}
           transformOrigin={transformOrigin}
           backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
@@ -62,7 +62,7 @@ export default function HelpTextPopover({
           }}
           descriptionText={helpText}
           closeButton={isMobile} // tmp fix until material-ui fixes https://github.com/mui-org/material-ui/issues/19965
-          closeButtonText={getLanguageFromKey("general.close", language)}
+          closeButtonText={getLanguageFromKey('general.close', language)}
         />
       )}
     </>

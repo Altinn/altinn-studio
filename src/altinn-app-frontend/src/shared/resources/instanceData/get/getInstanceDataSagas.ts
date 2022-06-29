@@ -1,14 +1,14 @@
-import type { SagaIterator } from "redux-saga";
-import { call, takeLatest } from "redux-saga/effects";
-import { get, putWithoutConfig } from "../../../../utils/networking";
+import type { SagaIterator } from 'redux-saga';
+import { call, takeLatest } from 'redux-saga/effects';
+import { get, putWithoutConfig } from '../../../../utils/networking';
 import {
   instancesControllerUrl,
   redirectToUpgrade,
   invalidateCookieUrl,
-} from "../../../../utils/appUrlHelper";
-import InstanceDataActions from "../instanceDataActions";
-import type * as getInstanceDataActions from "./getInstanceDataActions";
-import * as InstanceDataActionTypes from "./getInstanceDataActionTypes";
+} from '../../../../utils/appUrlHelper';
+import InstanceDataActions from '../instanceDataActions';
+import type * as getInstanceDataActions from './getInstanceDataActions';
+import * as InstanceDataActionTypes from './getInstanceDataActionTypes';
 
 export function* getInstanceDataSaga({
   instanceOwner,
@@ -38,6 +38,6 @@ export function* getInstanceDataSaga({
 export function* watchGetInstanceDataSaga(): SagaIterator {
   yield takeLatest(
     InstanceDataActionTypes.GET_INSTANCEDATA,
-    getInstanceDataSaga
+    getInstanceDataSaga,
   );
 }

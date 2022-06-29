@@ -1,6 +1,6 @@
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import type { IAltinnWindow, IMapping } from "src/types";
-import { mapFormData } from "src/utils/databindings";
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IAltinnWindow, IMapping } from 'src/types';
+import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
 const { org, app } = altinnWindow;
@@ -12,7 +12,7 @@ export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
 export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
 export const updateCookieUrl: (partyId: string) => string = (
-  partyId: string
+  partyId: string,
 ) => `
   ${appPath}/api/v1/parties/${partyId}
 `;
@@ -72,16 +72,16 @@ export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
     `https://platform.${getHostname()}` +
     `/authentication/api/v1/authentication?goto=${appPath}`;
   return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(
-    redirect
+    redirect,
   )}&reqAuthLevel=${reqAuthLevel}`;
 }
 
 export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split(".");
+  const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
-  let issParam = "";
-  if (oidcprovider != null && oidcprovider != "") {
+  let issParam = '';
+  if (oidcprovider != null && oidcprovider != '') {
     issParam = `&iss=${oidcprovider}`;
   }
 
@@ -100,23 +100,23 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   }
 
   // TODO: what if altinn3?
-  throw new Error("Unknown domain");
+  throw new Error('Unknown domain');
 };
 
 export const getHostname: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplitted: string[] = window.location.host.split(".");
+  const domainSplitted: string[] = window.location.host.split('.');
   if (domainSplitted.length === 5) {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
   }
   if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
   }
-  if (domainSplitted.length === 2 && domainSplitted[0] === "altinn3local") {
+  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
     // Local test
     return window.location.host;
   }
-  throw new Error("Unknown domain");
+  throw new Error('Unknown domain');
 };
 
 export const redirectToUpgrade = (reqAuthLevel: string) => {

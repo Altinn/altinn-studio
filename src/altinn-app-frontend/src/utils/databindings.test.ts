@@ -1,6 +1,6 @@
-import type { ILayout, ILayoutComponent } from "src/features/form/layout";
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import type { IMapping } from "src/types";
+import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IMapping } from 'src/types';
 
 import {
   flattenObject,
@@ -8,9 +8,9 @@ import {
   getKeyWithoutIndex,
   mapFormData,
   removeGroupData,
-} from "./databindings";
+} from './databindings';
 
-describe("utils/databindings.ts", () => {
+describe('utils/databindings.ts', () => {
   let testObj: any;
   let testFormData: any;
   let testLayout: ILayout;
@@ -19,90 +19,90 @@ describe("utils/databindings.ts", () => {
   beforeEach(() => {
     testObj = {};
     testFormData = {
-      "Group[0].prop1": "value-0-1",
-      "Group[0].prop2": "value-0-2",
-      "Group[0].prop3": "value-0-3",
-      "Group[0].Group2[0].group2prop": "group2-0-1-value",
-      "Group[0].Group2[1].group2prop": "group2-0-2-value",
-      "Group[1].prop1": "value-1-1",
-      "Group[1].prop2": "value-1-2",
-      "Group[1].prop3": "value-1-3",
-      "Group[1].Group2[0].group2prop": "group2-1-1-value",
-      "Group[1].Group2[1].group2prop": "group2-1-2-value",
-      "Group[2].prop1": "value-2-1",
-      "Group[2].prop2": "value-2-2",
-      "Group[2].prop3": "value-2-3",
-      "Group[2].Group2[0].group2prop": "group2-2-1-value",
-      "Group[2].Group2[1].group2prop": "group2-2-2-value",
+      'Group[0].prop1': 'value-0-1',
+      'Group[0].prop2': 'value-0-2',
+      'Group[0].prop3': 'value-0-3',
+      'Group[0].Group2[0].group2prop': 'group2-0-1-value',
+      'Group[0].Group2[1].group2prop': 'group2-0-2-value',
+      'Group[1].prop1': 'value-1-1',
+      'Group[1].prop2': 'value-1-2',
+      'Group[1].prop3': 'value-1-3',
+      'Group[1].Group2[0].group2prop': 'group2-1-1-value',
+      'Group[1].Group2[1].group2prop': 'group2-1-2-value',
+      'Group[2].prop1': 'value-2-1',
+      'Group[2].prop2': 'value-2-2',
+      'Group[2].prop3': 'value-2-3',
+      'Group[2].Group2[0].group2prop': 'group2-2-1-value',
+      'Group[2].Group2[1].group2prop': 'group2-2-2-value',
     };
-    testGroupId = "group-1";
+    testGroupId = 'group-1';
 
     testLayout = [
       {
         id: testGroupId,
-        type: "group",
+        type: 'group',
         dataModelBindings: {
-          group: "Group",
+          group: 'Group',
         },
-        children: ["field1", "field2", "field3", "group2"],
+        children: ['field1', 'field2', 'field3', 'group2'],
         maxCount: 3,
       },
       {
-        id: "group2",
-        type: "Group",
+        id: 'group2',
+        type: 'Group',
         dataModelBindings: {
-          group: "Group.Group2",
+          group: 'Group.Group2',
         },
         maxCount: 4,
-        children: ["field4"],
+        children: ['field4'],
       },
       {
-        id: "field1",
-        type: "Input",
+        id: 'field1',
+        type: 'Input',
         dataModelBindings: {
-          simpleBinding: "Group.prop1",
+          simpleBinding: 'Group.prop1',
         },
         textResourceBindings: {
-          title: "Title",
+          title: 'Title',
         },
         readOnly: false,
         required: false,
         disabled: false,
       } as ILayoutComponent,
       {
-        id: "field2",
-        type: "Input",
+        id: 'field2',
+        type: 'Input',
         dataModelBindings: {
-          simpleBinding: "Group.prop2",
+          simpleBinding: 'Group.prop2',
         },
         textResourceBindings: {
-          title: "Title",
+          title: 'Title',
         },
         readOnly: false,
         required: false,
         disabled: false,
       },
       {
-        id: "field3",
-        type: "Input",
+        id: 'field3',
+        type: 'Input',
         dataModelBindings: {
-          simpleBinding: "Group.prop3",
+          simpleBinding: 'Group.prop3',
         },
         textResourceBindings: {
-          title: "Title",
+          title: 'Title',
         },
         readOnly: false,
         required: false,
         disabled: false,
       },
       {
-        id: "field4",
-        type: "Input",
+        id: 'field4',
+        type: 'Input',
         dataModelBindings: {
-          simpleBinding: "Group.Group2.group2prop",
+          simpleBinding: 'Group.Group2.group2prop',
         },
         textResourceBindings: {
-          title: "Title",
+          title: 'Title',
         },
         readOnly: false,
         required: false,
@@ -111,67 +111,67 @@ describe("utils/databindings.ts", () => {
     ];
   });
 
-  describe("flattenObject", () => {
-    it("should return property of type number as a string", () => {
+  describe('flattenObject', () => {
+    it('should return property of type number as a string', () => {
       testObj.aNumber = 43;
       const result = flattenObject(testObj);
-      expect(typeof result.aNumber).toBe("string");
-      expect(result.aNumber).toBe("43");
+      expect(typeof result.aNumber).toBe('string');
+      expect(result.aNumber).toBe('43');
     });
 
-    it("should return property of type number and value 0 as a string with character zero", () => {
+    it('should return property of type number and value 0 as a string with character zero', () => {
       testObj.aNumber = 0;
       const result = flattenObject(testObj);
-      expect(typeof result.aNumber).toBe("string");
-      expect(result.aNumber).toBe("0");
+      expect(typeof result.aNumber).toBe('string');
+      expect(result.aNumber).toBe('0');
     });
 
-    it("should return property of type number and value -32 as a string with value -32", () => {
+    it('should return property of type number and value -32 as a string with value -32', () => {
       testObj.aNumber = -32;
       const result = flattenObject(testObj);
-      expect(typeof result.aNumber).toBe("string");
-      expect(result.aNumber).toBe("-32");
+      expect(typeof result.aNumber).toBe('string');
+      expect(result.aNumber).toBe('-32');
     });
 
-    it("should flatten object as expected", () => {
+    it('should flatten object as expected', () => {
       testObj = {
         Group: [
           {
-            prop1: "value-0-1",
-            prop2: "value-0-2",
-            prop3: "value-0-3",
+            prop1: 'value-0-1',
+            prop2: 'value-0-2',
+            prop3: 'value-0-3',
             Group2: [
               {
-                group2prop: "group2-0-1-value",
+                group2prop: 'group2-0-1-value',
               },
               {
-                group2prop: "group2-0-2-value",
+                group2prop: 'group2-0-2-value',
               },
             ],
           },
           {
-            prop1: "value-1-1",
-            prop2: "value-1-2",
-            prop3: "value-1-3",
+            prop1: 'value-1-1',
+            prop2: 'value-1-2',
+            prop3: 'value-1-3',
             Group2: [
               {
-                group2prop: "group2-1-1-value",
+                group2prop: 'group2-1-1-value',
               },
               {
-                group2prop: "group2-1-2-value",
+                group2prop: 'group2-1-2-value',
               },
             ],
           },
           {
-            prop1: "value-2-1",
-            prop2: "value-2-2",
-            prop3: "value-2-3",
+            prop1: 'value-2-1',
+            prop2: 'value-2-2',
+            prop3: 'value-2-3',
             Group2: [
               {
-                group2prop: "group2-2-1-value",
+                group2prop: 'group2-2-1-value',
               },
               {
-                group2prop: "group2-2-2-value",
+                group2prop: 'group2-2-2-value',
               },
             ],
           },
@@ -181,36 +181,36 @@ describe("utils/databindings.ts", () => {
       expect(result).toEqual(testFormData);
     });
 
-    it("should flatten nested object as expected", () => {
+    it('should flatten nested object as expected', () => {
       const testObject = {
         person: {
           name: {
-            firstName: "Navn",
-            lastName: "Navnesen",
+            firstName: 'Navn',
+            lastName: 'Navnesen',
           },
         },
       };
 
       const expected = {
-        "person.name.firstName": "Navn",
-        "person.name.lastName": "Navnesen",
+        'person.name.firstName': 'Navn',
+        'person.name.lastName': 'Navnesen',
       };
 
       const result = flattenObject(testObject);
       expect(result).toEqual(expected);
     });
 
-    it("should flatten arrays with primitive types as expected", () => {
+    it('should flatten arrays with primitive types as expected', () => {
       const testObject = {
-        employees: [{ name: "Jane Smith" }, { name: "John Smith" }],
-        industries: ["Carpentry", "Construction"],
+        employees: [{ name: 'Jane Smith' }, { name: 'John Smith' }],
+        industries: ['Carpentry', 'Construction'],
       };
 
       const expected = {
-        "employees[0].name": "Jane Smith",
-        "employees[1].name": "John Smith",
-        "industries[0]": "Carpentry",
-        "industries[1]": "Construction",
+        'employees[0].name': 'Jane Smith',
+        'employees[1].name': 'John Smith',
+        'industries[0]': 'Carpentry',
+        'industries[1]': 'Construction',
       };
 
       const result = flattenObject(testObject);
@@ -218,50 +218,50 @@ describe("utils/databindings.ts", () => {
     });
   });
 
-  describe("removeGroupData", () => {
-    it("should remove form data with the specified index, for the specified group id", () => {
+  describe('removeGroupData', () => {
+    it('should remove form data with the specified index, for the specified group id', () => {
       const result = removeGroupData(testFormData, 1, testLayout, testGroupId, {
         index: 2,
       });
       const expected = {
-        "Group[0].prop1": "value-0-1",
-        "Group[0].prop2": "value-0-2",
-        "Group[0].prop3": "value-0-3",
-        "Group[0].Group2[0].group2prop": "group2-0-1-value",
-        "Group[0].Group2[1].group2prop": "group2-0-2-value",
-        "Group[1].prop1": "value-2-1",
-        "Group[1].prop2": "value-2-2",
-        "Group[1].prop3": "value-2-3",
-        "Group[1].Group2[0].group2prop": "group2-2-1-value",
-        "Group[1].Group2[1].group2prop": "group2-2-2-value",
+        'Group[0].prop1': 'value-0-1',
+        'Group[0].prop2': 'value-0-2',
+        'Group[0].prop3': 'value-0-3',
+        'Group[0].Group2[0].group2prop': 'group2-0-1-value',
+        'Group[0].Group2[1].group2prop': 'group2-0-2-value',
+        'Group[1].prop1': 'value-2-1',
+        'Group[1].prop2': 'value-2-2',
+        'Group[1].prop3': 'value-2-3',
+        'Group[1].Group2[0].group2prop': 'group2-2-1-value',
+        'Group[1].Group2[1].group2prop': 'group2-2-2-value',
       };
       expect(result).toEqual(expected);
     });
   });
 
-  describe("getKeyWithouthIndex", () => {
-    it("should return stripped formdata key for nested groups", () => {
-      const withIndex = "somegroup[0].someprop.someothergroup[2].someotherprop";
-      const expected = "somegroup.someprop.someothergroup.someotherprop";
+  describe('getKeyWithouthIndex', () => {
+    it('should return stripped formdata key for nested groups', () => {
+      const withIndex = 'somegroup[0].someprop.someothergroup[2].someotherprop';
+      const expected = 'somegroup.someprop.someothergroup.someotherprop';
       const result = getKeyWithoutIndex(withIndex);
       expect(result).toEqual(expected);
     });
   });
 
-  describe("mapFormData", () => {
-    it("should map form data according to the defined mapping", () => {
+  describe('mapFormData', () => {
+    it('should map form data according to the defined mapping', () => {
       const mapping: IMapping = {
-        "some.nested.field": "nestedValueField",
-        "nested.group[0].field": "nestedGroupField",
-        "field.does.not.exist": "undefinedField",
+        'some.nested.field': 'nestedValueField',
+        'nested.group[0].field': 'nestedGroupField',
+        'field.does.not.exist': 'undefinedField',
       };
       const formData: IFormData = {
-        "some.nested.field": "nested value",
-        "nested.group[0].field": "nested group value",
+        'some.nested.field': 'nested value',
+        'nested.group[0].field': 'nested group value',
       };
       const expectedResult: object = {
-        nestedValueField: "nested value",
-        nestedGroupField: "nested group value",
+        nestedValueField: 'nested value',
+        nestedGroupField: 'nested group value',
         undefinedField: undefined,
       };
       const result = mapFormData(formData, mapping);
@@ -269,51 +269,51 @@ describe("utils/databindings.ts", () => {
     });
 
     it.each([{}, undefined, null])(
-      "should return an empty object if form data is %p",
+      'should return an empty object if form data is %p',
       (formData) => {
         const mapping: IMapping = {
-          someSource: "someTarget",
+          someSource: 'someTarget',
         };
         expect(mapFormData(formData, mapping)).toEqual({});
-      }
+      },
     );
 
     it.each([undefined, null])(
-      "should return whole form data object if mapping is %p",
+      'should return whole form data object if mapping is %p',
       (mapping) => {
         const formData: IFormData = {
-          someField: "someValue",
-          someOtherField: "someOtherValue",
+          someField: 'someValue',
+          someOtherField: 'someOtherValue',
         };
         expect(mapFormData(formData, mapping)).toEqual(formData);
-      }
+      },
     );
   });
 
-  describe("getFormDataFromFieldKey", () => {
+  describe('getFormDataFromFieldKey', () => {
     const formData = {
-      field1: "value1",
-      "group[0].field": "someValue",
-      "group[1].field": "another value",
+      field1: 'value1',
+      'group[0].field': 'someValue',
+      'group[1].field': 'another value',
     };
-    it("should return correct form data for a field not in a group", () => {
+    it('should return correct form data for a field not in a group', () => {
       const result = getFormDataFromFieldKey(
-        "simpleBinding",
-        { simpleBinding: "field1" },
-        formData
+        'simpleBinding',
+        { simpleBinding: 'field1' },
+        formData,
       );
-      expect(result).toEqual("value1");
+      expect(result).toEqual('value1');
     });
 
-    it("should return correct form data for a field in a group", () => {
+    it('should return correct form data for a field in a group', () => {
       const result = getFormDataFromFieldKey(
-        "simpleBinding",
-        { simpleBinding: "group.field" },
+        'simpleBinding',
+        { simpleBinding: 'group.field' },
         formData,
-        "group",
-        1
+        'group',
+        1,
       );
-      expect(result).toEqual("another value");
+      expect(result).toEqual('another value');
     });
   });
 });

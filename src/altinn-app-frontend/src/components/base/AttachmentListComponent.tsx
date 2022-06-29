@@ -1,9 +1,9 @@
-import * as React from "react";
-import { AltinnAttachment } from "altinn-shared/components";
-import { mapInstanceAttachments } from "altinn-shared/utils";
-import { Grid, Typography } from "@material-ui/core";
-import { useAppSelector } from "src/common/hooks";
-import type { IComponentProps } from "..";
+import * as React from 'react';
+import { AltinnAttachment } from 'altinn-shared/components';
+import { mapInstanceAttachments } from 'altinn-shared/utils';
+import { Grid, Typography } from '@material-ui/core';
+import { useAppSelector } from 'src/common/hooks';
+import type { IComponentProps } from '..';
 
 export interface IAttachmentListProps extends IComponentProps {
   dataTypeIds?: string[];
@@ -11,7 +11,7 @@ export interface IAttachmentListProps extends IComponentProps {
 
 export function AttachmentListComponent(props: IAttachmentListProps) {
   const currentTaskId = useAppSelector(
-    (state) => state.instanceData.instance.process.currentTask.elementId
+    (state) => state.instanceData.instance.process.currentTask.elementId,
   );
   const dataForTask = useAppSelector((state) => {
     const dataTypes =
@@ -37,11 +37,11 @@ export function AttachmentListComponent(props: IAttachmentListProps) {
       state.applicationMetadata.applicationMetadata.dataTypes.filter(
         (dataType) => {
           return dataType.appLogic && dataType.taskId === currentTaskId;
-        }
+        },
       );
     return mapInstanceAttachments(
       dataForTask,
-      appLogicDataTypes.map((type) => type.id)
+      appLogicDataTypes.map((type) => type.id),
     );
   });
 
@@ -51,10 +51,10 @@ export function AttachmentListComponent(props: IAttachmentListProps) {
       xs={12}
     >
       <Typography
-        className="attachmentList-title"
-        component="span"
+        className='attachmentList-title'
+        component='span'
       >
-        {props.text || ""}
+        {props.text || ''}
       </Typography>
       <AltinnAttachment attachments={attachments} />
     </Grid>

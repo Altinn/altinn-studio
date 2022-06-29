@@ -32,9 +32,15 @@ describe('LandmarkShortcuts.tsx', () => {
     };
     render(
       <>
-        <LandmarkShortcuts {...defaultProps} {...props} />
+        <LandmarkShortcuts
+          {...defaultProps}
+          {...props}
+        />
         <main id='main-content'></main>
-        <div id='other-content' tabIndex={-2}></div>
+        <div
+          id='other-content'
+          tabIndex={-2}
+        ></div>
       </>,
     );
   }

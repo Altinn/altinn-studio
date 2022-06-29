@@ -1,11 +1,11 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { IApplicationMetadata } from "..";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { IApplicationMetadata } from '..';
 import type {
   IGetApplicationMetadataFulfilled,
   IGetApplicationMetadataRejected,
-} from "../actions/get";
-import * as ApplicationMetadataActionTypes from "../actions/types";
+} from '../actions/get';
+import * as ApplicationMetadataActionTypes from '../actions/types';
 
 export interface IApplicationMetadataState {
   applicationMetadata: IApplicationMetadata;
@@ -19,7 +19,7 @@ const initialState: IApplicationMetadataState = {
 
 const applicationMetadataReducer: Reducer<IApplicationMetadataState> = (
   state: IApplicationMetadataState = initialState,
-  action?: Action
+  action?: Action,
 ): IApplicationMetadataState => {
   if (!action) {
     return state;

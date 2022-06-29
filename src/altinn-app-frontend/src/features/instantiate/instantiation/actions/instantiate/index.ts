@@ -1,5 +1,5 @@
-import type { Action } from "redux";
-import * as ActionTypes from "../types";
+import type { Action } from 'redux';
+import * as ActionTypes from '../types';
 
 export interface IInstantiate extends Action {
   org: string;
@@ -19,7 +19,7 @@ export interface IInstantiateFulfilled extends Action {
 }
 
 export function instantiateFulfilled(
-  instanceId: string
+  instanceId: string,
 ): IInstantiateFulfilled {
   return {
     type: ActionTypes.INSTANTIATE_FULFILLED,

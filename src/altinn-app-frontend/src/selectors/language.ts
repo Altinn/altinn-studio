@@ -1,6 +1,6 @@
-import { getAppName, getAppOwner } from "altinn-shared/utils";
-import { createSelector } from "reselect";
-import type { IRuntimeState } from "src/types";
+import { getAppName, getAppOwner } from 'altinn-shared/utils';
+import { createSelector } from 'reselect';
+import type { IRuntimeState } from 'src/types';
 
 const selectTextResources = (state: IRuntimeState) =>
   state.textResources.resources;
@@ -18,7 +18,7 @@ export const selectAppName = createSelector(
   selectApplicationMetadata,
   selectUserLanguage,
   (textResources, applicationMetadata, userLanguage) =>
-    getAppName(textResources, applicationMetadata, userLanguage)
+    getAppName(textResources, applicationMetadata, userLanguage),
 );
 
 export const selectAppOwner = createSelector(
@@ -27,5 +27,5 @@ export const selectAppOwner = createSelector(
   selectOrg,
   selectUserLanguage,
   (textResources, allOrgs, org, userLanguage) =>
-    getAppOwner(textResources, allOrgs, org, userLanguage)
+    getAppOwner(textResources, allOrgs, org, userLanguage),
 );

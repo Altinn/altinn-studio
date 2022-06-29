@@ -1,15 +1,15 @@
-import type { ILanguage, ITextResource } from "altinn-shared/types";
-import React from "react";
-import { useAppSelector } from "src/common/hooks";
-import { getTextFromAppOrDefault } from "src/utils/textResource";
-import { Panel } from "src/features/form/components/Panel";
+import type { ILanguage, ITextResource } from 'altinn-shared/types';
+import React from 'react';
+import { useAppSelector } from 'src/common/hooks';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { Panel } from 'src/features/form/components/Panel';
 
 export interface ISoftValidationProps {
   children: React.ReactNode;
   variant: SoftValidationVariant;
 }
 
-export type SoftValidationVariant = "warning" | "info" | "success";
+export type SoftValidationVariant = 'warning' | 'info' | 'success';
 
 interface IGetPanelTitleProps {
   variant: SoftValidationVariant;
@@ -23,29 +23,29 @@ export const getPanelTitle = ({
   language,
 }: IGetPanelTitleProps) => {
   switch (variant) {
-    case "warning":
+    case 'warning':
       return getTextFromAppOrDefault(
-        "soft_validation.warning_title",
+        'soft_validation.warning_title',
         textResources,
         language,
         undefined,
-        true
+        true,
       );
-    case "info":
+    case 'info':
       return getTextFromAppOrDefault(
-        "soft_validation.info_title",
+        'soft_validation.info_title',
         textResources,
         language,
         undefined,
-        true
+        true,
       );
-    case "success":
+    case 'success':
       return getTextFromAppOrDefault(
-        "soft_validation.success_title",
+        'soft_validation.success_title',
         textResources,
         language,
         undefined,
-        true
+        true,
       );
   }
 };
@@ -53,7 +53,7 @@ export const getPanelTitle = ({
 export function SoftValidations({ variant, children }: ISoftValidationProps) {
   const language = useAppSelector((state) => state.language.language);
   const textResources = useAppSelector(
-    (state) => state.textResources.resources
+    (state) => state.textResources.resources,
   );
 
   return (

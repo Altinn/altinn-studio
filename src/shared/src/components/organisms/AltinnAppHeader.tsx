@@ -86,7 +86,11 @@ export function AltinnAppHeader({
         className={classes.mainContent}
         alignItems='center'
       >
-        <Grid container={true} item={true} xs={6}>
+        <Grid
+          container={true}
+          item={true}
+          xs={6}
+        >
           <Grid item={true}>
             <AltinnLogo color={logoColor} />
           </Grid>
@@ -105,7 +109,11 @@ export function AltinnAppHeader({
               </Typography>
             )}
             {party && userParty && party.partyId !== userParty.partyId && (
-              <Grid container={true} direction='column' alignItems='flex-end'>
+              <Grid
+                container={true}
+                direction='column'
+                alignItems='flex-end'
+              >
                 <Grid item={true}>
                   <Typography className={classes.appHeaderText}>
                     {renderPartyName(userParty)}

@@ -1,10 +1,10 @@
-import * as React from "react";
-import type { GridJustification } from "@material-ui/core";
-import { Grid, makeStyles } from "@material-ui/core";
-import { HelpTextContainer } from "src/features/form/components/HelpTextContainer";
-import type { IAltinnWindow } from "../../types";
-import { useAppSelector } from "src/common/hooks";
-import type { IComponentProps } from "..";
+import * as React from 'react';
+import type { GridJustification } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import type { IAltinnWindow } from '../../types';
+import { useAppSelector } from 'src/common/hooks';
+import type { IComponentProps } from '..';
 
 export interface IImageProps extends IComponentProps {
   image: IImage;
@@ -25,44 +25,44 @@ export interface IImagesrc {
 
 const useStyles = makeStyles({
   spacing: {
-    letterSpacing: "0.3px",
+    letterSpacing: '0.3px',
   },
 });
 
 export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
   const language = useAppSelector(
-    (state) => state.profile.profile?.profileSettingPreference.language || "nb"
+    (state) => state.profile.profile?.profileSettingPreference.language || 'nb',
   );
-  const width = props.image.width || "100%";
-  const align = props.image.align || "center";
+  const width = props.image.width || '100%';
+  const align = props.image.align || 'center';
   const altText = props.getTextResourceAsString(
-    props.textResourceBindings.altTextImg
+    props.textResourceBindings.altTextImg,
   );
 
   let imgSrc = props.image.src[language] || props.image.src.nb;
-  if (imgSrc.startsWith("wwwroot")) {
+  if (imgSrc.startsWith('wwwroot')) {
     imgSrc = imgSrc.replace(
-      "wwwroot",
+      'wwwroot',
       `/${(window as Window as IAltinnWindow).org}/${
         (window as Window as IAltinnWindow).app
-      }`
+      }`,
     );
   }
 
   const imgType = imgSrc.slice(-3);
-  const renderSvg = imgType.toLowerCase() === "svg";
+  const renderSvg = imgType.toLowerCase() === 'svg';
 
   return (
     <Grid
       container
-      direction="row"
+      direction='row'
       justify={align}
     >
       <Grid item={true}>
         {renderSvg ? (
           <object
-            type="image/svg+xml"
+            type='image/svg+xml'
             id={props.id}
             data={imgSrc}
           >

@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { IProfile } from "altinn-shared/types";
-import * as ActionTypes from "./fetchProfileActionTypes";
+import type { Action } from 'redux';
+import type { IProfile } from 'altinn-shared/types';
+import * as ActionTypes from './fetchProfileActionTypes';
 
 export interface IFetchProfile extends Action {
   url: string;
@@ -22,7 +22,7 @@ export function fetchProfile(url: string): IFetchProfile {
 }
 
 export function fetchProfileFulfilled(
-  profile: IProfile
+  profile: IProfile,
 ): IFetchProfileFulfilled {
   return {
     type: ActionTypes.FETCH_PROFILE_FULFILLED,

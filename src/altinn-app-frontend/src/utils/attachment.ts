@@ -1,23 +1,23 @@
-import type { IData } from "altinn-shared/types";
-import type { IAttachments } from "../shared/resources/attachments";
-import type { IFormData } from "src/features/form/data/formDataReducer";
-import { getKeyIndex, deleteGroupData } from "src/utils/databindings";
+import type { IData } from 'altinn-shared/types';
+import type { IAttachments } from '../shared/resources/attachments';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
+import { getKeyIndex, deleteGroupData } from 'src/utils/databindings';
 import type {
   ILayouts,
   ILayoutComponent,
   ILayoutGroup,
-} from "src/features/form/layout";
+} from 'src/features/form/layout';
 import {
   isFileUploadComponent,
   isFileUploadWithTagComponent,
   splitDashedKey,
-} from "src/utils/formLayout";
+} from 'src/utils/formLayout';
 
 export function mapAttachmentListToAttachments(
   data: IData[],
   defaultElementId: string,
   formData: IFormData,
-  layouts: ILayouts
+  layouts: ILayouts,
 ): IAttachments {
   const attachments: IAttachments = {};
   const allComponents = [].concat(...Object.values(layouts)) as (
@@ -29,7 +29,7 @@ export function mapAttachmentListToAttachments(
     const baseComponentId = element.dataType;
     if (
       element.id === defaultElementId ||
-      baseComponentId === "ref-data-as-pdf"
+      baseComponentId === 'ref-data-as-pdf'
     ) {
       return;
     }
@@ -47,7 +47,7 @@ export function mapAttachmentListToAttachments(
       baseComponentId,
       formData,
       element.id,
-      component.maxNumberOfAttachments > 1
+      component.maxNumberOfAttachments > 1,
     );
 
     if (!key) {
@@ -77,14 +77,14 @@ function convertToDashedComponentId(
   baseComponentId: string,
   formData: IFormData,
   attachmentUuid: string,
-  hasIndex: boolean
+  hasIndex: boolean,
 ): [string, number] {
   const formDataKey = Object.keys(formData).find(
-    (key) => formData[key] === attachmentUuid
+    (key) => formData[key] === attachmentUuid,
   );
 
   if (!formDataKey) {
-    return ["", 0];
+    return ['', 0];
   }
 
   const groups = getKeyIndex(formDataKey);
@@ -93,13 +93,13 @@ function convertToDashedComponentId(
   if (hasIndex) {
     const groupSuffix =
       groups.length > 1
-        ? `-${groups.slice(0, groups.length - 1).join("-")}`
-        : "";
+        ? `-${groups.slice(0, groups.length - 1).join('-')}`
+        : '';
 
     componentId = `${baseComponentId}${groupSuffix}`;
     index = groups[groups.length - 1];
   } else {
-    const groupSuffix = groups.length ? `-${groups.join("-")}` : "";
+    const groupSuffix = groups.length ? `-${groups.join('-')}` : '';
 
     componentId = `${baseComponentId}${groupSuffix}`;
     index = 0;
@@ -110,24 +110,24 @@ function convertToDashedComponentId(
 
 export function getFileEnding(filename: string): string {
   if (!filename) {
-    return "";
+    return '';
   }
-  const split: string[] = filename.split(".");
+  const split: string[] = filename.split('.');
   if (split.length === 1) {
-    return "";
+    return '';
   }
   return `.${split[split.length - 1]}`;
 }
 
 export function removeFileEnding(filename: string): string {
   if (!filename) {
-    return "";
+    return '';
   }
-  const split: string[] = filename.split(".");
+  const split: string[] = filename.split('.');
   if (split.length === 1) {
     return filename;
   }
-  return filename.replace(`.${split[split.length - 1]}`, "");
+  return filename.replace(`.${split[split.length - 1]}`, '');
 }
 
 /**
@@ -138,7 +138,7 @@ export function shiftAttachmentRowInRepeatingGroup(
   attachments: IAttachments,
   uploaderComponents: ILayoutComponent[],
   groupId: string,
-  index: number
+  index: number,
 ): IAttachments {
   const result = { ...attachments };
   const splitId = splitDashedKey(groupId);
@@ -150,7 +150,7 @@ export function shiftAttachmentRowInRepeatingGroup(
     if (lookForComponents.has(thisSplitId.baseComponentId)) {
       lastIndex = Math.max(
         lastIndex,
-        thisSplitId.depth[splitId.depth.length] || -1
+        thisSplitId.depth[splitId.depth.length] || -1,
       );
     }
   }
@@ -162,7 +162,7 @@ export function shiftAttachmentRowInRepeatingGroup(
         componentId + splitId.stringDepthWithLeadingDash,
         laterIdx,
         false,
-        true
+        true,
       );
     }
   }

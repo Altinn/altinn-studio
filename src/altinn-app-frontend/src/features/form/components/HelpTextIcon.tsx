@@ -1,20 +1,20 @@
-import React from "react";
-import { createTheme, makeStyles } from "@material-ui/core";
+import React from 'react';
+import { createTheme, makeStyles } from '@material-ui/core';
 
-import type { ILanguage } from "altinn-shared/types";
+import type { ILanguage } from 'altinn-shared/types';
 
-import { getLanguageFromKey } from "altinn-shared/utils";
-import { AltinnAppTheme } from "altinn-shared/theme";
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const theme = createTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {
-    fontSize: "3rem",
+    fontSize: '3rem',
     color: theme.altinnPalette.primary.blueDarker,
-    "&:hover": {
+    '&:hover': {
       color: theme.altinnPalette.primary.blueDark,
-      cursor: "pointer",
+      cursor: 'pointer',
     },
   },
 });
@@ -43,16 +43,16 @@ export default function HelpTextIcon({
         onClick={onPopoverClick}
         onKeyPress={onPopoverKeypress}
         ref={helpIconRef}
-        role="button"
+        role='button'
         aria-label={getLanguageFromKey(
-          "popover.popover_button_helptext",
-          language
+          'popover.popover_button_helptext',
+          language,
         )}
         aria-hidden={false}
       >
         <i
           className={`${classes.helpTextIcon} ${
-            openPopover ? "reg reg-help-filled" : "reg reg-help-outline"
+            openPopover ? 'reg reg-help-filled' : 'reg reg-help-outline'
           }`}
         />
       </span>

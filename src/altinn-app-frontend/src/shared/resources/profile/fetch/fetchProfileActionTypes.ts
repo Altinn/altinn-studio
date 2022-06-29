@@ -1,4 +1,4 @@
-const moduleName = "PROFILE";
+const moduleName = 'PROFILE';
 
 // Fetch JSON file actions
 export const FETCH_PROFILE = `${moduleName}.FETCH_PROFILE`;

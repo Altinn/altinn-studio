@@ -1,8 +1,8 @@
-import * as React from "react";
-import { Grid, makeStyles, Typography } from "@material-ui/core";
-import cn from "classnames";
-import { EditButton } from "src/components/summary/EditButton";
-import appTheme from "altinn-shared/theme/altinnAppTheme";
+import * as React from 'react';
+import { Grid, makeStyles, Typography } from '@material-ui/core';
+import cn from 'classnames';
+import { EditButton } from 'src/components/summary/EditButton';
+import appTheme from 'altinn-shared/theme/altinnAppTheme';
 
 interface SummaryBoilerplateProps {
   hasValidationMessages?: boolean;
@@ -15,15 +15,15 @@ interface SummaryBoilerplateProps {
 const useStyles = makeStyles({
   label: {
     fontWeight: 500,
-    fontSize: "1.8rem",
-    "& p": {
+    fontSize: '1.8rem',
+    '& p': {
       fontWeight: 500,
-      fontSize: "1.8rem",
+      fontSize: '1.8rem',
     },
   },
   labelWithError: {
     color: appTheme.altinnPalette.primary.red,
-    "& p": {
+    '& p': {
       color: appTheme.altinnPalette.primary.red,
     },
   },
@@ -42,16 +42,16 @@ export default function SummaryBoilerplate({
         item={true}
         xs={10}
         {...(hasValidationMessages && {
-          "data-testid": "has-validation-message",
+          'data-testid': 'has-validation-message',
         })}
       >
         <Typography
-          variant="body1"
+          variant='body1'
           className={cn(
             classes.label,
-            hasValidationMessages && classes.labelWithError
+            hasValidationMessages && classes.labelWithError,
           )}
-          component="span"
+          component='span'
         >
           {label}
         </Typography>

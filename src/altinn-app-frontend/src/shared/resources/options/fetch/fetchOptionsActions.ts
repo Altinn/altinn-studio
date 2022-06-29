@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { IOptionsMetaData, IOption } from "src/types";
-import * as fetchOptionsActionTypes from "./fetchOptionsActionTypes";
+import type { Action } from 'redux';
+import type { IOptionsMetaData, IOption } from 'src/types';
+import * as fetchOptionsActionTypes from './fetchOptionsActionTypes';
 
 export interface IFetchOptionsFulfilledAction extends Action {
   optionsKey: string;
@@ -25,7 +25,7 @@ export function fetchOptions(): Action {
 
 export function fetchingOptions(
   optionsKey: string,
-  optionMetaData: IOptionsMetaData
+  optionMetaData: IOptionsMetaData,
 ): IFetchingOptionsAction {
   return {
     type: fetchOptionsActionTypes.FETCHING_OPTION,
@@ -36,7 +36,7 @@ export function fetchingOptions(
 
 export function fetchOptionsFulfilled(
   optionsKey: string,
-  options: IOption[]
+  options: IOption[],
 ): IFetchOptionsFulfilledAction {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS_FULFILLED,
@@ -47,7 +47,7 @@ export function fetchOptionsFulfilled(
 
 export function fetchOptionsRejected(
   optionsKey: string,
-  error: Error
+  error: Error,
 ): IFetchOptionsRejectedAction {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS_REJECTED,

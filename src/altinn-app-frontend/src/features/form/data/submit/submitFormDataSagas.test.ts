@@ -1,51 +1,51 @@
-import { call, select } from "redux-saga/effects";
-import { expectSaga } from "redux-saga-test-plan";
+import { call, select } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
 
 import {
   getFormDataStateMock,
   getInitialStateMock,
   getInstanceDataStateMock,
-} from "../../../../../__mocks__/mocks";
+} from '../../../../../__mocks__/mocks';
 
-import type { IRuntimeState } from "src/types";
-import type { IInstanceDataState } from "src/shared/resources/instanceData/instanceDataReducers";
-import type { IData } from "../../../../../../shared/src";
+import type { IRuntimeState } from 'src/types';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData/instanceDataReducers';
+import type { IData } from '../../../../../../shared/src';
 
-import { convertDataBindingToModel } from "src/utils/databindings";
-import FormDataActions from "../formDataActions";
-import FormDynamicsActions from "../../dynamics/formDynamicsActions";
-import { put } from "../../../../../../shared/src/utils/networking";
-import { post } from "src/utils/networking";
+import { convertDataBindingToModel } from 'src/utils/databindings';
+import FormDataActions from '../formDataActions';
+import FormDynamicsActions from '../../dynamics/formDynamicsActions';
+import { put } from '../../../../../../shared/src/utils/networking';
+import { post } from 'src/utils/networking';
 import {
   dataElementUrl,
   getStatelessFormDataUrl,
-} from "src/utils/appUrlHelper";
+} from 'src/utils/appUrlHelper';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
-} from "src/utils/appMetadata";
+} from 'src/utils/appMetadata';
 import {
   saveFormDataSaga,
   putFormData,
   saveStatelessData,
   allowAnonymousSelector,
-} from "./submitFormDataSagas";
+} from './submitFormDataSagas';
 
-describe("submitFormDataSagas", () => {
+describe('submitFormDataSagas', () => {
   let stateMock: IRuntimeState;
   beforeEach(() => {
     stateMock = getInitialStateMock();
   });
 
-  it("saveFormDataSaga", () => {
+  it('saveFormDataSaga', () => {
     const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
     const dataElement: IData = {
-      id: "test-data-element-1",
+      id: 'test-data-element-1',
       instanceGuid: instanceDataMock.instance.id,
-      dataType: "test-data-model",
-      filename: "testData1.pdf",
-      contentType: "application/pdf",
-      blobStoragePath: "",
+      dataType: 'test-data-model',
+      filename: 'testData1.pdf',
+      contentType: 'application/pdf',
+      blobStoragePath: '',
       selfLinks: {
         apps: null,
         platform: null,
@@ -53,10 +53,10 @@ describe("submitFormDataSagas", () => {
       size: 1234,
       locked: false,
       refs: [],
-      created: new Date("2021-01-01"),
-      createdBy: "testUser",
-      lastChanged: new Date("2021-01-01"),
-      lastChangedBy: "testUser",
+      created: new Date('2021-01-01'),
+      createdBy: 'testUser',
+      lastChanged: new Date('2021-01-01'),
+      lastChangedBy: 'testUser',
     };
     const mockInstanceData: IInstanceDataState = {
       ...instanceDataMock,
@@ -70,8 +70,8 @@ describe("submitFormDataSagas", () => {
       instanceData: mockInstanceData,
       formData: getFormDataStateMock({
         formData: {
-          field1: "value1",
-          field2: "123",
+          field1: 'value1',
+          field2: '123',
         },
       }),
     };
@@ -79,7 +79,7 @@ describe("submitFormDataSagas", () => {
     const model = convertDataBindingToModel(state.formData.formData);
     const defaultDataElementGuid = getCurrentTaskDataElementId(
       state.applicationMetadata.applicationMetadata,
-      state.instanceData.instance
+      state.instanceData.instance,
     );
     return expectSaga(saveFormDataSaga)
       .provide([
@@ -91,10 +91,10 @@ describe("submitFormDataSagas", () => {
       .run();
   });
 
-  it("saveFormDataSaga for stateless app", () => {
+  it('saveFormDataSaga for stateless app', () => {
     const formData = {
-      field1: "value1",
-      field2: "abc",
+      field1: 'value1',
+      field2: 'abc',
     };
     const state: IRuntimeState = {
       ...stateMock,
@@ -102,7 +102,7 @@ describe("submitFormDataSagas", () => {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
           ...stateMock.applicationMetadata.applicationMetadata,
-          onEntry: { show: "stateless" },
+          onEntry: { show: 'stateless' },
         },
       },
       formData: {
@@ -114,8 +114,8 @@ describe("submitFormDataSagas", () => {
         layoutsets: {
           sets: [
             {
-              id: "stateless",
-              dataType: "test-data-model",
+              id: 'stateless',
+              dataType: 'test-data-model',
               tasks: [],
             },
           ],
@@ -143,13 +143,13 @@ describe("submitFormDataSagas", () => {
                 party: `partyid:${stateMock.party.selectedParty.partyId}`,
               },
             },
-            model
+            model,
           ),
           {
             data: {
               ...formData,
               group: {
-                field1: "value1",
+                field1: 'value1',
               },
             },
           },
@@ -160,19 +160,19 @@ describe("submitFormDataSagas", () => {
         FormDataActions.fetchFormDataFulfilled({
           formData: {
             ...formData,
-            "group.field1": "value1",
+            'group.field1': 'value1',
           },
-        })
+        }),
       )
       .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
       .put(FormDataActions.submitFormDataFulfilled())
       .run();
   });
 
-  it("saveFormDataSaga for stateless app with allowAnonymous", () => {
+  it('saveFormDataSaga for stateless app with allowAnonymous', () => {
     const formData = {
-      field1: "value1",
-      field2: "abc",
+      field1: 'value1',
+      field2: 'abc',
     };
     const state: IRuntimeState = {
       ...stateMock,
@@ -180,7 +180,7 @@ describe("submitFormDataSagas", () => {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
           ...stateMock.applicationMetadata.applicationMetadata,
-          onEntry: { show: "stateless" },
+          onEntry: { show: 'stateless' },
         },
       },
       formData: {
@@ -192,8 +192,8 @@ describe("submitFormDataSagas", () => {
         layoutsets: {
           sets: [
             {
-              id: "stateless",
-              dataType: "test-data-model",
+              id: 'stateless',
+              dataType: 'test-data-model',
               tasks: [],
             },
           ],
@@ -217,13 +217,13 @@ describe("submitFormDataSagas", () => {
             post,
             getStatelessFormDataUrl(currentDataType, true),
             undefined,
-            model
+            model,
           ),
           {
             data: {
               ...formData,
               group: {
-                field1: "value1",
+                field1: 'value1',
               },
             },
           },
@@ -234,9 +234,9 @@ describe("submitFormDataSagas", () => {
         FormDataActions.fetchFormDataFulfilled({
           formData: {
             ...formData,
-            "group.field1": "value1",
+            'group.field1': 'value1',
           },
-        })
+        }),
       )
       .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
       .put(FormDataActions.submitFormDataFulfilled())

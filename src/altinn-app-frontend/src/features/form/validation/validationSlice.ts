@@ -1,10 +1,10 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAction, createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 import type {
   IComponentValidations,
   ICurrentSingleFieldValidation,
   IValidations,
-} from "src/types";
+} from 'src/types';
 
 export interface IValidationState {
   validations: IValidations;
@@ -41,7 +41,7 @@ export const initialState: IValidationState = {
   currentSingleFieldValidation: {},
 };
 
-const moduleName = "validation";
+const moduleName = 'validation';
 
 const validationSlice = createSlice({
   name: moduleName,
@@ -49,21 +49,21 @@ const validationSlice = createSlice({
   reducers: {
     runSingleFieldValidationFulfilled: (
       state: IValidationState,
-      action: PayloadAction<IUpdateValidations>
+      action: PayloadAction<IUpdateValidations>,
     ) => {
       const { validations } = action.payload;
       state.validations = validations;
     },
     runSingleFieldValidationRejected: (
       state: IValidationState,
-      action: PayloadAction<IValidationActionRejected>
+      action: PayloadAction<IValidationActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
     setCurrentSingleFieldValidation: (
       state: IValidationState,
-      action: PayloadAction<ISetCurrentSingleFieldValidationAction>
+      action: PayloadAction<ISetCurrentSingleFieldValidationAction>,
     ) => {
       const { dataModelBinding, componentId, layoutId } = action.payload;
       state.currentSingleFieldValidation = {
@@ -74,7 +74,7 @@ const validationSlice = createSlice({
     },
     updateComponentValidations: (
       state: IValidationState,
-      action: PayloadAction<IUpdateComponentValidations>
+      action: PayloadAction<IUpdateComponentValidations>,
     ) => {
       const { layoutId, validations, componentId, invalidDataTypes } =
         action.payload;
@@ -88,7 +88,7 @@ const validationSlice = createSlice({
     },
     updateValidations: (
       state: IValidationState,
-      action: PayloadAction<IUpdateValidations>
+      action: PayloadAction<IUpdateValidations>,
     ) => {
       const { validations } = action.payload;
       state.validations = validations;
@@ -97,7 +97,7 @@ const validationSlice = createSlice({
 });
 
 export const runSingleFieldValidation = createAction(
-  `${moduleName}/runSingleFieldValidation`
+  `${moduleName}/runSingleFieldValidation`,
 );
 
 export const {

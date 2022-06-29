@@ -1,48 +1,48 @@
-import { expectSaga } from "redux-saga-test-plan";
+import { expectSaga } from 'redux-saga-test-plan';
 import {
   deleteAttachmentReferenceSaga,
   SelectFormData,
   SelectLayouts,
   SelectAttachments,
   SelectCurrentView,
-} from "src/features/form/data/update/updateFormDataSagas";
-import type { PayloadAction } from "@reduxjs/toolkit";
-import type { IDeleteAttachmentReference } from "src/features/form/data/formDataTypes";
-import { select } from "redux-saga/effects";
-import { getInitialStateMock } from "../../../../../__mocks__/mocks";
-import type { IRuntimeState, IDataModelBindings } from "src/types";
-import FormDataActions from "src/features/form/data/formDataActions";
+} from 'src/features/form/data/update/updateFormDataSagas';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { IDeleteAttachmentReference } from 'src/features/form/data/formDataTypes';
+import { select } from 'redux-saga/effects';
+import { getInitialStateMock } from '../../../../../__mocks__/mocks';
+import type { IRuntimeState, IDataModelBindings } from 'src/types';
+import FormDataActions from 'src/features/form/data/formDataActions';
 import type {
   IAttachments,
   IAttachment,
-} from "src/shared/resources/attachments";
+} from 'src/shared/resources/attachments';
 
-describe("updateFormDataSagas", () => {
+describe('updateFormDataSagas', () => {
   const testDeleteAttachmentReferenceSaga =
     (
       formDataBefore: any,
       formDataAfter: any,
       attachmentState: IAttachments,
       componentId: string,
-      dataBinding: IDataModelBindings
+      dataBinding: IDataModelBindings,
     ) =>
     () => {
       const state: IRuntimeState = getInitialStateMock();
       state.formData.formData = {
-        SomethingElse: "value",
+        SomethingElse: 'value',
         ...formDataBefore,
       };
       state.attachments.attachments = attachmentState;
 
       const expectedUpdatedFormData = {
-        SomethingElse: "value",
+        SomethingElse: 'value',
         ...formDataAfter,
       };
 
       const action: PayloadAction<IDeleteAttachmentReference> = {
-        type: "formData/deleteAttachmentReference",
+        type: 'formData/deleteAttachmentReference',
         payload: {
-          attachmentId: "abc123",
+          attachmentId: 'abc123',
           componentId: componentId,
           dataModelBindings: dataBinding,
         },
@@ -58,7 +58,7 @@ describe("updateFormDataSagas", () => {
         .put(
           FormDataActions.setFormDataFulfilled({
             formData: expectedUpdatedFormData,
-          })
+          }),
         )
         .put(FormDataActions.saveFormData())
         .run();
@@ -71,42 +71,42 @@ describe("updateFormDataSagas", () => {
     size: 1234,
     tags: [],
     updating: false,
-    name: "someFile.pdf",
+    name: 'someFile.pdf',
   });
 
   it(
-    "deleteAttachmentReferenceSaga works for simple components",
+    'deleteAttachmentReferenceSaga works for simple components',
     testDeleteAttachmentReferenceSaga(
-      { MyAttachment: "abc123" },
+      { MyAttachment: 'abc123' },
       {},
-      { component1: [makeAttachment("abc123")] },
-      "component1",
-      { simpleBinding: "MyAttachment" }
-    )
+      { component1: [makeAttachment('abc123')] },
+      'component1',
+      { simpleBinding: 'MyAttachment' },
+    ),
   );
 
   it(
-    "deleteAttachmentReferenceSaga works for list binding",
+    'deleteAttachmentReferenceSaga works for list binding',
     testDeleteAttachmentReferenceSaga(
-      { "MyAttachment[0]": "abc123", "MyAttachment[1]": "def456" },
-      { "MyAttachment[0]": "def456" },
-      { component1: [makeAttachment("abc123"), makeAttachment("def456")] },
-      "component1",
-      { list: "MyAttachment" }
-    )
+      { 'MyAttachment[0]': 'abc123', 'MyAttachment[1]': 'def456' },
+      { 'MyAttachment[0]': 'def456' },
+      { component1: [makeAttachment('abc123'), makeAttachment('def456')] },
+      'component1',
+      { list: 'MyAttachment' },
+    ),
   );
 
   it(
-    "deleteAttachmentReferenceSaga works for list binding in repeating group",
+    'deleteAttachmentReferenceSaga works for list binding in repeating group',
     testDeleteAttachmentReferenceSaga(
       {
-        "Group[0].MyAttachment[0]": "abc123",
-        "Group[0].MyAttachment[1]": "def456",
+        'Group[0].MyAttachment[0]': 'abc123',
+        'Group[0].MyAttachment[1]': 'def456',
       },
-      { "Group[0].MyAttachment[0]": "def456" },
-      { "component1-0": [makeAttachment("abc123"), makeAttachment("def456")] },
-      "component1-0",
-      { list: "Group[0].MyAttachment" }
-    )
+      { 'Group[0].MyAttachment[0]': 'def456' },
+      { 'component1-0': [makeAttachment('abc123'), makeAttachment('def456')] },
+      'component1-0',
+      { list: 'Group[0].MyAttachment' },
+    ),
   );
 });

@@ -1,21 +1,21 @@
-import type { BaseQueryFn } from "@reduxjs/toolkit/query/react";
-import { createApi } from "@reduxjs/toolkit/query/react";
-import type { AxiosError, AxiosRequestConfig } from "axios";
-import axios from "axios";
-import type { IAltinnWindow } from "src/types";
+import type { BaseQueryFn } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import type { AxiosError, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import type { IAltinnWindow } from 'src/types';
 
 const altinnWindow = window as Window as IAltinnWindow;
 const { org, app } = altinnWindow;
 const origin = altinnWindow.location.origin;
 
 const axiosBaseQuery = (
-  { baseUrl }: { baseUrl: string } = { baseUrl: "" }
+  { baseUrl }: { baseUrl: string } = { baseUrl: '' },
 ): BaseQueryFn<
   {
     url: string;
-    method: AxiosRequestConfig["method"];
-    data?: AxiosRequestConfig["data"];
-    headers?: AxiosRequestConfig["headers"];
+    method: AxiosRequestConfig['method'];
+    data?: AxiosRequestConfig['data'];
+    headers?: AxiosRequestConfig['headers'];
   },
   unknown,
   unknown
@@ -34,12 +34,12 @@ const axiosBaseQuery = (
 };
 
 export enum TagTypes {
-  Instances = "Instances",
-  AppLanguage = "AppLanguage",
+  Instances = 'Instances',
+  AppLanguage = 'AppLanguage',
 }
 
 export const appApi = createApi({
-  reducerPath: "appApi",
+  reducerPath: 'appApi',
   tagTypes: Object.values(TagTypes),
   baseQuery: axiosBaseQuery({
     baseUrl: `${origin}/${org}/${app}`,

@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from 'react';
 
 export interface IDescriptionProps {
   description: React.ReactNode;
@@ -11,7 +11,7 @@ export default function Description(props: IDescriptionProps) {
   }
   return (
     <span
-      className="a-form-label description-label"
+      className='a-form-label description-label'
       id={`description-${props.id}`}
       data-testid={`description-${props.id}`}
     >

@@ -1,29 +1,29 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   AltinnContentLoader,
   AltinnContentIconFormData,
-} from "altinn-shared/components";
-import InstanceDataActions from "../resources/instanceData/instanceDataActions";
-import ProcessDispatcher from "../resources/process/processDispatcher";
-import type { IAltinnWindow } from "../../types";
-import { ProcessTaskType } from "../../types";
-import Presentation from "./Presentation";
-import { Form } from "../../features/form/containers/Form";
-import ReceiptContainer from "../../features/receipt/containers/ReceiptContainer";
-import Confirm from "../../features/confirm/containers/Confirm";
-import UnknownError from "../../features/instantiate/containers/UnknownError";
+} from 'altinn-shared/components';
+import InstanceDataActions from '../resources/instanceData/instanceDataActions';
+import ProcessDispatcher from '../resources/process/processDispatcher';
+import type { IAltinnWindow } from '../../types';
+import { ProcessTaskType } from '../../types';
+import Presentation from './Presentation';
+import { Form } from '../../features/form/containers/Form';
+import ReceiptContainer from '../../features/receipt/containers/ReceiptContainer';
+import Confirm from '../../features/confirm/containers/Confirm';
+import UnknownError from '../../features/instantiate/containers/UnknownError';
 import {
   startInitialDataTaskQueue,
   startInitialInfoTaskQueue,
-} from "../resources/queue/queueSlice";
-import { makeGetHasErrorsSelector } from "../../selectors/getErrors";
-import Feedback from "../../features/feedback/Feedback";
-import { finishDataTaskIsLoading } from "../resources/isLoading/isLoadingSlice";
-import { useAppDispatch, useAppSelector } from "src/common/hooks";
-import { selectAppName, selectAppOwner } from "src/selectors/language";
+} from '../resources/queue/queueSlice';
+import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
+import Feedback from '../../features/feedback/Feedback';
+import { finishDataTaskIsLoading } from '../resources/isLoading/isLoadingSlice';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { selectAppName, selectAppOwner } from 'src/selectors/language';
 
 const style = {
-  marginTop: "2.5rem",
+  marginTop: '2.5rem',
 };
 
 const ProcessWrapper = (props) => {
@@ -38,12 +38,12 @@ const ProcessWrapper = (props) => {
   const dispatch = useAppDispatch();
 
   const instantiating = useAppSelector(
-    (state) => state.instantiation.instantiating
+    (state) => state.instantiation.instantiating,
   );
   const instanceId = useAppSelector((state) => state.instantiation.instanceId);
   const instanceData = useAppSelector((state) => state.instanceData.instance);
   const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata
+    (state) => state.applicationMetadata.applicationMetadata,
   );
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
   const appName = useAppSelector(selectAppName);
@@ -106,17 +106,17 @@ const ProcessWrapper = (props) => {
           <>
             {process.taskType === ProcessTaskType.Data && <Form />}
             {process.taskType === ProcessTaskType.Archived && (
-              <div id="ReceiptContainer">
+              <div id='ReceiptContainer'>
                 <ReceiptContainer />
               </div>
             )}
             {process.taskType === ProcessTaskType.Confirm && (
-              <div id="ConfirmContainer">
+              <div id='ConfirmContainer'>
                 <Confirm />
               </div>
             )}
             {process.taskType === ProcessTaskType.Feedback && (
-              <div id="FeedbackContainer">
+              <div id='FeedbackContainer'>
                 <Feedback />
               </div>
             )}
@@ -124,7 +124,7 @@ const ProcessWrapper = (props) => {
         ) : (
           <div style={style}>
             <AltinnContentLoader
-              width="100%"
+              width='100%'
               height={700}
             >
               <AltinnContentIconFormData />

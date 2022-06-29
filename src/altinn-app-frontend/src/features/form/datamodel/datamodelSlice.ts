@@ -1,5 +1,5 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAction, createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IJsonSchemas {
   [id: string]: object;
@@ -24,21 +24,21 @@ const initialState: IDataModelState = {
   error: null,
 };
 
-const moduleName = "datamodel";
+const moduleName = 'datamodel';
 const datamodelSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
     fetchJsonSchemaFulfilled: (
       state,
-      action: PayloadAction<IFetchJsonSchemaFulfilled>
+      action: PayloadAction<IFetchJsonSchemaFulfilled>,
     ) => {
       const { schema, id } = action.payload;
       state.schemas[id] = schema;
     },
     fetchJsonSchemaRejected: (
       state,
-      action: PayloadAction<IFetchJsonSchemaRejected>
+      action: PayloadAction<IFetchJsonSchemaRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;

@@ -1,9 +1,9 @@
-import * as React from "react";
-import { getLanguageFromKey } from "altinn-shared/utils";
-import type { FileRejection } from "react-dropzone";
-import DropZone from "react-dropzone";
-import { AltinnAppTheme } from "altinn-shared/theme";
-import type { ITextResourceBindings } from "src/types";
+import * as React from 'react';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { FileRejection } from 'react-dropzone';
+import DropZone from 'react-dropzone';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import type { ITextResourceBindings } from 'src/types';
 
 export interface IDropzoneComponentProps {
   id: string;
@@ -22,22 +22,22 @@ export interface IDropzoneComponentProps {
 export const bytesInOneMB = 1048576;
 
 export const baseStyle = {
-  width: "auto",
-  height: "15.6rem",
-  borderWidth: "2px",
+  width: 'auto',
+  height: '15.6rem',
+  borderWidth: '2px',
   borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
-  borderStyle: "dotted",
-  cursor: "pointer",
+  borderStyle: 'dotted',
+  cursor: 'pointer',
 };
 export const activeStyle = {
-  borderStyle: "solid",
+  borderStyle: 'solid',
 };
 export const rejectStyle = {
-  borderStyle: "solid",
+  borderStyle: 'solid',
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 export const validationErrorStyle = {
-  borderStyle: "dotted",
+  borderStyle: 'dotted',
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 
@@ -57,15 +57,15 @@ export function DropzoneComponent({
   return (
     <div>
       <div
-        className="file-upload-text-bold-small"
-        id="max-size"
+        className='file-upload-text-bold-small'
+        id='max-size'
       >
         {`${getLanguageFromKey(
-          "form_filler.file_uploader_max_size",
-          language
+          'form_filler.file_uploader_max_size',
+          language,
         )} ${maxFileSizeInMB} ${getLanguageFromKey(
-          "form_filler.file_uploader_mb",
-          language
+          'form_filler.file_uploader_mb',
+          language,
         )}`}
       </div>
       <DropZone
@@ -83,7 +83,7 @@ export function DropzoneComponent({
             : styles;
 
           const ariaDescribedByDefault =
-            "file-upload-description file-format-description max-size number-of-attachments";
+            'file-upload-description file-format-description max-size number-of-attachments';
           const ariaDescribedByDescription = textResourceBindings?.description
             ? `description-${id}`
             : undefined;
@@ -100,67 +100,67 @@ export function DropzoneComponent({
               id={`altinn-drop-zone-${id}`}
               data-testid={`altinn-drop-zone-${id}`}
               className={`file-upload${
-                hasValidationMessages ? " file-upload-invalid" : ""
+                hasValidationMessages ? ' file-upload-invalid' : ''
               }`}
               aria-describedby={ariaDescribedBy}
               aria-labelledby={`label-${id}`}
-              role="button"
+              role='button'
             >
               <input
                 {...getInputProps()}
                 id={id}
               />
-              <div className="container">
+              <div className='container'>
                 <div
-                  className="col text-center icon"
-                  style={{ marginTop: "3.5rem" }}
+                  className='col text-center icon'
+                  style={{ marginTop: '3.5rem' }}
                 >
-                  <i className="ai ai-upload" />
+                  <i className='ai ai-upload' />
                 </div>
-                <div className="col text-center">
+                <div className='col text-center'>
                   <label
                     htmlFor={id}
-                    className="file-upload-text-bold"
-                    id="file-upload-description"
+                    className='file-upload-text-bold'
+                    id='file-upload-description'
                   >
                     {isMobile ? (
                       <>
                         {getLanguageFromKey(
-                          "form_filler.file_uploader_upload",
-                          language
+                          'form_filler.file_uploader_upload',
+                          language,
                         )}
                       </>
                     ) : (
                       <>
                         {getLanguageFromKey(
-                          "form_filler.file_uploader_drag",
-                          language
+                          'form_filler.file_uploader_drag',
+                          language,
                         )}
-                        <span className="file-upload-text-bold blue-underline">
+                        <span className='file-upload-text-bold blue-underline'>
                           {` ${getLanguageFromKey(
-                            "form_filler.file_uploader_find",
-                            language
+                            'form_filler.file_uploader_find',
+                            language,
                           )}`}
                         </span>
                       </>
                     )}
                   </label>
                 </div>
-                <div className="col text-center">
+                <div className='col text-center'>
                   <label
                     htmlFor={id}
-                    className="file-upload-text"
-                    id="file-format-description"
+                    className='file-upload-text'
+                    id='file-format-description'
                   >
                     {getLanguageFromKey(
-                      "form_filler.file_uploader_valid_file_format",
-                      language
+                      'form_filler.file_uploader_valid_file_format',
+                      language,
                     )}
                     {hasCustomFileEndings
                       ? ` ${validFileEndings}`
                       : ` ${getLanguageFromKey(
-                          "form_filler.file_upload_valid_file_format_all",
-                          language
+                          'form_filler.file_upload_valid_file_format_all',
+                          language,
                         )}`}
                   </label>
                 </div>

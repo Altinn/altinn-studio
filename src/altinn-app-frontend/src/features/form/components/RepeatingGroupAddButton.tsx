@@ -1,13 +1,13 @@
 /* eslint-disable no-undef */
 /* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
-import React from "react";
-import { Grid, makeStyles, createTheme } from "@material-ui/core";
-import altinnAppTheme from "altinn-shared/theme/altinnAppTheme";
-import { getLanguageFromKey, getTextResourceByKey } from "altinn-shared/utils";
-import type { ILayoutGroup } from "../layout";
-import type { ITextResource } from "../../../types";
-import type { ILanguage } from "altinn-shared/types";
+import React from 'react';
+import { Grid, makeStyles, createTheme } from '@material-ui/core';
+import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
+import type { ILayoutGroup } from '../layout';
+import type { ITextResource } from '../../../types';
+import type { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupAddButton {
   container: ILayoutGroup;
@@ -24,19 +24,19 @@ const useStyles = makeStyles({
     backgroundColor: theme.altinnPalette.primary.white,
     border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     color: theme.altinnPalette.primary.black,
-    fontWeight: "bold",
-    width: "100%",
-    margin: "0 24px",
-    padding: "4px 0",
-    "@media (min-width:768px)": {
-      margin: "0",
+    fontWeight: 'bold',
+    width: '100%',
+    margin: '0 24px',
+    padding: '4px 0',
+    '@media (min-width:768px)': {
+      margin: '0',
     },
-    "&:hover": {
-      cursor: "pointer",
-      borderStyle: "solid",
+    '&:hover': {
+      cursor: 'pointer',
+      borderStyle: 'solid',
       backgroundColor: theme.altinnPalette.primary.blueLighter,
     },
-    "&:focus": {
+    '&:focus': {
       outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
       border: `2px solid ${theme.altinnPalette.primary.blueDark}`,
       outlineOffset: 0,
@@ -44,15 +44,15 @@ const useStyles = makeStyles({
   },
   addButtonText: {
     fontWeight: 400,
-    fontSize: "1.6rem",
+    fontSize: '1.6rem',
     borderBottom: `2px solid${theme.altinnPalette.primary.blue}`,
-    paddingBottom: "3px",
-    marginLeft: "6px",
+    paddingBottom: '3px',
+    marginLeft: '6px',
   },
   addIcon: {
-    transform: "rotate(45deg)",
-    fontSize: "3.4rem",
-    marginRight: "0.7rem",
+    transform: 'rotate(45deg)',
+    fontSize: '3.4rem',
+    marginRight: '0.7rem',
   },
 });
 
@@ -68,35 +68,35 @@ export function RepeatingGroupAddButton({
   return (
     <Grid
       container={true}
-      direction="row"
-      justifyContent="center"
+      direction='row'
+      justifyContent='center'
     >
       <Grid
         item={true}
         container={true}
-        direction="row"
+        direction='row'
         xs={12}
         className={classes.addButton}
-        role="button"
+        role='button'
         tabIndex={0}
         onClick={onClickAdd}
         onKeyPress={(event) => onKeypressAdd(event)}
-        justifyContent="center"
-        alignItems="center"
+        justifyContent='center'
+        alignItems='center'
       >
         <Grid item={true}>
           <i className={`fa fa-exit ${classes.addIcon}`} />
         </Grid>
         <Grid item={true}>
           <span className={classes.addButtonText}>
-            {`${getLanguageFromKey("general.add_new", language)}
+            {`${getLanguageFromKey('general.add_new', language)}
             ${
               container.textResourceBindings?.add_button
                 ? getTextResourceByKey(
                     container.textResourceBindings.add_button,
-                    textResources
+                    textResources,
                   )
-                : ""
+                : ''
             }`}
           </span>
         </Grid>

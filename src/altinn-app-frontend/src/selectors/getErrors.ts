@@ -1,5 +1,5 @@
-import type { IRuntimeState } from "src/types";
-import { createSelector } from "reselect";
+import type { IRuntimeState } from 'src/types';
+import { createSelector } from 'reselect';
 
 let lastLogged: Error | null = null;
 
@@ -11,7 +11,7 @@ let lastLogged: Error | null = null;
 const getHasErrorsSelector = (state: IRuntimeState) => {
   const exceptIfIncludes = (
     maybeError: Error | null,
-    lookFor: string
+    lookFor: string,
   ): Error | null => {
     if (maybeError && maybeError.message?.includes(lookFor)) {
       return null;
@@ -32,17 +32,17 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.optionState.error ||
     state.attachments.error ||
     // we have a few special cases where we allow 404 status codes but not other errors
-    exceptIfIncludes(state.applicationSettings.error, "404") ||
-    exceptIfIncludes(state.textResources.error, "404") ||
-    exceptIfIncludes(state.formDynamics.error, "404") ||
-    exceptIfIncludes(state.formRules.error, "404") ||
+    exceptIfIncludes(state.applicationSettings.error, '404') ||
+    exceptIfIncludes(state.textResources.error, '404') ||
+    exceptIfIncludes(state.formDynamics.error, '404') ||
+    exceptIfIncludes(state.formRules.error, '404') ||
     // 403 in formData handles with MissingRolesError, see Entrypoint.tsx
-    exceptIfIncludes(state.formData.error, "403");
+    exceptIfIncludes(state.formData.error, '403');
 
   if (error !== null) {
     // We have an error on something we consider critical
     if (lastLogged !== error) {
-      typeof jest === "undefined" && console.error(error);
+      typeof jest === 'undefined' && console.error(error);
       lastLogged = error;
     }
 
@@ -55,7 +55,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
 const getHasErrors = () => {
   return createSelector(
     [getHasErrorsSelector],
-    (hasErrors: boolean) => hasErrors
+    (hasErrors: boolean) => hasErrors,
   );
 };
 

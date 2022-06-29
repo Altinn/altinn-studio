@@ -4,9 +4,9 @@ import {
   ListItem,
   ListItemText,
   makeStyles,
-} from "@material-ui/core";
-import * as React from "react";
-import SummaryBoilerplate from "src/components/summary/SummaryBoilerplate";
+} from '@material-ui/core';
+import * as React from 'react';
+import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 
 export interface IMultipleChoiceSummaryProps {
   formData: any;
@@ -19,7 +19,7 @@ export interface IMultipleChoiceSummaryProps {
 
 const useStyles = makeStyles({
   row: {
-    borderBottom: "1px dashed #008FD6",
+    borderBottom: '1px dashed #008FD6',
     marginBottom: 10,
     paddingBottom: 10,
   },
@@ -51,7 +51,7 @@ export default function MultipleChoiceSummary({
       <Grid
         item
         xs={12}
-        data-testid={"multiple-choice-summary"}
+        data-testid={'multiple-choice-summary'}
       >
         <List>
           {formData &&

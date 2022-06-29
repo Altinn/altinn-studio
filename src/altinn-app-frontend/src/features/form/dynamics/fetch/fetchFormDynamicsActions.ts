@@ -1,5 +1,5 @@
-import type { Action } from "redux";
-import * as ActionTypes from "../formDynamicsActionTypes";
+import type { Action } from 'redux';
+import * as ActionTypes from '../formDynamicsActionTypes';
 
 export interface IFetchServiceConfigFulfilled extends Action {
   apis: any;
@@ -20,7 +20,7 @@ export function fetchServiceConfig(): Action {
 export function fetchServiceConfigFulfilled(
   apis: any,
   ruleConnection: any,
-  conditionalRendering: any
+  conditionalRendering: any,
 ): IFetchServiceConfigFulfilled {
   return {
     type: ActionTypes.FETCH_SERVICE_CONFIG_FULFILLED,
@@ -31,7 +31,7 @@ export function fetchServiceConfigFulfilled(
 }
 
 export function fetchServiceConfigRejected(
-  error: Error
+  error: Error,
 ): IFetchServiceConfigRejected {
   return {
     type: ActionTypes.FETCH_SERVICE_CONFIG_REJECTED,

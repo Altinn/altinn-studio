@@ -1,7 +1,7 @@
-import type { SagaIterator } from "redux-saga";
-import { fork } from "redux-saga/effects";
+import type { SagaIterator } from 'redux-saga';
+import { fork } from 'redux-saga/effects';
 
-import { watchGetApplicationMetadataSaga } from "./get";
+import { watchGetApplicationMetadataSaga } from './get';
 
 export default function* applicationMetadataSagas(): SagaIterator {
   yield fork(watchGetApplicationMetadataSaga);

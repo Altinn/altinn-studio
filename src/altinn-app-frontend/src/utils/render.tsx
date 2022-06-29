@@ -1,15 +1,15 @@
-import * as React from "react";
-import { SoftValidations } from "src/features/form/components/SoftValidations";
-import { MessageComponent } from "../components/message/MessageComponent";
+import * as React from 'react';
+import { SoftValidations } from 'src/features/form/components/SoftValidations';
+import { MessageComponent } from '../components/message/MessageComponent';
 
 const messageComponentStyle = {
-  display: "block",
-  width: "fit-content",
+  display: 'block',
+  width: 'fit-content',
 };
 
 export function renderValidationMessagesForComponent(
   validationMessages: any,
-  id: string
+  id: string,
 ): JSX.Element[] {
   if (!validationMessages) {
     return null;
@@ -20,8 +20,8 @@ export function renderValidationMessagesForComponent(
       renderValidationMessages(
         validationMessages.errors,
         `error_${id}`,
-        "error"
-      )
+        'error',
+      ),
     );
   }
 
@@ -30,14 +30,14 @@ export function renderValidationMessagesForComponent(
       renderValidationMessages(
         validationMessages.warnings,
         `warning_${id}`,
-        "warning"
-      )
+        'warning',
+      ),
     );
   }
 
   if (validationMessages.info && validationMessages.info.length > 0) {
     validationMessageElements.push(
-      renderValidationMessages(validationMessages.info, `info_${id}`, "info")
+      renderValidationMessages(validationMessages.info, `info_${id}`, 'info'),
     );
   }
 
@@ -46,8 +46,8 @@ export function renderValidationMessagesForComponent(
       renderValidationMessages(
         validationMessages.success,
         `success_${id}`,
-        "success"
-      )
+        'success',
+      ),
     );
   }
 
@@ -59,9 +59,9 @@ export function renderValidationMessagesForComponent(
 export function renderValidationMessages(
   messages: React.ReactNode[],
   id: string,
-  variant: "error" | "warning" | "info" | "success"
+  variant: 'error' | 'warning' | 'info' | 'success',
 ) {
-  if (variant !== "error") {
+  if (variant !== 'error') {
     return (
       <SoftValidations variant={variant}>
         <ol id={id}>{messages.map(validationMessagesToList)}</ol>
@@ -71,9 +71,9 @@ export function renderValidationMessages(
 
   return (
     <MessageComponent
-      messageType="error"
+      messageType='error'
       style={messageComponentStyle}
-      key="error"
+      key='error'
       id={id}
     >
       <ol>{messages.map(validationMessagesToList)}</ol>
@@ -84,7 +84,7 @@ export function renderValidationMessages(
 const validationMessagesToList = (message: React.ReactNode, index: number) => {
   return (
     <li
-      role="alert"
+      role='alert'
       key={`validationMessage-${index}`}
     >
       {message}

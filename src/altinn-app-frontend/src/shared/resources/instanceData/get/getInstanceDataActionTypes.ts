@@ -1,4 +1,4 @@
-const moduleName = "INSTANCE_DATA";
+const moduleName = 'INSTANCE_DATA';
 
 export const GET_INSTANCEDATA = `${moduleName}.GET_INSTANCEDATA`;
 export const GET_INSTANCEDATA_FULFILLED = `${moduleName}.GET_INSTANCEDATA_FULFILLED`;

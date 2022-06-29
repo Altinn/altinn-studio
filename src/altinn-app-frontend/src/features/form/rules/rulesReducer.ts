@@ -1,8 +1,8 @@
-import update from "immutability-helper";
-import type { Action, Reducer } from "redux";
-import type { IRuleModelFieldElement } from ".";
-import type * as FetchActions from "./fetch/fetchRulesActions";
-import * as ActionTypes from "./rulesActionTypes";
+import update from 'immutability-helper';
+import type { Action, Reducer } from 'redux';
+import type { IRuleModelFieldElement } from '.';
+import type * as FetchActions from './fetch/fetchRulesActions';
+import * as ActionTypes from './rulesActionTypes';
 
 export interface IFormRuleState {
   model: IRuleModelFieldElement[];
@@ -20,7 +20,7 @@ const initialState: IFormRuleState = {
 
 const ruleModelReducer: Reducer<IFormRuleState> = (
   state: IFormRuleState = initialState,
-  action?: Action
+  action?: Action,
 ): IFormRuleState => {
   if (!action) {
     return state;

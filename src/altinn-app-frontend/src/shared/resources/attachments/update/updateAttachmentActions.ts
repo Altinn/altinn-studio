@@ -1,6 +1,6 @@
-import type { Action } from "redux";
-import type { IAttachment } from "..";
-import * as ActionTypes from "../attachmentActionTypes";
+import type { Action } from 'redux';
+import type { IAttachment } from '..';
+import * as ActionTypes from '../attachmentActionTypes';
 
 export interface IUpdateAttachmentAction extends Action {
   attachment: IAttachment;
@@ -26,7 +26,7 @@ export function updateAttachment(
   attachment: IAttachment,
   componentId: string,
   baseComponentId: string,
-  tag: string
+  tag: string,
 ): IUpdateAttachmentAction {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT,
@@ -40,7 +40,7 @@ export function updateAttachment(
 export function updateAttachmentFulfilled(
   attachment: IAttachment,
   componentId: string,
-  baseComponentId: string
+  baseComponentId: string,
 ): IUpdateAttachmentActionFulfilled {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT_FULFILLED,
@@ -54,7 +54,7 @@ export function updateAttachmentRejected(
   attachment: IAttachment,
   componentId: string,
   baseComponentId: string,
-  tag: string
+  tag: string,
 ): IUpdateAttachmentActionRejected {
   return {
     type: ActionTypes.UPDATE_ATTACHMENT_REJECTED,

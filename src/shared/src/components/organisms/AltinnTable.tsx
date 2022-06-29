@@ -29,8 +29,14 @@ export default function AltinnTable(
   const { tableLayout, wordBreak, ...tableProps } = props;
   const classes = useStyles(props);
   return (
-    <TableContainer component={Grid} id={`${tableProps.id}-container`}>
-      <Table className={classes.table} {...tableProps} />
+    <TableContainer
+      component={Grid}
+      id={`${tableProps.id}-container`}
+    >
+      <Table
+        className={classes.table}
+        {...tableProps}
+      />
     </TableContainer>
   );
 }

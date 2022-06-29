@@ -1,5 +1,5 @@
-import type { Action } from "redux";
-import * as ActionTypes from "./getInstanceDataActionTypes";
+import type { Action } from 'redux';
+import * as ActionTypes from './getInstanceDataActionTypes';
 
 export interface IGetInstanceData extends Action {
   instanceOwner: string;
@@ -14,7 +14,7 @@ export interface IGetInstanceDataRejected extends Action {
 
 export function getInstanceData(
   instanceOwner: string,
-  instanceId: string
+  instanceId: string,
 ): IGetInstanceData {
   return {
     type: ActionTypes.GET_INSTANCEDATA,
@@ -24,7 +24,7 @@ export function getInstanceData(
 }
 
 export function getInstanceDataFulfilled(
-  instanceData: any
+  instanceData: any,
 ): IGetInstanceDataFulfilled {
   return {
     type: ActionTypes.GET_INSTANCEDATA_FULFILLED,
@@ -33,7 +33,7 @@ export function getInstanceDataFulfilled(
 }
 
 export function getInstanceDataRejected(
-  error: Error
+  error: Error,
 ): IGetInstanceDataRejected {
   return {
     type: ActionTypes.GET_INSTANCEDATA_REJECTED,

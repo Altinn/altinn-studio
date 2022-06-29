@@ -30,7 +30,10 @@ export function AltinnTableHeader(props: IAltinnTableHeaderProps) {
   const { children, id } = props;
   const classes = useStyles(props);
   return (
-    <TableHead id={id} className={classes.tableHeader}>
+    <TableHead
+      id={id}
+      className={classes.tableHeader}
+    >
       {children}
     </TableHead>
   );

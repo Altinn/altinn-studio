@@ -1,15 +1,15 @@
-import { Grid } from "@material-ui/core";
-import * as React from "react";
-import { HelpTextContainer } from "src/features/form/components/HelpTextContainer";
-import type { IComponentProps } from "..";
+import { Grid } from '@material-ui/core';
+import * as React from 'react';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import type { IComponentProps } from '..';
 
 export interface IHeaderProps extends IComponentProps {
   size?: string;
 }
 
 const marginStyling = {
-  marginTop: "0",
-  marginBottom: "0",
+  marginTop: '0',
+  marginBottom: '0',
 };
 
 interface IHeaderSizeProps {
@@ -20,8 +20,8 @@ interface IHeaderSizeProps {
 
 const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
   switch (size) {
-    case "L":
-    case "h2": {
+    case 'L':
+    case 'h2': {
       return (
         <h2
           id={id}
@@ -32,8 +32,8 @@ const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
       );
     }
 
-    case "M":
-    case "h3": {
+    case 'M':
+    case 'h3': {
       return (
         <h3
           id={id}
@@ -44,8 +44,8 @@ const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
       );
     }
 
-    case "S":
-    case "h4":
+    case 'S':
+    case 'h4':
     default: {
       return (
         <h4
@@ -70,8 +70,8 @@ export const HeaderComponent = ({
   return (
     <Grid
       container={true}
-      direction="row"
-      alignItems="center"
+      direction='row'
+      alignItems='center'
     >
       <Grid item={true}>
         <HeaderSize

@@ -1,12 +1,12 @@
 /* eslint-disable react/prop-types */
-import * as React from "react";
-import type { ILabelSettings } from "src/types";
-import { LayoutStyle } from "src/types";
-import Description from "./Description";
-import { HelpTextContainer } from "./HelpTextContainer";
-import type { ILanguage } from "altinn-shared/types";
-import { RequiredIndicator } from "./RequiredIndicator";
-import { OptionalIndicator } from "./OptionalIndicator";
+import * as React from 'react';
+import type { ILabelSettings } from 'src/types';
+import { LayoutStyle } from 'src/types';
+import Description from './Description';
+import { HelpTextContainer } from './HelpTextContainer';
+import type { ILanguage } from 'altinn-shared/types';
+import { RequiredIndicator } from './RequiredIndicator';
+import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;
@@ -51,7 +51,7 @@ export default function Legend(props: IFormLegendProps) {
   return (
     <>
       <label
-        className="a-form-label title-label"
+        className='a-form-label title-label'
         htmlFor={props.id}
       >
         {LabelText}

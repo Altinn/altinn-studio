@@ -1,22 +1,22 @@
 /* eslint-disable max-len */
-import { object } from "dot-object";
+import { object } from 'dot-object';
 import type {
   ILayout,
   ILayoutGroup,
   ILayoutComponent,
-} from "src/features/form/layout";
+} from 'src/features/form/layout';
 import type {
   IMapping,
   IRepeatingGroup,
   IDataModelBindings,
   IFormFileUploaderComponent,
-} from "src/types";
-import { getParentGroup } from "./validation";
-import type { IFormData } from "src/features/form/data/formDataReducer";
+} from 'src/types';
+import { getParentGroup } from './validation';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
 import type {
   IAttachment,
   IAttachments,
-} from "src/shared/resources/attachments";
+} from 'src/shared/resources/attachments';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON
@@ -53,13 +53,13 @@ export function convertModelToDataBinding(data: any): any {
 }
 
 export function getKeyWithoutIndex(keyWithIndex: string): string {
-  if (keyWithIndex.indexOf("[") === -1) {
+  if (keyWithIndex.indexOf('[') === -1) {
     return keyWithIndex;
   }
 
   return getKeyWithoutIndex(
-    keyWithIndex.substring(0, keyWithIndex.indexOf("[")) +
-      keyWithIndex.substring(keyWithIndex.indexOf("]") + 1)
+    keyWithIndex.substring(0, keyWithIndex.indexOf('[')) +
+      keyWithIndex.substring(keyWithIndex.indexOf(']') + 1),
   );
 }
 
@@ -85,11 +85,11 @@ export function flattenObject(data: any, index = false): any {
 
   Object.keys(data).forEach((i) => {
     if (!i || data[i] === undefined || data[i] === null) return;
-    if (Array.isArray(data[i]) || typeof data[i] === "object") {
+    if (Array.isArray(data[i]) || typeof data[i] === 'object') {
       const flatObject = flattenObject(data[i], Array.isArray(data[i]));
       Object.keys(flatObject).forEach((x) => {
         if (!x || (!flatObject[x] && flatObject[x] !== 0)) return;
-        let key = "";
+        let key = '';
         if (Array.isArray(data[i]) && x.match(/^\d+$/)) {
           key = `${i}[${x}]`;
         } else if (Array.isArray(data[i])) {
@@ -110,7 +110,7 @@ export function flattenObject(data: any, index = false): any {
 function getGroupDataModelBinding(
   repeatingGroup: IRepeatingGroup,
   groupId: string,
-  layout: ILayout
+  layout: ILayout,
 ) {
   const groupElementId = repeatingGroup.baseGroupId || groupId;
   const groupElement = layout.find((element) => {
@@ -118,13 +118,13 @@ function getGroupDataModelBinding(
   }) as ILayoutGroup;
   const parentGroup = getParentGroup(groupElement.id, layout);
   if (parentGroup) {
-    const splitId = groupId.split("-");
+    const splitId = groupId.split('-');
     const parentIndex = Number.parseInt(splitId[splitId.length - 1], 10);
     const parentDataBinding = parentGroup.dataModelBindings?.group;
     const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
     return groupElement.dataModelBindings?.group.replace(
       parentDataBinding,
-      indexedParentDataBinding
+      indexedParentDataBinding,
     );
   }
 
@@ -136,13 +136,13 @@ export function removeGroupData(
   index: number,
   layout: ILayout,
   groupId: string,
-  repeatingGroup: IRepeatingGroup
+  repeatingGroup: IRepeatingGroup,
 ): IFormData {
   const result = { ...formData };
   const groupDataModelBinding = getGroupDataModelBinding(
     repeatingGroup,
     groupId,
-    layout
+    layout,
   );
 
   deleteGroupData(result, groupDataModelBinding, index, true);
@@ -162,7 +162,7 @@ export function removeAttachmentReference(
   layout: ILayout,
   attachments: IAttachments,
   dataModelBindings: IDataModelBindings,
-  componentId: string
+  componentId: string,
 ): IFormData {
   if (
     !dataModelBindings ||
@@ -175,7 +175,7 @@ export function removeAttachmentReference(
 
   if (
     dataModelBindings.simpleBinding &&
-    typeof result[dataModelBindings.simpleBinding] === "string"
+    typeof result[dataModelBindings.simpleBinding] === 'string'
   ) {
     delete result[dataModelBindings.simpleBinding];
   } else if (dataModelBindings.list) {
@@ -194,8 +194,8 @@ export function removeAttachmentReference(
     if (index === -1) {
       throw new Error(
         `Unable to find attachment ID "${attachmentId}" in a key starting with "${dataModelWithoutIndex}" in form data: ${JSON.stringify(
-          result
-        )}`
+          result,
+        )}`,
       );
     }
 
@@ -218,14 +218,14 @@ export function deleteGroupData(
   keyStart: string,
   index: number,
   isDataModelBinding: boolean,
-  shiftData?: boolean
+  shiftData?: boolean,
 ) {
   const prevData = { ...data };
   Object.keys(data)
     .filter((key) =>
       key.startsWith(
-        isDataModelBinding ? `${keyStart}[${index}]` : `${keyStart}-${index}`
-      )
+        isDataModelBinding ? `${keyStart}[${index}]` : `${keyStart}-${index}`,
+      ),
     )
     .forEach((key) => {
       // eslint-disable-next-line no-param-reassign
@@ -235,7 +235,7 @@ export function deleteGroupData(
           isDataModelBinding ? `${keyStart}[${index}]` : `${keyStart}-${index}`,
           isDataModelBinding
             ? `${keyStart}[${index - 1}]`
-            : `${keyStart}-${index - 1}`
+            : `${keyStart}-${index - 1}`,
         );
         // eslint-disable-next-line no-param-reassign
         data[newKey] = prevData[key];
@@ -260,19 +260,19 @@ export function findChildAttachments(
   layout: ILayout,
   groupId: string,
   repeatingGroup: IRepeatingGroup,
-  index: number
+  index: number,
 ): FoundAttachment[] {
   const groupDataModelBinding = getGroupDataModelBinding(
     repeatingGroup,
     groupId,
-    layout
+    layout,
   );
   const out: FoundAttachment[] = [];
   const components = layout.filter((c) =>
-    ["fileupload", "fileuploadwithtag"].includes(c.type.toLowerCase())
+    ['fileupload', 'fileuploadwithtag'].includes(c.type.toLowerCase()),
   );
   const formDataKeys = Object.keys(formData).filter((key) =>
-    key.startsWith(`${groupDataModelBinding}[${index}]`)
+    key.startsWith(`${groupDataModelBinding}[${index}]`),
   );
 
   for (const key of formDataKeys) {
@@ -280,7 +280,7 @@ export function findChildAttachments(
     const component = components.find(
       (c) =>
         c.dataModelBindings?.simpleBinding === dataBinding ||
-        c.dataModelBindings?.list === dataBinding
+        c.dataModelBindings?.list === dataBinding,
     ) as unknown as IFormFileUploaderComponent & ILayoutComponent;
 
     if (component) {
@@ -290,9 +290,9 @@ export function findChildAttachments(
       }
 
       const componentId =
-        component.id + (groupKeys.length ? `-${groupKeys.join("-")}` : "");
+        component.id + (groupKeys.length ? `-${groupKeys.join('-')}` : '');
       const foundIndex = (attachments[componentId] || []).findIndex(
-        (a) => a.id === formData[key]
+        (a) => a.id === formData[key],
       );
       if (foundIndex > -1) {
         const attachment = attachments[componentId][foundIndex];
@@ -331,17 +331,17 @@ export function getFormDataFromFieldKey(
   dataModelBindings: IDataModelBindings,
   formData: any,
   groupDataBinding?: string,
-  index?: number
+  index?: number,
 ) {
   let dataModelBindingKey = dataModelBindings[fieldKey];
   if (groupDataBinding) {
     dataModelBindingKey = dataModelBindingKey.replace(
       groupDataBinding,
-      `${groupDataBinding}[${index}]`
+      `${groupDataBinding}[${index}]`,
     );
   }
   let value = formData[dataModelBindingKey];
-  if (fieldKey === "list") {
+  if (fieldKey === 'list') {
     value = [];
     for (const key of Object.keys(formData)) {
       if (

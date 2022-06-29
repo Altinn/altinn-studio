@@ -1,13 +1,13 @@
-import type { IDataSources } from "altinn-shared/types";
-import { replaceTextResourceParams } from "altinn-shared/utils";
-import type { IFormData } from "src/features/form/data/formDataReducer";
+import type { IDataSources } from 'altinn-shared/types';
+import { replaceTextResourceParams } from 'altinn-shared/utils';
+import type { IFormData } from 'src/features/form/data/formDataReducer';
 import type {
   IMapping,
   IOption,
   IOptionSource,
   IRepeatingGroups,
   ITextResource,
-} from "src/types";
+} from 'src/types';
 
 export function getOptionLookupKey(id: string, mapping?: IMapping) {
   if (!mapping) {
@@ -20,15 +20,15 @@ export function getOptionLookupKey(id: string, mapping?: IMapping) {
 export function replaceOptionDataField(
   formData: IFormData,
   valueString: string,
-  index: number
+  index: number,
 ) {
-  const indexedValueString = valueString.replace("{0}", index.toString());
+  const indexedValueString = valueString.replace('{0}', index.toString());
   return formData[indexedValueString];
 }
 
 export function getRelevantFormDataForOptionSource(
   formData: IFormData,
-  source: IOptionSource
+  source: IOptionSource,
 ) {
   const relevantFormData: IFormData = {};
 
@@ -63,7 +63,7 @@ export function setupSourceOptions({
   const replacedOptionLabels = replaceTextResourceParams(
     [relevantTextResource],
     dataSources,
-    repeatingGroups
+    repeatingGroups,
   );
 
   const repGroup = Object.values(repeatingGroups).find((group) => {

@@ -1,7 +1,7 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
-import { createAction, createSlice } from "@reduxjs/toolkit";
-import type { IApplicationSettings } from "altinn-shared/types";
-import type * as ApplicationSettingsTypes from "./applicationSettingsTypes";
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
+import type { IApplicationSettings } from 'altinn-shared/types';
+import type * as ApplicationSettingsTypes from './applicationSettingsTypes';
 
 export interface IApplicationSettingsState {
   applicationSettings: IApplicationSettings;
@@ -13,7 +13,7 @@ export const initialState: IApplicationSettingsState = {
   error: null,
 };
 
-const moduleName = "applicationSettings";
+const moduleName = 'applicationSettings';
 
 const applicationSettingsSlice = createSlice({
   name: moduleName,
@@ -21,14 +21,14 @@ const applicationSettingsSlice = createSlice({
   reducers: {
     fetchApplicationSettingsFulfilled: (
       state,
-      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsFulfilled>
+      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsFulfilled>,
     ) => {
       const { settings } = action.payload;
       state.applicationSettings = settings;
     },
     fetchApplicationSettingsRejected: (
       state,
-      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsRejected>
+      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -38,7 +38,7 @@ const applicationSettingsSlice = createSlice({
 
 const actions = {
   fetchApplicationSettings: createAction(
-    `${moduleName}/fetchApplicationSettings`
+    `${moduleName}/fetchApplicationSettings`,
   ),
 };
 
