@@ -1,14 +1,16 @@
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Repository;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
+
+using LocalTest.Configuration;
+
+using Microsoft.Extensions.Options;
 
 namespace LocalTest.Services.Storage.Implementation
 {
@@ -65,7 +67,12 @@ namespace LocalTest.Services.Storage.Implementation
         public async Task<Application> Update(Application item)
         {
             Directory.CreateDirectory(GetApplicationsDirectory()+item.Id.Split('/')[0]);
-            await File.WriteAllTextAsync(GetApplicationsDirectory() + item.Id + ".json", JsonSerializer.Serialize(item, new() { WriteIndented = true, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull }));
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            await File.WriteAllTextAsync(GetApplicationsDirectory() + item.Id + ".json", JsonSerializer.Serialize(item, options));
             return item;
         }
 
@@ -87,7 +94,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         public string GetApplicationsDirectory()
         {
-            return _localPlatformSettings.LocalTestingStorageBasePath + _localPlatformSettings.DocumentDbFolder + _localPlatformSettings.ApplicationsDataFolder;
+            return Path.Join(_localPlatformSettings.LocalTestingStorageBasePath, _localPlatformSettings.DocumentDbFolder, _localPlatformSettings.ApplicationsDataFolder);
         }
     }
 }
