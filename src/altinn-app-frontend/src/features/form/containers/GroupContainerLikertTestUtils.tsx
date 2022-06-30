@@ -15,9 +15,6 @@ export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },
   { Question: 'Har du det bra?', Answer: '' },
   { Question: 'Hvor god er du i matte?', Answer: '' },
-  { Question: 'Hvor god er du i javascript?', Answer: '' },
-  { Question: 'Hvor god er du i css?', Answer: '' },
-  { Question: 'Hvordan trives du ute i skogen?', Answer: '' },
 ];
 
 const groupBinding = 'Questions';
@@ -50,6 +47,16 @@ export const mockOptions = [
     value: '3',
   },
 ];
+
+export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
+  const questionsCopy = [...questions];
+
+  selectedAnswers.forEach((answer) => {
+    questionsCopy[answer.questionIndex].Answer = answer.answerValue;
+  });
+
+  return questionsCopy;
+};
 
 const createLikertContainer = (props: Partial<ILayoutGroup>): ILayoutGroup => {
   return {
@@ -241,8 +248,8 @@ export const render = ({
   });
 
   const mockStore = setupStore(preloadedState);
-  const mockStorDispatch = jest.fn();
-  mockStore.dispatch = mockStorDispatch;
+  const mockStoreDispatch = jest.fn();
+  mockStore.dispatch = mockStoreDispatch;
   setScreenWidth(mobileView ? 600 : 1200);
   renderWithProviders(
     <GroupContainer
@@ -255,16 +262,17 @@ export const render = ({
     },
   );
 
-  return { mockStorDispatch };
+  return { mockStoreDispatch };
 };
 
 export const validateTableLayout = (questions: IQuestion[]) => {
   screen.getByRole('table');
 
   for (const option of mockOptions) {
-    screen.getByRole('columnheader', {
+    const columnHeader = screen.getByRole('columnheader', {
       name: new RegExp(option.label),
     });
+    expect(columnHeader).toBeInTheDocument();
   }
 
   validateRadioLayout(questions);
@@ -272,16 +280,23 @@ export const validateTableLayout = (questions: IQuestion[]) => {
 
 export const validateRadioLayout = (questions: IQuestion[]) => {
   expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
+
   for (const question of questions) {
     const row = screen.getByRole('radiogroup', {
       name: question.Question,
     });
+
     for (const option of mockOptions) {
-      const radio = within(row).getByRole('radio', {
-        name: new RegExp(option.label),
-      });
+      // Ideally we should use `getByRole` selector here, but the tests that use this function
+      // generates a DOM of several hundred nodes, and `getByRole` is quite slow since it has to traverse
+      // the entire tree. Doing that in a loop (within another loop) on hundreds of nodes is not a good idea.
+      // ref: https://github.com/testing-library/dom-testing-library/issues/698
+      const radio = within(row).getByDisplayValue(option.value);
+
       if (question.Answer && option.value === question.Answer) {
         expect(radio).toBeChecked();
+      } else {
+        expect(radio).not.toBeChecked();
       }
     }
   }

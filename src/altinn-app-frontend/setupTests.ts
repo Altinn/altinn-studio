@@ -1,12 +1,12 @@
-import Enzyme from "enzyme";
-import Adapter from "@wojtekmaj/enzyme-adapter-react-17";
-import "jest";
-import "@testing-library/jest-dom/extend-expect";
+import Enzyme from 'enzyme';
+import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
+import 'jest';
+import '@testing-library/jest-dom/extend-expect';
 
-import type { IAltinnWindow } from "src/types";
+import type { IAltinnWindow } from 'src/types';
 
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
-Object.defineProperty(window, "matchMedia", {
+Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -22,9 +22,8 @@ Object.defineProperty(window, "matchMedia", {
 
 // org and app is assigned to window object, so to avoid 'undefined' in tests, they need to be set
 const altinnWindow = window as Window as IAltinnWindow;
-altinnWindow.org = "ttd";
-altinnWindow.app = "test";
-// Increase timeout for longer tests
+altinnWindow.org = 'ttd';
+altinnWindow.app = 'test';
 jest.setTimeout(10000);
 
 Enzyme.configure({
