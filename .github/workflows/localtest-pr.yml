@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK 5.0.x
-        uses: actions/setup-dotnet@v1.7.2
+      - name: Setup .NET Core SDK 6.0.x
+        uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: '5.0.x'
+          dotnet-version: '6.0.x'
       - name: Install dependencies
         run: dotnet restore
         working-directory: 'src/development/LocalTest/'
