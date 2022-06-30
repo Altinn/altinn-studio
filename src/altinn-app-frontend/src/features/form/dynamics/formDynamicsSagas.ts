@@ -1,6 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import { watchCheckIfApiShouldFetchSaga } from './api/apiSagas';
 import {
   waitForAppSetupBeforeRunningConditionalRulesSaga,
   watchCheckIfConditionalRulesShouldRunSaga,
@@ -8,7 +7,6 @@ import {
 import { watchFetchDynamics } from './fetch/fetchFormDynamicsSagas';
 
 export default function* formDynamicsSagas(): SagaIterator {
-  yield fork(watchCheckIfApiShouldFetchSaga);
   yield fork(watchCheckIfConditionalRulesShouldRunSaga);
   yield fork(waitForAppSetupBeforeRunningConditionalRulesSaga);
   yield fork(watchFetchDynamics);

@@ -1,17 +1,17 @@
-import { getLanguageFromCode } from "../../shared/src/language";
-import type { IRuntimeState } from "../src/types";
-import { getFormLayoutStateMock } from "./formLayoutStateMock";
-import { getFormDataStateMock } from "./formDataStateMock";
-import { applicationMetadataMock } from "./applicationMetadataMock";
-import { applicationSettingsMock } from "./applicationSettingsMock";
-import type { IParty } from "../../shared/src";
-import { getInstanceDataStateMock } from "./instanceDataStateMock";
-import { getProfileStateMock } from "./profileStateMock";
+import { getLanguageFromCode } from '../../shared/src/language';
+import type { IRuntimeState } from '../src/types';
+import { getFormLayoutStateMock } from './formLayoutStateMock';
+import { getFormDataStateMock } from './formDataStateMock';
+import { applicationMetadataMock } from './applicationMetadataMock';
+import { applicationSettingsMock } from './applicationSettingsMock';
+import type { IParty } from '../../shared/src';
+import { getInstanceDataStateMock } from './instanceDataStateMock';
+import { getProfileStateMock } from './profileStateMock';
 
 export const mockParty: IParty = {
-  partyId: "12345",
-  name: "Ola Privatperson",
-  ssn: "01017512345",
+  partyId: '12345',
+  name: 'Ola Privatperson',
+  ssn: '01017512345',
   partyTypeName: null,
   orgNumber: null,
   unitType: null,
@@ -21,7 +21,7 @@ export const mockParty: IParty = {
 };
 
 export function getInitialStateMock(
-  customStates?: Partial<IRuntimeState>
+  customStates?: Partial<IRuntimeState>,
 ): IRuntimeState {
   const initialState: IRuntimeState = {
     applicationMetadata: {
@@ -66,22 +66,22 @@ export function getInitialStateMock(
       stateless: null,
     },
     language: {
-      language: getLanguageFromCode("nb"),
-      selectedAppLanguage: "",
+      language: getLanguageFromCode('nb'),
+      selectedAppLanguage: '',
       error: null,
     },
     organisationMetaData: {
       allOrgs: {
         mockOrg: {
           name: {
-            en: "Mock Ministry",
-            nb: "Mockdepartementet",
-            nn: "Mockdepartementet",
+            en: 'Mock Ministry',
+            nb: 'Mockdepartementet',
+            nn: 'Mockdepartementet',
           },
-          logo: "",
-          orgnr: "",
-          homepage: "",
-          environments: ["tt02", "production"],
+          logo: '',
+          orgnr: '',
+          homepage: '',
+          environments: ['tt02', 'production'],
         },
       },
       error: null,
@@ -107,19 +107,19 @@ export function getInitialStateMock(
     textResources: {
       resources: [
         {
-          id: "option.from.rep.group.label",
-          value: "The value from the group is: {0}",
-          unparsedValue: "The value from the group is: {0}",
+          id: 'option.from.rep.group.label',
+          value: 'The value from the group is: {0}',
+          unparsedValue: 'The value from the group is: {0}',
           variables: [
             {
-              dataSource: "dataModel.skjema",
-              key: "someGroup[{0}].labelField",
+              dataSource: 'dataModel.skjema',
+              key: 'someGroup[{0}].labelField',
             },
           ],
         },
       ],
       error: null,
-      language: "nb",
+      language: 'nb',
     },
     optionState: {
       options: {},

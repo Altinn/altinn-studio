@@ -1,15 +1,15 @@
-import type { IApplicationMetadata } from "src/shared/resources/applicationMetadata";
-import type { IRuntimeState } from "src/types";
-import { getInitialStateMock } from "./initialStateMock";
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { IRuntimeState } from 'src/types';
+import { getInitialStateMock } from './initialStateMock';
 
 export const statelessAndAllowAnonymousMock = (
-  allowAnonymous: boolean | undefined
+  allowAnonymous: boolean | undefined,
 ) => {
   const initialState = getInitialStateMock();
   const initialAppMetadata: IApplicationMetadata = {
     ...initialState.applicationMetadata.applicationMetadata,
     onEntry: {
-      show: "stateless",
+      show: 'stateless',
     },
   };
   initialAppMetadata.dataTypes[0].appLogic.allowAnonymousOnStateless =
@@ -25,8 +25,8 @@ export const statelessAndAllowAnonymousMock = (
       layoutsets: {
         sets: [
           {
-            id: "stateless",
-            dataType: "test-data-model",
+            id: 'stateless',
+            dataType: 'test-data-model',
           },
         ],
       },

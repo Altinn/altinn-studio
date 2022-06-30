@@ -1,5 +1,5 @@
-import type { IValidations } from "../src/types";
-import { getParsedTextResourceByKey } from "../src/utils/textResource";
+import type { IValidations } from '../src/types';
+import { getParsedTextResourceByKey } from '../src/utils/textResource';
 
 export function getMockValidationState(withFixed = false): IValidations {
   const fixed = withFixed ? [] : undefined;
@@ -8,8 +8,8 @@ export function getMockValidationState(withFixed = false): IValidations {
       componentId_1: {
         simpleBinding: {
           errors: [
-            getParsedTextResourceByKey("Error message 1", []),
-            getParsedTextResourceByKey("Error message 2", []),
+            getParsedTextResourceByKey('Error message 1', []),
+            getParsedTextResourceByKey('Error message 2', []),
           ],
           fixed,
         },
@@ -17,21 +17,21 @@ export function getMockValidationState(withFixed = false): IValidations {
       componentId_2: {
         customBinding: {
           warnings: [
-            getParsedTextResourceByKey("Warning message 1", []),
-            getParsedTextResourceByKey("Warning message 2", []),
+            getParsedTextResourceByKey('Warning message 1', []),
+            getParsedTextResourceByKey('Warning message 2', []),
           ],
           fixed,
         },
       },
-      "componentId_4-1": {
+      'componentId_4-1': {
         simpleBinding: {
-          errors: [getParsedTextResourceByKey("test error", [])],
+          errors: [getParsedTextResourceByKey('test error', [])],
           fixed,
         },
       },
-      "componentId_5-0-1": {
+      'componentId_5-0-1': {
         simpleBinding: {
-          errors: [getParsedTextResourceByKey("test error", [])],
+          errors: [getParsedTextResourceByKey('test error', [])],
           fixed,
         },
       },
@@ -39,8 +39,8 @@ export function getMockValidationState(withFixed = false): IValidations {
     unmapped: {
       unmapped: {
         random_key: {
-          errors: [getParsedTextResourceByKey("test error", [])],
-          warnings: [getParsedTextResourceByKey("test warning", [])],
+          errors: [getParsedTextResourceByKey('test error', [])],
+          warnings: [getParsedTextResourceByKey('test warning', [])],
           fixed,
         },
       },
