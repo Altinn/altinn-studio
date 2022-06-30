@@ -41,6 +41,7 @@ jobs:
         run: yarn test --coverage
 
       - name: SonarCloud Scan
+        if: github.event.repository.fork == false
         with:
           projectBaseDir: app-frontend
         uses: SonarSource/sonarcloud-github-action@master
