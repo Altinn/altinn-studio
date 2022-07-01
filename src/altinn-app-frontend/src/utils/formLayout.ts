@@ -98,9 +98,11 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
 
   filteredGroups.forEach((groupElement: ILayoutGroup) => {
     if (groupElement.maxCount > 1) {
-      const groupFormData = Object.keys(formData).filter((key) => {
-        return key.startsWith(groupElement.dataModelBindings.group);
-      });
+      const groupFormData = Object.keys(formData)
+        .filter((key) => {
+          return key.startsWith(groupElement.dataModelBindings.group);
+        })
+        .sort();
       if (groupFormData && groupFormData.length > 0) {
         const lastItem = groupFormData[groupFormData.length - 1];
         const match = lastItem.match(regex);
@@ -193,9 +195,11 @@ function getIndexForNestedRepeatingGroup(
     parentGroupBinding,
     `${parentGroupBinding}[${parentIndex}]`,
   );
-  const groupFormData = Object.keys(formData).filter((key) => {
-    return key.startsWith(indexedGroupBinding);
-  });
+  const groupFormData = Object.keys(formData)
+    .filter((key) => {
+      return key.startsWith(indexedGroupBinding);
+    })
+    .sort();
   if (groupFormData && groupFormData.length > 0) {
     const lastItem = groupFormData[groupFormData.length - 1];
     const match = lastItem.match(regex);

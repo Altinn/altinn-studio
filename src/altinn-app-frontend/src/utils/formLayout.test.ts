@@ -121,6 +121,46 @@ describe('formLayout', () => {
     expect(result).toEqual(expected);
   });
 
+  it('getRepeatingGroups should correctly handle out-of-order formData', () => {
+    const formData = {
+      'Group1[2].prop1': 'value-2-1',
+      'Group1[2].Group2[1].group2prop': 'group2-2-2-value',
+      'Group1[2].Group2[0].group2prop': 'group2-2-1-value',
+      'Group1[1].prop1': 'value-1-1',
+      'Group1[1].Group2[3].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[4].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[0].group2prop': 'group2-1-0-value',
+      'Group1[1].Group2[1].group2prop': 'group2-1-1-value',
+      'Group1[1].Group2[2].group2prop': 'group2-1-2-value',
+      'Group1[0].Group2[0].group2prop': 'group2-0-0-value',
+      'Group1[0].prop1': 'value-0-1',
+    };
+    const expected = {
+      Group1: {
+        index: 2,
+        dataModelBinding: 'Group1',
+        editIndex: -1,
+      },
+      'Group2-0': {
+        index: 0,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+      'Group2-1': {
+        index: 4,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+      'Group2-2': {
+        index: 1,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+    };
+    const result = getRepeatingGroups(testLayout, formData);
+    expect(result).toEqual(expected);
+  });
+
   it('getRepeatingGroups should return correct count', () => {
     const testLayout: ILayout = [
       {
