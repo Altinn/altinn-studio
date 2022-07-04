@@ -104,7 +104,7 @@
         "maxFileSizeInMB": 25,
         "maxNumberOfAttachments": 1,
         "minNumberOfAttachments": 0,
-        "displayMode": "simple",
+        "displayMode": "simple"
       },
       {
         "id": "mainUploaderMulti",
@@ -118,7 +118,7 @@
         "maxFileSizeInMB": 25,
         "maxNumberOfAttachments": 5,
         "minNumberOfAttachments": 0,
-        "displayMode": "simple",
+        "displayMode": "simple"
       },
       {
         "id": "subGroup",
