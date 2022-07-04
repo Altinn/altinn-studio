@@ -412,6 +412,12 @@
 								"items" : {
 									"type" : "string"
 								}
+							},
+							"extraOptionsToggle": {
+								"type": "string"
+							},
+							"extraOptions": {
+								"type": "string"
 							}
 					},
 					"required" : [

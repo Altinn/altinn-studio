@@ -43,6 +43,10 @@ var conditionalRuleHandlerObject = {
 
   showGroup: function(obj) {
     return (obj.value === "Ja");
+  },
+
+  showExtraOptions: function (obj) {
+    return (obj.value === 'Ja');
   }
 }
 var conditionalRuleHandlerHelper = {
@@ -68,6 +72,11 @@ var conditionalRuleHandlerHelper = {
     return {
         value: "value"
     }
-},
+  },
 
+  showExtraOptions: function () {
+    return {
+      value: 'value'
+    }
+  }
 }

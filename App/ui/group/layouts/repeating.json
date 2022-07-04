@@ -123,7 +123,7 @@
       {
         "id": "subGroup",
         "type": "Group",
-        "children": ["comments", "subUploader"],
+        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -141,6 +141,50 @@
           ],
           "openByDefault": true
         }
+      },
+      {
+        "id": "nestedDynamics",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Vis tillegg"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.extraOptionsToggle"
+        },
+        "options": [
+          {
+            "label": "Ja",
+            "value": "Ja"
+          }
+        ],
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "nestedOptions",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Tilleggsopsjoner"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.extraOptions"
+        },
+        "options": [
+          {
+            "label": "Opsjon 11",
+            "value": "o11"
+          },
+          {
+            "label": "Opsjon 1",
+            "value": "o1"
+          },
+          {
+            "label": "Opsjon 111",
+            "value": "o111"
+          }
+        ],
+        "required": false,
+        "readOnly": false
       },
       {
         "id": "comments",

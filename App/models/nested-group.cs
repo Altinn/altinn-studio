@@ -256,5 +256,15 @@ namespace Altinn.App.Models
     [JsonPropertyName("fileUploadList")]
     public List<string> fileUploadList { get; set; }
 
+    [XmlElement("extraOptionsToggle")]
+    [JsonProperty("extraOptionsToggle")]
+    [JsonPropertyName("extraOptionsToggle")]
+    public string extraOptionsToggle { get; set; }
+
+    [XmlElement("extraOptions")]
+    [JsonProperty("extraOptions")]
+    [JsonPropertyName("extraOptions")]
+    public string extraOptions { get; set; }
+
   }
 }
