@@ -8,6 +8,7 @@ import {
   getKeyWithoutIndex,
   mapFormData,
   removeGroupData,
+  getKeyIndex,
 } from './databindings';
 
 describe('utils/databindings.ts', () => {
@@ -109,6 +110,12 @@ describe('utils/databindings.ts', () => {
         disabled: false,
       },
     ];
+  });
+
+  describe('getKeyIndex', () => {
+    it('should work', () => {
+      expect(getKeyIndex('Group[1].Group2[0].group2prop')).toEqual([1, 0]);
+    });
   });
 
   describe('flattenObject', () => {

@@ -72,8 +72,8 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
  * as an array => [0, 1]
  */
 export function getKeyIndex(keyWithIndex: string): number[] {
-  const match = keyWithIndex.match(/(?<=\[)\d+(?=])]/g) || [];
-  return match.map((n) => parseInt(n, 10));
+  const match = keyWithIndex.match(/\[\d+]/g) || [];
+  return match.map((n) => parseInt(n.replace('[', '').replace(']', ''), 10));
 }
 
 /**
