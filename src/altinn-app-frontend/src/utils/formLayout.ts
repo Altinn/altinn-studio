@@ -18,6 +18,7 @@ import type {
   ILayoutGroup,
 } from '../features/form/layout';
 import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
+import type { ICheckboxContainerProps } from 'src/components/base/CheckboxesContainerComponent';
 
 interface SplitKey {
   baseComponentId: string;
@@ -471,4 +472,12 @@ export function isDatePickerComponent(
   component: ILayoutComponent | ILayoutGroup,
 ): component is IDatePickerProps & ILayoutComponent {
   return component.type.toLowerCase() === 'datepicker';
+}
+
+export function isCheckboxesComponent(
+  component: any,
+): component is ICheckboxContainerProps & ILayoutComponent {
+  return (
+    component && component.type && component.type.toLowerCase() === 'checkboxes'
+  );
 }

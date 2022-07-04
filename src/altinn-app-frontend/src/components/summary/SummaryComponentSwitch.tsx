@@ -13,6 +13,8 @@ import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 import {
   isFileUploadComponent,
   isFileUploadWithTagComponent,
+  isGroupComponent,
+  isCheckboxesComponent,
 } from 'src/utils/formLayout';
 
 export interface ISummaryComponentSwitch {
@@ -46,67 +48,67 @@ export default function SummaryComponentSwitch({
     return null;
   }
 
-  if (Object.keys(formComponent.dataModelBindings || {}).length === 0) {
-    if (isFileUploadComponent(formComponent)) {
-      return (
-        <>
-          <SummaryBoilerplate
-            {...change}
-            label={label}
-            hasValidationMessages={hasValidationMessages}
-          />
-          <AttachmentSummaryComponent componentRef={componentRef} />
-        </>
-      );
-    }
-    if (isFileUploadWithTagComponent(formComponent)) {
-      return (
-        <>
-          <SummaryBoilerplate
-            {...change}
-            label={label}
-            hasValidationMessages={hasValidationMessages}
-          />
-          <AttachmentWithTagSummaryComponent
-            componentRef={componentRef}
-            component={formComponent as ISelectionComponentProps}
-          />
-        </>
-      );
-    }
+  const hasDataBindings =
+    Object.keys(formComponent.dataModelBindings || {}).length === 0;
+
+  if (hasDataBindings && isFileUploadComponent(formComponent)) {
+    return (
+      <>
+        <SummaryBoilerplate
+          {...change}
+          label={label}
+          hasValidationMessages={hasValidationMessages}
+        />
+        <AttachmentSummaryComponent componentRef={componentRef} />
+      </>
+    );
   }
 
-  switch (formComponent.type) {
-    case 'Group':
-    case 'group': {
-      return (
-        <SummaryGroupComponent
+  if (hasDataBindings && isFileUploadWithTagComponent(formComponent)) {
+    return (
+      <>
+        <SummaryBoilerplate
           {...change}
-          {...groupProps}
+          label={label}
+          hasValidationMessages={hasValidationMessages}
+        />
+        <AttachmentWithTagSummaryComponent
           componentRef={componentRef}
+          component={formComponent as ISelectionComponentProps}
         />
-      );
-    }
-    case 'Checkboxes': {
-      return (
-        <MultipleChoiceSummary
-          {...change}
-          label={label}
-          hasValidationMessages={hasValidationMessages}
-          formData={formData}
-          readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
-        />
-      );
-    }
-    default:
-      return (
-        <SingleInputSummary
-          {...change}
-          label={label}
-          hasValidationMessages={hasValidationMessages}
-          formData={formData}
-          readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
-        />
-      );
+      </>
+    );
   }
+
+  if (isGroupComponent(formComponent)) {
+    return (
+      <SummaryGroupComponent
+        {...change}
+        {...groupProps}
+        componentRef={componentRef}
+      />
+    );
+  }
+
+  if (isCheckboxesComponent(formComponent) && typeof formData !== 'string') {
+    return (
+      <MultipleChoiceSummary
+        {...change}
+        label={label}
+        hasValidationMessages={hasValidationMessages}
+        formData={formData}
+        readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
+      />
+    );
+  }
+
+  return (
+    <SingleInputSummary
+      {...change}
+      label={label}
+      hasValidationMessages={hasValidationMessages}
+      formData={formData}
+      readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
+    />
+  );
 }
