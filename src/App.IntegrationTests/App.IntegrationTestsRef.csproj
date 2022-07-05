@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Common" Version="6.0.0-alpha.3" />
-    <PackageReference Include="Altinn.App.PlatformServices" Version="6.0.0-alpha.3" />
+    <PackageReference Include="Altinn.App.Common" Version="6.0.0" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="6.0.0" />
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
