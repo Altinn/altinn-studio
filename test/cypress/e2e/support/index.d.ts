@@ -60,7 +60,7 @@ declare namespace Cypress {
      * Add an item to group component with an item in nested group
      * @example cy.addItemToGroup(1, 2, 'automation')
      */
-    addItemToGroup(oldValue: Number, newValue: Number, comment: string): Chainable<Element>;
+    addItemToGroup(oldValue: Number, newValue: Number, comment: string, openByDefault?:boolean): Chainable<Element>;
 
     /**
      * Test for WCAG violations of impact critical, serious, moderate

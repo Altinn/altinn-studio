@@ -60,6 +60,7 @@ export interface IUpdateRepeatingGroups {
   layoutElementId: string;
   remove?: boolean;
   index?: number;
+  leaveOpen?: boolean;
 }
 
 export interface IUpdateRepeatingGroupsFulfilled {

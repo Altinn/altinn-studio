@@ -220,18 +220,9 @@ export function GroupContainer({
         layoutElementId: id,
         remove: true,
         index: groupIndex,
+        leaveOpen: container.edit?.openByDefault,
       }),
     );
-
-    if (
-      container.edit?.openByDefault &&
-      groupIndex === 0 &&
-      repeatingGroups[id].index === 0
-    ) {
-      dispatch(
-        FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }),
-      );
-    }
   };
 
   const onClickSave = () => {
