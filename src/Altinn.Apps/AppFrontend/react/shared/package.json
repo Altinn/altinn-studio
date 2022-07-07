@@ -17,7 +17,7 @@
     "dompurify": "^2.3.8",
     "html-react-parser": "^1.4.14",
     "marked": "^4.0.16",
-    "moment": "^2.29.3",
+    "moment": "^2.29.4",
     "react-content-loader": "^6.2.0",
     "react-router-dom": "^5.3.0",
     "react-truncate-markup": "^5.1.0",
