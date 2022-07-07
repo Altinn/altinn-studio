@@ -21,7 +21,7 @@
     "axios": "^0.27.2",
     "classnames": "^2.3.1",
     "core-js": "^3.22.8",
-    "moment": "^2.29.3",
+    "moment": "^2.29.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-hot-loader": "^4.13.0",

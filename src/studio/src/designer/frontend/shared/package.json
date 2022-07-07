@@ -20,7 +20,7 @@
     "diff": "^5.1.0",
     "dompurify": "^2.3.8",
     "marked": "^4.0.16",
-    "moment": "^2.29.3",
+    "moment": "^2.29.4",
     "react-content-loader": "^6.2.0",
     "react-html-parser": "^2.0.2",
     "react-monaco-editor": "^0.45.0",
