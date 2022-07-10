@@ -58,6 +58,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("OversiktOverEndringene-grp-9788")]
     public List<OversiktOverEndringenegrp9788> OversiktOverEndringenegrp9788 { get; set; }
 
+    [XmlElement("Gruppe2")]
+    [JsonProperty("Gruppe2")]
+    [JsonPropertyName("Gruppe2")]
+    public List<Gruppe2> Gruppe2 { get; set; }
+
   }
   public class Avgivergrp9787{
     [Range(1,Int32.MaxValue)]
@@ -174,6 +179,19 @@ namespace Altinn.App.Models
     public List<nestedgrp1234> nestedgrp1234 { get; set; }
 
   }
+
+  public class Gruppe2{
+    [Range(1,Int32.MaxValue)]
+    [XmlAttribute("gruppeid")]
+    [BindNever]
+    public decimal gruppeid {get; set;} = 2;
+
+    [XmlElement("felt1")]
+    [JsonProperty("felt1")]
+    [JsonPropertyName("felt1")]
+    public SkattemeldingEndringEtterFristPostdatadef37130 Felt1 { get; set; }
+  }
+
   public class SkattemeldingEndringEtterFristPostdatadef37130{
     [Range(1,Int32.MaxValue)]
     [XmlAttribute("orid")]
