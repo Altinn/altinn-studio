@@ -50,7 +50,11 @@
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": ["off"],
-    "@typescript-eslint/no-unused-vars": ["error", { "ignoreRestSiblings": true }],
-    "@typescript-eslint/consistent-type-imports": ["warn"]
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "ignoreRestSiblings": true }
+    ],
+    "@typescript-eslint/consistent-type-imports": ["warn"],
+    "react-hooks/exhaustive-deps": ["error"]
   }
 }

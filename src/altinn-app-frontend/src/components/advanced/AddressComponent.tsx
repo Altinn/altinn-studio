@@ -121,7 +121,7 @@ export function AddressComponent({
       validationErrors.houseNumber = null;
     }
     return validationErrors;
-  }, [houseNumber, language, zipCode]);
+  }, [houseNumber, language, zipCode, setPostPlace]);
 
   const onSaveField = React.useCallback(
     (key: AddressKeys, value: any) => {
@@ -135,7 +135,7 @@ export function AddressComponent({
         }
       }
     },
-    [validate, handleDataChange],
+    [validate, handleDataChange, setPostPlace],
   );
 
   React.useEffect(() => {
@@ -194,7 +194,14 @@ export function AddressComponent({
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
-  }, [formData.zipCode, language, source, onSaveField, validations]);
+  }, [
+    formData.zipCode,
+    language,
+    source,
+    onSaveField,
+    validations,
+    setPostPlace,
+  ]);
 
   const updateField = (
     key: AddressKeys,
