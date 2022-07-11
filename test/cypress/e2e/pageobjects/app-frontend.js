@@ -160,6 +160,12 @@ export default class AppFrontend {
         nestedGroup: {
           rows: [0, 1].map((subIdx) => ({
             uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, true),
+            nestedDynamics: `#nestedDynamics-${idx}-${subIdx} input[type=checkbox]`,
+            nestedOptions: [
+              `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(0)`,
+              `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(1)`,
+              `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(2)`,
+            ],
             editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type > button`
           })),
           groupContainer: `#group-subGroup-${idx}`,

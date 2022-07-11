@@ -113,7 +113,7 @@ describe('utils/databindings.ts', () => {
   });
 
   describe('getKeyIndex', () => {
-    it('should work', () => {
+    it('should return key indexes from string', () => {
       expect(getKeyIndex('Group[1].Group2[0].group2prop')).toEqual([1, 0]);
     });
   });

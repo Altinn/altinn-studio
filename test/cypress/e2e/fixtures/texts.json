@@ -26,5 +26,11 @@
   "uploadWithTag": "Last opp vedlegg og knytte den mot en tag",
   "uplodDocs": "Last opp eventuell dokumentasjon for ditt nye navn",
   "zeroIsNotValid": "0 er ikke en gyldig verdi",
-  "finishedUploading": "Ferdig lastet"
+  "finishedUploading": "Ferdig lastet",
+  "nestedOptionsToggle": "Vis tillegg",
+  "nestedOptions": "Tilleggsopsjoner",
+  "nestedOption1": "Opsjon 11",
+  "nestedOption2": "Opsjon 1",
+  "nestedOption3": "Opsjon 111",
+  "change": "Endre"
 }

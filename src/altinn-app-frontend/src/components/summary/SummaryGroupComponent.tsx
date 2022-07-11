@@ -43,21 +43,6 @@ const gridStyle = {
   paddingTop: '12px',
 };
 
-export function getHiddenFieldsForSummaryGroup(
-  hiddenFields: string[],
-  componentIds: string[],
-) {
-  const result = [];
-  hiddenFields.forEach((fieldKey) => {
-    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
-    if (componentIds.find((id) => id === fieldKeyWithoutIndex)) {
-      result.push(fieldKey);
-    }
-  });
-
-  return result;
-}
-
 const useStyles = makeStyles({
   label: {
     fontWeight: 500,
@@ -123,15 +108,8 @@ function SummaryGroupComponent({
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
   );
-  const hiddenFields = useAppSelector((state) =>
-    getHiddenFieldsForSummaryGroup(
-      state.formLayout.uiConfig.hiddenFields,
-      groupComponent.edit?.multiPage
-        ? groupComponent.children.map(
-            (childId) => childId.split(':')[1] || childId,
-          )
-        : groupComponent.children,
-    ),
+  const hiddenFields = useAppSelector(
+    (state) => new Set(state.formLayout.uiConfig.hiddenFields),
   );
 
   React.useEffect(() => {
@@ -216,13 +194,19 @@ function SummaryGroupComponent({
     for (let i = 0; i <= repeatingGroupMaxIndex; ++i) {
       const childSummaryComponents = groupChildComponents.map(
         (componentId: string) => {
+          const componentIdSuffix = `${index >= 0 ? `-${index}` : ''}-${i}`;
+          if (
+            hiddenFields.has(`${componentId}-${i}`) ||
+            hiddenFields.has(`${componentId}${componentIdSuffix}`)
+          ) {
+            return null;
+          }
+
           const component: ILayoutComponent = layout.find(
             (c: ILayoutComponent) => c.id === componentId,
           ) as ILayoutComponent;
           const componentDeepCopy = JSON.parse(JSON.stringify(component));
-          componentDeepCopy.id = `${componentDeepCopy.id}${
-            index >= 0 ? `-${index}` : ''
-          }-${i}`;
+          componentDeepCopy.id = `${componentDeepCopy.id}${componentIdSuffix}`;
 
           Object.keys(component.dataModelBindings).forEach((key) => {
             let binding = component.dataModelBindings[key].replace(
@@ -249,10 +233,6 @@ function SummaryGroupComponent({
             options,
             repeatingGroups,
           );
-
-          if (hiddenFields.find((field) => field === `${componentId}-${i}`)) {
-            return null;
-          }
 
           return (
             <GroupInputSummary
@@ -296,6 +276,10 @@ function SummaryGroupComponent({
       };
       const childSummaryComponents = [];
       groupChildComponents.forEach((componentId: string) => {
+        if (hiddenFields.has(`${componentId}-${i}`)) {
+          return;
+        }
+
         const component = layout.find(
           (c: ILayoutComponent) => c.id === componentId,
         );
@@ -340,9 +324,7 @@ function SummaryGroupComponent({
           parentGroup: isGroupComponent ? groupComponent.id : undefined,
         };
 
-        if (!hiddenFields.find((field) => field === `${componentId}-${i}`)) {
-          childSummaryComponents.push(summaryComponent);
-        }
+        childSummaryComponents.push(summaryComponent);
       });
 
       componentArray.push(

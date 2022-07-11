@@ -91,7 +91,7 @@ describe('Summary', () => {
       });
   });
 
-  it('is possible to view summary of repeating group', () => {
+  it.only('is possible to view summary of repeating group', () => {
     cy.completeTask3Form();
     cy.get(appFrontend.group.mainGroupSummary)
       .should('be.visible').and('have.length', 1)
@@ -108,6 +108,33 @@ describe('Summary', () => {
         cy.get(item).eq(4).should('contain.text', 'attachment-in-multi2.pdf');
         cy.get(item).eq(5).should('contain.text', 'attachment-in-nested.pdf');
         cy.get(item).eq(5).should('contain.text', 'automation');
+        cy.get(item).eq(5).should('contain.text', texts.nestedOptionsToggle);
+        cy.get(item).eq(5).should('not.contain.text', texts.nestedOptions);
+
+        // Go back to the repeating group in order to set nested options
+        cy.get(item).eq(5).find('button').first().should('contain.text', texts.change).click();
+      });
+
+    // Check to show a couple of nested options, then go back to the summary
+    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedDynamics).click();
+    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).click();
+    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).click();
+    cy.get(appFrontend.group.rows[0].nestedGroup.saveBtn).click();
+    cy.get(appFrontend.group.saveMainGroup).click();
+    cy.contains(mui.button, texts.backToSummary).click();
+
+    cy.get(appFrontend.group.mainGroupSummary)
+      .should('be.visible').and('have.length', 1)
+      .first()
+      .children(mui.gridItem).should('have.length', 6)
+      .then((item) => {
+        cy.get(item).eq(5).should('contain.text', texts.nestedOptionsToggle);
+        cy.get(item).eq(5).should('contain.text', texts.nestedOptions);
+        cy.get(item).eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
       });
   });
 });
