@@ -209,6 +209,7 @@ export interface IComponentProps extends IGenericComponentProps {
     value: string,
     key?: string,
     skipValidation?: boolean,
+    checkIfRequired?: boolean,
   ) => void;
   handleFocusUpdate: (componentId: string, step?: number) => void;
   getTextResource: (key: string) => React.ReactNode;
@@ -221,6 +222,10 @@ export interface IComponentProps extends IGenericComponentProps {
   label: () => JSX.Element;
   legend: () => JSX.Element;
   textResourceBindings: ITextResourceBindings;
+}
+
+export interface IAutoSavedComponentProps extends IComponentProps {
+  saveWhileTyping?: number | boolean;
 }
 
 const components: IComponent[] = textComponents.concat(

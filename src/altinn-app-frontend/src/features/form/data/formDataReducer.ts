@@ -44,13 +44,6 @@ const isProcessAction = (action: AnyAction) => {
   );
 };
 
-const isUpdateDataFulfilled = (action: AnyAction) => {
-  return (
-    action.type === FormDataActions.updateFormDataFulfilled.type ||
-    action.type === FormDataActions.updateFormDataSkipAutosave.type
-  );
-};
-
 const FormDataReducer = createReducer(initialState, (builder) => {
   builder
     .addCase(
@@ -114,8 +107,8 @@ const FormDataReducer = createReducer(initialState, (builder) => {
     .addCase(FormLayoutActions.updateCurrentViewFulfilled, (state) => {
       state.hasSubmitted = false;
     })
-    .addMatcher(
-      isUpdateDataFulfilled,
+    .addCase(
+      FormDataActions.updateFormDataFulfilled,
       (state, action: PayloadAction<IUpdateFormDataFulfilled>) => {
         const { field, data } = action.payload;
         // Remove if data is null, undefined or empty string

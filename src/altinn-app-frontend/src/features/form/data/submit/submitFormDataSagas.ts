@@ -36,7 +36,10 @@ import {
 } from '../../validation/validationSlice';
 import FormDataActions from '../formDataActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
-import type { ISubmitDataAction } from '../formDataTypes';
+import type {
+  ISubmitDataAction,
+  IUpdateFormDataFulfilled,
+} from '../formDataTypes';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
@@ -276,7 +279,13 @@ export function* saveStatelessData(state: IRuntimeState, model: any) {
   yield call(FormDynamicsActions.checkIfConditionalRulesShouldRun);
 }
 
-function* autoSaveSaga(): SagaIterator {
+function* autoSaveSaga({
+  payload: { skipAutoSave },
+}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
+  if (skipAutoSave) {
+    return;
+  }
+
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
   if (uiConfig.autoSave !== false) {
     // undefined should default to auto save

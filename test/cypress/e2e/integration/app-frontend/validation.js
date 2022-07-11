@@ -9,13 +9,73 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('Validation', () => {
-  it('Required field validation on blur', () => {
+  it('Required field validation should be visible on submit, not on blur', () => {
     cy.navigateToChangeName();
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').focus().blur();
+
+    // This field has server-side validations marking it as required, overriding the frontend validation functionality
+    // which normally postpones the empty fields validation until the page validation runs. We need to type something,
+    // send it to the server and clear the value to show this validation error.
+    cy.get(appFrontend.changeOfName.newFirstName)
+      .should('be.visible')
+      .focus()
+      .type('Some value')
+      .blur()
+      .focus()
+      .clear()
+      .blur();
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.requiredField)
+      .find(appFrontend.errorExclamation)
+      .should('be.visible');
+
+    // Doing the same for any other field (without server-side required validation) should not show an error
+    cy.get(appFrontend.changeOfName.newMiddleName)
+      .should('be.visible')
+      .focus()
+      .type('Some value')
+      .blur()
+      .focus()
+      .clear()
+      .blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)))
+      .should('not.exist');
+
+    cy.get(appFrontend.changeOfName.newFirstName)
+      .should('be.visible')
+      .focus()
+      .type('Some first name')
+      .blur();
+
+    cy.get(appFrontend.changeOfName.newMiddleName)
+      .should('be.visible')
+      .focus()
+      .type('Some middle name')
+      .blur();
+
+    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+    cy.get(appFrontend.changeOfName.reasonRelationship).should('be.visible').click().type('test');
+    cy.get(appFrontend.changeOfName.dateOfEffect)
+      .siblings()
+      .children(mui.buttonIcon)
+      .click()
+      .then(() => {
+        cy.get(mui.selectedDate).should('be.visible').click();
+      });
+
+    cy.contains(mui.button, texts.next).click();
+
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
+      .should('not.exist');
+
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newMiddleName.substring(1)))
+      .should('not.exist');
+
+    cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1)))
+      .should('exist')
+      .should('be.visible')
+      .should('have.text', texts.requiredFieldLastName)
       .find(appFrontend.errorExclamation)
       .should('be.visible');
   });

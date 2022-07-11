@@ -32,9 +32,6 @@ const FormDataActions = {
   updateFormDataFulfilled: createAction<IUpdateFormDataFulfilled>(
     `${moduleName}/updateFulfilled`,
   ),
-  updateFormDataSkipAutosave: createAction<IUpdateFormDataFulfilled>(
-    `${moduleName}/updateSkipAutosave`,
-  ),
   updateFormDataRejected: createAction<IFormDataRejected>(
     `${moduleName}/updateRejected`,
   ),

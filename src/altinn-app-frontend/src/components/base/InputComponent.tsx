@@ -5,7 +5,8 @@ import NumberFormat from 'react-number-format';
 import { Input, makeStyles } from '@material-ui/core';
 
 import '../../styles/shared.css';
-import type { IComponentProps } from '..';
+import type { IAutoSavedComponentProps } from '..';
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 
 export interface IInputBaseProps {
   id: string;
@@ -20,7 +21,7 @@ export interface IInputFormatting {
   align?: 'right' | 'center' | 'left';
 }
 
-export interface IInputProps extends IComponentProps {
+export interface IInputProps extends IAutoSavedComponentProps {
   formatting?: IInputFormatting;
 }
 
@@ -85,28 +86,22 @@ export function InputComponent({
   formatting,
   handleDataChange,
   textResourceBindings,
+  saveWhileTyping,
 }: IInputProps) {
   const classes = useStyles();
-  const [value, setValue] = React.useState(formData?.simpleBinding ?? '');
-
-  React.useEffect(() => {
-    setValue(formData?.simpleBinding ?? '');
-  }, [formData?.simpleBinding]);
-
-  const onDataChanged = (e: any) => {
-    setValue(e.target.value);
-  };
-
-  const onDataChangeSubmit = () => {
-    handleDataChange(value);
-  };
+  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
+    handleDataChange,
+    formData?.simpleBinding ?? '',
+    saveWhileTyping,
+  );
 
   return (
     <Input
       key={`input_${id}`}
       id={id}
-      onBlur={onDataChangeSubmit}
-      onChange={onDataChanged}
+      onBlur={() => saveValue()}
+      onChange={(e) => setValue(e.target.value)}
+      onPaste={() => onPaste()}
       readOnly={readOnly}
       required={required}
       fullWidth={true}

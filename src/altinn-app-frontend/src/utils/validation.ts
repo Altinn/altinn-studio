@@ -655,8 +655,9 @@ export function validateComponentFormData(
   language: ILanguage,
   textResources: ITextResource[],
   schemaValidator: ISchemaValidator,
-  existingValidationErrors?: IComponentValidations,
-  componentIdWithIndex?: string,
+  existingValidationErrors: IComponentValidations | undefined,
+  componentIdWithIndex: string | null,
+  checkIfRequired: boolean,
 ): IValidationResult {
   const { validator, rootElementPath, schema } = schemaValidator;
   const fieldKey = Object.keys(component.dataModelBindings).find(
@@ -730,7 +731,7 @@ export function validateComponentFormData(
         );
       });
   }
-  if (component.required) {
+  if (checkIfRequired && component.required) {
     if (!formData || formData === '') {
       const fieldName = getFieldName(
         component.textResourceBindings,

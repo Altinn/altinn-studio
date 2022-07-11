@@ -186,10 +186,15 @@ describe('components > advanced > AddressComponent', () => {
     await userEvent.type(address, 'Slottsplassen 1');
     fireEvent.blur(address);
 
-    expect(handleDataChange).toHaveBeenCalledWith('Slottsplassen 1', 'address');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'Slottsplassen 1',
+      'address',
+      false,
+      false,
+    );
   });
 
-  it('should fire change event, with initial content, when readonly and field is blurred', async () => {
+  it('should not fire change event when readonly', async () => {
     const handleDataChange = jest.fn();
 
     render({
@@ -205,11 +210,7 @@ describe('components > advanced > AddressComponent', () => {
     await userEvent.type(address, 'Slottsplassen 1');
     fireEvent.blur(address);
 
-    expect(handleDataChange).not.toHaveBeenCalledWith(
-      'Slottsplassen 1',
-      'address',
-    );
-    expect(handleDataChange).toHaveBeenCalledWith('initial address', 'address');
+    expect(handleDataChange).not.toHaveBeenCalled();
   });
 
   it('should show error message on blur if zipcode is invalid, and not call handleDataChange', async () => {
@@ -249,7 +250,12 @@ describe('components > advanced > AddressComponent', () => {
 
     await screen.findByDisplayValue('OSLO');
 
-    expect(handleDataChange).toHaveBeenCalledWith('OSLO', 'postPlace');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'OSLO',
+      'postPlace',
+      false,
+      false,
+    );
   });
 
   it('should call change event when zipcode is valid', async () => {
@@ -271,7 +277,12 @@ describe('components > advanced > AddressComponent', () => {
     await userEvent.type(field, '0001');
     fireEvent.blur(field);
 
-    expect(handleDataChange).toHaveBeenCalledWith('0001', 'zipCode');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      '0001',
+      'zipCode',
+      false,
+      false,
+    );
   });
 
   it('should call handleDataChange for post place when zip code is cleared', async () => {
@@ -292,8 +303,13 @@ describe('components > advanced > AddressComponent', () => {
     await userEvent.clear(field);
     fireEvent.blur(field);
 
-    expect(handleDataChange).toHaveBeenCalledWith('', 'zipCode');
-    expect(handleDataChange).toHaveBeenCalledWith('', 'postPlace');
+    expect(handleDataChange).toHaveBeenCalledWith('', 'zipCode', false, false);
+    expect(handleDataChange).toHaveBeenCalledWith(
+      '',
+      'postPlace',
+      false,
+      false,
+    );
   });
 
   it('should display error message coming from props', () => {

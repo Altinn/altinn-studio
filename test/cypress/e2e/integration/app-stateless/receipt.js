@@ -19,7 +19,7 @@ describe('Receipt', () => {
       var instanceId = url.split('/').slice(-2).join('/');
       var requestUrl =
         Cypress.env('environment') === 'local'
-          ? `${Cypress.env('baseUrl')}`
+          ? `${Cypress.config().baseUrl}`
           : `https://ttd.apps.${Cypress.config('baseUrl').slice(8)}`;
       requestUrl += `/ttd/${Cypress.env('stateless')}/instances/${instanceId}/process/next`;
       cy.getCookie('XSRF-TOKEN').then((xsrfToken) => {

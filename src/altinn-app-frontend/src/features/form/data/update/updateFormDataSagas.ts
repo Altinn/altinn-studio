@@ -32,22 +32,40 @@ import type { ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 
 function* updateFormDataSaga({
-  payload: { field, data, componentId, skipValidation, skipAutoSave },
+  payload: {
+    field,
+    data,
+    componentId,
+    skipValidation,
+    skipAutoSave,
+    checkIfRequired,
+  },
 }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const focus = state.formLayout.uiConfig.focus;
 
     if (!skipValidation) {
-      yield call(runValidations, field, data, componentId, state);
+      yield call(
+        runValidations,
+        field,
+        data,
+        componentId,
+        state,
+        checkIfRequired,
+      );
     }
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
-      if (!skipAutoSave) {
-        yield put(FormDataActions.updateFormDataFulfilled({ field, data }));
-      } else {
-        yield put(FormDataActions.updateFormDataSkipAutosave({ field, data }));
-      }
+      yield put(
+        FormDataActions.updateFormDataFulfilled({
+          field,
+          data,
+          skipValidation,
+          skipAutoSave,
+          checkIfRequired,
+        }),
+      );
     }
 
     if (state.formDynamics.conditionalRendering) {
@@ -68,6 +86,7 @@ function* runValidations(
   data: any,
   componentId: string,
   state: IRuntimeState,
+  checkIfRequired: boolean,
 ) {
   if (!componentId) {
     yield put(
@@ -105,6 +124,7 @@ function* runValidations(
     validator,
     state.formValidations.validations[componentId],
     componentId !== component.id ? componentId : null,
+    checkIfRequired,
   );
 
   const componentValidations =

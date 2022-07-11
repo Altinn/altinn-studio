@@ -161,6 +161,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     value,
     key = 'simpleBinding',
     skipValidation = false,
+    checkIfRequired = true,
   ) => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
@@ -192,6 +193,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         data: value,
         componentId: props.id,
         skipValidation,
+        checkIfRequired,
       }),
     );
   };

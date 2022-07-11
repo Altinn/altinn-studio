@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('Prefill', () => {
   it('Check Prefill from register and readonly input', () => {
-    var userFullName = Cypress.env('testUserName').includes('external')
+    var userFullName = Cypress.env('testUserName').includes('external') && Cypress.env('environment') !== 'local'
       ? Cypress.env('externalUserFullName')
       : Cypress.env('userFullName');
     cy.navigateToChangeName();

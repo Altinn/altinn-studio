@@ -32,11 +32,6 @@ describe('watchReplaceTextResourcesSaga', () => {
       )
       .next()
       .takeLatest(
-        FormDataActions.updateFormDataSkipAutosave,
-        replaceTextResourcesSaga,
-      )
-      .next()
-      .takeLatest(
         FormDataActions.setFormDataFulfilled,
         replaceTextResourcesSaga,
       )

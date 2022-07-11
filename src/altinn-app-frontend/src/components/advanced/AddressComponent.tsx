@@ -5,12 +5,13 @@ import cn from 'classnames';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import type { IComponentProps } from '..';
+import type { IAutoSavedComponentProps } from '..';
 import { AddressLabel } from './AddressLabel';
 
 import './AddressComponent.css';
 import '../../styles/shared.css';
-export interface IAddressComponentProps extends IComponentProps {
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+export interface IAddressComponentProps extends IAutoSavedComponentProps {
   simplified: boolean;
   labelSettings?: ILabelSettings;
 }
@@ -40,34 +41,61 @@ export function AddressComponent({
   readOnly,
   labelSettings,
   simplified,
+  saveWhileTyping,
 }: IAddressComponentProps) {
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
 
-  const [address, setAddress] = React.useState(formData.address || '');
-  const [zipCode, setZipCode] = React.useState(formData.zipCode || '');
-  const [postPlace, setPostPlace] = React.useState(formData.postPlace || '');
-  const [careOf, setCareOf] = React.useState(formData.careOf || '');
-  const [houseNumber, setHouseNumber] = React.useState(
-    formData.houseNumber || '',
+  const handleDataChangeOverride =
+    (key: AddressKeys): IAddressComponentProps['handleDataChange'] =>
+    (value) =>
+      onSaveField(key, value);
+
+  const {
+    value: address,
+    setValue: setAddress,
+    onPaste: onAddressPaste,
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.address),
+    formData.address || '',
+    saveWhileTyping,
   );
+  const {
+    value: zipCode,
+    setValue: setZipCode,
+    onPaste: onZipCodePaste,
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.zipCode),
+    formData.zipCode || '',
+    saveWhileTyping,
+  );
+  const { value: postPlace, setValue: setPostPlace } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.postPlace),
+    formData.postPlace || '',
+    saveWhileTyping,
+  );
+  const {
+    value: careOf,
+    setValue: setCareOf,
+    onPaste: onCareOfPaste,
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.careOf),
+    formData.careOf || '',
+    saveWhileTyping,
+  );
+  const {
+    value: houseNumber,
+    setValue: setHouseNumber,
+    onPaste: onHouseNumberPaste,
+  } = useDelayedSavedState(
+    handleDataChangeOverride(AddressKeys.houseNumber),
+    formData.houseNumber || '',
+    saveWhileTyping,
+  );
+
   const [validations, setValidations] = React.useState({} as any);
   const prevZipCode = React.useRef(null);
   const hasFetchedPostPlace = React.useRef(false);
-
-  React.useEffect(() => {
-    setAddress(formData.address || '');
-    setZipCode(formData.zipCode || '');
-    setPostPlace(formData.postPlace || '');
-    setCareOf(formData.careOf || '');
-    setHouseNumber(formData.houseNumber || '');
-  }, [
-    formData.address,
-    formData.zipCode,
-    formData.postPlace,
-    formData.careOf,
-    formData.houseNumber,
-  ]);
 
   const validate = React.useCallback(() => {
     const validationErrors: IAddressValidationErrors = {
@@ -95,15 +123,15 @@ export function AddressComponent({
     return validationErrors;
   }, [houseNumber, language, zipCode]);
 
-  const onBlurField = React.useCallback(
+  const onSaveField = React.useCallback(
     (key: AddressKeys, value: any) => {
       const validationErrors: IAddressValidationErrors = validate();
       setValidations(validationErrors);
       if (!validationErrors[key]) {
-        handleDataChange(value, key);
+        handleDataChange(value, key, false, false);
         if (key === AddressKeys.zipCode && !value) {
           // if we are removing a zip code, also remove post place from form data
-          onBlurField(AddressKeys.postPlace, '');
+          setPostPlace('', true);
         }
       }
     },
@@ -143,7 +171,7 @@ export function AddressComponent({
         if (response.valid) {
           setPostPlace(response.result);
           setValidations({ ...validations, zipCode: null });
-          onBlurField(AddressKeys.postPlace, response.result);
+          onSaveField(AddressKeys.postPlace, response.result);
         } else {
           const errorMessage = getLanguageFromKey(
             'address_component.validation_error_zipcode',
@@ -166,10 +194,11 @@ export function AddressComponent({
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
-  }, [formData.zipCode, language, source, onBlurField, validations]);
+  }, [formData.zipCode, language, source, onSaveField, validations]);
 
-  const updateField: (key: AddressKeys, event: any) => void = (
+  const updateField = (
     key: AddressKeys,
+    saveImmediately: boolean,
     event: any,
   ): void => {
     const changedFieldValue: string = event.target.value;
@@ -177,23 +206,23 @@ export function AddressComponent({
 
     switch (changedKey) {
       case AddressKeys.address: {
-        setAddress(changedFieldValue);
+        setAddress(changedFieldValue, saveImmediately);
         break;
       }
       case AddressKeys.careOf: {
-        setCareOf(changedFieldValue);
+        setCareOf(changedFieldValue, saveImmediately);
         break;
       }
       case AddressKeys.houseNumber: {
-        setHouseNumber(changedFieldValue);
+        setHouseNumber(changedFieldValue, saveImmediately);
         break;
       }
       case AddressKeys.postPlace: {
-        setPostPlace(changedFieldValue);
+        setPostPlace(changedFieldValue, saveImmediately);
         break;
       }
       case AddressKeys.zipCode: {
-        setZipCode(changedFieldValue);
+        setZipCode(changedFieldValue, saveImmediately);
         break;
       }
       default:
@@ -266,8 +295,9 @@ export function AddressComponent({
           disabled: readOnly,
         })}
         value={address}
-        onChange={updateField.bind(null, AddressKeys.address)}
-        onBlur={onBlurField.bind(null, AddressKeys.address, address)}
+        onChange={updateField.bind(null, AddressKeys.address, false)}
+        onBlur={updateField.bind(null, AddressKeys.address, true)}
+        onPaste={() => onAddressPaste()}
         readOnly={readOnly}
         required={required}
       />
@@ -294,8 +324,9 @@ export function AddressComponent({
               disabled: readOnly,
             })}
             value={careOf}
-            onChange={updateField.bind(null, AddressKeys.careOf)}
-            onBlur={onBlurField.bind(null, AddressKeys.careOf, careOf)}
+            onChange={updateField.bind(null, AddressKeys.careOf, false)}
+            onBlur={updateField.bind(null, AddressKeys.careOf, true)}
+            onPaste={() => onCareOfPaste()}
             readOnly={readOnly}
           />
           {allValidations?.[AddressKeys.careOf]
@@ -324,8 +355,9 @@ export function AddressComponent({
               disabled: readOnly,
             })}
             value={zipCode}
-            onChange={updateField.bind(null, AddressKeys.zipCode)}
-            onBlur={onBlurField.bind(null, AddressKeys.zipCode, zipCode)}
+            onChange={updateField.bind(null, AddressKeys.zipCode, false)}
+            onBlur={updateField.bind(null, AddressKeys.zipCode, true)}
+            onPaste={() => onZipCodePaste()}
             readOnly={readOnly}
             required={required}
             inputMode='numeric'
@@ -387,12 +419,9 @@ export function AddressComponent({
               disabled: readOnly,
             })}
             value={houseNumber}
-            onChange={updateField.bind(null, AddressKeys.houseNumber)}
-            onBlur={onBlurField.bind(
-              null,
-              AddressKeys.houseNumber,
-              houseNumber,
-            )}
+            onChange={updateField.bind(null, AddressKeys.houseNumber, false)}
+            onBlur={updateField.bind(null, AddressKeys.houseNumber, true)}
+            onPaste={() => onHouseNumberPaste()}
             readOnly={readOnly}
           />
           {allValidations?.[AddressKeys.houseNumber]

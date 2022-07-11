@@ -17,15 +17,19 @@ export interface ISubmitDataAction {
   stopWithWarnings?: boolean;
 }
 
-export interface IUpdateFormData {
+export interface IUpdateFormDataProps {
+  skipValidation?: boolean;
+  skipAutoSave?: boolean;
+  checkIfRequired?: boolean;
+}
+
+export interface IUpdateFormData extends IUpdateFormDataProps {
   field: string;
   data: any;
   componentId?: string;
-  skipValidation?: boolean;
-  skipAutoSave?: boolean;
 }
 
-export interface IUpdateFormDataFulfilled {
+export interface IUpdateFormDataFulfilled extends IUpdateFormDataProps {
   field: string;
   data: any;
 }

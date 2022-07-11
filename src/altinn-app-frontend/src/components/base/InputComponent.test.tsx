@@ -5,6 +5,7 @@ import type { IComponentProps } from 'src/components';
 import type { IInputProps } from './InputComponent';
 
 import { InputComponent } from './InputComponent';
+import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 
 describe('InputComponent.tsx', () => {
   const mockId = 'mock-id';
@@ -40,28 +41,61 @@ describe('InputComponent.tsx', () => {
     expect(inputComponent).toHaveValue('it');
   });
 
-  it('should call supplied dataChanged function after data change', () => {
+  it('should call supplied dataChanged function after data change', async () => {
     const handleDataChange = jest.fn();
     renderInputComponent({ handleDataChange });
     const inputComponent = screen.getByTestId(mockId);
 
-    fireEvent.blur(inputComponent, { target: { value: 'it123' } });
+    mockDelayBeforeSaving(25);
+    fireEvent.change(inputComponent, { target: { value: 'it123' } });
     expect(inputComponent).toHaveValue('it123');
+    expect(handleDataChange).not.toHaveBeenCalled();
+    await new Promise((r) => setTimeout(r, 25));
     expect(handleDataChange).toHaveBeenCalled();
+    mockDelayBeforeSaving(undefined);
+  });
+
+  it('should call supplied dataChanged function immediately after onBlur', async () => {
+    const handleDataChange = jest.fn();
+    renderInputComponent({ handleDataChange });
+    const inputComponent = screen.getByTestId(mockId);
+
+    fireEvent.change(inputComponent, { target: { value: 'it123' } });
+    fireEvent.blur(inputComponent);
+    expect(inputComponent).toHaveValue('it123');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'it123',
+      undefined,
+      false,
+      false,
+    );
   });
 
   it('should render input with formatted number when this is specified', () => {
+    const handleDataChange = jest.fn();
     renderInputComponent({
+      handleDataChange,
       formatting: {
         number: {
           thousandSeparator: true,
           prefix: '$',
         },
       },
-      formData: { simpleBinding: '1234' },
+      formData: { simpleBinding: '123456' },
     });
     const inputComponent = screen.getByTestId(`${mockId}-formatted-number`);
-    expect(inputComponent).toHaveValue();
+    expect(inputComponent).toHaveValue('$123,456');
+
+    fireEvent.change(inputComponent, { target: { value: '1234567' } });
+    fireEvent.blur(inputComponent);
+    expect(inputComponent).toHaveValue('$1,234,567');
+    expect(handleDataChange).toHaveBeenCalledTimes(1);
+    expect(handleDataChange).toHaveBeenCalledWith(
+      '1234567',
+      undefined,
+      false,
+      false,
+    );
   });
 
   it('should show aria-describedby if textResourceBindings.description is present', () => {
