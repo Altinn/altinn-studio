@@ -36,9 +36,13 @@
     "eslint": "^8.17.0",
     "eslint-plugin-cypress": "^2.12.1",
     "execa": "^6.1.0",
+    "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
     "start-server-and-test": "^1.14.0"
   },
-  "packageManager": "yarn@3.2.1"
+  "packageManager": "yarn@3.2.1",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "../../.husky/pre-commit-check-for-skipped-tests"
+  }
 }

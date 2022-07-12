@@ -91,7 +91,7 @@ describe('Summary', () => {
       });
   });
 
-  it.only('is possible to view summary of repeating group', () => {
+  it('is possible to view summary of repeating group', () => {
     cy.completeTask3Form();
     cy.get(appFrontend.group.mainGroupSummary)
       .should('be.visible').and('have.length', 1)

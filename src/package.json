@@ -28,7 +28,10 @@
     "shared"
   ],
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "eslint --cache --fix",
+    "*.{js,jsx,ts,tsx}": [
+      "../.husky/pre-commit-check-for-skipped-tests",
+      "eslint --cache --fix"
+    ],
     "*.{css,md,json}": "prettier --write"
   }
 }

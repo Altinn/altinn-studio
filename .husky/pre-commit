@@ -4,3 +4,6 @@
 cd "$(dirname -- "$0")"
 cd ../src
 npx lint-staged
+
+cd ../test/cypress
+npx lint-staged
