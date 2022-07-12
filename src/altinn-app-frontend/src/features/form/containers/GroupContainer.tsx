@@ -320,6 +320,7 @@ export function GroupContainer({
         editIndex < 0 &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
+            id={'add-button-' + id}
             container={container}
             language={language}
             onClickAdd={onClickAdd}
@@ -382,6 +383,7 @@ export function GroupContainer({
         container.edit?.addButton !== false &&
         repeatingGroupIndex + 1 < container.maxCount && (
           <RepeatingGroupAddButton
+            id={'add-button-' + id}
             container={container}
             language={language}
             onClickAdd={onClickAdd}

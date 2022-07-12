@@ -15,6 +15,7 @@ export interface IRepeatingGroupAddButton {
   textResources: ITextResource[];
   onClickAdd: () => void;
   onKeypressAdd: (event: React.KeyboardEvent<HTMLDivElement>) => void;
+  id?: string;
 }
 
 const theme = createTheme(altinnAppTheme);
@@ -62,6 +63,7 @@ export function RepeatingGroupAddButton({
   textResources,
   onClickAdd,
   onKeypressAdd,
+  id,
 }: IRepeatingGroupAddButton): JSX.Element {
   const classes = useStyles();
 
@@ -83,6 +85,7 @@ export function RepeatingGroupAddButton({
         onKeyPress={(event) => onKeypressAdd(event)}
         justifyContent='center'
         alignItems='center'
+        id={id}
       >
         <Grid item={true}>
           <i className={`fa fa-exit ${classes.addIcon}`} />

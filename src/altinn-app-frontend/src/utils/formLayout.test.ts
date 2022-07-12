@@ -291,86 +291,155 @@ describe('formLayout', () => {
     expect(result).toEqual(expected);
   });
 
-  it('createRepeatingGroupComponents should handle text resources with variables', () => {
-    const testLayout: ILayout = [
-      {
-        id: 'Group1',
-        type: 'group',
-        dataModelBindings: {
-          group: 'Group1',
+  describe('createRepeatingGroupComponents', () => {
+    it('should handle text resources with variables', () => {
+      const testLayout: ILayout = [
+        {
+          id: 'Group1',
+          type: 'group',
+          dataModelBindings: {
+            group: 'Group1',
+          },
+          children: ['field1'],
+          maxCount: 3,
+        } as ILayoutGroup,
+        {
+          id: 'field1',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group1.prop1',
+          },
+          textResourceBindings: {
+            title: 'title-w-variable',
+          },
+          readOnly: false,
+          required: false,
+          disabled: false,
+        } as ILayoutComponent,
+      ];
+      const mockTextResources = [
+        {
+          id: 'title-w-variable',
+          value: 'Test 123 {0}',
+          unparsedValue: 'Test 123 {0}',
+          variables: [
+            {
+              key: 'Group1[{0}].prop1',
+              dataSource: 'dataModel.default',
+            },
+          ],
         },
-        children: ['field1'],
-        maxCount: 3,
-      } as ILayoutGroup,
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group1.prop1',
-        },
-        textResourceBindings: {
-          title: 'title-w-variable',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      } as ILayoutComponent,
-    ];
-    const mockTextResources = [
-      {
-        id: 'title-w-variable',
-        value: 'Test 123 {0}',
-        unparsedValue: 'Test 123 {0}',
-        variables: [
+      ];
+
+      const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
+      const component: ILayoutComponent = testLayout[1] as ILayoutComponent;
+      const expected = [
+        [
           {
-            key: 'Group1[{0}].prop1',
-            dataSource: 'dataModel.default',
+            ...testLayout[1],
+            id: `${component.id}-0`,
+            hidden: false,
+            baseComponentId: 'field1',
+            dataModelBindings: {
+              simple: 'Group1[0].prop1',
+            },
+            textResourceBindings: {
+              title: 'title-w-variable-0',
+            },
           },
         ],
-      },
-    ];
+        [
+          {
+            ...testLayout[1],
+            id: `${component.id}-1`,
+            hidden: false,
+            baseComponentId: 'field1',
+            dataModelBindings: {
+              simple: 'Group1[1].prop1',
+            },
+            textResourceBindings: {
+              title: 'title-w-variable-1',
+            },
+          },
+        ],
+      ];
 
-    const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
-    const component: ILayoutComponent = testLayout[1] as ILayoutComponent;
-    const expected = [
-      [
+      const result = createRepeatingGroupComponents(
+        container,
+        [testLayout[1]],
+        1,
+        mockTextResources,
+      );
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should leave panel groups and children untouched', () => {
+      const testLayout: ILayout = [
         {
-          ...testLayout[1],
-          id: `${component.id}-0`,
-          hidden: false,
-          baseComponentId: 'field1',
+          id: 'Group1',
+          type: 'group',
           dataModelBindings: {
-            simple: 'Group1[0].prop1',
+            group: 'Group1',
+          },
+          children: ['field1', 'panel-group'],
+          maxCount: 3,
+        } as ILayoutGroup,
+        {
+          id: 'field1',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group1.prop1',
           },
           textResourceBindings: {
-            title: 'title-w-variable-0',
+            title: 'title-w-variable',
           },
-        },
-      ],
-      [
+          readOnly: false,
+          required: false,
+          disabled: false,
+        } as ILayoutComponent,
         {
-          ...testLayout[1],
-          id: `${component.id}-1`,
-          hidden: false,
-          baseComponentId: 'field1',
+          id: 'panel-group',
+          type: 'group',
           dataModelBindings: {
-            simple: 'Group1[1].prop1',
+            group: 'Group1',
+          },
+          children: ['panel-group-child'],
+          panel: {
+            groupReference: {
+              group: 'some-group',
+            },
+          },
+        } as ILayoutGroup,
+        {
+          id: 'panel-group-child',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group1.prop1',
           },
           textResourceBindings: {
-            title: 'title-w-variable-1',
+            title: 'title-w-variable',
           },
-        },
-      ],
-    ];
+          readOnly: false,
+          required: false,
+          disabled: false,
+        } as ILayoutComponent,
+      ];
 
-    const result = createRepeatingGroupComponents(
-      container,
-      [testLayout[1]],
-      1,
-      mockTextResources,
-    );
+      const container: ILayoutGroup = testLayout[0] as ILayoutGroup;
+      const components = testLayout.splice(0, 1);
 
-    expect(result).toEqual(expected);
+      const result = createRepeatingGroupComponents(
+        container,
+        components,
+        0,
+        [],
+      );
+
+      expect(result[0]).not.toEqual(components[0]);
+      expect(result[1]).toEqual(components[1]);
+      expect(result[2]).toEqual(components[2]);
+    });
   });
 
   it('baseComponentId should never contain group index', () => {

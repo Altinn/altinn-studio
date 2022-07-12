@@ -117,6 +117,28 @@ export function getInitialStateMock(
             },
           ],
         },
+        {
+          id: 'group.input.title',
+          value: 'The value from group is: {0}',
+          unparsedValue: 'The value from group is: {0}',
+          variables: [
+            {
+              dataSource: 'dataModel.skjema',
+              key: 'referencedGroup[{0}].inputField',
+            },
+          ],
+        },
+        {
+          id: 'group.input.title-2',
+          value: 'The value from the group is: Value from input field [2]',
+          unparsedValue: 'The value from group is: {0}',
+          variables: [
+            {
+              dataSource: 'dataModel.skjema',
+              key: 'referencedGroup[2].inputField',
+            },
+          ],
+        },
       ],
       error: null,
       language: 'nb',

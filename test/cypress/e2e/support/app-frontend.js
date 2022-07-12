@@ -129,9 +129,9 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment, openByDefau
     .click();
 
   if (openByDefault === true || typeof openByDefault === 'undefined') {
-    cy.get(appFrontend.group.addNewItem).should('not.exist');
+    cy.get(appFrontend.group.addNewItemSubGroup).should('not.exist');
   } else {
-    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.addNewItemSubGroup).click();
   }
 
   cy.get(appFrontend.group.comments).should('be.visible').type(comment).blur();

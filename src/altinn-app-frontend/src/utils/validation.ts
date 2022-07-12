@@ -385,7 +385,7 @@ export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup {
             ? childId.split(':')[1]
             : childId,
       );
-      if (childrenWithoutMultiPage.indexOf(groupId) > -1) {
+      if (childrenWithoutMultiPage?.indexOf(groupId) > -1) {
         return true;
       }
     }
@@ -1387,6 +1387,10 @@ export function repeatingGroupHasValidations(
           return componentHasValidations(validations, currentView, element.id);
         }
         const childGroup = element as ILayoutGroup;
+
+        if (!childGroup.dataModelBindings?.group) {
+          return false;
+        }
         const childGroupIndex = repeatingGroups[childGroup.id]?.index;
         const childGroupComponents = layout.filter(
           (childElement) => childGroup.children?.indexOf(childElement.id) > -1,

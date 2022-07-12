@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../src/theme/altinnStudioTheme';

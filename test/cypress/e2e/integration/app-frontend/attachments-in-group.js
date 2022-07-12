@@ -234,7 +234,7 @@ describe('Repeating group attachments', () => {
         if (nestedRowIdx === 0) {
           cy.get(appFrontend.group.rows[row].nestedGroup.groupContainer)
             .parent()
-            .find(appFrontend.group.addNewItem)
+            .find(appFrontend.group.addNewItemSubGroup)
             .click();
         }
       });

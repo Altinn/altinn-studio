@@ -12,6 +12,7 @@ export interface ILayouts {
 
 export interface ILayoutEntry {
   id: string;
+  baseComponentId?: string;
   type: GroupTypes | ComponentTypes;
   triggers?: Triggers[];
 }
@@ -19,10 +20,23 @@ export interface ILayoutEntry {
 export interface ILayoutGroup extends ILayoutEntry {
   children: string[];
   dataModelBindings?: IDataModelBindings;
-  maxCount: number;
+  maxCount?: number;
   textResourceBindings?: ITextResourceBindings;
   tableHeaders?: string[];
   edit?: IGroupEditProperties;
+  panel?: IGroupPanel;
+}
+
+export interface IGroupPanel {
+  variant?: string;
+  showIcon?: boolean;
+  iconUrl?: string;
+  iconAlt?: string;
+  groupReference?: IGroupReference;
+}
+
+export interface IGroupReference {
+  group: string;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {

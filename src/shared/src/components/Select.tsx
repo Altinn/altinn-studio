@@ -11,6 +11,9 @@ const useStyles = makeStyles({
       outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
     },
   },
+  fullWidth: {
+    width: '100%',
+  },
 });
 
 const optionStyle = {
@@ -53,8 +56,8 @@ const Select = ({
           'disabled !important': disabled,
         },
         className,
+        fullWidth && classes.fullWidth,
       )}
-      style={{ width: fullWidth ? '100%' : 'unset' }}
       onChange={onChange}
       onBlur={onBlur}
     >

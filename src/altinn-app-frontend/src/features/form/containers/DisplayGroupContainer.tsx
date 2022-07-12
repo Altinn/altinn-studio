@@ -61,6 +61,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
       className={classes.groupContainer}
       spacing={3}
       alignItems='flex-start'
+      data-testid='display-group-container'
     >
       <Grid
         item={true}

@@ -7,6 +7,7 @@ import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
 import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'altinn-shared/types';
+import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
@@ -75,30 +76,6 @@ const useStyles = makeStyles({
     '& .ai': {
       fontSize: '2em',
       marginTop: '-3px',
-    },
-  },
-  hideSaveButton: {
-    color: theme.altinnPalette.primary.black,
-    borderRadius: '5px',
-    padding: '7px 6px 7px 0px',
-    marginLeft: '0',
-    marginTop: '24px',
-    fontWeight: 700,
-    '& .hideSaveButton-label': {
-      borderBottom: `2px solid transparent`,
-    },
-    '& .ai': {
-      color: theme.altinnPalette.primary.green,
-      marginTop: '-2px',
-    },
-    '&:hover': {
-      background: 'none',
-      '& .hideSaveButton-label': {
-        borderBottom: `2px solid ${theme.altinnPalette.primary.black}`,
-      },
-    },
-    '&:focus': {
-      outlineColor: theme.altinnPalette.primary.green,
     },
   },
 });
@@ -225,21 +202,18 @@ export function RepeatingGroupsEditContainer({
             </div>
           )}
           {!hideSaveButton && (
-            <IconButton
-              classes={{ root: classes.hideSaveButton }}
+            <SuccessIconButton
               id={`add-button-grp-${id}`}
               onClick={closeEditContainer}
-            >
-              <i className='ai ai-check-circle' />
-              <span className='hideSaveButton-label'>
-                {container.textResourceBindings?.save_button
+              label={
+                container.textResourceBindings?.save_button
                   ? getTextResourceByKey(
                       container.textResourceBindings.save_button,
                       textResources,
                     )
-                  : getLanguageFromKey('general.done', language)}
-              </span>
-            </IconButton>
+                  : getLanguageFromKey('general.done', language)
+              }
+            />
           )}
         </Grid>
       </Grid>

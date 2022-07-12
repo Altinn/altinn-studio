@@ -8,6 +8,27 @@ export function getFormLayoutStateMock(
     layouts: {
       FormLayout: [
         {
+          id: 'referencedGroup',
+          type: 'Group',
+          dataModelBindings: {
+            group: 'referencedGroup',
+          },
+          children: ['referenced-group-child'],
+        },
+        {
+          id: 'referenced-group-child',
+          type: 'Input',
+          dataModelBindings: {
+            simpleBinding: 'referencedGroup.field1',
+          },
+          textResourceBindings: {
+            title: 'Referenced Group Input',
+          },
+          readOnly: false,
+          required: false,
+          disabled: false,
+        },
+        {
           id: 'field1',
           type: 'Input',
           dataModelBindings: {
