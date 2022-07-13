@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { IFormDataState } from 'src/features/form/data/formDataReducer';
+import type { IFormDataState } from 'src/features/form/data';
 
 export const useDisplayData = ({
   formData,

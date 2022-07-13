@@ -5,14 +5,7 @@ import type {
 } from '../../../types';
 
 import type { IValidationState } from './validationSlice';
-import reducer, {
-  initialState,
-  runSingleFieldValidationFulfilled,
-  runSingleFieldValidationRejected,
-  setCurrentSingleFieldValidation,
-  updateComponentValidations,
-  updateValidations,
-} from './validationSlice';
+import slice, { initialState, ValidationActions } from './validationSlice';
 
 describe('validationSlice', () => {
   let state: IValidationState;
@@ -41,9 +34,9 @@ describe('validationSlice', () => {
   });
 
   it('handles runSingleFieldValidationFulfilled action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
-      runSingleFieldValidationFulfilled({
+      ValidationActions.runSingleFieldValidationFulfilled({
         validations: mockValidations,
       }),
     );
@@ -51,17 +44,17 @@ describe('validationSlice', () => {
   });
 
   it('handles runSingleFieldValidationRejected action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
-      runSingleFieldValidationRejected({ error: mockError }),
+      ValidationActions.runSingleFieldValidationRejected({ error: mockError }),
     );
     expect(nextState.error).toEqual(mockError);
   });
 
   it('handles setCurrentSingleFieldValidation action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
-      setCurrentSingleFieldValidation({
+      ValidationActions.setCurrentSingleFieldValidation({
         ...mockSingleFieldValidationField,
       }),
     );
@@ -79,12 +72,12 @@ describe('validationSlice', () => {
     };
     const componentId = 'testComponent';
     const invalidDataTypes: string[] = [componentId];
-    const nextState = reducer(
+    const nextState = slice.reducer(
       {
         ...initialState,
         validations: mockValidations,
       },
-      updateComponentValidations({
+      ValidationActions.updateComponentValidations({
         layoutId: 'formLayout',
         componentId,
         validations: componentValidations,
@@ -103,9 +96,9 @@ describe('validationSlice', () => {
   });
 
   it('handles updateValidations action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
-      updateValidations({
+      ValidationActions.updateValidations({
         validations: mockValidations,
       }),
     );

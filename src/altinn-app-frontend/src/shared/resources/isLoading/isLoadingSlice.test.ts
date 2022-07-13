@@ -1,5 +1,5 @@
 import type { IIsLoadingState } from './isLoadingSlice';
-import reducer, {
+import slice, {
   initialState,
   startDataTaskIsLoading,
   finishDataTaskIsLoading,
@@ -12,12 +12,12 @@ describe('isLoadingSlice', () => {
   });
 
   it('handles startDataTaskIsLoading action', () => {
-    const nextState = reducer(state, startDataTaskIsLoading);
+    const nextState = slice.reducer(state, startDataTaskIsLoading);
     expect(nextState.dataTask).toBeTruthy();
   });
 
   it('handles finishDataTaskIsLoading action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       { dataTask: true, stateless: true },
       finishDataTaskIsLoading,
     );

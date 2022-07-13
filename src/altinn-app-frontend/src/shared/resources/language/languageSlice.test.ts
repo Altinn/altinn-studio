@@ -1,4 +1,4 @@
-import reducer, { initialState, LanguageActions } from './languageSlice';
+import slice, { initialState, LanguageActions } from './languageSlice';
 import type { ILanguageState } from './languageSlice';
 
 describe('languageSlice', () => {
@@ -8,7 +8,7 @@ describe('languageSlice', () => {
   });
 
   it('handles fetchLanguageFulfilled action', () => {
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       LanguageActions.fetchLanguageFulfilled({
         language: {
@@ -22,7 +22,7 @@ describe('languageSlice', () => {
 
   it('handles fetchLanguageRejected action', () => {
     const errorMessage = 'This is an error';
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       LanguageActions.fetchLanguageRejected({
         error: new Error(errorMessage),

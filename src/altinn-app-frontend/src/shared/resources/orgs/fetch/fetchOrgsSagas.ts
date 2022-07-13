@@ -1,9 +1,8 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest, put } from 'redux-saga/effects';
 import { orgsListUrl } from 'altinn-shared/utils';
 import axios from 'axios';
-import OrgsActions from '../orgsActions';
-import * as OrgsActionTypes from './fetchOrgsActionTypes';
+import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {
@@ -11,12 +10,12 @@ export function* fetchOrgsSaga(): SagaIterator {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
     const orgObject = result.data?.orgs;
-    yield call(OrgsActions.fetchOrgsFulfilled, orgObject);
-  } catch (err) {
-    yield call(OrgsActions.fetchOrgsRejected, err);
+    yield put(OrgsActions.fetchFulfilled({ orgs: orgObject }));
+  } catch (error) {
+    yield put(OrgsActions.fetchRejected({ error }));
   }
 }
 
 export function* watchFetchOrgsSaga(): SagaIterator {
-  yield takeLatest(OrgsActionTypes.FETCH_ORGS, fetchOrgsSaga);
+  yield takeLatest(OrgsActions.fetch, fetchOrgsSaga);
 }

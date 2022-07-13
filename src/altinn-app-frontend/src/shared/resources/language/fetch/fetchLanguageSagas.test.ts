@@ -11,6 +11,8 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getLanguageFromCode } from 'altinn-shared/language';
 import * as language from 'altinn-shared/language';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 
 describe('languageActions', () => {
   it('should create an action with correct type: FETCH_LANGUAGE', () => {
@@ -49,15 +51,13 @@ describe('fetchLanguageSagas', () => {
     const generator = watchFetchLanguageSaga();
     expect(generator.next().value).toEqual(
       all([
-        take(FormLayoutActions.fetchLayoutSetsFulfilled),
-        take('APPLICATION_METADATA.FETCH_APPLICATION_METADATA_FULFILLED'),
+        take(FormLayoutActions.fetchSetsFulfilled),
+        take(ApplicationMetadataActions.getFulfilled),
         take(LanguageActions.fetchLanguage),
       ]),
     );
     expect(generator.next().value).toEqual(select(allowAnonymousSelector));
-    expect(generator.next().value).toEqual(
-      take('PROFILE.FETCH_PROFILE_FULFILLED'),
-    );
+    expect(generator.next().value).toEqual(take(ProfileActions.fetchFulfilled));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
     expect(generator.next().value).toEqual(
       takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga),

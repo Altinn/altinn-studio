@@ -1,66 +1,21 @@
-import type { Action } from 'redux';
 import type { IAttachment } from '..';
-import * as ActionTypes from '../attachmentActionTypes';
 
-export interface IUpdateAttachmentAction extends Action {
+export interface IUpdateAttachmentAction {
   attachment: IAttachment;
   componentId: string;
   baseComponentId: string;
   tag: string;
 }
 
-export interface IUpdateAttachmentActionFulfilled extends Action {
+export interface IUpdateAttachmentActionFulfilled {
   attachment: IAttachment;
   componentId: string;
   baseComponentId: string;
 }
 
-export interface IUpdateAttachmentActionRejected extends Action {
+export interface IUpdateAttachmentActionRejected {
   attachment: IAttachment;
   componentId: string;
   baseComponentId: string;
   tag: string;
-}
-
-export function updateAttachment(
-  attachment: IAttachment,
-  componentId: string,
-  baseComponentId: string,
-  tag: string,
-): IUpdateAttachmentAction {
-  return {
-    type: ActionTypes.UPDATE_ATTACHMENT,
-    attachment,
-    componentId,
-    baseComponentId,
-    tag,
-  };
-}
-
-export function updateAttachmentFulfilled(
-  attachment: IAttachment,
-  componentId: string,
-  baseComponentId: string,
-): IUpdateAttachmentActionFulfilled {
-  return {
-    type: ActionTypes.UPDATE_ATTACHMENT_FULFILLED,
-    attachment,
-    componentId,
-    baseComponentId,
-  };
-}
-
-export function updateAttachmentRejected(
-  attachment: IAttachment,
-  componentId: string,
-  baseComponentId: string,
-  tag: string,
-): IUpdateAttachmentActionRejected {
-  return {
-    type: ActionTypes.UPDATE_ATTACHMENT_REJECTED,
-    attachment,
-    componentId,
-    baseComponentId,
-    tag,
-  };
 }

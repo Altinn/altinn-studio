@@ -1,6 +1,5 @@
-import type { IConditionalRenderingRules } from 'src/features/form/dynamics/types';
-
 import { runConditionalRenderingRules } from './conditionalRendering';
+import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
 
 describe('conditionalRendering', () => {
   let mockValidFormData;

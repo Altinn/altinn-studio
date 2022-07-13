@@ -46,4 +46,4 @@ export const ApplicationSettingsActions = {
   ...actions,
   ...applicationSettingsSlice.actions,
 };
-export default applicationSettingsSlice.reducer;
+export default applicationSettingsSlice;

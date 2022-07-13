@@ -17,11 +17,11 @@ import {
   getAttachmentGroupings,
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
 import type { IParty, IAttachment } from 'altinn-shared/types';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 interface IParams {
   partyId: string;
@@ -66,6 +66,7 @@ export const returnInstanceMetaDataObject = (
 };
 
 const ReceiptContainer = () => {
+  const dispatch = useAppDispatch();
   const [attachments, setAttachments] = useState([]);
   const [pdf, setPdf] = useState<IAttachment[]>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
@@ -98,8 +99,13 @@ const ReceiptContainer = () => {
     !parties;
 
   useEffect(() => {
-    InstanceDataActions.getInstanceData(partyId, instanceGuid);
-  }, [partyId, instanceGuid]);
+    dispatch(
+      InstanceDataActions.get({
+        instanceOwner: partyId,
+        instanceId: instanceGuid,
+      }),
+    );
+  }, [partyId, instanceGuid, dispatch]);
 
   useEffect(() => {
     if (profile && profile.profileSettingPreference) {

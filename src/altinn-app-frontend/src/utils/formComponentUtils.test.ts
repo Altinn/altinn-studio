@@ -7,7 +7,7 @@ import type {
   ITextResource,
   IRepeatingGroups,
 } from 'src/types';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type {
   ILayoutComponent,
   ISelectionComponentProps,

@@ -2,15 +2,14 @@ import type { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import { get } from 'src/utils/networking';
 import { textResourcesUrl, oldTextResourcesUrl } from 'src/utils/appUrlHelper';
-import TextResourcesActions from '../textResourcesActions';
+import { TextResourcesActions } from '../textResourcesSlice';
 import { appTaskQueueError } from '../../queue/queueSlice';
-import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
-import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionTypes';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
@@ -31,31 +30,32 @@ export function* fetchTextResources(): SagaIterator {
         res.unparsedValue = res.value;
       }
     });
-    yield call(
-      TextResourcesActions.fetchTextResourcesFulfilled,
-      resource.language,
-      resource.resources,
+    yield put(
+      TextResourcesActions.fetchFulfilled({
+        language: resource.language,
+        resources: resource.resources,
+      }),
     );
   } catch (error) {
-    yield call(TextResourcesActions.fetchTextResourcesRejected, error);
+    yield put(TextResourcesActions.fetchRejected({ error }));
     yield put(appTaskQueueError({ error }));
   }
 }
 
 export function* watchFetchTextResourcesSaga(): SagaIterator {
   yield all([
-    take(FormLayoutActions.fetchLayoutSetsFulfilled),
-    take(FETCH_APPLICATION_METADATA_FULFILLED),
-    take(FETCH_TEXT_RESOURCES),
+    take(FormLayoutActions.fetchSetsFulfilled),
+    take(ApplicationMetadataActions.getFulfilled),
+    take(TextResourcesActions.fetch),
   ]);
 
   const allowAnonymous = yield select(allowAnonymousSelector);
 
   if (!allowAnonymous) {
-    yield take(FETCH_PROFILE_FULFILLED);
+    yield take(ProfileActions.fetchFulfilled);
   }
   yield call(fetchTextResources);
-  yield takeLatest(FETCH_TEXT_RESOURCES, fetchTextResources);
+  yield takeLatest(TextResourcesActions.fetch, fetchTextResources);
   yield takeLatest(
     LanguageActions.updateSelectedAppLanguage,
     fetchTextResources,

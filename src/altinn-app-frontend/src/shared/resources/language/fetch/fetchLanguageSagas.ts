@@ -3,12 +3,12 @@ import { call, put, all, take, select, takeLatest } from 'redux-saga/effects';
 
 import { getLanguageFromCode } from 'altinn-shared/language';
 import { LanguageActions } from '../languageSlice';
-import * as ProfileActionTypes from '../../profile/fetch/fetchProfileActionTypes';
 import { appTaskQueueError } from '../../queue/queueSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from '../../applicationMetadata/actions/types';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
@@ -26,14 +26,14 @@ export function* fetchLanguageSaga(defaultLanguage = false): SagaIterator {
 
 export function* watchFetchLanguageSaga(): SagaIterator {
   yield all([
-    take(FormLayoutActions.fetchLayoutSetsFulfilled),
-    take(FETCH_APPLICATION_METADATA_FULFILLED),
+    take(FormLayoutActions.fetchSetsFulfilled),
+    take(ApplicationMetadataActions.getFulfilled),
     take(LanguageActions.fetchLanguage),
   ]);
 
   const allowAnonymous = yield select(allowAnonymousSelector);
   if (!allowAnonymous) {
-    yield take(ProfileActionTypes.FETCH_PROFILE_FULFILLED);
+    yield take(ProfileActions.fetchFulfilled);
   }
 
   yield call(fetchLanguageSaga);

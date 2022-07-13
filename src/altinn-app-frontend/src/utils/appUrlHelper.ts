@@ -1,4 +1,4 @@
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type { IAltinnWindow, IMapping } from 'src/types';
 import { mapFormData } from 'src/utils/databindings';
 

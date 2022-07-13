@@ -3,7 +3,7 @@ import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { AltinnLoader } from 'altinn-shared/components';
 import type { IAltinnWindow } from '../../types';
-import FormDataActions from '../../features/form/data/formDataActions';
+import { FormDataActions } from '../../features/form/data/formDataSlice';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from '..';
 
@@ -84,7 +84,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   };
 
   const saveFormData = () => {
-    dispatch(FormDataActions.submitFormData({}));
+    dispatch(FormDataActions.submit({}));
   };
 
   const renderLoader = () => {
@@ -99,7 +99,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   const submitForm = () => {
     const { org, app, instanceId } = window as Window as IAltinnWindow;
     dispatch(
-      FormDataActions.submitFormData({
+      FormDataActions.submit({
         url: `${window.location.origin}/${org}/${app}/api/${instanceId}`,
         apiMode: 'Complete',
         stopWithWarnings: !ignoreWarnings,

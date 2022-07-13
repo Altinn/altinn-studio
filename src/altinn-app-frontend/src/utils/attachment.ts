@@ -1,6 +1,6 @@
 import type { IData } from 'altinn-shared/types';
 import type { IAttachments } from '../shared/resources/attachments';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import { getKeyIndex, deleteGroupData } from 'src/utils/databindings';
 import type {
   ILayouts,

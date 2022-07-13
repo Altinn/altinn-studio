@@ -8,11 +8,7 @@ import { getInitialStateMock } from '../../../../../__mocks__/initialStateMock';
 import type { IRuntimeState, IValidationIssue, IValidations } from 'src/types';
 
 import { get } from '../../../../utils/networking';
-import {
-  runSingleFieldValidationFulfilled,
-  runSingleFieldValidationRejected,
-  setCurrentSingleFieldValidation,
-} from '../validationSlice';
+import { ValidationActions } from '../validationSlice';
 import { Severity } from 'src/types';
 import { getDataValidationUrl } from '../../../../utils/appUrlHelper';
 import { getParsedLanguageFromText } from '../../../../../../shared/src';
@@ -69,9 +65,11 @@ describe('singleFieldValidationSagas', () => {
         [select(), mockState],
         [call(get, url, options), validationIssues],
       ])
-      .put(setCurrentSingleFieldValidation({}))
+      .put(ValidationActions.setCurrentSingleFieldValidation({}))
       .put(
-        runSingleFieldValidationFulfilled({ validations: mappedValidations }),
+        ValidationActions.runSingleFieldValidationFulfilled({
+          validations: mappedValidations,
+        }),
       )
       .run();
   });
@@ -92,8 +90,8 @@ describe('singleFieldValidationSagas', () => {
         [select(), mockState],
         [call(get, url, options), throwError(error)],
       ])
-      .put(setCurrentSingleFieldValidation({}))
-      .put(runSingleFieldValidationRejected({ error }))
+      .put(ValidationActions.setCurrentSingleFieldValidation({}))
+      .put(ValidationActions.runSingleFieldValidationRejected({ error }))
       .run();
   });
 });

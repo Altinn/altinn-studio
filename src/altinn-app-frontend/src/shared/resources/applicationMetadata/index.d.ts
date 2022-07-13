@@ -14,6 +14,11 @@ export interface IApplicationMetadata {
   onEntry?: IOnEntry;
 }
 
+export interface IApplicationMetadataState {
+  applicationMetadata: IApplicationMetadata;
+  error: Error;
+}
+
 export interface IOnEntry {
   show: ShowTypes;
 }
@@ -29,4 +34,12 @@ interface IPartyTypesAllowed {
   organisation: boolean;
   person: boolean;
   subUnit: boolean;
+}
+
+export interface IGetApplicationMetadataFulfilled {
+  applicationMetadata: IApplicationMetadata;
+}
+
+export interface IGetApplicationMetadataRejected {
+  error: Error;
 }

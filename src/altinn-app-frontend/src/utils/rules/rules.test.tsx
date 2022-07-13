@@ -1,4 +1,4 @@
-import type { IFormDataState } from '../../features/form/data/formDataReducer';
+import type { IFormDataState } from '../../features/form/data';
 import { checkIfRuleShouldRun, getRuleModelFields } from '.';
 
 const ruleHandleFn = (obj) => {

@@ -1,12 +1,12 @@
 import { testSaga } from 'redux-saga-test-plan';
 import { take } from 'redux-saga/effects';
-import FormDataActions from 'src/features/form/data/formDataActions';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { FETCH_TEXT_RESOURCES_FULFILLED } from 'src/shared/resources/textResources/fetch/fetchTextResourcesActionTypes';
 import {
   replaceTextResourcesSaga,
   watchReplaceTextResourcesSaga,
 } from './replaceTextResourcesSagas';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 
 describe('watchReplaceTextResourcesSaga', () => {
   it('should wait for required data then take latest for relevant actions', () => {
@@ -14,29 +14,20 @@ describe('watchReplaceTextResourcesSaga', () => {
     saga
       .next()
       .all([
-        take(FETCH_TEXT_RESOURCES_FULFILLED),
-        take(FormDataActions.fetchFormDataFulfilled),
+        take(TextResourcesActions.fetchFulfilled),
+        take(FormDataActions.fetchFulfilled),
         take(FormLayoutActions.updateRepeatingGroupsFulfilled),
       ])
       .next()
       .call(replaceTextResourcesSaga)
       .next()
-      .takeLatest(
-        FormDataActions.fetchFormDataFulfilled,
-        replaceTextResourcesSaga,
-      )
+      .takeLatest(FormDataActions.fetchFulfilled, replaceTextResourcesSaga)
       .next()
-      .takeLatest(
-        FormDataActions.updateFormDataFulfilled,
-        replaceTextResourcesSaga,
-      )
+      .takeLatest(FormDataActions.updateFulfilled, replaceTextResourcesSaga)
       .next()
-      .takeLatest(
-        FormDataActions.setFormDataFulfilled,
-        replaceTextResourcesSaga,
-      )
+      .takeLatest(FormDataActions.setFulfilled, replaceTextResourcesSaga)
       .next()
-      .takeLatest(FETCH_TEXT_RESOURCES_FULFILLED, replaceTextResourcesSaga)
+      .takeLatest(TextResourcesActions.fetchFulfilled, replaceTextResourcesSaga)
       .next()
       .isDone();
   });

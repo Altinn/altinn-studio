@@ -11,7 +11,7 @@ import type { IRadioButtonsContainerProps } from './RadioButtonsContainerCompone
 import { LayoutStyle } from 'src/types';
 import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
 import type { RootState } from 'src/store';
-import type { IOptionsState } from 'src/shared/resources/options/optionsReducer';
+import type { IOptionsState } from 'src/shared/resources/options';
 
 const threeOptions = [
   {

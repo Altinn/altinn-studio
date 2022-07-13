@@ -1,14 +1,14 @@
 import { AltinnLoader } from 'altinn-shared/components';
 import * as React from 'react';
-import { useAppSelector } from 'src/common/hooks';
-import InstantiationActions from 'src/features/instantiate/instantiation/actions';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
-import InstanceDataActions from 'src/shared/resources/instanceData/instanceDataActions';
-import AttachmentActions from 'src/shared/resources/attachments/attachmentActions';
 import { mapFormData } from 'src/utils/databindings';
 import { Redirect } from 'react-router';
 import type { IMapping } from 'src/types';
 import type { IComponentProps } from '..';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 const buttonStyle = {
   marginBottom: '0',
@@ -35,6 +35,7 @@ export interface IInstantiationButtonProps extends IComponentProps {
 }
 
 export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
+  const dispatch = useAppDispatch();
   const [instantiateWithPrefill, { isSuccess, data, isLoading, isError }] =
     useInstantiateWithPrefillMutation();
   const formData = useAppSelector((state) => state.formData.formData);
@@ -52,11 +53,13 @@ export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
 
   React.useEffect(() => {
     if (isSuccess) {
-      InstanceDataActions.getInstanceDataFulfilled(data);
-      AttachmentActions.mapAttachments();
-      InstantiationActions.instantiateFulfilled(data.id);
+      dispatch(InstanceDataActions.getFulfilled({ instanceData: data }));
+      dispatch(AttachmentActions.mapAttachments());
+      dispatch(
+        InstantiationActions.instantiateFulfilled({ instanceId: data.id }),
+      );
     }
-  }, [isSuccess, data]);
+  }, [isSuccess, data, dispatch]);
 
   React.useEffect(() => {
     if (isError) {

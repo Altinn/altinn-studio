@@ -5,11 +5,10 @@ import type { IApplicationMetadata } from 'src/shared/resources/applicationMetad
 import { getRulehandlerUrl } from 'src/utils/appUrlHelper';
 import { get } from '../../../../utils/networking';
 import { getRuleModelFields } from '../../../../utils/rules';
-import Actions from '../rulesActions';
-import * as ActionTypes from '../rulesActionTypes';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import type { IRuntimeState, ILayoutSets } from '../../../../types';
 import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
+import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 
 const layoutSetsSelector = (state: IRuntimeState) =>
   state.formLayout.layoutsets;
@@ -39,13 +38,13 @@ function* fetchRuleModelSaga(): SagaIterator {
     window.document.body.appendChild(scriptEle);
     const ruleModelFields = getRuleModelFields();
 
-    yield call(Actions.fetchRuleModelFulfilled, ruleModelFields);
+    yield put(FormRulesActions.fetchFulfilled({ ruleModel: ruleModelFields }));
   } catch (error) {
-    yield call(Actions.fetchRuleModelRejected, error);
+    yield put(FormRulesActions.fetchRejected({ error }));
     yield put(dataTaskQueueError({ error }));
   }
 }
 
 export function* watchFetchRuleModelSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.FETCH_RULE_MODEL, fetchRuleModelSaga);
+  yield takeLatest(FormRulesActions.fetch, fetchRuleModelSaga);
 }

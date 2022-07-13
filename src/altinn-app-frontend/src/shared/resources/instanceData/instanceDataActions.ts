@@ -1,14 +1,11 @@
 import { bindActionCreators } from 'redux';
 import { store } from 'src/store';
 
-import * as GetInstanceData from './get/getInstanceDataActions';
-
 export type IInstanceDataActions = typeof actions;
 
 const actions = {
-  getInstanceData: GetInstanceData.getInstanceData,
-  getInstanceDataFulfilled: GetInstanceData.getInstanceDataFulfilled,
-  getInstanceDataRejected: GetInstanceData.getInstanceDataRejected,
+  getInstanceDataFulfilled: null,
+  getInstanceDataRejected: null,
 };
 
 const InstanceDataActions: IInstanceDataActions = bindActionCreators<any, any>(

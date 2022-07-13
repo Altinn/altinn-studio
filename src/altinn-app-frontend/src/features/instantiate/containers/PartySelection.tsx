@@ -9,15 +9,15 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import type { IParty } from 'altinn-shared/types';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
-import PartyActions from '../../../shared/resources/party/partyActions';
+import { PartyActions } from 'src/shared/resources/party/partySlice';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 import InstantiationContainer from './InstantiationContainer';
 import NoValidPartiesError from './NoValidPartiesError';
-import InstantiationActions from '../instantiation/actions/index';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 
 const styles = createStyles({
   partySelectionTitle: {
@@ -80,6 +80,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const { classes, match } = props;
 
+  const dispatch = useAppDispatch();
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
   const appMetadata = useAppSelector(
@@ -93,13 +94,13 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   const [showDeleted, setShowDeleted] = React.useState(false);
 
   React.useEffect(() => {
-    PartyActions.getParties();
-  }, []);
+    dispatch(PartyActions.getParties());
+  }, [dispatch]);
 
   const onSelectParty = (party: IParty) => {
-    PartyActions.selectParty(party, true);
+    dispatch(PartyActions.selectParty({ party, redirect: true }));
     // Clear any previous instantiation errors.
-    InstantiationActions.instantiateRejected(null);
+    dispatch(InstantiationActions.instantiateRejected({ error: null }));
   };
 
   function renderParties() {

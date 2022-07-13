@@ -24,7 +24,7 @@ import {
   getPartyValidationUrl,
 } from 'src/utils/appUrlHelper';
 import { Form } from '../form/containers/Form';
-import { updateValidations } from '../form/validation/validationSlice';
+import { ValidationActions } from '../form/validation/validationSlice';
 import Instantiate from '../instantiate/containers';
 import InstanceSelection from '../instantiate/containers/InstanceSelection';
 import MissingRolesError from '../instantiate/containers/MissingRolesError';
@@ -90,7 +90,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
 
   React.useEffect(() => {
     // If user comes back to entrypoint from an active instance we need to clear validation messages
-    dispatch(updateValidations({ validations: {} }));
+    dispatch(ValidationActions.updateValidations({ validations: {} }));
   }, [dispatch]);
 
   React.useEffect(() => {

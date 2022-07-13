@@ -4,7 +4,7 @@ import type {
 } from './applicationSettingsTypes';
 
 import type { IApplicationSettingsState } from './applicationSettingsSlice';
-import reducer, {
+import slice, {
   initialState,
   ApplicationSettingsActions,
 } from './applicationSettingsSlice';
@@ -19,7 +19,7 @@ describe('applicationSettingsSlice', () => {
     const mockSettings: IFetchApplicationSettingsFulfilled = {
       settings: { appOidcProvider: 'test' },
     };
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       ApplicationSettingsActions.fetchApplicationSettingsFulfilled(
         mockSettings,
@@ -32,7 +32,7 @@ describe('applicationSettingsSlice', () => {
     const mockError: IFetchApplicationSettingsRejected = {
       error: new Error('mock'),
     };
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       ApplicationSettingsActions.fetchApplicationSettingsRejected(mockError),
     );

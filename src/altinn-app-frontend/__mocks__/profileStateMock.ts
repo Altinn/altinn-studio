@@ -1,4 +1,4 @@
-import type { IProfileState } from '../src/shared/resources/profile/profileReducers';
+import type { IProfileState } from '../src/shared/resources/profile';
 import { mockParty } from './initialStateMock';
 
 export function getProfileStateMock(

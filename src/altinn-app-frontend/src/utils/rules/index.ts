@@ -1,4 +1,4 @@
-import type { IFormDataState } from '../../features/form/data/formDataReducer';
+import type { IFormDataState } from '../../features/form/data';
 import type { IRuleConnections } from '../../features/form/dynamics';
 import type { ILayouts, ILayoutComponent } from '../../features/form/layout';
 import type { IRuleModelFieldElement } from '../../features/form/rules';

@@ -9,7 +9,7 @@ import {
   applicationMetadataMock,
 } from '../../../__mocks__/mocks';
 import type { IApplicationMetadata } from '../../shared/resources/applicationMetadata';
-import type { IInstanceDataState } from '../../shared/resources/instanceData/instanceDataReducers';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { IData } from '../../../../shared/src';
 import type { IAttachmentListProps } from './AttachmentListComponent';
 

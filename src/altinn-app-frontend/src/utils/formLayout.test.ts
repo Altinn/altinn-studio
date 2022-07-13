@@ -3,7 +3,7 @@ import type {
   ILayoutComponent,
   ILayoutGroup,
 } from 'src/features/form/layout';
-import type { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
+import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type { IRepeatingGroups, IMapping, ITextResource } from 'src/types';
 
 import {

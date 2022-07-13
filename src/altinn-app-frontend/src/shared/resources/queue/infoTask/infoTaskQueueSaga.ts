@@ -3,12 +3,12 @@ import { all, call, put, select, take } from 'redux-saga/effects';
 import type { IRuntimeState, ITextResource } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import type { IInstance } from 'altinn-shared/types';
-import FormDataActions from 'src/features/form/data/formDataActions';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import {
   startInitialInfoTaskQueue,
   startInitialInfoTaskQueueFulfilled,
 } from '../queueSlice';
-import TextResourceActions from '../../textResources/textResourcesActions';
+import { TextResourcesActions } from '../../textResources/textResourcesSlice';
 import type { IApplicationMetadata } from '../../applicationMetadata';
 import { getFetchFormDataUrl } from '../../../../utils/appUrlHelper';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
@@ -65,8 +65,8 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
       };
     }
 
-    yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
-    yield call(TextResourceActions.replaceTextResources);
+    yield put(FormDataActions.fetchFulfilled({ formData }));
+    yield put(TextResourcesActions.replace());
   }
 
   yield put(startInitialInfoTaskQueueFulfilled());
@@ -76,7 +76,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
 export function* watchStartInitialInfoTaskQueueSaga(): SagaIterator {
   yield all([
     take(startInitialInfoTaskQueue),
-    take(TextResourceActions.fetchTextResourcesFulfilled),
+    take(TextResourcesActions.fetchFulfilled),
   ]);
   yield call(startInitialInfoTaskQueueSaga);
 }

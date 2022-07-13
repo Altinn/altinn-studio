@@ -5,7 +5,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import type { IAttachment } from '../../../../shared/resources/attachments';
-import AttachmentDispatcher from '../../../../shared/resources/attachments/attachmentActions';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { IMapping, IRuntimeState } from '../../../../types';
 import { renderValidationMessagesForComponent } from '../../../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -153,11 +153,13 @@ export function FileUploadWithTagComponent({
   const setAttachmentTag = (attachment: IAttachment, optionValue: string) => {
     const option = options?.find((o) => o.value === optionValue);
     if (option !== undefined) {
-      AttachmentDispatcher.updateAttachment(
-        attachment,
-        id,
-        baseComponentId,
-        option.value,
+      dataDispatch(
+        AttachmentActions.updateAttachment({
+          attachment,
+          componentId: id,
+          baseComponentId,
+          tag: option.value,
+        }),
       );
     } else {
       console.error(`Could not find option for ${optionValue}`);
@@ -203,13 +205,15 @@ export function FileUploadWithTagComponent({
             deleting: false,
             updating: false,
           });
-          AttachmentDispatcher.uploadAttachment(
-            file,
-            fileType,
-            tmpId,
-            id,
-            dataModelBindings,
-            attachments.length + index,
+          dataDispatch(
+            AttachmentActions.uploadAttachment({
+              file,
+              attachmentType: fileType,
+              tmpAttachmentId: tmpId,
+              componentId: id,
+              dataModelBindings,
+              index: attachments.length + index,
+            }),
           );
         }
       });

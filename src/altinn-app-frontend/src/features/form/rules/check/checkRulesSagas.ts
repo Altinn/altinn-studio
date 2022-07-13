@@ -3,8 +3,8 @@ import type { SagaIterator } from 'redux-saga';
 import { all, call, put, select, takeLatest } from 'redux-saga/effects';
 import type { IRuntimeState } from '../../../../types';
 import { checkIfRuleShouldRun } from '../../../../utils/rules';
-import FormDataActions from '../../data/formDataActions';
-import type { IFormDataState } from '../../data/formDataReducer';
+import { FormDataActions } from '../../data/formDataSlice';
+import type { IFormDataState } from '../../data';
 import type { IUpdateFormDataFulfilled } from '../../data/formDataTypes';
 import type { IRuleConnections } from '../../dynamics';
 import type { ILayoutState } from '../../layout/formLayoutSlice';
@@ -54,7 +54,7 @@ function* checkIfRuleShouldRunSaga({
           }
 
           return put(
-            FormDataActions.updateFormData({
+            FormDataActions.update({
               componentId: rule.componentId,
               data: rule.result,
               field: rule.dataBindingName,
@@ -72,8 +72,5 @@ function* checkIfRuleShouldRunSaga({
 }
 
 export function* watchCheckIfRuleShouldRunSaga(): SagaIterator {
-  yield takeLatest(
-    FormDataActions.updateFormDataFulfilled,
-    checkIfRuleShouldRunSaga,
-  );
+  yield takeLatest(FormDataActions.updateFulfilled, checkIfRuleShouldRunSaga);
 }

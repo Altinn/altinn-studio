@@ -8,12 +8,12 @@ import {
 } from '../../../../../__mocks__/mocks';
 
 import type { IRuntimeState } from 'src/types';
-import type { IInstanceDataState } from 'src/shared/resources/instanceData/instanceDataReducers';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { IData } from '../../../../../../shared/src';
 
 import { convertDataBindingToModel } from 'src/utils/databindings';
-import FormDataActions from '../formDataActions';
-import FormDynamicsActions from '../../dynamics/formDynamicsActions';
+import { FormDataActions } from '../formDataSlice';
+import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
 import { put } from '../../../../../../shared/src/utils/networking';
 import { post } from 'src/utils/networking';
 import {
@@ -87,7 +87,7 @@ describe('submitFormDataSagas', () => {
         [call(put, dataElementUrl(defaultDataElementGuid), model), {}],
       ])
       .call(putFormData, state, model)
-      .put(FormDataActions.submitFormDataFulfilled())
+      .put(FormDataActions.submitFulfilled())
       .run();
   });
 
@@ -157,15 +157,15 @@ describe('submitFormDataSagas', () => {
       ])
       .call(saveStatelessData, state, model)
       .put(
-        FormDataActions.fetchFormDataFulfilled({
+        FormDataActions.fetchFulfilled({
           formData: {
             ...formData,
             'group.field1': 'value1',
           },
         }),
       )
-      .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
-      .put(FormDataActions.submitFormDataFulfilled())
+      .put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}))
+      .put(FormDataActions.submitFulfilled())
       .run();
   });
 
@@ -231,15 +231,15 @@ describe('submitFormDataSagas', () => {
       ])
       .call(saveStatelessData, state, model)
       .put(
-        FormDataActions.fetchFormDataFulfilled({
+        FormDataActions.fetchFulfilled({
           formData: {
             ...formData,
             'group.field1': 'value1',
           },
         }),
       )
-      .call(FormDynamicsActions.checkIfConditionalRulesShouldRun)
-      .put(FormDataActions.submitFormDataFulfilled())
+      .put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}))
+      .put(FormDataActions.submitFulfilled())
       .run();
   });
 });

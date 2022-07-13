@@ -21,13 +21,13 @@ import {
   getCurrentTaskDataElementId,
   getDataTypeByLayoutSetId,
 } from 'src/utils/appMetadata';
-import FormDataActions from '../formDataActions';
+import { FormDataActions } from '../formDataSlice';
 import type { IApplication } from 'altinn-shared/types';
 import type { ILayoutSets } from 'src/types';
-import { GET_INSTANCEDATA_FULFILLED } from 'src/shared/resources/instanceData/get/getInstanceDataActionTypes';
-import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { DataModelActions } from '../../datamodel/datamodelSlice';
 import { dataTaskQueueError } from 'src/shared/resources/queue/queueSlice';
 import type { AxiosError } from 'axios';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 describe('fetchFormDataSagas', () => {
   let mockInitialState;
@@ -65,9 +65,7 @@ describe('fetchFormDataSagas', () => {
         ],
         [call(networking.get, url), mockFormData],
       ])
-      .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
-      )
+      .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
   });
 
@@ -100,7 +98,7 @@ describe('fetchFormDataSagas', () => {
         [select(appMetaDataSelector), appMetadata],
         [select(instanceDataSelector), instance],
       ])
-      .put(FormDataActions.fetchFormDataRejected({ error }))
+      .put(FormDataActions.fetchRejected({ error }))
       .run();
   });
 
@@ -122,9 +120,7 @@ describe('fetchFormDataSagas', () => {
         ],
         [call(networking.get, url), mockFormData],
       ])
-      .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
-      )
+      .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
   });
 
@@ -157,8 +153,8 @@ describe('fetchFormDataSagas', () => {
         [select(appMetaDataSelector), { ...appMetadata }],
         [select(instanceDataSelector), { ...instance }],
       ])
-      .put(FormDataActions.fetchFormDataRejected({ error }))
-      .call(dataTaskQueueError, error)
+      .put(FormDataActions.fetchRejected({ error }))
+      .put(dataTaskQueueError({ error }))
       .run();
   });
 
@@ -194,9 +190,7 @@ describe('fetchFormDataSagas', () => {
         [select(currentSelectedPartyIdSelector), '1234'],
         [call(networking.get, url, options), mockFormData],
       ])
-      .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
-      )
+      .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
   });
 
@@ -228,9 +222,7 @@ describe('fetchFormDataSagas', () => {
         [select(allowAnonymousSelector), true],
         [call(networking.get, url, options), mockFormData],
       ])
-      .put(
-        FormDataActions.fetchFormDataFulfilled({ formData: flattenedFormData }),
-      )
+      .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
       .run();
   });
 
@@ -278,8 +270,8 @@ describe('fetchFormDataSagas', () => {
         [select(layoutSetsSelector), mockLayoutSets],
         [select(allowAnonymousSelector), true],
       ])
-      .put(FormDataActions.fetchFormDataRejected({ error }))
-      .call(dataTaskQueueError, error)
+      .put(FormDataActions.fetchRejected({ error }))
+      .put(dataTaskQueueError({ error }))
       .run();
   });
 
@@ -346,8 +338,8 @@ describe('fetchFormDataSagas', () => {
         [select(instanceDataSelector), instance],
         [select(processStateSelector), processState],
       ])
-      .take(GET_INSTANCEDATA_FULFILLED)
-      .take(fetchJsonSchemaFulfilled)
+      .take(InstanceDataActions.getFulfilled)
+      .take(DataModelActions.fetchJsonSchemaFulfilled)
       .call(fetchFormDataInitialSaga)
       .run();
   });
@@ -360,7 +352,7 @@ describe('fetchFormDataSagas', () => {
         [select(appMetaDataSelector), appMetadata],
         [select(allowAnonymousSelector), false],
       ])
-      .take(fetchJsonSchemaFulfilled)
+      .take(DataModelActions.fetchJsonSchemaFulfilled)
       .call(fetchFormDataInitialSaga)
       .run();
   });

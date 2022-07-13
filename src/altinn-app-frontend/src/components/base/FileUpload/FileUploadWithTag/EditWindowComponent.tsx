@@ -5,11 +5,12 @@ import { AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import type { IAttachment } from '../../../../shared/resources/attachments';
 import type { IOption } from 'src/types';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import AttachmentDispatcher from 'src/shared/resources/attachments/attachmentActions';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { renderValidationMessages } from 'src/utils/render';
 import { FileName } from '../shared/render';
 import classNames from 'classnames';
 import type { IComponentProps } from 'src/components';
+import { useAppDispatch } from 'src/common/hooks';
 
 const useStyles = makeStyles({
   textContainer: {
@@ -56,14 +57,17 @@ export interface EditWindowProps extends IComponentProps {
 }
 
 export function EditWindowComponent(props: EditWindowProps): JSX.Element {
+  const dispatch = useAppDispatch();
   const classes = useStyles();
 
   const handleDeleteFile = () => {
-    AttachmentDispatcher.deleteAttachment(
-      props.attachment,
-      props.id,
-      props.id,
-      props.dataModelBindings,
+    dispatch(
+      AttachmentActions.deleteAttachment({
+        attachment: props.attachment,
+        componentId: props.id,
+        attachmentType: props.baseComponentId || props.id,
+        dataModelBindings: props.dataModelBindings,
+      }),
     );
     props.setEditIndex(-1);
   };

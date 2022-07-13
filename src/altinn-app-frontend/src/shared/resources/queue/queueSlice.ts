@@ -119,4 +119,4 @@ export const {
   startInitialStatelessQueueFulfilled,
 } = queueSlice.actions;
 
-export default queueSlice.reducer;
+export default queueSlice;

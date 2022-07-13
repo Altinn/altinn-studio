@@ -1,35 +1,9 @@
-import type { Action } from 'redux';
 import type { IAttachments } from '..';
-import * as ActionTypes from '../attachmentActionTypes';
 
-export interface IMapAttachmentsActionFulfilled extends Action {
+export interface IMapAttachmentsActionFulfilled {
   attachments: IAttachments;
 }
 
-export interface IMapAttachmentsActionRejected extends Action {
+export interface IMapAttachmentsActionRejected {
   error: Error;
-}
-
-export function mapAttachments(): Action {
-  return {
-    type: ActionTypes.MAP_ATTACHMENTS,
-  };
-}
-
-export function mapAttachmentsFulfilled(
-  attachments: IAttachments,
-): IMapAttachmentsActionFulfilled {
-  return {
-    type: ActionTypes.MAP_ATTACHMENTS_FULFILLED,
-    attachments,
-  };
-}
-
-export function mapAttachmentsRejected(
-  error: Error,
-): IMapAttachmentsActionRejected {
-  return {
-    type: ActionTypes.MAP_ATTACHMENTS_REJECTED,
-    error,
-  };
 }

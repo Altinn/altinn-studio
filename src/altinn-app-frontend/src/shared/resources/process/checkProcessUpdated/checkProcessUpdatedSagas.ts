@@ -1,13 +1,12 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, delay, takeLatest, select } from 'redux-saga/effects';
+import { call, delay, takeLatest, select, put } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
 import type { IProcess } from 'altinn-shared/types';
 import type { IRuntimeState } from '../../../../types';
 import { ProcessTaskType } from '../../../../types';
 import { getProcessStateUrl } from '../../../../utils/appUrlHelper';
-import * as ProcessStateActionTypes from '../processActionTypes';
-import ProcessDispatcher from '../processDispatcher';
-import type { IProcessState } from '../processReducer';
+import type { IProcessState } from '../';
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
 
 const processSelector = (state: IRuntimeState): IProcessState => state.process;
 
@@ -51,19 +50,17 @@ export function* getUpdatedProcess(): SagaIterator {
 export function* checkProcessUpdated(): SagaIterator {
   try {
     const process = yield call(getUpdatedProcess);
-    yield call(
-      ProcessDispatcher.getProcessStateFulfilled,
-      process.state,
-      process.taskId,
+    yield put(
+      ProcessActions.getFulfilled({
+        processStep: process.state,
+        taskId: process.taskId,
+      }),
     );
-  } catch (err) {
-    yield call(ProcessDispatcher.getProcessStateRejected, err);
+  } catch (error) {
+    yield put(ProcessActions.getRejected({ error }));
   }
 }
 
 export function* watchCheckProcessUpdatedSaga(): SagaIterator {
-  yield takeLatest(
-    ProcessStateActionTypes.CHECK_PROCESS_UPDATED,
-    checkProcessUpdated,
-  );
+  yield takeLatest(ProcessActions.checkIfUpdated, checkProcessUpdated);
 }

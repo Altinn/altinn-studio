@@ -1,6 +1,6 @@
 import type { IDataSources } from 'altinn-shared/types';
 import { replaceTextResourceParams } from 'altinn-shared/utils';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type {
   IMapping,
   IOption,

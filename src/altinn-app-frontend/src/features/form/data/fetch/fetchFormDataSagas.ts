@@ -10,21 +10,19 @@ import {
 } from 'src/utils/appMetadata';
 import { putWithoutConfig } from 'src/utils/networking';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
-import FormDataActions from '../formDataActions';
+import { FormDataActions } from '../formDataSlice';
 import type { ILayoutSets, IRuntimeState } from '../../../../types';
 import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import FormRulesActions from '../../rules/rulesActions';
-import FormDynamicsActions from '../../dynamics/formDynamicsActions';
+import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
-import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
-import type { IProcessState } from '../../../../shared/resources/process/processReducer';
+import type { IProcessState } from '../../../../shared/resources/process';
 import {
   getFetchFormDataUrl,
   getStatelessFormDataUrl,
   invalidateCookieUrl,
   redirectToUpgrade,
 } from '../../../../utils/appUrlHelper';
-import { fetchJsonSchemaFulfilled } from '../../datamodel/datamodelSlice';
+import { DataModelActions } from '../../datamodel/datamodelSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import {
   appMetaDataSelector,
@@ -33,6 +31,8 @@ import {
   currentSelectedPartyIdSelector,
   layoutSetsSelector,
 } from 'src/selectors/simpleSelectors';
+import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
@@ -52,14 +52,14 @@ export function* fetchFormDataSaga(): SagaIterator {
       getFetchFormDataUrl(instance.id, currentTaskDataElementId),
     );
     const formData = convertModelToDataBinding(fetchedData);
-    yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
+    yield put(FormDataActions.fetchFulfilled({ formData }));
   } catch (error) {
-    yield put(FormDataActions.fetchFormDataRejected({ error }));
+    yield put(FormDataActions.fetchRejected({ error }));
   }
 }
 
 export function* watchFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActions.fetchFormData, fetchFormDataSaga);
+  yield takeLatest(FormDataActions.fetch, fetchFormDataSaga);
 }
 
 export function* fetchFormDataInitialSaga(): SagaIterator {
@@ -87,12 +87,12 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
     }
 
     const formData = convertModelToDataBinding(fetchedData);
-    yield put(FormDataActions.fetchFormDataFulfilled({ formData }));
-    yield call(FormRulesActions.fetchRuleModel);
-    yield call(FormDynamicsActions.fetchFormDynamics);
+    yield put(FormDataActions.fetchFulfilled({ formData }));
+    yield put(FormRulesActions.fetch());
+    yield put(FormDynamicsActions.fetch());
   } catch (error) {
-    yield put(FormDataActions.fetchFormDataRejected({ error }));
-    yield call(dataTaskQueueError, error);
+    yield put(FormDataActions.fetchRejected({ error }));
+    yield put(dataTaskQueueError({ error }));
   }
 }
 
@@ -151,12 +151,12 @@ function* waitFor(selector) {
 
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
-    yield take(FormDataActions.fetchFormDataInitial);
+    yield take(FormDataActions.fetchInitial);
     const processState: IProcessState = yield select(processStateSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const application: IApplicationMetadata = yield select(appMetaDataSelector);
     if (isStatelessApp(application)) {
-      yield take(fetchJsonSchemaFulfilled);
+      yield take(DataModelActions.fetchJsonSchemaFulfilled);
       const allowAnonymous = yield select(allowAnonymousSelector);
       if (!allowAnonymous) {
         call(
@@ -171,8 +171,8 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       processState.taskId !== instance.process.currentTask.elementId
     ) {
       yield all([
-        take(GET_INSTANCEDATA_FULFILLED),
-        take(fetchJsonSchemaFulfilled),
+        take(InstanceDataActions.getFulfilled),
+        take(DataModelActions.fetchJsonSchemaFulfilled),
       ]);
     }
     yield call(fetchFormDataInitialSaga);

@@ -60,7 +60,7 @@ import type {
 import type { ILanguage } from 'altinn-shared/types';
 import { AsciiUnitSeparator } from './attachment';
 import type { ReactNode } from 'react';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;

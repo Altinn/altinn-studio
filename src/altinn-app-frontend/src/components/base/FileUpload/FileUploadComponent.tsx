@@ -6,12 +6,12 @@ import { AltinnLoader } from 'altinn-shared/components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import type { IAttachment } from 'src/shared/resources/attachments';
-import AttachmentDispatcher from '../../../shared/resources/attachments/attachmentActions';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import './FileUploadComponent.css';
 import type { IComponentValidations } from 'src/types';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { v4 as uuidv4 } from 'uuid';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { AttachmentsCounter, FileName } from './shared/render';
 import { DropzoneComponent } from './shared/DropzoneComponent';
 import type { IFileUploadGenericProps } from './shared/props';
@@ -38,6 +38,7 @@ export function FileUploadComponent({
   textResourceBindings,
   dataModelBindings,
 }: IFileUploadProps) {
+  const dispatch = useAppDispatch();
   const [validations, setValidations] = React.useState([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
@@ -97,13 +98,15 @@ export function FileUploadComponent({
             deleting: false,
             updating: false,
           });
-          AttachmentDispatcher.uploadAttachment(
-            file,
-            fileType,
-            tmpId,
-            id,
-            dataModelBindings,
-            attachments.length + index,
+          dispatch(
+            AttachmentActions.uploadAttachment({
+              file,
+              attachmentType: fileType,
+              tmpAttachmentId: tmpId,
+              componentId: id,
+              dataModelBindings,
+              index: attachments.length + index,
+            }),
           );
         }
       });
@@ -150,12 +153,13 @@ export function FileUploadComponent({
 
   const handleDeleteFile = (index: number) => {
     const attachmentToDelete = attachments[index];
-    const fileType = baseComponentId || id;
-    AttachmentDispatcher.deleteAttachment(
-      attachmentToDelete,
-      fileType,
-      id,
-      dataModelBindings,
+    dispatch(
+      AttachmentActions.deleteAttachment({
+        attachment: attachmentToDelete,
+        attachmentType: baseComponentId || id,
+        componentId: id,
+        dataModelBindings,
+      }),
     );
   };
 

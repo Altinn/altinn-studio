@@ -34,7 +34,7 @@ const formLayoutSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchLayoutFulfilled: (
+    fetchFulfilled: (
       state,
       action: PayloadAction<LayoutTypes.IFetchLayoutFulfilled>,
     ) => {
@@ -45,28 +45,28 @@ const formLayoutSlice = createSlice({
       state.error = null;
       state.uiConfig.repeatingGroups = {};
     },
-    fetchLayoutRejected: (
+    fetchRejected: (
       state,
       action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchLayoutSetsFulfilled: (
+    fetchSetsFulfilled: (
       state,
       action: PayloadAction<LayoutTypes.IFetchLayoutSetsFulfilled>,
     ) => {
       const { layoutSets } = action.payload;
       state.layoutsets = layoutSets;
     },
-    fetchLayoutSetsRejected: (
+    fetchSetsRejected: (
       state,
       action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>,
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchLayoutSettingsFulfilled: (
+    fetchSettingsFulfilled: (
       state,
       action: PayloadAction<LayoutTypes.IFetchLayoutSettingsFulfilled>,
     ) => {
@@ -99,7 +99,7 @@ const formLayoutSlice = createSlice({
         }
       }
     },
-    fetchLayoutSettingsRejected: (
+    fetchSettingsRejected: (
       state,
       action: PayloadAction<LayoutTypes.IFormLayoutActionRejected>,
     ) => {
@@ -278,9 +278,9 @@ const actions = {
     createAction<LayoutTypes.ICalculatePageOrderAndMoveToNextPage>(
       `${moduleName}/calculatePageOrderAndMoveToNextPage`,
     ),
-  fetchLayout: createAction(`${moduleName}/fetchLayout`),
-  fetchLayoutSets: createAction(`${moduleName}/fetchLayoutSets`),
-  fetchLayoutSettings: createAction(`${moduleName}/fetchLayoutSettings`),
+  fetch: createAction(`${moduleName}/fetch`),
+  fetchSets: createAction(`${moduleName}/fetchSets`),
+  fetchSettings: createAction(`${moduleName}/fetchSettings`),
   updateCurrentView: createAction<LayoutTypes.IUpdateCurrentView>(
     `${moduleName}/updateCurrentView`,
   ),
@@ -307,4 +307,4 @@ export const FormLayoutActions = {
   ...formLayoutSlice.actions,
 };
 
-export default formLayoutSlice.reducer;
+export default formLayoutSlice;

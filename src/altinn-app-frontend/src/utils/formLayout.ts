@@ -1,6 +1,6 @@
 import type { ITextResource } from 'altinn-shared/types';
 import type { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
-import type { IAttachmentState } from 'src/shared/resources/attachments/attachmentReducer';
+import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IRepeatingGroups,
   ILayoutNavigation,

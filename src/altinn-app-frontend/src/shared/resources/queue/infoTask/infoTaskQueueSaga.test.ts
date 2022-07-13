@@ -13,8 +13,8 @@ import {
   startDataTaskIsLoading,
 } from '../../isLoading/isLoadingSlice';
 import { startInitialInfoTaskQueueFulfilled } from '../queueSlice';
-import FormDataActions from '../../../../features/form/data/formDataActions';
-import TextResourcesActions from '../../textResources/textResourcesActions';
+import { FormDataActions } from '../../../../features/form/data/formDataSlice';
+import { TextResourcesActions } from '../../textResources/textResourcesSlice';
 import {
   startInitialInfoTaskQueueSaga,
   ApplicationMetadataSelector,
@@ -82,8 +82,8 @@ describe('infoTaskQueueSaga', () => {
       ])
       .put(startDataTaskIsLoading())
       .put(startInitialInfoTaskQueueFulfilled())
-      .put(FormDataActions.fetchFormDataFulfilled({ formData: {} }))
-      .call(TextResourcesActions.replaceTextResources)
+      .put(FormDataActions.fetchFulfilled({ formData: {} }))
+      .put(TextResourcesActions.replace())
       .put(finishDataTaskIsLoading())
       .run();
   });

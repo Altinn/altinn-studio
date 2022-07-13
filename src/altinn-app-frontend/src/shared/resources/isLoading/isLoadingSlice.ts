@@ -10,10 +10,8 @@ export const initialState: IIsLoadingState = {
   stateless: null,
 };
 
-const moduleName = 'isLoading';
-
 const isLoadingSlice = createSlice({
-  name: moduleName,
+  name: 'isLoading',
   initialState,
   reducers: {
     startDataTaskIsLoading: (state: IIsLoadingState) => {
@@ -38,4 +36,4 @@ export const {
   finishStatelessIsLoading,
 } = isLoadingSlice.actions;
 
-export default isLoadingSlice.reducer;
+export default isLoadingSlice;

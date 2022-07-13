@@ -4,8 +4,7 @@ import type { IInstance } from 'altinn-shared/types';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import { getFetchFormDynamicsUrl } from 'src/utils/appUrlHelper';
 import { get } from '../../../../utils/networking';
-import FormDynamicsActions from '../formDynamicsActions';
-import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
+import { FormDynamicsActions } from '../formDynamicsSlice';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import type { IRuntimeState, ILayoutSets } from '../../../../types';
 import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
@@ -32,21 +31,19 @@ function* fetchDynamicsSaga(): SagaIterator {
 
     const result: any = yield call(get, url);
     const data = result ? result.data : {};
-    yield call(
-      FormDynamicsActions.fetchFormDynamicsFulfilled,
-      data.APIs,
-      data.ruleConnection,
-      data.conditionalRendering,
+    yield put(
+      FormDynamicsActions.fetchFulfilled({
+        apis: data.APIs,
+        ruleConnection: data.ruleConnection,
+        conditionalRendering: data.conditionalRendering,
+      }),
     );
   } catch (error) {
-    yield call(FormDynamicsActions.fetchFormDynamicsRejected, error);
+    yield put(FormDynamicsActions.fetchRejected({ error }));
     yield put(dataTaskQueueError({ error }));
   }
 }
 
 export function* watchFetchDynamics(): SagaIterator {
-  yield takeLatest(
-    FormDynamicsActionTypes.FETCH_SERVICE_CONFIG,
-    fetchDynamicsSaga,
-  );
+  yield takeLatest(FormDynamicsActions.fetch, fetchDynamicsSaga);
 }

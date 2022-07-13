@@ -5,6 +5,7 @@ import { mockMediaQuery, renderWithProviders } from '../../../testUtils';
 import { NavigationBar } from './NavigationBar';
 import type { INavigationBar } from './NavigationBar';
 import { setupStore } from 'src/store';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 
 const { setScreenWidth } = mockMediaQuery(600);
 
@@ -140,7 +141,7 @@ describe('NavigationBar', () => {
           newView: 'page3',
           runValidations: null,
         },
-        type: 'formLayout/updateCurrentView',
+        type: FormLayoutActions.updateCurrentView.type,
       });
     });
 
@@ -231,7 +232,7 @@ describe('NavigationBar', () => {
           newView: 'page3',
           runValidations: null,
         },
-        type: 'formLayout/updateCurrentView',
+        type: FormLayoutActions.updateCurrentView.type,
       });
     });
 

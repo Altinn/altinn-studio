@@ -10,12 +10,12 @@ import {
 } from './mapAttachmentsSagas';
 import { selectFormLayouts } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { getInitialStateMock } from '../../../../../__mocks__/mocks';
-import AttachmentDispatcher from 'src/shared/resources/attachments/attachmentActions';
 import type {
   IAttachments,
   IAttachment,
 } from 'src/shared/resources/attachments';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 
 describe('mapAttachments', () => {
   const defaultAttachmentProps = {
@@ -143,7 +143,7 @@ describe('mapAttachments', () => {
         [select(SelectFormData), SelectFormData(state)],
         [select(SelectFormLayouts), selectFormLayouts(state)],
       ])
-      .call(AttachmentDispatcher.mapAttachmentsFulfilled, expected)
+      .put(AttachmentActions.mapAttachmentsFulfilled({ attachments: expected }))
       .run();
   });
 });

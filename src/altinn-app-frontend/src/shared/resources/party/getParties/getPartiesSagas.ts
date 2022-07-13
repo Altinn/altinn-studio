@@ -7,33 +7,32 @@ import {
   currentPartyUrl,
   validPartiesUrl,
 } from '../../../../utils/appUrlHelper';
-import PartyActions from '../partyActions';
-import * as GetPartyActionTypes from './getPartiesActionTypes';
 import { userTaskQueueError } from '../../queue/queueSlice';
+import { PartyActions } from 'src/shared/resources/party/partySlice';
 
 const PartiesSelector = (state: IRuntimeState) => state.party.parties;
 
 function* getPartiesSaga(): SagaIterator {
   try {
-    const validParties: IParty[] = yield call(get, validPartiesUrl);
-    yield call(PartyActions.getPartiesFulfilled, validParties);
-  } catch (err) {
-    yield call(PartyActions.getPartiesRejected, err);
+    const parties: IParty[] = yield call(get, validPartiesUrl);
+    yield put(PartyActions.getPartiesFulfilled({ parties }));
+  } catch (error) {
+    yield put(PartyActions.getPartiesRejected({ error }));
   }
 }
 
 export function* watchGetPartiesSaga(): SagaIterator {
-  yield takeLatest(GetPartyActionTypes.GET_PARTIES, getPartiesSaga);
+  yield takeLatest(PartyActions.getParties, getPartiesSaga);
 }
 
 function* getCurrentPartySaga(): SagaIterator {
   try {
     const currentParty: IParty = yield call(get, currentPartyUrl);
-    yield call(PartyActions.selectPartyFulfilled, currentParty);
+    yield put(PartyActions.selectPartyFulfilled({ party: currentParty }));
     const parties: IParty[] = yield select(PartiesSelector);
 
     if (!parties || parties.length === 0) {
-      yield call(PartyActions.getPartiesFulfilled, [currentParty]);
+      yield put(PartyActions.getPartiesFulfilled({ parties: [currentParty] }));
     }
   } catch (error) {
     yield put(userTaskQueueError({ error }));
@@ -41,5 +40,5 @@ function* getCurrentPartySaga(): SagaIterator {
 }
 
 export function* watchGetCurrentPartySaga(): SagaIterator {
-  yield takeLatest(GetPartyActionTypes.GET_CURRENT_PARTY, getCurrentPartySaga);
+  yield takeLatest(PartyActions.getCurrentParty, getCurrentPartySaga);
 }

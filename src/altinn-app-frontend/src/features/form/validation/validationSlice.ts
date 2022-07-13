@@ -41,7 +41,7 @@ export const initialState: IValidationState = {
   currentSingleFieldValidation: {},
 };
 
-const moduleName = 'validation';
+const moduleName = 'formValidations';
 
 const validationSlice = createSlice({
   name: moduleName,
@@ -96,16 +96,15 @@ const validationSlice = createSlice({
   },
 });
 
-export const runSingleFieldValidation = createAction(
-  `${moduleName}/runSingleFieldValidation`,
-);
+const actions = {
+  runSingleFieldValidation: createAction(
+    `${moduleName}/runSingleFieldValidation`,
+  ),
+};
 
-export const {
-  runSingleFieldValidationFulfilled,
-  runSingleFieldValidationRejected,
-  setCurrentSingleFieldValidation,
-  updateComponentValidations,
-  updateValidations,
-} = validationSlice.actions;
+export const ValidationActions = {
+  ...validationSlice.actions,
+  ...actions,
+};
 
-export default validationSlice.reducer;
+export default validationSlice;

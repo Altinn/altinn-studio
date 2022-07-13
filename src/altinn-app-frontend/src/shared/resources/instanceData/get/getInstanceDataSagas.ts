@@ -1,23 +1,22 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest, put } from 'redux-saga/effects';
 import { get, putWithoutConfig } from '../../../../utils/networking';
 import {
   instancesControllerUrl,
   redirectToUpgrade,
   invalidateCookieUrl,
 } from '../../../../utils/appUrlHelper';
-import InstanceDataActions from '../instanceDataActions';
-import type * as getInstanceDataActions from './getInstanceDataActions';
-import * as InstanceDataActionTypes from './getInstanceDataActionTypes';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { IGetInstanceData } from 'src/shared/resources/instanceData';
 
 export function* getInstanceDataSaga({
-  instanceOwner,
-  instanceId,
-}: getInstanceDataActions.IGetInstanceData): SagaIterator {
+  payload: { instanceOwner, instanceId },
+}: PayloadAction<IGetInstanceData>): SagaIterator {
   try {
     const url = `${instancesControllerUrl}/${instanceOwner}/${instanceId}`;
     const result = yield call(get, url);
-    yield call(InstanceDataActions.getInstanceDataFulfilled, result);
+    yield put(InstanceDataActions.getFulfilled({ instanceData: result }));
   } catch (error) {
     if (
       error.response &&
@@ -30,14 +29,11 @@ export function* getInstanceDataSaga({
         yield call(redirectToUpgrade, reqAuthLevel);
       }
     } else {
-      yield call(InstanceDataActions.getInstanceDataRejected, error);
+      yield put(InstanceDataActions.getRejected({ error }));
     }
   }
 }
 
 export function* watchGetInstanceDataSaga(): SagaIterator {
-  yield takeLatest(
-    InstanceDataActionTypes.GET_INSTANCEDATA,
-    getInstanceDataSaga,
-  );
+  yield takeLatest(InstanceDataActions.get, getInstanceDataSaga);
 }

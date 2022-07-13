@@ -1,5 +1,5 @@
 import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type { IMapping } from 'src/types';
 
 import {

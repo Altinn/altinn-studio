@@ -1,3 +1,8 @@
+export interface IAttachmentState {
+  attachments: IAttachments;
+  error?: Error;
+}
+
 export interface IAttachment {
   uploaded: boolean;
   updating: boolean;

@@ -70,4 +70,4 @@ export const LanguageActions = {
   ...languageSlice.actions,
 };
 
-export default languageSlice.reducer;
+export default languageSlice;

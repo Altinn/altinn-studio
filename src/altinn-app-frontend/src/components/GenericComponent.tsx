@@ -15,8 +15,8 @@ import type {
   ITextResourceBindings,
 } from '../features/form/layout';
 import { getTextResourceByKey } from 'altinn-shared/utils';
-import FormDataActions from '../features/form/data/formDataActions';
-import { setCurrentSingleFieldValidation } from '../features/form/validation/validationSlice';
+import { FormDataActions } from '../features/form/data/formDataSlice';
+import { ValidationActions } from '../features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
@@ -179,7 +179,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     const dataModelBinding = props.dataModelBindings[key];
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
       dispatch(
-        setCurrentSingleFieldValidation({
+        ValidationActions.setCurrentSingleFieldValidation({
           dataModelBinding,
           componentId: props.id,
           layoutId: currentView,
@@ -188,7 +188,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
 
     dispatch(
-      FormDataActions.updateFormData({
+      FormDataActions.update({
         field: dataModelBinding,
         data: value,
         componentId: props.id,

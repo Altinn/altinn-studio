@@ -34,6 +34,6 @@ export async function put(
   return response.data;
 }
 
-export function checkIfAxiosError(error: Error): boolean {
-  return (error as AxiosError).config !== undefined;
+export function isAxiosError(error: any): error is AxiosError {
+  return error && (error as AxiosError).config !== undefined;
 }

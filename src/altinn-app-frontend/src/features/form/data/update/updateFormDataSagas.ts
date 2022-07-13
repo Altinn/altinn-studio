@@ -17,9 +17,9 @@ import {
   getValidator,
   validateComponentFormData,
 } from '../../../../utils/validation';
-import FormDynamicActions from '../../dynamics/formDynamicsActions';
-import { updateComponentValidations } from '../../validation/validationSlice';
-import FormDataActions from '../formDataActions';
+import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
+import { ValidationActions } from '../../validation/validationSlice';
+import { FormDataActions } from '../formDataSlice';
 import type {
   IUpdateFormData,
   IDeleteAttachmentReference,
@@ -27,7 +27,7 @@ import type {
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type { ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 
@@ -58,7 +58,7 @@ function* updateFormDataSaga({
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
       yield put(
-        FormDataActions.updateFormDataFulfilled({
+        FormDataActions.updateFulfilled({
           field,
           data,
           skipValidation,
@@ -69,7 +69,7 @@ function* updateFormDataSaga({
     }
 
     if (state.formDynamics.conditionalRendering) {
-      yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
+      yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
     }
 
     if (focus && focus !== '' && componentId !== focus) {
@@ -77,7 +77,7 @@ function* updateFormDataSaga({
     }
   } catch (error) {
     console.error(error);
-    yield put(FormDataActions.updateFormDataRejected({ error }));
+    yield put(FormDataActions.updateRejected({ error }));
   }
 }
 
@@ -90,7 +90,7 @@ function* runValidations(
 ) {
   if (!componentId) {
     yield put(
-      FormDataActions.updateFormDataRejected({
+      FormDataActions.updateRejected({
         error: new Error('Missing component ID!'),
       }),
     );
@@ -138,7 +138,7 @@ function* runValidations(
   }
 
   yield put(
-    updateComponentValidations({
+    ValidationActions.updateComponentValidations({
       componentId,
       layoutId,
       validations: componentValidations,
@@ -160,7 +160,7 @@ function shouldUpdateFormData(currentData: any, newData: any): boolean {
 }
 
 export function* watchUpdateFormDataSaga(): SagaIterator {
-  const requestChan = yield actionChannel(FormDataActions.updateFormData);
+  const requestChan = yield actionChannel(FormDataActions.update);
   while (true) {
     const value = yield take(requestChan);
     yield call(updateFormDataSaga, value);
@@ -193,10 +193,8 @@ export function* deleteAttachmentReferenceSaga({
       componentId,
     );
 
-    yield put(
-      FormDataActions.setFormDataFulfilled({ formData: updatedFormData }),
-    );
-    yield put(FormDataActions.saveFormData());
+    yield put(FormDataActions.setFulfilled({ formData: updatedFormData }));
+    yield put(FormDataActions.save());
   } catch (err) {
     console.error(err);
   }

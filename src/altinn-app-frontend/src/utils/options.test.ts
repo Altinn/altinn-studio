@@ -1,5 +1,5 @@
 import type { IDataSources, ITextResource } from 'altinn-shared/types';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type { IOptionSource, IRepeatingGroups } from 'src/types';
 import { getOptionLookupKey, setupSourceOptions } from './options';
 

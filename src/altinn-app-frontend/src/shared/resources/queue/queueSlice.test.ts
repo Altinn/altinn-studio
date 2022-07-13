@@ -1,5 +1,5 @@
 import type { IQueueState } from './queueSlice';
-import reducer, {
+import slice, {
   initialState,
   startInitialAppTaskQueue,
   startInitialAppTaskQueueFulfilled,
@@ -20,30 +20,30 @@ describe('queueSlice', () => {
   });
 
   it('handles startInitialAppTaskQueue action', () => {
-    let nextState = reducer(state, startInitialAppTaskQueue);
+    let nextState = slice.reducer(state, startInitialAppTaskQueue);
     expect(nextState.appTask.isDone).toBeFalsy();
-    nextState = reducer(nextState, startInitialAppTaskQueueFulfilled);
+    nextState = slice.reducer(nextState, startInitialAppTaskQueueFulfilled);
     expect(nextState.appTask.isDone).toBeTruthy();
     expect(nextState.appTask.error).toBeNull();
   });
 
   it('handles startInitialDataTaskQueue action', () => {
-    let nextState = reducer(state, startInitialDataTaskQueue);
+    let nextState = slice.reducer(state, startInitialDataTaskQueue);
     expect(nextState.dataTask.isDone).toBeFalsy();
-    nextState = reducer(nextState, startInitialDataTaskQueueFulfilled);
+    nextState = slice.reducer(nextState, startInitialDataTaskQueueFulfilled);
     expect(nextState.dataTask.isDone).toBeTruthy();
   });
 
   it('handles startInitialInfoTaskQueue action', () => {
-    let nextState = reducer(state, startInitialInfoTaskQueue);
+    let nextState = slice.reducer(state, startInitialInfoTaskQueue);
     expect(nextState.infoTask.isDone).toBeFalsy();
-    nextState = reducer(nextState, startInitialInfoTaskQueueFulfilled);
+    nextState = slice.reducer(nextState, startInitialInfoTaskQueueFulfilled);
     expect(nextState.infoTask.isDone).toBeTruthy();
   });
 
   it('handles error on app task queue', () => {
     const errorMessage = 'app task queue error';
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       appTaskQueueError({ error: new Error(errorMessage) }),
     );
@@ -53,7 +53,7 @@ describe('queueSlice', () => {
 
   it('handles error on data task queue', () => {
     const errorMessage = 'data task queue error';
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       dataTaskQueueError({ error: new Error(errorMessage) }),
     );
@@ -63,7 +63,7 @@ describe('queueSlice', () => {
 
   it('handles error on info task queue', () => {
     const errorMessage = 'info task queue error';
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       infoTaskQueueError({ error: new Error(errorMessage) }),
     );
@@ -73,7 +73,7 @@ describe('queueSlice', () => {
 
   it('handles error on user task queue', () => {
     const errorMessage = 'user task queue error';
-    const nextState = reducer(
+    const nextState = slice.reducer(
       state,
       userTaskQueueError({ error: new Error(errorMessage) }),
     );

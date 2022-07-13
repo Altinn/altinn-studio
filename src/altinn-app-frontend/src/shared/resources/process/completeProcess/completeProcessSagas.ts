@@ -5,11 +5,10 @@ import type { IProcess } from 'altinn-shared/types';
 import type { IRuntimeState } from '../../../../types';
 import { ProcessTaskType } from '../../../../types';
 import { getCompleteProcessUrl } from '../../../../utils/appUrlHelper';
-import * as ProcessStateActionTypes from '../processActionTypes';
-import ProcessDispatcher from '../processDispatcher';
-import InstanceDataActions from '../../instanceData/instanceDataActions';
-import type { IInstanceDataState } from '../../instanceData/instanceDataReducers';
 import { startDataTaskIsLoading } from '../../isLoading/isLoadingSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData';
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
@@ -20,16 +19,18 @@ export function* completeProcessSaga(): SagaIterator {
       throw new Error('Error: no process returned.');
     }
     if (result.ended) {
-      yield call(
-        ProcessDispatcher.completeProcessFulfilled,
-        ProcessTaskType.Archived,
-        null,
+      yield sagaPut(
+        ProcessActions.completeFulfilled({
+          processStep: ProcessTaskType.Archived,
+          taskId: null,
+        }),
       );
     } else {
-      yield call(
-        ProcessDispatcher.completeProcessFulfilled,
-        result.currentTask.altinnTaskType as ProcessTaskType,
-        result.currentTask.elementId,
+      yield sagaPut(
+        ProcessActions.completeFulfilled({
+          processStep: result.currentTask.altinnTaskType as ProcessTaskType,
+          taskId: result.currentTask.elementId,
+        }),
       );
       if (
         (result.currentTask.altinnTaskType as ProcessTaskType) ===
@@ -40,21 +41,14 @@ export function* completeProcessSaga(): SagaIterator {
           instanceDataSelector,
         );
         const [instanceOwner, instanceId] = instanceData.instance.id.split('/');
-        yield call(
-          InstanceDataActions.getInstanceData,
-          instanceOwner,
-          instanceId,
-        );
+        yield sagaPut(InstanceDataActions.get({ instanceOwner, instanceId }));
       }
     }
-  } catch (err) {
-    yield call(ProcessDispatcher.completeProcessRejected, err);
+  } catch (error) {
+    yield sagaPut(ProcessActions.completeRejected({ error }));
   }
 }
 
 export function* watchCompleteProcessSaga(): SagaIterator {
-  yield takeLatest(
-    ProcessStateActionTypes.COMPLETE_PROCESS,
-    completeProcessSaga,
-  );
+  yield takeLatest(ProcessActions.complete, completeProcessSaga);
 }

@@ -12,7 +12,7 @@ import type {
   IFormFileUploaderComponent,
 } from 'src/types';
 import { getParentGroup } from './validation';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type {
   IAttachment,
   IAttachments,

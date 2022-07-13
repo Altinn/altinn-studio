@@ -1,7 +1,7 @@
 import type { SagaIterator } from '@redux-saga/types';
 import { put, takeLatest } from 'redux-saga/effects';
-import FormDataActions from 'src/features/form/data/formDataActions';
-import { fetchJsonSchema } from 'src/features/form/datamodel/datamodelSlice';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { startStatelessIsLoading } from '../../isLoading/isLoadingSlice';
 import {
@@ -13,11 +13,11 @@ import {
 export function* startInitialStatelessQueueSaga(): SagaIterator {
   try {
     yield put(startStatelessIsLoading());
-    yield put(FormDataActions.fetchFormDataInitial());
-    yield put(fetchJsonSchema());
-    yield put(FormLayoutActions.fetchLayoutSets());
-    yield put(FormLayoutActions.fetchLayout());
-    yield put(FormLayoutActions.fetchLayoutSettings());
+    yield put(FormDataActions.fetchInitial());
+    yield put(DataModelActions.fetchJsonSchema());
+    yield put(FormLayoutActions.fetchSets());
+    yield put(FormLayoutActions.fetch());
+    yield put(FormLayoutActions.fetchSettings());
     yield put(startInitialStatelessQueueFulfilled());
   } catch (error) {
     yield put(statelessQueueError({ error }));

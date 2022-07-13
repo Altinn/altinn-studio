@@ -5,7 +5,7 @@ import {
   getTextResourceByKey,
 } from 'altinn-shared/utils';
 import type React from 'react';
-import type { IFormData } from 'src/features/form/data/formDataReducer';
+import type { IFormData } from 'src/features/form/data';
 import type {
   ILayoutComponent,
   ILayoutGroup,

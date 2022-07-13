@@ -7,18 +7,14 @@ import {
   getCurrentDataTypeForApplication,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
 import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
 import { get } from '../../../../utils/networking';
 import type { ILayoutSets, IRuntimeState } from '../../../../types';
 import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import { GET_INSTANCEDATA_FULFILLED } from '../../../../shared/resources/instanceData/get/getInstanceDataActionTypes';
-import {
-  fetchJsonSchema,
-  fetchJsonSchemaFulfilled,
-  fetchJsonSchemaRejected,
-} from '../datamodelSlice';
+import { DataModelActions } from '../datamodelSlice';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata = (
   state: IRuntimeState,
@@ -43,19 +39,21 @@ function* fetchJsonSchemaSaga(): SagaIterator {
 
     if (dataTypeId) {
       const schema: any = yield call(get, url + dataTypeId);
-      yield put(fetchJsonSchemaFulfilled({ schema, id: dataTypeId }));
+      yield put(
+        DataModelActions.fetchJsonSchemaFulfilled({ schema, id: dataTypeId }),
+      );
     }
   } catch (error) {
-    yield put(fetchJsonSchemaRejected({ error }));
+    yield put(DataModelActions.fetchJsonSchemaRejected({ error }));
     yield put(dataTaskQueueError({ error }));
   }
 }
 
 export function* watchFetchJsonSchemaSaga(): SagaIterator {
   yield all([
-    take(FETCH_APPLICATION_METADATA_FULFILLED),
-    take(FormLayoutActions.fetchLayoutSetsFulfilled),
-    take(fetchJsonSchema),
+    take(ApplicationMetadataActions.getFulfilled),
+    take(FormLayoutActions.fetchSetsFulfilled),
+    take(DataModelActions.fetchJsonSchema),
   ]);
   const application: IApplicationMetadata = yield select(
     (state: IRuntimeState) => state.applicationMetadata.applicationMetadata,
@@ -63,13 +61,16 @@ export function* watchFetchJsonSchemaSaga(): SagaIterator {
   if (isStatelessApp(application)) {
     yield call(fetchJsonSchemaSaga);
     while (true) {
-      yield take(fetchJsonSchema);
+      yield take(DataModelActions.fetchJsonSchema);
       yield call(fetchJsonSchemaSaga);
     }
   } else {
     yield call(fetchJsonSchemaSaga);
     while (true) {
-      yield all([take(GET_INSTANCEDATA_FULFILLED), take(fetchJsonSchema)]);
+      yield all([
+        take(InstanceDataActions.getFulfilled),
+        take(DataModelActions.fetchJsonSchema),
+      ]);
       yield call(fetchJsonSchemaSaga);
     }
   }

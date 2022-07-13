@@ -1,7 +1,7 @@
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
-import { actionChannel, call, select } from 'redux-saga/effects';
+import { actionChannel, call, select, take } from 'redux-saga/effects';
 
-import FormDataActions from 'src/features/form/data/formDataActions';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import * as sharedUtils from 'altinn-shared/utils';
 import {
@@ -21,10 +21,10 @@ import { FormLayoutActions } from '../formLayoutSlice';
 import type { IRuntimeState, IDataModelBindings } from 'src/types';
 import type { IUpdateRepeatingGroups } from 'src/features/form/layout/formLayoutTypes';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import * as AttachmentDeleteActions from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
 import type { IAttachment } from 'src/shared/resources/attachments';
-import { updateValidations } from 'src/features/form/validation/validationSlice';
-import ConditionalRenderingActions from 'src/features/form/dynamics/formDynamicsActions';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 
 jest.mock('altinn-shared/utils');
 
@@ -34,15 +34,15 @@ describe('updateLayoutSagas', () => {
       const saga = testSaga(watchInitRepeatingGroupsSaga);
       saga
         .next()
-        .take(FormLayoutActions.fetchLayoutFulfilled)
+        .take(FormLayoutActions.fetchFulfilled)
         .next()
         .call(initRepeatingGroupsSaga)
         .next()
         .takeLatest(
           [
-            FormDataActions.fetchFormDataFulfilled,
+            FormDataActions.fetchFulfilled,
             FormLayoutActions.initRepeatingGroups,
-            FormLayoutActions.fetchLayoutFulfilled,
+            FormLayoutActions.fetchFulfilled,
           ],
           initRepeatingGroupsSaga,
         )
@@ -97,7 +97,7 @@ describe('updateLayoutSagas', () => {
       };
 
       const action: PayloadAction<IUpdateRepeatingGroups> = {
-        type: 'formLayout/updateRepeatingGroups',
+        type: FormLayoutActions.updateRepeatingGroups.type,
         payload: {
           layoutElementId: 'repeating-group',
           index: 0,
@@ -112,26 +112,24 @@ describe('updateLayoutSagas', () => {
           [select(selectAttachmentState), selectAttachmentState(state)],
           [select(selectValidations), selectValidations(state)],
           [
-            call(ConditionalRenderingActions.checkIfConditionalRulesShouldRun),
-            null,
+            take(AttachmentActions.deleteAttachmentFulfilled),
+            AttachmentActions.deleteAttachmentFulfilled({
+              componentId: 'uploader-0',
+              attachmentType: 'uploader',
+              attachmentId: 'abc123',
+            }),
           ],
         ])
+        .put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}))
         .put(
-          AttachmentDeleteActions.deleteAttachment(
+          AttachmentActions.deleteAttachment({
             attachment,
-            'uploader',
-            'uploader-0',
-            {},
-          ),
+            attachmentType: 'uploader',
+            componentId: 'uploader-0',
+            dataModelBindings: {},
+          }),
         )
-        .dispatch(
-          AttachmentDeleteActions.deleteAttachmentFulfilled(
-            attachment.id,
-            'uploader',
-            'uploader-0',
-          ),
-        )
-        .put(updateValidations({ validations: {} }))
+        .put(ValidationActions.updateValidations({ validations: {} }))
         .put(
           FormLayoutActions.updateRepeatingGroupsFulfilled({
             repeatingGroups: {
@@ -143,10 +141,8 @@ describe('updateLayoutSagas', () => {
             },
           }),
         )
-        .put(
-          FormDataActions.setFormDataFulfilled({ formData: initialFormData }),
-        )
-        .put(FormDataActions.saveFormData())
+        .put(FormDataActions.setFulfilled({ formData: initialFormData }))
+        .put(FormDataActions.save())
         .run();
     });
   });
@@ -188,7 +184,7 @@ describe('updateLayoutSagas', () => {
           [call(updateCurrentViewSaga, mockAction), mockSaga],
         ])
         .dispatch(FormLayoutActions.updateCurrentView)
-        .dispatch(FormDataActions.submitFormDataFulfilled)
+        .dispatch(FormDataActions.submitFulfilled)
         .take(fakeChannel)
         .call(updateCurrentViewSaga, mockAction)
         .run();
@@ -229,7 +225,7 @@ describe('updateLayoutSagas', () => {
           [call(updateCurrentViewSaga, mockAction), mockSaga],
         ])
         .dispatch(FormLayoutActions.updateCurrentView)
-        .not.take(FormDataActions.submitFormDataFulfilled)
+        .not.take(FormDataActions.submitFulfilled)
         .take(fakeChannel)
         .call(updateCurrentViewSaga, mockAction)
         .run();

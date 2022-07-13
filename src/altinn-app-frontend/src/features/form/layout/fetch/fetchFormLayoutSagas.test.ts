@@ -45,7 +45,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         ])
         .put(FormLayoutActions.setCurrentViewCacheKey({ key: instance.id }))
         .put(
-          FormLayoutActions.fetchLayoutFulfilled({
+          FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
           }),
@@ -60,7 +60,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         .run();
     });
 
-    it('should call fetchLayoutRejected when fetching layout fails', () => {
+    it('should call fetchRejected when fetching layout fails', () => {
       jest.spyOn(networking, 'get').mockRejectedValue(new Error('some error'));
 
       return expectSaga(fetchLayoutSaga)
@@ -70,7 +70,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
           [select(applicationMetadataSelector), application],
         ])
         .put(
-          FormLayoutActions.fetchLayoutRejected({
+          FormLayoutActions.fetchRejected({
             error: new Error('some error'),
           }),
         )
@@ -92,7 +92,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         ])
         .put(FormLayoutActions.setCurrentViewCacheKey({ key: instance.id }))
         .put(
-          FormLayoutActions.fetchLayoutFulfilled({
+          FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
             navigationConfig: { page1: undefined, page2: undefined },
           }),
@@ -122,7 +122,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         ])
         .put(FormLayoutActions.setCurrentViewCacheKey({ key: instance.id }))
         .put(
-          FormLayoutActions.fetchLayoutFulfilled({
+          FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
             navigationConfig: { page1: undefined, page2: undefined },
           }),
@@ -147,7 +147,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         ])
         .put(FormLayoutActions.setCurrentViewCacheKey({ key: instance.id }))
         .put(
-          FormLayoutActions.fetchLayoutFulfilled({
+          FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
           }),
@@ -172,7 +172,7 @@ describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
         ])
         .put(FormLayoutActions.setCurrentViewCacheKey({ key: application.id }))
         .put(
-          FormLayoutActions.fetchLayoutFulfilled({
+          FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
           }),

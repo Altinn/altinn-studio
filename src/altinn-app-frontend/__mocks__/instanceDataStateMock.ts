@@ -1,4 +1,4 @@
-import type { IInstanceDataState } from '../src/shared/resources/instanceData/instanceDataReducers';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 
 export function getInstanceDataStateMock(
   customStates?: Partial<IInstanceDataState>,
