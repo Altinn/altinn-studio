@@ -21,5 +21,8 @@ jobs:
       run: docker build src/Altinn.Platform/Altinn.Platform.Authorization --file src/Altinn.Platform/Altinn.Platform.Authorization/Authorization/Dockerfile --tag altinn-authorization:${{github.sha}}
       
     - uses: Azure/container-scan@v0
+      env:
+        # See https://github.com/goodwithtech/dockle/issues/188
+        DOCKLE_HOST: "unix:///var/run/docker.sock"
       with:
         image-name: altinn-authorization:${{ github.sha }}
