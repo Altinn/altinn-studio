@@ -4288,7 +4288,7 @@ __metadata:
     jest: ^28.1.1
     jest-environment-jsdom: ^28.1.1
     jest-junit: ^13.2.0
-    jsonpointer: 5.0.0
+    jsonpointer: 5.0.1
     mini-css-extract-plugin: ^2.6.1
     moment: ^2.29.3
     msw: ^0.42.1
@@ -10365,10 +10365,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonpointer@npm:5.0.0":
-  version: 5.0.0
-  resolution: "jsonpointer@npm:5.0.0"
-  checksum: c7ec0b6bb596b81de687bc12945586bbcdc80dfb54919656d2690d76334f796a936270067ee9f1b5bbc2d9ecc551afb366ac35e6685aa61f07b5b68d1e5e857d
+"jsonpointer@npm:5.0.1":
+  version: 5.0.1
+  resolution: "jsonpointer@npm:5.0.1"
+  checksum: 0b40f712900ad0c846681ea2db23b6684b9d5eedf55807b4708c656f5894b63507d0e28ae10aa1bddbea551241035afe62b6df0800fc94c2e2806a7f3adecd7c
   languageName: node
   linkType: hard
 

@@ -6,8 +6,7 @@ export interface IFormDynamicState {
 }
 
 export interface IRuleConnection {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  inputParams: Object;
+  inputParams: IParameters;
   outParams: {
     outParam0?: string;
   };

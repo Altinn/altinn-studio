@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import type { SagaIterator } from 'redux-saga';
 import { call, select, all, take, put } from 'redux-saga/effects';
 import { getJsonSchemaUrl } from 'src/utils/appUrlHelper';

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 import {

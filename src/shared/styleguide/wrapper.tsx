@@ -1,19 +1,19 @@
-/* eslint-disable react/prop-types */
 import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import * as React from 'react';
+import React from 'react';
 import altinnTheme from '../src/theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
 
-// import injectTapEventPlugin from 'react-tap-event-plugin';
-// injectTapEventPlugin();
-
-export default class Wrapper extends React.Component {
-  public render() {
-    return (
-      <MuiThemeProvider theme={theme}>
-        <div>{this.props.children}</div>
-      </MuiThemeProvider>
-    );
-  }
+interface IWrapperProps {
+  children: React.ReactNode;
 }
+
+const Wrapper = ({ children }: IWrapperProps) => {
+  return (
+    <MuiThemeProvider theme={theme}>
+      <div>{children}</div>
+    </MuiThemeProvider>
+  );
+};
+
+export default Wrapper;

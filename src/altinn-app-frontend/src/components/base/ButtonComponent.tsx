@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import * as React from 'react';
+import React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { AltinnLoader } from 'altinn-shared/components';
 import type { IAltinnWindow } from '../../types';

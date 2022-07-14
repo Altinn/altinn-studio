@@ -53,7 +53,6 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
     });
 
     let formData = {};
-    // eslint-disable-next-line no-restricted-syntax
     for (const dataElementId of dataElements) {
       const fetchedData = yield call(
         get,

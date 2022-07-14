@@ -1,6 +1,3 @@
-/* eslint-disable no-undef */
-/* eslint-disable react/no-array-index-key */
-/* eslint-disable max-len */
 import React from 'react';
 import { Grid, makeStyles, createTheme } from '@material-ui/core';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';

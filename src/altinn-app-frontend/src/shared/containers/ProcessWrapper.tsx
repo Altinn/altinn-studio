@@ -1,9 +1,10 @@
-import * as React from 'react';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 import {
   AltinnContentLoader,
   AltinnContentIconFormData,
 } from 'altinn-shared/components';
-import type { IAltinnWindow } from '../../types';
+import type { IAltinnWindow, IPartyIdInterfaceGuidParams } from '../../types';
 import { ProcessTaskType } from '../../types';
 import Presentation from './Presentation';
 import { Form } from '../../features/form/containers/Form';
@@ -26,14 +27,8 @@ const style = {
   marginTop: '2.5rem',
 };
 
-const ProcessWrapper = (props) => {
-  const {
-    // eslint-disable-next-line react/prop-types
-    match: {
-      // eslint-disable-next-line react/prop-types
-      params: { partyId, instanceGuid },
-    },
-  } = props;
+const ProcessWrapper = () => {
+  const { partyId, instanceGuid }: IPartyIdInterfaceGuidParams = useParams();
 
   const dispatch = useAppDispatch();
 

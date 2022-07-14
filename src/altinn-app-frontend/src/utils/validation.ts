@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable max-len */
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
@@ -39,7 +37,6 @@ import {
   getFormDataFromFieldKey,
   getKeyWithoutIndex,
 } from './databindings';
-// eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent, setupGroupComponents } from './layout';
 import {
   createRepeatingGroupComponents,
@@ -809,8 +806,6 @@ export function getSchemaPart(schemaPath: string, jsonSchema: object): any {
   try {
     // want to transform path example format to to /properties/model/properties/person/properties/name
     const pointer = schemaPath.substr(1).split('/').slice(0, -1).join('/');
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore typings for JsonPointer are incorrect, this ignore can be removed when PR is merged/released https://github.com/janl/node-jsonpointer/pull/54
     return JsonPointer.compile(pointer).get(jsonSchema);
   } catch (error) {
     console.error(error);
@@ -976,7 +971,6 @@ export function mapToComponentValidations(
       ? `${layoutComponent.id}-${index}`
       : layoutComponent.id;
     if (!validations[layoutId]) {
-      // eslint-disable-next-line no-param-reassign
       validations[layoutId] = {};
     }
     if (validations[layoutId][componentId]) {
@@ -992,13 +986,11 @@ export function mapToComponentValidations(
           errorMessage,
         );
       } else {
-        // eslint-disable-next-line no-param-reassign
         validations[layoutId][componentId][dataModelFieldKey] = {
           errors: [errorMessage],
         };
       }
     } else {
-      // eslint-disable-next-line no-param-reassign
       validations[layoutId][componentId] = {
         [dataModelFieldKey]: {
           errors: [errorMessage],
@@ -1742,7 +1734,6 @@ export function removeGroupValidationsByIndex(
         const newKey = `${id}-${i - 1}`;
         delete result[currentLayout][key];
         result[currentLayout][newKey] = validations[currentLayout][key];
-        // eslint-disable-next-line no-loop-func
         children?.forEach((element) => {
           let childKey;
           let shiftKey;

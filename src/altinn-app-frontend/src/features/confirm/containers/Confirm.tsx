@@ -17,7 +17,10 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import type { IAltinnWindow } from '../../../types';
+import type {
+  IAltinnWindow,
+  IPartyIdInterfaceGuidParams,
+} from '../../../types';
 import { get } from '../../../utils/networking';
 import { getValidationUrl } from '../../../utils/appUrlHelper';
 import { ValidationActions } from '../../form/validation/validationSlice';
@@ -83,11 +86,6 @@ export const returnConfirmSummaryObject = ({
   };
 };
 
-interface IParams {
-  partyId: string;
-  instanceGuid: string;
-}
-
 const Confirm = () => {
   const dispatch = useAppDispatch();
   const applicationMetadata = useAppSelector(
@@ -101,7 +99,7 @@ const Confirm = () => {
     (state) => state.textResources.resources,
   );
 
-  const { partyId, instanceGuid }: IParams = useParams();
+  const { partyId, instanceGuid }: IPartyIdInterfaceGuidParams = useParams();
 
   const isLoading = !instance || !parties;
 

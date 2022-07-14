@@ -18,7 +18,6 @@ import {
   watchUpdateFileUploaderWithTagChosenOptionsSaga,
 } from './update/updateFormLayoutSagas';
 
-// eslint-disable-next-line func-names
 export default function* (): SagaIterator {
   yield fork(watchFetchFormLayoutSaga);
   yield fork(watchUpdateFocusSaga);

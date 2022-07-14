@@ -1,5 +1,5 @@
 import { Grid, Typography, makeStyles } from '@material-ui/core';
-import * as React from 'react';
+import React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -8,7 +8,6 @@ import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 export interface IDisplayGroupContainer {
   container: ILayoutGroup;
   components: (ILayoutComponent | ILayoutGroup)[];
-  // eslint-disable-next-line no-undef
   renderLayoutComponent: (
     components: ILayoutComponent | ILayoutGroup,
     layout: ILayout,

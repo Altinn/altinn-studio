@@ -251,14 +251,12 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const RenderDescription = () => {
-    // eslint-disable-next-line react/prop-types
     if (!props.textResourceBindings?.description) {
       return null;
     }
 
     return (
       <Description
-        // eslint-disable-next-line react/prop-types
         key={`description-${props.id}`}
         description={texts.description}
         id={id}
@@ -270,7 +268,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
-        // eslint-disable-next-line react/prop-types
         key={`legend-${props.id}`}
         labelText={texts.title}
         descriptionText={texts.description}

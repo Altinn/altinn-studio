@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { object } from 'dot-object';
 import type {
   ILayout,
@@ -28,11 +27,23 @@ export function convertDataBindingToModel(formData: any): any {
   return object({ ...formData });
 }
 
-export function filterOutInvalidData(data: any, invalidKeys: string[]) {
+export function filterOutInvalidData({
+  data,
+  invalidKeys = [],
+}: {
+  data: IFormData;
+  invalidKeys: string[];
+}) {
+  if (!invalidKeys) {
+    return data;
+  }
+
   const result = {};
   Object.keys(data).forEach((key) => {
-    // eslint-disable-next-line no-prototype-builtins
-    if (data.hasOwnProperty(key) && !invalidKeys.includes(key)) {
+    if (
+      Object.prototype.hasOwnProperty.call(data, key) &&
+      !invalidKeys.includes(key)
+    ) {
       result[key] = data[key];
     }
   });
@@ -228,7 +239,6 @@ export function deleteGroupData(
       ),
     )
     .forEach((key) => {
-      // eslint-disable-next-line no-param-reassign
       delete data[key];
       if (shiftData) {
         const newKey = key.replace(
@@ -237,7 +247,6 @@ export function deleteGroupData(
             ? `${keyStart}[${index - 1}]`
             : `${keyStart}-${index - 1}`,
         );
-        // eslint-disable-next-line no-param-reassign
         data[newKey] = prevData[key];
       }
     });

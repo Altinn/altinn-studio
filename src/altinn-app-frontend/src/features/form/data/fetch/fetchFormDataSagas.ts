@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import type { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest, all, take, put } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
