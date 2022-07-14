@@ -9,8 +9,6 @@ on:
       - 'src/studio/src/designer/**'
   pull_request:
     branches: [ master ]
-    paths:
-      - 'src/studio/src/designer**'
 
 jobs:
   build:
