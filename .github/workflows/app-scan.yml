@@ -21,6 +21,9 @@ jobs:
       run: docker build src/studio/AppTemplates/AspNet/ --file  src/studio/AppTemplates/AspNet/Dockerfile --tag altinn-apps:${{github.sha}}
 
     - uses: Azure/container-scan@v0
+      env:
+        # See https://github.com/goodwithtech/dockle/issues/188
+        DOCKLE_HOST: "unix:///var/run/docker.sock"
       with:
         image-name: altinn-apps:${{ github.sha }}
 
