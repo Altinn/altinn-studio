@@ -58,7 +58,7 @@ RUN yarn --immutable
 COPY src/designer/backend .
 RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0.301-alpine3.16 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.302-alpine3.16 AS build
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
@@ -70,7 +70,7 @@ RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0.6-alpine3.16 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.7-alpine3.16 AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
