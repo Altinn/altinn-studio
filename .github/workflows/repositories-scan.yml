@@ -21,5 +21,8 @@ jobs:
       run: docker build src/studio/src/repositories --file src/studio/src/repositories/Dockerfile --tag altinn-repos:${{github.sha}}
       
     - uses: Azure/container-scan@v0
+      env:
+        # See https://github.com/goodwithtech/dockle/issues/188
+        DOCKLE_HOST: "unix:///var/run/docker.sock"
       with:
         image-name: altinn-repos:${{ github.sha }}
